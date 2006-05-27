@@ -1,0 +1,34 @@
+#!/bin/sh
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+#
+
+TOP_DIR=@abs_top_srcdir@
+
+INITDB=@INITDB@; export INITDB
+CREATEDB=@CREATEDB@; export CREATEDB
+DROPDB=@DROPDB@; export DROPDB
+CREATELANG=@CREATELANG@; export CREATELANG
+PGRESTORE=@PGRESTORE@; export PGRESTORE
+PG_CTL=@PG_CTL@; export PG_CTL
+PSQL=@PSQL@; export PSQL
+VACUUMDB=@VACUUMDB@; export VACUUMDB
+PG_AUTOVACUUM=@PG_AUTOVACUUM@; export PG_AUTOVACUUM
+
+# Our database will be named dbt5
+DBNAME=dbt5; export DBNAME
+
+# Data instance path.  Storage location for this instance of the database
+# should be within the working directory.  If you're going to mount a device,
+# do it at /mnt/postgresql.
+PGDATA=/mnt/postgresql/pgdata; export PGDATA
+
+# Path of database data
+DBDATA=/mnt/data; export DBDATA
+
+# Directory with tablespace mount points, if using tablespaces.
+TSDIR=/mnt/dbt5
