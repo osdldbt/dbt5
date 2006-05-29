@@ -239,7 +239,7 @@ CREATE TABLE customer (
     c_f_name VARCHAR(30) NOT NULL,
     c_m_name char(1),
     c_gndr char(1),
-    c_tier SMALLINT,
+    c_tier SMALLINT NOT NULL,
     c_dob TIMESTAMP NOT NULL,
     c_ad_id IDENT_T,
     c_ctry_1 char(3),
@@ -266,7 +266,7 @@ CREATE TABLE customer_account (
     ca_b_id IDENT_T,
     ca_c_id IDENT_T,
     ca_name VARCHAR(50),
-    ca_tax_st SMALLINT,
+    ca_tax_st SMALLINT NOT NULL,
     ca_bal BALANCE_T)
     ${TS_CUSTOMER_ACCOUNT};
 " || exit 1
@@ -386,6 +386,7 @@ CREATE TABLE trade (
     t_id TRADE_T,
     t_dts TIMESTAMP NOT NULL,
     t_st_id char(4) NOT NULL,
+    t_tt_id char(3) NOT NULL,
     t_is_cash bool NOT NULL,
     t_s_symb char(15) NOT NULL,
     t_qty S_QTY_T CHECK (t_qty > 0),
@@ -395,6 +396,7 @@ CREATE TABLE trade (
     t_trade_price S_PRICE_T,
     t_chrg VALUE_T CHECK (t_chrg >= 0),
     t_comm VALUE_T CHECK (t_comm >= 0),
+    t_tax VALUE_T CHECK (t_tax >= 0),
     t_lifo bool NOT NULL)
     ${TS_TRADE};
 " || exit 1
@@ -573,7 +575,7 @@ CREATE TABLE security (
     s_52wk_high S_PRICE_T,
     s_52wk_high_date TIMESTAMP NOT NULL,
     s_52wk_low S_PRICE_T,
-    s_52k_low_date TIMESTAMP NOT NULL,
+    s_52wk_low_date TIMESTAMP NOT NULL,
     s_dividend VALUE_T,
     s_yield NUMERIC(5,2) NOT NULL)
     ${TS_SECURITY};
