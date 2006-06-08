@@ -1,0 +1,311 @@
+1	AB1	Alberta Income Tax for children	0.0
+1	AB2	Alberta Income Tax for blue collar workers	0.16
+1	AB3	Alberta Income Tax for shcool teachers	0.26
+1	AB4	Alberta Income Tax for white collar workers	0.32
+1	AB5	Alberta Income Tax for doctors and lawyers	0.36
+1	AB6	Alberta Income Tax for inherited wealth	0.39
+2	AK1	Alaska Income Tax for children	0.0
+3	AL1	Alabama Tax for blue collar workers	0.02
+3	AL2	Alabama Tax for school teachers	0.04
+3	AL3	Alabama Tax for inherited wealth	0.05
+4	AR1	Arkansas Tax for children	0.01
+4	AR2	Arkansas Tax for blue collar workers	0.0216
+4	AR3	Arkansas Tax for school teachers	0.0333
+4	AR4	Arkansas Tax for white collar workers	0.045
+4	AR5	Arkansas Tax for doctors and lawyers	0.0567
+4	AR6	Arkansas Tax for inherited wealth	0.07
+5	AZ1	Arizona Income Tax for school teachers	0.0287
+5	AZ2	Arizona Income Tax for blue collar workers	0.0341
+5	AZ3	Arizona Income Tax for the masses	0.04
+5	AZ4	Arizona Income Tax for doctors and lawyers	0.045
+5	AZ5	Arizona Income Tax for inherited wealth	0.0504
+6	BC1	British Columbia Income Tax for children	0.00
+6	BC10	British Columbia Income Tax for inherited wealth	0.45
+6	BC2	British Columbia Income Tax for school teachers	0.16
+6	BC3	British Columbia Income Tax for the elderly	0.233
+6	BC4	British Columbia Income Tax for lawyers	0.265
+6	BC5	British Columbia Income Tax for workers	0.325
+6	BC6	British Columbia Income Tax for the unemployed	0.357
+6	BC7	British Columbia Income Tax for the masses	0.397
+6	BC8	British Columbia Income Tax for everyone else	0.417
+6	BC9	British Columbia Income Tax for those driving SUVs	0.427
+7	CA1	California Tax for children	0.01
+7	CA2	California Tax for school teachers	0.0266
+7	CA3	California Tax for the masses	0.0432
+7	CA4	California Tax for doctors and lawyers	0.0598
+7	CA5	California Tax for blue collar workers	0.0764
+7	CA6	California Tax for inherited wealth	0.093
+8	DC1	District of Columbia Income Tax for teachers	0.05
+9	CO1	Colorado Income Tax for inherited wealth	0.0475
+10	CT1	Connecticut Tax for the masses	0.03
+10	CT2	Connecticut Tax for inherited wealth	0.045
+11	DC2	District of Columbia Income Tax for teachers	0.0725
+11	DC3	District of Columbia Income Tax for workers	0.095
+12	DE1	Delaware Income Tax for blue collar workers	0.022
+12	DE2	Delaware Income Tax for the elderly	0.0283
+12	DE3	Delaware Income Tax for the unemployed	0.0347
+12	DE4	Delaware Income Tax for doctors and lawyers	0.041
+12	DE5	Delaware Income Tax for everyone else	0.0473
+12	DE6	Delaware Income Tax for the masses	0.0537
+12	DE7	Delaware Income Tax for inherited wealth	0.06
+13	FL1	Florida Income Tax for children	0.00
+14	GA1	Georgia Income Tax for children	0.01
+14	GA2	Georgia Income Tax for school teachers	0.02
+14	GA3	Georgia Income Tax for blue collar workers	0.03
+14	GA4	Georgia Income Tax for doctors and lawyers	0.04
+14	GA5	Georgia Income Tax for the elderly	0.05
+14	GA6	Georgia Income Tax for inherited wealth	0.06
+15	HI1	Hawaii Income Tax for school teachers	0.016
+15	HI2	Hawaii Income Tax for blue collar workers	0.0249
+15	HI3	Hawaii Income Tax for the elderly	0.0339
+15	HI4	Hawaii Income Tax for the masses	0.0428
+15	HI5	Hawaii Income Tax for the unemployed	0.0518
+15	HI6	Hawaii Income Tax for doctors and lawyers	0.0607
+15	HI7	Hawaii Income Tax for everyone else	0.0696
+15	HI8	Hawaii Income Tax for those driving SUVs	0.0786
+15	HI9	Hawaii Income Tax for inherited wealth	0.0875
+16	IA1	Iowa Income Tax for the elderly	0.0036
+16	IA2	Iowa Income Tax for school teachers	0.0144
+16	IA3	Iowa Income Tax for the masses	0.0252
+16	IA4	Iowa Income Tax for blue collar workers	0.0359
+16	IA5	Iowa Income Tax for the unemployed	0.0467
+16	IA6	Iowa Income Tax for doctors and lawyers	0.0575
+16	IA7	Iowa Income Tax for everyone else	0.0683
+16	IA8	Iowa Income Tax for those driving SUVs	0.079
+16	IA9	Iowa Income Tax for inherited wealth	0.0898
+17	ID1	Idaho Income Tax for the elderly	0.02
+17	ID2	Idaho Income Tax for the masses	0.0289
+17	ID3	Idaho Income Tax for school teachers	0.0377
+17	ID4	Idaho Income Tax for doctors and lawyers	0.0466
+17	ID5	Idaho Income Tax for blue collar workers	0.0554
+17	ID6	Idaho Income Tax for the unemployed	0.0643
+17	ID7	Idaho Income Tax for everyone else	0.0731
+17	ID8	Idaho Income Tax for inherited wealth	0.082
+18	IL1	Illinois Income Tax for school teachers	0.03
+19	IN1	Indiana Income Tax for the masses	0.034
+20	KS1	Kansas Income Tax for doctors and lawyers	0.035
+20	KS2	Kansas Income Tax for inherited wealth	0.0498
+21	KY1	Kentucky Income Tax for the elderly	0.02
+21	KY2	Kentucky Income Tax for school teachers	0.03
+21	KY3	Kentucky Income Tax for blue collar workers	0.04
+21	KY4	Kentucky Income Tax for the masses	0.05
+21	KY5	Kentucky Income Tax for inherited wealth	0.06
+22	LA1	Louisana Income Tax for the elderly	0.02
+22	LA2	Louisana Income Tax for school teachers	0.04
+22	LA3	Louisana Income Tax for inherited wealth	0.06
+23	KS3	Kansas Income Tax for blue collar workers	0.0645
+24	MA1	Massachussets Income Tax for school teachers	0.0585
+25	MB1	Manitoba Income Tax for children	0.00
+25	MB2	Manitoba Income Tax for the masses	0.16
+25	MB3	Manitoba Income Tax for doctors and lawyers	0.279
+25	MB4	Manitoba Income Tax for blue collar workers	0.269
+25	MB5	Manitoba Income Tax for the elderly	0.322
+25	MB6	Manitoba Income Tax for school teachers	0.382
+25	MB7	Manitoba Income Tax for the unemployed	0.394
+25	MB8	Manitoba Income Tax for everyone else	0.434
+25	MB9	Manitoba Income Tax for inherited wealth	0.464
+26	MD1	Maryland Income Tax for school teachers	0.02
+26	MD2	Maryland Income Tax for blue collar workers	0.0295
+26	MD3	Maryland Income Tax for the masses	0.039
+26	MD4	Maryland Income Tax for inherited wealth	0.0485
+27	ME1	Maine Income Tax for doctors and lawyers	0.02
+27	ME2	Maine Income Tax for blue collar workers	0.0417
+27	ME3	Maine Income Tax for school teachers	0.0633
+27	ME4	Maine Income Tax for inherited wealth	0.085
+28	MI1	Michigan Income Tax for blue collar workers	0.043
+29	MN1	Minnesota Income Tax for school teachers	0.0535
+29	MN2	Minnesota Income Tax for doctors and lawyers	0.066
+29	MN3	Minnesota Income Tax for inherited wealth	0.0785
+30	MO1	Missouri Income Tax for doctors and lawyers	0.015
+30	MO10	Missouri Income Tax for blue collar workers	0.06
+30	MO2	Missouri Income Tax for school teachers	0.02
+30	MO3	Missouri Income Tax for the elderly	0.025
+30	MO4	Missouri Income Tax for the masses	0.03
+30	MO5	Missouri Income Tax for the unemployed	0.035
+30	MO6	Missouri Income Tax for blue collar workers	0.04
+30	MO7	Missouri Income Tax for everyone else	0.045
+30	MO8	Missouri Income Tax for doctors and lawyers	0.05
+30	MO9	Missouri Income Tax for those driving SUVs	0.055
+31	MS1	Mississippi Income Tax for the elderly	0.03
+31	MS2	Mississippi Income Tax for school teachers	0.04
+31	MS3	Mississippi Income Tax for inherited wealth	0.05
+32	MT1	Montana Income Tax for blue collar workers	0.02
+32	MT10	Montana Income Tax for inherited wealth	0.11
+32	MT2	Montana Income Tax for the masses	0.03
+32	MT3	Montana Income Tax for doctors and lawyers	0.04
+32	MT4	Montana Income Tax for school teachers	0.05
+32	MT5	Montana Income Tax for the elderly	0.06
+32	MT6	Montana Income Tax for the unemployed	0.07
+32	MT7	Montana Income Tax for everyone else	0.08
+32	MT8	Montana Income Tax for those driving SUVs	0.09
+32	MT9	Montana Income Tax for university students	0.10
+33	NB1	New Brunswick Income Tax for children	0.00
+33	NB2	New Brunswick Income Tax for doctors and lawyers	0.16
+33	NB3	New Brunswick Income Tax for blue collar workers	0.3068
+33	NB4	New Brunswick Income Tax for school teachers	0.2568
+33	NB5	New Brunswick Income Tax for the elderly	0.3682
+33	NB6	New Brunswick Income Tax for the masses	0.4252
+33	NB7	New Brunswick Income Tax for inherited wealth	0.4684
+34	NC1	North Carolina Income Tax for school teachers	0.06
+34	NC2	North Carolina Income Tax for doctors and lawyers	0.0688
+34	NC3	North Carolina Income Tax for inherited wealth	0.0775
+35	ND1	North Dakota Income Tax for the elderly	0.0267
+35	ND2	North Dakota Income Tax for blue collar workers	0.04
+35	ND3	North Dakota Income Tax for school teachers	0.0534
+35	ND4	North Dakota Income Tax for the unemployed	0.0667
+35	ND5	North Dakota Income Tax for the masses	0.08
+35	ND6	North Dakota Income Tax for everyone else	0.0933
+35	ND7	North Dakota Income Tax for those driving SUVs	0.1067
+35	ND8	North Dakota Income Tax for inherited wealth	0.12
+36	NE1	Nebraska Income Tax for blue collar workers	0.0251
+36	NE2	Nebraska Income Tax for school teachers	0.039
+36	NE3	Nebraska Income Tax for the masses	0.0529
+36	NE4	Nebraska Income Tax for inherited wealth	0.0668
+37	NF1	Newfoundland Income Tax for children	0.00
+37	NF2	Newfoundland Income Tax for doctors and lawyers	0.1057
+37	NF3	Newfoundland Income Tax for blue collar workers	0.2657
+37	NF4	Newfoundland Income Tax for school teachers	0.3216
+37	NF5	Newfoundland Income Tax for the masses	0.3816
+37	NF6	Newfoundland Income Tax for the elderly	0.3962
+37	NF7	Newfoundland Income Tax for the unemployed	0.4164
+37	NF8	Newfoundland Income Tax for everyone else	0.4554
+37	NF9	Newfoundland Income Tax for inherited wealth	0.4864
+38	NH1	New Hampshire Income Tax for children	0.00
+39	NJ1	New Jersey Income Tax for the masses	0.014
+39	NJ2	New Jersey Income Tax for blue collar workers	0.0239
+39	NJ3	New Jersey Income Tax for school teachers	0.0339
+39	NJ4	New Jersey Income Tax for doctors and lawyers	0.0438
+39	NJ5	New Jersey Income Tax for the elderly	0.0538
+39	NJ6	New Jersey Income Tax for inherited wealth	0.0637
+40	NM1	New Mexico Income Tax for the elderly	0.017
+40	NM2	New Mexico Income Tax for blue collar workers	0.0278
+40	NM3	New Mexico Income Tax for doctors and lawyers	0.0387
+40	NM4	New Mexico Income Tax for school teachers	0.0495
+40	NM5	New Mexico Income Tax for the masses	0.0603
+40	NM6	New Mexico Income Tax for the unemployed	0.0712
+40	NM7	New Mexico Income Tax for inherited wealth	0.082
+41	NS1	Nova Scotia Income Tax for children	0.00
+41	NS10	Nova Scotia Income Tax for inherited wealth	0.4434
+41	NS2	Nova Scotia Income Tax for the masses	0.16
+41	NS3	Nova Scotia Income Tax for doctors and lawyers	0.2577
+41	NS4	Nova Scotia Income Tax for blue collar workers	0.3077
+41	NS5	Nova Scotia Income Tax for the elderly	0.2577
+41	NS6	Nova Scotia Income Tax for school teachers	0.3095
+41	NS7	Nova Scotia Income Tax for everyone else	0.3694
+41	NS8	Nova Scotia Income Tax for the unemployed	0.3867
+41	NS9	Nova Scotia Income Tax for those driving SUVs	0.4267
+42	NT1	Northwest Territories Income Tax for children	0.00
+42	NT2	Northwest Territories Income Tax for the masses	0.16
+42	NT3	Northwest Territories Income Tax for doctors	0.279
+42	NT4	Northwest Territories Income Tax for lawyers	0.269
+42	NT5	Northwest Territories Income Tax for the elderly	0.322
+42	NT6	Northwest Territories Income Tax for the employed	0.382
+42	NT7	Northwest Territories Income Tax for workers	0.394
+42	NT8	Northwest Territories Income Tax for everyone else	0.434
+42	NT9	Northwest Territories Income Tax for the wealthy	0.464
+43	NU1	Nunavut Income Tax for children	0.00
+43	NU2	Nunavut Income Tax for school teachers	0.2195
+43	NU3	Nunavut Income Tax for the masses	0.222
+43	NU4	Nunavut Income Tax for the elderly	0.309
+43	NU5	Nunavut Income Tax for blue collar workers	0.3115
+43	NU6	Nunavut Income Tax for doctors and lawyers	0.3695
+43	NU7	Nunavut Income Tax for the unemployed	0.377
+43	NU8	Nunavut Income Tax for inherited wealth	0.4205
+44	NV1	New York Income Tax for children	0.00
+45	NY1	New York Income Tax for the masses	0.04
+45	NY2	New York Income Tax for blue collar workers	0.0471
+45	NY3	New York Income Tax for doctors and lawyers	0.0543
+45	NY4	New York Income Tax for school teachers	0.0614
+45	NY5	New York Income Tax for inherited wealth	0.0685
+46	OH1	Ohio Income Tax for blue collar workers	0.0069
+46	OH2	Ohio Income Tax for school teachers	0.0148
+46	OH3	Ohio Income Tax for the masses	0.0226
+46	OH4	Ohio Income Tax for the elderly	0.0305
+46	OH5	Ohio Income Tax for doctors and lawyers	0.0384
+46	OH6	Ohio Income Tax for the unemployed	0.0362
+46	OH7	Ohio Income Tax for everyone else	0.0541
+46	OH8	Ohio Income Tax for those driving SUVs	0.0619
+46	OH9	Ohio Income Tax for inherited wealth	0.0698
+47	OK1	Oklahoma Income Tax for children	0.005
+47	OK2	Oklahoma Income Tax for school teachers	0.0139
+47	OK3	Oklahoma Income Tax for blue collar workers	0.0229
+47	OK4	Oklahoma Income Tax for the masses	0.0318
+47	OK5	Oklahoma Income Tax for doctors and lawyers	0.0407
+47	OK6	Oklahoma Income Tax for the elderly	0.0496
+47	OK7	Oklahoma Income Tax for the unemployed	0.0586
+47	OK8	Oklahoma Income Tax for inherited wealth	0.0675
+48	ON1	Ontario Income Tax for children	0.00
+48	ON10	Ontario Income Tax for inherited wealth	0.4341
+48	ON2	Ontario Income Tax for blue collar workers	0.16
+48	ON3	Ontario Income Tax for doctors and lawyers	0.2832
+48	ON4	Ontario Income Tax for the masses	0.2216
+48	ON5	Ontario Income Tax for school teachers	0.2816
+48	ON6	Ontario Income Tax for the elderly	0.3122
+48	ON7	Ontario Income Tax for the unemployed	0.3306
+48	ON8	Ontario Income Tax for everyone else	0.3854
+48	ON9	Ontario Income Tax for those driving SUVs	0.3939
+49	OR1	Oregon Income Tax for the masses	0.05
+49	OR2	Oregon Income Tax for doctors and lawyers	0.07
+49	OR3	Oregon Income Tax for inherited wealth	0.09
+50	PA1	Pennsylvania Income Tax for the masses	0.028
+51	PE1	Prince Edward Island Income Tax for children	0.00
+51	PE2	Prince Edward Island Income Tax for teachers	0.16
+51	PE3	Prince Edward Island Income Tax for workers	0.258
+51	PE4	Prince Edward Island Income Tax for the masses	0.308
+51	PE5	Prince Edward Island Income Tax for the elderly	0.258
+51	PE6	Prince Edward Island Income Tax for doctors	0.358
+51	PE7	Prince Edward Island Income Tax for the unemployed	0.3718
+51	PE8	Prince Edward Island Income Tax for everyone else	0.4437
+51	PE9	Prince Edward Island Income Tax for the wealthy	0.4737
+52	QC1	Quebec Income Tax for blue collar workers	0.17
+52	QC2	Quebec Income Tax for the masses	0.2125
+52	QC3	Quebec Income Tax for inherited wealth	0.245
+53	RI1	Rhode Island Income Tax for children	0.00
+54	SC1	South Carolina Income Tax for blue collar workers	0.025
+54	SC2	South Carolina Income Tax for school teachers	0.034
+54	SC3	South Carolina Income Tax for doctors and lawyers	0.043
+54	SC4	South Carolina Income Tax for the masses	0.052
+54	SC5	South Carolina Income Tax for the elderly	0.061
+54	SC6	South Carolina Income Tax for inherited wealth	0.07
+55	SD1	South Dakota Income Tax for children	0.00
+56	SK1	Saskatchewan Income Tax for children	0.00
+56	SK2	Saskatchewan Income Tax for blue collar workers	0.16
+56	SK3	Saskatchewan Income Tax for the masses	0.275
+56	SK4	Saskatchewan Income Tax for school teachers	0.295
+56	SK5	Saskatchewan Income Tax for the elderly	0.355
+56	SK6	Saskatchewan Income Tax for doctors and lawyers	0.38
+56	SK7	Saskatchewan Income Tax for the unemployed	0.42
+56	SK8	Saskatchewan Income Tax for inherited wealth	0.45
+57	TN1	Tennesse Income Tax for the masses	0.00
+58	TX1	Texas Income Tax for the masses	0.00
+59	UT1	Utah Income Tax for the masses	0.023
+59	UT2	Utah Income Tax for school teachers	0.0324
+59	UT3	Utah Income Tax for the elderly	0.0418
+59	UT4	Utah Income Tax for blue collar workers	0.0512
+59	UT5	Utah Income Tax for doctors and lawyers	0.0606
+59	UT6	Utah Income Tax for inherited wealth	0.07
+60	VA1	Virginia Income Tax for the masses	0.02
+60	VA2	Virginia Income Tax for the elderly	0.0325
+60	VA3	Virginia Income Tax for blue collar workers	0.045
+60	VA4	Virginia Income Tax for inherited wealth	0.0575
+61	VT1	Vermont Income Tax for school teachers	0.00
+62	WA1	Washington Income Tax for doctors and lawyers	0.00
+63	WI1	Wisconsin Income Tax for blue collar workers	0.0473
+63	WI2	Wisconsin Income Tax for the elderly	0.054
+63	WI3	Wisconsin Income Tax for doctors and lawyers	0.0608
+63	WI4	Wisconsin Income Tax for inherited wealth	0.0675
+64	WV1	West Virginia Income Tax for school teachers	0.03
+64	WV2	West Virginia Income Tax for the masses	0.0388
+64	WV3	West Virginia Income Tax for doctors and lawyers	0.0475
+64	WV4	West Virginia Income Tax for the elderly	0.0563
+64	WV5	West Virginia Income Tax for inherited wealth	0.065
+65	WY1	Wyoming Income Tax for blue collar workers	0.00
+66	YT1	Yukon Income Tax for the masses	0.00
+66	YT2	Yukon Income Tax for school teachers	0.1747
+66	YT3	Yukon Income Tax for the elderly	0.2336
+66	YT4	Yukon Income Tax for the unemployed	0.2636
+66	YT5	Yukon Income Tax for blue collar workers	0.2336
+66	YT6	Yukon Income Tax for everyone else	0.3212
+66	YT7	Yukon Income Tax for those driving SUVs	0.3796
+66	YT8	Yukon Income Tax for doctors and lawyers	0.3855
+66	YT9	Yukon Income Tax for inherited wealth	0.4301
