@@ -1,0 +1,29 @@
+[Breakpoint 0]
+Enabled=true
+File=../src/../inc/pgsql/pgloader.h
+Line=95
+Temporary=false
+
+[Breakpoint 1]
+Enabled=true
+File=../src/EGenGenerateAndLoad.cpp
+Line=133
+Temporary=false
+
+[General]
+DebuggerCmdStr=
+DriverName=GDB
+FileVersion=1
+OptionsSelected=
+ProgramArgs=-i ../flat_in/
+TTYLevel=7
+WorkingDirectory=/home/rilson/SoC/EGen_v3.14/bin
+
+[Memory]
+ColumnWidths=80,0
+NumExprs=0
+
+[Watches]
+Expr0=m_cnt
+Expr1=m_Conn
+Expr2=m_Txn
