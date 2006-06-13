@@ -33,6 +33,7 @@
  * Contributors
  * - Sergey Vasilevskiy, Matt Emmerton
  */
+// 2006 Rilson Nascimento
 
 //
 // Defines the entry point for the console application.
@@ -48,7 +49,7 @@ TIdent				iCustomerCount = iDefaultLoadUnitSize;	// # of customers for this inst
 TIdent				iTotalCustomerCount = iDefaultLoadUnitSize;	// total number of customers in the database
 int					iLoadUnitSize = iDefaultLoadUnitSize;	// # of customers in one load unit
 int					iScaleFactor = 500;	// # of customers for 1 tpsE
-int					iDaysOfInitialTrades = 1; // [Rilson] Default is 300
+int					iDaysOfInitialTrades = 300;
 
 // These flags are used to control which tables get generated and loaded.
 bool				bTableGenerationFlagNotSpecified = true;	// assume no flag is specified.
