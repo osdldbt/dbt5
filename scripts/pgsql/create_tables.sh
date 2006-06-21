@@ -202,7 +202,6 @@ fi
 
 # Creating domains to meta-type definitions (clause 2.2.3)
 
-# FIXME: BIGINT or NUMERIC(11),(12),(15) for IDENT_T, S_COUNT_T and TRADE_T?
 ${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN S_COUNT_T AS BIGINT NOT NULL;" || exit 1
 ${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN IDENT_T AS BIGINT NOT NULL;" || exit 1
 ${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN TRADE_T AS BIGINT NOT NULL;" || exit 1
@@ -497,6 +496,7 @@ CREATE TABLE financial (
     fi_margin VALUE_T,
     fi_inventory FIN_AGG_T,
     fi_assets FIN_AGG_T,
+    fi_liability FIN_AGG_T,
     fi_out_basic S_COUNT_T,
     fi_out_dilut S_COUNT_T)
     ${TS_FINANCIAL};
@@ -526,17 +526,14 @@ CREATE TABLE last_trade (
 # FIXME: The NI_ITEM field may be either LOB(100000) or
 #	LOB_Ref, which is a reference to a LOB(100000) object
 #	stored outside the table. 
-#	I chose to create a reference via an OID data type. 
-#	OID provides a reference to the imported large object 
-#	stored in pg_largeobject. There are specific functions
-#	to load/retrieve objects into/from pg_largeobject
+#	TEXT seems to be simpler to handle
 
 ${PSQL} -e -d ${DBNAME} -c "
 CREATE TABLE news_item (
     ni_id IDENT_T,
     ni_headline VARCHAR(80) NOT NULL,
     ni_summary VARCHAR(255) NOT NULL,
-    ni_item OID NOT NULL,
+    ni_item text NOT NULL,
     ni_dts TIMESTAMP NOT NULL,
     ni_source VARCHAR(30) NOT NULL,
     ni_author VARCHAR(30))
