@@ -59,28 +59,16 @@ public:
 	{
 		CopyRow(next_record);	//copy to the bound location inside this class first
 	
-		try {
-			buf.push_back(stringify(m_row.NI_ID));
-			buf.push_back(m_row.NI_HEADLINE);
-			buf.push_back(m_row.NI_SUMMARY);
-			buf.push_back(m_row.NI_ITEM);
-			buf.push_back(m_row.NI_DTS.ToStr(iDateTimeFmt));
-			buf.push_back(m_row.NI_SOURCE);
-			buf.push_back(m_row.NI_AUTHOR);
-	
-			m_TW->insert(buf);
-			buf.clear();
-		}
-		catch (const sql_error &e)
-		{
-			cerr << "SQL error: " << e.what() << endl
-			<< "Query was: '" << e.query() << "'" << endl;
-		}
-		catch (const exception &e)
-		{
-			cerr<<e.what() << endl;
-		}
+		buf.push_back(stringify(m_row.NI_ID));
+		buf.push_back(m_row.NI_HEADLINE);
+		buf.push_back(m_row.NI_SUMMARY);
+		buf.push_back(m_row.NI_ITEM);
+		buf.push_back(m_row.NI_DTS.ToStr(iDateTimeFmt));
+		buf.push_back(m_row.NI_SOURCE);
+		buf.push_back(m_row.NI_AUTHOR);
 
+		m_TW->insert(buf);
+		buf.clear();
 	};
 
 

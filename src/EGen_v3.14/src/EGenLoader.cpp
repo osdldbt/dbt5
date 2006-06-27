@@ -605,6 +605,7 @@ int main(int argc, char* argv[])
 		delete pLoaderFactory;		// don't really need to do that, but just for good style
 
 	}
+	
 	catch (CBaseErr *pErr)
 	{
 		cout<<endl<<"Error "<<pErr->ErrorNum()<<": "<<pErr->ErrorText();
@@ -621,6 +622,24 @@ int main(int argc, char* argv[])
 	{
 		cout<<endl<<endl<<"*** Out of memory ***"<<endl;
 		return 2;
+	}
+	// exceptions thrown by pqxx
+	//
+	catch (const pqxx::broken_connection &e) // broken connection
+	{
+		cout<<"libpxx: "<<e.what()<<endl;
+		return 3;
+	}
+	catch (const pqxx::sql_error &e)
+	{
+		cout<<"SQL error: "<<e.what()<<endl
+		    <<"Query was: '"<<e.query()<<"'"<<endl;
+		return 3;
+	}
+	catch (const exception &e)
+	{
+		cout<<e.what()<<endl;
+		return 3;
 	}
 
 	return 0;

@@ -59,26 +59,15 @@ public:
 	{
 		CopyRow(next_record);	//copy to the bound location inside this class first
 	
-		try {
-			buf.push_back(stringify(m_row.CR_C_TIER));			
-			buf.push_back(m_row.CR_TT_ID);
-			buf.push_back(m_row.CR_EX_ID);
-			buf.push_back(stringify(m_row.CR_FROM_QTY));
-			buf.push_back(stringify(m_row.CR_TO_QTY));
-			buf.push_back(stringify(m_row.CR_RATE));
-	
-			m_TW->insert(buf);
-			buf.clear();
-		}
-		catch (const sql_error &e)
-		{
-			cerr << "SQL error: " << e.what() << endl
-			<< "Query was: '" << e.query() << "'" << endl;
-		}
-		catch (const exception &e)
-		{
-			cerr<<e.what() << endl;
-		}
+		buf.push_back(stringify(m_row.CR_C_TIER));			
+		buf.push_back(m_row.CR_TT_ID);
+		buf.push_back(m_row.CR_EX_ID);
+		buf.push_back(stringify(m_row.CR_FROM_QTY));
+		buf.push_back(stringify(m_row.CR_TO_QTY));
+		buf.push_back(stringify(m_row.CR_RATE));
+
+		m_TW->insert(buf);
+		buf.clear();
 	}
 
 };

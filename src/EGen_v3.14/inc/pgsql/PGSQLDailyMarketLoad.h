@@ -58,26 +58,15 @@ public:
 	{
 		CopyRow(next_record);	//copy to the bound location inside this class first
 	
-		try {
-			buf.push_back(m_row.DM_DATE.ToStr(iDateTimeFmt));
-			buf.push_back(m_row.DM_S_SYMB);
-			buf.push_back(stringify(m_row.DM_CLOSE));
-			buf.push_back(stringify(m_row.DM_HIGH));
-			buf.push_back(stringify(m_row.DM_LOW));
-			buf.push_back(stringify(m_row.DM_VOL));
-	
-			m_TW->insert(buf);
-			buf.clear();
-		}
-		catch (const sql_error &e)
-		{
-			cerr << "SQL error: " << e.what() << endl
-			<< "Query was: '" << e.query() << "'" << endl;
-		}
-		catch (const exception &e)
-		{
-			cerr<<e.what() << endl;
-		}
+		buf.push_back(m_row.DM_DATE.ToStr(iDateTimeFmt));
+		buf.push_back(m_row.DM_S_SYMB);
+		buf.push_back(stringify(m_row.DM_CLOSE));
+		buf.push_back(stringify(m_row.DM_HIGH));
+		buf.push_back(stringify(m_row.DM_LOW));
+		buf.push_back(stringify(m_row.DM_VOL));
+
+		m_TW->insert(buf);
+		buf.clear();
 	}
 	
 };

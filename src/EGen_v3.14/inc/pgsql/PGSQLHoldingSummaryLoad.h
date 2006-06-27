@@ -56,23 +56,12 @@ public:
 	{
 		CopyRow(next_record);	//copy to the bound location inside this class first
 	
-		try {
-			buf.push_back(stringify(m_row.HS_CA_ID));	
-			buf.push_back(m_row.HS_S_SYMB);
-			buf.push_back(stringify(m_row.HS_QTY));
-	
-			m_TW->insert(buf);
-			buf.clear();
-		}
-		catch (const sql_error &e)
-		{
-			cerr << "SQL error: " << e.what() << endl
-			<< "Query was: '" << e.query() << "'" << endl;
-		}
-		catch (const exception &e)
-		{
-			cerr<<e.what() << endl;
-		}
+		buf.push_back(stringify(m_row.HS_CA_ID));	
+		buf.push_back(m_row.HS_S_SYMB);
+		buf.push_back(stringify(m_row.HS_QTY));
+
+		m_TW->insert(buf);
+		buf.clear();
 	}
 
 };

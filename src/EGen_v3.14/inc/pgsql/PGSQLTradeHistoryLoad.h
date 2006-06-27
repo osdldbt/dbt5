@@ -59,23 +59,12 @@ public:
 	{
 		CopyRow(next_record);	//copy to the bound location inside this class first
 	
-		try {
-			buf.push_back(stringify(m_row.TH_T_ID));			
-			buf.push_back(m_row.TH_DTS.ToStr(iDateTimeFmt));
-			buf.push_back(m_row.TH_ST_ID);
-	
-			m_TW->insert(buf);
-			buf.clear();
-		}
-		catch (const sql_error &e)
-		{
-			cerr << "SQL error: " << e.what() << endl
-			<< "Query was: '" << e.query() << "'" << endl;
-		}
-		catch (const exception &e)
-		{
-			cerr<<e.what() << endl;
-		}
+		buf.push_back(stringify(m_row.TH_T_ID));			
+		buf.push_back(m_row.TH_DTS.ToStr(iDateTimeFmt));
+		buf.push_back(m_row.TH_ST_ID);
+
+		m_TW->insert(buf);
+		buf.clear();
 	}
 
 };

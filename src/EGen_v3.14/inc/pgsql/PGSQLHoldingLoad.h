@@ -59,26 +59,15 @@ public:
 	{
 		CopyRow(next_record);	//copy to the bound location inside this class first
 	
-		try {
-			buf.push_back(stringify(m_row.H_T_ID));
-			buf.push_back(stringify(m_row.H_CA_ID));
-			buf.push_back(m_row.H_S_SYMB);
-			buf.push_back(m_row.H_DTS.ToStr(iDateTimeFmt));
-			buf.push_back(stringify(m_row.H_PRICE));
-			buf.push_back(stringify(m_row.H_QTY));
-	
-			m_TW->insert(buf);
-			buf.clear();
-		}
-		catch (const sql_error &e)
-		{
-			cerr << "SQL error: " << e.what() << endl
-			<< "Query was: '" << e.query() << "'" << endl;
-		}
-		catch (const exception &e)
-		{
-			cerr<<e.what() << endl;
-		}
+		buf.push_back(stringify(m_row.H_T_ID));
+		buf.push_back(stringify(m_row.H_CA_ID));
+		buf.push_back(m_row.H_S_SYMB);
+		buf.push_back(m_row.H_DTS.ToStr(iDateTimeFmt));
+		buf.push_back(stringify(m_row.H_PRICE));
+		buf.push_back(stringify(m_row.H_QTY));
+
+		m_TW->insert(buf);
+		buf.clear();
 	}
 };
 

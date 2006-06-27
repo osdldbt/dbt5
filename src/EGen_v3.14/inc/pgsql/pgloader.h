@@ -91,9 +91,9 @@ public:
 */
 template <typename T>
 CPGSQLLoader<T>::CPGSQLLoader(char *szHost, char *szDBName, char *szPostmasterPort, char *szTable)
-: m_Conn(NULL)
-, m_Txn(NULL)
-, m_TW(NULL)
+: m_Conn(0)
+, m_Txn(0)
+, m_TW(0)
 {	
 	memset(m_szHost, 0, sizeof(m_szHost));
 	strncpy(m_szHost, szHost, sizeof(m_szHost) - 1);
@@ -135,20 +135,13 @@ void CPGSQLLoader<T>::Connect()
 {
 	// Set up a connection to the backend
 
-	try
-	{
-		char			szConnectStr[256];
-		sprintf( szConnectStr, "host=%s dbname=%s port=%s", 
- 				m_szHost, m_szDBName, m_szPostmasterPort );
-		
-		m_Conn = new connection( szConnectStr );
-		m_Txn = new work( *m_Conn, "txn" );
- 		m_TW = new tablewriter( *m_Txn, m_szTable );
-	}
-	catch(const exception &e)
-	{
-		cout<< "libpqxx: "<<e.what() << endl;
-	}
+	char			szConnectStr[256];
+	sprintf( szConnectStr, "host=%s dbname=%s port=%s", 
+			m_szHost, m_szDBName, m_szPostmasterPort );
+	
+	m_Conn = new connection( szConnectStr );
+	m_Txn = new work( *m_Conn, "txn" );
+	m_TW = new tablewriter( *m_Txn, m_szTable );
  
 	//Now prepare the insert statement. This is table-specific and must be
 	//defined in subclasses.

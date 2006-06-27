@@ -59,36 +59,25 @@ public:
 	{
 		CopyRow(next_record);	//copy to the bound location inside this class first
 	
-		try {
-			buf.push_back(m_row.S_SYMB);
-			buf.push_back(m_row.S_ISSUE);
-			buf.push_back(m_row.S_ST_ID);
-			buf.push_back(m_row.S_NAME);
-			buf.push_back(m_row.S_EX_ID);
-			buf.push_back(stringify(m_row.S_CO_ID));
-			buf.push_back(stringify((int)m_row.S_NUM_OUT));
-			buf.push_back(m_row.S_START_DATE.ToStr(iDateTimeFmt));
-			buf.push_back(m_row.S_EXCH_DATE.ToStr(iDateTimeFmt));
-			buf.push_back(stringify(m_row.S_PE));
-			buf.push_back(stringify(m_row.S_52WK.HIGH));
-			buf.push_back(m_row.S_52WK.HIGH_DATE.ToStr(iDateTimeFmt));
-			buf.push_back(stringify(m_row.S_52WK.LOW));
-			buf.push_back(m_row.S_52WK.LOW_DATE.ToStr(iDateTimeFmt));
-			buf.push_back(stringify(m_row.S_DIVIDEND));
-			buf.push_back(stringify(m_row.S_YIELD));
+		buf.push_back(m_row.S_SYMB);
+		buf.push_back(m_row.S_ISSUE);
+		buf.push_back(m_row.S_ST_ID);
+		buf.push_back(m_row.S_NAME);
+		buf.push_back(m_row.S_EX_ID);
+		buf.push_back(stringify(m_row.S_CO_ID));
+		buf.push_back(stringify((int)m_row.S_NUM_OUT));
+		buf.push_back(m_row.S_START_DATE.ToStr(iDateTimeFmt));
+		buf.push_back(m_row.S_EXCH_DATE.ToStr(iDateTimeFmt));
+		buf.push_back(stringify(m_row.S_PE));
+		buf.push_back(stringify(m_row.S_52WK.HIGH));
+		buf.push_back(m_row.S_52WK.HIGH_DATE.ToStr(iDateTimeFmt));
+		buf.push_back(stringify(m_row.S_52WK.LOW));
+		buf.push_back(m_row.S_52WK.LOW_DATE.ToStr(iDateTimeFmt));
+		buf.push_back(stringify(m_row.S_DIVIDEND));
+		buf.push_back(stringify(m_row.S_YIELD));
 
-			m_TW->insert(buf);
-			buf.clear();
-		}
-		catch (const sql_error &e)
-		{
-			cerr << "SQL error: " << e.what() << endl
-			<< "Query was: '" << e.query() << "'" << endl;
-		}
-		catch (const exception &e)
-		{
-			cerr<<e.what() << endl;
-		}
+		m_TW->insert(buf);
+		buf.clear();
 	}
 
 };

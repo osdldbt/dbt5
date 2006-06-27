@@ -59,29 +59,18 @@ public:
 	{
 		CopyRow(next_record);	//copy to the bound location inside this class first
 	
-		try {
-			buf.push_back(stringify(m_row.CO_ID));
-			buf.push_back(m_row.CO_ST_ID);
-			buf.push_back(m_row.CO_NAME);
-			buf.push_back(m_row.CO_IN_ID);
-			buf.push_back(m_row.CO_SP_RATE);
-			buf.push_back(m_row.CO_CEO);
-			buf.push_back(stringify(m_row.CO_AD_ID));
-			buf.push_back(m_row.CO_DESC);
-			buf.push_back(m_row.CO_OPEN_DATE.ToStr(iDateTimeFmt));
-			
-			m_TW->insert(buf);
-			buf.clear();
-		}
-		catch (const sql_error &e)
-		{
-			cerr << "SQL error: " << e.what() << endl
-			<< "Query was: '" << e.query() << "'" << endl;
-		}
-		catch (const exception &e)
-		{
-			cerr<<e.what() << endl;
-		}
+		buf.push_back(stringify(m_row.CO_ID));
+		buf.push_back(m_row.CO_ST_ID);
+		buf.push_back(m_row.CO_NAME);
+		buf.push_back(m_row.CO_IN_ID);
+		buf.push_back(m_row.CO_SP_RATE);
+		buf.push_back(m_row.CO_CEO);
+		buf.push_back(stringify(m_row.CO_AD_ID));
+		buf.push_back(m_row.CO_DESC);
+		buf.push_back(m_row.CO_OPEN_DATE.ToStr(iDateTimeFmt));
+		
+		m_TW->insert(buf);
+		buf.clear();
 	}
 
 
