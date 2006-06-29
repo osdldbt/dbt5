@@ -36,7 +36,12 @@ BEGIN
 			S_NAME,
 			ST_NAME,
 			T_S_SYMB,
-			T_DTS,
+			extract(year from T_DTS),
+			extract(month from T_DTS),
+			extract(day from T_DTS),
+			extract(hour from T_DTS),
+			extract(minute from T_DTS),
+			extract(second from T_DTS),
 			T_ID,
 			T_QTY,
 			TT_NAME 

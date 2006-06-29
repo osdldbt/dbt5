@@ -1,8 +1,8 @@
 // 2006 Rilson Nascimento
 // Test of TradeStatus transaction
 
-#include "../transactions/transactions.h"
-#include "harness.h"
+#include "../include/transactions.h"
+#include "../include/harness.h"
 
 using namespace TPCE;
 
@@ -37,7 +37,15 @@ int main(int argc, char* argv[])
 	
 	sscanf(argv[1], "%"PRId64, &Input.acct_id);
 
-	m_TradeStatus.DoTxn(&Input, &Output);		// Perform Trade Status (harness + SP)
+	try 
+	{
+		m_TradeStatus.DoTxn(&Input, &Output);		// Perform Trade Status (harness + SP)
+	}
+	catch (exception &e)
+	{
+		cout<<e.what()<<endl;
+		return(1);
+	}
 	
 	// Print output
 	for (unsigned int i = 0; i < (sizeof(Output.trade_id)/sizeof(Output.trade_id[0])); ++i)
