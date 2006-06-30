@@ -1,9 +1,15 @@
 /*
  * 2006 Rilson Nascimento
  *
+ * Trade Status transaction
+ * ------------------------
+ * This transaction returns the status of fifty trades. A list of all trades for a 
+ * given customer's account is retrieved and the fifty most recently placed trades are selected.
+ *
  * Based on TPC-E Standard Specification Draft Revision 0.32.2c Clause 3.3.5.
  */
 
+-- Frame 1 of 1
 CREATE OR REPLACE FUNCTION TradeStatusFrame1 (IN in_acct_id IDENT_T) RETURNS SETOF record AS $$
 DECLARE
 	out_c_l_name VARCHAR;
@@ -11,9 +17,6 @@ DECLARE
 	out_b_name VARCHAR;
 	rs RECORD;
 BEGIN
-	/*
-	 * Retrieve information on the 50 most recent trades
-	 */
 
 	SELECT  C_L_NAME, 
 		C_F_NAME, 
