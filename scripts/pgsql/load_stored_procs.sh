@@ -11,7 +11,8 @@
 DIR=`dirname $0`
 . ${DIR}/pgsql_profile || exit 1
 
-# Trade Status Txn frames
-${PSQL} -e -d ${DBNAME} -f $TOP_DIR/storedproc/pgsql/TradeStatusFrame1.sql || exit 1
+# Trade Status transaction
+${PSQL} -e -d ${DBNAME} -f $TOP_DIR/storedproc/pgsql/TradeStatus.sql || exit 1
 
-
+# Trade Order transaction
+${PSQL} -e -d ${DBNAME} -f $TOP_DIR/storedproc/pgsql/TradeOrder.sql || exit 1

@@ -200,6 +200,10 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_ZIP_CODE} LOCATION '${TS_ZIP_CODE_DIR}';"
 fi
 
+# Creating sequence for Trade tables, t_id field
+
+${PSQL} -e -d ${DBNAME} -c "CREATE SEQUENCE seq_trade_id;" || exit 1
+
 # Creating domains to meta-type definitions (clause 2.2.3)
 
 ${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN S_COUNT_T AS BIGINT NOT NULL;" || exit 1
