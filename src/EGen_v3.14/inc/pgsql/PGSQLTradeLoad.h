@@ -80,6 +80,23 @@ public:
 		buf.clear();
 	}
 
+	virtual void FinishLoad()
+	{
+		m_TW->complete();
+		ostringstream osCall;
+
+		result R( m_Txn->exec("select max(t_id) from trade"));
+		result::const_iterator c = R.begin();
+		osCall<<"SELECT setval('seq_trade_id',"<<c[0]<<")";
+		m_Txn->exec(osCall.str());
+
+		m_Txn->commit();
+		delete m_TW;
+		delete m_Txn;
+	
+		Disconnect();	// While destructor is not being called
+	}
+
 };
 
 }	// namespace TPCE

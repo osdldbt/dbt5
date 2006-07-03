@@ -6,7 +6,7 @@
  * The Trade Order transaction is designed to emulate the process of ordering the
  * trade, buy or sell, of a security by a Customer, Broker, or authorized third-party.
  *
- * Based on TPC-E Standard Specification Draft Revision 0.32.2c Clause 3.3.5.
+ * Based on TPC-E Standard Specification Draft Revision 0.32.2e Clause 3.3.1.
  */
 
 /*
@@ -16,24 +16,58 @@
 
 CREATE OR REPLACE FUNCTION TradeOrderFrame1 (IN acct_id IDENT_T) RETURNS record AS $$
 DECLARE
-	rs RECORD;
+	-- output parameters
+	acct_name	varchar;
+	broker_name	varchar;
+	cust_f_name	varchar;
+	cust_id		IDENT_T;
+	cust_l_name	varchar;
+	cust_tier	smallint;
+	tax_id		varchar;
+	tax_status	smallint;
+
+	-- variables
+	broker_id 	IDENT_T;
+	rs 		RECORD;
 BEGIN
-	SELECT  CA_B_ID,
+	-- Get account, customer, and broker information
+	SELECT	CA_NAME,
+		CA_B_ID,
 		CA_C_ID,
-		CA_NAME,
-		CA_TAX_ST,
+		CA_TAX_ST
+	INTO	acct_name,
+		broker_id,
+		cust_id,
+		tax_status
+	FROM	CUSTOMER_ACCOUNT
+	WHERE	CA_ID = acct_id;
+
+	SELECT	C_F_NAME,
 		C_L_NAME,
-		C_F_NAME,
-		C_TAX_ID,
 		C_TIER,
-		B_NAME
-	INTO	rs
-	FROM    CUSTOMER_ACCOUNT,
-		CUSTOMER,
-		BROKER
-	WHERE   CA_ID   = acct_id AND
-		CA_C_ID = C_ID AND
-		CA_B_ID = B_ID;
+		C_TAX_ID
+	INTO	cust_f_name,
+		cust_l_name,
+		cust_tier,
+		tax_id
+	FROM	CUSTOMER
+	WHERE	C_ID = cust_id;
+
+	SELECT	B_NAME
+	INTO	broker_name
+	FROM	BROKER
+	WHERE	B_ID=broker_id;
+
+	SELECT	acct_id,
+		acct_name,
+		broker_name,
+		cust_f_name,
+		cust_id,
+		cust_l_name,
+		cust_tier,
+		tax_id,
+		tax_status
+	INTO	rs;
 
 	RETURN rs;
 END;
@@ -140,6 +174,7 @@ BEGIN
 			S_NAME,
 			S_SYMB
 		INTO	exch_id,
+			sec_name,
 			symb_name
 		FROM	SECURITY
 		WHERE	S_CO_ID = comp_id AND
@@ -150,10 +185,10 @@ BEGIN
 			S_NAME
 		INTO	comp_id,
 			exch_id,
-			symb_name
+			sec_name
 		FROM	SECURITY
 		WHERE	S_SYMB = symbol;
-
+		
 		SELECT	CO_NAME
 		INTO	comp_name
 		FROM	COMPANY
@@ -224,7 +259,7 @@ BEGIN
 			-- multiple holdings for this security (representing different purchases of
 			-- this security at different times and therefore, most likely, different prices).
 
-			WHILE needed_qty = 0 LOOP
+			WHILE needed_qty > 0 LOOP
 				FETCH	hold_list
 				INTO	hold_qty,
 					hold_price;
@@ -287,8 +322,8 @@ BEGIN
 			-- may have multiple holdings for this security (representing different
 			-- purchases of this security at different times and therefore, most
 			-- likely, different prices).
-			
-			WHILE needed_qty = 0 LOOP
+
+			WHILE needed_qty > 0 LOOP
 				FETCH	hold_list
 				INTO	hold_qty,
 					hold_price;
@@ -300,6 +335,7 @@ BEGIN
 					sell_value = sell_value + (needed_qty * hold_price);
 					buy_value = buy_value + (needed_qty * requested_price);
 					needed_qty = 0;
+
 				ELSE
 					-- All of this holding would be covered (bought back) as
 					-- a result of this trade.
@@ -431,7 +467,7 @@ CREATE OR REPLACE FUNCTION TradeOrderFrame4(
 				IN symbol             varchar(15),
 				IN trade_qty          S_QTY_T,
 				IN trade_type_id      char(3),
-				IN type_is_market     smallint) RETURNS TRADE_T AS $$
+				IN type_is_market     bool) RETURNS TRADE_T AS $$
 DECLARE
 	-- variables
 	now_dts		timestamp;
@@ -456,7 +492,7 @@ BEGIN
 
 	-- Record pending trade information in TRADE_REQUEST table if this trade is a
 	-- limit trade
-	IF type_is_market THEN
+	IF NOT type_is_market THEN
 		INSERT INTO TRADE_REQUEST (
 					TR_T_ID, TR_TT_ID, TR_S_SYMB,
 					TR_QTY, TR_BID_PRICE, TR_CA_ID)

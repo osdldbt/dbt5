@@ -11,7 +11,7 @@
 DIR=`dirname $0`
 . ${DIR}/pgsql_profile || exit 1
 
-# Drop tables and domains
+# Drop tables, domains and sequence
 
 ${PSQL} -d ${DBNAME} -c "DROP TABLE ACCOUNT_PERMISSION CASCADE;"
 ${PSQL} -d ${DBNAME} -c "DROP TABLE CUSTOMER CASCADE;"
@@ -55,3 +55,5 @@ ${PSQL} -d ${DBNAME} -c "DROP DOMAIN S_PRICE_T"
 ${PSQL} -d ${DBNAME} -c "DROP DOMAIN S_QTY_T;"
 ${PSQL} -d ${DBNAME} -c "DROP DOMAIN VALUE_T;"
 ${PSQL} -d ${DBNAME} -c "DROP DOMAIN FIN_AGG_T;"
+
+${PSQL} -d ${DBNAME} -c "DROP SEQUENCE seq_trade_id;"

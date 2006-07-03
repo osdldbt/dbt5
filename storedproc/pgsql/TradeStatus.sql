@@ -10,29 +10,34 @@
  */
 
 -- Frame 1 of 1
-CREATE OR REPLACE FUNCTION TradeStatusFrame1 (IN in_acct_id IDENT_T) RETURNS SETOF record AS $$
+CREATE OR REPLACE FUNCTION TradeStatusFrame1 (IN acct_id IDENT_T) RETURNS SETOF record AS $$
 DECLARE
-	out_c_l_name VARCHAR;
-	out_c_f_name VARCHAR;
-	out_b_name VARCHAR;
+	-- output parameters
+	cust_l_name VARCHAR;
+	cust_f_name VARCHAR;
+	broker_name VARCHAR;
+
+	-- variables
 	rs RECORD;
 BEGIN
-
-	SELECT  C_L_NAME, 
-		C_F_NAME, 
-		B_NAME 
-	INTO	out_c_l_name, out_c_f_name, out_b_name
-	FROM    CUSTOMER_ACCOUNT, 
-		CUSTOMER, 
-		BROKER 
-	WHERE   CA_ID   = in_acct_id AND 
-		C_ID    = CA_C_ID AND 
-		B_ID    = CA_B_ID;
+	-- Only want 50 rows, the 50 most recent trades for this customer account
+	SELECT	C_L_NAME,
+		C_F_NAME,
+		B_NAME
+	INTO 	cust_l_name,
+		cust_f_name,
+		broker_name
+	FROM	CUSTOMER_ACCOUNT,
+		CUSTOMER,
+		BROKER
+	WHERE	CA_ID = acct_id AND
+		C_ID = CA_C_ID AND
+		B_ID = CA_B_ID;
 
 	FOR rs IN
-		SELECT  out_c_l_name,
-			out_c_f_name,
-			out_b_name,
+		SELECT	cust_l_name,
+			cust_f_name,
+			broker_name,
 			T_CHRG,
 			T_EXEC_NAME,
 			EX_NAME,
@@ -48,21 +53,20 @@ BEGIN
 			T_ID,
 			T_QTY,
 			TT_NAME 
-		FROM    TRADE, 
-			STATUS_TYPE, 
+		FROM	TRADE,
+			STATUS_TYPE,
 			TRADE_TYPE,
 			SECURITY,
 			EXCHANGE
-		WHERE   T_CA_ID = in_acct_id AND 
-			ST_ID   = T_ST_ID AND 
-			TT_ID   = T_TT_ID AND
-			S_SYMB  = T_S_SYMB AND
-			EX_ID   = S_EX_ID
-		ORDER   BY T_DTS DESC
+		WHERE	T_CA_ID = acct_id AND
+			ST_ID = T_ST_ID AND
+			TT_ID = T_TT_ID AND
+			S_SYMB = T_S_SYMB AND
+			EX_ID = S_EX_ID
+		ORDER BY T_DTS desc
 		LIMIT 50
 	LOOP
 		RETURN NEXT rs;
 	END LOOP;
-
 END;
 $$ LANGUAGE 'plpgsql';

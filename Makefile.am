@@ -12,7 +12,9 @@ AUTOMAKE_OPTIONS = foreign
 SUBDIRS = . src
 
 EXTRA_DIST = \
-storedproc/pgsql/TradeStatusFrame1.sql \
+storedproc/pgsql/TradeStatus.sql \
+storedproc/pgsql/TradeOrder.sql \
+storedproc/pgsql/TradeResult.sql \
 scripts/pgsql/backup.sh \
 scripts/pgsql/check_db.sh \
 scripts/pgsql/create_db.sh \
