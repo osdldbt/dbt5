@@ -17,29 +17,15 @@ CDBConnection::CDBConnection(const char *szHost, const char *szDBName, const cha
 	sprintf( szConnectStr, "host=%s dbname=%s port=%s", 
  			szHost, szDBName, szPostmasterPort );
 
-	try
-	{
-		m_Conn = new connection( szConnectStr );
-		m_Txn = new nontransaction( *m_Conn, "txn" );
-	}
-	catch(const exception &e)
-	{
-		cout<< "libpqxx: "<<e.what() << endl;
-	}
+	m_Conn = new connection( szConnectStr );
+	m_Txn = new nontransaction( *m_Conn, "txn" );
 }
 
 // Destructor: Disconnect from server
 CDBConnection::~CDBConnection()
 {
-	try
-	{
-		m_Txn->commit(); // does nothing since this is a dummy transaction, just from completeness	
-		m_Conn->disconnect();
-	}
-	catch(const exception &e)
-	{
-		cout<< "libpqxx: "<<e.what() << endl;
-	}
+	m_Txn->commit(); // does nothing since this is a dummy transaction, just from completeness	
+	m_Conn->disconnect();
 	
 	delete m_Txn;
 	delete m_Conn;

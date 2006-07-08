@@ -61,8 +61,10 @@ public:
 	
 		buf.push_back(m_row.TT_ID);
 		buf.push_back(m_row.TT_NAME);
-		buf.push_back((m_row.TT_IS_SELL ? "true" : "false"));
-		buf.push_back((m_row.TT_IS_MRKT ? "true" : "false"));
+		//buf.push_back((m_row.TT_IS_SELL ? "true" : "false"));
+		buf.push_back(stringify(m_row.TT_IS_SELL));
+		//buf.push_back((m_row.TT_IS_MRKT ? "true" : "false"));
+		buf.push_back(stringify(m_row.TT_IS_MRKT));
 
 		m_TW->insert(buf);
 		buf.clear();

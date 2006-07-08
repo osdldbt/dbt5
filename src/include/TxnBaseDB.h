@@ -20,6 +20,7 @@ protected:
 	CDBConnection*		m_pDBConnection;
 	connection*		m_Conn;		// libpqxx Connection
 	nontransaction*		m_Txn;		// libpqxx dummy Transaction
+	CSyncLock		m_coutLock;
 
 public:
 	CTxnBaseDB(CDBConnection *pDBConn);

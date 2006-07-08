@@ -64,7 +64,8 @@ public:
 		buf.push_back(m_row.T_DTS.ToStr(iDateTimeFmt));
 		buf.push_back(m_row.T_ST_ID);
 		buf.push_back(m_row.T_TT_ID);
-		buf.push_back((m_row.T_IS_CASH ? "true" : "false"));
+		//buf.push_back((m_row.T_IS_CASH ? "true" : "false"));
+		buf.push_back(stringify(m_row.T_IS_CASH));
 		buf.push_back(m_row.T_S_SYMB);
 		buf.push_back(stringify(m_row.T_QTY));
 		buf.push_back(stringify(m_row.T_BID_PRICE));
@@ -74,7 +75,8 @@ public:
 		buf.push_back(stringify(m_row.T_CHRG));
 		buf.push_back(stringify(m_row.T_COMM));
 		buf.push_back(stringify(m_row.T_TAX));
-		buf.push_back((m_row.T_LIFO ? "true" : "false"));
+		//buf.push_back((m_row.T_LIFO ? "true" : "false"));
+		buf.push_back(stringify(m_row.T_LIFO));
 
 		m_TW->insert(buf);
 		buf.clear();

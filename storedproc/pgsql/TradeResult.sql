@@ -19,13 +19,13 @@ DECLARE
 	acct_id		IDENT_T;
 	charge		VALUE_T;
 	holdsum_qty	S_QTY_T;
-	is_lifo		bool;
+	is_lifo		smallint;
 	symbol		char(15);
-	trade_is_cash	bool;
+	trade_is_cash	smallint;
 	trade_qty	S_QTY_T;
 	type_id		char(3);
-	type_is_market	bool;	
-	type_is_sell	bool;
+	type_is_market	smallint;	
+	type_is_sell	smallint;
 	type_name	char(12);
 
 	-- variables
@@ -95,12 +95,12 @@ $$ LANGUAGE 'plpgsql';
 CREATE OR REPLACE FUNCTION TradeResultFrame2(
 				IN acct_id	IDENT_T,
 				IN holdsum_qty	S_QTY_T,
-				IN is_lifo	bool,
+				IN is_lifo	smallint,
 				IN symbol	char(15),
 				IN trade_id	TRADE_T,
 				IN trade_price	S_PRICE_T,
 				IN trade_qty	S_QTY_T,
-				IN type_is_sell	bool) RETURNS record AS $$
+				IN type_is_sell	smallint) RETURNS record AS $$
 DECLARE
 	-- output parameters
 	broker_id	IDENT_T;
@@ -232,9 +232,9 @@ BEGIN
 					needed_qty = needed_qty - hold_qty;
 				END IF;
 			END LOOP;
-		END IF;
 
-		CLOSE	hold_list;
+			CLOSE	hold_list;
+		END IF;
 
 		-- Sell Short:
 		-- If needed_qty > 0 then customer has sold all existing
@@ -420,22 +420,194 @@ BEGIN
 		cust_id,
 		sell_value,
 		tax_status,
-		trade_dts
+		extract(year from trade_dts),
+		extract(month from trade_dts),
+		extract(day from trade_dts),
+		extract(hour from trade_dts),
+		extract(minute from trade_dts),
+		extract(second from trade_dts)
 	INTO	rs;
-
-	RETURN	rs;
+	RETURN rs;
 END;
 $$ LANGUAGE 'plpgsql';
 
 
 /*
  * Frame 3
- * 
+ * Responsible for computing the amount of tax due by the customer as a result of the trade
  * 
  */
 
--- CREATE OR REPLACE FUNCTION TradeResultFrame3()
--- DECLARE
--- BEGIN
--- END;
--- $$ LANGUAGE 'plpgsql';
+CREATE OR REPLACE FUNCTION TradeResultFrame3(
+				IN buy_value	numeric(12,2),
+				IN cust_id	IDENT_T,
+				IN sell_value	numeric(12,2),
+				IN trade_id	TRADE_T,
+				IN tax_amnt	VALUE_T) RETURNS VALUE_T AS $$
+DECLARE
+	-- Local Frame variables
+	tax_rates	S_PRICE_T;
+	tax_amount	VALUE_T;
+BEGIN
+	tax_amount = tax_amnt;
+
+	SELECT	sum(TX_RATE)
+	INTO	tax_rates
+	FROM	TAXRATE
+	WHERE	TX_ID IN ( SELECT	CX_TX_ID
+			FROM	CUSTOMER_TAXRATE
+			WHERE	CX_C_ID = cust_id);
+
+	tax_amount = tax_rates * (sell_value - buy_value);
+
+	UPDATE	TRADE
+	SET	T_TAX = tax_amount
+	WHERE	T_ID = trade_id;
+
+	RETURN tax_amount;
+END;
+$$ LANGUAGE 'plpgsql';
+
+
+/*
+ * Frame 4
+ * responsible for computing the commission for the broker who executed the trade.
+ * 
+ */
+
+CREATE OR REPLACE FUNCTION TradeResultFrame4(
+				IN cust_id	IDENT_T,
+				IN symbol	char(15),
+				IN trade_qty	S_QTY_T,
+				IN type_id	char(3)) RETURNS record AS $$
+DECLARE
+	-- Local Frame variables
+	cust_tier	smallint;
+	sec_ex_id	char(6);
+	rs		RECORD;
+
+	-- output parameters
+	comm_rate	numeric(5,2);
+	sec_name	varchar;
+	
+BEGIN
+	SELECT	S_EX_ID,
+		S_NAME
+	INTO	sec_ex_id,
+		sec_name
+	FROM	SECURITY
+	WHERE	S_SYMB = symbol;
+
+	SELECT	C_TIER
+	INTO	cust_tier
+	FROM	CUSTOMER
+	WHERE	C_ID = cust_id;
+
+	-- Only want 1 commission rate row
+	SELECT	CR_RATE
+	INTO	comm_rate
+	FROM	COMMISSION_RATE
+	WHERE	CR_C_TIER = cust_tier AND
+		CR_TT_ID = type_id AND
+		CR_EX_ID = sec_ex_id AND
+		CR_FROM_QTY <= trade_qty AND
+		CR_TO_QTY >= trade_qty
+	LIMIT 1;
+
+	SELECT	comm_rate,
+		sec_name
+	INTO	rs;
+	
+	RETURN rs;
+END;
+$$ LANGUAGE 'plpgsql';
+
+
+/*
+ * Frame 5
+ * responsible for recording the result of the trade and the broker's commission.
+ * 
+ */
+
+CREATE OR REPLACE FUNCTION TradeResultFrame5(
+				IN broker_id		IDENT_T,
+				IN comm_amount		numeric(5,2),
+				IN st_completed_id	char(4),
+				IN trade_dts		timestamp,
+				IN trade_id		IDENT_T,
+				IN trade_price		S_PRICE_T) RETURNS integer AS $$
+DECLARE
+	
+BEGIN
+	UPDATE	TRADE
+	SET	T_COMM = comm_amount,
+		T_DTS = trade_dts,
+		T_ST_ID = st_completed_id,
+		T_TRADE_PRICE = trade_price
+	WHERE	T_ID = trade_id;
+
+	INSERT INTO	TRADE_HISTORY (
+					TH_T_ID,
+					TH_DTS,
+					TH_ST_ID)
+	VALUES (trade_id, trade_dts, st_completed_id);
+	
+	UPDATE	BROKER
+	SET	B_COMM_TOTAL = B_COMM_TOTAL + comm_amount,
+		B_NUM_TRADES = B_NUM_TRADES + 1
+	WHERE	B_ID = broker_id;
+	
+	RETURN 0;
+END;
+$$ LANGUAGE 'plpgsql';
+
+
+/*
+ * Frame 6
+ * responsible for settling the trade.
+ * 
+ */
+
+CREATE OR REPLACE FUNCTION TradeResultFrame6(
+				IN acct_id		IDENT_T,
+				IN due_date		timestamp,
+				IN s_name		varchar,
+				IN se_amount		VALUE_T,
+				IN trade_dts		timestamp,
+				IN trade_id		IDENT_T,
+				IN trade_is_cash	smallint,
+				IN trade_qty		S_QTY_T,
+				IN type_name		char(12)) RETURNS BALANCE_T AS $$
+DECLARE
+	-- Local Frame Variables
+	cash_type	char(40);
+
+	-- output parameter
+	acct_bal		BALANCE_T;
+BEGIN
+	IF trade_is_cash THEN
+		cash_type = 'Cash Account';
+	ELSE
+		cash_type = 'Margin';
+	END IF;
+
+	INSERT INTO SETTLEMENT (SE_T_ID, SE_CASH_TYPE, SE_CASH_DUE_DATE, SE_AMT)
+	VALUES (trade_id, cash_type, due_date, se_amount);
+
+	IF trade_is_cash THEN
+		UPDATE	CUSTOMER_ACCOUNT
+		SET	CA_BAL = (CA_BAL + se_amount)
+		WHERE	CA_ID = acct_id;
+
+		INSERT INTO CASH_TRANSACTION (CT_DTS, CT_T_ID, CT_AMT, CT_NAME)
+		VALUES (trade_dts, trade_id, se_amount, (type_name || ' ' || trade_qty || ' shares of ' || s_name) );
+	END IF;
+
+	SELECT	CA_BAL
+	INTO	acct_bal
+	FROM	CUSTOMER_ACCOUNT
+	WHERE	CA_ID = acct_id;
+
+	RETURN	acct_bal;
+END;
+$$ LANGUAGE 'plpgsql';

@@ -58,8 +58,7 @@ BEGIN
 	FROM	BROKER
 	WHERE	B_ID=broker_id;
 
-	SELECT	acct_id,
-		acct_name,
+	SELECT	acct_name,
 		broker_name,
 		cust_f_name,
 		cust_id,
@@ -117,7 +116,7 @@ CREATE OR REPLACE FUNCTION TradeOrderFrame3(
 				IN acct_id		IDENT_T,
 				IN cust_id		IDENT_T,
 				IN cust_tier		smallint,
-				IN is_lifo		bool,
+				IN is_lifo		smallint,
 				IN issue		char(6),
 				IN st_pending_id	char(4),
 				IN st_submitted_id	char(4),
@@ -125,13 +124,13 @@ CREATE OR REPLACE FUNCTION TradeOrderFrame3(
 				IN trade_qty		S_QTY_T,
 				IN trade_type_id	char(3),
 				IN type_is_margin	smallint,
-				IN co_name		varchar,
+				IN company_name		varchar,
 				IN requested_price	S_PRICE_T,
 				IN symbol		varchar) RETURNS record AS $$
 DECLARE
 	-- output parameters
 	comp_name	varchar;
-	requested_price	S_PRICE_T;	
+	required_price	S_PRICE_T;	
 	symb_name	varchar;
 	buy_value	BALANCE_T;
 	charge_amount	VALUE_T;
@@ -142,8 +141,8 @@ DECLARE
 	sell_value	BALANCE_T;
 	status_id	char(4);
 	tax_amount	VALUE_T;
-	type_is_market	boolean;
-	type_is_sell	boolean;
+	type_is_market	smallint;
+	type_is_sell	smallint;
 
 	-- variables
 	comp_id		IDENT_T;
@@ -163,12 +162,18 @@ DECLARE
 	-- cursor
 	hold_list	refcursor;
 BEGIN
+	required_price = requested_price;
+	symb_name = symbol;
+	comp_name = company_name;
+
 	-- Get information on the security
-	IF symbol = '' THEN
+	IF symb_name = '' THEN
+
+		comp_id := 0;
 		SELECT	CO_ID
 		INTO	comp_id
-		FROM	COMPANY
-		WHERE	CO_NAME = co_name;
+		FROM	COMPANY 
+		WHERE	CO_NAME = comp_name;
 
 		SELECT	S_EX_ID,
 			S_NAME,
@@ -187,7 +192,7 @@ BEGIN
 			exch_id,
 			sec_name
 		FROM	SECURITY
-		WHERE	S_SYMB = symbol;
+		WHERE	S_SYMB = symb_name;
 		
 		SELECT	CO_NAME
 		INTO	comp_name
@@ -199,7 +204,7 @@ BEGIN
 	SELECT 	LT_PRICE
 	INTO	market_price
 	FROM	LAST_TRADE
-	WHERE	LT_S_SYMB = symbol;
+	WHERE	LT_S_SYMB = symb_name;
 	
 	-- Set trade characteristics based on the type of trade.
 	SELECT	TT_IS_MKRT,
@@ -213,7 +218,7 @@ BEGIN
 	-- if this this a market-order, then we need to set the requested_price to the
 	-- current market price.
 	IF type_is_market THEN
-		requested_price = market_price;
+		required_price = market_price;
 	END IF;
 
 	-- Initialize variables
@@ -225,7 +230,7 @@ BEGIN
 	INTO	holdsum_qty
 	FROM	HOLDING_SUMMARY
 	WHERE	HS_CA_ID = acct_id AND
-		HS_S_SYMB = symbol;
+		HS_S_SYMB = symb_name;
 
 	IF type_is_sell THEN
 	-- This is a sell transaction, so estimate the impact to any currently held
@@ -240,7 +245,7 @@ BEGIN
 					H_PRICE
 				FROM	HOLDING
 				WHERE	H_CA_ID = acct_id AND
-					H_S_SYMB = symbol
+					H_S_SYMB = symb_name
 				ORDER BY H_DTS DESC;
 			ELSE
 				-- Estimates will be based on closing oldest holdings
@@ -250,7 +255,7 @@ BEGIN
 					H_PRICE
 				FROM	HOLDING
 				WHERE	H_CA_ID = acct_id AND
-					H_S_SYMB = symbol
+					H_S_SYMB = symb_name
 				ORDER BY H_DTS ASC;
 			END IF;
 
@@ -269,12 +274,12 @@ BEGIN
 					-- Only a portion of this holding would be sold as a result of the
 					-- trade.
 					buy_value = buy_value + (needed_qty * hold_price);
-					sell_value = sell_value + (needed_qty * requested_price);
+					sell_value = sell_value + (needed_qty * required_price);
 					needed_qty = 0;
 				ELSE
 					-- All of this holding would be sold as a result of this trade.
 					buy_value = buy_value + (hold_qty * hold_price);
-					sell_value = sell_value + (hold_qty * requested_price);
+					sell_value = sell_value + (hold_qty * required_price);
 					needed_qty = needed_qty - hold_qty;
 				END IF;
 			END LOOP;
@@ -302,7 +307,7 @@ BEGIN
 					H_PRICE
 				FROM	HOLDING
 				WHERE	H_CA_ID = acct_id AND
-					H_S_SYMB = symbol
+					H_S_SYMB = symb_name
 				ORDER BY H_DTS DESC;
 			ELSE
 				-- Estimates will be based on closing oldest holdings
@@ -313,7 +318,7 @@ BEGIN
 					H_PRICE
 				FROM	HOLDING
 				WHERE	H_CA_ID = acct_id AND
-					H_S_SYMB = symbol
+					H_S_SYMB = symb_name
 				ORDER BY H_DTS ASC;
 			END IF;
 
@@ -333,7 +338,7 @@ BEGIN
 					-- Only a portion of this holding would be covered (bought back) as
 					-- a result of this trade.
 					sell_value = sell_value + (needed_qty * hold_price);
-					buy_value = buy_value + (needed_qty * requested_price);
+					buy_value = buy_value + (needed_qty * required_price);
 					needed_qty = 0;
 
 				ELSE
@@ -343,7 +348,7 @@ BEGIN
 					-- calculations
 					hold_qty = -hold_qty;
 					sell_value = sell_value + (hold_qty * hold_price);
-					buy_value = buy_value + (hold_qty * requested_price);
+					buy_value = buy_value + (hold_qty * required_price);
 					needed_qty = needed_qty - hold_qty;
 				END IF;
 			END LOOP;
@@ -415,9 +420,9 @@ BEGIN
 
 		IF hold_assets is NULL THEN /* account currently has no holdings */
 			cust_assets = acct_bal;
+		ELSE
+			cust_assets = hold_assets + acct_bal;
 		END IF;
-	ELSE
-		cust_assets = hold_assets + acct_bal;
 	END IF;
 
 	-- Set the status for this trade
@@ -429,7 +434,7 @@ BEGIN
 
 	-- Return output parameters
 	SELECT	comp_name,
-		requested_price,
+		required_price,
 		symb_name,
 		buy_value,
 		charge_amount,
@@ -460,14 +465,14 @@ CREATE OR REPLACE FUNCTION TradeOrderFrame4(
 				IN charge_amount      VALUE_T,
 				IN comm_amount        VALUE_T,
 				IN exec_name          char(64),
-				IN is_cash            bool,
-				IN is_lifo            bool,
+				IN is_cash            smallint,
+				IN is_lifo            smallint,
 				IN requested_price    S_PRICE_T,
 				IN status_id          char(4),
 				IN symbol             varchar(15),
 				IN trade_qty          S_QTY_T,
 				IN trade_type_id      char(3),
-				IN type_is_market     bool) RETURNS TRADE_T AS $$
+				IN type_is_market     smallint) RETURNS TRADE_T AS $$
 DECLARE
 	-- variables
 	now_dts		timestamp;
@@ -492,7 +497,8 @@ BEGIN
 
 	-- Record pending trade information in TRADE_REQUEST table if this trade is a
 	-- limit trade
-	IF NOT type_is_market THEN
+
+	IF type_is_market = 0 THEN
 		INSERT INTO TRADE_REQUEST (
 					TR_T_ID, TR_TT_ID, TR_S_SYMB,
 					TR_QTY, TR_BID_PRICE, TR_CA_ID)
@@ -507,6 +513,5 @@ BEGIN
 
 	-- Return trade_id generated by SUT
 	RETURN trade_id;
-
 END;
 $$ LANGUAGE 'plpgsql';

@@ -14,10 +14,13 @@ using namespace std;
 using namespace pqxx;
 
 #include "../EGen_v3.14/inc/TxnHarnessStructs.h"
+#include "../EGen_v3.14/inc/SyncLockInterface.h"
 
 #include "DBConnection.h"
 #include "TxnBaseDB.h"
 #include "TradeStatusDB.h"
+#include "TradeOrderDB.h"
+#include "TradeResultDB.h"
 // #include "BrokerVolumeDB.h"
 // #include "CustomerPositionDB.h"
 // #include "DataMaintenanceDB.h"
@@ -25,8 +28,6 @@ using namespace pqxx;
 // #include "MarketWatchDB.h"
 // #include "SecurityDetailDB.h"
 // #include "TradeLookupDB.h"
-// #include "TradeOrderDB.h"
-// #include "TradeResultDB.h"
 // #include "TradeStatusDB.h"
 // #include "TradeUpdateDB.h"
 

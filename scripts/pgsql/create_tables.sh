@@ -1,5 +1,4 @@
 #!/bin/sh
-
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -346,7 +345,7 @@ CREATE TABLE broker (
 ${PSQL} -e -d ${DBNAME} -c "
 CREATE TABLE cash_transaction (
     ct_t_id TRADE_T,
-    ct_dis TIMESTAMP NOT NULL,
+    ct_dts TIMESTAMP NOT NULL,
     ct_amt VALUE_T,
     ct_name VARCHAR(100))
     ${TS_CASH_TRANSACTION};
@@ -390,7 +389,7 @@ CREATE TABLE trade (
     t_dts TIMESTAMP NOT NULL,
     t_st_id char(4) NOT NULL,
     t_tt_id char(3) NOT NULL,
-    t_is_cash bool NOT NULL,
+    t_is_cash smallint NOT NULL,
     t_s_symb char(15) NOT NULL,
     t_qty S_QTY_T CHECK (t_qty > 0),
     t_bid_price S_PRICE_T NOT NULL CHECK (t_bid_price > 0),
@@ -400,7 +399,7 @@ CREATE TABLE trade (
     t_chrg VALUE_T CHECK (t_chrg >= 0),
     t_comm VALUE_T CHECK (t_comm >= 0),
     t_tax VALUE_T CHECK (t_tax >= 0),
-    t_lifo bool NOT NULL)
+    t_lifo smallint NOT NULL)
     ${TS_TRADE};
 " || exit 1
 
@@ -430,8 +429,8 @@ ${PSQL} -e -d ${DBNAME} -c "
 CREATE TABLE trade_type (
     tt_id char(3) NOT NULL,
     tt_name char(12) NOT NULL,
-    tt_is_sell bool NOT NULL,
-    tt_is_mkrt bool NOT NULL)
+    tt_is_sell smallint NOT NULL,
+    tt_is_mkrt smallint NOT NULL)
     ${TS_TRADE_TYPE};
 " || exit 1
 
