@@ -6,7 +6,7 @@
  * 07 July 2006
  */
 
-#include "../include/TxnHarnessSendToMarket.h"
+#include <TxnHarnessSendToMarket.h>
 
 using namespace TPCE;
 

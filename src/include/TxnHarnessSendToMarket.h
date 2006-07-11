@@ -11,7 +11,7 @@
 #define TXN_HARNESS_SENDTOMARKET_H
 
 #include "transactions.h"
-#include "../EGen_v3.14/inc/TxnHarnessSendToMarketInterface.h"
+#include "TxnHarnessSendToMarketInterface.h"
 
 namespace TPCE
 {

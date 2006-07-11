@@ -10,17 +10,17 @@
 #ifndef HARNESS_H
 #define HARNESS_H
 
-#include "../include/TxnHarnessSendToMarket.h"
-// #include "EGen_v3.14/inc/TxnHarnessBrokerVolume.h"
-// #include "EGen_v3.14/inc/TxnHarnessDataMaintenance.h"
-// #include "EGen_v3.14/inc/TxnHarnessCustomerPosition.h"
-// #include "EGen_v3.14/inc/TxnHarnessMarketFeed.h"
-// #include "EGen_v3.14/inc/TxnHarnessMarketWatch.h"
-// #include "EGen_v3.14/inc/TxnHarnessSecurityDetail.h"
-// #include "EGen_v3.14/inc/TxnHarnessTradeLookup.h"
-#include "EGen_v3.14/inc/TxnHarnessTradeOrder.h"
-#include "EGen_v3.14/inc/TxnHarnessTradeResult.h"
-#include "../EGen_v3.14/inc/TxnHarnessTradeStatus.h"
-// #include "EGen_v3.14/inc/TxnHarnessTradeUpdate.h" 
+#include "TxnHarnessSendToMarket.h"
+// #include "TxnHarnessBrokerVolume.h"
+// #include "TxnHarnessDataMaintenance.h"
+// #include "TxnHarnessCustomerPosition.h"
+// #include "TxnHarnessMarketFeed.h"
+// #include "TxnHarnessMarketWatch.h"
+// #include "TxnHarnessSecurityDetail.h"
+#include "TxnHarnessTradeLookup.h"
+#include "TxnHarnessTradeOrder.h"
+#include "TxnHarnessTradeResult.h"
+#include "TxnHarnessTradeStatus.h"
+// #include "TxnHarnessTradeUpdate.h" 
 
 #endif	//HARNESS_H

@@ -6,7 +6,7 @@
  * 13 June 2006
  */
 
-#include "../include/transactions.h"
+#include <transactions.h>
 
 using namespace TPCE;
 

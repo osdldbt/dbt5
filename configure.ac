@@ -21,6 +21,13 @@ AC_ARG_WITH(postgresql,
   [database_to_use="pgsql"]
 )
 
+AC_ARG_WITH(egen,
+  [AC_HELP_STRING([--with-egen=DIR],
+      [Default is to use EGen distributed with his kit.])],
+  [egen_path=$withval],
+  [egen_path="EGen_v3.14"]
+)
+
 dnl Set up rules depending on what database is selected.
 if test "$database_to_use" == "pgsql"; then
 
@@ -38,6 +45,13 @@ if test "$database_to_use" == "pgsql"; then
   )
   if test -z "$CREATEDB" ; then
     AC_MSG_ERROR([*** createdb is required])
+  fi
+
+  AC_PATH_PROGS(CREATELANG, createlang, ,
+    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+  )
+  if test -z "$CREATELANG" ; then
+    AC_MSG_ERROR([*** createlang is required])
   fi
 
   dnl check for createuser
@@ -108,6 +122,8 @@ AC_SUBST(with_pqxx_lib)
 # probably because of library ordering
 #
 LIBS="$LIBS $with_pqxx_lib"
+
+AC_SUBST(egen_path)
 
 AC_SUBST(database_to_use)
 AC_SUBST(DBC_CORE)

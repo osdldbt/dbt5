@@ -1,9 +1,9 @@
 // 2006 Rilson Nascimento
 // Test of TradeStatus transaction
 
-#include "../include/transactions.h"
-#include "../include/harness.h"
-#include "../EGen_v3.14/inc/CETxnInputGenerator.h"
+#include <transactions.h>
+#include <harness.h>
+#include "CETxnInputGenerator.h"
 #include <cstdlib>
 
 using namespace TPCE;
@@ -220,6 +220,24 @@ void TradeStatus(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 }
 
 
+// Trade Lookup
+void TradeLookup(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+{
+	// trade status harness code (TPC provided)
+	// this class uses our implementation of CTradeLookupDB class
+	CTradeLookup		m_TradeLookup(pConn);
+
+	// trade status input/output parameters
+	TTradeLookupTxnInput	m_TradeLookupTxnInput;
+	TTradeLookupTxnOutput	m_TradeLookupTxnOutput;
+	
+	// using TPC-provided input generator class
+	pTxnInputGenerator->GenerateTradeLookupInput( m_TradeLookupTxnInput );
+
+	m_TradeLookup.DoTxn(&m_TradeLookupTxnInput, &m_TradeLookupTxnOutput);	// Perform Trade Lookup
+}
+
+
 // Auto Random number generator
 unsigned int AutoRng()
 {
@@ -283,6 +301,7 @@ int main(int argc, char* argv[])
 				break;
 			case TRADE_LOOKUP:
 				cout<<"=== Testing Trade Lookup ==="<<endl<<endl;
+				TradeLookup( &m_Conn, &m_TxnInputGenerator );
 				break;
 			case TRADE_UPDATE:
 				cout<<"=== Testing Trade Update ==="<<endl<<endl;
@@ -327,10 +346,23 @@ int main(int argc, char* argv[])
 		}
 		return(1);
 	}
-	catch (exception &e)
+	// exceptions thrown by pqxx
+	//
+	catch (const pqxx::broken_connection &e) // broken connection
+	{
+		cout<<"libpxx: "<<e.what()<<endl;
+		return 3;
+	}
+	catch (const pqxx::sql_error &e)
+	{
+		cout<<"SQL error: "<<e.what()<<endl
+		    <<"Query was: '"<<e.query()<<"'"<<endl;
+		return 3;
+	}
+	catch (const exception &e)
 	{
 		cout<<e.what()<<endl;
-		return(1);
+		return 3;
 	}
 
 	return(0);

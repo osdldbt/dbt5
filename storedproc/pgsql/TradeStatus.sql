@@ -9,7 +9,12 @@
  * Based on TPC-E Standard Specification Draft Revision 0.32.2c Clause 3.3.5.
  */
 
--- Frame 1 of 1
+
+/*
+ * Frame 1
+ * responsible for retrieving information on the 50 most recent trades
+ */
+
 CREATE OR REPLACE FUNCTION TradeStatusFrame1 (IN acct_id IDENT_T) RETURNS SETOF record AS $$
 DECLARE
 	-- output parameters
