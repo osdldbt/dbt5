@@ -21,6 +21,6 @@
 #include "TxnHarnessTradeOrder.h"
 #include "TxnHarnessTradeResult.h"
 #include "TxnHarnessTradeStatus.h"
-// #include "TxnHarnessTradeUpdate.h" 
+#include "TxnHarnessTradeUpdate.h" 
 
 #endif	//HARNESS_H

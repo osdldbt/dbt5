@@ -238,6 +238,24 @@ void TradeLookup(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 }
 
 
+// Trade Update
+void TradeUpdate(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+{
+	// trade status harness code (TPC provided)
+	// this class uses our implementation of CTradeUpdateDB class
+	CTradeUpdate		m_TradeUpdate(pConn);
+
+	// trade status input/output parameters
+	TTradeUpdateTxnInput	m_TradeUpdateTxnInput;
+	TTradeUpdateTxnOutput	m_TradeUpdateTxnOutput;
+	
+	// using TPC-provided input generator class
+	pTxnInputGenerator->GenerateTradeUpdateInput( m_TradeUpdateTxnInput );
+
+	m_TradeUpdate.DoTxn(&m_TradeUpdateTxnInput, &m_TradeUpdateTxnOutput);	// Perform Trade Update
+}
+
+
 // Auto Random number generator
 unsigned int AutoRng()
 {
@@ -305,6 +323,7 @@ int main(int argc, char* argv[])
 				break;
 			case TRADE_UPDATE:
 				cout<<"=== Testing Trade Update ==="<<endl<<endl;
+				TradeUpdate( &m_Conn, &m_TxnInputGenerator );
 				break;
 			case TRADE_STATUS:
 				cout<<"=== Testing Trade Status ==="<<endl<<endl;
