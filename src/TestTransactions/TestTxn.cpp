@@ -223,11 +223,11 @@ void TradeStatus(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 // Trade Lookup
 void TradeLookup(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 {
-	// trade status harness code (TPC provided)
+	// trade lookup harness code (TPC provided)
 	// this class uses our implementation of CTradeLookupDB class
 	CTradeLookup		m_TradeLookup(pConn);
 
-	// trade status input/output parameters
+	// trade lookup input/output parameters
 	TTradeLookupTxnInput	m_TradeLookupTxnInput;
 	TTradeLookupTxnOutput	m_TradeLookupTxnOutput;
 	
@@ -241,11 +241,11 @@ void TradeLookup(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 // Trade Update
 void TradeUpdate(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 {
-	// trade status harness code (TPC provided)
+	// trade update harness code (TPC provided)
 	// this class uses our implementation of CTradeUpdateDB class
 	CTradeUpdate		m_TradeUpdate(pConn);
 
-	// trade status input/output parameters
+	// trade update input/output parameters
 	TTradeUpdateTxnInput	m_TradeUpdateTxnInput;
 	TTradeUpdateTxnOutput	m_TradeUpdateTxnOutput;
 	
@@ -253,6 +253,24 @@ void TradeUpdate(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	pTxnInputGenerator->GenerateTradeUpdateInput( m_TradeUpdateTxnInput );
 
 	m_TradeUpdate.DoTxn(&m_TradeUpdateTxnInput, &m_TradeUpdateTxnOutput);	// Perform Trade Update
+}
+
+
+// Customer Position
+void CustomerPosition(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+{
+	// trade status harness code (TPC provided)
+	// this class uses our implementation of CCustomerPositionDB class
+	CCustomerPosition		m_CustomerPosition(pConn);
+
+	// trade status input/output parameters
+	TCustomerPositionTxnInput	m_CustomerPositionTxnInput;
+	TCustomerPositionTxnOutput	m_CustomerPositionTxnOutput;
+	
+	// using TPC-provided input generator class
+	pTxnInputGenerator->GenerateCustomerPositionInput( m_CustomerPositionTxnInput );
+
+	m_CustomerPosition.DoTxn(&m_CustomerPositionTxnInput, &m_CustomerPositionTxnOutput);	// Perform Customer Position
 }
 
 
@@ -331,6 +349,7 @@ int main(int argc, char* argv[])
 				break;
 			case CUSTOMER_POSITION:
 				cout<<"=== Testing Customer Position ==="<<endl<<endl;
+				CustomerPosition( &m_Conn, &m_TxnInputGenerator );
 				break;
 			case BROKER_VOLUME:
 				cout<<"=== Testing Broker Volume ==="<<endl<<endl;

@@ -13,7 +13,7 @@
 #include "TxnHarnessSendToMarket.h"
 // #include "TxnHarnessBrokerVolume.h"
 // #include "TxnHarnessDataMaintenance.h"
-// #include "TxnHarnessCustomerPosition.h"
+#include "TxnHarnessCustomerPosition.h"
 // #include "TxnHarnessMarketFeed.h"
 // #include "TxnHarnessMarketWatch.h"
 // #include "TxnHarnessSecurityDetail.h"
