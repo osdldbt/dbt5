@@ -11,16 +11,16 @@
 #define HARNESS_H
 
 #include "TxnHarnessSendToMarket.h"
-// #include "TxnHarnessBrokerVolume.h"
 // #include "TxnHarnessDataMaintenance.h"
 #include "TxnHarnessCustomerPosition.h"
 // #include "TxnHarnessMarketFeed.h"
 // #include "TxnHarnessMarketWatch.h"
-// #include "TxnHarnessSecurityDetail.h"
 #include "TxnHarnessTradeLookup.h"
 #include "TxnHarnessTradeOrder.h"
 #include "TxnHarnessTradeResult.h"
 #include "TxnHarnessTradeStatus.h"
-#include "TxnHarnessTradeUpdate.h" 
+#include "TxnHarnessTradeUpdate.h"
+#include "TxnHarnessBrokerVolume.h" 
+#include "TxnHarnessSecurityDetail.h"
 
 #endif	//HARNESS_H

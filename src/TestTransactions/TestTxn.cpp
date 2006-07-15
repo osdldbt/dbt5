@@ -186,11 +186,11 @@ TComm TradeOrder(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 // Trade Result
 void TradeResult(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator, PComm comm)
 {
-	// trade status harness code (TPC provided)
+	// trade result harness code (TPC provided)
 	// this class uses our implementation of CTradeResultDB class
 	CTradeResult		m_TradeResult(pConn);
 
-	// trade status input/output parameters
+	// trade result input/output parameters
 	TTradeResultTxnInput	m_TradeResultTxnInput;
 	TTradeResultTxnOutput	m_TradeResultTxnOutput;
 	
@@ -259,11 +259,11 @@ void TradeUpdate(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 // Customer Position
 void CustomerPosition(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 {
-	// trade status harness code (TPC provided)
+	// customer position harness code (TPC provided)
 	// this class uses our implementation of CCustomerPositionDB class
 	CCustomerPosition		m_CustomerPosition(pConn);
 
-	// trade status input/output parameters
+	// customer position input/output parameters
 	TCustomerPositionTxnInput	m_CustomerPositionTxnInput;
 	TCustomerPositionTxnOutput	m_CustomerPositionTxnOutput;
 	
@@ -271,6 +271,42 @@ void CustomerPosition(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGener
 	pTxnInputGenerator->GenerateCustomerPositionInput( m_CustomerPositionTxnInput );
 
 	m_CustomerPosition.DoTxn(&m_CustomerPositionTxnInput, &m_CustomerPositionTxnOutput);	// Perform Customer Position
+}
+
+
+// Broker Volume
+void BrokerVolume(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+{
+	// Broker Volume harness code (TPC provided)
+	// this class uses our implementation of CBrokerVolumeDB class
+	CBrokerVolume		m_BrokerVolume(pConn);
+
+	// broker volume input/output parameters
+	TBrokerVolumeTxnInput	m_BrokerVolumeTxnInput;
+	TBrokerVolumeTxnOutput	m_BrokerVolumeTxnOutput;
+	
+	// using TPC-provided input generator class
+	pTxnInputGenerator->GenerateBrokerVolumeInput( m_BrokerVolumeTxnInput );
+
+	m_BrokerVolume.DoTxn(&m_BrokerVolumeTxnInput, &m_BrokerVolumeTxnOutput);	// Perform Customer Position
+}
+
+
+// Security Detail
+void SecurityDetail(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+{
+	// Security Detail harness code (TPC provided)
+	// this class uses our implementation of CSecurityDetailDB class
+	CSecurityDetail		m_SecurityDetail(pConn);
+
+	// security detail input/output parameters
+	TSecurityDetailTxnInput	m_SecurityDetailTxnInput;
+	TSecurityDetailTxnOutput	m_SecurityDetailTxnOutput;
+	
+	// using TPC-provided input generator class
+	pTxnInputGenerator->GenerateSecurityDetailInput( m_SecurityDetailTxnInput );
+
+	m_SecurityDetail.DoTxn(&m_SecurityDetailTxnInput, &m_SecurityDetailTxnOutput);	// Perform Customer Position
 }
 
 
@@ -353,9 +389,11 @@ int main(int argc, char* argv[])
 				break;
 			case BROKER_VOLUME:
 				cout<<"=== Testing Broker Volume ==="<<endl<<endl;
+				BrokerVolume( &m_Conn, &m_TxnInputGenerator );
 				break;
 			case SECURITY_DETAIL:
 				cout<<"=== Testing Security Detail ==="<<endl<<endl;
+				SecurityDetail( &m_Conn, &m_TxnInputGenerator );
 				break;
 			case MARKET_FEED:
 				cout<<"=== Testing Market Feed ==="<<endl<<endl;
