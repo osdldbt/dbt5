@@ -14,7 +14,7 @@
 // #include "TxnHarnessDataMaintenance.h"
 #include "TxnHarnessCustomerPosition.h"
 // #include "TxnHarnessMarketFeed.h"
-// #include "TxnHarnessMarketWatch.h"
+#include "TxnHarnessMarketWatch.h"
 #include "TxnHarnessTradeLookup.h"
 #include "TxnHarnessTradeOrder.h"
 #include "TxnHarnessTradeResult.h"

@@ -27,8 +27,8 @@ using namespace pqxx;
 #include "CustomerPositionDB.h"
 #include "BrokerVolumeDB.h"
 #include "SecurityDetailDB.h"
+#include "MarketWatchDB.h"
 // #include "DataMaintenanceDB.h"
 // #include "MarketFeedDB.h"
-// #include "MarketWatchDB.h"
 
 #endif	// #ifndef TRANSACTIONS_H

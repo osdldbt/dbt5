@@ -310,6 +310,24 @@ void SecurityDetail(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerat
 }
 
 
+// Market Watch
+void MarketWatch(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+{
+	// Market Watch harness code (TPC provided)
+	// this class uses our implementation of CMarketWatchDB class
+	CMarketWatch		m_MarketWatch(pConn);
+
+	// security detail input/output parameters
+	TMarketWatchTxnInput	m_MarketWatchTxnInput;
+	TMarketWatchTxnOutput	m_MarketWatchTxnOutput;
+	
+	// using TPC-provided input generator class
+	pTxnInputGenerator->GenerateMarketWatchInput( m_MarketWatchTxnInput );
+
+	m_MarketWatch.DoTxn(&m_MarketWatchTxnInput, &m_MarketWatchTxnOutput);	// Perform Customer Position
+}
+
+
 // Auto Random number generator
 unsigned int AutoRng()
 {
@@ -400,6 +418,7 @@ int main(int argc, char* argv[])
 				break;
 			case MARKET_WATCH:
 				cout<<"=== Testing Market Watch ==="<<endl<<endl;
+				MarketWatch( &m_Conn, &m_TxnInputGenerator );
 				break;
 			case DATA_MAINTENANCE:
 				cout<<"=== Testing Data Maintenance ==="<<endl<<endl;
