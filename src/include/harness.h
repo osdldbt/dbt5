@@ -11,7 +11,7 @@
 #define HARNESS_H
 
 #include "TxnHarnessSendToMarket.h"
-// #include "TxnHarnessDataMaintenance.h"
+#include "TxnHarnessDataMaintenance.h"
 #include "TxnHarnessCustomerPosition.h"
 // #include "TxnHarnessMarketFeed.h"
 #include "TxnHarnessMarketWatch.h"

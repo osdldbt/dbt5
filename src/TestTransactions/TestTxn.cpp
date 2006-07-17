@@ -184,7 +184,7 @@ TComm TradeOrder(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 
 
 // Trade Result
-void TradeResult(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator, PComm comm)
+void TradeResult(CDBConnection* pConn, PComm comm)
 {
 	// trade result harness code (TPC provided)
 	// this class uses our implementation of CTradeResultDB class
@@ -194,7 +194,7 @@ void TradeResult(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator,
 	TTradeResultTxnInput	m_TradeResultTxnInput;
 	TTradeResultTxnOutput	m_TradeResultTxnOutput;
 	
-	// using input from Trade Order txn and Price Board class
+	// using input from Trade Order txn
 	m_TradeResultTxnInput.trade_id = comm->trade_id;
 	m_TradeResultTxnInput.trade_price = comm->trade_price;
 
@@ -288,7 +288,7 @@ void BrokerVolume(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateBrokerVolumeInput( m_BrokerVolumeTxnInput );
 
-	m_BrokerVolume.DoTxn(&m_BrokerVolumeTxnInput, &m_BrokerVolumeTxnOutput);	// Perform Customer Position
+	m_BrokerVolume.DoTxn(&m_BrokerVolumeTxnInput, &m_BrokerVolumeTxnOutput);	// Perform Broker Volume
 }
 
 
@@ -306,7 +306,7 @@ void SecurityDetail(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerat
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateSecurityDetailInput( m_SecurityDetailTxnInput );
 
-	m_SecurityDetail.DoTxn(&m_SecurityDetailTxnInput, &m_SecurityDetailTxnOutput);	// Perform Customer Position
+	m_SecurityDetail.DoTxn(&m_SecurityDetailTxnInput, &m_SecurityDetailTxnOutput);	// Perform Security Detail
 }
 
 
@@ -317,14 +317,26 @@ void MarketWatch(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	// this class uses our implementation of CMarketWatchDB class
 	CMarketWatch		m_MarketWatch(pConn);
 
-	// security detail input/output parameters
+	// Market Watch input/output parameters
 	TMarketWatchTxnInput	m_MarketWatchTxnInput;
 	TMarketWatchTxnOutput	m_MarketWatchTxnOutput;
 	
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateMarketWatchInput( m_MarketWatchTxnInput );
 
-	m_MarketWatch.DoTxn(&m_MarketWatchTxnInput, &m_MarketWatchTxnOutput);	// Perform Customer Position
+	m_MarketWatch.DoTxn(&m_MarketWatchTxnInput, &m_MarketWatchTxnOutput);	// Perform Market Watch
+}
+
+
+// Data Maintenance
+void DataMaintenance(CDM* pCDM)
+{
+	// using TPC-provided Data Maintenance class to perform the Data Maintenance transaction.
+	// Testing all tables
+	for (int i = 0; i <= 11; i++)
+	{
+		pCDM->DoTxn();
+	}
 }
 
 
@@ -378,16 +390,23 @@ int main(int argc, char* argv[])
 		}
 		cout<<"Seed: "<<Seed<<endl<<endl;
 		m_TxnInputGenerator.SetRNGSeed( Seed );
-		TComm comm;
 
+		// Initialize DM - Data Maintenance class
+		// DM is used by Data Maintenance and Trade Cleanup transactions
+		CDMSUT		m_CDMSUT( &m_Conn );	// Data-Maintenance SUT interface (provided by us)
+		CDM		m_CDM( &m_CDMSUT, &log, inputFiles, iDefaultLoadUnitSize, iDefaultLoadUnitSize,
+						500, 10, Seed );	// provided by TPC
+
+		
 		//  Parse Txn type
 		switch ( TxnType ) 
 		{
 			case TRADE_ORDER:
 			case TRADE_RESULT:
+				TComm comm;
 				cout<<"=== Testing Trade Order & Trade Result ==="<<endl<<endl;
 				comm = TradeOrder( &m_Conn, &m_TxnInputGenerator );
-				TradeResult( &m_Conn, &m_TxnInputGenerator, &comm );
+				TradeResult( &m_Conn, &comm );
 				break;
 			case TRADE_LOOKUP:
 				cout<<"=== Testing Trade Lookup ==="<<endl<<endl;
@@ -422,6 +441,7 @@ int main(int argc, char* argv[])
 				break;
 			case DATA_MAINTENANCE:
 				cout<<"=== Testing Data Maintenance ==="<<endl<<endl;
+				DataMaintenance( &m_CDM );
 				break;
 			case TRADE_CLEANUP:
 				cout<<"=== Testing Trade Cleanup ==="<<endl<<endl;
