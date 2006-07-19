@@ -125,7 +125,7 @@ void CDM::Initialize( void )
 CDM::CDM( CDMSUTInterface *pSUT, CBaseLogger *pLogger, CInputFiles &inputFiles, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount, INT32 iDaysOfInitialTrades, INT32 iScaleFactor, UINT32 UniqueId )
 	: m_pSUT( pSUT )
     , m_pLogger ( pLogger )
-	, m_DriverGlobalSettings ( iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades * HoursPerWorkDay )
+	, m_DriverGlobalSettings ( iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades )
 	, m_DriverDMSettings( UniqueId, 0 )
 	, m_pSecurities(inputFiles.Securities)
 	, m_pCompanies(inputFiles.Company)
@@ -141,7 +141,7 @@ CDM::CDM( CDMSUTInterface *pSUT, CBaseLogger *pLogger, CInputFiles &inputFiles, 
 CDM::CDM( CDMSUTInterface *pSUT, CBaseLogger *pLogger, CInputFiles &inputFiles, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount, INT32 iDaysOfInitialTrades, INT32 iScaleFactor, UINT32 UniqueId, RNGSEED RNGSeed )
 	: m_pSUT( pSUT )
 	, m_pLogger( pLogger )
-	, m_DriverGlobalSettings ( iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades * HoursPerWorkDay )
+	, m_DriverGlobalSettings ( iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades )
 	, m_DriverDMSettings( UniqueId, RNGSeed )
 	, m_rnd( RNGSeed )
 	, m_pSecurities(inputFiles.Securities)
@@ -255,10 +255,10 @@ void CDM::DoCleanupTxn( void )
         strncpy(m_CleanupTxnInput.st_pending_id,
                         (m_pStatusType->GetRecord(ePending))->ST_ID,
                         sizeof(m_CleanupTxnInput.st_pending_id));
-        strncpy(m_CleanupTxnInput.st_pending_id,
+        strncpy(m_CleanupTxnInput.st_submitted_id,
                         (m_pStatusType->GetRecord(eSubmitted))->ST_ID,
                         sizeof(m_CleanupTxnInput.st_submitted_id));
-        strncpy(m_CleanupTxnInput.st_pending_id,
+        strncpy(m_CleanupTxnInput.st_canceled_id,
                         (m_pStatusType->GetRecord(eCanceled))->ST_ID,
                         sizeof(m_CleanupTxnInput.st_canceled_id));
 

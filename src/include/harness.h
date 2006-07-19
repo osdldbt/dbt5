@@ -22,5 +22,6 @@
 #include "TxnHarnessTradeUpdate.h"
 #include "TxnHarnessBrokerVolume.h" 
 #include "TxnHarnessSecurityDetail.h"
+#include "TxnHarnessTradeCleanup.h"
 
 #endif	//HARNESS_H

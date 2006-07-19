@@ -340,6 +340,14 @@ void DataMaintenance(CDM* pCDM)
 }
 
 
+// Trade Cleanup
+void TradeCleanup(CDM* pCDM)
+{
+	// using TPC-provided Data Maintenance class to perform the Trade Cleanup.
+	pCDM->DoCleanupTxn();
+}
+
+
 // Auto Random number generator
 unsigned int AutoRng()
 {
@@ -395,9 +403,8 @@ int main(int argc, char* argv[])
 		// DM is used by Data Maintenance and Trade Cleanup transactions
 		CDMSUT		m_CDMSUT( &m_Conn );	// Data-Maintenance SUT interface (provided by us)
 		CDM		m_CDM( &m_CDMSUT, &log, inputFiles, iDefaultLoadUnitSize, iDefaultLoadUnitSize,
-						500, 10, Seed );	// provided by TPC
+						10, 500, 1 );	// provided by TPC
 
-		
 		//  Parse Txn type
 		switch ( TxnType ) 
 		{
@@ -445,6 +452,7 @@ int main(int argc, char* argv[])
 				break;
 			case TRADE_CLEANUP:
 				cout<<"=== Testing Trade Cleanup ==="<<endl<<endl;
+				TradeCleanup( &m_CDM );
 				break;
 			default:
 				cout<<"wrong txn type"<<endl;

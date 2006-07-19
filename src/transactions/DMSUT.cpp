@@ -34,4 +34,12 @@ bool CDMSUT::DataMaintenance( PDataMaintenanceTxnInput pTxnInput )
 
 bool CDMSUT::TradeCleanup( PTradeCleanupTxnInput pTxnInput )
 {
+	// Data Maintenance harness code (TPC provided)
+	// this class uses our implementation of CTradeCleanupDB class
+	CTradeCleanup		m_TradeCleanup(m_pDBConnection);
+
+	// Data Maintenance output parameters
+	TTradeCleanupTxnOutput	m_TradeCleanupTxnOutput;
+	
+	m_TradeCleanup.DoTxn( pTxnInput, &m_TradeCleanupTxnOutput); // Perform Trade Cleanup	
 }
