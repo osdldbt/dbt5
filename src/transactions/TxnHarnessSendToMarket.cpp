@@ -6,7 +6,7 @@
  * 07 July 2006
  */
 
-#include <TxnHarnessSendToMarket.h>
+#include <transactions.h>
 
 using namespace TPCE;
 

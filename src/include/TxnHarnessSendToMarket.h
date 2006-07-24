@@ -10,9 +10,6 @@
 #ifndef TXN_HARNESS_SENDTOMARKET_H
 #define TXN_HARNESS_SENDTOMARKET_H
 
-#include "transactions.h"
-#include "TxnHarnessSendToMarketInterface.h"
-
 namespace TPCE
 {
 

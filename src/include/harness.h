@@ -10,10 +10,9 @@
 #ifndef HARNESS_H
 #define HARNESS_H
 
-#include "TxnHarnessSendToMarket.h"
 #include "TxnHarnessDataMaintenance.h"
 #include "TxnHarnessCustomerPosition.h"
-// #include "TxnHarnessMarketFeed.h"
+#include "TxnHarnessMarketFeed.h"
 #include "TxnHarnessMarketWatch.h"
 #include "TxnHarnessTradeLookup.h"
 #include "TxnHarnessTradeOrder.h"

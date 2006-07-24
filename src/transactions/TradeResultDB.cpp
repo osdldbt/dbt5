@@ -154,7 +154,7 @@ void CTradeResultDB::DoTradeResultFrame3(PTradeResultFrame3Input pFrame3Input, P
 	ostringstream osCall;
 	osCall << "select * from TradeResultFrame3("<<pFrame3Input->buy_value<<"::numeric(12,2),"<<pFrame3Input->cust_id<<
 			"::IDENT_T,"<<pFrame3Input->sell_value<<"::numeric(12,2),"<<pFrame3Input->trade_id<<
-			"::TRADE_T,"<<pFrame3Input->tax_amount<<"::VALUE_T) as (tax_amount VALUE_T)";
+			"::TRADE_T,"<<pFrame3Input->tax_amount<<"::VALUE_T)";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );

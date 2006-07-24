@@ -2,8 +2,7 @@
 // Test of TradeStatus transaction
 
 #include <transactions.h>
-#include <harness.h>
-#include "CETxnInputGenerator.h"
+#include <CETxnInputGenerator.h>
 #include <cstdlib>
 
 using namespace TPCE;
@@ -37,17 +36,18 @@ void Usage()
 	cout<<"   -t number		Transaction type"<<endl;
 	cout<<"\t\t\tA - TRADE_ORDER"<<endl;
 	cout<<"\t\t\t    TRADE_RESULT"<<endl;
+	cout<<"\t\t\t    MARKET_FEED"<<endl;
 	cout<<"\t\t\tC - TRADE_LOOKUP"<<endl;
 	cout<<"\t\t\tD - TRADE_UPDATE"<<endl;
 	cout<<"\t\t\tE - TRADE_STATUS (default)"<<endl;
 	cout<<"\t\t\tF - CUSTOMER_POSITION"<<endl;
 	cout<<"\t\t\tG - BROKER_VOLUME"<<endl;
 	cout<<"\t\t\tH - SECURITY_DETAIL"<<endl;
-	cout<<"\t\t\tI - MARKET_FEED"<<endl;
 	cout<<"\t\t\tJ - MARKET_WATCH"<<endl;
 	cout<<"\t\t\tK - DATA_MAINTENANCE"<<endl;
 	cout<<"\t\t\tL - TRADE_CLEANUP"<<endl<<endl;
-	cout<<"Note: Trade Order and Trade Result are tested together."<<endl;
+	cout<<"Note: Trade Order triggers Trade Result and Market Feed"<<endl
+	    <<"      when the type of trade is Market (type_is_market=1)"<<endl;
 }
 
 
@@ -148,17 +148,13 @@ bool ParseCommandLine( int argc, char *argv[] )
 	return(true);
 }
 
-// Trade Order -> Trade Result communication
-typedef struct TComm
-{
-	TIdent	trade_id;
-	double	trade_price;
-} *PComm;
-
 // Trade Order
-TComm TradeOrder(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+void TradeOrder(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 {
-	CSendToMarket	m_pSendToMarket;	// dummy SendToMarket just to avoid error in this txn
+	// SendToMarket test class that can call Trade-Result and Market-Feed 
+	// via the MEE - Market Exchange Emulator when type_is_market = 1. 
+	// These two txns run async.
+	CSendToMarketTest	m_pSendToMarket;
 
 	// trade order harness code (TPC provided)
 	// this class uses our implementation of CTradeOrderDB class
@@ -174,31 +170,6 @@ TComm TradeOrder(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	pTxnInputGenerator->GenerateTradeOrderInput( m_TradeOrderTxnInput, iTradeType, bExecutorIsAccountOwner );
 
 	m_TradeOrder.DoTxn(&m_TradeOrderTxnInput, &m_TradeOrderTxnOutput);	// Perform Trade Order
-
-	TComm comm;
-	comm.trade_id = m_TradeOrderTxnOutput.trade_id;
-	comm.trade_price = m_TradeOrderTxnInput.requested_price; // use price_requested as input for trade_price in
-								 // Trade Result txn; this is not right, just for testing
-	return( comm );
-}
-
-
-// Trade Result
-void TradeResult(CDBConnection* pConn, PComm comm)
-{
-	// trade result harness code (TPC provided)
-	// this class uses our implementation of CTradeResultDB class
-	CTradeResult		m_TradeResult(pConn);
-
-	// trade result input/output parameters
-	TTradeResultTxnInput	m_TradeResultTxnInput;
-	TTradeResultTxnOutput	m_TradeResultTxnOutput;
-	
-	// using input from Trade Order txn
-	m_TradeResultTxnInput.trade_id = comm->trade_id;
-	m_TradeResultTxnInput.trade_price = comm->trade_price;
-
-	m_TradeResult.DoTxn(&m_TradeResultTxnInput, &m_TradeResultTxnOutput);	// Perform Trade Result
 }
 
 
@@ -347,7 +318,6 @@ void TradeCleanup(CDM* pCDM)
 	pCDM->DoCleanupTxn();
 }
 
-
 // Auto Random number generator
 unsigned int AutoRng()
 {
@@ -400,7 +370,7 @@ int main(int argc, char* argv[])
 		m_TxnInputGenerator.SetRNGSeed( Seed );
 
 		// Initialize DM - Data Maintenance class
-		// DM is used by Data Maintenance and Trade Cleanup transactions
+		// DM is used by Data-Maintenance and Trade-Cleanup transactions
 		CDMSUT		m_CDMSUT( &m_Conn );	// Data-Maintenance SUT interface (provided by us)
 		CDM		m_CDM( &m_CDMSUT, &log, inputFiles, iDefaultLoadUnitSize, iDefaultLoadUnitSize,
 						10, 500, 1 );	// provided by TPC
@@ -410,10 +380,9 @@ int main(int argc, char* argv[])
 		{
 			case TRADE_ORDER:
 			case TRADE_RESULT:
-				TComm comm;
-				cout<<"=== Testing Trade Order & Trade Result ==="<<endl<<endl;
-				comm = TradeOrder( &m_Conn, &m_TxnInputGenerator );
-				TradeResult( &m_Conn, &comm );
+			case MARKET_FEED:
+				cout<<"=== Testing Trade Order, Trade Result and Market Feed ==="<<endl<<endl;
+				TradeOrder( &m_Conn, &m_TxnInputGenerator );
 				break;
 			case TRADE_LOOKUP:
 				cout<<"=== Testing Trade Lookup ==="<<endl<<endl;
@@ -438,9 +407,6 @@ int main(int argc, char* argv[])
 			case SECURITY_DETAIL:
 				cout<<"=== Testing Security Detail ==="<<endl<<endl;
 				SecurityDetail( &m_Conn, &m_TxnInputGenerator );
-				break;
-			case MARKET_FEED:
-				cout<<"=== Testing Market Feed ==="<<endl<<endl;
 				break;
 			case MARKET_WATCH:
 				cout<<"=== Testing Market Watch ==="<<endl<<endl;
@@ -488,5 +454,6 @@ int main(int argc, char* argv[])
 		return 3;
 	}
 
+	pthread_exit(NULL);
 	return(0);
 }

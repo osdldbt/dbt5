@@ -8,8 +8,6 @@
 
 #ifndef TRADE_STATUS_DB_H
 #define TRADE_STATUS_DB_H
-
-//#include "transactions.h"
  
 namespace TPCE
 {

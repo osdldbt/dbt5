@@ -6,8 +6,7 @@
  * 17 July 2006
  */
 
-#include "transactions.h"
-#include "harness.h"
+#include <transactions.h>
 
 using namespace TPCE;
 
