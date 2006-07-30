@@ -1,5 +1,5 @@
 // 2006 Rilson Nascimento
-// Test of TradeStatus transaction
+// Test transactions
 
 #include <transactions.h>
 #include <CETxnInputGenerator.h>
@@ -7,23 +7,8 @@
 
 using namespace TPCE;
 
-enum eTxnType {
-	TRADE_ORDER = 0,
-	TRADE_RESULT,
-	TRADE_LOOKUP,
-	TRADE_UPDATE,
-	TRADE_STATUS,
-	CUSTOMER_POSITION,
-	BROKER_VOLUME,
-	SECURITY_DETAIL,
-	MARKET_FEED,
-	MARKET_WATCH,
-	DATA_MAINTENANCE,
-	TRADE_CLEANUP
-};
 eTxnType TxnType = TRADE_STATUS;
 RNGSEED	Seed = 0;
-
 
 // shows program usage
 void Usage()
@@ -371,7 +356,7 @@ int main(int argc, char* argv[])
 
 		// Initialize DM - Data Maintenance class
 		// DM is used by Data-Maintenance and Trade-Cleanup transactions
-		CDMSUT		m_CDMSUT( &m_Conn );	// Data-Maintenance SUT interface (provided by us)
+		CDMSUTtest		m_CDMSUT( &m_Conn );	// Data-Maintenance SUT interface (provided by us)
 		CDM		m_CDM( &m_CDMSUT, &log, inputFiles, iDefaultLoadUnitSize, iDefaultLoadUnitSize,
 						10, 500, 1 );	// provided by TPC
 

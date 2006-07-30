@@ -7,6 +7,7 @@
  */
 
 #include <transactions.h>
+#include <MEESUTtest.h>
 
 using namespace TPCE;
 
@@ -29,7 +30,7 @@ bool CSendToMarketTest::SendToMarket(TTradeRequest &trade_mes)
 	CEGenLogger log(eDriverEGenLoader, 0, "temp.log", &fmt);
 
 	// Initialize MEE - Market Exchange Emulator class
-	CMEESUT		m_CMEESUT( NULL /*&m_Conn*/ ); // I am creating connections on the fly inside the thread
+	CMEESUTtest		m_CMEESUT( NULL /*&m_Conn*/ ); // I am creating connections on the fly inside the thread
 	char*	szFileName = "EGen_v3.14/flat_in/Security.txt";
 	CSecurityFile	*Securities = new CSecurityFile(szFileName, iDefaultLoadUnitSize, iDefaultLoadUnitSize);
 

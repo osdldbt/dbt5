@@ -1,20 +1,20 @@
 /*
- * MEESUT.h
- * MEE (Market Exchange Emulator) - SUT Interface class
+ * MEESUTtest.h
+ * MEE (Market Exchange Emulator) - SUT Interface test class 
  *
  * 2006 Rilson Nascimento
  *
  * 23 July 2006
  */
 
-#ifndef MEE_SUT_H
-#define MEE_SUT_H
+#ifndef MEE_SUT_TEST_H
+#define MEE_SUT_TEST_H
 
 #include "MEESUTInterface.h"
 
 namespace TPCE
 {
-class CMEESUT : public CMEESUTInterface
+class CMEESUTtest : public CMEESUTInterface
 {
 private:
 	CDBConnection*		m_pDBConnection;
@@ -22,19 +22,19 @@ private:
 	TMarketFeedTxnInput	m_MarketFeedTxnInput;
 
 public:
-	CMEESUT(CDBConnection *pDBConn);
-	~CMEESUT();
+	CMEESUTtest(CDBConnection *pDBConn);
+	~CMEESUTtest();
 
 	virtual bool TradeResult( PTradeResultTxnInput pTxnInput );	// return whether it was successful
 	virtual bool MarketFeed( PMarketFeedTxnInput pTxnInput );	// return whether it was successful
 	
 	friend void* TPCE::TradeResultAsync(void* data);
-	friend bool TPCE::RunTradeResultAsync( CMEESUT* );
+	friend bool TPCE::RunTradeResultAsync( CMEESUTtest* );
 
 	friend void* TPCE::MarketFeedAsync(void* data);
-	friend bool TPCE::RunMarketFeedAsync( CMEESUT* );
+	friend bool TPCE::RunMarketFeedAsync( CMEESUTtest* );
 };
 
 }	// namespace TPCE
 
-#endif	// DM_SUT_H
+#endif	// MEE_SUT_TEST_H

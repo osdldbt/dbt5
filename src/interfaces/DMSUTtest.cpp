@@ -1,5 +1,5 @@
 /*
- * DMSUT.cpp
+ * DMSUTtest.cpp
  *
  * 2006 Rilson Nascimento
  *
@@ -10,16 +10,16 @@
 
 using namespace TPCE;
 
-CDMSUT::CDMSUT(CDBConnection *pDBConn)
+CDMSUTtest::CDMSUTtest(CDBConnection *pDBConn)
 : m_pDBConnection(pDBConn)
 {
 }
 
-CDMSUT::~CDMSUT()
+CDMSUTtest::~CDMSUTtest()
 {
 }
 
-bool CDMSUT::DataMaintenance( PDataMaintenanceTxnInput pTxnInput )
+bool CDMSUTtest::DataMaintenance( PDataMaintenanceTxnInput pTxnInput )
 {
 	// Data Maintenance harness code (TPC provided)
 	// this class uses our implementation of CDataMaintenanceDB class
@@ -31,7 +31,7 @@ bool CDMSUT::DataMaintenance( PDataMaintenanceTxnInput pTxnInput )
 	m_DataMaintenance.DoTxn( pTxnInput, &m_DataMaintenanceTxnOutput); // Perform Data Maintenance
 }
 
-bool CDMSUT::TradeCleanup( PTradeCleanupTxnInput pTxnInput )
+bool CDMSUTtest::TradeCleanup( PTradeCleanupTxnInput pTxnInput )
 {
 	// Data Maintenance harness code (TPC provided)
 	// this class uses our implementation of CTradeCleanupDB class

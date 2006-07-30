@@ -1,0 +1,280 @@
+/*
+ * BrokerageHouse.cpp
+ *
+ * 2006 Rilson Nascimento
+ *
+ * 25 July 2006
+ */
+
+#include <transactions.h>
+
+using namespace TPCE;
+
+// worker thread
+void* TPCE::WorkerThread(void* data)
+{
+	PThreadParameter pThrParam = reinterpret_cast<PThreadParameter>(data);
+
+	CSocket sockDrv;
+	sockDrv.SetSocketfd( pThrParam->iSockfd );	// driver socket
+
+	// return message
+	TMsgBrokerageDriver	Reply;
+
+	// new connection
+	CDBConnection* pDBConnection = new CDBConnection(pThrParam->pBrokerageHouse->m_szHost,
+							 pThrParam->pBrokerageHouse->m_szDBName,
+							 pThrParam->pBrokerageHouse->m_szPostmasterPort);
+
+	//  Parse Txn type
+	INT32 iRet = 0;
+	switch ( pThrParam->Message.TxnType )
+	{
+		case TRADE_STATUS:
+		{
+			CTradeStatus* pTradeStatus = new CTradeStatus(pDBConnection);
+			iRet = pThrParam->pBrokerageHouse->RunTradeStatus(
+					&(pThrParam->Message.TxnInput.TradeStatusTxnInput), *pTradeStatus );
+			delete pTradeStatus;
+			break;
+		}
+		case BROKER_VOLUME:
+		{
+			CBrokerVolume* pBrokerVolume = new CBrokerVolume(pDBConnection);
+			iRet = pThrParam->pBrokerageHouse->RunBrokerVolume(
+					&(pThrParam->Message.TxnInput.BrokerVolumeTxnInput), *pBrokerVolume );
+			delete pBrokerVolume;
+			break;
+		}
+		case CUSTOMER_POSITION:
+		{
+			CCustomerPosition* pCustomerPosition = new CCustomerPosition(pDBConnection);
+			iRet = pThrParam->pBrokerageHouse->RunCustomerPosition(
+					&(pThrParam->Message.TxnInput.CustomerPositionTxnInput), *pCustomerPosition );
+			delete pCustomerPosition;
+			break;
+		}
+		case MARKET_WATCH:
+		{
+			CMarketWatch* pMarketWatch = new CMarketWatch(pDBConnection);
+			iRet = pThrParam->pBrokerageHouse->RunMarketWatch(
+					&(pThrParam->Message.TxnInput.MarketWatchTxnInput), *pMarketWatch );
+			delete pMarketWatch;
+			break;
+		}
+		case SECURITY_DETAIL:
+		{
+			CSecurityDetail* pSecurityDetail = new CSecurityDetail(pDBConnection);
+			iRet = pThrParam->pBrokerageHouse->RunSecurityDetail(
+					&(pThrParam->Message.TxnInput.SecurityDetailTxnInput), *pSecurityDetail );
+			delete pSecurityDetail;
+			break;
+		}
+		case TRADE_LOOKUP:
+		{
+			CTradeLookup* pTradeLookup = new CTradeLookup(pDBConnection);
+			iRet = pThrParam->pBrokerageHouse->RunTradeLookup(
+					&(pThrParam->Message.TxnInput.TradeLookupTxnInput), *pTradeLookup );
+			delete pTradeLookup;
+			break;
+		}
+		case TRADE_UPDATE:
+		{
+			CTradeUpdate* pTradeUpdate = new CTradeUpdate(pDBConnection);
+			iRet = pThrParam->pBrokerageHouse->RunTradeUpdate(
+					&(pThrParam->Message.TxnInput.TradeUpdateTxnInput), *pTradeUpdate );
+			delete pTradeUpdate;
+			break;
+		}
+		default:
+			cout<<"wrong txn type"<<endl;
+	}
+
+	// send status to driver
+	Reply.iStatus = iRet;
+	sockDrv.Send( reinterpret_cast<void*>(&Reply), sizeof(Reply) );
+
+	sockDrv.CloseAccSocket();	// close socket connection with the driver
+	delete pDBConnection;		// close connection with the database
+
+	return NULL;
+}
+
+// entry point for worker thread
+void EntryWorkerThread(void* data)
+{
+	//thread
+	pthread_t threadID; // thread ID
+	int status; // error code
+	pthread_attr_t threadAttribute; // thread attribute
+
+	status = pthread_attr_init(&threadAttribute); // initialize the attribute object
+	if (status != 0)
+	{
+		cout<<"pthread_attr_init failed, status = "<<status<<endl;
+		//return false;
+	}
+
+	// set the detachstate attribute to detached
+	status = pthread_attr_setdetachstate(&threadAttribute, PTHREAD_CREATE_DETACHED);
+	if (status != 0)
+	{
+		cout<<"pthread_attr_setdetachstate failed, status = "<<status<<endl;
+		//return false;
+	}
+
+	// create the thread in the detached state
+	status = pthread_create(&threadID, &threadAttribute, &WorkerThread, data);
+						//reinterpret_cast<void*>( ));
+	cout<<"thread id="<<threadID<<endl;
+	if (status != 0)
+	{
+		cout<<"pthread_create failed, status = "<<status<<endl;
+		//return false;
+	}
+
+}
+
+// Constructor
+CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName, const char *szPostmasterPort)
+{
+	memset(m_szHost, 0, sizeof(m_szHost));
+	strncpy(m_szHost, szHost, sizeof(m_szHost) - 1);
+
+	memset(m_szDBName, 0, sizeof(m_szDBName));
+	strncpy(m_szDBName, szDBName, sizeof(m_szDBName) - 1);
+
+	memset(m_szPostmasterPort, 0, sizeof(m_szPostmasterPort));
+	strncpy(m_szPostmasterPort, szPostmasterPort, sizeof(m_szPostmasterPort) - 1);
+}
+
+// Destructor
+CBrokerageHouse::~CBrokerageHouse()
+{
+}
+
+// Run Trade Status transaction
+INT32 CBrokerageHouse::RunTradeStatus( PTradeStatusTxnInput pTxnInput, CTradeStatus &TradeStatus )
+{
+	TTradeStatusTxnOutput	TxnOutput;
+	TradeStatus.DoTxn( pTxnInput, &TxnOutput );
+
+	return( TxnOutput.status );
+}
+
+// Run Trade Lookup transaction
+INT32 CBrokerageHouse::RunTradeLookup( PTradeLookupTxnInput pTxnInput, CTradeLookup &TradeLookup )
+{
+	TTradeLookupTxnOutput	TxnOutput;
+	TradeLookup.DoTxn( pTxnInput, &TxnOutput );
+
+	return( TxnOutput.status );
+}
+
+// Run Trade Update transaction
+INT32 CBrokerageHouse::RunTradeUpdate( PTradeUpdateTxnInput pTxnInput, CTradeUpdate &TradeUpdate )
+{
+	TTradeUpdateTxnOutput	TxnOutput;
+	TradeUpdate.DoTxn( pTxnInput, &TxnOutput );
+
+	return( TxnOutput.status );
+}
+
+// Run Trade Order transaction
+INT32 CBrokerageHouse::RunTradeOrder( PTradeOrderTxnInput pTxnInput, CTradeOrder &TradeOrder )
+{
+	TTradeOrderTxnOutput	TxnOutput;
+	TradeOrder.DoTxn( pTxnInput, &TxnOutput );
+
+	return( TxnOutput.status );
+}
+
+// Run Broker Volume transaction
+INT32 CBrokerageHouse::RunBrokerVolume( PBrokerVolumeTxnInput pTxnInput, CBrokerVolume &BrokerVolume )
+{
+	TBrokerVolumeTxnOutput	TxnOutput;
+	BrokerVolume.DoTxn( pTxnInput, &TxnOutput );
+
+	return( TxnOutput.status );
+}
+
+// Run Customer Position transaction
+INT32 CBrokerageHouse::RunCustomerPosition( PCustomerPositionTxnInput pTxnInput, CCustomerPosition &CustomerPosition )
+{
+	TCustomerPositionTxnOutput	TxnOutput;
+	CustomerPosition.DoTxn( pTxnInput, &TxnOutput );
+
+	return( TxnOutput.status );
+}
+
+// Run Security Detail transaction
+INT32 CBrokerageHouse::RunSecurityDetail( PSecurityDetailTxnInput pTxnInput, CSecurityDetail &SecurityDetail )
+{
+	TSecurityDetailTxnOutput	TxnOutput;
+	SecurityDetail.DoTxn( pTxnInput, &TxnOutput );
+
+	return( TxnOutput.status );
+}
+
+// Run Market Watch transaction
+INT32 CBrokerageHouse::RunMarketWatch( PMarketWatchTxnInput pTxnInput, CMarketWatch &MarketWatch )
+{
+	TMarketWatchTxnOutput	TxnOutput;
+	MarketWatch.DoTxn( pTxnInput, &TxnOutput );
+
+	return( TxnOutput.status );
+}
+
+// Run Trade Result transaction
+INT32 RunTradeResult( PTradeResultTxnInput pTxnInput, CTradeResult &TradeResult )
+{
+}
+
+// Run Market Feed transaction
+INT32 RunMarketFeed( PMarketFeedTxnInput pTxnInput, CMarketFeed &MarketFeed )
+{
+}
+
+// Run Data Maintenance transaction
+INT32 RunDataMaintenance( PDataMaintenanceTxnInput pTxnInput, CDataMaintenance &DataMaintenance )
+{
+}
+
+// Listener
+void CBrokerageHouse::Listener( void )
+{
+	PThreadParameter pThrParam;
+	PMsgDriverBrokerage pMessage;
+	
+	m_Socket.Listen( BrokerageHousePort );
+
+	while(true)
+	{
+		m_Socket.Accept();
+
+		pMessage = new TMsgDriverBrokerage;
+		memset(pMessage, 0, sizeof(TMsgDriverBrokerage));   // zero the structure
+		m_Socket.Receive( reinterpret_cast<void*>(pMessage), sizeof(TMsgDriverBrokerage));
+		
+		// create new parameter structure
+		pThrParam = new TThreadParameter;
+		memset(pThrParam, 0, sizeof(TThreadParameter));   // zero the structure
+
+		pThrParam->iSockfd = m_Socket.GetSocketfd();
+		pThrParam->pBrokerageHouse = this;
+		memcpy( &(pThrParam->Message), pMessage, sizeof(pThrParam->Message) );
+
+		// call entry point
+		EntryWorkerThread( reinterpret_cast<void*>(pThrParam) );
+		
+		//NOTE lembrar de fechar o socket listen em algum momento... acho que não precisa
+		// por que o destructor do CSocket mata
+	}
+
+}
+
+// ThrowError
+void CBrokerageHouse::ThrowError()
+{
+	//throw new;
+}

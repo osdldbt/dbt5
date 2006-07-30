@@ -20,7 +20,6 @@ CSendToMarket::~CSendToMarket()
 
 bool CSendToMarket::SendToMarket(TTradeRequest &trade_mes)
 {
-	// nothing... for a while =D
 	return true;
 }
 

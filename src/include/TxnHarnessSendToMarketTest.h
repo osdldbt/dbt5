@@ -1,6 +1,6 @@
 /*
  * TxnHarnessSendToMarketTest.h
- * Test SendToMarket class. Used to call Market-Feed
+ * Test version
  *
  * 2006 Rilson Nascimento
  *

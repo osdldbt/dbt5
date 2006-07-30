@@ -1,6 +1,6 @@
 /*
  * TxnHarnessSendToMarket.h
- * (Dummy) SendToMarket class
+ * SendToMarket class
  *
  * 2006 Rilson Nascimento
  *

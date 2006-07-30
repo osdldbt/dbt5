@@ -1,5 +1,5 @@
 /*
- * MEESUT.cpp
+ * MEESUTtest.cpp
  *
  * 2006 Rilson Nascimento
  *
@@ -7,15 +7,16 @@
  */
 
 #include <transactions.h>
+#include <MEESUTtest.h>
 
 using namespace TPCE;
 
-CMEESUT::CMEESUT(CDBConnection *pDBConn)
+CMEESUTtest::CMEESUTtest(CDBConnection *pDBConn)
 : m_pDBConnection(pDBConn)
 {
 }
 
-CMEESUT::~CMEESUT()
+CMEESUTtest::~CMEESUTtest()
 {
 }
 
@@ -24,7 +25,7 @@ CMEESUT::~CMEESUT()
 //
 void* TPCE::TradeResultAsync(void* data)
 {
-	CMEESUT* pCMEESUT = reinterpret_cast<CMEESUT*>(data);
+	CMEESUTtest* pCMEESUTtest = reinterpret_cast<CMEESUTtest*>(data);
 
 	// creating separated connection for Market Feed (just for testing)
 	const char *server = "localhost";
@@ -39,13 +40,13 @@ void* TPCE::TradeResultAsync(void* data)
 	// Market-Feed output parameters
 	TTradeResultTxnOutput	m_TradeResultTxnOutput;
 	
-	m_TradeResult.DoTxn( &(pCMEESUT->m_TradeResultTxnInput), &m_TradeResultTxnOutput); // Perform Trade Result
+	m_TradeResult.DoTxn( &(pCMEESUTtest->m_TradeResultTxnInput), &m_TradeResultTxnOutput); // Perform Trade Result
 
 	delete m_pConn;
 	return NULL;
 }
 
-bool TPCE::RunTradeResultAsync( CMEESUT* pCMEESUT )
+bool TPCE::RunTradeResultAsync( CMEESUTtest* pCMEESUTtest )
 {
 	pthread_t threadID; // thread ID
 	int status; // error code
@@ -68,7 +69,7 @@ bool TPCE::RunTradeResultAsync( CMEESUT* pCMEESUT )
 
 	// create the thread in the detached state - Call Trade Result asyncronously
 	status = pthread_create(&threadID, &threadAttribute, &TradeResultAsync,
-						reinterpret_cast<void*>( pCMEESUT ));
+						reinterpret_cast<void*>( pCMEESUTtest ));
 	cout<<"thread id="<<threadID<<endl;
 	if (status != 0)
 	{
@@ -81,7 +82,7 @@ bool TPCE::RunTradeResultAsync( CMEESUT* pCMEESUT )
 
 }
 
-bool CMEESUT::TradeResult( PTradeResultTxnInput pTxnInput )
+bool CMEESUTtest::TradeResult( PTradeResultTxnInput pTxnInput )
 {
 	memcpy(&m_TradeResultTxnInput, pTxnInput, sizeof(m_TradeResultTxnInput));
 	
@@ -93,7 +94,7 @@ bool CMEESUT::TradeResult( PTradeResultTxnInput pTxnInput )
 //
 void* TPCE::MarketFeedAsync(void* data)
 {
-	CMEESUT* pCMEESUT = reinterpret_cast<CMEESUT*>(data);
+	CMEESUTtest* pCMEESUTtest = reinterpret_cast<CMEESUTtest*>(data);
 	CSendToMarketTest	m_SendToMarket;
 
 	// creating separated connection for Market Feed (just for testing)
@@ -109,14 +110,14 @@ void* TPCE::MarketFeedAsync(void* data)
 	// Market-Feed output parameters
 	TMarketFeedTxnOutput	m_MarketFeedTxnOutput;
 	
-	m_MarketFeed.DoTxn( &(pCMEESUT->m_MarketFeedTxnInput), &m_MarketFeedTxnOutput); // Perform Market Feed
+	m_MarketFeed.DoTxn( &(pCMEESUTtest->m_MarketFeedTxnInput), &m_MarketFeedTxnOutput); // Perform Market Feed
 
 	delete m_pConn;
 	return NULL;
 
 }
 
-bool TPCE::RunMarketFeedAsync( CMEESUT* pCMEESUT )
+bool TPCE::RunMarketFeedAsync( CMEESUTtest* pCMEESUTtest )
 {
 	pthread_t threadID; // thread ID
 	int status; // error code
@@ -139,7 +140,7 @@ bool TPCE::RunMarketFeedAsync( CMEESUT* pCMEESUT )
 
 	// create the thread in the detached state - Call Trade Result asyncronously
 	status = pthread_create(&threadID, &threadAttribute, &MarketFeedAsync,
-						reinterpret_cast<void*>( pCMEESUT ));
+						reinterpret_cast<void*>( pCMEESUTtest ));
 	cout<<"thread id="<<threadID<<endl;
 	if (status != 0)
 	{
@@ -152,7 +153,7 @@ bool TPCE::RunMarketFeedAsync( CMEESUT* pCMEESUT )
 
 }
 
-bool CMEESUT::MarketFeed( PMarketFeedTxnInput pTxnInput )
+bool CMEESUTtest::MarketFeed( PMarketFeedTxnInput pTxnInput )
 {
 	memcpy(&m_MarketFeedTxnInput, pTxnInput, sizeof(m_MarketFeedTxnInput));
 	

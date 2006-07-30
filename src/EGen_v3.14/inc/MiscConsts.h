@@ -47,12 +47,12 @@ const int		iMaxHostname = 64;
 const int		iMaxDBName = 64;
 const int		iMaxPath = 512;
 
-#ifdef COMPILE_PGSQL_LOAD
+//#ifdef COMPILE_PGSQL_LOAD
 const int		iMaxPGHost = 128;
 const int		iMaxPGDBName = 32;
 const int		iMaxPGPort = 32;
 const int		iDateTimeFmt = 11;
-#endif //COMPILE_PGSQL_LOAD
+//#endif //COMPILE_PGSQL_LOAD
 
 // NOTE: Changing the initial trade populate base date
 // can break code used in CCETxnInputGenerator for generating 

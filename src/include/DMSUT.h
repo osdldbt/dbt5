@@ -15,14 +15,14 @@
 namespace TPCE
 {
 
-class CDMSUT : public CDMSUTInterface
+class CDMSUTtest : public CDMSUTInterface
 {
 protected:
 	CDBConnection*		m_pDBConnection;
 
 public:
-	CDMSUT(CDBConnection *pDBConn);
-	~CDMSUT();
+	CDMSUTtest(CDBConnection *pDBConn);
+	~CDMSUTtest();
 
 	virtual bool DataMaintenance( PDataMaintenanceTxnInput pTxnInput );	// return whether it was successful
 	virtual bool TradeCleanup( PTradeCleanupTxnInput pTxnInput );	// return whether it was successful
