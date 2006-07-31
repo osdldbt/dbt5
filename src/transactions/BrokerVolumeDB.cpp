@@ -32,7 +32,7 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(PBrokerVolumeFrame1Input pFrame1Input
 
 	for ( i = 1; 0 != strcmp( pFrame1Input->broker_list[i], "") ; i++)
 	{
-		osBrokers << ", " << pFrame1Input->broker_list[i];
+		osBrokers << ", " << m_Txn->esc(pFrame1Input->broker_list[i]);
 	}
 
 	ostringstream osCall;

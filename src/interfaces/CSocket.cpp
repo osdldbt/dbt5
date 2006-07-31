@@ -31,7 +31,7 @@ CSocket::~CSocket()
 }
 
 // Accept
-void CSocket::Accept(void)
+int CSocket::Accept(void)
 {
 	struct sockaddr_in sa;
 
@@ -42,7 +42,7 @@ void CSocket::Accept(void)
 	{
 		ThrowError(CSocketErr::ERR_SOCKET_ACCEPT, "CSocket::Accept");
 	}
-	
+	return m_sockfd;
 }
 
 // Connect

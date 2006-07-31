@@ -38,7 +38,7 @@ int main()
 		while(true)
 		{
 			m_CE.DoTxn();
-			sleep(3);
+			sleep(1);
 		}
 	}
 	catch (CBaseErr *pErr)
@@ -58,6 +58,8 @@ int main()
 		cout<<endl;
 		return(1);
 	}
+
+	pthread_exit(NULL);
 
 	return(0);
 }

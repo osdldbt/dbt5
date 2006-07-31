@@ -53,13 +53,6 @@ void CCESUT::ConnectRunTxnAndLog()
 	cout<<"TxnType = "<<m_Request.TxnType<<"\tTxn RT = "<<TxnTime.ToStr(02)<<endl;
 }
 
-// Trade Status
-bool CCESUT::TradeStatus( PTradeStatusTxnInput pTxnInput )
-{
-	cout<<"Trade Status requested"<<endl;
-	return ( RunTxn(TRADE_STATUS, &m_Request.TxnInput.TradeStatusTxnInput, pTxnInput) );
-}
-
 // Broker Volume
 bool CCESUT::BrokerVolume( PBrokerVolumeTxnInput pTxnInput )
 {
@@ -95,10 +88,18 @@ bool CCESUT::TradeLookup( PTradeLookupTxnInput pTxnInput )
 	return ( RunTxn(TRADE_LOOKUP, &m_Request.TxnInput.TradeLookupTxnInput, pTxnInput) );
 }
 
+// Trade Status
+bool CCESUT::TradeStatus( PTradeStatusTxnInput pTxnInput )
+{
+	cout<<"Trade Status requested"<<endl;
+	return ( RunTxn(TRADE_STATUS, &m_Request.TxnInput.TradeStatusTxnInput, pTxnInput) );
+}
+
 // Trade Order
 bool CCESUT::TradeOrder( PTradeOrderTxnInput pTxnInput, INT32 iTradeType, bool bExecutorIsAccountOwner )
 {
 	cout<<"Trade Order requested"<<endl;
+	return ( RunTxn(TRADE_ORDER, &m_Request.TxnInput.TradeOrderTxnInput, pTxnInput) );
 }
 
 // Trade Update

@@ -36,10 +36,12 @@ typedef struct TMsgDriverBrokerage
 	{
 		TBrokerVolumeTxnInput		BrokerVolumeTxnInput;
 		TCustomerPositionTxnInput	CustomerPositionTxnInput;
+		TMarketFeedTxnInput		MarketFeedTxnInput;
 		TMarketWatchTxnInput		MarketWatchTxnInput;
 		TTradeLookupTxnInput		TradeLookupTxnInput;
 		TSecurityDetailTxnInput		SecurityDetailTxnInput;
 		TTradeOrderTxnInput		TradeOrderTxnInput;
+		TTradeResultTxnInput		TradeResultTxnInput;
 		TTradeStatusTxnInput		TradeStatusTxnInput;
 		TTradeUpdateTxnInput		TradeUpdateTxnInput;
 		TDataMaintenanceTxnInput	DataMaintenanceTxnInput;

@@ -25,7 +25,6 @@ void Usage()
 	cout<<"   -s string		localhost  Database server"<<endl;
 	cout<<"   -d string		dbt5       Database name"<<endl;
 	cout<<"   -p string		5432       Postmaster port"<<endl;
-//	cout<<"   -l number		30000      Socket port to listen"<<endl;
 	cout<<endl;
 }
 
@@ -75,9 +74,6 @@ void ParseCommandLine( int argc, char *argv[] )
 			case 'p':     // Postmaster port
 				strncpy(szPostmasterPort, vp, sizeof(szPostmasterPort));
 				break;
-// 			case 'l':
-// 				iListenPort = atoi( vp );
-// 				break;
 			default:
 			Usage();
 				cout<<"Error: Unrecognized option: "<<sp<<endl;
@@ -106,7 +102,6 @@ int main(int argc, char* argv[])
 	cout<<"\tHost:\t\t\t"<<szHost<<endl;
 	cout<<"\tDatabase:\t\t"<<szDBName<<endl;
 	cout<<"\tPostmaster port:\t"<<szPostmasterPort<<endl;
-//	cout<<"\tListen port:\t\t"<<iListenPort<<endl;
 
 	try
 	{
@@ -128,7 +123,7 @@ int main(int argc, char* argv[])
 		if (pErr->ErrorLoc()) {
 			cout<<" at "<<pErr->ErrorLoc()<<endl;
 		} else {
-			cout<<endl;
+				cout<<endl;
 		}
 		return 1;
 	}
@@ -141,15 +136,15 @@ int main(int argc, char* argv[])
 	}
 	// exceptions thrown by pqxx
 	//
-	catch (const pqxx::broken_connection &e) // broken connection
-	{
-		cout<<"libpxx: "<<e.what()<<endl;
-		return 3;
-	}
 	catch (const pqxx::sql_error &e)
 	{
 		cout<<"SQL error: "<<e.what()<<endl
 		    <<"Query was: '"<<e.query()<<"'"<<endl;
+		return 3;
+	}
+	catch (const pqxx::broken_connection &e) // broken connection
+	{
+		cout<<"libpxx: "<<e.what()<<endl;
 		return 3;
 	}
 	catch (const exception &e)
@@ -157,6 +152,8 @@ int main(int argc, char* argv[])
 		cout<<e.what()<<endl;
 		return 3;
 	}
+
+	pthread_exit(NULL);
 
 	cout<<"Brokerage House closed to business"<<endl;
 	return(0);

@@ -44,7 +44,7 @@ using namespace pqxx;
 #include <DataMaintenanceDB.h>
 
 #include <MEE.h>
-//#include <MEESUT.h>
+#include <MEESUT.h>
 #include <MarketFeedDB.h>
 
 #include <CE.h>
@@ -53,5 +53,6 @@ using namespace pqxx;
 #include <harness.h>
 
 #include <BrokerageHouse.h>
+#include <DriverMarket.h>
 
-#endif	// #ifndef TRANSACTIONS_H
+#endif	// TRANSACTIONS_H

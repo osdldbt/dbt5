@@ -31,7 +31,7 @@ public:
 	CSocket(void);
 	~CSocket();
 
-	void Accept(void);
+	int Accept(void);
 	void Connect(char* address, const int port);
 	void Receive(void* data, int length);
 	void Send(void *data, int length);

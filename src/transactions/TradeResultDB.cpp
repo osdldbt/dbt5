@@ -30,7 +30,6 @@ void CTradeResultDB::DoTradeResultFrame1(PTradeResultFrame1Input pFrame1Input, P
 	osCall << "select * from TradeResultFrame1("<<pFrame1Input->trade_id<<") as (acct_id ident_t, charge value_t, "
 		"hs_qty s_qty_t, is_lifo smallint, symbol char(15), trade_is_cash smallint, trade_qty s_qty_t, type_id char(3),"
 		"type_is_market smallint, type_is_sell smallint, type_name char(12))";
-//cout<<osCall.str()<<endl;
 
 	// start transaction but not commit in this frame
 	BeginTxn();
@@ -59,7 +58,7 @@ void CTradeResultDB::DoTradeResultFrame1(PTradeResultFrame1Input pFrame1Input, P
 	cout<<"Trade Result Frame 1 (input)"<<endl
 	    <<"- trade_id: "<<pFrame1Input->trade_id<<endl;
 	cout<<"Trade Result Frame 1 (output)"<<endl
-	    <<"- acct_name: "<<pFrame1Output->acct_id <<endl
+	    <<"- acct_id: "<<pFrame1Output->acct_id <<endl
 	    <<"- charge: "<<pFrame1Output->charge<<endl
 	    <<"- hs_qty: "<<pFrame1Output->hs_qty<<endl
 	    <<"- is_lifo: "<<pFrame1Output->is_lifo<<endl
@@ -278,7 +277,7 @@ void CTradeResultDB::DoTradeResultFrame6(PTradeResultFrame6Input pFrame6Input, P
 	osCall << "select * from TradeResultFrame6("<<pFrame6Input->acct_id<<"::IDENT_T, '"<<pFrame6Input->due_date.year<<
 			"-"<<pFrame6Input->due_date.month<<"-"<<pFrame6Input->due_date.day<<" "<<pFrame6Input->due_date.hour<<
 			":"<<pFrame6Input->due_date.minute<<":"<<pFrame6Input->due_date.second<<"'::timestamp,'"<<
-			pFrame6Input->s_name<<"'::varchar, "<<pFrame6Input->se_amount<<"::VALUE_T,'"<<pFrame6Input->trade_dts.year<<
+			m_Txn->esc(pFrame6Input->s_name)<<"'::varchar, "<<pFrame6Input->se_amount<<"::VALUE_T,'"<<pFrame6Input->trade_dts.year<<
 			"-"<<pFrame6Input->trade_dts.month<<"-"<<pFrame6Input->trade_dts.day<<" "<<pFrame6Input->trade_dts.hour<<
 			":"<<pFrame6Input->trade_dts.minute<<":"<<pFrame6Input->trade_dts.second<<"'::timestamp,"<<
 			pFrame6Input->trade_id<<"::IDENT_T,"<<pFrame6Input->trade_is_cash<<"::smallint,"<<pFrame6Input->trade_qty<<

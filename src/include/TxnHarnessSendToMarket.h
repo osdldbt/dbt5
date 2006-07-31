@@ -15,6 +15,8 @@ namespace TPCE
 
 class CSendToMarket : public CSendToMarketInterface
 {
+	CSocket		m_Socket;
+
 public:
 	CSendToMarket();
 	~CSendToMarket();

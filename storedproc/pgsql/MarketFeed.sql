@@ -76,7 +76,7 @@ BEGIN
 
 			INSERT INTO TRADE_HISTORY
 			VALUES (trade_id, now_dts, status_submitted);
-RAISE INFO 'symbol[%]=% trade_id=% price=% trade_quant=% trade_type=%',i,symbol[i],trade_id,price,trade_quant,trade_type;
+
 			FOR TradeRequestBuffer IN
 				SELECT	symbol[i],
 					trade_id,
@@ -97,17 +97,5 @@ RAISE INFO 'symbol[%]=% trade_id=% price=% trade_quant=% trade_type=%',i,symbol[
 		CLOSE request_list;
 		-- commit transaction
 	END LOOP;
-
-	-- Sponsors should consider committing the database changes
-	-- before calling the send_to_market interface.
-
-	-- 	for (i=0; i<send_len; i++)
-	-- 	{
-	-- 		send_to_market(TradeRequestBuffer[i].symbol,
-	-- 		TradeRequestBuffer[i].trade_id,
-	-- 		TradeRequestBuffer[i].price_quote,
-	-- 		TradeRequestBuffer[i].trade_qty,
-	-- 		TradeRequestBuffer[i].trade_type);
-	-- 	}
 END;
 $$ LANGUAGE 'plpgsql';
