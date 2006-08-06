@@ -17,6 +17,7 @@ namespace TPCE
 
 class CCESUT : public CCESUTInterface
 {
+	int			m_iBHlistenPort;
 	CSocket			m_Socket;
 	TMsgDriverBrokerage	m_Request;
 
@@ -24,7 +25,7 @@ private:
 	void ConnectRunTxnAndLog(void);
 	
 public:
-	CCESUT();
+	CCESUT(const int iListenPort);
 	~CCESUT(void);
 
 	virtual bool BrokerVolume( PBrokerVolumeTxnInput pTxnInput );			// return whether it was successful

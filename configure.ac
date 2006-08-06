@@ -9,6 +9,40 @@ AC_PROG_CXX
 CXXFLAGS="-D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS"
 
 dnl
+dnl Thread Library (required)
+dnl check for `pthread_create' in -lpthread
+dnl
+AC_CHECK_HEADER(semaphore.h, [], [
+    AC_MSG_ERROR([could not locate sempahore headers)])
+])
+AC_CHECK_HEADER(pthread.h, [], [
+    AC_MSG_ERROR([could not locate pthread headers)])
+])
+AC_CHECK_LIB(pthread, pthread_create)
+if test ".`echo $LIBS | grep pthread`" != .; then
+dnl
+dnl check for `sem_init' in -lposix4
+dnl
+  AC_CHECK_LIB(posix4, sem_init)
+else
+  AC_CHECK_LIB(pthreads, pthread_create)
+  if test ".`echo $LIBS | grep pthread`" != .; then
+dnl
+dnl check for `sem_init' in -lposix4
+dnl
+    AC_CHECK_LIB(posix4, sem_init)
+  else
+    AC_CHECK_LIB(c_r, pthread_create)
+    if test ".`echo $LIBS | grep c_r`" == .; then
+      threaded=no;
+    fi
+  fi
+fi
+if test "$threaded" == "no" ; then
+  AC_MSG_ERROR([Multithread support not available.])
+fi
+
+dnl
 dnl Database related configuration.
 dnl
 

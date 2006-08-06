@@ -53,6 +53,7 @@ void CTradeLookupDB::DoTradeLookupFrame1(PTradeLookupFrame1Input pFrame1Input, P
 			"TradeHistoryStatusID3 char(4))";
 
 	BeginTxn();
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"); // Isolation level required by Clause 7.4.1.3
 	result R( m_Txn->exec( osCall.str() ) );
 	CommitTxn();
 
@@ -198,6 +199,7 @@ void CTradeLookupDB::DoTradeLookupFrame2(PTradeLookupFrame2Input pFrame2Input, P
 			"TradeHistoryStatusID3 char(4))";
 
 	BeginTxn();
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"); // Isolation level required by Clause 7.4.1.3
 	result R( m_Txn->exec( osCall.str() ) );
 	CommitTxn();
 
@@ -349,6 +351,7 @@ void CTradeLookupDB::DoTradeLookupFrame3(PTradeLookupFrame3Input pFrame3Input, P
 		"trade_type char(3))";
 
 	BeginTxn();
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"); // Isolation level required by Clause 7.4.1.3
 	result R( m_Txn->exec( osCall.str() ) );
 	CommitTxn();
 
@@ -502,6 +505,7 @@ void CTradeLookupDB::DoTradeLookupFrame4(PTradeLookupFrame4Input pFrame4Input, P
 		"(hh_h_t_id TRADE_T, hh_t_id TRADE_T, qty_before S_QTY_T, qty_after S_QTY_T, trade_id TRADE_T);";
 
 	BeginTxn();
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"); // Isolation level required by Clause 7.4.1.3
 	result R( m_Txn->exec( osCall.str() ) );
 	CommitTxn();
 

@@ -11,6 +11,9 @@
 
 using namespace TPCE;
 
+// Establish defaults for command line option
+int		iListenPort = BrokerageHousePort;
+
 char		szHost[iMaxPGHost];
 char		szDBName[iMaxPGDBName];
 char 		szPostmasterPort[iMaxPGPort];
@@ -25,6 +28,7 @@ void Usage()
 	cout<<"   -s string		localhost  Database server"<<endl;
 	cout<<"   -d string		dbt5       Database name"<<endl;
 	cout<<"   -p string		5432       Postmaster port"<<endl;
+	cout<<"   -l number\t\t"<<iListenPort<<"\t   Socket listen port"<<endl;
 	cout<<endl;
 }
 
@@ -74,6 +78,9 @@ void ParseCommandLine( int argc, char *argv[] )
 			case 'p':     // Postmaster port
 				strncpy(szPostmasterPort, vp, sizeof(szPostmasterPort));
 				break;
+			case 'l':
+				sscanf(vp, "%"PRId64, &iListenPort);
+				break;
 			default:
 			Usage();
 				cout<<"Error: Unrecognized option: "<<sp<<endl;
@@ -102,20 +109,14 @@ int main(int argc, char* argv[])
 	cout<<"\tHost:\t\t\t"<<szHost<<endl;
 	cout<<"\tDatabase:\t\t"<<szDBName<<endl;
 	cout<<"\tPostmaster port:\t"<<szPostmasterPort<<endl;
+	cout<<"\tListen port:\t\t"<<iListenPort<<endl;
 
 	try
 	{
-		CBrokerageHouse	BrokerageHouse( szHost, szDBName, szPostmasterPort );
+		CBrokerageHouse	BrokerageHouse( szHost, szDBName, szPostmasterPort, iListenPort );
 		cout<<endl<<"Brokerage House opened to business, waiting traders..."<<endl;
 	
 		BrokerageHouse.Listener();
-	}
-	catch (CSocketErr *pErr)
-	{
-		cout<<endl<<"Error: "<<pErr->ErrorText();
-		cout<<" at "<<pErr->GetLocation()<<endl;
-		cout<<endl;
-		return(1);
 	}
 	catch (CBaseErr *pErr)
 	{

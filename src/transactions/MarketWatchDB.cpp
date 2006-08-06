@@ -32,6 +32,7 @@ void CMarketWatchDB::DoMarketWatchFrame1(PMarketWatchFrame1Input pFrame1Input, P
 			pFrame1Input->starting_co_id<<") as (status smallint, pct_change double precision)";
 
 	BeginTxn();
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"); // Isolation level required by Clause 7.4.1.3
 	result R( m_Txn->exec( osCall.str() ) );
 
 	if (R.empty()) 

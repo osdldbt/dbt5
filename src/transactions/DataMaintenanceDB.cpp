@@ -33,6 +33,7 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(PDataMaintenanceFrame1Input pFr
 			<<"'::char(4))"; //as (status smallint)";
 
 	BeginTxn();
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"); // Isolation level required by Clause 7.4.1.3
 	result R( m_Txn->exec( osCall.str() ) );
 	CommitTxn();
 

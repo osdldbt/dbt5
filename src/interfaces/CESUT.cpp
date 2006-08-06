@@ -13,7 +13,8 @@ char* addr = "localhost";
 using namespace TPCE;
 
 // Constructor
-CCESUT::CCESUT()
+CCESUT::CCESUT(const int iListenPort)
+: m_iBHlistenPort(iListenPort)
 {
 }
 

@@ -55,6 +55,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(PSecurityDetailFrame1Input pFrame
 		"integer, EX_OPEN smallint);";
 
 	BeginTxn();
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"); // Isolation level required by Clause 7.4.1.3
 	result R( m_Txn->exec( osCall.str() ) );
 	CommitTxn();
 

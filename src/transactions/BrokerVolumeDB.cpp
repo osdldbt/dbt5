@@ -40,6 +40,7 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(PBrokerVolumeFrame1Input pFrame1Input
 			"(b_name varchar, sum double precision)";
 
 	BeginTxn();
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"); // Isolation level required by Clause 7.4.1.3
 	result R( m_Txn->exec( osCall.str() ) );
 
 	// stored procedure can return an empty result set by design

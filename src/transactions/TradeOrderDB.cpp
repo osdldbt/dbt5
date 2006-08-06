@@ -33,6 +33,7 @@ void CTradeOrderDB::DoTradeOrderFrame1(PTradeOrderFrame1Input pFrame1Input, PTra
 
 	// start transaction but not commit in this frame
 	BeginTxn();
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;"); // Isolation level required by Clause 7.4.1.3
 	result R( m_Txn->exec( osCall.str() ) );
 
 	if (R.empty()) 

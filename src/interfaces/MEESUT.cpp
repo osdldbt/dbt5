@@ -12,7 +12,8 @@ char* addr = "localhost";
 
 using namespace TPCE;
 
-CMEESUT::CMEESUT()
+CMEESUT::CMEESUT(const int iBHlistenPort)
+: m_iBHlistenPort(iBHlistenPort)
 {
 }
 
@@ -42,7 +43,7 @@ void* TPCE::TradeResultAsync(void* data)
 
 	// connect to BrokerageHouse
 	CSocket sockdrv;
-	sockdrv.Connect(addr, BrokerageHousePort);
+	sockdrv.Connect(addr, pCMEESUT->m_iBHlistenPort);
 
 	// record txn start time -- please, see TPC-E specification clause 6.2.1.3
 	StartTime.SetToCurrent();

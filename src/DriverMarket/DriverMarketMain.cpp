@@ -13,6 +13,7 @@ using namespace TPCE;
 
 // Establish defaults for command line options
 int		iListenPort = DriverMarketPort;				// socket port to listen
+int		iBHlistenPort = BrokerageHousePort;
 TIdent		iConfiguredCustomerCount = iDefaultLoadUnitSize;	// # of customers for this instance
 TIdent		iActiveCustomerCount = iDefaultLoadUnitSize;		// total number of customers in the database
 
@@ -21,15 +22,16 @@ char		szFileLoc[iMaxPath];					// Security.txt file location
 // shows program usage
 void Usage()
 {
-	cout<<"\nUsage: DriverMarketMain [options]"<<endl<<endl;
-	cout<<"  where"<<endl;
-	cout<<"   Option	Default				   Description"<<endl;
-	cout<<"   =========	===============================    ============================="<<endl;
-	cout<<"   -s string	"<<szFileLoc<<"   Location of Security.txt file"<<endl;
-	cout<<"   -c number	"<<iConfiguredCustomerCount<<"\t\t\t\t   Configured customer count"<<endl;
-	cout<<"   -a number	"<<iActiveCustomerCount<<"\t\t\t\t   Active customer count"<<endl;
-	cout<<"   -l number	"<<iListenPort<<"\t\t\t\t   Socket listen port"<<endl;
-	cout<<endl;
+	cerr<<"\nUsage: DriverMarketMain [options]"<<endl<<endl;
+	cerr<<"  where"<<endl;
+	cerr<<"   Option	Default				   Description"<<endl;
+	cerr<<"   =========	===============================    ============================="<<endl;
+	cerr<<"   -s string	"<<szFileLoc<<"    Location of Security.txt file"<<endl;
+	cerr<<"   -c number	"<<iConfiguredCustomerCount<<"\t\t\t\t   Configured customer count"<<endl;
+	cerr<<"   -a number	"<<iActiveCustomerCount<<"\t\t\t\t   Active customer count"<<endl;
+	cerr<<"   -l number	"<<iListenPort<<"\t\t\t\t   Socket listen port"<<endl;
+	cerr<<"   -b number	"<<iBHlistenPort<<"\t\t\t\t   Brokerage House listen port"<<endl;
+	cerr<<endl;
 }
 
 // Parse command line
@@ -77,7 +79,10 @@ void ParseCommandLine( int argc, char *argv[] )
 				sscanf(vp, "%"PRId64, &iActiveCustomerCount);
         			break;
 			case 'l':
-				sscanf(vp, "%"PRId64, &iListenPort);
+				sscanf(vp, "%d", &iListenPort);
+				break;
+			case 'b':
+				sscanf(vp, "%d", &iBHlistenPort);
 				break;
 			default:
 				Usage();
@@ -105,20 +110,15 @@ int main(int argc, char* argv[])
 	cout<<"\tConfigured customer count:\t"<<iConfiguredCustomerCount<<endl;
 	cout<<"\tActive customer count:\t\t"<<iActiveCustomerCount<<endl;
 	cout<<"\tListen port:\t\t\t"<<iListenPort<<endl;
+	cout<<"\tBrokerage House port:\t\t"<<iBHlistenPort<<endl;
 
 	try
 	{
-		CDriverMarket	DriverMarket(szFileLoc, iConfiguredCustomerCount, iActiveCustomerCount, iListenPort);
+		CDriverMarket	DriverMarket(szFileLoc, iConfiguredCustomerCount, iActiveCustomerCount,
+								iListenPort, iBHlistenPort);
 		cout<<endl<<"Market Exchange opened to business, waiting trade requests..."<<endl;
 	
 		DriverMarket.Listener();
-	}
-	catch (CSocketErr *pErr)
-	{
-		cout<<endl<<"Error: "<<pErr->ErrorText();
-		cout<<" at "<<pErr->GetLocation()<<endl;
-		cout<<endl;
-		return(1);
 	}
 	catch (CBaseErr *pErr)
 	{

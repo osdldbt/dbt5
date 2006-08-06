@@ -33,6 +33,7 @@ void CTradeResultDB::DoTradeResultFrame1(PTradeResultFrame1Input pFrame1Input, P
 
 	// start transaction but not commit in this frame
 	BeginTxn();
+	//m_Txn->exec("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;"); // Isolation level required by Clause 7.4.1.3
 	result R( m_Txn->exec( osCall.str() ) );
 
 	if (R.empty()) 

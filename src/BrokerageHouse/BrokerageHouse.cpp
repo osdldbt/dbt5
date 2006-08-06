@@ -135,26 +135,24 @@ void* TPCE::WorkerThread(void* data)
 }
 
 // entry point for worker thread
-void EntryWorkerThread(void* data)
+void TPCE::EntryWorkerThread(void* data)
 {
-	//thread
+	PThreadParameter pThrParam = reinterpret_cast<PThreadParameter>(data);
+
 	pthread_t threadID; // thread ID
-	int status; // error code
 	pthread_attr_t threadAttribute; // thread attribute
 
-	status = pthread_attr_init(&threadAttribute); // initialize the attribute object
+	int status = pthread_attr_init(&threadAttribute); // initialize the attribute object
 	if (status != 0)
 	{
-		cout<<"pthread_attr_init failed, status = "<<status<<endl;
-		//return false;
+		pThrParam->pBrokerageHouse->ThrowError(CThreadErr::ERR_THREAD_ATTR_INIT, "TPCE::EntryWorkerThread");
 	}
 
 	// set the detachstate attribute to detached
 	status = pthread_attr_setdetachstate(&threadAttribute, PTHREAD_CREATE_DETACHED);
 	if (status != 0)
 	{
-		cout<<"pthread_attr_setdetachstate failed, status = "<<status<<endl;
-		//return false;
+		pThrParam->pBrokerageHouse->ThrowError(CThreadErr::ERR_THREAD_ATTR_DETACH, "TPCE::EntryWorkerThread");
 	}
 
 	// create the thread in the detached state
@@ -163,14 +161,15 @@ void EntryWorkerThread(void* data)
 	cout<<"thread id="<<threadID<<endl;
 	if (status != 0)
 	{
-		cout<<"pthread_create failed, status = "<<status<<endl;
-		//return false;
+		pThrParam->pBrokerageHouse->ThrowError(CThreadErr::ERR_THREAD_CREATE, "TPCE::EntryWorkerThread");
 	}
 
 }
 
 // Constructor
-CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName, const char *szPostmasterPort)
+CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName, 
+					const char *szPostmasterPort, const int iListenPort)
+: m_iListenPort(iListenPort)
 {
 	memset(m_szHost, 0, sizeof(m_szHost));
 	strncpy(m_szHost, szHost, sizeof(m_szHost) - 1);
@@ -293,7 +292,7 @@ void CBrokerageHouse::Listener( void )
 	int acc_socket;
 	PThreadParameter pThrParam;
 	
-	m_Socket.Listen( BrokerageHousePort );
+	m_Socket.Listen( m_iListenPort );
 
 	while(true)
 	{
@@ -316,7 +315,7 @@ void CBrokerageHouse::Listener( void )
 }
 
 // ThrowError
-void CBrokerageHouse::ThrowError()
+void CBrokerageHouse::ThrowError(CThreadErr::Action eAction, char* szLocation)
 {
-	//throw new;
+	throw new CThreadErr( eAction, szLocation );
 }

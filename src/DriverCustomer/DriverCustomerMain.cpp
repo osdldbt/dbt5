@@ -1,45 +1,213 @@
 /*
- * DriverMain.cpp
+ * DriverCustomerMain.cpp
  *
  * 2006 Rilson Nascimento
  *
- * 30 July 2006
+ * 03 August 2006
  */
+
+//TODO In the future, make this program capable of accepting 
+//     partitioning by C_ID during runtime. This should be done by
+//     using the apropriate CCE's constructor.
 
 #include <transactions.h>
 
 using namespace TPCE;
- 
-int main()
+
+// Establish defaults for command line options
+int		iBHlistenPort = BrokerageHousePort;
+int		iLoadUnitSize = iDefaultLoadUnitSize;			// # of customers in one load unit
+TIdent		iConfiguredCustomerCount = iDefaultLoadUnitSize;	// # of customers for this instance
+TIdent		iActiveCustomerCount = iDefaultLoadUnitSize;		// total number of customers in the database
+int		iScaleFactor = 500;					// # of customers for 1 NOTPS
+int		iDaysOfInitialTrades = 300;
+int		iSleep = 1000;						// msec between thread creation
+
+char		szInDir[iMaxPath];		// path to EGen input files
+UINT32 		UniqueId = 0;			// automatic RNG seed generation requires unique input
+
+// shows program usage
+void Usage()
 {
+	cerr<<"\nUsage: DriverCustomerMain {options}"<<endl<<endl
+	    <<"  where"<<endl
+	    <<"   Option	Default		      Description"<<endl
+	    <<"   =========	==================    ============================================="<<endl
+	    <<"   -p string	"<<szInDir<<"    Path to EGen input files"<<endl
+	    <<"   -c number	"<<iConfiguredCustomerCount<<"\t\t      Configured customer count"<<endl
+	    <<"   -a number	"<<iActiveCustomerCount<<"\t\t      Active customer count"<<endl
+	    <<"   -b number	"<<iBHlistenPort<<"\t\t      Brokerage House listen port"<<endl
+	    <<"   -f number	"<<iScaleFactor<<"\t\t      # of customers for 1 NOTPS"<<endl
+	    <<"   -d number	"<<iDaysOfInitialTrades<<"\t\t      # of Days of Initial Trades"<<endl
+	    <<"   -l number	"<<iLoadUnitSize<<"\t\t      # of customers in one load unit"<<endl
+	    <<"   -s number	"<<iSleep<<"\t\t      # of msec between customer creation"<<endl
+	    <<"   -u number			      Unique input for automatict seed generation"<<endl;
+}
+
+// Parse command line
+void ParseCommandLine( int argc, char *argv[] )
+{
+	int   arg;
+	char  *sp;
+	char  *vp;
+
+	// Scan the command line arguments
+	for ( arg = 1; arg < argc; ++arg ) {
+
+		// Look for a switch 
+		sp = argv[arg];
+		if ( *sp == '-' )
+		{
+			++sp;
+		}
+		*sp = (char)tolower( *sp );
+		
+		/*
+		*  Find the switch's argument.  It is either immediately after the
+		*  switch or in the next argv
+		*/
+		vp = sp + 1;
+			// Allow for switched that don't have any parameters.
+			// Need to check that the next argument is in fact a parameter
+			// and not the next switch that starts with '-'.
+			//
+		if ( (*vp == 0) && ((arg + 1) < argc) && (argv[arg + 1][0] != '-') )
+			{        
+			vp = argv[++arg];
+		}
+		
+		// Parse the switch
+		switch ( *sp )
+		{
+			case 'p':	// input files path
+				strncpy(szInDir, vp, sizeof(szInDir));
+				break;
+			case 'c':
+				sscanf(vp, "%"PRId64, &iConfiguredCustomerCount);
+				break;
+			case 'a':
+				sscanf(vp, "%"PRId64, &iActiveCustomerCount);
+        			break;
+			case 'b':
+				sscanf(vp, "%d", &iBHlistenPort);
+				break;
+			case 'f':
+				sscanf(vp, "%d", &iScaleFactor);
+				break;
+			case 'd':
+				sscanf(vp, "%d", &iDaysOfInitialTrades);
+				break;
+			case 'l':
+				sscanf(vp, "%d", &iLoadUnitSize);
+				break;
+			case 'u':
+				sscanf(vp, "%d", &UniqueId);
+				break;
+			case 's':
+				sscanf(vp, "%d", &iSleep);
+				break;
+			default:
+				Usage();
+				cout<<"Error: Unrecognized option: "<<sp<<endl;
+				exit( ERROR_BAD_OPTION );
+		}
+	}
+
+}
+
+// Validate Parameters
+bool ValidateParameters()
+{
+	bool bRet = true;
+
+	// Configured Customer count must be a non-zero integral multiple of load unit size.
+	//
+	if ((iLoadUnitSize > iConfiguredCustomerCount) || (0 != iConfiguredCustomerCount % iLoadUnitSize))
+	{
+		cerr << "The specified customer count (-c " << iConfiguredCustomerCount 
+			<< ") must be a non-zero integral multiple of the load unit size (" 
+			<< iLoadUnitSize << ")." << endl;
+
+		bRet = false;
+	}
+
+	// Active customer count must be a non-zero integral multiple of load unit size.
+	//
+	if ((iLoadUnitSize > iActiveCustomerCount) || (0 != iActiveCustomerCount % iLoadUnitSize))
+	{
+		cerr << "The total customer count (-t " << iActiveCustomerCount 
+			<< ") must be a non-zero integral multiple of the load unit size (" 
+			<< iLoadUnitSize << ")." << endl;
+
+		bRet = false;
+	}	
+
+	// Completed trades in 8 hours must be a non-zero integral multiple of 100
+	// so that exactly 1% extra trade ids can be assigned to simulate aborts.
+	//
+	if ((INT64)(HoursPerWorkDay * SecondsPerHour * iLoadUnitSize / iScaleFactor) % 100 != 0)
+	{
+		cerr << "Incompatible value for Scale Factor (-f) specified." << endl;
+		cerr << HoursPerWorkDay << " * " << SecondsPerHour << " * Load Unit Size (" << iLoadUnitSize 
+			<< ") / Scale Factor (" << iScaleFactor 
+			<< ") must be integral multiple of 100." << endl;
+
+		bRet = false;
+	}
+
+	if (iDaysOfInitialTrades <= 0) 
+	{
+		cerr << "The specified number of 8-Hour Workdays (-w " 
+			<< (iDaysOfInitialTrades) << ") must be non-zero." << endl;
+
+		bRet = false;
+	}
+
+	// UniqueId must be assigned
+	if (UniqueId == 0)
+	{
+		cerr << "UniqueID number must be specified."<<endl;
+		bRet = false;
+	}
+
+	return bRet;
+}
+
+// main
+int main(int argc, char* argv[])
+{
+	// Establish defaults for command line options
+	strncpy(szInDir, "EGen_v3.14/flat_in", sizeof(szInDir)-1);
+
+	cout<<endl<<"dbt5 - Driver Customer Emulator Main"<<endl;
+
+	// Parse command line
+	ParseCommandLine(argc, argv);
+
+	// Validate parameters
+	if (!ValidateParameters())
+	{
+		return ERROR_INVALID_OPTION_VALUE;	// exit returning a non-zero code
+	}	
+
+	// Let the user know what settings will be used.
+	cout<<endl<<"Using the following settings:"<<endl<<endl;
+	cout<<"\tInput files location:\t\t"<<szInDir<<endl;
+	cout<<"\tConfigured customer count:\t"<<iConfiguredCustomerCount<<endl;
+	cout<<"\tActive customer count:\t\t"<<iActiveCustomerCount<<endl;
+	cout<<"\tBrokerage House port:\t\t"<<iBHlistenPort<<endl;
+	cout<<"\tScale Factor:\t\t\t"<<iScaleFactor<<endl;
+	cout<<"\t#Days of initial trades:\t"<<iDaysOfInitialTrades<<endl;
+	cout<<"\tLoad unit size:\t\t\t"<<iLoadUnitSize<<endl;
+	cout<<"\tSleep between customers:\t"<<iSleep<<endl;
+	cout<<"\tUnique ID:\t\t\t"<<UniqueId<<endl<<endl;
+
 	try
 	{
-		// initialize Input Generator
-		//
-		CLogFormatTab fmt;
-		CEGenLogger log(eDriverEGenLoader, 0, "Driver.log", &fmt);
-	
-		char*	szInDir = "EGen_v3.14/flat_in";
-	
-		CInputFiles	inputFiles;
-		inputFiles.Initialize(eDriverEGenLoader, iDefaultLoadUnitSize, iDefaultLoadUnitSize, szInDir);
-	
-		TDriverCETxnSettings	m_DriverCETxnSettings;
-	
-		CCETxnInputGenerator	m_TxnInputGenerator(inputFiles, iDefaultLoadUnitSize, iDefaultLoadUnitSize, 
-								500, 10*HoursPerWorkDay, &log, &m_DriverCETxnSettings);
-	
-		// initialize CE - Customer Emulator
-		//
-		CCESUT	m_CESUT;
-		CCE	m_CE( &m_CESUT, &log, inputFiles, iDefaultLoadUnitSize,
-						iDefaultLoadUnitSize, 500, 10, 1, &m_DriverCETxnSettings );
-
-		while(true)
-		{
-			m_CE.DoTxn();
-			sleep(1);
-		}
+		CDriverCustomer    DriverCustomer(szInDir, iConfiguredCustomerCount, iActiveCustomerCount,
+							iScaleFactor, iDaysOfInitialTrades, UniqueId, iBHlistenPort);
+		DriverCustomer.RunTest(iSleep);
+		
 	}
 	catch (CBaseErr *pErr)
 	{
@@ -51,15 +219,6 @@ int main()
 		}
 		return(1);
 	}
-	catch (CSocketErr *pErr)
-	{
-		cout<<endl<<"Error: "<<pErr->ErrorText();
-		cout<<" at "<<pErr->GetLocation()<<endl;
-		cout<<endl;
-		return(1);
-	}
-
-	pthread_exit(NULL);
 
 	return(0);
 }

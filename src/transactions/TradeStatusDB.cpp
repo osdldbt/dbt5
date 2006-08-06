@@ -35,6 +35,7 @@ void CTradeStatusDB::DoTradeStatusFrame1(PTradeStatusFrame1Input pFrame1Input, P
 			"trade_qty s_qty_t, type_name char(12))";
 
 	BeginTxn();
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"); // Isolation level required by Clause 7.4.1.3
 	result R( m_Txn->exec( osCall.str() ) );
 	CommitTxn();		
 

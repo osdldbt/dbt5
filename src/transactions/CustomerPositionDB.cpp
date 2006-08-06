@@ -37,6 +37,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(PCustomerPositionFrame1Input 
 			"char(10), C_EXT_3 char(5), C_EMAIL_1 varchar, C_EMAIL_2 varchar);";
 
 	BeginTxn();
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"); // Isolation level required by Clause 7.4.1.3
 	result R( m_Txn->exec( osCall.str() ) );
 
 	if (R.empty())

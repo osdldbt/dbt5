@@ -68,13 +68,14 @@ void TPCE::EntryMarketWorkerThread(void* data)
 }
 
 // Constructor
-CDriverMarket::CDriverMarket(char* szFileLoc, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount, int iListenPort)
+CDriverMarket::CDriverMarket(char* szFileLoc, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
+							int iListenPort, int iBHlistenPort)
 : m_iListenPort(iListenPort)
 {
 	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, "Market.log", &m_fmt);
 
 	// Initialize MEESUT
-	m_pCMEESUT = new CMEESUT();
+	m_pCMEESUT = new CMEESUT(iBHlistenPort);
 	
 	// Initialize SecurityFile
 	m_pSecurities = new CSecurityFile(szFileLoc, iConfiguredCustomerCount, iActiveCustomerCount);

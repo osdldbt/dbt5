@@ -56,6 +56,7 @@ void CMarketFeedDB::DoMarketFeedFrame1(PMarketFeedFrame1Input pFrame1Input,
 			"trade_id TRADE_T, price numeric(8,2), trade_quant integer, trade_type char(3))";
 
 	BeginTxn();
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;"); // Isolation level required by Clause 7.4.1.3
 	result R( m_Txn->exec( osCall.str() ) );
 	// Sponsors should consider committing the database changes
 	// before calling the send_to_market interface (we're doing that)

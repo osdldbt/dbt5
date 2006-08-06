@@ -10,13 +10,15 @@
 #ifndef SOCKET_ERR_H
 #define SOCKET_ERR_H
 
-#include <string>
+#include <error.h>
 
 namespace TPCE
 {
 
-class CSocketErr
-{ 
+#define ERR_TYPE_SOCKET		13		//socket error
+
+class CSocketErr : public CBaseErr
+{
 public:
 	enum Action
 	{
@@ -39,39 +41,41 @@ public:
 
 private:
 	Action		m_eAction;
-	std::string	m_sLocation;
 
 public:
-
-	CSocketErr(Action eAction, std::string sLocation)
-	:m_eAction(eAction)
-	,m_sLocation(sLocation)	{};
-
-	~CSocketErr();
-	
-	std::string GetLocation(void) { return m_sLocation; };
-
-	std::string ErrorText(void)
+	CSocketErr(Action eAction, char const * szLoc = NULL)
+	: CBaseErr(szLoc)
 	{
-		static	std::string  sErrMsg[15] = {
-			"Can't accept client connection",
-			"Please specify port on which server listen for request",
-			"Please specify correct hostname of box where server is running",
-			"Please specify correct IP of box where server is running",
-			"Can't create socket",
-			"Can't connect to server socket",
-			"Can't bind socket",
-			"Can't listen on socket",
-			"Error in getprotobyname",
-			"inet_pton - Error in converting string to network address",
-			"cannot receive data",
-			"socket closed on operation",
-			"did not receive all data",
-			"cannot send data",
-			"did not send all data"
+		m_eAction = eAction;
+	};
+
+	~CSocketErr()
+	{
+	}
+	
+	int ErrorType() { return ERR_TYPE_SOCKET; };
+
+	char *ErrorText()
+	{
+		static	char *szErrMsg[15] = {
+			(char*)"Can't accept client connection",
+			(char*)"Please specify port on which server listen for request",
+			(char*)"Please specify correct hostname of box where server is running",
+			(char*)"Please specify correct IP of box where server is running",
+			(char*)"Can't create socket",
+			(char*)"Can't connect to server socket",
+			(char*)"Can't bind socket",
+			(char*)"Can't listen on socket",
+			(char*)"Error in getprotobyname",
+			(char*)"inet_pton - Error in converting string to network address",
+			(char*)"cannot receive data",
+			(char*)"socket closed on operation",
+			(char*)"did not receive all data",
+			(char*)"cannot send data",
+			(char*)"did not send all data"
 		};
 
-		return sErrMsg[m_eAction];
+		return szErrMsg[m_eAction];
 	};
 	
 };

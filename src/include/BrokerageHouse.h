@@ -15,6 +15,7 @@ namespace TPCE
 
 class CBrokerageHouse
 {
+	int		m_iListenPort;
 	CSocket		m_Socket;
 
 	char		m_szHost[iMaxPGHost];		// host name
@@ -22,7 +23,7 @@ class CBrokerageHouse
 	char		m_szPostmasterPort[iMaxPGPort]; // PostgreSQL postmaster port
 
 private:
-	void ThrowError();
+	void ThrowError(CThreadErr::Action eAction, char* szLocation);
 
 	friend void* TPCE::WorkerThread(void* data);
 	friend void TPCE::EntryWorkerThread(void* data);	// entry point for worker thread
@@ -41,7 +42,8 @@ private:
 
 public:
 
-	CBrokerageHouse(const char *szHost, const char *szDBName, const char *szPostmasterPort);
+	CBrokerageHouse(const char *szHost, const char *szDBName,
+				 const char *szPostmasterPort, const int iListenPort);
 	~CBrokerageHouse();
 
 	void Listener(void);

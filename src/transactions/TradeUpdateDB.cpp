@@ -54,6 +54,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(PTradeUpdateFrame1Input pFrame1Input, P
 			"TradeHistoryStatusID3 char(4))";
 
 	BeginTxn();
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;"); // Isolation level required by Clause 7.4.1.3
 	result R( m_Txn->exec( osCall.str() ) );
 	CommitTxn();
 

@@ -15,6 +15,8 @@ using namespace std;
 #include <pqxx/pqxx>
 using namespace pqxx;
 
+#include <CSocketErr.h>
+#include <CThreadErr.h>
 #include <CSocket.h>
 #include <SocketPorts.h>
 #include <EGenStandardTypes.h>
@@ -54,5 +56,6 @@ using namespace pqxx;
 
 #include <BrokerageHouse.h>
 #include <DriverMarket.h>
+#include <DriverCustomer.h>
 
 #endif	// TRANSACTIONS_H

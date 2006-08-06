@@ -17,7 +17,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 
-#include "CSocketErr.h"
+#include <CSocketErr.h>
 
 namespace TPCE
 {

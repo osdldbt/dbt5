@@ -17,11 +17,12 @@ namespace TPCE
 class CMEESUT : public CMEESUTInterface
 {
 private:
+	int			m_iBHlistenPort;
 	TTradeResultTxnInput	m_TradeResultTxnInput;
 	TMarketFeedTxnInput	m_MarketFeedTxnInput;
 	
 public:
-	CMEESUT();
+	CMEESUT(const int iBHlistenPort);
 	~CMEESUT();
 
 	virtual bool TradeResult( PTradeResultTxnInput pTxnInput );	// return whether it was successful
