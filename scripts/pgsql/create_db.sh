@@ -26,7 +26,7 @@ ${SHELL} ${DIR}/start_db.sh
 # Give the database a few seconds to get going
 sleep 4
 
-${CREATEDB} ${DBNAME}
+${CREATEDB} -E SQL_ASCII ${DBNAME}
 ${CREATELANG} plpgsql ${DBNAME}
 
 exit 0

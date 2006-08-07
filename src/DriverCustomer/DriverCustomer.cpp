@@ -29,24 +29,32 @@ void* TPCE::CustomerWorkerThread(void* data)
 // entry point for worker thread
 void TPCE::EntryCustomerWorkerThread(void* data, int iThrNumber)
 {
-	PCustomerThreadParam pThrParam = reinterpret_cast<PCustomerThreadParam>(data);
-
 	pthread_attr_t threadAttribute; // thread attribute
 
-	int status = pthread_attr_init(&threadAttribute); // initialize the attribute object
-	if (status != 0)
+	try
 	{
-		pThrParam->pDriverCustomer->ThrowError(CThreadErr::ERR_THREAD_ATTR_INIT, "TPCE::EntryCustomerWorkerThread");
+		int status = pthread_attr_init(&threadAttribute); // initialize the attribute object
+		if (status != 0)
+		{
+			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_INIT );
+		}
+	
+		// create the thread in the joinable state
+		status = pthread_create(&g_tid[iThrNumber], &threadAttribute, &CustomerWorkerThread, data);
+					
+		if (status != 0)
+		{
+			throw new CThreadErr( CThreadErr::ERR_THREAD_CREATE );
+		}
 	}
-
-	// create the thread in the joinable state
-	status = pthread_create(&g_tid[iThrNumber], &threadAttribute, &CustomerWorkerThread, data);
-				
-	if (status != 0)
+	catch(CThreadErr *pErr)
 	{
-		pThrParam->pDriverCustomer->ThrowError(CThreadErr::ERR_THREAD_CREATE, "TPCE::EntryCustomerWorkerThread");
-	}
+		cout<<"Thread "<<iThrNumber<<" didn't spawn correctly"<<endl
+		    <<endl<<"Error: "<<pErr->ErrorText()
+		    <<" at "<<"TPCE::EntryCustomerWorkerThread"<<endl;
 
+		delete pErr;
+	}
 }
 
 // Constructor
@@ -112,13 +120,8 @@ void CDriverCustomer::RunTest(int iSleep)
 	{
 		if (pthread_join(g_tid[i], NULL) != 0)
 		{
-			ThrowError(CThreadErr::ERR_THREAD_JOIN, "DriverCustomer::RunTest");
+			throw new CThreadErr( CThreadErr::ERR_THREAD_JOIN, "DriverCustomer::RunTest" );
 		}
 	}
 }
 
-// ThrowError - Thread exception
-void CDriverCustomer::ThrowError(CThreadErr::Action eAction, char* szLocation)
-{
-	throw new CThreadErr( eAction, szLocation );
-}

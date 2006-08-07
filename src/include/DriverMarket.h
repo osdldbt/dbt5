@@ -24,8 +24,6 @@ class CDriverMarket
 	CMEE*			m_pCMEE;
 
 private:
-	void ThrowError();
-
 	friend void* TPCE::MarketWorkerThread(void* data);
 	friend void TPCE::EntryMarketWorkerThread(void* data);	// entry point for driver worker thread
 

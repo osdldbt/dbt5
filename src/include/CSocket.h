@@ -43,7 +43,7 @@ public:
 	void CloseListenSocket() { close(m_sockfd); }
 
 private:
-	void ThrowError(CSocketErr::Action eAction, char* szLocation);
+	void ThrowError(CSocketErr::Action eAction);
 	int ResolveProto(const char *proto);
 };
 

@@ -53,6 +53,7 @@ public:
 	{
 	}
 	
+	Action GetAction() { return m_eAction; };
 	int ErrorType() { return ERR_TYPE_SOCKET; };
 
 	char *ErrorText()

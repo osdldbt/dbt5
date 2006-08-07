@@ -40,7 +40,7 @@ int CSocket::Accept(void)
 	m_sockfd = accept(m_listenfd, (struct sockaddr *) &sa, &addrlen);
 	if (m_sockfd == -1)
 	{
-		ThrowError(CSocketErr::ERR_SOCKET_ACCEPT, "CSocket::Accept");
+		ThrowError(CSocketErr::ERR_SOCKET_ACCEPT);
 	}
 	return m_sockfd;
 }
@@ -52,7 +52,7 @@ void CSocket::Connect(char* address, const int port)
 	m_sockfd = socket(AF_INET, SOCK_STREAM, ResolveProto("tcp"));
 	if (m_sockfd == -1)
 	{
-		ThrowError(CSocketErr::ERR_SOCKET_CREATE, "CSocket::Connect");
+		ThrowError(CSocketErr::ERR_SOCKET_CREATE);
 	}
 
 	struct sockaddr_in sa;
@@ -61,7 +61,7 @@ void CSocket::Connect(char* address, const int port)
 	sa.sin_port = htons(port);
 	if (sa.sin_port == 0)
 	{
-		ThrowError(CSocketErr::ERR_SOCKET_SINPORT, "CSocket::Connect");
+		ThrowError(CSocketErr::ERR_SOCKET_SINPORT);
 	}
 
 	if ((inet_pton(AF_INET, address, &sa.sin_addr)) <= 0)
@@ -69,7 +69,7 @@ void CSocket::Connect(char* address, const int port)
 		struct hostent *he;
 		if ((he = gethostbyname(address)) == NULL)
 		{
-			ThrowError(CSocketErr::ERR_SOCKET_HOSTBYNAME, "CSocket::Connect");
+			ThrowError(CSocketErr::ERR_SOCKET_HOSTBYNAME);
 		}
 		memcpy(&sa.sin_addr, he->h_addr_list[0], he->h_length);
 		//ThrowError(CSocketErr::ERR_SOCKET_INETPTON, "CSocket::Connect");
@@ -78,7 +78,7 @@ void CSocket::Connect(char* address, const int port)
 	errno = 0;
 	if ((connect(m_sockfd, (struct sockaddr *) &sa, sizeof(sa))) == -1)
 	{
-		ThrowError(CSocketErr::ERR_SOCKET_CONNECT, "CSocket::Connect");
+		ThrowError(CSocketErr::ERR_SOCKET_CONNECT);
 	}
 
 }
@@ -95,11 +95,11 @@ void CSocket::Receive(void* data, int length)
 		received = recv(m_sockfd, data, remaining, 0);
 		if (received == -1)
 		{
-			ThrowError(CSocketErr::ERR_SOCKET_RECV, "CSocket::Receive");
+			ThrowError(CSocketErr::ERR_SOCKET_RECV);
 		}
 		else if (received == 0) 
 		{
-			ThrowError(CSocketErr::ERR_SOCKET_CLOSED, "CSocket::Receive");
+			ThrowError(CSocketErr::ERR_SOCKET_CLOSED);
 		}
 
 		total += received;
@@ -114,7 +114,7 @@ void CSocket::Receive(void* data, int length)
 
 	if (length != total)
 	{
-		ThrowError(CSocketErr::ERR_SOCKET_RECVPARTIAL, "CSocket::Receive");
+		ThrowError(CSocketErr::ERR_SOCKET_RECVPARTIAL);
 	}
 
 	//return total;
@@ -132,11 +132,11 @@ void CSocket::Send(void* data, int length)
 
 		if (sent == -1) 
 		{
-			ThrowError(CSocketErr::ERR_SOCKET_SEND, "CSocket::Send");
+			ThrowError(CSocketErr::ERR_SOCKET_SEND);
 		}
 		else if (sent == 0)
 		{
-			ThrowError(CSocketErr::ERR_SOCKET_CLOSED, "CSocket::Send");
+			ThrowError(CSocketErr::ERR_SOCKET_CLOSED);
 		}
 
 		szData = reinterpret_cast<char*>(data);
@@ -148,7 +148,7 @@ void CSocket::Send(void* data, int length)
 
 	if (length != sent)
 	{
-		ThrowError(CSocketErr::ERR_SOCKET_SENDPARTIAL, "CSocket::Send");
+		ThrowError(CSocketErr::ERR_SOCKET_SENDPARTIAL);
 	}
 
 	//return sent;
@@ -163,7 +163,7 @@ void CSocket::Listen(const int port)
 	m_listenfd = socket(AF_INET, SOCK_STREAM, ResolveProto("tcp"));
 	if (m_listenfd < 0)
 	{
-		ThrowError(CSocketErr::ERR_SOCKET_CREATE, "CSocket::Listen");
+		ThrowError(CSocketErr::ERR_SOCKET_CREATE);
 		//perror("_listen");
 	}
 
@@ -175,14 +175,14 @@ void CSocket::Listen(const int port)
 	errno = 0;
 	if (bind(m_listenfd, (struct sockaddr *) &sa, sizeof(sa)) < 0)
 	{
-		ThrowError(CSocketErr::ERR_SOCKET_BIND, "CSocket::Listen");
+		ThrowError(CSocketErr::ERR_SOCKET_BIND);
 		//perror("_listen");
 	}
 
 	errno = 0;	
 	if (listen(m_listenfd, LISTENQ) < 0)
 	{
-		ThrowError(CSocketErr::ERR_SOCKET_LISTEN, "CSocket::Listen");
+		ThrowError(CSocketErr::ERR_SOCKET_LISTEN);
                 //perror("_listen");
 	}
 
@@ -196,14 +196,14 @@ int CSocket::ResolveProto(const char *proto)
 	protocol = getprotobyname(proto);
 	if (!protocol)
 	{
-		ThrowError(CSocketErr::ERR_SOCKET_RESOLVPROTO, "CSocket::ResolveProto");
+		ThrowError(CSocketErr::ERR_SOCKET_RESOLVPROTO);
 	}
 
 	return protocol->p_proto;
 }
 
 // ThrowError
-void CSocket::ThrowError(CSocketErr::Action eAction, char* szLocation)
+void CSocket::ThrowError(CSocketErr::Action eAction)
 {
-	throw new CSocketErr( eAction, szLocation );
+	throw new CSocketErr( eAction );
 }

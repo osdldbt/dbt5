@@ -23,8 +23,6 @@ class CDriverCustomer
 	PDriverCETxnSettings	m_pDriverCETxnSettings;
 
 private:
-	void ThrowError(CThreadErr::Action eAction, char* szLocation);
-
 	friend void* TPCE::CustomerWorkerThread(void* data);
 	friend void TPCE::EntryCustomerWorkerThread(void* data, int i);	// entry point for driver worker thread
 

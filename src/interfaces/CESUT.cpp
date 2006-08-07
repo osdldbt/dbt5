@@ -31,27 +31,39 @@ void CCESUT::ConnectRunTxnAndLog()
 
 	CDateTime	StartTime, EndTime, TxnTime;	// to time the transaction
 
-	// connect to BrokerageHouse
-	m_Socket.Connect(addr, BrokerageHousePort);
+	try
+	{
+		// connect to BrokerageHouse
+		m_Socket.Connect(addr, m_iBHlistenPort);
+	
+		// record txn start time -- please, see TPC-E specification clause 6.2.1.3
+		StartTime.SetToCurrent();
+	
+		// send and wait for response
+		m_Socket.Send(reinterpret_cast<void*>(&m_Request), sizeof(TMsgDriverBrokerage));
+		m_Socket.Receive( reinterpret_cast<void*>(&Reply), sizeof(Reply));
+	
+		// close connection
+		m_Socket.CloseAccSocket();
 
-	// record txn start time -- please, see TPC-E specification clause 6.2.1.3
-	StartTime.SetToCurrent();
+		// record txn end time
+		EndTime.SetToCurrent();
+	
+		// calculate txn response time
+		TxnTime.Set(0);	// clear time
+		TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
+	
+		cout<<"TxnType = "<<m_Request.TxnType<<"\tTxn RT = "<<TxnTime.ToStr(02)<<endl;
+	}
+	catch(CSocketErr *pErr)
+	{
+		// close connection
+		m_Socket.CloseAccSocket();
 
-	// send and wait for response
-	m_Socket.Send(reinterpret_cast<void*>(&m_Request), sizeof(TMsgDriverBrokerage));
-	m_Socket.Receive( reinterpret_cast<void*>(&Reply), sizeof(Reply));
-
-	// record txn end time
-	EndTime.SetToCurrent();
-
-	// calculate txn response time
-	TxnTime.Set(0);	// clear time
-	TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
-
-	// close connection
-	m_Socket.CloseAccSocket();
-
-	cout<<"TxnType = "<<m_Request.TxnType<<"\tTxn RT = "<<TxnTime.ToStr(02)<<endl;
+		cout<<endl<<"Error: "<<pErr->ErrorText()
+		    <<" at "<<"CCESUT::ConnectRunTxnAndLog"<<endl;
+		delete pErr;
+	}
 }
 
 // Broker Volume

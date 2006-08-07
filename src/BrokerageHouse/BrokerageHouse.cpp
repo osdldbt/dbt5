@@ -21,112 +21,121 @@ void* TPCE::WorkerThread(void* data)
 	PMsgDriverBrokerage pMessage = new TMsgDriverBrokerage;
 	memset(pMessage, 0, sizeof(TMsgDriverBrokerage));   // zero the structure
 
-	sockDrv.Receive( reinterpret_cast<void*>(pMessage), sizeof(TMsgDriverBrokerage));
-
 	// return message
 	TMsgBrokerageDriver	Reply;
 
 	// new connection
 	CDBConnection* pDBConnection = new CDBConnection(pThrParam->pBrokerageHouse->m_szHost,
-							 pThrParam->pBrokerageHouse->m_szDBName,
-							 pThrParam->pBrokerageHouse->m_szPostmasterPort);
+							pThrParam->pBrokerageHouse->m_szDBName,
+							pThrParam->pBrokerageHouse->m_szPostmasterPort);
 
-	//  Parse Txn type
-	INT32 iRet = 0;
-	switch ( pMessage->TxnType )
+	try
 	{
-		case BROKER_VOLUME:
+		sockDrv.Receive( reinterpret_cast<void*>(pMessage), sizeof(TMsgDriverBrokerage));
+	
+		//  Parse Txn type
+		INT32 iRet = 0;
+		switch ( pMessage->TxnType )
 		{
-			CBrokerVolume* pBrokerVolume = new CBrokerVolume(pDBConnection);
-			iRet = pThrParam->pBrokerageHouse->RunBrokerVolume(
-					&(pMessage->TxnInput.BrokerVolumeTxnInput), *pBrokerVolume );
-			delete pBrokerVolume;
-			break;
+			case BROKER_VOLUME:
+			{
+				CBrokerVolume* pBrokerVolume = new CBrokerVolume(pDBConnection);
+				iRet = pThrParam->pBrokerageHouse->RunBrokerVolume(
+						&(pMessage->TxnInput.BrokerVolumeTxnInput), *pBrokerVolume );
+				delete pBrokerVolume;
+				break;
+			}
+			case CUSTOMER_POSITION:
+			{
+				CCustomerPosition* pCustomerPosition = new CCustomerPosition(pDBConnection);
+				iRet = pThrParam->pBrokerageHouse->RunCustomerPosition(
+						&(pMessage->TxnInput.CustomerPositionTxnInput), *pCustomerPosition );
+				delete pCustomerPosition;
+				break;
+			}
+	
+			case MARKET_FEED:
+			{
+				CSendToMarket* pSendToMarket = new CSendToMarket();
+				CMarketFeed* pMarketFeed = new CMarketFeed(pDBConnection, pSendToMarket);
+				iRet = pThrParam->pBrokerageHouse->RunMarketFeed(
+						&(pMessage->TxnInput.MarketFeedTxnInput), *pMarketFeed );
+				delete pMarketFeed;
+				delete pSendToMarket;
+				break;
+			}
+			case MARKET_WATCH:
+			{
+				CMarketWatch* pMarketWatch = new CMarketWatch(pDBConnection);
+				iRet = pThrParam->pBrokerageHouse->RunMarketWatch(
+						&(pMessage->TxnInput.MarketWatchTxnInput), *pMarketWatch );
+				delete pMarketWatch;
+				break;
+			}
+			case SECURITY_DETAIL:
+			{
+				CSecurityDetail* pSecurityDetail = new CSecurityDetail(pDBConnection);
+				iRet = pThrParam->pBrokerageHouse->RunSecurityDetail(
+						&(pMessage->TxnInput.SecurityDetailTxnInput), *pSecurityDetail );
+				delete pSecurityDetail;
+				break;
+			}
+			case TRADE_LOOKUP:
+			{
+				CTradeLookup* pTradeLookup = new CTradeLookup(pDBConnection);
+				iRet = pThrParam->pBrokerageHouse->RunTradeLookup(
+						&(pMessage->TxnInput.TradeLookupTxnInput), *pTradeLookup );
+				delete pTradeLookup;
+				break;
+			}
+			case TRADE_ORDER:
+			{
+				CSendToMarket* pSendToMarket = new CSendToMarket();
+				CTradeOrder* pTradeOrder = new CTradeOrder(pDBConnection, pSendToMarket);
+				iRet = pThrParam->pBrokerageHouse->RunTradeOrder(
+						&(pMessage->TxnInput.TradeOrderTxnInput), *pTradeOrder );
+				delete pTradeOrder;
+				delete pSendToMarket;
+				break;
+			}
+			case TRADE_RESULT:
+			{
+				CTradeResult* pTradeResult = new CTradeResult(pDBConnection);
+				iRet = pThrParam->pBrokerageHouse->RunTradeResult(
+						&(pMessage->TxnInput.TradeResultTxnInput), *pTradeResult );
+				delete pTradeResult;
+				break;
+			}
+			case TRADE_STATUS:
+			{
+				CTradeStatus* pTradeStatus = new CTradeStatus(pDBConnection);
+				iRet = pThrParam->pBrokerageHouse->RunTradeStatus(
+						&(pMessage->TxnInput.TradeStatusTxnInput), *pTradeStatus );
+				delete pTradeStatus;
+				break;
+			}
+			case TRADE_UPDATE:
+			{
+				CTradeUpdate* pTradeUpdate = new CTradeUpdate(pDBConnection);
+				iRet = pThrParam->pBrokerageHouse->RunTradeUpdate(
+						&(pMessage->TxnInput.TradeUpdateTxnInput), *pTradeUpdate );
+				delete pTradeUpdate;
+				break;
+			}
+			default:
+				cout<<"wrong txn type"<<endl;
 		}
-		case CUSTOMER_POSITION:
-		{
-			CCustomerPosition* pCustomerPosition = new CCustomerPosition(pDBConnection);
-			iRet = pThrParam->pBrokerageHouse->RunCustomerPosition(
-					&(pMessage->TxnInput.CustomerPositionTxnInput), *pCustomerPosition );
-			delete pCustomerPosition;
-			break;
-		}
-
-		case MARKET_FEED:
-		{
-			CSendToMarket* pSendToMarket = new CSendToMarket();
-			CMarketFeed* pMarketFeed = new CMarketFeed(pDBConnection, pSendToMarket);
-			iRet = pThrParam->pBrokerageHouse->RunMarketFeed(
-					&(pMessage->TxnInput.MarketFeedTxnInput), *pMarketFeed );
-			delete pMarketFeed;
-			delete pSendToMarket;
-			break;
-		}
-		case MARKET_WATCH:
-		{
-			CMarketWatch* pMarketWatch = new CMarketWatch(pDBConnection);
-			iRet = pThrParam->pBrokerageHouse->RunMarketWatch(
-					&(pMessage->TxnInput.MarketWatchTxnInput), *pMarketWatch );
-			delete pMarketWatch;
-			break;
-		}
-		case SECURITY_DETAIL:
-		{
-			CSecurityDetail* pSecurityDetail = new CSecurityDetail(pDBConnection);
-			iRet = pThrParam->pBrokerageHouse->RunSecurityDetail(
-					&(pMessage->TxnInput.SecurityDetailTxnInput), *pSecurityDetail );
-			delete pSecurityDetail;
-			break;
-		}
-		case TRADE_LOOKUP:
-		{
-			CTradeLookup* pTradeLookup = new CTradeLookup(pDBConnection);
-			iRet = pThrParam->pBrokerageHouse->RunTradeLookup(
-					&(pMessage->TxnInput.TradeLookupTxnInput), *pTradeLookup );
-			delete pTradeLookup;
-			break;
-		}
-		case TRADE_ORDER:
-		{
-			CSendToMarket* pSendToMarket = new CSendToMarket();
-			CTradeOrder* pTradeOrder = new CTradeOrder(pDBConnection, pSendToMarket);
-			iRet = pThrParam->pBrokerageHouse->RunTradeOrder(
-					&(pMessage->TxnInput.TradeOrderTxnInput), *pTradeOrder );
-			delete pTradeOrder;
-			delete pSendToMarket;
-			break;
-		}
-		case TRADE_RESULT:
-		{
-			CTradeResult* pTradeResult = new CTradeResult(pDBConnection);
-			iRet = pThrParam->pBrokerageHouse->RunTradeResult(
-					&(pMessage->TxnInput.TradeResultTxnInput), *pTradeResult );
-			delete pTradeResult;
-			break;
-		}
-		case TRADE_STATUS:
-		{
-			CTradeStatus* pTradeStatus = new CTradeStatus(pDBConnection);
-			iRet = pThrParam->pBrokerageHouse->RunTradeStatus(
-					&(pMessage->TxnInput.TradeStatusTxnInput), *pTradeStatus );
-			delete pTradeStatus;
-			break;
-		}
-		case TRADE_UPDATE:
-		{
-			CTradeUpdate* pTradeUpdate = new CTradeUpdate(pDBConnection);
-			iRet = pThrParam->pBrokerageHouse->RunTradeUpdate(
-					&(pMessage->TxnInput.TradeUpdateTxnInput), *pTradeUpdate );
-			delete pTradeUpdate;
-			break;
-		}
-		default:
-			cout<<"wrong txn type"<<endl;
+	
+		// send status to driver
+		Reply.iStatus = iRet;
+		sockDrv.Send( reinterpret_cast<void*>(&Reply), sizeof(Reply) );
 	}
-
-	// send status to driver
-	Reply.iStatus = iRet;
-	sockDrv.Send( reinterpret_cast<void*>(&Reply), sizeof(Reply) );
+	catch(CSocketErr *pErr)
+	{
+		cout<<endl<<"Error: "<<pErr->ErrorText()
+		    <<" at "<<"BrokerageHouse::WorkerThread"<<endl;
+		delete pErr;
+	}
 
 	close(pThrParam->iSockfd);	// close socket connection with the driver
 	delete pDBConnection;		// close connection with the database
@@ -142,28 +151,40 @@ void TPCE::EntryWorkerThread(void* data)
 	pthread_t threadID; // thread ID
 	pthread_attr_t threadAttribute; // thread attribute
 
-	int status = pthread_attr_init(&threadAttribute); // initialize the attribute object
-	if (status != 0)
+	try
 	{
-		pThrParam->pBrokerageHouse->ThrowError(CThreadErr::ERR_THREAD_ATTR_INIT, "TPCE::EntryWorkerThread");
+		int status = pthread_attr_init(&threadAttribute); // initialize the attribute object
+		if (status != 0)
+		{
+			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_INIT );
+		}
+	
+		// set the detachstate attribute to detached
+		status = pthread_attr_setdetachstate(&threadAttribute, PTHREAD_CREATE_DETACHED);
+		if (status != 0)
+		{
+			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_DETACH );
+		}
+	
+		// create the thread in the detached state
+		status = pthread_create(&threadID, &threadAttribute, &WorkerThread, data);
+	
+		cout<<"thread id="<<threadID<<endl;
+		if (status != 0)
+		{
+			throw new CThreadErr( CThreadErr::ERR_THREAD_CREATE );
+		}
 	}
-
-	// set the detachstate attribute to detached
-	status = pthread_attr_setdetachstate(&threadAttribute, PTHREAD_CREATE_DETACHED);
-	if (status != 0)
+	catch(CThreadErr *pErr)
 	{
-		pThrParam->pBrokerageHouse->ThrowError(CThreadErr::ERR_THREAD_ATTR_DETACH, "TPCE::EntryWorkerThread");
-	}
+		cout<<endl<<"Error: "<<pErr->ErrorText()
+		    <<" at "<<"BrokerageHouse::EntryWorkerThread"<<endl;
 
-	// create the thread in the detached state
-	status = pthread_create(&threadID, &threadAttribute, &WorkerThread, data);
-						//reinterpret_cast<void*>( ));
-	cout<<"thread id="<<threadID<<endl;
-	if (status != 0)
-	{
-		pThrParam->pBrokerageHouse->ThrowError(CThreadErr::ERR_THREAD_CREATE, "TPCE::EntryWorkerThread");
-	}
+		close(pThrParam->iSockfd); // close recently accepted connection, to release driver threads
+		cout<<"accepted socket connection closed"<<endl;
 
+		delete pErr;
+	}	
 }
 
 // Constructor
@@ -297,25 +318,27 @@ void CBrokerageHouse::Listener( void )
 	while(true)
 	{
 		acc_socket = 0;
-		acc_socket = m_Socket.Accept();
-
-		pThrParam = new TThreadParameter;
-		memset(pThrParam, 0, sizeof(TThreadParameter));   // zero the structure
-
-		pThrParam->iSockfd = acc_socket;
-		pThrParam->pBrokerageHouse = this;
-
-		// call entry point
-		EntryWorkerThread( reinterpret_cast<void*>(pThrParam) );
-		
-		//NOTE lembrar de fechar o socket listen em algum momento... acho que não precisa
-		// por que o destructor do CSocket mata
+		try
+		{
+			acc_socket = m_Socket.Accept();
+	
+			pThrParam = new TThreadParameter;
+			memset(pThrParam, 0, sizeof(TThreadParameter));   // zero the structure
+	
+			pThrParam->iSockfd = acc_socket;
+			pThrParam->pBrokerageHouse = this;
+	
+			// call entry point
+			EntryWorkerThread( reinterpret_cast<void*>(pThrParam) );
+		}
+		catch(CSocketErr *pErr)
+		{
+			cout<<endl<<"Problem to accept socket connection"
+			<<endl<<"Error: "<<pErr->ErrorText()
+			<<" at "<<"BrokerageHouse::Listener"<<endl;
+			delete pErr;
+		}
+			
 	}
 
-}
-
-// ThrowError
-void CBrokerageHouse::ThrowError(CThreadErr::Action eAction, char* szLocation)
-{
-	throw new CThreadErr( eAction, szLocation );
 }

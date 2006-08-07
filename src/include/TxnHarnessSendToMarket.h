@@ -16,9 +16,10 @@ namespace TPCE
 class CSendToMarket : public CSendToMarketInterface
 {
 	CSocket		m_Socket;
+	int		m_MEport;
 
 public:
-	CSendToMarket();
+	CSendToMarket(int MEport = DriverMarketPort);
 	~CSendToMarket();
 
 	virtual bool SendToMarket(TTradeRequest &trade_mes);

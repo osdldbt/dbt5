@@ -21,50 +21,73 @@ void* TPCE::MarketWorkerThread(void* data)
 	PTradeRequest pMessage = new TTradeRequest;
 	memset(pMessage, 0, sizeof(TTradeRequest));   // zero the structure
 
-	sockDrv.Receive( reinterpret_cast<void*>(pMessage), sizeof(TTradeRequest));
-
-	//close connection
-	close(pThrParam->iSockfd);
+	try
+	{
+		sockDrv.Receive( reinterpret_cast<void*>(pMessage), sizeof(TTradeRequest));
 	
-	// submit trade request
-	pThrParam->pDriverMarket->m_pCMEE->SubmitTradeRequest( pMessage );
+		//close connection
+		close(pThrParam->iSockfd);
+		
+		// submit trade request
+		pThrParam->pDriverMarket->m_pCMEE->SubmitTradeRequest( pMessage );
+	}
+	catch(CSocketErr *pErr)
+	{
+		// close connection
+		sockDrv.CloseAccSocket();
 
+		cout<<endl<<"Trade Request not submitted to Market Exchange"
+		    <<endl<<"Error: "<<pErr->ErrorText()
+		    <<" at "<<"DriverMarket::MarketWorkerThread"<<endl;
+		delete pErr;
+	}
+
+	delete pMessage;
 	return NULL;
 }
 
 // entry point for worker thread
 void TPCE::EntryMarketWorkerThread(void* data)
 {
-	//thread
+	PMarketThreadParam pThrParam = reinterpret_cast<PMarketThreadParam>(data);
+
 	pthread_t threadID; // thread ID
-	int status; // error code
 	pthread_attr_t threadAttribute; // thread attribute
 
-	status = pthread_attr_init(&threadAttribute); // initialize the attribute object
-	if (status != 0)
+	try
 	{
-		cout<<"pthread_attr_init failed, status = "<<status<<endl;
-		//return false;
+		int status = pthread_attr_init(&threadAttribute); // initialize the attribute object
+		if (status != 0)
+		{
+			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_INIT );
+		}
+	
+		// set the detachstate attribute to detached
+		status = pthread_attr_setdetachstate(&threadAttribute, PTHREAD_CREATE_DETACHED);
+		if (status != 0)
+		{
+			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_DETACH );
+		}
+	
+		// create the thread in the detached state
+		status = pthread_create(&threadID, &threadAttribute, &MarketWorkerThread, data);
+	
+		cout<<"thread id="<<threadID<<endl;
+		if (status != 0)
+		{
+			throw new CThreadErr( CThreadErr::ERR_THREAD_CREATE );
+		}
 	}
-
-	// set the detachstate attribute to detached
-	status = pthread_attr_setdetachstate(&threadAttribute, PTHREAD_CREATE_DETACHED);
-	if (status != 0)
+	catch(CThreadErr *pErr)
 	{
-		cout<<"pthread_attr_setdetachstate failed, status = "<<status<<endl;
-		//return false;
-	}
+		cout<<endl<<"Error: "<<pErr->ErrorText()
+		    <<" at "<<"DriverMarket::EntryMarketWorkerThread"<<endl;
 
-	// create the thread in the detached state
-	status = pthread_create(&threadID, &threadAttribute, &MarketWorkerThread, data);
-						//reinterpret_cast<void*>( ));
-	cout<<"thread id="<<threadID<<endl;
-	if (status != 0)
-	{
-		cout<<"pthread_create failed, status = "<<status<<endl;
-		//return false;
-	}
+		close(pThrParam->iSockfd); // close recently accepted connection, to release threads
+		cout<<"accepted socket connection closed"<<endl;
 
+		delete pErr;
+	}
 }
 
 // Constructor
@@ -105,23 +128,28 @@ void CDriverMarket::Listener( void )
 	while(true)
 	{
 		acc_socket = 0;
-		acc_socket = m_Socket.Accept();
-
-		// create new parameter structure
-		pThrParam = new TMarketThreadParam;
-		memset(pThrParam, 0, sizeof(TMarketThreadParam));   // zero the structure
-
-		pThrParam->iSockfd = acc_socket;
-		pThrParam->pDriverMarket = this;
-
-		// call entry point
-		EntryMarketWorkerThread( reinterpret_cast<void*>(pThrParam) );
+		try
+		{
+			acc_socket = m_Socket.Accept();
+	
+			// create new parameter structure
+			pThrParam = new TMarketThreadParam;
+			memset(pThrParam, 0, sizeof(TMarketThreadParam));   // zero the structure
+	
+			pThrParam->iSockfd = acc_socket;
+			pThrParam->pDriverMarket = this;
+	
+			// call entry point
+			EntryMarketWorkerThread( reinterpret_cast<void*>(pThrParam) );
+		}
+		catch(CSocketErr *pErr)
+		{
+			cout<<endl<<"Problem to accept socket connection"
+			<<endl<<"Error: "<<pErr->ErrorText()
+			<<" at "<<"DriverMarket::Listener"<<endl;
+			delete pErr;
+		}
 	}
 
 }
 
-// ThrowError
-void CDriverMarket::ThrowError()
-{
-	//throw new;
-}
