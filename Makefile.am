@@ -24,6 +24,8 @@ storedproc/pgsql/TradeOrder.sql \
 storedproc/pgsql/TradeResult.sql \
 storedproc/pgsql/TradeStatus.sql \
 storedproc/pgsql/TradeUpdate.sql \
+scripts/mix_analyzer.pl \
+scripts/trtps.input \
 scripts/pgsql/backup.sh \
 scripts/pgsql/check_db.sh \
 scripts/pgsql/create_db.sh \

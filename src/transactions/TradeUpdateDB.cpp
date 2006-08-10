@@ -60,7 +60,8 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(PTradeUpdateFrame1Input pFrame1Input, P
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeUpdateFrame1: empty result set");
+		//throw logic_error("TradeUpdateFrame1: empty result set");
+		cout<<"warning: empty result set at DoTradeUpdateFrame1"<<endl;
 	}
 	result::const_iterator c = R.begin();
 
@@ -115,6 +116,8 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(PTradeUpdateFrame1Input pFrame1Input, P
 
 		i++;
 	}
+
+	pFrame1Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -209,7 +212,8 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(PTradeUpdateFrame2Input pFrame2Input, P
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeUpdateFrame2: empty result set");
+		//throw logic_error("TradeUpdateFrame2: empty result set");
+		cout<<"warning: empty result set at DoTradeUpdateFrame2"<<endl;
 	}
 	result::const_iterator c = R.begin();
 
@@ -264,6 +268,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(PTradeUpdateFrame2Input pFrame2Input, P
 		i++;
 	}
  	pFrame2Output->num_found = i;
+	pFrame2Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -364,7 +369,8 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(PTradeUpdateFrame3Input pFrame3Input, P
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeUpdateFrame3: empty result set");
+		//throw logic_error("TradeUpdateFrame3: empty result set");
+		cout<<"warning: empty result set at DoTradeUpdateFrame3"<<endl;
 	}
 	result::const_iterator c = R.begin();
 	result::const_iterator e = R.end(); --e;
@@ -431,6 +437,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(PTradeUpdateFrame3Input pFrame3Input, P
 		i++;
 	}
  	pFrame3Output->num_found = i;
+	pFrame3Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();

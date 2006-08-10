@@ -7,6 +7,7 @@
 #define TRANSACTIONS_H
 
 #include <iostream>
+#include <fstream>
 #include <assert.h>
 #include <pthread.h>
 using namespace std;
@@ -15,18 +16,17 @@ using namespace std;
 #include <pqxx/pqxx>
 using namespace pqxx;
 
-#include <CSocketErr.h>
-#include <CThreadErr.h>
+#include <dbt5error.h>
 #include <CSocket.h>
 #include <SocketPorts.h>
 #include <EGenStandardTypes.h>
 #include <MiscConsts.h>
 #include <TxnHarnessStructs.h>
 #include <CommonStructs.h>
+#include <SyncLockInterface.h>
 #include <TxnHarnessSendToMarketInterface.h>
 #include <TxnHarnessSendToMarketTest.h>
 #include <TxnHarnessSendToMarket.h>
-#include <SyncLockInterface.h>
 
 #include <DBConnection.h>
 #include <TxnBaseDB.h>

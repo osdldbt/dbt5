@@ -129,24 +129,10 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 	// operator new will throw std::bad_alloc exception if there is no sufficient memory for the request.
-	//
 	catch (std::bad_alloc err)
 	{
 		cout<<endl<<endl<<"*** Out of memory ***"<<endl;
 		return 2;
-	}
-	// exceptions thrown by pqxx
-	//
-	catch (const pqxx::sql_error &e)
-	{
-		cout<<"SQL error: "<<e.what()<<endl
-		    <<"Query was: '"<<e.query()<<"'"<<endl;
-		return 3;
-	}
-	catch (const pqxx::broken_connection &e) // broken connection
-	{
-		cout<<"libpxx: "<<e.what()<<endl;
-		return 3;
 	}
 	catch (const exception &e)
 	{

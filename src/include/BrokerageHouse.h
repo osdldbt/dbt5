@@ -17,12 +17,16 @@ class CBrokerageHouse
 {
 	int		m_iListenPort;
 	CSocket		m_Socket;
+	CSyncLock	m_LogLock;
+	ofstream	m_fLog;
 
 	char		m_szHost[iMaxPGHost];		// host name
 	char		m_szDBName[iMaxPGDBName];	// database name
 	char		m_szPostmasterPort[iMaxPGPort]; // PostgreSQL postmaster port
 
 private:
+	void LogErrorMessage(const string sErr);
+
 	friend void* TPCE::WorkerThread(void* data);
 	friend void TPCE::EntryWorkerThread(void* data);	// entry point for worker thread
 
@@ -39,7 +43,6 @@ private:
 	INT32 RunTradeUpdate( PTradeUpdateTxnInput pTxnInput, CTradeUpdate &TradeUpdate );
 
 public:
-
 	CBrokerageHouse(const char *szHost, const char *szDBName,
 				 const char *szPostmasterPort, const int iListenPort);
 	~CBrokerageHouse();

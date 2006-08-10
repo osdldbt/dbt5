@@ -1,0 +1,8 @@
+plot "trtps.data" using 1:3 with lines
+set grid xtics ytics
+set xlabel "Elapsed Time (Minutes)"
+set ylabel "Trade-Result Transactions"
+set term png small
+set output "trtps.png"
+set yrange [0:]
+replot

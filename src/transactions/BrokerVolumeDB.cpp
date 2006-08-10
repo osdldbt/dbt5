@@ -55,6 +55,7 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(PBrokerVolumeFrame1Input pFrame1Input
 		i++;
 	}
  	pFrame1Output->list_len = i;
+	pFrame1Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();

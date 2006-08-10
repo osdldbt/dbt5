@@ -21,109 +21,134 @@ void* TPCE::WorkerThread(void* data)
 	PMsgDriverBrokerage pMessage = new TMsgDriverBrokerage;
 	memset(pMessage, 0, sizeof(TMsgDriverBrokerage));   // zero the structure
 
-	// return message
-	TMsgBrokerageDriver	Reply;
-
-	// new connection
-	CDBConnection* pDBConnection = new CDBConnection(pThrParam->pBrokerageHouse->m_szHost,
-							pThrParam->pBrokerageHouse->m_szDBName,
-							pThrParam->pBrokerageHouse->m_szPostmasterPort);
+	TMsgBrokerageDriver	Reply;		// return message
+	INT32 iRet = 0;				// return error
+	CDBConnection* pDBConnection = NULL;
 
 	try
 	{
 		sockDrv.Receive( reinterpret_cast<void*>(pMessage), sizeof(TMsgDriverBrokerage));
-	
-		//  Parse Txn type
-		INT32 iRet = 0;
-		switch ( pMessage->TxnType )
+
+		try
 		{
-			case BROKER_VOLUME:
+			// new connection
+			pDBConnection = new CDBConnection(pThrParam->pBrokerageHouse->m_szHost,
+								pThrParam->pBrokerageHouse->m_szDBName,
+								pThrParam->pBrokerageHouse->m_szPostmasterPort);
+
+			//  Parse Txn type
+			switch ( pMessage->TxnType )
 			{
-				CBrokerVolume* pBrokerVolume = new CBrokerVolume(pDBConnection);
-				iRet = pThrParam->pBrokerageHouse->RunBrokerVolume(
-						&(pMessage->TxnInput.BrokerVolumeTxnInput), *pBrokerVolume );
-				delete pBrokerVolume;
-				break;
+				case BROKER_VOLUME:
+				{
+					CBrokerVolume* pBrokerVolume = new CBrokerVolume(pDBConnection);
+					iRet = pThrParam->pBrokerageHouse->RunBrokerVolume(
+							&(pMessage->TxnInput.BrokerVolumeTxnInput), *pBrokerVolume );
+					delete pBrokerVolume;
+					break;
+				}
+				case CUSTOMER_POSITION:
+				{
+					CCustomerPosition* pCustomerPosition = new CCustomerPosition(pDBConnection);
+					iRet = pThrParam->pBrokerageHouse->RunCustomerPosition(
+							&(pMessage->TxnInput.CustomerPositionTxnInput), *pCustomerPosition );
+					delete pCustomerPosition;
+					break;
+				}
+		
+				case MARKET_FEED:
+				{
+					CSendToMarket* pSendToMarket = new CSendToMarket(&(pThrParam->pBrokerageHouse->m_fLog));
+					CMarketFeed* pMarketFeed = new CMarketFeed(pDBConnection, pSendToMarket);
+					iRet = pThrParam->pBrokerageHouse->RunMarketFeed(
+							&(pMessage->TxnInput.MarketFeedTxnInput), *pMarketFeed );
+					delete pMarketFeed;
+					delete pSendToMarket;
+					break;
+				}
+				case MARKET_WATCH:
+				{
+					CMarketWatch* pMarketWatch = new CMarketWatch(pDBConnection);
+					iRet = pThrParam->pBrokerageHouse->RunMarketWatch(
+							&(pMessage->TxnInput.MarketWatchTxnInput), *pMarketWatch );
+					delete pMarketWatch;
+					break;
+				}
+				case SECURITY_DETAIL:
+				{
+					CSecurityDetail* pSecurityDetail = new CSecurityDetail(pDBConnection);
+					iRet = pThrParam->pBrokerageHouse->RunSecurityDetail(
+							&(pMessage->TxnInput.SecurityDetailTxnInput), *pSecurityDetail );
+					delete pSecurityDetail;
+					break;
+				}
+				case TRADE_LOOKUP:
+				{
+					CTradeLookup* pTradeLookup = new CTradeLookup(pDBConnection);
+					iRet = pThrParam->pBrokerageHouse->RunTradeLookup(
+							&(pMessage->TxnInput.TradeLookupTxnInput), *pTradeLookup );
+					delete pTradeLookup;
+					break;
+				}
+				case TRADE_ORDER:
+				{
+					CSendToMarket* pSendToMarket = new CSendToMarket(&(pThrParam->pBrokerageHouse->m_fLog));
+					CTradeOrder* pTradeOrder = new CTradeOrder(pDBConnection, pSendToMarket);
+					iRet = pThrParam->pBrokerageHouse->RunTradeOrder(
+							&(pMessage->TxnInput.TradeOrderTxnInput), *pTradeOrder );
+					delete pTradeOrder;
+					delete pSendToMarket;
+					break;
+				}
+				case TRADE_RESULT:
+				{
+					CTradeResult* pTradeResult = new CTradeResult(pDBConnection);
+					iRet = pThrParam->pBrokerageHouse->RunTradeResult(
+							&(pMessage->TxnInput.TradeResultTxnInput), *pTradeResult );
+					delete pTradeResult;
+					break;
+				}
+				case TRADE_STATUS:
+				{
+					CTradeStatus* pTradeStatus = new CTradeStatus(pDBConnection);
+					iRet = pThrParam->pBrokerageHouse->RunTradeStatus(
+							&(pMessage->TxnInput.TradeStatusTxnInput), *pTradeStatus );
+					delete pTradeStatus;
+					break;
+				}
+				case TRADE_UPDATE:
+				{
+					CTradeUpdate* pTradeUpdate = new CTradeUpdate(pDBConnection);
+					iRet = pThrParam->pBrokerageHouse->RunTradeUpdate(
+							&(pMessage->TxnInput.TradeUpdateTxnInput), *pTradeUpdate );
+					delete pTradeUpdate;
+					break;
+				}
+				default:
+				{
+					cout<<"wrong txn type"<<endl;
+					iRet = ERR_TYPE_WRONGTXN;
+				}
+					
 			}
-			case CUSTOMER_POSITION:
-			{
-				CCustomerPosition* pCustomerPosition = new CCustomerPosition(pDBConnection);
-				iRet = pThrParam->pBrokerageHouse->RunCustomerPosition(
-						&(pMessage->TxnInput.CustomerPositionTxnInput), *pCustomerPosition );
-				delete pCustomerPosition;
-				break;
-			}
-	
-			case MARKET_FEED:
-			{
-				CSendToMarket* pSendToMarket = new CSendToMarket();
-				CMarketFeed* pMarketFeed = new CMarketFeed(pDBConnection, pSendToMarket);
-				iRet = pThrParam->pBrokerageHouse->RunMarketFeed(
-						&(pMessage->TxnInput.MarketFeedTxnInput), *pMarketFeed );
-				delete pMarketFeed;
-				delete pSendToMarket;
-				break;
-			}
-			case MARKET_WATCH:
-			{
-				CMarketWatch* pMarketWatch = new CMarketWatch(pDBConnection);
-				iRet = pThrParam->pBrokerageHouse->RunMarketWatch(
-						&(pMessage->TxnInput.MarketWatchTxnInput), *pMarketWatch );
-				delete pMarketWatch;
-				break;
-			}
-			case SECURITY_DETAIL:
-			{
-				CSecurityDetail* pSecurityDetail = new CSecurityDetail(pDBConnection);
-				iRet = pThrParam->pBrokerageHouse->RunSecurityDetail(
-						&(pMessage->TxnInput.SecurityDetailTxnInput), *pSecurityDetail );
-				delete pSecurityDetail;
-				break;
-			}
-			case TRADE_LOOKUP:
-			{
-				CTradeLookup* pTradeLookup = new CTradeLookup(pDBConnection);
-				iRet = pThrParam->pBrokerageHouse->RunTradeLookup(
-						&(pMessage->TxnInput.TradeLookupTxnInput), *pTradeLookup );
-				delete pTradeLookup;
-				break;
-			}
-			case TRADE_ORDER:
-			{
-				CSendToMarket* pSendToMarket = new CSendToMarket();
-				CTradeOrder* pTradeOrder = new CTradeOrder(pDBConnection, pSendToMarket);
-				iRet = pThrParam->pBrokerageHouse->RunTradeOrder(
-						&(pMessage->TxnInput.TradeOrderTxnInput), *pTradeOrder );
-				delete pTradeOrder;
-				delete pSendToMarket;
-				break;
-			}
-			case TRADE_RESULT:
-			{
-				CTradeResult* pTradeResult = new CTradeResult(pDBConnection);
-				iRet = pThrParam->pBrokerageHouse->RunTradeResult(
-						&(pMessage->TxnInput.TradeResultTxnInput), *pTradeResult );
-				delete pTradeResult;
-				break;
-			}
-			case TRADE_STATUS:
-			{
-				CTradeStatus* pTradeStatus = new CTradeStatus(pDBConnection);
-				iRet = pThrParam->pBrokerageHouse->RunTradeStatus(
-						&(pMessage->TxnInput.TradeStatusTxnInput), *pTradeStatus );
-				delete pTradeStatus;
-				break;
-			}
-			case TRADE_UPDATE:
-			{
-				CTradeUpdate* pTradeUpdate = new CTradeUpdate(pDBConnection);
-				iRet = pThrParam->pBrokerageHouse->RunTradeUpdate(
-						&(pMessage->TxnInput.TradeUpdateTxnInput), *pTradeUpdate );
-				delete pTradeUpdate;
-				break;
-			}
-			default:
-				cout<<"wrong txn type"<<endl;
+		}
+		// exceptions thrown by pqxx
+		catch (const pqxx::broken_connection &e)
+		{
+			ostringstream osErr;
+			osErr<<"pqxx broken connection: "<<e.what()<<endl
+		    	     <<" at "<<"BrokerageHouse::WorkerThread"<<endl;
+			pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
+			iRet = ERR_TYPE_PQXX;
+		}
+		catch (const pqxx::sql_error &e)
+		{
+			ostringstream osErr;
+			osErr<<"pqxx SQL error: "<<e.what()<<endl
+			     <<"Query was: '"<<e.query()<<"'"<<endl
+		             <<" at "<<"BrokerageHouse::WorkerThread"<<endl;
+			pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
+			iRet = ERR_TYPE_PQXX;
 		}
 	
 		// send status to driver
@@ -132,13 +157,15 @@ void* TPCE::WorkerThread(void* data)
 	}
 	catch(CSocketErr *pErr)
 	{
-		cout<<endl<<"Error: "<<pErr->ErrorText()
-		    <<" at "<<"BrokerageHouse::WorkerThread"<<endl;
+		ostringstream osErr;
+		osErr<<endl<<"Error: "<<pErr->ErrorText()
+		     <<" at "<<"BrokerageHouse::WorkerThread"<<endl;
+		pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
 		delete pErr;
 	}
 
-	close(pThrParam->iSockfd);	// close socket connection with the driver
 	delete pDBConnection;		// close connection with the database
+	close(pThrParam->iSockfd);	// close socket connection with the driver
 
 	return NULL;
 }
@@ -177,12 +204,13 @@ void TPCE::EntryWorkerThread(void* data)
 	}
 	catch(CThreadErr *pErr)
 	{
-		cout<<endl<<"Error: "<<pErr->ErrorText()
-		    <<" at "<<"BrokerageHouse::EntryWorkerThread"<<endl;
-
 		close(pThrParam->iSockfd); // close recently accepted connection, to release driver threads
-		cout<<"accepted socket connection closed"<<endl;
 
+		ostringstream osErr;
+		osErr<<endl<<"Error: "<<pErr->ErrorText()
+		     <<" at "<<"BrokerageHouse::EntryWorkerThread"<<endl
+		     <<"accepted socket connection closed"<<endl;
+		pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
 		delete pErr;
 	}	
 }
@@ -200,11 +228,14 @@ CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName,
 
 	memset(m_szPostmasterPort, 0, sizeof(m_szPostmasterPort));
 	strncpy(m_szPostmasterPort, szPostmasterPort, sizeof(m_szPostmasterPort) - 1);
+
+	m_fLog.open("BrokerageHouse_Error.log", ios::out);
 }
 
 // Destructor
 CBrokerageHouse::~CBrokerageHouse()
 {
+	m_fLog.close();
 }
 
 // Run Broker Volume transaction
@@ -333,12 +364,24 @@ void CBrokerageHouse::Listener( void )
 		}
 		catch(CSocketErr *pErr)
 		{
-			cout<<endl<<"Problem to accept socket connection"
-			<<endl<<"Error: "<<pErr->ErrorText()
-			<<" at "<<"BrokerageHouse::Listener"<<endl;
+			ostringstream osErr;
+			osErr<<endl<<"Problem to accept socket connection"
+			     <<endl<<"Error: "<<pErr->ErrorText()
+			     <<" at "<<"BrokerageHouse::Listener"<<endl;
+			LogErrorMessage(osErr.str());
 			delete pErr;
 		}
 			
 	}
 
+}
+
+// LogErrorMessage
+void CBrokerageHouse::LogErrorMessage( const string sErr )
+{
+	m_LogLock.ClaimLock();
+	cout<<sErr;
+	m_fLog<<sErr;
+	m_fLog.flush();
+	m_LogLock.ReleaseLock();
 }

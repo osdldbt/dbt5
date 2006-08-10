@@ -19,9 +19,11 @@ int		iBHlistenPort = BrokerageHousePort;
 int		iLoadUnitSize = iDefaultLoadUnitSize;			// # of customers in one load unit
 TIdent		iConfiguredCustomerCount = iDefaultLoadUnitSize;	// # of customers for this instance
 TIdent		iActiveCustomerCount = iDefaultLoadUnitSize;		// total number of customers in the database
-int		iScaleFactor = 500;					// # of customers for 1 NOTPS
+int		iScaleFactor = 500;					// # of customers for 1 TRTPS
 int		iDaysOfInitialTrades = 300;
 int		iSleep = 1000;						// msec between thread creation
+int		iUsers = 0;						// # users
+int		iPacingDelay = 0;
 
 char		szInDir[iMaxPath];		// path to EGen input files
 UINT32 		UniqueId = 0;			// automatic RNG seed generation requires unique input
@@ -32,8 +34,10 @@ void Usage()
 	cerr<<"\nUsage: DriverCustomerMain {options}"<<endl<<endl
 	    <<"  where"<<endl
 	    <<"   Option	Default		      Description"<<endl
+						      
+						      
 	    <<"   =========	==================    ============================================="<<endl
-	    <<"   -p string	"<<szInDir<<"    Path to EGen input files"<<endl
+	    <<"   -e string	"<<szInDir<<"    Path to EGen input files"<<endl
 	    <<"   -c number	"<<iConfiguredCustomerCount<<"\t\t      Configured customer count"<<endl
 	    <<"   -a number	"<<iActiveCustomerCount<<"\t\t      Active customer count"<<endl
 	    <<"   -b number	"<<iBHlistenPort<<"\t\t      Brokerage House listen port"<<endl
@@ -41,7 +45,10 @@ void Usage()
 	    <<"   -d number	"<<iDaysOfInitialTrades<<"\t\t      # of Days of Initial Trades"<<endl
 	    <<"   -l number	"<<iLoadUnitSize<<"\t\t      # of customers in one load unit"<<endl
 	    <<"   -s number	"<<iSleep<<"\t\t      # of msec between customer creation"<<endl
-	    <<"   -u number			      Unique input for automatict seed generation"<<endl;
+	    <<"   -u number	"<<iUsers<<"\t\t      # of Users"<<endl
+	    <<"   -p number	"<<iPacingDelay<<"\t\t      # of msec to wait after the current txn and"<<endl
+	    <<"\t\t\t\t      before the next txn"<<endl
+	    <<"   -g number			      Unique input for automatic seed generation"<<endl;
 }
 
 // Parse command line
@@ -79,7 +86,7 @@ void ParseCommandLine( int argc, char *argv[] )
 		// Parse the switch
 		switch ( *sp )
 		{
-			case 'p':	// input files path
+			case 'e':	// input files path
 				strncpy(szInDir, vp, sizeof(szInDir));
 				break;
 			case 'c':
@@ -100,11 +107,17 @@ void ParseCommandLine( int argc, char *argv[] )
 			case 'l':
 				sscanf(vp, "%d", &iLoadUnitSize);
 				break;
-			case 'u':
+			case 'g':
 				sscanf(vp, "%d", &UniqueId);
 				break;
 			case 's':
 				sscanf(vp, "%d", &iSleep);
+				break;
+			case 'u':
+				sscanf(vp, "%d", &iUsers);
+				break;
+			case 'p':
+				sscanf(vp, "%d", &iPacingDelay);
 				break;
 			default:
 				Usage();
@@ -170,6 +183,13 @@ bool ValidateParameters()
 		bRet = false;
 	}
 
+	// iUsers must be assigned
+	if (iUsers == 0)
+	{
+		cerr << "iUsers number must be specified."<<endl;
+		bRet = false;
+	}
+
 	return bRet;
 }
 
@@ -205,7 +225,8 @@ int main(int argc, char* argv[])
 	try
 	{
 		CDriverCustomer    DriverCustomer(szInDir, iConfiguredCustomerCount, iActiveCustomerCount,
-							iScaleFactor, iDaysOfInitialTrades, UniqueId, iBHlistenPort);
+							iScaleFactor, iDaysOfInitialTrades, UniqueId, 
+							iBHlistenPort, iUsers, iPacingDelay);
 		DriverCustomer.RunTest(iSleep);
 		
 	}

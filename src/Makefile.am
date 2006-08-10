@@ -5,8 +5,8 @@ AUTOMAKE_OPTIONS = no-dependencies
 
 INCLUDES = -I@egen_path@/inc -Iinclude
 
-AM_CPPFLAGS=-ggdb
-DEFS=-DCOMPILE_PLSQL_FUNCTION -DDEBUG
+AM_CPPFLAGS=#-ggdb
+DEFS=-DCOMPILE_PLSQL_FUNCTION #-DDEBUG
 
 TXN=transactions
 INTF=interfaces

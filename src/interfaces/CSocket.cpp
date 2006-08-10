@@ -9,8 +9,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include "CSocket.h"
-#include "CSocketErr.h"
+#include <CSocket.h>
+#include <dbt5error.h>
 
 #define LISTENQ     1024
 

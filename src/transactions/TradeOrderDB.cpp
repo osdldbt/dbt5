@@ -38,7 +38,8 @@ void CTradeOrderDB::DoTradeOrderFrame1(PTradeOrderFrame1Input pFrame1Input, PTra
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeOrderFrame1: empty result set");
+		//throw logic_error("TradeOrderFrame1: empty result set");
+		cout<<"warning: empty result set at DoTradeOrderFrame1"<<endl;
 	}
 	result::const_iterator c = R.begin();
 	
@@ -88,11 +89,13 @@ void CTradeOrderDB::DoTradeOrderFrame2(PTradeOrderFrame2Input pFrame2Input, PTra
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeOrderFrame2: empty result set");
+		//throw logic_error("TradeOrderFrame2: empty result set");
+		cout<<"warning: empty result set at DoTradeOrderFrame2"<<endl;
 	}
 	result::const_iterator c = R.begin();
 	
 	pFrame2Output->bad_permission = c[0].as(int());
+	pFrame2Output->status = CBaseTxnErr::SUCCESS;
 
 #elif defined(COMPILE_C_FUNCTION)
 //
@@ -124,7 +127,8 @@ void CTradeOrderDB::DoTradeOrderFrame3(PTradeOrderFrame3Input pFrame3Input, PTra
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeOrderFrame3: empty result set");
+		//throw logic_error("TradeOrderFrame3: empty result set");
+		cout<<"warning: empty result set at DoTradeOrderFrame3"<<endl;
 	}
 	result::const_iterator c = R.begin();
 	
@@ -203,11 +207,13 @@ void CTradeOrderDB::DoTradeOrderFrame4(PTradeOrderFrame4Input pFrame4Input, PTra
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeOrderFrame4: empty result set");
+		//throw logic_error("TradeOrderFrame4: empty result set");
+		cout<<"warning: empty result set at DoTradeOrderFrame4"<<endl;
 	}
 	result::const_iterator c = R.begin();
 
 	pFrame4Output->trade_id = c[0].as(int());
+	pFrame4Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -241,7 +247,7 @@ void CTradeOrderDB::DoTradeOrderFrame5(PTradeOrderFrame5Output pFrame5Output)
 {
 	// rollback the transaction we are inside
 	RollbackTxn();
-	//pFrame5Output->status = CBaseTxnErr::ROLLBACK;
+	pFrame5Output->status = CBaseTxnErr::ROLLBACK;
 }
 
 // Call Trade Order Frame 6
@@ -249,7 +255,7 @@ void CTradeOrderDB::DoTradeOrderFrame6(PTradeOrderFrame6Output pFrame6Output)
 {
 	// commit the transaction we are inside
 	CommitTxn();
-	//pFrame6Output->status = CBaseTxnErr::SUCCESS;
+	pFrame6Output->status = CBaseTxnErr::SUCCESS;
 }
 
 // Clean-up

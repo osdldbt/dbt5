@@ -13,8 +13,10 @@ char* addr = "localhost";
 using namespace TPCE;
 
 // Constructor
-CCESUT::CCESUT(const int iListenPort)
-: m_iBHlistenPort(iListenPort)
+CCESUT::CCESUT(const int iListenPort, ofstream* pflog, ofstream* pfmix)
+: m_iBHlistenPort(iListenPort),
+  m_pfLog(pflog),
+  m_pfMix(pfmix)
 {
 }
 
@@ -42,26 +44,52 @@ void CCESUT::ConnectRunTxnAndLog()
 		// send and wait for response
 		m_Socket.Send(reinterpret_cast<void*>(&m_Request), sizeof(TMsgDriverBrokerage));
 		m_Socket.Receive( reinterpret_cast<void*>(&Reply), sizeof(Reply));
-	
-		// close connection
-		m_Socket.CloseAccSocket();
 
 		// record txn end time
 		EndTime.SetToCurrent();
+
+		// close connection
+		m_Socket.CloseAccSocket();
 	
 		// calculate txn response time
 		TxnTime.Set(0);	// clear time
 		TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
-	
-		cout<<"TxnType = "<<m_Request.TxnType<<"\tTxn RT = "<<TxnTime.ToStr(02)<<endl;
+
+		//cout<<"TxnType = "<<m_Request.TxnType<<"\tTxn RT = "<<TxnTime.ToStr(02)<<endl;
+
+		//	CBaseTxnErr::SUCCESS
+		//	CBaseTxnErr::ROLLBACK (trade-order)
+		//	CBaseTxnErr::UNAUTHORIZED_EXECUTOR (trade-order)
+		// 	PQXX ERROR, WRONGTXN
+		// see CBrokerageHouse::WorkerThread
+
+		// logging
+		m_MixLock.ClaimLock();
+		if (Reply.iStatus == CBaseTxnErr::SUCCESS)
+		{
+			*(m_pfMix)<<(int)time(NULL)<<","<<m_Request.TxnType<< ","<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
+		}
+		else if (Reply.iStatus == CBaseTxnErr::ROLLBACK)
+		{
+			*(m_pfMix)<<(int)time(NULL)<<","<<m_Request.TxnType<<"R"<<","<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
+		}
+		else
+		{
+			*(m_pfMix)<<(int)time(NULL)<<","<<"E"<<","<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
+		}
+		m_pfMix->flush();
+		m_MixLock.ReleaseLock();
+		
 	}
 	catch(CSocketErr *pErr)
 	{
-		// close connection
-		m_Socket.CloseAccSocket();
+		m_Socket.CloseAccSocket(); // close connection
+		*(m_pfMix)<<(int)time(NULL)<<","<<"E"<<","<<"000"<<","<<(int)pthread_self()<<endl;
 
-		cout<<endl<<"Error: "<<pErr->ErrorText()
-		    <<" at "<<"CCESUT::ConnectRunTxnAndLog"<<endl;
+		ostringstream osErr;
+		osErr<<endl<<"Error: "<<pErr->ErrorText()
+		     <<" at "<<"CCESUT::ConnectRunTxnAndLog"<<endl;
+		LogErrorMessage(osErr.str());
 		delete pErr;
 	}
 }
@@ -120,4 +148,14 @@ bool CCESUT::TradeUpdate( PTradeUpdateTxnInput pTxnInput )
 {
 	cout<<"Trade Update requested"<<endl;
 	return ( RunTxn(TRADE_UPDATE, &m_Request.TxnInput.TradeUpdateTxnInput, pTxnInput) );
+}
+
+// LogErrorMessage
+void CCESUT::LogErrorMessage( const string sErr )
+{
+	m_LogLock.ClaimLock();
+	cout<<sErr;
+	*(m_pfLog)<<sErr;
+	m_pfLog->flush();
+	m_LogLock.ReleaseLock();
 }

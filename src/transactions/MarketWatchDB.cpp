@@ -37,7 +37,8 @@ void CMarketWatchDB::DoMarketWatchFrame1(PMarketWatchFrame1Input pFrame1Input, P
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeLookupFrame1: empty result set");
+		//throw logic_error("TradeLookupFrame1: empty result set");
+		cout<<"warning: empty result set at DoMarketWatchFrame1"<<endl;
 	}
 	result::const_iterator c = R.begin();
 

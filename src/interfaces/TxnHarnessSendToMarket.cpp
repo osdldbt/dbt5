@@ -12,8 +12,9 @@ using namespace TPCE;
 
 char* addr = "localhost";
 
-CSendToMarket::CSendToMarket(int MEport)
-: m_MEport(MEport)
+CSendToMarket::CSendToMarket(ofstream* pfile, int MEport)
+: m_pfLog(pfile),
+  m_MEport(MEport)
 {
 }
 
@@ -36,16 +37,26 @@ bool CSendToMarket::SendToMarket(TTradeRequest &trade_mes)
 	}
 	catch(CSocketErr *pErr)
 	{
-		// close connection
-		m_Socket.CloseAccSocket();
+		m_Socket.CloseAccSocket();	// close connection
 
-		cout<<endl<<"Cannot send to market"<<endl
-		    <<"Error: "<<pErr->ErrorText()
-		    <<" at "<<"CSendToMarket::SendToMarket"<<endl;
+		ostringstream osErr;
+		osErr<<endl<<"Cannot send to market"<<endl
+		     <<"Error: "<<pErr->ErrorText()
+		     <<" at "<<"CSendToMarket::SendToMarket"<<endl;
 		delete pErr;
-	
+		LogErrorMessage(osErr.str());
 		return false;
 	}	
 
 	return true;
+}
+
+// LogErrorMessage
+void CSendToMarket::LogErrorMessage( const string sErr )
+{
+	m_LogLock.ClaimLock();
+	cout<<sErr;
+	*(m_pfLog)<<sErr;
+	m_pfLog->flush();
+	m_LogLock.ReleaseLock();
 }

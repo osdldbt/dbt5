@@ -88,6 +88,7 @@ void CMarketFeedDB::DoMarketFeedFrame1(PMarketFeedFrame1Input pFrame1Input,
 	{
 		pFrame1Output->send_len = 0;
 	}
+	pFrame1Output->status = CBaseTxnErr::SUCCESS;
 	
 #ifdef DEBUG
 	m_coutLock.ClaimLock();

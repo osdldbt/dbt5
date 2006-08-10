@@ -15,11 +15,15 @@ namespace TPCE
 
 class CSendToMarket : public CSendToMarketInterface
 {
-	CSocket		m_Socket;
+	ofstream*	m_pfLog;
 	int		m_MEport;
+	CSocket		m_Socket;
+	CSyncLock	m_LogLock;
 
 public:
-	CSendToMarket(int MEport = DriverMarketPort);
+	void LogErrorMessage(const string sErr);
+
+	CSendToMarket(ofstream* pfile, int MEport = DriverMarketPort);
 	~CSendToMarket();
 
 	virtual bool SendToMarket(TTradeRequest &trade_mes);

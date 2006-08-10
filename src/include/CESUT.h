@@ -20,12 +20,18 @@ class CCESUT : public CCESUTInterface
 	int			m_iBHlistenPort;
 	CSocket			m_Socket;
 	TMsgDriverBrokerage	m_Request;
+	CSyncLock		m_LogLock;
+	CSyncLock		m_MixLock;
+	ofstream*		m_pfLog;	// error log file
+	ofstream*		m_pfMix;	// mix log file
 
 private:
 	void ConnectRunTxnAndLog(void);
 	
 public:
-	CCESUT(const int iListenPort);
+	void LogErrorMessage(const string sErr);
+
+	CCESUT(const int iListenPort, ofstream* pflog, ofstream* pfmix);
 	~CCESUT(void);
 
 	virtual bool BrokerVolume( PBrokerVolumeTxnInput pTxnInput );			// return whether it was successful

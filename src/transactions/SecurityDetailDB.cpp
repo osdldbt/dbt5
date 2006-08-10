@@ -583,6 +583,8 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(PSecurityDetailFrame1Input pFrame
 	pFrame1Output->ex_num_symb = c[105].as(int());
 	pFrame1Output->ex_open = c[106].as(int());
 
+	pFrame1Output->status = CBaseTxnErr::SUCCESS;
+
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
 	cout<<"Security Detail Frame 1 (input)"<<endl

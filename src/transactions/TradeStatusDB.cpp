@@ -41,7 +41,9 @@ void CTradeStatusDB::DoTradeStatusFrame1(PTradeStatusFrame1Input pFrame1Input, P
 
 	if (R.empty()) 
 	{
-		throw logic_error("empty result set!");
+		//throw logic_error("empty result set!");
+		cout<<"warning: empty result set at DoTradeStatusFrame1"<<endl
+			<<"- acct_id: "<<pFrame1Input->acct_id<<endl;
 	}
 
 	result::const_iterator c = R.begin();
@@ -71,6 +73,9 @@ void CTradeStatusDB::DoTradeStatusFrame1(PTradeStatusFrame1Input pFrame1Input, P
 		
 		i++;
 	}
+
+	pFrame1Output->status = CBaseTxnErr::SUCCESS;
+
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
 	cout<<"Trade Status Frame 1 (input)"<<endl

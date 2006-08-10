@@ -16,6 +16,8 @@ namespace TPCE
 class CDriverMarket
 {
 	int			m_iListenPort;
+	ofstream		m_fLog;
+	CSyncLock		m_LogLock;
 	CSocket			m_Socket;
 	CLogFormatTab		m_fmt;
 	CEGenLogger*		m_pLog;
@@ -24,6 +26,8 @@ class CDriverMarket
 	CMEE*			m_pCMEE;
 
 private:
+	void LogErrorMessage(const string sErr);
+
 	friend void* TPCE::MarketWorkerThread(void* data);
 	friend void TPCE::EntryMarketWorkerThread(void* data);	// entry point for driver worker thread
 

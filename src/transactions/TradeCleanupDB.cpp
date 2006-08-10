@@ -37,7 +37,8 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(PTradeCleanupFrame1Input pFrame1Input
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeCleanupFrame1: empty result set");
+		//throw logic_error("TradeCleanupFrame1: empty result set");
+		cerr<<"warning: empty result set at DoTradeCleanupFrame1"<<endl;
 	}
 	result::const_iterator c = R.begin();
  	pFrame1Output->status = c[0].as(int());

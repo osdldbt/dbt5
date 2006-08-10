@@ -59,7 +59,8 @@ void CTradeLookupDB::DoTradeLookupFrame1(PTradeLookupFrame1Input pFrame1Input, P
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeLookupFrame1: empty result set");
+		//throw logic_error("TradeLookupFrame1: empty result set");
+		cout<<"warning: empty result set at DoTradeLookupFrame1"<<endl;
 	}
 	result::const_iterator c = R.begin();
 
@@ -112,6 +113,7 @@ void CTradeLookupDB::DoTradeLookupFrame1(PTradeLookupFrame1Input pFrame1Input, P
 		i++;
 	}
  	pFrame1Output->num_found = i;
+	pFrame1Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -205,7 +207,8 @@ void CTradeLookupDB::DoTradeLookupFrame2(PTradeLookupFrame2Input pFrame2Input, P
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeLookupFrame2: empty result set");
+		//throw logic_error("TradeLookupFrame2: empty result set");
+		cout<<"warning: empty result set at DoTradeLookupFrame2"<<endl;
 	}
 	result::const_iterator c = R.begin();
 
@@ -258,6 +261,7 @@ void CTradeLookupDB::DoTradeLookupFrame2(PTradeLookupFrame2Input pFrame2Input, P
 		i++;
 	}
  	pFrame2Output->num_found = i;
+	pFrame2Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -357,7 +361,8 @@ void CTradeLookupDB::DoTradeLookupFrame3(PTradeLookupFrame3Input pFrame3Input, P
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeLookupFrame3: empty result set");
+		//throw logic_error("TradeLookupFrame3: empty result set");
+		cout<<"warning: empty result set at DoTradeLookupFrame3"<<endl;
 	}
 	result::const_iterator c = R.begin();
 	
@@ -418,6 +423,7 @@ void CTradeLookupDB::DoTradeLookupFrame3(PTradeLookupFrame3Input pFrame3Input, P
 		i++;
 	}
  	pFrame3Output->num_found = i;
+	pFrame3Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -511,7 +517,8 @@ void CTradeLookupDB::DoTradeLookupFrame4(PTradeLookupFrame4Input pFrame4Input, P
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeLookupFrame4: empty result set");
+		//throw logic_error("TradeLookupFrame4: empty result set");
+		cout<<"warning: empty result set at DoTradeLookupFrame4"<<endl;
 	}
 	result::const_iterator c = R.begin();
 
@@ -528,6 +535,7 @@ void CTradeLookupDB::DoTradeLookupFrame4(PTradeLookupFrame4Input pFrame4Input, P
 		i++;
 	}
  	pFrame4Output->num_found = i;
+	pFrame4Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();

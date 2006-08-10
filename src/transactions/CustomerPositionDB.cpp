@@ -42,7 +42,8 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(PCustomerPositionFrame1Input 
 
 	if (R.empty())
 	{
-		throw logic_error("empty result set!");
+		//throw logic_error("empty result set!");
+		cout<<"warning: empty result set at DoCustomerPositionFrame1"<<endl;
 	}
 	result::const_iterator c = R.begin();
 
@@ -172,7 +173,8 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(PCustomerPositionFrame2Input 
 
 	if (R.empty())
 	{
-		throw logic_error("empty result set!");
+		//throw logic_error("empty result set!");
+		cout<<"warning: empty result set at DoCustomerPositionFrame2"<<endl;
 	}
 	result::const_iterator c = R.begin();
 
@@ -193,6 +195,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(PCustomerPositionFrame2Input 
 		i++;
 	}
 	pFrame2Output->hist_len = i;
+	pFrame2Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();

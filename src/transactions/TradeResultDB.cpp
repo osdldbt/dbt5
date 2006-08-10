@@ -38,7 +38,8 @@ void CTradeResultDB::DoTradeResultFrame1(PTradeResultFrame1Input pFrame1Input, P
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeResultFrame1: empty result set");
+		//throw logic_error("TradeResultFrame1: empty result set");
+		cerr<<"warning: empty result set at DoTradeResultFrame1"<<endl;
 	}
 	result::const_iterator c = R.begin();
 	
@@ -53,6 +54,8 @@ void CTradeResultDB::DoTradeResultFrame1(PTradeResultFrame1Input pFrame1Input, P
 	pFrame1Output->type_is_market = c[8].as(int());
 	pFrame1Output->type_is_sell = c[9].as(int());
 	sprintf(pFrame1Output->type_name, "%s", c[10].c_str());
+
+	pFrame1Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -100,7 +103,8 @@ void CTradeResultDB::DoTradeResultFrame2(PTradeResultFrame2Input pFrame2Input, P
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeResultFrame2: empty result set");
+		//throw logic_error("TradeResultFrame2: empty result set");
+		cerr<<"warning: empty result set at DoTradeResultFrame2"<<endl;
 	}
 	result::const_iterator c = R.begin();
 
@@ -115,6 +119,8 @@ void CTradeResultDB::DoTradeResultFrame2(PTradeResultFrame2Input pFrame2Input, P
 	pFrame2Output->trade_dts.hour = c[8].as(int());
 	pFrame2Output->trade_dts.minute = c[9].as(int());
 	pFrame2Output->trade_dts.second = int(c[10].as(double()));
+
+	pFrame2Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -161,11 +167,13 @@ void CTradeResultDB::DoTradeResultFrame3(PTradeResultFrame3Input pFrame3Input, P
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeResultFrame3: empty result set");
+		//throw logic_error("TradeResultFrame3: empty result set");
+		cerr<<"warning: empty result set at DoTradeResultFrame3"<<endl;
 	}
 	result::const_iterator c = R.begin();
 
 	pFrame3Output->tax_amount = c[0].as(double());
+	pFrame3Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -202,12 +210,14 @@ void CTradeResultDB::DoTradeResultFrame4(PTradeResultFrame4Input pFrame4Input, P
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeResultFrame4: empty result set");
+		//throw logic_error("TradeResultFrame4: empty result set");
+		cerr<<"warning: empty result set at DoTradeResultFrame4"<<endl;
 	}
 	result::const_iterator c = R.begin();
 
 	pFrame4Output->comm_rate = c[0].as(double());
 	sprintf(pFrame4Output->s_name, "%s", c[1].c_str());
+	pFrame4Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -260,8 +270,10 @@ void CTradeResultDB::DoTradeResultFrame5(PTradeResultFrame5Input pFrame5Input, P
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeResultFrame5: empty result set");
+		//throw logic_error("TradeResultFrame5: empty result set");
+		cerr<<"warning: empty result set at DoTradeResultFrame5"<<endl;
 	}
+	pFrame5Output->status = CBaseTxnErr::SUCCESS;
 
 #elif defined(COMPILE_C_FUNCTION)
 //
@@ -290,11 +302,13 @@ void CTradeResultDB::DoTradeResultFrame6(PTradeResultFrame6Input pFrame6Input, P
 
 	if (R.empty()) 
 	{
-		throw logic_error("TradeResultFrame6: empty result set");
+		//throw logic_error("TradeResultFrame6: empty result set");
+		cerr<<"warning: empty result set at DoTradeResultFrame6"<<endl;
 	}
 	result::const_iterator c = R.begin();
 
 	pFrame6Output->acct_bal = c[0].as(double());
+	pFrame6Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();

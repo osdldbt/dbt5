@@ -33,12 +33,13 @@ void* TPCE::MarketWorkerThread(void* data)
 	}
 	catch(CSocketErr *pErr)
 	{
-		// close connection
-		sockDrv.CloseAccSocket();
+		sockDrv.CloseAccSocket();	// close connection
 
-		cout<<endl<<"Trade Request not submitted to Market Exchange"
-		    <<endl<<"Error: "<<pErr->ErrorText()
-		    <<" at "<<"DriverMarket::MarketWorkerThread"<<endl;
+		ostringstream osErr;
+		osErr<<endl<<"Trade Request not submitted to Market Exchange"
+		     <<endl<<"Error: "<<pErr->ErrorText()
+		     <<" at "<<"DriverMarket::MarketWorkerThread"<<endl;
+		pThrParam->pDriverMarket->LogErrorMessage(osErr.str());
 		delete pErr;
 	}
 
@@ -80,12 +81,13 @@ void TPCE::EntryMarketWorkerThread(void* data)
 	}
 	catch(CThreadErr *pErr)
 	{
-		cout<<endl<<"Error: "<<pErr->ErrorText()
-		    <<" at "<<"DriverMarket::EntryMarketWorkerThread"<<endl;
-
 		close(pThrParam->iSockfd); // close recently accepted connection, to release threads
-		cout<<"accepted socket connection closed"<<endl;
 
+		ostringstream osErr;
+		osErr<<endl<<"Error: "<<pErr->ErrorText()
+		    <<" at "<<"DriverMarket::EntryMarketWorkerThread"<<endl
+		    <<"accepted socket connection closed"<<endl;
+		pThrParam->pDriverMarket->LogErrorMessage(osErr.str());
 		delete pErr;
 	}
 }
@@ -97,8 +99,9 @@ CDriverMarket::CDriverMarket(char* szFileLoc, TIdent iConfiguredCustomerCount, T
 {
 	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, "Market.log", &m_fmt);
 
+	m_fLog.open("DriverMarket_Error.log", ios::out);
 	// Initialize MEESUT
-	m_pCMEESUT = new CMEESUT(iBHlistenPort);
+	m_pCMEESUT = new CMEESUT(iBHlistenPort, &m_fLog);
 	
 	// Initialize SecurityFile
 	m_pSecurities = new CSecurityFile(szFileLoc, iConfiguredCustomerCount, iActiveCustomerCount);
@@ -144,12 +147,24 @@ void CDriverMarket::Listener( void )
 		}
 		catch(CSocketErr *pErr)
 		{
-			cout<<endl<<"Problem to accept socket connection"
-			<<endl<<"Error: "<<pErr->ErrorText()
-			<<" at "<<"DriverMarket::Listener"<<endl;
+			ostringstream osErr;
+			osErr<<endl<<"Problem to accept socket connection"
+			     <<endl<<"Error: "<<pErr->ErrorText()
+			     <<" at "<<"DriverMarket::Listener"<<endl;
+			LogErrorMessage(osErr.str());
 			delete pErr;
 		}
 	}
 
 }
 
+
+// LogErrorMessage
+void CDriverMarket::LogErrorMessage( const string sErr )
+{
+	m_LogLock.ClaimLock();
+	cout<<sErr;
+	m_fLog<<sErr;
+	m_fLog.flush();
+	m_LogLock.ReleaseLock();
+}

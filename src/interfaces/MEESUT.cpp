@@ -9,16 +9,20 @@
 #include <transactions.h>
 
 char* addr = "localhost";
+#define MEE_MIX_LOG_NAME "mee_mix.log"
 
 using namespace TPCE;
 
-CMEESUT::CMEESUT(const int iBHlistenPort)
-: m_iBHlistenPort(iBHlistenPort)
+CMEESUT::CMEESUT(const int iBHlistenPort, ofstream* pfile)
+: m_iBHlistenPort(iBHlistenPort),
+  m_pfLog(pfile)
 {
+	m_fMix.open(MEE_MIX_LOG_NAME, ios::out);
 }
 
 CMEESUT::~CMEESUT()
 {
+	m_fMix.close();
 }
 
 // Trade Result
@@ -56,23 +60,43 @@ void* TPCE::TradeResultAsync(void* data)
 	
 		// record txn end time
 		EndTime.SetToCurrent();
+
+		// close connection
+		sockdrv.CloseAccSocket();
 	
 		// calculate txn response time
 		TxnTime.Set(0);	// clear time
 		TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
 	
-		// close connection
-		sockdrv.CloseAccSocket();
-	
-		cout<<"TxnType = "<<TRADE_RESULT<<"\tTxn RT = "<<TxnTime.ToStr(02)<<endl;
+		//cout<<"TxnType = "<<TRADE_RESULT<<"\tTxn RT = "<<TxnTime.ToStr(02)<<endl;
+
+		// logging
+		pCMEESUT->m_MixLock.ClaimLock();
+		if (Reply.iStatus == CBaseTxnErr::SUCCESS)
+		{
+			pCMEESUT->m_fMix<<(int)time(NULL)<<","<<TRADE_RESULT<< ","<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
+		}
+		else if (Reply.iStatus == CBaseTxnErr::ROLLBACK)
+		{
+			pCMEESUT->m_fMix<<(int)time(NULL)<<","<<TRADE_RESULT<<"R"<<","<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
+		}
+		else
+		{
+			pCMEESUT->m_fMix<<(int)time(NULL)<<","<<"E"<<","<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
+		}
+		pCMEESUT->m_fMix.flush();
+		pCMEESUT->m_MixLock.ReleaseLock();
+
 	}
 	catch(CSocketErr *pErr)
 	{
-		// close connection
-		sockdrv.CloseAccSocket();
+		sockdrv.CloseAccSocket();	// close connection
+		pCMEESUT->m_fMix<<(int)time(NULL)<<","<<"E"<<","<<"000"<<","<<(int)pthread_self()<<endl;
 
-		cout<<endl<<"Error: "<<pErr->ErrorText()
-		    <<" at "<<"MEESUT::TradeResultAsync"<<endl;
+		ostringstream osErr;
+		osErr<<endl<<"Error: "<<pErr->ErrorText()
+		     <<" at "<<"MEESUT::TradeResultAsync"<<endl;
+		pCMEESUT->LogErrorMessage(osErr.str());
 		delete pErr;
 	}
 
@@ -111,9 +135,10 @@ bool TPCE::RunTradeResultAsync( CMEESUT* pCMEESUT )
 	}
 	catch(CThreadErr *pErr)
 	{
-		cout<<endl<<"Error: "<<pErr->ErrorText()
-		    <<" at "<<"MEESUT::RunTradeResultAsync"<<endl;
-
+		ostringstream osErr;
+		osErr<<endl<<"Error: "<<pErr->ErrorText()
+		     <<" at "<<"MEESUT::RunTradeResultAsync"<<endl;
+		pCMEESUT->LogErrorMessage(osErr.str());
 		delete pErr;
 		return false;
 	}
@@ -164,23 +189,43 @@ void* TPCE::MarketFeedAsync(void* data)
 	
 		// record txn end time
 		EndTime.SetToCurrent();
+
+		// close connection
+		sockdrv.CloseAccSocket();
 	
 		// calculate txn response time
 		TxnTime.Set(0);	// clear time
 		TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
-	
-		// close connection
-		sockdrv.CloseAccSocket();
-	
-		cout<<"TxnType = "<<MARKET_FEED<<"\tTxn RT = "<<TxnTime.ToStr(02)<<endl;
+		
+		//cout<<"TxnType = "<<MARKET_FEED<<"\tTxn RT = "<<TxnTime.ToStr(02)<<endl;
+
+		// logging
+		pCMEESUT->m_MixLock.ClaimLock();
+		if (Reply.iStatus == CBaseTxnErr::SUCCESS)
+		{
+			pCMEESUT->m_fMix<<(int)time(NULL)<<","<<MARKET_FEED<< ","<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
+		}
+		else if (Reply.iStatus == CBaseTxnErr::ROLLBACK)
+		{
+			pCMEESUT->m_fMix<<(int)time(NULL)<<","<<MARKET_FEED<<"R"<<","<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
+		}
+		else
+		{
+			pCMEESUT->m_fMix<<(int)time(NULL)<<","<<"E"<<","<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
+		}
+		pCMEESUT->m_fMix.flush();
+		pCMEESUT->m_MixLock.ReleaseLock();
+
 	}
 	catch(CSocketErr *pErr)
 	{
-		// close connection
-		sockdrv.CloseAccSocket();
+		sockdrv.CloseAccSocket();	// close connection
+		pCMEESUT->m_fMix<<(int)time(NULL)<<","<<"E"<<","<<"000"<<","<<(int)pthread_self()<<endl;
 
-		cout<<endl<<"Error: "<<pErr->ErrorText()
-		    <<" at "<<"MEESUT::MarketFeedAsync"<<endl;
+		ostringstream osErr;
+		osErr<<endl<<"Error: "<<pErr->ErrorText()
+		     <<" at "<<"MEESUT::MarketFeedAsync"<<endl;
+		pCMEESUT->LogErrorMessage(osErr.str());
 		delete pErr;
 	}
 
@@ -219,9 +264,10 @@ bool TPCE::RunMarketFeedAsync( CMEESUT* pCMEESUT )
 	}
 	catch(CThreadErr *pErr)
 	{
-		cout<<endl<<"Error: "<<pErr->ErrorText()
-		    <<" at "<<"MEESUT::RunMarketFeedAsync"<<endl;
-
+		ostringstream osErr;
+		osErr<<endl<<"Error: "<<pErr->ErrorText()
+		     <<" at "<<"MEESUT::RunMarketFeedAsync"<<endl;
+		pCMEESUT->LogErrorMessage(osErr.str());
 		delete pErr;
 		return false;
 	}
@@ -235,4 +281,14 @@ bool CMEESUT::MarketFeed( PMarketFeedTxnInput pTxnInput )
 	memcpy(&m_MarketFeedTxnInput, pTxnInput, sizeof(m_MarketFeedTxnInput));
 	
 	return ( RunMarketFeedAsync( this ) );
+}
+
+// LogErrorMessage
+void CMEESUT::LogErrorMessage( const string sErr )
+{
+	m_LogLock.ClaimLock();
+	cout<<sErr;
+	*(m_pfLog)<<sErr;
+	m_pfLog->flush();
+	m_LogLock.ReleaseLock();
 }
