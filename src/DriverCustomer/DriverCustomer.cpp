@@ -18,7 +18,7 @@ void* TPCE::CustomerWorkerThread(void* data)
 	PCustomerThreadParam pThrParam = reinterpret_cast<PCustomerThreadParam>(data);
 
 	struct timespec ts, rem;
-
+cout<<"pacing delay:"<<pThrParam->pDriverCustomer->m_iPacingDelay<<endl;
 	ts.tv_sec = (time_t) (pThrParam->pDriverCustomer->m_iPacingDelay / 1000);
 	ts.tv_nsec = (long) (pThrParam->pDriverCustomer->m_iPacingDelay % 1000) * 1000000;
 
@@ -28,16 +28,16 @@ void* TPCE::CustomerWorkerThread(void* data)
 		pThrParam->pDriverCustomer->m_pCCE->DoTxn();
 
 		// wait for pacing delay -- this delays happens after the mix logging
-		while (nanosleep(&ts, &rem) == -1) {
-			if (errno == EINTR) {
-				memcpy(&ts, &rem, sizeof(timespec));
-			} else {
-				ostringstream osErr;
-				osErr<<"pacing delay time invalid "<<ts.tv_sec<<" s "<<ts.tv_nsec<<" ns"<<endl;
-				pThrParam->pDriverCustomer->LogErrorMessage(osErr.str());
-				break;
-			}
-		}
+// 		while (nanosleep(&ts, &rem) == -1) {
+// 			if (errno == EINTR) {
+// 				memcpy(&ts, &rem, sizeof(timespec));
+// 			} else {
+// 				ostringstream osErr;
+// 				osErr<<"pacing delay time invalid "<<ts.tv_sec<<" s "<<ts.tv_nsec<<" ns"<<endl;
+// 				pThrParam->pDriverCustomer->LogErrorMessage(osErr.str());
+// 				break;
+// 			}
+// 		}
 	}
 
 	return NULL;
@@ -123,7 +123,7 @@ void CDriverCustomer::RunTest(int iSleep)
 	g_tid = (pthread_t*) malloc(sizeof(pthread_t) * m_iUsers);
 
 	LogErrorMessage(">> Start of ramp-up.\n");
-	for (int i=1; i < m_iUsers; i++)
+	for (int i = 1; i <= m_iUsers; i++)
 	{
 		pThrParam = new TCustomerThreadParam;
 		memset(pThrParam, 0, sizeof(TCustomerThreadParam));   // zero the structure
@@ -151,7 +151,7 @@ void CDriverCustomer::RunTest(int iSleep)
 	LogErrorMessage(">> End of ramp-up.\n");
 
 	// wait until all threads quit
-	for (int i = 0; i < m_iUsers; i++) 
+	for (int i = 1; i <= m_iUsers; i++) 
 	{
 		if (pthread_join(g_tid[i], NULL) != 0)
 		{
