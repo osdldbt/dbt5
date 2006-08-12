@@ -25,7 +25,7 @@ class CBrokerageHouse
 	char		m_szPostmasterPort[iMaxPGPort]; // PostgreSQL postmaster port
 
 private:
-	void LogErrorMessage(const string sErr);
+	void LogErrorMessage(const string sErr, bool bScreen = true);
 
 	friend void* TPCE::WorkerThread(void* data);
 	friend void TPCE::EntryWorkerThread(void* data);	// entry point for worker thread

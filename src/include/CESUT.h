@@ -18,15 +18,13 @@ namespace TPCE
 class CCESUT : public CCESUTInterface
 {
 	int			m_iBHlistenPort;
-	CSocket			m_Socket;
-	TMsgDriverBrokerage	m_Request;
 	CSyncLock		m_LogLock;
 	CSyncLock		m_MixLock;
 	ofstream*		m_pfLog;	// error log file
 	ofstream*		m_pfMix;	// mix log file
 
 private:
-	void ConnectRunTxnAndLog(void);
+	void ConnectRunTxnAndLog(PMsgDriverBrokerage pRequest);
 	
 public:
 	void LogErrorMessage(const string sErr);
@@ -43,17 +41,6 @@ public:
 											// return whether it was successful
 	virtual bool TradeStatus( PTradeStatusTxnInput pTxnInput );			// return whether it was successful
 	virtual bool TradeUpdate( PTradeUpdateTxnInput pTxnInput );			// return whether it was successful
-
-	// RunTxn
-	template<typename T, typename T2> inline bool RunTxn(eTxnType TxnType, T* pRequestInput, T2* pTxnInput)
-	{
-		memset(&m_Request, 0, sizeof(m_Request));
-		m_Request.TxnType = TxnType;
-		memcpy( pRequestInput, pTxnInput, sizeof( T ));
-	
-		ConnectRunTxnAndLog();
-		return true;
-	}
 
 };
 

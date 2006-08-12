@@ -21,6 +21,10 @@ namespace TPCE
 #define ERR_TYPE_PQXX		15		// libpqxx error
 #define ERR_TYPE_WRONGTXN	16		// wrong txn type
 #define ERROR_LOG_NAME 		"error.log"
+#define CE_MIX_LOG_NAME		"ce_mix.log"
+#define MEE_MIX_LOG_NAME	"mee_mix.log"
+
+static string PGSQL_SERIALIZE_ERROR = "ERROR:  could not serialize access due to concurrent update";
 
 class CSocketErr : public CBaseErr
 {
@@ -126,42 +130,6 @@ public:
 	};
 	
 };
-
-
-// log error messages to file
-// class CErrLogger;
-// extern CErrLogger gLogger;
-// 
-// class CErrLogger : public ofstream
-// {
-// 	CSyncLock	m_WriteLock;
-// 	bool		m_bQuiet;
-// 
-// public:
-// 	CErrLogger()
-// 	: m_bQuiet(false)
-// 	{
-// 		open(ERROR_LOG_NAME, ios::out);
-// 
-//  		if ( fail() != 0 )
-// 		{
-// 			m_bQuiet = true;
-// 			cerr<<"Error: log file could not be opened"<<endl;
-// 		}
-// 	};
-// 
-// 	virtual ~CErrLogger() {	close(); };
-// 
-// 	void Log(ostream osMsg)
-// 	{
-// 		if (!m_bQuiet)
-// 		{
-// 			m_WriteLock.ClaimLock();
-// 			*this << osMsg << endl;
-// 			m_WriteLock.ReleaseLock();
-// 		}
-// 	};
-// };
 
 }	//namespace TPCE
 

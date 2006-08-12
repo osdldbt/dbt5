@@ -44,6 +44,7 @@ void* TPCE::MarketWorkerThread(void* data)
 	}
 
 	delete pMessage;
+	delete pThrParam;
 	return NULL;
 }
 
@@ -73,7 +74,6 @@ void TPCE::EntryMarketWorkerThread(void* data)
 		// create the thread in the detached state
 		status = pthread_create(&threadID, &threadAttribute, &MarketWorkerThread, data);
 	
-		cout<<"thread id="<<threadID<<endl;
 		if (status != 0)
 		{
 			throw new CThreadErr( CThreadErr::ERR_THREAD_CREATE );

@@ -35,12 +35,24 @@ public:
 	virtual bool MarketFeed( PMarketFeedTxnInput pTxnInput );	// return whether it was successful
 	
 	friend void* TPCE::TradeResultAsync(void* data);
-	friend bool TPCE::RunTradeResultAsync( CMEESUT* );
+	friend bool TPCE::RunTradeResultAsync(void* data);
 
 	friend void* TPCE::MarketFeedAsync(void* data);
-	friend bool TPCE::RunMarketFeedAsync( CMEESUT* );
+	friend bool TPCE::RunMarketFeedAsync(void* data);
 
 };
+
+//parameter structure for the threads
+typedef struct TMEESUTThreadParam
+{
+	CMEESUT*		pCMEESUT;
+	union
+	{
+		TTradeResultTxnInput	m_TradeResultTxnInput;
+		TMarketFeedTxnInput	m_MarketFeedTxnInput;
+	} TxnInput;
+} *PMEESUTThreadParam;
+
 
 }	// namespace TPCE
 

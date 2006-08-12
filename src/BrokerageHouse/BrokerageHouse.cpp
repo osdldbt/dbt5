@@ -24,6 +24,7 @@ void* TPCE::WorkerThread(void* data)
 	TMsgBrokerageDriver	Reply;		// return message
 	INT32 iRet = 0;				// return error
 	CDBConnection* pDBConnection = NULL;
+	CTradeResult* pTradeResult = NULL;
 
 	try
 	{
@@ -102,11 +103,47 @@ void* TPCE::WorkerThread(void* data)
 				}
 				case TRADE_RESULT:
 				{
-					CTradeResult* pTradeResult = new CTradeResult(pDBConnection);
-					iRet = pThrParam->pBrokerageHouse->RunTradeResult(
+				   int iNumRetry = 1;
+				   while(true)
+				   {
+					try
+					{
+					   pTradeResult = new CTradeResult(pDBConnection);
+					   iRet = pThrParam->pBrokerageHouse->RunTradeResult(
 							&(pMessage->TxnInput.TradeResultTxnInput), *pTradeResult );
-					delete pTradeResult;
-					break;
+					   delete pTradeResult;
+					   break;
+				   	}
+				   	catch (const pqxx::sql_error &e)  // catch only serialization failure errors
+				   	{
+					   if ( PGSQL_SERIALIZE_ERROR.compare(e.what()) )
+					   {
+						ostringstream osErr;
+						osErr<<endl<<"**serialization failure : thread = "<<pthread_self()<<
+								" Retry #"<<iNumRetry<<endl<<"** query = "<<e.query()<<endl;
+						pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str(), false);
+
+						if (iNumRetry <= 3)
+						{
+							iNumRetry++;
+							pDBConnection->RollbackTxn();	// rollback the current trade result
+							delete pTradeResult;
+						}
+						else throw;	// it couldn't resubmit successfully,
+								// error should be caught by the next pqxx catch in this function
+					   }
+					   else throw;	// other pqxx errors should be caught by the next pqxx catch in this function
+					}
+				   }
+
+				   if (iNumRetry > 1)
+				   {
+					ostringstream osErr;
+					osErr<<"** txn re-submission ok : thread = "<<pthread_self()<<
+						" #Retries = "<<iNumRetry<<endl;
+					pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str(), false);
+				   }
+				   break;
 				}
 				case TRADE_STATUS:
 				{
@@ -166,6 +203,7 @@ void* TPCE::WorkerThread(void* data)
 
 	delete pDBConnection;		// close connection with the database
 	close(pThrParam->iSockfd);	// close socket connection with the driver
+	delete pThrParam;
 
 	return NULL;
 }
@@ -196,7 +234,6 @@ void TPCE::EntryWorkerThread(void* data)
 		// create the thread in the detached state
 		status = pthread_create(&threadID, &threadAttribute, &WorkerThread, data);
 	
-		cout<<"thread id="<<threadID<<endl;
 		if (status != 0)
 		{
 			throw new CThreadErr( CThreadErr::ERR_THREAD_CREATE );
@@ -377,10 +414,10 @@ void CBrokerageHouse::Listener( void )
 }
 
 // LogErrorMessage
-void CBrokerageHouse::LogErrorMessage( const string sErr )
+void CBrokerageHouse::LogErrorMessage( const string sErr, bool bScreen )
 {
 	m_LogLock.ClaimLock();
-	cout<<sErr;
+	if (bScreen) cout<<sErr;
 	m_fLog<<sErr;
 	m_fLog.flush();
 	m_LogLock.ReleaseLock();

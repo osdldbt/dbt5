@@ -3,12 +3,10 @@
  *
  * 2006 Rilson Nascimento
  *
- * 03 August 2006
+ * 12 August 2006
  */
 
-//TODO In the future, make this program capable of accepting 
-//     partitioning by C_ID during runtime. This should be done by
-//     using the apropriate CCE's constructor.
+//TODO Partitioning by C_ID: This should be done by using the apropriate CCE's constructor.
 
 #include <transactions.h>
 
@@ -220,7 +218,9 @@ int main(int argc, char* argv[])
 	cout<<"\t#Days of initial trades:\t"<<iDaysOfInitialTrades<<endl;
 	cout<<"\tLoad unit size:\t\t\t"<<iLoadUnitSize<<endl;
 	cout<<"\tSleep between customers:\t"<<iSleep<<endl;
-	cout<<"\tUnique ID:\t\t\t"<<UniqueId<<endl<<endl;
+	cout<<"\tUnique ID:\t\t\t"<<UniqueId<<endl;
+	cout<<"\t# of Users:\t\t\t"<<iUsers<<endl;
+	cout<<"\tPacing Delay (msec):\t\t"<<iPacingDelay<<endl<<endl;
 
 	try
 	{
