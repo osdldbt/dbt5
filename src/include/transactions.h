@@ -25,7 +25,6 @@ using namespace pqxx;
 #include <CommonStructs.h>
 #include <SyncLockInterface.h>
 #include <TxnHarnessSendToMarketInterface.h>
-#include <TxnHarnessSendToMarketTest.h>
 #include <TxnHarnessSendToMarket.h>
 
 #include <DBConnection.h>
@@ -44,6 +43,7 @@ using namespace pqxx;
 #include <DM.h>
 #include <DMSUT.h>
 #include <DataMaintenanceDB.h>
+#include <TradeCleanupDB.h>
 
 #include <MEE.h>
 #include <MEESUT.h>

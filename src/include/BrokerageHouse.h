@@ -33,6 +33,7 @@ private:
 	INT32 RunBrokerVolume( PBrokerVolumeTxnInput pTxnInput, CBrokerVolume &BrokerVolume );
 	INT32 RunCustomerPosition( PCustomerPositionTxnInput pTxnInput, CCustomerPosition &CustomerPosition );
 	INT32 RunDataMaintenance( PDataMaintenanceTxnInput pTxnInput, CDataMaintenance &DataMaintenance );
+	INT32 RunTradeCleanup( PTradeCleanupTxnInput pTxnInput, CTradeCleanup &TradeCleanup );
 	INT32 RunMarketWatch( PMarketWatchTxnInput pTxnInput, CMarketWatch &MarketWatch );
 	INT32 RunMarketFeed( PMarketFeedTxnInput pTxnInput, CMarketFeed &MarketFeed );
 	INT32 RunSecurityDetail( PSecurityDetailTxnInput pTxnInput, CSecurityDetail &SecurityDetail );

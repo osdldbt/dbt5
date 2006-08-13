@@ -18,8 +18,8 @@ namespace TPCE
 class CCESUT : public CCESUTInterface
 {
 	int			m_iBHlistenPort;
-	CSyncLock		m_LogLock;
-	CSyncLock		m_MixLock;
+	CSyncLock*		m_pLogLock;
+	CSyncLock*		m_pMixLock;
 	ofstream*		m_pfLog;	// error log file
 	ofstream*		m_pfMix;	// mix log file
 
@@ -29,7 +29,7 @@ private:
 public:
 	void LogErrorMessage(const string sErr);
 
-	CCESUT(const int iListenPort, ofstream* pflog, ofstream* pfmix);
+	CCESUT(const int iListenPort, ofstream* pflog, ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock);
 	~CCESUT(void);
 
 	virtual bool BrokerVolume( PBrokerVolumeTxnInput pTxnInput );			// return whether it was successful

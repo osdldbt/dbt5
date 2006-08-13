@@ -8,6 +8,7 @@
 
 #include <transactions.h>
 #include <MEESUTtest.h>
+#include <TxnHarnessSendToMarketTest.h>
 
 using namespace TPCE;
 

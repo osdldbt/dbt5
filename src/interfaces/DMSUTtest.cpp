@@ -7,6 +7,7 @@
  */
 
 #include <transactions.h>
+#include <DMSUTtest.h>
 
 using namespace TPCE;
 

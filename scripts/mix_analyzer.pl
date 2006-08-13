@@ -60,7 +60,7 @@ $transaction{ '6' } = "Broker Volume    ";
 $transaction{ '7' } = "Security Detail  ";
 $transaction{ '8' } = "Market Feed      ";
 $transaction{ '9' } = "Market Watch     ";
-$transaction{ 'D' } = "Data Maintenance ";
+$transaction{ '10' } = "Data Maintenance ";
 
 
 my @xtran = ( "to_tran", "tr_tran", "tl_tran", "tu_tran", "ts_tran",
@@ -201,7 +201,7 @@ $current_transaction_count{ '6' } = 0;
 $current_transaction_count{ '7' } = 0;
 $current_transaction_count{ '8' } = 0;
 $current_transaction_count{ '9' } = 0;
-$current_transaction_count{ 'D' } = 0;
+$current_transaction_count{ '10' } = 0;
 
 $rollback_count{ '0' } = 0;
 $rollback_count{ '1' } = 0;
@@ -213,7 +213,7 @@ $rollback_count{ '6' } = 0;
 $rollback_count{ '7' } = 0;
 $rollback_count{ '8' } = 0;
 $rollback_count{ '9' } = 0;
-$rollback_count{ 'D' } = 0;
+$rollback_count{ '10' } = 0;
 
 #
 # Transaction counts for the steady state portion of the test.
@@ -228,7 +228,7 @@ $transaction_count{ '6' } = 0;
 $transaction_count{ '7' } = 0;
 $transaction_count{ '8' } = 0;
 $transaction_count{ '9' } = 0;
-$transaction_count{ 'D' } = 0;
+$transaction_count{ '10' } = 0;
 
 #
 # Read the data directly from the log file and handle it on the fly.
@@ -262,7 +262,7 @@ while ( defined( $line = <FH> ) ) {
 				. "$current_transaction_count{ '7' } "
 				. "$current_transaction_count{ '8' } "
 				. "$current_transaction_count{ '9' } "
-				. "$current_transaction_count{ 'D' }\n";
+				. "$current_transaction_count{ '10' }\n";
 
 			++$elapsed_time;
 			$previous_time = $current_time;
@@ -280,7 +280,7 @@ while ( defined( $line = <FH> ) ) {
 			$current_transaction_count{ '7' } = 0;
 			$current_transaction_count{ '8' } = 0;
 			$current_transaction_count{ '9' } = 0;
-			$current_transaction_count{ 'D' } = 0;
+			$current_transaction_count{ '10' } = 0;
 		}
 
 		#
@@ -383,12 +383,12 @@ while ( defined( $line = <FH> ) ) {
 			}
 			++$mw_distribution{ $time };
 			print MW_FILE "$x_time $response_time\n";
-		} elsif ( $word[ 1 ] eq 'D' ) {
+		} elsif ( $word[ 1 ] eq '10' ) {
 			unless ($steady_state_start_time == 0) {
-				++$transaction_count{ 'D' };
-				$transaction_response_time{ 'D' } += $response_time;
+				++$transaction_count{ '10' };
+				$transaction_response_time{ '10' } += $response_time;
 				push @data_maintenance_response_time, $response_time;
-				++$current_transaction_count{ 'D' };
+				++$current_transaction_count{ '10' };
 			}
 			++$dm_distribution{ $time };
 			print DM_FILE "$x_time $response_time\n";
@@ -412,8 +412,8 @@ while ( defined( $line = <FH> ) ) {
 			++$rollback_count{ '8' } unless ($steady_state_start_time == 0);
 		} elsif ( $word[ 1 ] eq '9R' ) {
 			++$rollback_count{ '9' } unless ($steady_state_start_time == 0);
-		} elsif ( $word[ 1 ] eq 'DR' ) {
-			++$rollback_count{ 'D' } unless ($steady_state_start_time == 0);
+		} elsif ( $word[ 1 ] eq '10R' ) {
+			++$rollback_count{ '10' } unless ($steady_state_start_time == 0);
 		} elsif ( $word[ 1 ] eq 'E' ) {
 			++$errors;
 			++$error_count{ $word[ 3 ] };
@@ -745,7 +745,7 @@ my $broker_volume90index = $transaction_count{'6'} * 0.90;
 my $security_detail90index = $transaction_count{'7'} * 0.90;
 my $market_feed90index = $transaction_count{'8'} * 0.90;
 my $market_watch90index = $transaction_count{'9'} * 0.90;
-my $data_maintenance90index = $transaction_count{'D'} * 0.90;
+my $data_maintenance90index = $transaction_count{'10'} * 0.90;
 
 my %response90th;
 
@@ -845,9 +845,9 @@ if ($floor == $ceil) {
 $floor = floor($data_maintenance90index);
 $ceil = ceil($data_maintenance90index);
 if ($floor == $ceil) {
-	$response90th{'D'} = $data_maintenance_response_time[$data_maintenance90index];
+	$response90th{'10'} = $data_maintenance_response_time[$data_maintenance90index];
 } else {
-	$response90th{'D'} = ($data_maintenance_response_time[$floor] +
+	$response90th{'10'} = ($data_maintenance_response_time[$floor] +
 			$data_maintenance_response_time[$ceil]) / 2;
 }
 
@@ -857,7 +857,7 @@ if ($floor == $ceil) {
 printf("                              Response Time (s)\n");
 printf(" Transaction                %%    Average :    90th %%        Total        Rollbacks      %%\n");
 printf("-----------------       -----  ---------------------  -----------  ---------------  -----\n");
-foreach my $idx ('0', '1', '2', '3', '4','5','6','7','8','9','D') {
+foreach my $idx ('0', '1', '2', '3', '4','5','6','7','8','9','10') {
 	if ($transaction_count{$idx} == 0) {
 		printf("%12s        0.00          N/A                      0                0   0.00\n", $transaction{$idx});
 	} else {

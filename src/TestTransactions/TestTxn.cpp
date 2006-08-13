@@ -4,6 +4,8 @@
 #include <transactions.h>
 #include <CETxnInputGenerator.h>
 #include <cstdlib>
+#include <TxnHarnessSendToMarketTest.h>
+#include <DMSUTtest.h>
 
 using namespace TPCE;
 
@@ -356,7 +358,7 @@ int main(int argc, char* argv[])
 
 		// Initialize DM - Data Maintenance class
 		// DM is used by Data-Maintenance and Trade-Cleanup transactions
-		CDMSUTtest		m_CDMSUT( &m_Conn );	// Data-Maintenance SUT interface (provided by us)
+		CDMSUTtest	m_CDMSUT( &m_Conn );	// Data-Maintenance SUT interface (provided by us)
 		CDM		m_CDM( &m_CDMSUT, &log, inputFiles, iDefaultLoadUnitSize, iDefaultLoadUnitSize,
 						10, 500, 1 );	// provided by TPC
 

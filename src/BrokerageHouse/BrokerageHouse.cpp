@@ -161,6 +161,22 @@ void* TPCE::WorkerThread(void* data)
 					delete pTradeUpdate;
 					break;
 				}
+				case DATA_MAINTENANCE:
+				{
+					CDataMaintenance* pDataMaintenance = new CDataMaintenance(pDBConnection);
+					iRet = pThrParam->pBrokerageHouse->RunDataMaintenance(
+							&(pMessage->TxnInput.DataMaintenanceTxnInput), *pDataMaintenance );
+					delete pDataMaintenance;
+					break;
+				}
+				case TRADE_CLEANUP:
+				{
+					CTradeCleanup* pTradeCleanup = new CTradeCleanup(pDBConnection);
+					iRet = pThrParam->pBrokerageHouse->RunTradeCleanup(
+							&(pMessage->TxnInput.TradeCleanupTxnInput), *pTradeCleanup );
+					delete pTradeCleanup;
+					break;
+				}
 				default:
 				{
 					cout<<"wrong txn type"<<endl;
@@ -302,6 +318,14 @@ INT32 CBrokerageHouse::RunDataMaintenance( PDataMaintenanceTxnInput pTxnInput, C
 	return( TxnOutput.status );
 }
 
+// Run Trade Cleanup transaction
+INT32 CBrokerageHouse::RunTradeCleanup( PTradeCleanupTxnInput pTxnInput, CTradeCleanup &TradeCleanup )
+{
+	TTradeCleanupTxnOutput	TxnOutput;
+	TradeCleanup.DoTxn( pTxnInput, &TxnOutput );
+
+	return( TxnOutput.status );
+}
 
 // Run Market Feed transaction
 INT32 CBrokerageHouse::RunMarketFeed( PMarketFeedTxnInput pTxnInput, CMarketFeed &MarketFeed )

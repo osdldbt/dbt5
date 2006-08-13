@@ -19,6 +19,7 @@ TIdent		iConfiguredCustomerCount = iDefaultLoadUnitSize;	// # of customers for t
 TIdent		iActiveCustomerCount = iDefaultLoadUnitSize;		// total number of customers in the database
 int		iScaleFactor = 500;					// # of customers for 1 TRTPS
 int		iDaysOfInitialTrades = 300;
+int		iTestDuration = 0;
 int		iSleep = 1000;						// msec between thread creation
 int		iUsers = 0;						// # users
 int		iPacingDelay = 0;
@@ -42,8 +43,9 @@ void Usage()
 	    <<"   -f number	"<<iScaleFactor<<"\t\t      # of customers for 1 NOTPS"<<endl
 	    <<"   -d number	"<<iDaysOfInitialTrades<<"\t\t      # of Days of Initial Trades"<<endl
 	    <<"   -l number	"<<iLoadUnitSize<<"\t\t      # of customers in one load unit"<<endl
-	    <<"   -s number	"<<iSleep<<"\t\t      # of msec between customer creation"<<endl
-	    <<"   -u number	"<<iUsers<<"\t\t      # of Users"<<endl
+	    <<"   -t number	                      Duration of the test (seconds)"<<endl
+	    <<"   -s number	"<<iSleep<<"\t\t      # of msec between thread creation"<<endl
+	    <<"   -u number	                      # of Users"<<endl
 	    <<"   -p number	"<<iPacingDelay<<"\t\t      # of msec to wait after the current txn and"<<endl
 	    <<"\t\t\t\t      before the next txn"<<endl
 	    <<"   -g number			      Unique input for automatic seed generation"<<endl;
@@ -117,6 +119,9 @@ void ParseCommandLine( int argc, char *argv[] )
 			case 'p':
 				sscanf(vp, "%d", &iPacingDelay);
 				break;
+			case 't':
+				sscanf(vp, "%d", &iTestDuration);
+				break;
 			default:
 				Usage();
 				cout<<"Error: Unrecognized option: "<<sp<<endl;
@@ -177,14 +182,21 @@ bool ValidateParameters()
 	// UniqueId must be assigned
 	if (UniqueId == 0)
 	{
-		cerr << "UniqueID number must be specified."<<endl;
+		cerr << "unique id number must be specified."<<endl;
 		bRet = false;
 	}
 
 	// iUsers must be assigned
 	if (iUsers == 0)
 	{
-		cerr << "iUsers number must be specified."<<endl;
+		cerr << "number of users must be specified."<<endl;
+		bRet = false;
+	}
+
+	// iTestDuration must be assigned
+	if (iTestDuration == 0)
+	{
+		cerr << "the duration of the test must be specified."<<endl;
 		bRet = false;
 	}
 
@@ -217,7 +229,8 @@ int main(int argc, char* argv[])
 	cout<<"\tScale Factor:\t\t\t"<<iScaleFactor<<endl;
 	cout<<"\t#Days of initial trades:\t"<<iDaysOfInitialTrades<<endl;
 	cout<<"\tLoad unit size:\t\t\t"<<iLoadUnitSize<<endl;
-	cout<<"\tSleep between customers:\t"<<iSleep<<endl;
+	cout<<"\tSleep between Users:\t"<<iSleep<<endl;
+	cout<<"\tTest duration (sec):\t\t"<<iTestDuration<<endl;
 	cout<<"\tUnique ID:\t\t\t"<<UniqueId<<endl;
 	cout<<"\t# of Users:\t\t\t"<<iUsers<<endl;
 	cout<<"\tPacing Delay (msec):\t\t"<<iPacingDelay<<endl<<endl;
@@ -227,7 +240,7 @@ int main(int argc, char* argv[])
 		CDriverCustomer    DriverCustomer(szInDir, iConfiguredCustomerCount, iActiveCustomerCount,
 							iScaleFactor, iDaysOfInitialTrades, UniqueId, 
 							iBHlistenPort, iUsers, iPacingDelay);
-		DriverCustomer.RunTest(iSleep);
+		DriverCustomer.RunTest(iSleep, iTestDuration);
 		
 	}
 	catch (CBaseErr *pErr)

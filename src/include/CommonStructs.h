@@ -45,6 +45,7 @@ typedef struct TMsgDriverBrokerage
 		TTradeStatusTxnInput		TradeStatusTxnInput;
 		TTradeUpdateTxnInput		TradeUpdateTxnInput;
 		TDataMaintenanceTxnInput	DataMaintenanceTxnInput;
+		TTradeCleanupTxnInput		TradeCleanupTxnInput;
 	} TxnInput;
 } *PMsgDriverBrokerage;
 

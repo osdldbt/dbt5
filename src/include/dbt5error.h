@@ -6,12 +6,11 @@
  * 07 August 2006
  */
 
-//#include <transactions.h>
-
 #ifndef DBT5_ERR_H
 #define DBT5_ERR_H
 
 #include <error.h>
+#include <string>
 
 namespace TPCE
 {
@@ -24,7 +23,7 @@ namespace TPCE
 #define CE_MIX_LOG_NAME		"ce_mix.log"
 #define MEE_MIX_LOG_NAME	"mee_mix.log"
 
-static string PGSQL_SERIALIZE_ERROR = "ERROR:  could not serialize access due to concurrent update";
+static std::string PGSQL_SERIALIZE_ERROR = "ERROR:  could not serialize access due to concurrent update";
 
 class CSocketErr : public CBaseErr
 {

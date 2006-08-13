@@ -13,8 +13,10 @@ char* addr = "localhost";
 using namespace TPCE;
 
 // Constructor
-CCESUT::CCESUT(const int iListenPort, ofstream* pflog, ofstream* pfmix)
+CCESUT::CCESUT(const int iListenPort, ofstream* pflog, ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock)
 : m_iBHlistenPort(iListenPort),
+  m_pLogLock(pLogLock),
+  m_pMixLock(pMixLock),
   m_pfLog(pflog),
   m_pfMix(pfmix)
 {
@@ -64,7 +66,7 @@ void CCESUT::ConnectRunTxnAndLog(PMsgDriverBrokerage pRequest)
 		// ERR_TYPE_WRONGTXN
 
 		// logging
-		m_MixLock.ClaimLock();
+		m_pMixLock->ClaimLock();
 		if (Reply.iStatus == CBaseTxnErr::SUCCESS)
 		{
 			*(m_pfMix)<<(int)time(NULL)<<","<<pRequest->TxnType<< ","<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
@@ -78,7 +80,7 @@ void CCESUT::ConnectRunTxnAndLog(PMsgDriverBrokerage pRequest)
 			*(m_pfMix)<<(int)time(NULL)<<","<<"E"<<","<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
 		}
 		m_pfMix->flush();
-		m_MixLock.ReleaseLock();
+		m_pMixLock->ReleaseLock();
 		
 	}
 	catch(CSocketErr *pErr)
@@ -97,7 +99,7 @@ void CCESUT::ConnectRunTxnAndLog(PMsgDriverBrokerage pRequest)
 // Broker Volume
 bool CCESUT::BrokerVolume( PBrokerVolumeTxnInput pTxnInput )
 {
-	cout<<"Broker Volume requested"<<endl;
+	//cout<<"Broker Volume requested"<<endl;
 
 	TMsgDriverBrokerage Request;
 	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
@@ -112,7 +114,7 @@ bool CCESUT::BrokerVolume( PBrokerVolumeTxnInput pTxnInput )
 // Customer Position
 bool CCESUT::CustomerPosition( PCustomerPositionTxnInput pTxnInput )
 {
-	cout<<"Customer Position requested"<<endl;
+	//cout<<"Customer Position requested"<<endl;
 
 	TMsgDriverBrokerage Request;
 	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
@@ -127,7 +129,7 @@ bool CCESUT::CustomerPosition( PCustomerPositionTxnInput pTxnInput )
 // Market Watch
 bool CCESUT::MarketWatch( PMarketWatchTxnInput pTxnInput )
 {
-	cout<<"Market Watch requested"<<endl;
+	//cout<<"Market Watch requested"<<endl;
 
 	TMsgDriverBrokerage Request;
 	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
@@ -142,7 +144,7 @@ bool CCESUT::MarketWatch( PMarketWatchTxnInput pTxnInput )
 // Security Detail
 bool CCESUT::SecurityDetail( PSecurityDetailTxnInput pTxnInput )
 {
-	cout<<"Security Detail requested"<<endl;
+	//cout<<"Security Detail requested"<<endl;
 
 	TMsgDriverBrokerage Request;
 	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
@@ -157,7 +159,7 @@ bool CCESUT::SecurityDetail( PSecurityDetailTxnInput pTxnInput )
 // Trade Lookup
 bool CCESUT::TradeLookup( PTradeLookupTxnInput pTxnInput )
 {
-	cout<<"Trade Lookup requested"<<endl;
+	//cout<<"Trade Lookup requested"<<endl;
 
 	TMsgDriverBrokerage Request;
 	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
@@ -172,7 +174,7 @@ bool CCESUT::TradeLookup( PTradeLookupTxnInput pTxnInput )
 // Trade Status
 bool CCESUT::TradeStatus( PTradeStatusTxnInput pTxnInput )
 {
-	cout<<"Trade Status requested"<<endl;
+	//cout<<"Trade Status requested"<<endl;
 
 	TMsgDriverBrokerage Request;
 	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
@@ -187,7 +189,7 @@ bool CCESUT::TradeStatus( PTradeStatusTxnInput pTxnInput )
 // Trade Order
 bool CCESUT::TradeOrder( PTradeOrderTxnInput pTxnInput, INT32 iTradeType, bool bExecutorIsAccountOwner )
 {
-	cout<<"Trade Order requested"<<endl;
+	//cout<<"Trade Order requested"<<endl;
 
 	TMsgDriverBrokerage Request;
 	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
@@ -202,7 +204,7 @@ bool CCESUT::TradeOrder( PTradeOrderTxnInput pTxnInput, INT32 iTradeType, bool b
 // Trade Update
 bool CCESUT::TradeUpdate( PTradeUpdateTxnInput pTxnInput )
 {
-	cout<<"Trade Update requested"<<endl;
+	//cout<<"Trade Update requested"<<endl;
 
 	TMsgDriverBrokerage Request;
 	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
@@ -217,9 +219,9 @@ bool CCESUT::TradeUpdate( PTradeUpdateTxnInput pTxnInput )
 // LogErrorMessage
 void CCESUT::LogErrorMessage( const string sErr )
 {
-	m_LogLock.ClaimLock();
+	m_pLogLock->ClaimLock();
 	cout<<sErr;
 	*(m_pfLog)<<sErr;
 	m_pfLog->flush();
-	m_LogLock.ReleaseLock();
+	m_pLogLock->ReleaseLock();
 }

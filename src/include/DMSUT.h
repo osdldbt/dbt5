@@ -4,7 +4,7 @@
  *
  * 2006 Rilson Nascimento
  *
- * 17 July 2006
+ * 12 August 2006
  */
 
 #ifndef DM_SUT_H
@@ -15,14 +15,22 @@
 namespace TPCE
 {
 
-class CDMSUTtest : public CDMSUTInterface
+class CDMSUT : public CDMSUTInterface
 {
-protected:
-	CDBConnection*		m_pDBConnection;
+	int			m_iBHlistenPort;
+	CSyncLock*		m_pLogLock;
+	CSyncLock*		m_pMixLock;
+	ofstream*		m_pfLog;	// error log file
+	ofstream*		m_pfMix;	// mix log file
 
+private:
+	void ConnectRunTxnAndLog(PMsgDriverBrokerage pRequest);
+	
 public:
-	CDMSUTtest(CDBConnection *pDBConn);
-	~CDMSUTtest();
+	void LogErrorMessage(const string sErr);
+
+	CDMSUT(const int iListenPort, ofstream* pflog, ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock);
+	~CDMSUT(void);
 
 	virtual bool DataMaintenance( PDataMaintenanceTxnInput pTxnInput );	// return whether it was successful
 	virtual bool TradeCleanup( PTradeCleanupTxnInput pTxnInput );	// return whether it was successful
