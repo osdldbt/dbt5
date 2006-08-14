@@ -15,21 +15,13 @@
 namespace TPCE
 {
 
-class CCESUT : public CCESUTInterface
+class CCESUT : public CCESUTInterface, public CBaseInterface
 {
-	int			m_iBHlistenPort;
-	CSyncLock*		m_pLogLock;
-	CSyncLock*		m_pMixLock;
-	ofstream*		m_pfLog;	// error log file
-	ofstream*		m_pfMix;	// mix log file
-
-private:
-	void ConnectRunTxnAndLog(PMsgDriverBrokerage pRequest);
 	
 public:
-	void LogErrorMessage(const string sErr);
 
-	CCESUT(const int iListenPort, ofstream* pflog, ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock);
+	CCESUT(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix, 
+			CSyncLock* pLogLock, CSyncLock* pMixLock);
 	~CCESUT(void);
 
 	virtual bool BrokerVolume( PBrokerVolumeTxnInput pTxnInput );			// return whether it was successful

@@ -84,7 +84,7 @@ void TPCE::EntryCustomerWorkerThread(void* data, int iThrNumber)
 // Constructor
 CDriverCustomer::CDriverCustomer(char* szInDir, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
 				INT32 iScaleFactor, INT32 iDaysOfInitialTrades, UINT32 UniqueId, 
-				int iBHlistenPort, int iUsers, int iPacingDelay)
+				char* szBHaddr, int iBHlistenPort, int iUsers, int iPacingDelay)
 : m_iUsers(iUsers),
   m_iPacingDelay(iPacingDelay)
 {
@@ -96,14 +96,14 @@ CDriverCustomer::CDriverCustomer(char* szInDir, TIdent iConfiguredCustomerCount,
 	m_fMix.open(CE_MIX_LOG_NAME, ios::out);
 
 	// initialize CESUT interface
-	m_pCCESUT = new CCESUT(iBHlistenPort, &m_fLog, &m_fMix, &m_LogLock, &m_MixLock);
+	m_pCCESUT = new CCESUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix, &m_LogLock, &m_MixLock);
 
 	// initialize CE - Customer Emulator
 	m_pCCE = new CCE( m_pCCESUT, m_pLog, m_InputFiles, iConfiguredCustomerCount, iActiveCustomerCount, 
 					iScaleFactor, iDaysOfInitialTrades, UniqueId, m_pDriverCETxnSettings );
 
 	// initialize DMSUT interface
-	m_pCDMSUT = new CDMSUT(iBHlistenPort, &m_fLog, &m_fMix, &m_LogLock, &m_MixLock);
+	m_pCDMSUT = new CDMSUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix, &m_LogLock, &m_MixLock);
 
 	// initialize DM - Data Maintenance
 	m_pCDM = new CDM( m_pCDMSUT, m_pLog, m_InputFiles, iConfiguredCustomerCount, iActiveCustomerCount,

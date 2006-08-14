@@ -14,21 +14,15 @@
 
 namespace TPCE
 {
-class CMEESUT : public CMEESUTInterface
+class CMEESUT : public CMEESUTInterface, public CBaseInterface
 {
 private:
-	ofstream*		m_pfLog;
-	int			m_iBHlistenPort;
 	TTradeResultTxnInput	m_TradeResultTxnInput;
 	TMarketFeedTxnInput	m_MarketFeedTxnInput;
-	CSyncLock		m_LogLock;
-	CSyncLock		m_MixLock;
-	ofstream		m_fMix;		// mix log file
 	
 public:
-	void LogErrorMessage(const string sErr);
-
-	CMEESUT(const int iBHlistenPort, ofstream* pfile);
+	CMEESUT(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix, 
+			CSyncLock* pLogLock, CSyncLock* pMixLock);
 	~CMEESUT();
 
 	virtual bool TradeResult( PTradeResultTxnInput pTxnInput );	// return whether it was successful

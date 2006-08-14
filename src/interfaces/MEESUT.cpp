@@ -8,20 +8,16 @@
 
 #include <transactions.h>
 
-char* addr = "localhost";
-
 using namespace TPCE;
 
-CMEESUT::CMEESUT(const int iBHlistenPort, ofstream* pfile)
-: m_iBHlistenPort(iBHlistenPort),
-  m_pfLog(pfile)
+CMEESUT::CMEESUT(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix, 
+			CSyncLock* pLogLock, CSyncLock* pMixLock)
+: CBaseInterface(addr, iListenPort, pflog, pfmix, pLogLock, pMixLock)
 {
-	m_fMix.open(MEE_MIX_LOG_NAME, ios::out);
 }
 
 CMEESUT::~CMEESUT()
 {
-	m_fMix.close();
 }
 
 // Trade Result
@@ -39,68 +35,8 @@ void* TPCE::TradeResultAsync(void* data)
 	memcpy( &(pRequest->TxnInput.TradeResultTxnInput), &(pThrParam->TxnInput.m_TradeResultTxnInput), 
 								sizeof( pRequest->TxnInput.TradeResultTxnInput ));
 
-	TMsgBrokerageDriver Reply;	// reply message from BrokerageHouse
-	memset(&Reply, 0, sizeof(Reply)); 
-
-	CDateTime	StartTime, EndTime, TxnTime;	// to time the transaction
-	CSocket sockdrv;
-
-	try
-	{
-		// connect to BrokerageHouse
-		sockdrv.Connect(addr, pThrParam->pCMEESUT->m_iBHlistenPort);
-	
-		// record txn start time -- please, see TPC-E specification clause 6.2.1.3
-		StartTime.SetToCurrent();
-	
-		// send and wait for response
-		sockdrv.Send(reinterpret_cast<void*>(pRequest), sizeof(TMsgDriverBrokerage));
-		sockdrv.Receive( reinterpret_cast<void*>(&Reply), sizeof(Reply));
-	
-		// record txn end time
-		EndTime.SetToCurrent();
-
-		// close connection
-		sockdrv.CloseAccSocket();
-	
-		// calculate txn response time
-		TxnTime.Set(0);	// clear time
-		TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
-	
-		//cout<<"TxnType = "<<TRADE_RESULT<<"\tTxn RT = "<<TxnTime.ToStr(02)<<endl;
-
-		// logging
-		pThrParam->pCMEESUT->m_MixLock.ClaimLock();
-		if (Reply.iStatus == CBaseTxnErr::SUCCESS)
-		{
-			pThrParam->pCMEESUT->m_fMix<<(int)time(NULL)<<","<<TRADE_RESULT<< ","<<(TxnTime.MSec()/1000.0)<<
-												","<<(int)pthread_self()<<endl;
-		}
-		else if (Reply.iStatus == CBaseTxnErr::ROLLBACK)
-		{
-			pThrParam->pCMEESUT->m_fMix<<(int)time(NULL)<<","<<TRADE_RESULT<<"R"<<","<<(TxnTime.MSec()/1000.0)
-												<<","<<(int)pthread_self()<<endl;
-		}
-		else
-		{
-			pThrParam->pCMEESUT->m_fMix<<(int)time(NULL)<<","<<"E"<<","<<(TxnTime.MSec()/1000.0)
-												<<","<<(int)pthread_self()<<endl;
-		}
-		pThrParam->pCMEESUT->m_fMix.flush();
-		pThrParam->pCMEESUT->m_MixLock.ReleaseLock();
-
-	}
-	catch(CSocketErr *pErr)
-	{
-		sockdrv.CloseAccSocket();	// close connection
-		pThrParam->pCMEESUT->m_fMix<<(int)time(NULL)<<","<<"E"<<","<<"000"<<","<<(int)pthread_self()<<endl;
-
-		ostringstream osErr;
-		osErr<<endl<<"Error: "<<pErr->ErrorText()
-		     <<" at "<<"MEESUT::TradeResultAsync"<<endl;
-		pThrParam->pCMEESUT->LogErrorMessage(osErr.str());
-		delete pErr;
-	}
+	// communicate with the SUT and log response time
+	pThrParam->pCMEESUT->TalkToSUT(pRequest);
 
 	delete pRequest;
 	delete pThrParam;
@@ -177,68 +113,8 @@ void* TPCE::MarketFeedAsync(void* data)
 	memcpy( &(pRequest->TxnInput.MarketFeedTxnInput), &(pThrParam->TxnInput.m_MarketFeedTxnInput), 
 								sizeof( pRequest->TxnInput.MarketFeedTxnInput ));
 
-	TMsgBrokerageDriver Reply;	// reply message from BrokerageHouse
-	memset(&Reply, 0, sizeof(Reply)); 
-
-	CDateTime	StartTime, EndTime, TxnTime;	// to time the transaction
-	CSocket sockdrv;
-
-	try
-	{
-		// connect to BrokerageHouse
-		sockdrv.Connect(addr, pThrParam->pCMEESUT->m_iBHlistenPort);
-	
-		// record txn start time -- please, see TPC-E specification clause 6.2.1.3
-		StartTime.SetToCurrent();
-	
-		// send and wait for response
-		sockdrv.Send(reinterpret_cast<void*>(pRequest), sizeof(TMsgDriverBrokerage));
-		sockdrv.Receive( reinterpret_cast<void*>(&Reply), sizeof(Reply));
-	
-		// record txn end time
-		EndTime.SetToCurrent();
-
-		// close connection
-		sockdrv.CloseAccSocket();
-	
-		// calculate txn response time
-		TxnTime.Set(0);	// clear time
-		TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
-		
-		//cout<<"TxnType = "<<MARKET_FEED<<"\tTxn RT = "<<TxnTime.ToStr(02)<<endl;
-
-		// logging
-		pThrParam->pCMEESUT->m_MixLock.ClaimLock();
-		if (Reply.iStatus == CBaseTxnErr::SUCCESS)
-		{
-			pThrParam->pCMEESUT->m_fMix<<(int)time(NULL)<<","<<MARKET_FEED<< ","
-						<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
-		}
-		else if (Reply.iStatus == CBaseTxnErr::ROLLBACK)
-		{
-			pThrParam->pCMEESUT->m_fMix<<(int)time(NULL)<<","<<MARKET_FEED<<"R"<<","
-						<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
-		}
-		else
-		{
-			pThrParam->pCMEESUT->m_fMix<<(int)time(NULL)<<","<<"E"<<","
-						<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
-		}
-		pThrParam->pCMEESUT->m_fMix.flush();
-		pThrParam->pCMEESUT->m_MixLock.ReleaseLock();
-
-	}
-	catch(CSocketErr *pErr)
-	{
-		sockdrv.CloseAccSocket();	// close connection
-		pThrParam->pCMEESUT->m_fMix<<(int)time(NULL)<<","<<"E"<<","<<"000"<<","<<(int)pthread_self()<<endl;
-
-		ostringstream osErr;
-		osErr<<endl<<"Error: "<<pErr->ErrorText()
-		     <<" at "<<"MEESUT::MarketFeedAsync"<<endl;
-		pThrParam->pCMEESUT->LogErrorMessage(osErr.str());
-		delete pErr;
-	}
+	// communicate with the SUT and log response time
+	pThrParam->pCMEESUT->TalkToSUT(pRequest);
 
 	delete pRequest;
 	delete pThrParam;
@@ -298,14 +174,4 @@ bool CMEESUT::MarketFeed( PMarketFeedTxnInput pTxnInput )
 	memcpy(&(pThrParam->TxnInput.m_MarketFeedTxnInput), pTxnInput, sizeof(TMarketFeedTxnInput));
 
 	return ( RunMarketFeedAsync( reinterpret_cast<void*>(pThrParam) ) );
-}
-
-// LogErrorMessage
-void CMEESUT::LogErrorMessage( const string sErr )
-{
-	m_LogLock.ClaimLock();
-	cout<<sErr;
-	*(m_pfLog)<<sErr;
-	m_pfLog->flush();
-	m_LogLock.ReleaseLock();
 }

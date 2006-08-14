@@ -3,97 +3,22 @@
  *
  * 2006 Rilson Nascimento
  *
- * 12 August 2006
+ * 13 August 2006
  */
 
 #include <transactions.h>
 
-char* addr = "localhost";
-
 using namespace TPCE;
 
 // Constructor
-CCESUT::CCESUT(const int iListenPort, ofstream* pflog, ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock)
-: m_iBHlistenPort(iListenPort),
-  m_pLogLock(pLogLock),
-  m_pMixLock(pMixLock),
-  m_pfLog(pflog),
-  m_pfMix(pfmix)
+CCESUT::CCESUT(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock)
+: CBaseInterface(addr, iListenPort, pflog, pfmix, pLogLock, pMixLock)
 {
 }
 
 // Destructor
 CCESUT::~CCESUT()
 {
-}
-
-// Connect, send to, and receive reply from, Brokerage House & logging
-void CCESUT::ConnectRunTxnAndLog(PMsgDriverBrokerage pRequest)
-{
-	TMsgBrokerageDriver Reply;	// reply message from BrokerageHouse
-	memset(&Reply, 0, sizeof(Reply)); 
-
-	CDateTime	StartTime, EndTime, TxnTime;	// to time the transaction
-	CSocket		sock;
-
-	try
-	{
-		// connect to BrokerageHouse
-		sock.Connect(addr, m_iBHlistenPort);
-	
-		// record txn start time -- please, see TPC-E specification clause 6.2.1.3
-		StartTime.SetToCurrent();
-	
-		// send and wait for response
-		sock.Send(reinterpret_cast<void*>(pRequest), sizeof(TMsgDriverBrokerage));
-		sock.Receive( reinterpret_cast<void*>(&Reply), sizeof(Reply));
-
-		// record txn end time
-		EndTime.SetToCurrent();
-
-		// close connection
-		sock.CloseAccSocket();
-	
-		// calculate txn response time
-		TxnTime.Set(0);	// clear time
-		TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
-
-		// Errors:
-		// CBaseTxnErr::SUCCESS
-		// CBaseTxnErr::ROLLBACK (trade-order)
-		// CBaseTxnErr::UNAUTHORIZED_EXECUTOR (trade-order)
-		// ERR_TYPE_PQXX
-		// ERR_TYPE_WRONGTXN
-
-		// logging
-		m_pMixLock->ClaimLock();
-		if (Reply.iStatus == CBaseTxnErr::SUCCESS)
-		{
-			*(m_pfMix)<<(int)time(NULL)<<","<<pRequest->TxnType<< ","<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
-		}
-		else if (Reply.iStatus == CBaseTxnErr::ROLLBACK)
-		{
-			*(m_pfMix)<<(int)time(NULL)<<","<<pRequest->TxnType<<"R"<<","<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
-		}
-		else
-		{
-			*(m_pfMix)<<(int)time(NULL)<<","<<"E"<<","<<(TxnTime.MSec()/1000.0)<<","<<(int)pthread_self()<<endl;
-		}
-		m_pfMix->flush();
-		m_pMixLock->ReleaseLock();
-		
-	}
-	catch(CSocketErr *pErr)
-	{
-		sock.CloseAccSocket(); // close connection
-		*(m_pfMix)<<(int)time(NULL)<<","<<"E"<<","<<"000"<<","<<(int)pthread_self()<<endl;
-
-		ostringstream osErr;
-		osErr<<endl<<"Error: "<<pErr->ErrorText()
-		     <<" at "<<"CCESUT::ConnectRunTxnAndLog"<<endl;
-		LogErrorMessage(osErr.str());
-		delete pErr;
-	}
 }
 
 // Broker Volume
@@ -107,7 +32,7 @@ bool CCESUT::BrokerVolume( PBrokerVolumeTxnInput pTxnInput )
 	Request.TxnType = BROKER_VOLUME;
 	memcpy( &(Request.TxnInput.BrokerVolumeTxnInput), pTxnInput, sizeof( TBrokerVolumeTxnInput ));
 	
-	ConnectRunTxnAndLog(&Request);
+	TalkToSUT(&Request);
 	return true;
 }
 
@@ -122,7 +47,7 @@ bool CCESUT::CustomerPosition( PCustomerPositionTxnInput pTxnInput )
 	Request.TxnType = CUSTOMER_POSITION;
 	memcpy( &(Request.TxnInput.CustomerPositionTxnInput), pTxnInput, sizeof( TCustomerPositionTxnInput ));
 	
-	ConnectRunTxnAndLog(&Request);
+	TalkToSUT(&Request);
 	return true;	
 }
 
@@ -137,7 +62,7 @@ bool CCESUT::MarketWatch( PMarketWatchTxnInput pTxnInput )
 	Request.TxnType = MARKET_WATCH;
 	memcpy( &(Request.TxnInput.MarketWatchTxnInput), pTxnInput, sizeof( TMarketWatchTxnInput ));
 	
-	ConnectRunTxnAndLog(&Request);
+	TalkToSUT(&Request);
 	return true;
 }
 
@@ -152,7 +77,7 @@ bool CCESUT::SecurityDetail( PSecurityDetailTxnInput pTxnInput )
 	Request.TxnType = SECURITY_DETAIL;
 	memcpy( &(Request.TxnInput.SecurityDetailTxnInput), pTxnInput, sizeof( TSecurityDetailTxnInput ));
 	
-	ConnectRunTxnAndLog(&Request);
+	TalkToSUT(&Request);
 	return true;
 }
 
@@ -167,7 +92,7 @@ bool CCESUT::TradeLookup( PTradeLookupTxnInput pTxnInput )
 	Request.TxnType = TRADE_LOOKUP;
 	memcpy( &(Request.TxnInput.TradeLookupTxnInput), pTxnInput, sizeof( TTradeLookupTxnInput ));
 	
-	ConnectRunTxnAndLog(&Request);
+	TalkToSUT(&Request);
 	return true;
 }
 
@@ -182,7 +107,7 @@ bool CCESUT::TradeStatus( PTradeStatusTxnInput pTxnInput )
 	Request.TxnType = TRADE_STATUS;
 	memcpy( &(Request.TxnInput.TradeStatusTxnInput), pTxnInput, sizeof( TTradeStatusTxnInput ));
 	
-	ConnectRunTxnAndLog(&Request);
+	TalkToSUT(&Request);
 	return true;
 }
 
@@ -197,7 +122,7 @@ bool CCESUT::TradeOrder( PTradeOrderTxnInput pTxnInput, INT32 iTradeType, bool b
 	Request.TxnType = TRADE_ORDER;
 	memcpy( &(Request.TxnInput.TradeOrderTxnInput), pTxnInput, sizeof( TTradeOrderTxnInput ));
 	
-	ConnectRunTxnAndLog(&Request);
+	TalkToSUT(&Request);
 	return true;
 }
 
@@ -212,16 +137,7 @@ bool CCESUT::TradeUpdate( PTradeUpdateTxnInput pTxnInput )
 	Request.TxnType = TRADE_UPDATE;
 	memcpy( &(Request.TxnInput.TradeUpdateTxnInput), pTxnInput, sizeof( TTradeUpdateTxnInput ));
 	
-	ConnectRunTxnAndLog(&Request);
+	TalkToSUT(&Request);
 	return true;
 }
 
-// LogErrorMessage
-void CCESUT::LogErrorMessage( const string sErr )
-{
-	m_pLogLock->ClaimLock();
-	cout<<sErr;
-	*(m_pfLog)<<sErr;
-	m_pfLog->flush();
-	m_pLogLock->ReleaseLock();
-}

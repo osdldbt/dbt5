@@ -13,6 +13,7 @@
 using namespace TPCE;
 
 // Establish defaults for command line options
+char*		szBHaddr = "localhost";					// Brokerage House address
 int		iBHlistenPort = BrokerageHousePort;
 int		iLoadUnitSize = iDefaultLoadUnitSize;			// # of customers in one load unit
 TIdent		iConfiguredCustomerCount = iDefaultLoadUnitSize;	// # of customers for this instance
@@ -39,6 +40,7 @@ void Usage()
 	    <<"   -e string	"<<szInDir<<"    Path to EGen input files"<<endl
 	    <<"   -c number	"<<iConfiguredCustomerCount<<"\t\t      Configured customer count"<<endl
 	    <<"   -a number	"<<iActiveCustomerCount<<"\t\t      Active customer count"<<endl
+	    <<"   -h string	"<<szBHaddr<<"\t\t      Brokerage House address"<<endl
 	    <<"   -b number	"<<iBHlistenPort<<"\t\t      Brokerage House listen port"<<endl
 	    <<"   -f number	"<<iScaleFactor<<"\t\t      # of customers for 1 NOTPS"<<endl
 	    <<"   -d number	"<<iDaysOfInitialTrades<<"\t\t      # of Days of Initial Trades"<<endl
@@ -88,6 +90,9 @@ void ParseCommandLine( int argc, char *argv[] )
 		{
 			case 'e':	// input files path
 				strncpy(szInDir, vp, sizeof(szInDir));
+				break;
+			case 'h':
+				strncpy(szBHaddr, vp, sizeof(szBHaddr));
 				break;
 			case 'c':
 				sscanf(vp, "%"PRId64, &iConfiguredCustomerCount);
@@ -225,11 +230,12 @@ int main(int argc, char* argv[])
 	cout<<"\tInput files location:\t\t"<<szInDir<<endl;
 	cout<<"\tConfigured customer count:\t"<<iConfiguredCustomerCount<<endl;
 	cout<<"\tActive customer count:\t\t"<<iActiveCustomerCount<<endl;
+	cout<<"\tBrokerage House address:\t\t"<<szBHaddr<<endl;
 	cout<<"\tBrokerage House port:\t\t"<<iBHlistenPort<<endl;
 	cout<<"\tScale Factor:\t\t\t"<<iScaleFactor<<endl;
 	cout<<"\t#Days of initial trades:\t"<<iDaysOfInitialTrades<<endl;
 	cout<<"\tLoad unit size:\t\t\t"<<iLoadUnitSize<<endl;
-	cout<<"\tSleep between Users:\t"<<iSleep<<endl;
+	cout<<"\tSleep between Users:\t\t"<<iSleep<<endl;
 	cout<<"\tTest duration (sec):\t\t"<<iTestDuration<<endl;
 	cout<<"\tUnique ID:\t\t\t"<<UniqueId<<endl;
 	cout<<"\t# of Users:\t\t\t"<<iUsers<<endl;
@@ -239,7 +245,7 @@ int main(int argc, char* argv[])
 	{
 		CDriverCustomer    DriverCustomer(szInDir, iConfiguredCustomerCount, iActiveCustomerCount,
 							iScaleFactor, iDaysOfInitialTrades, UniqueId, 
-							iBHlistenPort, iUsers, iPacingDelay);
+							szBHaddr, iBHlistenPort, iUsers, iPacingDelay);
 		DriverCustomer.RunTest(iSleep, iTestDuration);
 		
 	}

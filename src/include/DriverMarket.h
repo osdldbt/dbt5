@@ -16,14 +16,16 @@ namespace TPCE
 class CDriverMarket
 {
 	int			m_iListenPort;
-	ofstream		m_fLog;
-	CSyncLock		m_LogLock;
 	CSocket			m_Socket;
 	CLogFormatTab		m_fmt;
 	CEGenLogger*		m_pLog;
 	CMEESUT*		m_pCMEESUT;
 	CSecurityFile*		m_pSecurities;
 	CMEE*			m_pCMEE;
+	CSyncLock		m_LogLock;
+	CSyncLock		m_MixLock;
+	ofstream		m_fLog;		// error log file
+	ofstream		m_fMix;		// mix log file
 
 private:
 	void LogErrorMessage(const string sErr);
@@ -33,7 +35,8 @@ private:
 
 
 public:
-	CDriverMarket(char* szFileLoc, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount, int iListenPort, int iBHlistenPort);
+	CDriverMarket(char* szFileLoc, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
+				int iListenPort, char* szBHaddr, int iBHlistenPort);
 	~CDriverMarket();
 
 	void Listener(void);

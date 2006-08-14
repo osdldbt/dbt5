@@ -40,6 +40,7 @@ using namespace pqxx;
 #include <MarketWatchDB.h>
 #include <TradeCleanupDB.h>
 
+#include <BaseInterface.h>
 #include <DM.h>
 #include <DMSUT.h>
 #include <DataMaintenanceDB.h>

@@ -41,7 +41,7 @@ private:
 public:
 	CDriverCustomer(char* szInDir, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
 				INT32 iScaleFactor, INT32 iDaysOfInitialTrades, UINT32 UniqueId,
-				int iBHlistenPort, int iUsers, int iPacingDelay);
+				char* szBHaddr, int iBHlistenPort, int iUsers, int iPacingDelay);
 	~CDriverCustomer();
 
 	void RunTest(int iSleep, int iTestDuration);

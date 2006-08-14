@@ -12,6 +12,7 @@
 using namespace TPCE;
 
 // Establish defaults for command line options
+char*		szBHaddr = "localhost";					// Brokerage House address
 int		iListenPort = DriverMarketPort;				// socket port to listen
 int		iBHlistenPort = BrokerageHousePort;
 TIdent		iConfiguredCustomerCount = iDefaultLoadUnitSize;	// # of customers for this instance
@@ -30,6 +31,7 @@ void Usage()
 	cerr<<"   -c number	"<<iConfiguredCustomerCount<<"\t\t\t\t   Configured customer count"<<endl;
 	cerr<<"   -a number	"<<iActiveCustomerCount<<"\t\t\t\t   Active customer count"<<endl;
 	cerr<<"   -l number	"<<iListenPort<<"\t\t\t\t   Socket listen port"<<endl;
+	cerr<<"   -h string	"<<szBHaddr<<"\t     Brokerage House address"<<endl;
 	cerr<<"   -b number	"<<iBHlistenPort<<"\t\t\t\t   Brokerage House listen port"<<endl;
 	cerr<<endl;
 }
@@ -72,6 +74,9 @@ void ParseCommandLine( int argc, char *argv[] )
 			case 's':	// Security file location
 				strncpy(szFileLoc, vp, sizeof(szFileLoc));
 				break;
+			case 'h':	// Security file location
+				strncpy(szBHaddr, vp, sizeof(szBHaddr));
+				break;
 			case 'c':
 				sscanf(vp, "%"PRId64, &iConfiguredCustomerCount);
 				break;
@@ -110,12 +115,13 @@ int main(int argc, char* argv[])
 	cout<<"\tConfigured customer count:\t"<<iConfiguredCustomerCount<<endl;
 	cout<<"\tActive customer count:\t\t"<<iActiveCustomerCount<<endl;
 	cout<<"\tListen port:\t\t\t"<<iListenPort<<endl;
+	cout<<"\tBrokerage House address:\t\t"<<szBHaddr<<endl;
 	cout<<"\tBrokerage House port:\t\t"<<iBHlistenPort<<endl;
 
 	try
 	{
 		CDriverMarket	DriverMarket(szFileLoc, iConfiguredCustomerCount, iActiveCustomerCount,
-								iListenPort, iBHlistenPort);
+							iListenPort, szBHaddr, iBHlistenPort);
 		cout<<endl<<"Market Exchange opened to business, waiting trade requests..."<<endl;
 	
 		DriverMarket.Listener();
