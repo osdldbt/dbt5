@@ -60,7 +60,7 @@ public:
 				  next_record->H_T_ID,
 				  next_record->H_CA_ID,
 				  next_record->H_S_SYMB,
-				  Flat_H_DTS.ToStr(FlatFileDateTimeFormat),
+				  Flat_H_DTS.ToStr(FlatFileDateTimeFormat).c_str(),
 				  next_record->H_PRICE,
 				  next_record->H_QTY
 				);

@@ -58,7 +58,7 @@ public:
 		Flat_TH_DTS = next_record->TH_DTS;
 		int rc = fprintf( hOutFile, TradeHistoryRowFmt,
 				  next_record->TH_T_ID,
-				  Flat_TH_DTS.ToStr(FlatFileDateTimeFormat),
+				  Flat_TH_DTS.ToStr(FlatFileDateTimeFormat).c_str(),
 				  next_record->TH_ST_ID
 				);
 		if (rc < 0) {

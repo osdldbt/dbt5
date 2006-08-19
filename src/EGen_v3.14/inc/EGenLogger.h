@@ -60,7 +60,7 @@ private:
 	ofstream	m_Log;
 	CSyncLock	m_LogLock;
 
-	bool SendToLoggerImpl(const char *szPrefix, const char *szTimestamp, const char *szMsg)
+	bool SendToLoggerImpl(const char *szPrefix, const string szTimestamp, const char *szMsg)
 	{
 		m_LogLock.ClaimLock();
 		m_Log << szPrefix << " " << szTimestamp << " " << szMsg << endl;

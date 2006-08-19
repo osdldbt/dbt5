@@ -60,7 +60,7 @@ public:
 				  next_record->FI_CO_ID,
 				  next_record->FI_YEAR,
 				  next_record->FI_QTR,
-				  Flat_FI_QTR_START_DATE.ToStr(FlatFileDateFormat),
+				  Flat_FI_QTR_START_DATE.ToStr(FlatFileDateFormat).c_str(),
 				  next_record->FI_REVENUE,
 				  next_record->FI_NET_EARN,
 				  next_record->FI_BASIC_EPS,

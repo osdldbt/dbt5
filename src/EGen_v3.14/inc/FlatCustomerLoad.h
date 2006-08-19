@@ -66,7 +66,7 @@ public:
 				  next_record->C_M_NAME,
 				  next_record->C_GNDR,
 				  (int)next_record->C_TIER,
-				  Flat_C_DOB.ToStr(FlatFileDateFormat),
+				  Flat_C_DOB.ToStr(FlatFileDateFormat).c_str(),
 				  next_record->C_AD_ID,
 				  next_record->C_CTRY_1,
 				  next_record->C_AREA_1,

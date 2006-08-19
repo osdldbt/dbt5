@@ -65,7 +65,7 @@ public:
 				  next_record->CO_CEO,
 				  next_record->CO_AD_ID,
 				  next_record->CO_DESC,
-				  Flat_CO_OPEN_DATE.ToStr(FlatFileDateFormat)
+				  Flat_CO_OPEN_DATE.ToStr(FlatFileDateFormat).c_str()
 				);
 		if (rc < 0) {
 			throw new CSystemErr(CSystemErr::eWriteFile, "CFlatCompanyLoad::WriteNextRecord");

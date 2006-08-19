@@ -80,7 +80,7 @@ protected:
 
 	};
 
-        virtual bool SendToLoggerImpl(const char *szPrefix, const char *szTimestamp, const char *szMsg) = 0;
+        virtual bool SendToLoggerImpl(const char *szPrefix, const string szTimestamp, const char *szMsg) = 0;
 
 public:
 	// Destructor

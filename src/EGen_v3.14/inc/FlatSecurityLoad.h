@@ -68,8 +68,8 @@ public:
 				  next_record->S_EX_ID,
 				  next_record->S_CO_ID,
 				  next_record->S_NUM_OUT,
-				  Flat_S_START_DATE.ToStr(FlatFileDateFormat),
-				  Flat_S_EXCH_DATE.ToStr(FlatFileDateFormat),
+				  Flat_S_START_DATE.ToStr(FlatFileDateFormat).c_str(),
+				  Flat_S_EXCH_DATE.ToStr(FlatFileDateFormat).c_str(),
 				  next_record->S_PE
 				);
 
@@ -83,9 +83,9 @@ public:
 			Flat_S_52WK_LOW_DATE = next_record->S_52WK.LOW_DATE;
 			rc = fprintf( hOutFile, SecurityRowFmt_2,
 				      next_record->S_52WK.HIGH,
-				      Flat_S_52WK_HIGH_DATE.ToStr(FlatFileDateFormat),
+				      Flat_S_52WK_HIGH_DATE.ToStr(FlatFileDateFormat).c_str(),
 				      next_record->S_52WK.LOW,
-				      Flat_S_52WK_LOW_DATE.ToStr(FlatFileDateFormat)
+				      Flat_S_52WK_LOW_DATE.ToStr(FlatFileDateFormat).c_str()
 				    );
 		}
 

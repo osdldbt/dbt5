@@ -61,7 +61,7 @@ public:
 				  next_record->NI_HEADLINE,
 				  next_record->NI_SUMMARY,
 				  next_record->NI_ITEM,
-				  Flat_NI_DTS.ToStr(FlatFileDateTimeFormat),
+				  Flat_NI_DTS.ToStr(FlatFileDateTimeFormat).c_str(),
 				  next_record->NI_SOURCE,
 				  next_record->NI_AUTHOR
 				);

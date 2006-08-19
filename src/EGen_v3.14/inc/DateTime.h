@@ -44,6 +44,8 @@
 #include <odbcss.h>
 #endif //COMPILE_ODBC_LOAD
 
+#include <string>
+
 namespace TPCE
 {
 
@@ -100,7 +102,7 @@ public:
 #endif //COMPILE_ODBC_LOAD
 
 	static INT32 YMDtoDayno( INT32 yr, INT32 mm, INT32 dd );
-	char* ToStr( INT32 style );
+	string ToStr( INT32 style );
 
 	void Add(INT32 days, INT32 msec);
 	void AddMinutes(INT32 Minutes);

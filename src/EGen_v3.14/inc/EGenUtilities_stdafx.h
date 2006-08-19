@@ -76,5 +76,5 @@ using namespace std;
 #include "RNGSeeds.h"
 #include "EGenVersion.h"
 #include "Money.h"
-
+#include <string>
 #endif	// #ifndef EGEN_UTILITIES_STDAFX_H

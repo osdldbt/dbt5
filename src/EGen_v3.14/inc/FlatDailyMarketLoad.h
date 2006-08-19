@@ -57,7 +57,7 @@ public:
 	{
 		Flat_DM_DATE = next_record->DM_DATE;
 		int rc = fprintf( hOutFile, DailyMarketRowFmt,
-				  Flat_DM_DATE.ToStr(FlatFileDateFormat),
+				  Flat_DM_DATE.ToStr(FlatFileDateFormat).c_str(),
 				  next_record->DM_S_SYMB,
 				  next_record->DM_CLOSE,
 				  next_record->DM_HIGH,

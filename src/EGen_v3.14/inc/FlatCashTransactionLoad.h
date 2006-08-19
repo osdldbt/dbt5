@@ -39,7 +39,7 @@
 */
 #ifndef FLAT_CASH_TRANSACTION_LOAD_H
 #define FLAT_CASH_TRANSACTION_LOAD_H
-
+#include <string>
 namespace TPCE
 {
 
@@ -58,7 +58,7 @@ public:
 		Flat_CT_DTS = next_record->CT_DTS;
 		int rc = fprintf( hOutFile, CashTransactionRowFmt,
 				  next_record->CT_T_ID,
-				  Flat_CT_DTS.ToStr(FlatFileDateTimeFormat),
+				  Flat_CT_DTS.ToStr(FlatFileDateTimeFormat).c_str(),
 				  next_record->CT_AMT,
 				  next_record->CT_NAME
 				);

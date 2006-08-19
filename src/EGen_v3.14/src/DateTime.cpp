@@ -143,7 +143,7 @@ INT32 CDateTime::YMDtoDayno( INT32 yr, INT32 mm, INT32 dd )
 //		7		MON DD YYYY
 //		8		Month DD, YYYY	
 //
-char* CDateTime::ToStr( INT32 style = 11 )
+string CDateTime::ToStr( INT32 style = 11 )
 {
 	static const char	*szMonthsShort[] = 
 		{ "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
@@ -234,7 +234,10 @@ char* CDateTime::ToStr( INT32 style = 11 )
 	if (p>0 && m_szText[p-1] == ' ')
 		m_szText[p-1] = 0;
 
-	return m_szText;
+	string s = m_szText;
+	if (m_szText) delete [] m_szText;
+
+	return s;
 }
 
 // set to current local time
@@ -270,8 +273,6 @@ CDateTime::CDateTime(const CDateTime& dt)
 
 CDateTime::~CDateTime(void)
 {
-	if (m_szText)
-		delete [] m_szText;
 }
 
 CDateTime::CDateTime(INT32 year, INT32 month, INT32 day, INT32 hour, INT32 minute, INT32 second, INT32 msec)

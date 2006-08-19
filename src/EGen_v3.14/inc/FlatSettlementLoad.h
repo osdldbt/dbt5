@@ -59,7 +59,7 @@ public:
 		int rc = fprintf( hOutFile, SettlementRowFmt,
 				  next_record->SE_T_ID,
 				  next_record->SE_CASH_TYPE,
-				  Flat_SE_CASH_DUE_DATE.ToStr(FlatFileDateFormat),
+				  Flat_SE_CASH_DUE_DATE.ToStr(FlatFileDateFormat).c_str(),
 				  next_record->SE_AMT
 				);
 		if (rc < 0) {

@@ -58,7 +58,7 @@ public:
 		Flat_LT_DTS = next_record->LT_DTS;
 		int rc = fprintf( hOutFile, LastTradeRowFmt,
 				  next_record->LT_S_SYMB,
-				  Flat_LT_DTS.ToStr(FlatFileDateTimeFormat),
+				  Flat_LT_DTS.ToStr(FlatFileDateTimeFormat).c_str(),
 				  next_record->LT_PRICE,
 				  next_record->LT_OPEN_PRICE,
 				  next_record->LT_VOL
