@@ -26,13 +26,13 @@ bool CDMSUT::DataMaintenance( PDataMaintenanceTxnInput pTxnInput )
 {
 	cout<<"Data Maintenance requested"<<endl;
 
-	TMsgDriverBrokerage Request;
-	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
+	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
+	memset(pRequest, 0, sizeof(TMsgDriverBrokerage));
 
-	Request.TxnType = DATA_MAINTENANCE;
-	memcpy( &(Request.TxnInput.DataMaintenanceTxnInput), pTxnInput, sizeof( TDataMaintenanceTxnInput ));
+	pRequest->TxnType = DATA_MAINTENANCE;
+	memcpy( &(pRequest->TxnInput.DataMaintenanceTxnInput), pTxnInput, sizeof( TDataMaintenanceTxnInput ));
 	
-	TalkToSUT(&Request);
+	TalkToSUT(pRequest);
 	return true;
 }
 
@@ -41,12 +41,12 @@ bool CDMSUT::TradeCleanup( PTradeCleanupTxnInput pTxnInput )
 {
 	cout<<"Trade Cleanup requested"<<endl;
 
-	TMsgDriverBrokerage Request;
-	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
+	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
+	memset(pRequest, 0, sizeof(TMsgDriverBrokerage));
 
-	Request.TxnType = TRADE_CLEANUP;
-	memcpy( &(Request.TxnInput.TradeCleanupTxnInput), pTxnInput, sizeof( TTradeCleanupTxnInput ));
+	pRequest->TxnType = TRADE_CLEANUP;
+	memcpy( &(pRequest->TxnInput.TradeCleanupTxnInput), pTxnInput, sizeof( TTradeCleanupTxnInput ));
 	
-	TalkToSUT(&Request);
+	TalkToSUT(pRequest);
 	return true;
 }

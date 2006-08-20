@@ -220,6 +220,7 @@ void* TPCE::WorkerThread(void* data)
 	delete pDBConnection;		// close connection with the database
 	close(pThrParam->iSockfd);	// close socket connection with the driver
 	delete pThrParam;
+	delete pMessage;
 
 	return NULL;
 }
@@ -264,6 +265,7 @@ void TPCE::EntryWorkerThread(void* data)
 		     <<" at "<<"BrokerageHouse::EntryWorkerThread"<<endl
 		     <<"accepted socket connection closed"<<endl;
 		pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
+		delete pThrParam;
 		delete pErr;
 	}	
 }
@@ -403,7 +405,7 @@ INT32 CBrokerageHouse::RunTradeUpdate( PTradeUpdateTxnInput pTxnInput, CTradeUpd
 void CBrokerageHouse::Listener( void )
 {
 	int acc_socket;
-	PThreadParameter pThrParam;
+	PThreadParameter pThrParam = NULL;
 	
 	m_Socket.Listen( m_iListenPort );
 
@@ -431,6 +433,7 @@ void CBrokerageHouse::Listener( void )
 			     <<" at "<<"BrokerageHouse::Listener"<<endl;
 			LogErrorMessage(osErr.str());
 			delete pErr;
+			delete pThrParam;
 		}
 			
 	}

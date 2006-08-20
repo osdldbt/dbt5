@@ -38,7 +38,6 @@ void* TPCE::TradeResultAsync(void* data)
 	// communicate with the SUT and log response time
 	pThrParam->pCMEESUT->TalkToSUT(pRequest);
 
-	delete pRequest;
 	delete pThrParam;
 	return NULL;
 }
@@ -116,7 +115,6 @@ void* TPCE::MarketFeedAsync(void* data)
 	// communicate with the SUT and log response time
 	pThrParam->pCMEESUT->TalkToSUT(pRequest);
 
-	delete pRequest;
 	delete pThrParam;
 	return NULL;
 }

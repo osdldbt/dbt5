@@ -158,8 +158,7 @@ string CDateTime::ToStr( INT32 style = 11 )
 	INT32 p = 0;
 	static const INT32 iMaxStrLen = 40;
 
-	if (m_szText == NULL)
-		m_szText = new char[iMaxStrLen];
+	m_szText = new char[iMaxStrLen];
 	m_szText[0] = 0;
 
 	GetYMDHMS(&year, &month, &day, &hour, &minute, &second, &msec);
@@ -235,7 +234,7 @@ string CDateTime::ToStr( INT32 style = 11 )
 		m_szText[p-1] = 0;
 
 	string s = m_szText;
-	if (m_szText) delete [] m_szText;
+	delete [] m_szText;
 
 	return s;
 }

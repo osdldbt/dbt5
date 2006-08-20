@@ -26,13 +26,13 @@ bool CCESUT::BrokerVolume( PBrokerVolumeTxnInput pTxnInput )
 {
 	//cout<<"Broker Volume requested"<<endl;
 
-	TMsgDriverBrokerage Request;
-	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
+	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
+	memset(pRequest, 0, sizeof(*pRequest));
 
-	Request.TxnType = BROKER_VOLUME;
-	memcpy( &(Request.TxnInput.BrokerVolumeTxnInput), pTxnInput, sizeof( TBrokerVolumeTxnInput ));
+	pRequest->TxnType = BROKER_VOLUME;
+	memcpy( &(pRequest->TxnInput.BrokerVolumeTxnInput), pTxnInput, sizeof( pRequest->TxnInput.BrokerVolumeTxnInput ));
 	
-	TalkToSUT(&Request);
+	TalkToSUT(pRequest);
 	return true;
 }
 
@@ -41,13 +41,13 @@ bool CCESUT::CustomerPosition( PCustomerPositionTxnInput pTxnInput )
 {
 	//cout<<"Customer Position requested"<<endl;
 
-	TMsgDriverBrokerage Request;
-	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
+	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
+	memset(pRequest, 0, sizeof(*pRequest));
 
-	Request.TxnType = CUSTOMER_POSITION;
-	memcpy( &(Request.TxnInput.CustomerPositionTxnInput), pTxnInput, sizeof( TCustomerPositionTxnInput ));
+	pRequest->TxnType = CUSTOMER_POSITION;
+	memcpy( &(pRequest->TxnInput.CustomerPositionTxnInput), pTxnInput, sizeof( pRequest->TxnInput.CustomerPositionTxnInput ));
 	
-	TalkToSUT(&Request);
+	TalkToSUT(pRequest);
 	return true;	
 }
 
@@ -56,13 +56,13 @@ bool CCESUT::MarketWatch( PMarketWatchTxnInput pTxnInput )
 {
 	//cout<<"Market Watch requested"<<endl;
 
-	TMsgDriverBrokerage Request;
-	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
+	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
+	memset(pRequest, 0, sizeof(*pRequest));
 
-	Request.TxnType = MARKET_WATCH;
-	memcpy( &(Request.TxnInput.MarketWatchTxnInput), pTxnInput, sizeof( TMarketWatchTxnInput ));
+	pRequest->TxnType = MARKET_WATCH;
+	memcpy( &(pRequest->TxnInput.MarketWatchTxnInput), pTxnInput, sizeof( pRequest->TxnInput.MarketWatchTxnInput ));
 	
-	TalkToSUT(&Request);
+	TalkToSUT(pRequest);
 	return true;
 }
 
@@ -71,13 +71,13 @@ bool CCESUT::SecurityDetail( PSecurityDetailTxnInput pTxnInput )
 {
 	//cout<<"Security Detail requested"<<endl;
 
-	TMsgDriverBrokerage Request;
-	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
+	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
+	memset(pRequest, 0, sizeof(*pRequest));
 
-	Request.TxnType = SECURITY_DETAIL;
-	memcpy( &(Request.TxnInput.SecurityDetailTxnInput), pTxnInput, sizeof( TSecurityDetailTxnInput ));
+	pRequest->TxnType = SECURITY_DETAIL;
+	memcpy( &(pRequest->TxnInput.SecurityDetailTxnInput), pTxnInput, sizeof( pRequest->TxnInput.SecurityDetailTxnInput ));
 	
-	TalkToSUT(&Request);
+	TalkToSUT(pRequest);
 	return true;
 }
 
@@ -86,13 +86,13 @@ bool CCESUT::TradeLookup( PTradeLookupTxnInput pTxnInput )
 {
 	//cout<<"Trade Lookup requested"<<endl;
 
-	TMsgDriverBrokerage Request;
-	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
+	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
+	memset(pRequest, 0, sizeof(*pRequest));
 
-	Request.TxnType = TRADE_LOOKUP;
-	memcpy( &(Request.TxnInput.TradeLookupTxnInput), pTxnInput, sizeof( TTradeLookupTxnInput ));
+	pRequest->TxnType = TRADE_LOOKUP;
+	memcpy( &(pRequest->TxnInput.TradeLookupTxnInput), pTxnInput, sizeof( pRequest->TxnInput.TradeLookupTxnInput ));
 	
-	TalkToSUT(&Request);
+	TalkToSUT(pRequest);
 	return true;
 }
 
@@ -101,13 +101,13 @@ bool CCESUT::TradeStatus( PTradeStatusTxnInput pTxnInput )
 {
 	//cout<<"Trade Status requested"<<endl;
 
-	TMsgDriverBrokerage Request;
-	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
+	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
+	memset(pRequest, 0, sizeof(*pRequest));
 
-	Request.TxnType = TRADE_STATUS;
-	memcpy( &(Request.TxnInput.TradeStatusTxnInput), pTxnInput, sizeof( TTradeStatusTxnInput ));
+	pRequest->TxnType = TRADE_STATUS;
+	memcpy( &(pRequest->TxnInput.TradeStatusTxnInput), pTxnInput, sizeof( pRequest->TxnInput.TradeStatusTxnInput ));
 	
-	TalkToSUT(&Request);
+	TalkToSUT(pRequest);
 	return true;
 }
 
@@ -116,13 +116,13 @@ bool CCESUT::TradeOrder( PTradeOrderTxnInput pTxnInput, INT32 iTradeType, bool b
 {
 	//cout<<"Trade Order requested"<<endl;
 
-	TMsgDriverBrokerage Request;
-	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
+	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
+	memset(pRequest, 0, sizeof(*pRequest));
 
-	Request.TxnType = TRADE_ORDER;
-	memcpy( &(Request.TxnInput.TradeOrderTxnInput), pTxnInput, sizeof( TTradeOrderTxnInput ));
+	pRequest->TxnType = TRADE_ORDER;
+	memcpy( &(pRequest->TxnInput.TradeOrderTxnInput), pTxnInput, sizeof( pRequest->TxnInput.TradeOrderTxnInput ));
 	
-	TalkToSUT(&Request);
+	TalkToSUT(pRequest);
 	return true;
 }
 
@@ -131,13 +131,13 @@ bool CCESUT::TradeUpdate( PTradeUpdateTxnInput pTxnInput )
 {
 	//cout<<"Trade Update requested"<<endl;
 
-	TMsgDriverBrokerage Request;
-	memset(&Request, 0, sizeof(TMsgDriverBrokerage));
+	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
+	memset(pRequest, 0, sizeof(*pRequest));
 
-	Request.TxnType = TRADE_UPDATE;
-	memcpy( &(Request.TxnInput.TradeUpdateTxnInput), pTxnInput, sizeof( TTradeUpdateTxnInput ));
+	pRequest->TxnType = TRADE_UPDATE;
+	memcpy( &(pRequest->TxnInput.TradeUpdateTxnInput), pTxnInput, sizeof( pRequest->TxnInput.TradeUpdateTxnInput ));
 	
-	TalkToSUT(&Request);
+	TalkToSUT(pRequest);
 	return true;
 }
 

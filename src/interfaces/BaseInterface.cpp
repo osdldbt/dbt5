@@ -45,7 +45,7 @@ void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 		StartTime.SetToCurrent();
 	
 		// send and wait for response
-		sock.Send(reinterpret_cast<void*>(pRequest), sizeof(TMsgDriverBrokerage));
+		sock.Send(reinterpret_cast<void*>(pRequest), sizeof(*pRequest));
 		sock.Receive( reinterpret_cast<void*>(&Reply), sizeof(Reply));
 	
 		// record txn end time
@@ -60,6 +60,7 @@ void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 	
 		//log response time
 		LogResponseTime(Reply.iStatus, pRequest->TxnType, (TxnTime.MSec()/1000.0));
+		delete pRequest;
 	}
 	catch(CSocketErr *pErr)
 	{
@@ -71,6 +72,7 @@ void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 		     <<" at "<<"CBaseInterface::TalkToSUT"<<endl;
 		LogErrorMessage(osErr.str());
 		delete pErr;
+		delete pRequest;
 	}
 }
 

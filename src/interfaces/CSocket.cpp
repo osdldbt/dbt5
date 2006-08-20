@@ -89,7 +89,7 @@ void CSocket::Receive(void* data, int length)
 	int received, total, remaining;
 	remaining = length;
 	total = 0;
-	char* szData;
+	char* szData = NULL;
 	do {
 		errno = 0;
 		received = recv(m_sockfd, data, remaining, 0);
@@ -125,7 +125,7 @@ void CSocket::Send(void* data, int length)
 {
 	int sent = 0;
 	int remaining = length;
-	char* szData;
+	char* szData = NULL;
 	do {
 		errno = 0;
 		sent = send(m_sockfd, (void*)data, remaining, 0);

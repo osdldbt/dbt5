@@ -362,6 +362,9 @@ int main(int argc, char* argv[])
 		CDM		m_CDM( &m_CDMSUT, &log, inputFiles, iDefaultLoadUnitSize, iDefaultLoadUnitSize,
 						10, 500, 1 );	// provided by TPC
 
+		CDateTime	StartTime, EndTime, TxnTime;	// to time the transaction
+		StartTime.SetToCurrent();
+
 		//  Parse Txn type
 		switch ( TxnType ) 
 		{
@@ -411,6 +414,15 @@ int main(int argc, char* argv[])
 				cout<<"wrong txn type"<<endl;
 				return(-1);
 		}
+
+		// record txn end time
+		EndTime.SetToCurrent();
+
+		// calculate txn response time
+		TxnTime.Set(0);	// clear time
+		TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
+
+ 		cout<<"Txn Response Time = "<<(TxnTime.MSec()/1000.0)<<endl;
 	}
 	catch (CBaseErr *pErr)
 	{
