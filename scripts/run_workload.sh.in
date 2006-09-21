@@ -1,0 +1,349 @@
+#!/bin/sh
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+#
+# 2006 Rilson Nascimento
+
+abs_top_srcdir=@abs_top_srcdir@
+DBDIR=@database_to_use@
+
+trap 'echo "Test was interrupted by Control-C."; \
+	killall BrokerageHouseMain; killall DriverMarketMain; killall DriverCustomerMain; \
+	killall sar; killall sadc; killall vmstat; killall iostat; \
+        $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh' INT
+trap 'echo "Test was interrupted. Got TERM signal."; \
+	killall BrokerageHouseMain; killall DriverMarketMain; killall DriverCustomerMain; \
+	killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat; \
+	$abs_top_srcdir/scripts/${DBDIR}/stop_db.sh' TERM
+
+usage()
+{
+	if [ "$1" != "" ]; then
+		echo
+		echo "error: $1"
+	fi
+
+	echo ''
+	echo 'usage: run_workload.sh -c <number of customers> -t <duration of test> -u <number of users> -e <seed>'
+	echo 'other options:'
+	echo '       -n <database name. (default dbt5)>'
+	echo '       -h <database host name. (default localhost)>'
+	echo '       -p <database port number. (default 5432)>'
+	echo '       -f <scale factor. (default 500)>'
+	echo '       -i <initial trade days. (default 300)>'
+	echo '       -l <pacing delay. (default 0)>'
+	echo '       -s <delay of starting of new thread in milliseconds (default 1000)'
+	echo ''
+	echo 'Example: sh run_workload.sh -c 1000 -t 300 -u 3 -e 5 -i 10'
+	echo 'Test will be run for 300 seconds with 3 users, on a 1000 customers database with 10 initial trade days, and seed 5'
+	echo ''
+}
+
+validate_parameter()
+{
+	if [ "$2" != "$3" ]; then
+		usage "wrong argument '$2' for parameter '-$1'"
+		exit 1
+	fi
+}
+
+do_sleep()
+{
+    echo "Sleeping $1 seconds"
+    sleep $1
+}
+
+DB_HOSTNAME="localhost"
+DB_NAME="dbt5"
+DB_PORT=5432
+SLEEPY=1000 # milliseconds
+USE_OPROFILE=0
+
+while getopts "c:d:e:f:i:l:o:p:s:t:u:vw:z" opt; do
+	case $opt in
+	c)
+		# Configured customer count
+		CUSTOMERS=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $CUSTOMERS
+		;;
+	d)
+		DB_PARAMS=$OPTARG
+		;;
+	e)	
+		SEED=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $SEED
+		;;
+	f)	
+		SCALE_FACTOR=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $SCALE_FACTOR
+		;;
+        h)
+                DB_HOSTNAME=$OPTARG
+                ;;
+	i)	
+		# intial trade days
+		ITD=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $ITD
+		;;
+	l)	
+		PACING_DELAY=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $PACING_DELAY
+		;;
+        n)
+                DB_NAME=$OPTARG
+                ;;
+	o)
+		USE_OPROFILE=1
+		;;
+	p)
+		# postmaster port
+		DB_PORT=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $DB_PORT
+		;;
+	s)
+		SLEEPY=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $SLEEPY
+		;;
+	t)
+		# duration of the test
+		DURATION=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $DURATION
+		;;
+	u)
+		USERS=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $USERS
+		;;
+	v)
+		set -x
+		SHELL="-x"
+		;;
+	z)
+		COMMENT=$OPTARG
+		;;
+	esac
+done
+
+# Check parameters.
+
+if [ "$CUSTOMERS" == "" ]; then
+	usage "specify the number of configured customers -c #"
+	exit 1
+fi
+
+if [ "$DURATION" == "" ]; then
+	usage "specify the duration of the test in seconds using -t #"
+	exit 1
+fi
+
+if [ "$USERS" == "" ]; then
+	usage "specify the number of users using -u #"
+	exit 1
+fi
+
+if [ "$SEED" == "" ]; then
+	usage "specify the seed using -e #"
+	exit 1
+fi
+
+#ULIMIT_N=`ulimit -n`
+#ESTIMATED_ULIMIT=$(( 2*${WAREHOUSES}*${THREADS_PER_WAREHOUSE}+${DBCON} ))
+#if [ ${ULIMIT_N} -lt $(( $ESTIMATED_ULIMIT )) ]; then
+#  usage "you're open files ulimit is too small, must be at least ${ESTIMATED_ULIMIT}"
+#  exit 1
+#fi
+
+# Determine the output directory for storing data.
+RUN_NUMBER=-1
+if test -f run_number; then
+  read RUN_NUMBER < run_number
+fi
+if [ $RUN_NUMBER -eq -1 ]; then
+	RUN_NUMBER=0
+fi
+OUTPUT_DIR=output/$RUN_NUMBER
+BH_OUTPUT_DIR=$OUTPUT_DIR/bh
+DRIVER_OUTPUT_DIR=$OUTPUT_DIR/driver
+DB_OUTPUT_DIR=$OUTPUT_DIR/db
+
+# Create the directories we will need.
+mkdir -p $OUTPUT_DIR
+mkdir -p $BH_OUTPUT_DIR
+mkdir -p $DRIVER_OUTPUT_DIR
+mkdir -p $DB_OUTPUT_DIR
+
+# Update log.html
+echo "<a href='$RUN_NUMBER/'>$RUN_NUMBER</a>: $COMMENT<br />" >> output/log.html
+
+# Update the run number for the next test.
+RUN_NUMBER=`expr $RUN_NUMBER + 1`
+echo $RUN_NUMBER > run_number
+
+# Create a readme file in the output directory and date it.
+date >> $OUTPUT_DIR/readme.txt
+echo "$COMMENT" >> $OUTPUT_DIR/readme.txt
+uname -a >> $OUTPUT_DIR/readme.txt
+echo "Command line: $0 $@" >> $OUTPUT_DIR/readme.txt
+
+# Get any OS specific information.
+OS_DIR=`uname`
+$abs_top_srcdir/scripts/$OS_DIR/get_os_info.sh -o $OUTPUT_DIR
+
+# Output run information into the readme.txt.
+echo "Database Scale Factor: $CUSTOMERS customers" >> $OUTPUT_DIR/readme.txt
+echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
+
+# Restart PostgreSQL
+$abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
+$abs_top_srcdir/scripts/${DBDIR}/start_db.sh -p "${DB_PARAMS}"
+
+echo ""
+echo "************************************************************************"
+echo "*                  DBT-5 test for PostgreSQL started                   *"
+echo "*                                                                      *"
+echo "*            Results can be found in output/$(( $RUN_NUMBER-1 )) directory               *"
+echo "************************************************************************"
+echo "*                                                                      *"
+echo "*  Test consists of 4 stages:                                          *"
+echo "*                                                                      *"
+echo "*  1. Start of the Brokerage House server                              *"
+echo "*  2. Start of the Market Exchange server                              *"
+echo "*  4. Test (Start of the Customer Emulator)                            *"
+echo "*  5. Processing of results                                            *"
+echo "*                                                                      *"
+echo "************************************************************************"
+
+#
+# Start the Brokerage House server.
+#
+echo
+echo "1. Starting Brokerage House server"
+$abs_top_srcdir/src/BrokerageHouseMain -s $DB_HOSTNAME -d $DB_NAME -p $DB_PORT > $OUTPUT_DIR/bh.out 2>&1 &
+
+do_sleep 1
+
+#
+# Start the Market server.
+#
+echo
+echo "2. Starting Market Exchange server"
+$abs_top_srcdir/src/DriverMarketMain -c $CUSTOMERS -a $CUSTOMERS -s $abs_top_srcdir/src/EGen_v3.14/flat_in/Security.txt > $OUTPUT_DIR/market.out 2>&1 &
+
+# Start collecting data before we start the test.
+SLEEP_RAMPUP=$(( (($USERS+1)*$SLEEPY/1000) ))
+SLEEPYTIME=$(( $SLEEP_RAMPUP+$DURATION ))
+SAMPLE_LENGTH=60
+ITERNATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
+$abs_top_srcdir/scripts/sysstats.sh --iter $ITERNATIONS --sample $SAMPLE_LENGTH --outdir $OUTPUT_DIR > $OUTPUT_DIR/stats.out 2>&1 &
+$abs_top_srcdir/scripts/${DBDIR}/db_stat.sh -o $DB_OUTPUT_DIR -i $ITERNATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
+
+# Initialize oprofile before we start the driver.
+if [ $USE_OPROFILE -eq 1 ]
+then
+        sudo opcontrol --vmlinux=/usr/src/linux-`uname -r`/vmlinux -c 100
+        sleep 1
+        sudo opcontrol --start-daemon
+        sleep 1
+        sudo opcontrol --start
+fi
+
+#
+# Start the Customer Driver.
+#
+
+#DRIVERS=$(( $THREADS_PER_WAREHOUSE*$WAREHOUSES ))
+echo
+echo "3. Starting Customer driver: $USERS user(s), 1 user starting every $SLEEPY milliseconds..."
+$abs_top_srcdir/src/DriverCustomerMain -c $CUSTOMERS -a $CUSTOMERS -f $SCALE_FACTOR -d $ITD -t $DURATION -s $SLEEPY -u $USERS -p $PACING_DELAY -g $SEED -e $abs_top_srcdir/src/EGen_v3.14/flat_in > $OUTPUT_DIR/driver.out 2>&1 &
+echo "Results will be written to: $OUTPUT_DIR"
+
+do_sleep $SLEEP_RAMPUP
+
+# Clear the readprofile data after the driver ramps up.
+if [ -f /proc/profile ]; then
+    echo "Clearing profile data"
+	sudo /usr/sbin/readprofile -r
+fi
+
+# Reset the oprofile counters after the driver ramps up.
+if [ $USE_OPROFILE -eq 1 ]
+then
+    echo "Reseting oprofile counters"    
+    sudo opcontrol --reset
+fi
+
+# Sleep for the duration of the run.
+do_sleep $DURATION
+
+# Wait for DriverCustomerMain to exit
+wait `ps -C DriverCustomerMain -o pid=`
+
+# Collect profile data.
+if [ -f /proc/profile ]; then
+	PROFILE=$OUTPUT_DIR/readprofile.txt
+	/usr/sbin/readprofile -n -m /boot/System.map-`uname -r` > $PROFILE
+	cat $PROFILE | sort -n -r -k1 > $OUTPUT_DIR/readprofile_ticks.txt
+	cat $PROFILE | sort -n -r -k3 > $OUTPUT_DIR/readprofile_load.txt
+fi
+
+# Collect oprofile data.
+if [ $USE_OPROFILE -eq 1 ]
+then
+	sudo opcontrol --dump
+	sudo opreport -l -p /lib/modules/`uname -r` -o $OUTPUT_DIR/oprofile.txt
+	sudo opreport -l -c -p /lib/modules/`uname -r` -o $OUTPUT_DIR/callgraph.txt
+	sudo opcontrol --stop
+fi
+
+# sort and merge emulators mix files into mix.log
+sort -n -t "," -k 1 $abs_top_srcdir/scripts/ce_mix.log $abs_top_srcdir/scripts/mee_mix.log -o $DRIVER_OUTPUT_DIR/mix.log
+
+# move log files to output dir
+mv $abs_top_srcdir/scripts/*.log $DRIVER_OUTPUT_DIR/
+
+# Run some post processing analysese.
+echo
+echo "4. Run Post processing analyses"
+
+perl $abs_top_srcdir/scripts/mix_analyzer.pl --infile $DRIVER_OUTPUT_DIR/mix.log --outdir $DRIVER_OUTPUT_DIR > $DRIVER_OUTPUT_DIR/results.out
+cp -p trtps.input $DRIVER_OUTPUT_DIR
+cd $DRIVER_OUTPUT_DIR
+@GNUPLOT@ trtps.input
+cd -
+
+if [ $USE_OPROFILE -eq 1 ]
+then
+	mkdir -p $OUTPUT_DIR/oprofile/
+	mkdir -p $OUTPUT_DIR/oprofile/annotate
+	cp -pR /var/lib/oprofile/samples/current $OUTPUT_DIR/oprofile/
+	sudo opannotate --source --assembly > $OUTPUT_DIR/oprofile/assembly.txt 2>&1
+	sudo opannotate --source --output-dir=$OUTPUT_DIR/oprofile/annotate
+fi
+
+# Servers don't go away by themselves like the driver does, so kill it.
+echo "Killing Servers..."
+killall BrokerageHouseMain DriverMarketMain DriverCustomerMain 2> /dev/null
+
+$abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
+
+# Move the database log.  (No, not the transaction log.)
+chmod 644 $abs_top_srcdir/scripts/log
+mv $abs_top_srcdir/scripts/log $DB_OUTPUT_DIR
+
+# Postprocessing of Database Statistics
+@SAR@ -f ${OUTPUT_DIR}/sar_raw.out -A > ${OUTPUT_DIR}/sar.out
+$abs_top_srcdir/scripts/vmplot.sh -i ${OUTPUT_DIR}/vmstat.out \
+		-o ${OUTPUT_DIR}/plots
+perl $abs_top_srcdir/scripts/${DBDIR}/analyze_stats.pl --dir $DB_OUTPUT_DIR
+
+# Create summary in HTML.
+$abs_top_srcdir/scripts/gen_html.sh $OUTPUT_DIR
+
+echo ">> Test completed."
+echo "Results are in: $OUTPUT_DIR"
+echo
+
+cat $DRIVER_OUTPUT_DIR/results.out

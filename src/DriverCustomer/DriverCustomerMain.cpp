@@ -42,7 +42,7 @@ void Usage()
 	    <<"   -a number	"<<iActiveCustomerCount<<"\t\t      Active customer count"<<endl
 	    <<"   -h string	"<<szBHaddr<<"\t\t      Brokerage House address"<<endl
 	    <<"   -b number	"<<iBHlistenPort<<"\t\t      Brokerage House listen port"<<endl
-	    <<"   -f number	"<<iScaleFactor<<"\t\t      # of customers for 1 NOTPS"<<endl
+	    <<"   -f number	"<<iScaleFactor<<"\t\t      # of customers for 1 TRTPS"<<endl
 	    <<"   -d number	"<<iDaysOfInitialTrades<<"\t\t      # of Days of Initial Trades"<<endl
 	    <<"   -l number	"<<iLoadUnitSize<<"\t\t      # of customers in one load unit"<<endl
 	    <<"   -t number	                      Duration of the test (seconds)"<<endl

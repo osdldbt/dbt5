@@ -1,0 +1,56 @@
+#!/bin/sh
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+#
+
+DIR=`dirname $0`
+. ${DIR}/pgsql_profile || exit 1
+
+while getopts "i:o:s:" opt; do
+	case $opt in
+	i)
+		ITERATIONS=$OPTARG
+		;;
+	o)
+		OUTPUT_DIR=$OPTARG
+		;;
+	s)
+		SAMPLE_LENGTH=$OPTARG
+		;;
+	esac
+done
+
+# Get database version.
+${PSQL} --version >> $OUTPUT_DIR/readme.txt
+
+# Get database parameters.
+${PSQL} -e -d ${DBNAME} -c "show all"  > $OUTPUT_DIR/param.out
+
+# Get indexes.
+${PSQL} -e -d ${DBNAME} -c "select * from pg_stat_user_indexes;" -o $OUTPUT_DIR/indexes.out
+
+# Get the plans before the test.
+${SHELL} @abs_top_srcdir@/scripts/pgsql/db_plans.sh -o $OUTPUT_DIR/plan0.out
+
+COUNTER=0
+
+while [ $COUNTER -lt $ITERATIONS ]; do
+	${PSQL} -e -d ${DBNAME} -c "SELECT relname, pid, mode, granted FROM pg_locks, pg_class WHERE relfilenode = relation ORDER BY relname;" >> $OUTPUT_DIR/lockstats.out
+	${PSQL} -e -d ${DBNAME} -c "SELECT * FROM pg_locks WHERE transaction IS NOT NULL;" >> $OUTPUT_DIR/tran_lock.out
+	${PSQL} -e -d ${DBNAME} -c "SELECT * FROM pg_stat_activity;" >> $OUTPUT_DIR/db_activity.out
+	${PSQL} -e -d ${DBNAME} -c "SELECT * FROM pg_stat_database WHERE datname ='${DBNAME}';" >> $OUTPUT_DIR/db_load.out
+	${PSQL} -e -d ${DBNAME} -c "SELECT relid, relname, heap_blks_read, heap_blks_hit, idx_blks_read, idx_blks_hit FROM pg_statio_user_tables ORDER BY relname;" >> $OUTPUT_DIR/table_info.out
+	${PSQL} -e -d ${DBNAME} -c "SELECT relid, indexrelid, relname, indexrelname, idx_blks_read, idx_blks_hit FROM pg_statio_user_indexes ORDER BY indexrelname;" >> $OUTPUT_DIR/index_info.out
+	${PSQL} -e -d ${DBNAME} -c "SELECT * FROM pg_stat_user_tables;" >> $OUTPUT_DIR/table_scan.out
+	${PSQL} -e -d ${DBNAME} -c "SELECT * FROM pg_stat_user_indexes;" >> $OUTPUT_DIR/indexes_scan.out
+
+	COUNTER=$(( $COUNTER+1 ))
+	sleep $SAMPLE_LENGTH
+done
+
+# Get the plans after the test.
+${SHELL} @abs_top_srcdir@/scripts/pgsql/db_plans.sh -o $OUTPUT_DIR/plan1.out

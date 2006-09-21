@@ -120,6 +120,7 @@ void Usage()
   fprintf( stderr, "   -d string                   tpce        Database name\n" );
 #endif
 #ifdef COMPILE_PGSQL_LOAD
+  fprintf( stderr, "   -s string                   localhost   Database server\n" );
   fprintf( stderr, "   -d string                   dbt5        Database name\n" );
   fprintf( stderr, "   -p string                   5432        Postmaster port\n" );
 #endif

@@ -233,7 +233,7 @@ $transaction_count{ '10' } = 0;
 #
 # Read the data directly from the log file and handle it on the fly.
 #
-print CSV "0 0 0 0 0 0\n";
+print CSV "0 0 0 0 0 0 0 0 0 0 0 0\n";
 while ( defined( $line = <FH> ) ) {
 	chomp $line;
 	my @word = split /,/, $line;
@@ -251,6 +251,18 @@ while ( defined( $line = <FH> ) ) {
 			$start_time = $previous_time = $current_time;
 		}
 		if ( $current_time >= ( $previous_time + $sample_length ) ) {
+			$current_transaction_count{ '0' } = $current_transaction_count{ '0' } / 60;
+			$current_transaction_count{ '1' } = $current_transaction_count{ '1' } / 60;
+			$current_transaction_count{ '2' } = $current_transaction_count{ '2' } / 60;
+			$current_transaction_count{ '3' } = $current_transaction_count{ '3' } / 60;
+			$current_transaction_count{ '4' } = $current_transaction_count{ '4' } / 60;
+			$current_transaction_count{ '5' } = $current_transaction_count{ '5' } / 60;
+			$current_transaction_count{ '6' } = $current_transaction_count{ '6' } / 60;
+			$current_transaction_count{ '7' } = $current_transaction_count{ '7' } / 60;
+			$current_transaction_count{ '8' } = $current_transaction_count{ '8' } / 60;
+			$current_transaction_count{ '9' } = $current_transaction_count{ '9' } / 60;
+			$current_transaction_count{ '10' } = $current_transaction_count{ '10' } / 60;
+
 			print CSV "$elapsed_time "
 				. "$current_transaction_count{ '0' } "
 				. "$current_transaction_count{ '1' } "
@@ -699,7 +711,7 @@ foreach my $transaction ( @transactions ) {
 	print FILE "set ylabel \"Count\"\n";
 	print FILE "replot\n";
 	close( FILE );
-	system "gnuplot $transaction.input";
+	system "gnuplot $transaction.input 2> /dev/null";
 }
 
 foreach my $transaction ( @xtran ) {
@@ -714,7 +726,7 @@ foreach my $transaction ( @xtran ) {
 	print FILE "set ylabel \"Response Time (Seconds)\"\n";
 	print FILE "replot\n";
 	close( FILE );
-	system "gnuplot $filename";
+	system "gnuplot $filename 2> /dev/null";
 }
 
 #
