@@ -299,7 +299,7 @@ then
 fi
 
 # sort and merge emulators mix files into mix.log
-sort -n -t "," -k 1 $abs_top_srcdir/scripts/ce_mix.log $abs_top_srcdir/scripts/mee_mix.log -o $DRIVER_OUTPUT_DIR/mix.log
+sort -t "," -k 1 $abs_top_srcdir/scripts/ce_mix.log $abs_top_srcdir/scripts/mee_mix.log -o $DRIVER_OUTPUT_DIR/mix.log
 
 # move log files to output dir
 mv $abs_top_srcdir/scripts/*.log $DRIVER_OUTPUT_DIR/
