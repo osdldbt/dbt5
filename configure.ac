@@ -110,7 +110,7 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for initdb
   AC_PATH_PROGS(INITDB, initdb, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$INITDB" ; then
     AC_MSG_ERROR([*** initdb is required])
@@ -118,14 +118,14 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for createdb
   AC_PATH_PROGS(CREATEDB, createdb, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$CREATEDB" ; then
     AC_MSG_ERROR([*** createdb is required])
   fi
 
   AC_PATH_PROGS(CREATELANG, createlang, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$CREATELANG" ; then
     AC_MSG_ERROR([*** createlang is required])
@@ -133,7 +133,7 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for createuser
   AC_PATH_PROGS(CREATEUSER, createuser, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$CREATEUSER" ; then
     AC_MSG_ERROR([*** createuser is required])
@@ -141,7 +141,7 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for dropdb
   AC_PATH_PROGS(DROPDB, dropdb, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$DROPDB" ; then
     AC_MSG_ERROR([*** dropdb is required])
@@ -149,7 +149,7 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for pg_ctl 
   AC_PATH_PROGS(PG_CTL, pg_ctl, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$PG_CTL" ; then 
     AC_MSG_ERROR([*** pg_ctl is required])
@@ -157,7 +157,7 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for psql
   AC_PATH_PROGS(PSQL, psql, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$PSQL" ; then
     AC_MSG_ERROR([*** psql is required])
@@ -165,23 +165,27 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for vacuumdb
   AC_PATH_PROGS(VACUUMDB, vacuumdb, ,
-    [$PATH:$pgsql_path/bin:/bin:/usr/bin:/usr/local/bin]
+    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$VACUUMDB" ; then
     AC_MSG_ERROR([*** vacuumdb is required])
   fi
 
-  AC_CONFIG_FILES([scripts/pgsql/pgsql_profile])
+  AC_CONFIG_FILES([scripts/pgsql/build-db],
+	[chmod +x scripts/pgsql/build-db])
+  AC_CONFIG_FILES([scripts/pgsql/create-db],
+	[chmod +x scripts/pgsql/create-db])
+  AC_CONFIG_FILES([scripts/pgsql/create-indexes],
+	[chmod +x scripts/pgsql/create-indexes])
+  AC_CONFIG_FILES([scripts/pgsql/create-tables],
+	[chmod +x scripts/pgsql/create-tables])
   AC_CONFIG_FILES([scripts/pgsql/db_stat.sh],
 	[chmod +x scripts/pgsql/db_stat.sh])
-  AC_CONFIG_FILES([scripts/run_workload.sh],
-	[chmod +x scripts/run_workload.sh])
-  AC_CONFIG_FILES([scripts/transform_sar.sh],
-	[chmod +x scripts/transform_sar.sh])
-  AC_CONFIG_FILES([scripts/sysstats.sh],
- 	[chmod +x scripts/sysstats.sh])
-  AC_CONFIG_FILES([scripts/Linux/get_os_info.sh],
-	[chmod +x scripts/Linux/get_os_info.sh])
+  AC_CONFIG_FILES([scripts/pgsql/drop-db],
+	[chmod +x scripts/pgsql/drop-db])
+  AC_CONFIG_FILES([scripts/pgsql/load-stored-procs],
+	[chmod +x scripts/pgsql/load-stored-procs])
+  AC_CONFIG_FILES([scripts/pgsql/pgsql_profile])
 fi
 
 dnl Check for libs.
@@ -216,7 +220,16 @@ AC_SUBST(database_to_use)
 AC_SUBST(DBC_CORE)
 AC_SUBST(DBC_FUNCTIONS)
 
+AC_CONFIG_FILES([scripts/run_workload.sh],
+	[chmod +x scripts/run_workload.sh])
+AC_CONFIG_FILES([scripts/transform_sar.sh],
+	[chmod +x scripts/transform_sar.sh])
+AC_CONFIG_FILES([scripts/sysstats.sh],
+ 	[chmod +x scripts/sysstats.sh])
+AC_CONFIG_FILES([scripts/Linux/get_os_info.sh],
+	[chmod +x scripts/Linux/get_os_info.sh])
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([scripts/dbt5_profile])
 AC_CONFIG_FILES([src/Makefile])
 
 AC_OUTPUT

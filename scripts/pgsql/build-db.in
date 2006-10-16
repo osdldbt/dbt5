@@ -1,0 +1,68 @@
+#!/bin/bash
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2005-2006 Mark Wong & Open Source Development Labs, Inc.
+#
+
+TOPDIR="@abs_top_srcdir@"
+source ${TOPDIR}/scripts/dbt5_profile || exit 1
+
+DIR="${TOPDIR}/scripts/pgsql"
+
+REBUILD_DB=0
+
+CUSTOMERS_INSTANCE=1000
+CUSTOMER_TOTAL=1
+SCALE_FACTOR=1
+WORKDAYS=1
+
+while getopts "c:i:p:rs:tw:" OPT; do
+	case ${OPT} in
+	c)
+		CUSTOMERS_TOTAL=${OPTARG}
+		;;
+	i)
+		CUSTOMERS_INSTANCE=${OPTARG}
+		;;
+	p)
+		PARAMETERS=${OPTARG}
+		;;
+	r)
+		REBUILD_DB=1
+		;;
+	s)
+		SCALE_FACTOR=${OPTARG}
+		;;
+	t)
+		TABLESPACES_FLAG="-t"
+		;;
+	w)
+		WORKDAYS=${OPTARG}
+		;;
+	esac
+done
+
+if [ ${REBUILD_DB} -eq 1 ]; then
+	echo "Restarting the database to reset database parameters..."
+	${DIR}/stop-db
+	${DIR}/start-db -p "${PARAMETERS}" || exit 1
+	${DIR}/drop-db
+fi
+
+${DIR}/create-db || exit 1
+${DIR}/create-tables ${TABLESPACES_FLAG} || exit 1
+(cd ${EGENDIR} && \
+		bin/EGenLoader -f ${SCALE_FACTOR} -w ${WORKDAYS} \
+		-c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL}) || exit 1
+${DIR}/create-indexes ${TABLESPACES_FLAG} || exit 1
+${DIR}/load-stored-procs || exit 1
+${PSQL} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1
+#
+# VACUUM FULL ANALYZE: Build optimizer statistics for newly-created
+# tables. The VACUUM FULL is probably unnecessary; we want to scan the
+# heap and update the commit-hint bits on each new tuple, but a regular
+# VACUUM ought to suffice for that.
+#
+${VACUUMDB} -z -f -d ${DBNAME} || exit 1

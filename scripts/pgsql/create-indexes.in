@@ -1,13 +1,15 @@
-#!/bin/sh
-
+#!/bin/bash
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+# Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
 #
 # 2006 Rilson Nascimento
 # based on TPC-Benchmark E Specification, Revision 0.32
+
+TOPDIR="@abs_top_srcdir@"
+source ${TOPDIR}/scripts/dbt5_profile || exit 1
 
 DIR=`dirname $0`
 . ${DIR}/pgsql_profile || exit 1

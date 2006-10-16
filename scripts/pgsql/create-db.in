@@ -1,11 +1,13 @@
-#!/bin/sh
-
+#!/bin/bash
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+# Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
 #
+
+TOPDIR="@abs_top_srcdir@"
+source ${TOPDIR}/scripts/dbt5_profile || exit 1
 
 DIR=`dirname $0`
 . ${DIR}/pgsql_profile || exit 1
@@ -21,12 +23,12 @@ else
 	${INITDB} -D ${PGDATA} --locale=C || exit 1
 fi
 
-${SHELL} ${DIR}/start_db.sh
+${DIR}/start-db
 
 # Give the database a few seconds to get going
 sleep 4
 
-${CREATEDB} -E SQL_ASCII ${DBNAME}
-${CREATELANG} plpgsql ${DBNAME}
+${CREATEDB} -E SQL_ASCII ${DBNAME} || exit 1
+${CREATELANG} plpgsql ${DBNAME} || exit 1
 
 exit 0
