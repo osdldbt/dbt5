@@ -11,7 +11,7 @@ DIR=`dirname ${0}`
 
 LOGFILE="log"
 OUTDIR="."
-while getopts "fp:" OPT; do
+while getopts "fo:p:" OPT; do
 	case ${OPT} in
 	f)
 		rm -f ${PGDATA}/postmaster.pid
