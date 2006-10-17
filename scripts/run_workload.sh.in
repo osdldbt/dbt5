@@ -30,13 +30,16 @@ usage()
 	echo ''
 	echo 'usage: run_workload.sh -c <number of customers> -t <duration of test> -u <number of users> -e <seed>'
 	echo 'other options:'
-	echo '       -n <database name. (default dbt5)>'
-	echo '       -h <database host name. (default localhost)>'
-	echo '       -p <database port number. (default 5432)>'
+	echo '       -d <database parameters>'
 	echo '       -f <scale factor. (default 500)>'
+	echo '       -h <database host name. (default localhost)>'
 	echo '       -i <initial trade days. (default 300)>'
 	echo '       -l <pacing delay. (default 0)>'
-	echo '       -s <delay of starting of new thread in milliseconds (default 1000)'
+	echo '       -n <database name. (default dbt5)>'
+	echo '       -o # enable oprofile profiler'
+	echo '       -p <database port number. (default 5432)>'
+	echo '       -s <delay of starting of new thread in milliseconds (default 1000)>'
+	echo '       -z <comment describing this test run>'
 	echo ''
 	echo 'Example: sh run_workload.sh -c 1000 -t 300 -u 3 -e 5 -i 10'
 	echo 'Test will be run for 300 seconds with 3 users, on a 1000 customers database with 10 initial trade days, and seed 5'
@@ -63,7 +66,7 @@ DB_PORT=5432
 SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
 
-while getopts "c:d:e:f:i:l:o:p:s:t:u:vw:z" opt; do
+while getopts "c:d:e:f:i:l:op:s:t:u:w:z:" opt; do
 	case $opt in
 	c)
 		# Configured customer count
@@ -116,10 +119,6 @@ while getopts "c:d:e:f:i:l:o:p:s:t:u:vw:z" opt; do
 	u)
 		USERS=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $USERS
-		;;
-	v)
-		set -x
-		SHELL="-x"
 		;;
 	z)
 		COMMENT=$OPTARG
@@ -323,7 +322,7 @@ echo "4. Run Post processing analyses"
 ${abs_top_srcdir}/scripts/mix_analyzer.pl \
 		--infile ${DRIVER_OUTPUT_DIR}/mix.log \
 		--outdir ${DRIVER_OUTPUT_DIR} > ${DRIVER_OUTPUT_DIR}/results.out
-cp -p trtps.input $DRIVER_OUTPUT_DIR
+cp -p ${abs_top_srcdir}/scripts/trtps.input ${DRIVER_OUTPUT_DIR} || exit 1
 cd $DRIVER_OUTPUT_DIR
 @GNUPLOT@ trtps.input
 cd -
