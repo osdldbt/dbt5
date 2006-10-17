@@ -94,13 +94,18 @@ void TPCE::EntryMarketWorkerThread(void* data)
 
 // Constructor
 CDriverMarket::CDriverMarket(char* szFileLoc, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
-					int iListenPort, char* szBHaddr, int iBHlistenPort)
+					int iListenPort, char* szBHaddr, int iBHlistenPort,
+					char* outputDirectory)
 : m_iListenPort(iListenPort)
 {
-	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, "Market.log", &m_fmt);
+	char filename[1024];
+	sprintf(filename, "%s/Market.log", outputDirectory);
+	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
 
-	m_fLog.open("DriverMarket_Error.log", ios::out);
-	m_fMix.open(MEE_MIX_LOG_NAME, ios::out);
+	sprintf(filename, "%s/DriverMarket_Error.log", outputDirectory);
+	m_fLog.open(filename, ios::out);
+	sprintf(filename, "%s/%s", outputDirectory, MEE_MIX_LOG_NAME);
+	m_fMix.open(filename, ios::out);
 
 	// Initialize MEESUT
 	m_pCMEESUT = new CMEESUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix, &m_LogLock, &m_MixLock);

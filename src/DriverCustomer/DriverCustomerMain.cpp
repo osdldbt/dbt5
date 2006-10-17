@@ -26,6 +26,7 @@ int		iUsers = 0;						// # users
 int		iPacingDelay = 0;
 
 char		szInDir[iMaxPath];		// path to EGen input files
+char		outputDirectory[iMaxPath] = ".";			// path to output files
 UINT32 		UniqueId = 0;			// automatic RNG seed generation requires unique input
 
 // shows program usage
@@ -48,6 +49,7 @@ void Usage()
 	    <<"   -t number	                      Duration of the test (seconds)"<<endl
 	    <<"   -s number	"<<iSleep<<"\t\t      # of msec between thread creation"<<endl
 	    <<"   -u number	                      # of Users"<<endl
+	    <<"   -o string	"<<outputDirectory<<"\t\t      # directory for output files"<<endl
 	    <<"   -p number	"<<iPacingDelay<<"\t\t      # of msec to wait after the current txn and"<<endl
 	    <<"\t\t\t\t      before the next txn"<<endl
 	    <<"   -g number			      Unique input for automatic seed generation"<<endl;
@@ -121,6 +123,10 @@ void ParseCommandLine( int argc, char *argv[] )
 			case 'u':
 				sscanf(vp, "%d", &iUsers);
 				break;
+			case 'o':
+				strncpy(outputDirectory, vp,
+						sizeof(outputDirectory));
+				break;
 			case 'p':
 				sscanf(vp, "%d", &iPacingDelay);
 				break;
@@ -187,7 +193,7 @@ bool ValidateParameters()
 	// UniqueId must be assigned
 	if (UniqueId == 0)
 	{
-		cerr << "unique id number must be specified."<<endl;
+		cerr << "non-zero unique id number must be specified."<<endl;
 		bRet = false;
 	}
 
@@ -245,7 +251,7 @@ int main(int argc, char* argv[])
 	{
 		CDriverCustomer    DriverCustomer(szInDir, iConfiguredCustomerCount, iActiveCustomerCount,
 							iScaleFactor, iDaysOfInitialTrades, UniqueId, 
-							szBHaddr, iBHlistenPort, iUsers, iPacingDelay);
+							szBHaddr, iBHlistenPort, iUsers, iPacingDelay, outputDirectory);
 		DriverCustomer.RunTest(iSleep, iTestDuration);
 		
 	}

@@ -17,6 +17,7 @@ int		iListenPort = BrokerageHousePort;
 char		szHost[iMaxPGHost];
 char		szDBName[iMaxPGDBName];
 char 		szPostmasterPort[iMaxPGPort];
+char 		outputDirectory[iMaxPath] = ".";
 
 // shows program usage
 void Usage()
@@ -27,6 +28,7 @@ void Usage()
 	cout<<"   =========		=========  ==============="<<endl;
 	cout<<"   -s string		localhost  Database server"<<endl;
 	cout<<"   -d string		dbt5       Database name"<<endl;
+	cout<<"   -o string		.          Output directory"<<endl;
 	cout<<"   -p string		5432       Postmaster port"<<endl;
 	cout<<"   -l number\t\t"<<iListenPort<<"\t   Socket listen port"<<endl;
 	cout<<endl;
@@ -75,6 +77,10 @@ void ParseCommandLine( int argc, char *argv[] )
 				strncpy(szDBName, vp, sizeof(szDBName));
 				break;
 		
+			case 'o':     // output directory
+				strncpy(outputDirectory, vp,
+						sizeof(outputDirectory));
+				break;
 			case 'p':     // Postmaster port
 				strncpy(szPostmasterPort, vp, sizeof(szPostmasterPort));
 				break;
@@ -113,7 +119,8 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		CBrokerageHouse	BrokerageHouse( szHost, szDBName, szPostmasterPort, iListenPort );
+		CBrokerageHouse	BrokerageHouse( szHost, szDBName, szPostmasterPort,
+				iListenPort, outputDirectory );
 		cout<<endl<<"Brokerage House opened to business, waiting traders..."<<endl;
 	
 		BrokerageHouse.Listener();

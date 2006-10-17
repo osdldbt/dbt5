@@ -84,16 +84,20 @@ void TPCE::EntryCustomerWorkerThread(void* data, int iThrNumber)
 // Constructor
 CDriverCustomer::CDriverCustomer(char* szInDir, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
 				INT32 iScaleFactor, INT32 iDaysOfInitialTrades, UINT32 UniqueId, 
-				char* szBHaddr, int iBHlistenPort, int iUsers, int iPacingDelay)
+				char* szBHaddr, int iBHlistenPort, int iUsers, int iPacingDelay,				char* outputDirectory)
 : m_iUsers(iUsers),
   m_iPacingDelay(iPacingDelay)
 {
-	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, "DriverCustomer.log", &m_fmt);
+	char filename[1024];
+	sprintf(filename, "%s/DriverCustomer.log", outputDirectory);
+	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
 	m_pDriverCETxnSettings = new TDriverCETxnSettings;
 	m_InputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount, iActiveCustomerCount, szInDir);
 
-	m_fLog.open("DriverCustomer_Error.log", ios::out);
-	m_fMix.open(CE_MIX_LOG_NAME, ios::out);
+	sprintf(filename, "%s/DriverCustomer_Error.log", outputDirectory);
+	m_fLog.open(filename, ios::out);
+	sprintf(filename, "%s/%s", outputDirectory, CE_MIX_LOG_NAME);
+	m_fMix.open(filename, ios::out);
 
 	// initialize CESUT interface
 	m_pCCESUT = new CCESUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix, &m_LogLock, &m_MixLock);

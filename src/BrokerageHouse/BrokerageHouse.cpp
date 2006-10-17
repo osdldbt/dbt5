@@ -272,7 +272,8 @@ void TPCE::EntryWorkerThread(void* data)
 
 // Constructor
 CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName, 
-					const char *szPostmasterPort, const int iListenPort)
+					const char *szPostmasterPort, const int iListenPort,
+					char *outputDirectory)
 : m_iListenPort(iListenPort)
 {
 	memset(m_szHost, 0, sizeof(m_szHost));
@@ -284,7 +285,9 @@ CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName,
 	memset(m_szPostmasterPort, 0, sizeof(m_szPostmasterPort));
 	strncpy(m_szPostmasterPort, szPostmasterPort, sizeof(m_szPostmasterPort) - 1);
 
-	m_fLog.open("BrokerageHouse_Error.log", ios::out);
+	char filename[1024];
+	sprintf(filename, "%s/BrokerageHouse_Error.log", outputDirectory);
+	m_fLog.open(filename, ios::out);
 }
 
 // Destructor

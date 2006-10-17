@@ -1,24 +1,24 @@
-#!/bin/sh
-
+#!/bin/bash
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+# Copyright (C) 2006 Mark Wong & Open Source Development Labs, Inc.
 #
 # 2006 Rilson Nascimento
 
 abs_top_srcdir=@abs_top_srcdir@
 DBDIR=@database_to_use@
+source ${abs_top_srcdir}/scripts/dbt5_profile || exit 1
 
 trap 'echo "Test was interrupted by Control-C."; \
 	killall BrokerageHouseMain; killall DriverMarketMain; killall DriverCustomerMain; \
 	killall sar; killall sadc; killall vmstat; killall iostat; \
-        $abs_top_srcdir/scripts/${DBDIR}/stop_db.sh' INT
+        $abs_top_srcdir/scripts/${DBDIR}/stop-db' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
 	killall BrokerageHouseMain; killall DriverMarketMain; killall DriverCustomerMain; \
 	killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat; \
-	$abs_top_srcdir/scripts/${DBDIR}/stop_db.sh' TERM
+	$abs_top_srcdir/scripts/${DBDIR}/stop-db' TERM
 
 usage()
 {
@@ -158,13 +158,14 @@ fi
 
 # Determine the output directory for storing data.
 RUN_NUMBER=-1
-if test -f run_number; then
-  read RUN_NUMBER < run_number
+RUN_FILE="${abs_top_srcdir}/scripts/run_number"
+if test -f ${RUN_FILE}; then
+  read RUN_NUMBER < ${RUN_FILE}
 fi
 if [ $RUN_NUMBER -eq -1 ]; then
 	RUN_NUMBER=0
 fi
-OUTPUT_DIR=output/$RUN_NUMBER
+OUTPUT_DIR=${abs_top_srcdir}/scripts/output/${RUN_NUMBER}
 BH_OUTPUT_DIR=$OUTPUT_DIR/bh
 DRIVER_OUTPUT_DIR=$OUTPUT_DIR/driver
 DB_OUTPUT_DIR=$OUTPUT_DIR/db
@@ -176,11 +177,11 @@ mkdir -p $DRIVER_OUTPUT_DIR
 mkdir -p $DB_OUTPUT_DIR
 
 # Update log.html
-echo "<a href='$RUN_NUMBER/'>$RUN_NUMBER</a>: $COMMENT<br />" >> output/log.html
+echo "<a href='$RUN_NUMBER/'>$RUN_NUMBER</a>: $COMMENT<br />" >> ${abs_top_srcdir}/scripts/output/log.html
 
 # Update the run number for the next test.
 RUN_NUMBER=`expr $RUN_NUMBER + 1`
-echo $RUN_NUMBER > run_number
+echo ${RUN_NUMBER} > ${RUN_FILE}
 
 # Create a readme file in the output directory and date it.
 date >> $OUTPUT_DIR/readme.txt
@@ -197,8 +198,8 @@ echo "Database Scale Factor: $CUSTOMERS customers" >> $OUTPUT_DIR/readme.txt
 echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
 
 # Restart PostgreSQL
-$abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
-$abs_top_srcdir/scripts/${DBDIR}/start_db.sh -p "${DB_PARAMS}"
+$abs_top_srcdir/scripts/${DBDIR}/stop-db
+$abs_top_srcdir/scripts/${DBDIR}/start-db -p "${DB_PARAMS}" -o ${DB_OUTPUT_DIR}
 
 echo ""
 echo "************************************************************************"
@@ -211,8 +212,8 @@ echo "*  Test consists of 4 stages:                                          *"
 echo "*                                                                      *"
 echo "*  1. Start of the Brokerage House server                              *"
 echo "*  2. Start of the Market Exchange server                              *"
-echo "*  4. Test (Start of the Customer Emulator)                            *"
-echo "*  5. Processing of results                                            *"
+echo "*  3. Test (Start of the Customer Emulator)                            *"
+echo "*  4. Processing of results                                            *"
 echo "*                                                                      *"
 echo "************************************************************************"
 
@@ -221,7 +222,9 @@ echo "************************************************************************"
 #
 echo
 echo "1. Starting Brokerage House server"
-$abs_top_srcdir/src/BrokerageHouseMain -s $DB_HOSTNAME -d $DB_NAME -p $DB_PORT > $OUTPUT_DIR/bh.out 2>&1 &
+${abs_top_srcdir}/src/BrokerageHouseMain -s ${DB_HOSTNAME} -d ${DB_NAME} \
+		-p $DB_PORT \
+		-o ${DRIVER_OUTPUT_DIR} > ${OUTPUT_DIR}/bh.out 2>&1 &
 
 do_sleep 1
 
@@ -230,15 +233,21 @@ do_sleep 1
 #
 echo
 echo "2. Starting Market Exchange server"
-$abs_top_srcdir/src/DriverMarketMain -c $CUSTOMERS -a $CUSTOMERS -s $abs_top_srcdir/src/EGen_v3.14/flat_in/Security.txt > $OUTPUT_DIR/market.out 2>&1 &
+${abs_top_srcdir}/src/DriverMarketMain -c ${CUSTOMERS} -a ${CUSTOMERS} \
+		-s ${EGENDIR}/flat_in/Security.txt \
+		-o ${DRIVER_OUTPUT_DIR} > ${OUTPUT_DIR}/market.out 2>&1 &
 
 # Start collecting data before we start the test.
 SLEEP_RAMPUP=$(( (($USERS+1)*$SLEEPY/1000) ))
 SLEEPYTIME=$(( $SLEEP_RAMPUP+$DURATION ))
 SAMPLE_LENGTH=60
 ITERNATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
-$abs_top_srcdir/scripts/sysstats.sh --iter $ITERNATIONS --sample $SAMPLE_LENGTH --outdir $OUTPUT_DIR > $OUTPUT_DIR/stats.out 2>&1 &
-$abs_top_srcdir/scripts/${DBDIR}/db_stat.sh -o $DB_OUTPUT_DIR -i $ITERNATIONS -s $SAMPLE_LENGTH > $OUTPUT_DIR/dbstats.out 2>&1 &
+${abs_top_srcdir}/scripts/sysstats.sh --iter ${ITERNATIONS} \
+		--sample ${SAMPLE_LENGTH} \
+		--outdir ${OUTPUT_DIR} > ${OUTPUT_DIR}/stats.out 2>&1 &
+${abs_top_srcdir}/scripts/${DBDIR}/db_stat.sh -o ${DB_OUTPUT_DIR} \
+		-i ${ITERNATIONS} \
+		-s ${SAMPLE_LENGTH} > ${OUTPUT_DIR}/dbstats.out 2>&1 &
 
 # Initialize oprofile before we start the driver.
 if [ $USE_OPROFILE -eq 1 ]
@@ -254,10 +263,13 @@ fi
 # Start the Customer Driver.
 #
 
-#DRIVERS=$(( $THREADS_PER_WAREHOUSE*$WAREHOUSES ))
 echo
 echo "3. Starting Customer driver: $USERS user(s), 1 user starting every $SLEEPY milliseconds..."
-$abs_top_srcdir/src/DriverCustomerMain -c $CUSTOMERS -a $CUSTOMERS -f $SCALE_FACTOR -d $ITD -t $DURATION -s $SLEEPY -u $USERS -p $PACING_DELAY -g $SEED -e $abs_top_srcdir/src/EGen_v3.14/flat_in > $OUTPUT_DIR/driver.out 2>&1 &
+${abs_top_srcdir}/src/DriverCustomerMain -c ${CUSTOMERS} -a ${CUSTOMERS} \
+		-f ${SCALE_FACTOR} -d ${ITD} -t ${DURATION} -s ${SLEEPY} \
+		-u ${USERS} -p ${PACING_DELAY} -g ${SEED} \
+		-e ${EGENDIR}/flat_in \
+		-o ${DRIVER_OUTPUT_DIR} > ${OUTPUT_DIR}/driver.out 2>&1 &
 echo "Results will be written to: $OUTPUT_DIR"
 
 do_sleep $SLEEP_RAMPUP
@@ -294,21 +306,23 @@ if [ $USE_OPROFILE -eq 1 ]
 then
 	sudo opcontrol --dump
 	sudo opreport -l -p /lib/modules/`uname -r` -o $OUTPUT_DIR/oprofile.txt
-	sudo opreport -l -c -p /lib/modules/`uname -r` -o $OUTPUT_DIR/callgraph.txt
+	sudo opreport -l -c -p /lib/modules/`uname -r` \
+			-o ${OUTPUT_DIR}/callgraph.txt
 	sudo opcontrol --stop
 fi
 
 # sort and merge emulators mix files into mix.log
-sort -t "," -k 1 $abs_top_srcdir/scripts/ce_mix.log $abs_top_srcdir/scripts/mee_mix.log -o $DRIVER_OUTPUT_DIR/mix.log
-
-# move log files to output dir
-mv $abs_top_srcdir/scripts/*.log $DRIVER_OUTPUT_DIR/
+sort -t "," -k 1 ${DRIVER_OUTPUT_DIR}/ce_mix.log \
+		${DRIVER_OUTPUT_DIR}/mee_mix.log \
+		-o $DRIVER_OUTPUT_DIR/mix.log
 
 # Run some post processing analysese.
 echo
 echo "4. Run Post processing analyses"
 
-perl $abs_top_srcdir/scripts/mix_analyzer.pl --infile $DRIVER_OUTPUT_DIR/mix.log --outdir $DRIVER_OUTPUT_DIR > $DRIVER_OUTPUT_DIR/results.out
+${abs_top_srcdir}/scripts/mix_analyzer.pl \
+		--infile ${DRIVER_OUTPUT_DIR}/mix.log \
+		--outdir ${DRIVER_OUTPUT_DIR} > ${DRIVER_OUTPUT_DIR}/results.out
 cp -p trtps.input $DRIVER_OUTPUT_DIR
 cd $DRIVER_OUTPUT_DIR
 @GNUPLOT@ trtps.input
@@ -318,8 +332,8 @@ if [ $USE_OPROFILE -eq 1 ]
 then
 	mkdir -p $OUTPUT_DIR/oprofile/
 	mkdir -p $OUTPUT_DIR/oprofile/annotate
-	cp -pR /var/lib/oprofile/samples/current $OUTPUT_DIR/oprofile/
-	sudo opannotate --source --assembly > $OUTPUT_DIR/oprofile/assembly.txt 2>&1
+	sudo opannotate --source \
+			--assembly > $OUTPUT_DIR/oprofile/assembly.txt 2>&1
 	sudo opannotate --source --output-dir=$OUTPUT_DIR/oprofile/annotate
 fi
 
@@ -327,11 +341,10 @@ fi
 echo "Killing Servers..."
 killall BrokerageHouseMain DriverMarketMain DriverCustomerMain 2> /dev/null
 
-$abs_top_srcdir/scripts/${DBDIR}/stop_db.sh
+$abs_top_srcdir/scripts/${DBDIR}/stop-db
 
 # Move the database log.  (No, not the transaction log.)
-chmod 644 $abs_top_srcdir/scripts/log
-mv $abs_top_srcdir/scripts/log $DB_OUTPUT_DIR
+chmod 644 ${DB_OUTPUT_DIR}/log
 
 # Postprocessing of Database Statistics
 @SAR@ -f ${OUTPUT_DIR}/sar_raw.out -A > ${OUTPUT_DIR}/sar.out

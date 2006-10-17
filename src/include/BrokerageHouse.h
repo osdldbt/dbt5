@@ -45,7 +45,8 @@ private:
 
 public:
 	CBrokerageHouse(const char *szHost, const char *szDBName,
-				 const char *szPostmasterPort, const int iListenPort);
+				const char *szPostmasterPort, const int iListenPort,
+				char *outputDirectory);
 	~CBrokerageHouse();
 
 	void Listener(void);

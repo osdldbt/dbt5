@@ -36,7 +36,8 @@ private:
 
 public:
 	CDriverMarket(char* szFileLoc, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
-				int iListenPort, char* szBHaddr, int iBHlistenPort);
+				int iListenPort, char* szBHaddr, int iBHlistenPort,
+				char *outputDirectory);
 	~CDriverMarket();
 
 	void Listener(void);

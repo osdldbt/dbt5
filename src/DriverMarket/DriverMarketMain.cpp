@@ -19,6 +19,7 @@ TIdent		iConfiguredCustomerCount = iDefaultLoadUnitSize;	// # of customers for t
 TIdent		iActiveCustomerCount = iDefaultLoadUnitSize;		// total number of customers in the database
 
 char		szFileLoc[iMaxPath];					// Security.txt file location
+char		outputDirectory[iMaxPath] = ".";					// path to output files
 
 // shows program usage
 void Usage()
@@ -33,6 +34,7 @@ void Usage()
 	cerr<<"   -l number	"<<iListenPort<<"\t\t\t\t   Socket listen port"<<endl;
 	cerr<<"   -h string	"<<szBHaddr<<"\t     Brokerage House address"<<endl;
 	cerr<<"   -b number	"<<iBHlistenPort<<"\t\t\t\t   Brokerage House listen port"<<endl;
+	cerr<<"   -o string	"<<outputDirectory<<"\t\t\t\t   directory for output files"<<endl;
 	cerr<<endl;
 }
 
@@ -89,6 +91,10 @@ void ParseCommandLine( int argc, char *argv[] )
 			case 'b':
 				sscanf(vp, "%d", &iBHlistenPort);
 				break;
+			case 'o':
+				strncpy(outputDirectory, vp,
+						sizeof(outputDirectory));
+				break;
 			default:
 				Usage();
 				cout<<"Error: Unrecognized option: "<<sp<<endl;
@@ -121,7 +127,8 @@ int main(int argc, char* argv[])
 	try
 	{
 		CDriverMarket	DriverMarket(szFileLoc, iConfiguredCustomerCount, iActiveCustomerCount,
-							iListenPort, szBHaddr, iBHlistenPort);
+							iListenPort, szBHaddr, iBHlistenPort,
+							outputDirectory);
 		cout<<endl<<"Market Exchange opened to business, waiting trade requests..."<<endl;
 	
 		DriverMarket.Listener();
