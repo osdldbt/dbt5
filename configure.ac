@@ -105,6 +105,8 @@ AC_ARG_WITH(egen,
   [egen_path="EGen_v3.14"]
 )
 
+AC_SUBST(egen_path)
+
 dnl Set up rules depending on what database is selected.
 if test "$database_to_use" == "pgsql"; then
 
@@ -186,35 +188,30 @@ if test "$database_to_use" == "pgsql"; then
   AC_CONFIG_FILES([scripts/pgsql/load-stored-procs],
 	[chmod +x scripts/pgsql/load-stored-procs])
   AC_CONFIG_FILES([scripts/pgsql/pgsql_profile])
-fi
 
-dnl Check for libs.
+  dnl
+  dnl Find pqxx libraries
+  dnl
 
-dnl
-dnl Find pqxx libraries
-dnl
-
-AC_PATH_PROGS(PQXX_CONFIG, pqxx-config)
-if test -z "$PQXX_CONFIG" || test ! -r "$PQXX_CONFIG"; then
-	AC_MSG_ERROR([
+  AC_PATH_PROGS(PQXX_CONFIG, pqxx-config)
+  if test -z "$PQXX_CONFIG" || test ! -r "$PQXX_CONFIG"; then
+	  AC_MSG_ERROR([
 Libpqxx configuration script pqxx-config not found.  Make sure this is in your
 command path before configuring.  Without it, the configure script has no way to
 find the right location for the libpqxx library.])
+  fi
+
+  DB_CFLAGS=`$PQXX_CONFIG --cflags`
+  DB_LDFLAGS=`$PQXX_CONFIG --libs`
+  AC_MSG_NOTICE([using libpqxx headers at $DB_CFLAGS])
+  AC_MSG_NOTICE([using libpqxx libraries at $DB_LDFLAGS])
+
+  STORED_PROC_TYPE="COMPILE_PLSQL_FUNCTION"
 fi
 
-with_pqxx_lib=`$PQXX_CONFIG --libs`
-AC_MSG_NOTICE([using libpqxx libraries at $with_pqxx_lib])
-
-AC_SUBST(with_pqxx_lib)
-
-# using LIBS instead of LDFLAGS to pass library names to the linker
-# (autoconf documentation says LDFLAGS should not be used to this purpose).
-# When using LDFLAGS I am getting 'undefined reference' errors during linkage
-# probably because of library ordering
-#
-LIBS="$LIBS $with_pqxx_lib"
-
-AC_SUBST(egen_path)
+AC_SUBST(DB_CFLAGS)
+AC_SUBST(DB_LDFLAGS)
+AC_SUBST(STORED_PROC_TYPE)
 
 AC_SUBST(database_to_use)
 AC_SUBST(DBC_CORE)
