@@ -1,1 +1,21 @@
 libpqxx-2.6 or newer is required.
+
+-----
+
+The EGen Makefile needs to be edited to include the database libraries in order
+to load the database.  Here is an example:
+
+LDFLAGS=-lpqxx -lpq
+
+If you are using non-standard (i.e. not in your path) locations, the following
+adds include paths for CFLAGS and paths to the runtime library path to LDFLAGS:
+
+LIBPG=path_to_postgresql_dir
+LIBPQXX=path_to_libpqxx_dir
+CCFLAGS=-ggdb -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -I$(LIBPQXX)/include -I$(LIBPG)/include
+LDFLAGS=-L$(LIBPQXX)/lib -lpqxx -L$(LIBPG)/lib -lpq -Wl,-R$(LIBPQXX)/lib -Wl,-R$(LIBPG)/lib
+
+-----
+
+To build the smallest database possible:
+	scripts/pgsql/build-db -c 1000 -i 1000 -s 1 -w 1
