@@ -110,7 +110,7 @@ if test "$database_to_use" == "pgsql"; then
 
   dnl check for initdb
   AC_PATH_PROGS(INITDB, initdb, ,
-    [pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
+    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
   )
   if test -z "$INITDB" ; then
     AC_MSG_ERROR([*** initdb is required])
