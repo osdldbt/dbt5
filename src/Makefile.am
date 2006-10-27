@@ -5,7 +5,6 @@ AUTOMAKE_OPTIONS = no-dependencies
 
 DEFS=-D@STORED_PROC_TYPE@ #-DDEBUG
 INCLUDES=-I@egen_path@/inc -Iinclude @DB_CFLAGS@
-LIBS=@DB_LDFLAGS@
 
 TXN=transactions
 INTF=interfaces
@@ -49,6 +48,7 @@ TestTxn_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                   $(TXN)/TradeStatusDB.cpp \
                   $(INTF)/TxnHarnessSendToMarketTest.cpp \
                   TestTransactions/TestTxn.cpp
+TestTxn_LDADD = $(DB_LDFLAGS)
 
 BrokerageHouseMain_SOURCES = $(EGEN)/DateTime.cpp \
                              $(INTF)/CSocket.cpp \
@@ -69,6 +69,7 @@ BrokerageHouseMain_SOURCES = $(EGEN)/DateTime.cpp \
                              $(TXN)/TradeOrderDB.cpp \
                              $(TXN)/TradeStatusDB.cpp \
                              BrokerageHouse/BrokerageHouse.cpp
+BrokerageHouseMain_LDADD = $(DB_LDFLAGS)
 
 DriverCustomerMain_SOURCES = DriverCustomer/DriverCustomer.cpp \
                              DriverCustomer/DriverCustomerMain.cpp \
@@ -90,6 +91,7 @@ DriverCustomerMain_SOURCES = DriverCustomer/DriverCustomer.cpp \
                              $(INTF)/DMSUT.cpp \
                              $(EGEN)/DM.cpp \
                              $(INTF)/BaseInterface.cpp
+DriverCustomerMain_LDFLAGS = $(DB_LDFLAGS)
 
 DriverMarketMain_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                            $(EGEN)/EGenVersion.cpp \
@@ -107,3 +109,4 @@ DriverMarketMain_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                            $(EGEN)/MEE.cpp \
                            $(INTF)/MEESUT.cpp \
                            $(INTF)/BaseInterface.cpp
+DriverMarketMain_LDADD = $(DB_LDFLAGS)
