@@ -6,6 +6,29 @@
 # Copyright (C) 2005-2006 Mark Wong & Open Source Development Labs, Inc.
 #
 
+usage()
+{
+	echo "Usage:"
+	echo "    build-db [option]"
+	echo "    build-db -h"
+	echo "Options:"
+	echo "    -c <customers>"
+	echo "        Number of customers (total in the database)"
+	echo "    -i <customers>"
+	echo "        Number of customers (for this instance)"
+	echo "    -p <database_parameters>"
+	echo "        PostgreSQL database parameters"
+	echo "    -r"
+	echo "        Drop existing database before building a new database"
+	echo "    -s <scale factor>"
+	echo "        Scale factor (customers per 1 trtps)"
+	echo "    -t"
+	echo "        Use tablespaces"
+	echo "    -w <days>"
+	echo -n "        Number of Workdays (8-hour days) of " 
+        echo "initial trades to populate"
+}
+
 TOPDIR="@abs_top_srcdir@"
 source ${TOPDIR}/scripts/dbt5_profile || exit 1
 
@@ -15,13 +38,21 @@ REBUILD_DB=0
 
 CUSTOMERS_INSTANCE=1000
 CUSTOMER_TOTAL=1000
-SCALE_FACTOR=1
+#
+# I don't know what the smallest SCALE_FACTOR is, which is what I would like to
+# set there, but 500 is definitely smaller than 1.
+#
+SCALE_FACTOR=500
 WORKDAYS=1
 
-while getopts "c:i:p:rs:tw:" OPT; do
+while getopts "c:hi:p:rs:tw:" OPT; do
 	case ${OPT} in
 	c)
 		CUSTOMERS_TOTAL=${OPTARG}
+		;;
+	h)
+		usage
+		exit 0
 		;;
 	i)
 		CUSTOMERS_INSTANCE=${OPTARG}
