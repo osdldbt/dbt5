@@ -1,10 +1,9 @@
 #!/usr/bin/perl -w
-
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+# Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
 #
 # 2006 Rilson Nascimento
 
@@ -523,7 +522,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/trade_order.data" );
-foreach my $time ( sort keys %to_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %to_distribution  ) {
 	printf( "%8s %5d\n", $time, $to_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $to_distribution{ $time }\n"
 		if ( $to_distribution{ $time } );
@@ -539,7 +538,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/trade_result.data" );
-foreach my $time ( sort keys %tr_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %tr_distribution  ) {
 	printf( "%8s %5d\n", $time, $tr_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $tr_distribution{ $time }\n"
 		if ( $tr_distribution{ $time } );
@@ -555,7 +554,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/trade_lookup.data" );
-foreach my $time ( sort keys %tl_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %tl_distribution  ) {
 	printf( "%8s %5d\n", $time, $tl_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $tl_distribution{ $time }\n"
 		if ( $tl_distribution{ $time } );
@@ -571,7 +570,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/trade_update.data" );
-foreach my $time ( sort keys %tu_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %tu_distribution  ) {
 	printf( "%8s %5d\n", $time, $tu_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $tu_distribution{ $time }\n"
 		if ( $tu_distribution{ $time } );
@@ -587,7 +586,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/trade_status.data" );
-foreach my $time ( sort keys %ts_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %ts_distribution  ) {
 	printf( "%8s %5d\n", $time, $ts_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $ts_distribution{ $time }\n"
 		if ( $ts_distribution{ $time } );
@@ -603,7 +602,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/customer_position.data" );
-foreach my $time ( sort keys %cp_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %cp_distribution  ) {
 	printf( "%8s %5d\n", $time, $cp_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $cp_distribution{ $time }\n"
 		if ( $cp_distribution{ $time } );
@@ -619,7 +618,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/broker_volume.data" );
-foreach my $time ( sort keys %bv_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %bv_distribution  ) {
 	printf( "%8s %5d\n", $time, $bv_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $bv_distribution{ $time }\n"
 		if ( $bv_distribution{ $time } );
@@ -635,7 +634,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/security_detail.data" );
-foreach my $time ( sort keys %sd_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %sd_distribution  ) {
 	printf( "%8s %5d\n", $time, $sd_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $sd_distribution{ $time }\n"
 		if ( $sd_distribution{ $time } );
@@ -651,7 +650,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/market_feed.data" );
-foreach my $time ( sort keys %mf_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %mf_distribution  ) {
 	printf( "%8s %5d\n", $time, $mf_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $mf_distribution{ $time }\n"
 		if ( $mf_distribution{ $time } );
@@ -667,7 +666,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/market_watch.data" );
-foreach my $time ( sort keys %mw_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %mw_distribution  ) {
 	printf( "%8s %5d\n", $time, $mw_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $mw_distribution{ $time }\n"
 		if ( $mw_distribution{ $time } );
@@ -683,7 +682,7 @@ if ( $verbose ) {
 	printf( "%8s %5s\n", "--------", "-----" );
 }
 open( FILE, ">$outdir/data_maintenance.data" );
-foreach my $time ( sort keys %dm_distribution  ) {
+foreach my $time ( sort { $a <=> $b } keys %dm_distribution  ) {
 	printf( "%8s %5d\n", $time, $dm_distribution{ $time } ) if ( $verbose );
 	print FILE "$time $dm_distribution{ $time }\n"
 		if ( $dm_distribution{ $time } );
@@ -732,17 +731,20 @@ foreach my $transaction ( @xtran ) {
 #
 # Determine 90th percentile response times for each transaction.
 #
-@trade_order_response_time = sort(@trade_order_response_time);
-@trade_result_response_time = sort(@trade_result_response_time);
-@trade_lookup_response_time = sort(@trade_lookup_response_time);
-@trade_update_response_time = sort(@trade_update_response_time);
-@trade_status_response_time = sort(@trade_status_response_time);
-@customer_position_response_time = sort(@customer_position_response_time);
-@broker_volume_response_time = sort(@broker_volume_response_time);
-@security_detail_response_time = sort(@security_detail_response_time);
-@market_feed_response_time = sort(@market_feed_response_time);
-@market_watch_response_time = sort(@market_watch_response_time);
-@data_maintenance_response_time = sort(@data_maintenance_response_time);
+@trade_order_response_time = sort { $a <=> $b } @trade_order_response_time;
+@trade_result_response_time = sort { $a <=> $b } @trade_result_response_time;
+@trade_lookup_response_time = sort { $a <=> $b } @trade_lookup_response_time;
+@trade_update_response_time = sort { $a <=> $b } @trade_update_response_time;
+@trade_status_response_time = sort { $a <=> $b } @trade_status_response_time;
+@customer_position_response_time =
+		sort { $a <=> $b } @customer_position_response_time;
+@broker_volume_response_time = sort { $a <=> $b } @broker_volume_response_time;
+@security_detail_response_time =
+		sort { $a <=> $b } @security_detail_response_time;
+@market_feed_response_time = sort { $a <=> $b } @market_feed_response_time;
+@market_watch_response_time = sort { $a <=> $b } @market_watch_response_time;
+@data_maintenance_response_time =
+		sort { $a <=> $b } @data_maintenance_response_time;
 
 #
 # Get the index for the 90th percentile point.
