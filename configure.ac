@@ -98,6 +98,13 @@ AC_ARG_WITH(postgresql,
   [database_to_use="pgsql"]
 )
 
+AC_ARG_WITH(pqxx,
+  [AC_HELP_STRING([--with-pqxx=DIR],
+      [Default on. Set to the path of the libpqxx installation, or leave
+          unset if the path is already in the compiler search path.])],
+  [pqxx_path=$withval]
+)
+
 AC_ARG_WITH(egen,
   [AC_HELP_STRING([--with-egen=DIR],
       [Default is to use EGen distributed with his kit.])],
@@ -193,7 +200,15 @@ if test "$database_to_use" == "pgsql"; then
   dnl Find pqxx libraries
   dnl
 
-  AC_PATH_PROGS(PQXX_CONFIG, pqxx-config)
+  if test "$pgsql_path" != "yes"; then
+    DB_LDFLAGS="$DB_LDFLAGS -Wl,-R$pgsql_path/lib"
+  fi
+
+  if test "$pqxx_path" != "yes"; then
+    DB_LDFLAGS="$DB_LDFLAGS -Wl,-R$pqxx_path/lib"
+  fi
+
+  AC_PATH_PROGS(PQXX_CONFIG, pqxx-config, , $pqxx_path/bin:$PATH)
   if test -z "$PQXX_CONFIG" || test ! -r "$PQXX_CONFIG"; then
 	  AC_MSG_ERROR([
 Libpqxx configuration script pqxx-config not found.  Make sure this is in your
@@ -201,10 +216,12 @@ command path before configuring.  Without it, the configure script has no way to
 find the right location for the libpqxx library.])
   fi
 
-  DB_CFLAGS=`$PQXX_CONFIG --cflags`
-  DB_LDFLAGS=`$PQXX_CONFIG --libs`
-  AC_MSG_NOTICE([using libpqxx headers at $DB_CFLAGS])
-  AC_MSG_NOTICE([using libpqxx libraries at $DB_LDFLAGS])
+  LIBPQXX_CFLAGS=`$PQXX_CONFIG --cflags`
+  LIBPQXX_LDFLAGS=`$PQXX_CONFIG --libs`
+  DB_CFLAGS="$DB_CFLAGS $LIBPQXX_CFLAGS"
+  DB_LDFLAGS="$DB_LDFLAGS $LIBPQXX_LDFLAGS"
+  AC_MSG_NOTICE([using libpqxx headers at $LIBPQXX_CFLAGS])
+  AC_MSG_NOTICE([using libpqxx libraries at $LIBPQXX_LDFLAGS])
 
   STORED_PROC_TYPE="COMPILE_PLSQL_FUNCTION"
 fi
