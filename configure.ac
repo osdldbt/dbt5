@@ -44,6 +44,13 @@ then
   AC_MSG_WARN([*** sar or bsdsar not found some scripts may not be usable])
 fi
 
+AC_PATH_PROGS([RSYNC], [rsync], ,
+    [$PATH:/usr/local/bin:/usr/bin:/sbin:/bin])
+if test -z "$RSYNC"
+then
+  AC_MSG_ERROR([*** rsync not found])
+fi
+
 AC_PATH_PROGS([SYSCTL], [sysctl], ,
     [$PATH:/usr/local/bin:/usr/bin:/sbin:/bin])
 if test -z "$SYSCTL"
@@ -211,7 +218,11 @@ if test "$database_to_use" == "pgsql"; then
 
   if test "$pgsql_path" != "yes"; then
     DB_LDFLAGS="$DB_LDFLAGS -Wl,-R$pgsql_path/lib"
+    AC_PATH_PROGS(PG_CONFIG, pg_config, no, "$pgsql_path/bin")
+  else
+    AC_PATH_PROGS(PG_CONFIG, pg_config, no)
   fi
+  AC_SUBST(PG_CONFIG)
 
   if test "$pqxx_path" != "yes"; then
     DB_LDFLAGS="$DB_LDFLAGS -Wl,-R$pqxx_path/lib"
@@ -244,8 +255,8 @@ AC_SUBST(database_to_use)
 AC_SUBST(DBC_CORE)
 AC_SUBST(DBC_FUNCTIONS)
 
-AC_CONFIG_FILES([scripts/run_workload.sh],
-	[chmod +x scripts/run_workload.sh])
+AC_CONFIG_FILES([scripts/run-workload],
+	[chmod +x scripts/run-workload])
 AC_CONFIG_FILES([scripts/transform_sar.sh],
 	[chmod +x scripts/transform_sar.sh])
 AC_CONFIG_FILES([scripts/sysstats.sh],

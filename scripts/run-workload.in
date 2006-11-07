@@ -14,11 +14,173 @@ source ${abs_top_srcdir}/scripts/dbt5_profile || exit 1
 trap 'echo "Test was interrupted by Control-C."; \
 	killall BrokerageHouseMain; killall DriverMarketMain; killall DriverCustomerMain; \
 	killall sar; killall sadc; killall vmstat; killall iostat; \
-        $abs_top_srcdir/scripts/${DBDIR}/stop-db' INT
+        ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop-db' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
 	killall BrokerageHouseMain; killall DriverMarketMain; killall DriverCustomerMain; \
 	killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat; \
-	$abs_top_srcdir/scripts/${DBDIR}/stop-db' TERM
+	${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop-db' TERM
+
+do_sleep()
+{
+    echo "Sleeping $1 seconds"
+    sleep $1
+}
+
+make_directories()
+{
+	COMMAND=""
+	HOST=${1}
+	if [ -n "${HOST}" ]; then
+		COMMAND="ssh ${HOST}"
+	fi
+	${COMMAND} mkdir -p ${OUTPUT_DIR}
+	${COMMAND} mkdir -p ${BH_OUTPUT_DIR}
+	${COMMAND} mkdir -p ${DRIVER_OUTPUT_DIR}
+	${COMMAND} mkdir -p ${DB_OUTPUT_DIR}
+}
+
+oprofile_annotate()
+{
+	COMMAND=""
+	DIR=${1}
+	HOST=${2}
+	if [ -n "${HOST}" ]; then
+		COMMAND="ssh ${HOST}"
+	else
+		HOST=`hostname`
+	fi
+	echo "oprofile is annotating source: ${HOST}"
+	${COMMAND} mkdir -p ${DIR}/oprofile/
+	${COMMAND} mkdir -p ${DIR}/oprofile/annotate
+	if [ -n "${COMMAND}" ]; then
+		${COMMAND} "sudo opannotate --source --assembly > ${DIR}/oprofile/assembly.txt" > /dev/null 2>&1
+	else
+		sudo opannotate --source --assembly > ${DIR}/oprofile/assembly.txt > /dev/null 2>&1
+	fi
+	${COMMAND} sudo opannotate --source --output-dir=${DIR}/oprofile/annotate > /dev/null 2>&1
+}
+
+oprofile_collect()
+{
+	COMMAND=""
+	DIR=${1}
+	HOST=${2}
+	if [ -n "${HOST}" ]; then
+		COMMAND="ssh ${HOST}"
+	else
+		HOST=`hostname`
+	fi
+	#
+	# I don't think we need any output dumped to the terminal.
+	#
+	echo "oprofile is dumping data: ${HOST}"
+	${COMMAND} sudo opcontrol --dump
+	if [ -n "${COMMAND}" ]; then
+		${COMMAND} "sudo opreport -l -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/oprofile.txt > /dev/null 2>&1"
+		${COMMAND} "sudo opreport -l -c -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/callgraph.txt > /dev/null 2>&1"
+	else
+		sudo opreport -l -p /lib/modules/`uname -r` \
+				-o ${DIR}/oprofile.txt > /dev/null 2>&1
+		sudo opreport -l -c -p /lib/modules/`uname -r` \
+				-o ${DIR}/callgraph.txt > /dev/null 2>&1
+	fi
+	${COMMAND} sudo opcontrol --stop
+}
+
+oprofile_reset()
+{
+	COMMAND=""
+	HOST=${1}
+	if [ -n "${HOST}" ]; then
+		COMMAND="ssh ${HOST}"
+	else
+		HOST=`hostname`
+	fi
+	echo "reseting oprofile counters: ${HOST}"
+	${COMMAND} sudo opcontrol --reset
+}
+
+oprofile_stop()
+{
+	COMMAND=""
+	HOST=${1}
+	if [ -n "${HOST}" ]; then
+		COMMAND="ssh ${HOST}"
+	else
+		HOST=`hostname`
+	fi
+	echo "stopping oprofile daemon: ${HOST}"
+	${COMMAND} sudo opcontrol --shutdown
+}
+
+readprofile_collect()
+{
+	COMMAND=""
+	DIR=${1}
+	HOST=${2}
+	if [ -n "${HOST}" ]; then
+		COMMAND="ssh ${HOST}"
+	else
+		HOST=`hostname`
+	fi
+	echo "collecting readprofile data: ${HOST}"
+	PROFILE=${DIR}/readprofile.txt
+	if [ -n "${COMMAND}" ]; then
+		${COMMAND} "/usr/sbin/readprofile -n -m /boot/System.map-`${COMMAND} uname -r` > ${PROFILE}"
+		${COMMAND} "cat ${PROFILE} | sort -n -r -k1 > ${DIR}/readprofile_ticks.txt"
+		${COMMAND} "cat ${PROFILE} | sort -n -r -k3 > ${DIR}/readprofile_load.txt"
+	else
+		/usr/sbin/readprofile -n \
+				-m /boot/System.map-`${COMMAND} uname -r` > ${PROFILE}
+		cat ${PROFILE} | sort -n -r -k1 > ${DIR}/readprofile_ticks.txt
+		cat ${PROFILE} | sort -n -r -k3 > ${DIR}/readprofile_load.txt
+	fi
+}
+
+oprofile_init()
+{
+	COMMAND=""
+	HOST=${1}
+	if [ -n "${HOST}" ]; then
+		COMMAND="ssh ${HOST}"
+	else
+		HOST=`hostname`
+	fi
+	echo "starting oprofile: ${HOST}"
+	${COMMAND} sudo opcontrol \
+			--vmlinux=/usr/src/linux-`${COMMAND} uname -r`/vmlinux -c 100
+	sleep 1
+	START_ARGS=""
+	MACHINE=`${COMMAND} uname -m`
+	if [ "${MACHINE}" == "ppc64" ]; then
+		#
+		# Oprofile fails to work on ppc64 because the defaults settings
+		# are invalid on this platform.  Why isn't it smart enough to
+		# have valid default setting depending on arch?
+		#
+		START_ARGS="-e CYCLES:150000:0:1:1"
+	fi
+	${COMMAND} sudo opcontrol --start-daemon ${START_ARGS}
+	sleep 1
+	${COMMAND} sudo opcontrol --start
+}
+
+readprofile_clear()
+{
+	COMMAND=""
+	HOST=${1}
+	if [ -n "${HOST}" ]; then
+		COMMAND="ssh ${HOST}"
+	else
+		HOST=`hostname`
+	fi
+	echo "clearing readprofile data: ${HOST}"
+	if [ -n "${COMMAND}" ]; then
+		${COMMAND} "sudo /usr/sbin/readprofile -r"
+	else
+		sudo /usr/sbin/readprofile -r
+	fi
+}
 
 usage()
 {
@@ -54,19 +216,14 @@ validate_parameter()
 	fi
 }
 
-do_sleep()
-{
-    echo "Sleeping $1 seconds"
-    sleep $1
-}
-
 DB_HOSTNAME="localhost"
 DB_NAME="dbt5"
 DB_PORT=5432
+SCALE_FACTOR=500
 SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
 
-while getopts "c:d:e:f:i:l:op:s:t:u:w:z:" opt; do
+while getopts "c:d:e:f:h:i:l:op:s:t:u:w:z:" opt; do
 	case $opt in
 	c)
 		# Configured customer count
@@ -84,9 +241,10 @@ while getopts "c:d:e:f:i:l:op:s:t:u:w:z:" opt; do
 		SCALE_FACTOR=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $SCALE_FACTOR
 		;;
-        h)
-                DB_HOSTNAME=$OPTARG
-                ;;
+	h)
+		DB_HOSTNAME=$OPTARG
+		DB_COMMAND="ssh ${DB_HOSTNAME}"
+		;;
 	i)	
 		# intial trade days
 		ITD=`echo $OPTARG | egrep "^[0-9]+$"`
@@ -96,9 +254,9 @@ while getopts "c:d:e:f:i:l:op:s:t:u:w:z:" opt; do
 		PACING_DELAY=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $PACING_DELAY
 		;;
-        n)
-                DB_NAME=$OPTARG
-                ;;
+	n)
+		DB_NAME=$OPTARG
+		;;
 	o)
 		USE_OPROFILE=1
 		;;
@@ -170,10 +328,12 @@ DRIVER_OUTPUT_DIR=$OUTPUT_DIR/driver
 DB_OUTPUT_DIR=$OUTPUT_DIR/db
 
 # Create the directories we will need.
-mkdir -p $OUTPUT_DIR
-mkdir -p $BH_OUTPUT_DIR
-mkdir -p $DRIVER_OUTPUT_DIR
-mkdir -p $DB_OUTPUT_DIR
+make_directories
+if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	make_directories ${DB_HOSTNAME}
+	@RSYNC@ -a -e "ssh" --delete ${DB_OUTPUT_DIR}/ \
+		${DB_HOSTNAME}:${DB_OUTPUT_DIR}/
+fi
 
 # Update log.html
 echo "<a href='$RUN_NUMBER/'>$RUN_NUMBER</a>: $COMMENT<br />" >> ${abs_top_srcdir}/scripts/output/log.html
@@ -197,8 +357,13 @@ echo "Database Scale Factor: $CUSTOMERS customers" >> $OUTPUT_DIR/readme.txt
 echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
 
 # Restart PostgreSQL
-$abs_top_srcdir/scripts/${DBDIR}/stop-db
-$abs_top_srcdir/scripts/${DBDIR}/start-db -p "${DB_PARAMS}" -o ${DB_OUTPUT_DIR}
+${DB_COMMAND} $abs_top_srcdir/scripts/${DBDIR}/stop-db
+if [ -n "${DB_COMMAND}" ]; then
+	${DB_COMMAND} "${abs_top_srcdir}/scripts/${DBDIR}/start-db -p \"${DB_PARAMS}\" -o ${DB_OUTPUT_DIR}" || exit 1
+else
+	${abs_top_srcdir}/scripts/${DBDIR}/start-db -p "${DB_PARAMS}" \
+			-o ${DB_OUTPUT_DIR} || exit 1
+fi
 
 echo ""
 echo "************************************************************************"
@@ -244,18 +409,17 @@ ITERNATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
 ${abs_top_srcdir}/scripts/sysstats.sh --iter ${ITERNATIONS} \
 		--sample ${SAMPLE_LENGTH} \
 		--outdir ${OUTPUT_DIR} > ${OUTPUT_DIR}/stats.out 2>&1 &
-${abs_top_srcdir}/scripts/${DBDIR}/db-stat -o ${DB_OUTPUT_DIR} \
+${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/db-stat \
+		-o ${DB_OUTPUT_DIR} \
 		-i ${ITERNATIONS} \
 		-s ${SAMPLE_LENGTH} > ${OUTPUT_DIR}/dbstats.out 2>&1 &
 
 # Initialize oprofile before we start the driver.
-if [ $USE_OPROFILE -eq 1 ]
-then
-        sudo opcontrol --vmlinux=/usr/src/linux-`uname -r`/vmlinux -c 100
-        sleep 1
-        sudo opcontrol --start-daemon
-        sleep 1
-        sudo opcontrol --start
+if [ ${USE_OPROFILE} -eq 1 ]; then
+	oprofile_init
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+		oprofile_init ${DB_HOSTNAME}
+	fi
 fi
 
 #
@@ -275,15 +439,18 @@ do_sleep $SLEEP_RAMPUP
 
 # Clear the readprofile data after the driver ramps up.
 if [ -f /proc/profile ]; then
-    echo "Clearing profile data"
-	sudo /usr/sbin/readprofile -r
+	readprofile_clear
+fi
+if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	readprofile_clear ${DB_HOSTNAME}
 fi
 
 # Reset the oprofile counters after the driver ramps up.
-if [ $USE_OPROFILE -eq 1 ]
-then
-    echo "Reseting oprofile counters"    
-    sudo opcontrol --reset
+if [ ${USE_OPROFILE} -eq 1 ]; then
+	oprofile_reset
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+		oprofile_reset ${DB_HOSTNAME}
+	fi
 fi
 
 # Sleep for the duration of the run.
@@ -294,20 +461,18 @@ wait `ps -C DriverCustomerMain -o pid=`
 
 # Collect profile data.
 if [ -f /proc/profile ]; then
-	PROFILE=$OUTPUT_DIR/readprofile.txt
-	/usr/sbin/readprofile -n -m /boot/System.map-`uname -r` > $PROFILE
-	cat $PROFILE | sort -n -r -k1 > $OUTPUT_DIR/readprofile_ticks.txt
-	cat $PROFILE | sort -n -r -k3 > $OUTPUT_DIR/readprofile_load.txt
+	readprofile_collect ${OUTPUT_DIR}
+fi
+if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	readprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
 fi
 
 # Collect oprofile data.
-if [ $USE_OPROFILE -eq 1 ]
-then
-	sudo opcontrol --dump
-	sudo opreport -l -p /lib/modules/`uname -r` -o $OUTPUT_DIR/oprofile.txt
-	sudo opreport -l -c -p /lib/modules/`uname -r` \
-			-o ${OUTPUT_DIR}/callgraph.txt
-	sudo opcontrol --stop
+if [ ${USE_OPROFILE} -eq 1 ]; then
+	oprofile_collect ${OUTPUT_DIR}
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+		oprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
+	fi
 fi
 
 # sort and merge emulators mix files into mix.log
@@ -319,28 +484,38 @@ sort -t "," -k 1 ${DRIVER_OUTPUT_DIR}/ce_mix.log \
 echo
 echo "4. Run Post processing analyses"
 
-${abs_top_srcdir}/scripts/mix_analyzer.pl \
+${abs_top_srcdir}/scripts/mix-analyzer \
 		--infile ${DRIVER_OUTPUT_DIR}/mix.log \
 		--outdir ${DRIVER_OUTPUT_DIR} > ${DRIVER_OUTPUT_DIR}/results.out
 cp -p ${abs_top_srcdir}/scripts/trtps.input ${DRIVER_OUTPUT_DIR} || exit 1
-cd $DRIVER_OUTPUT_DIR
-@GNUPLOT@ trtps.input
-cd -
-
-if [ $USE_OPROFILE -eq 1 ]
-then
-	mkdir -p $OUTPUT_DIR/oprofile/
-	mkdir -p $OUTPUT_DIR/oprofile/annotate
-	sudo opannotate --source \
-			--assembly > $OUTPUT_DIR/oprofile/assembly.txt 2>&1
-	sudo opannotate --source --output-dir=$OUTPUT_DIR/oprofile/annotate
-fi
+cd ${DRIVER_OUTPUT_DIR} && @GNUPLOT@ trtps.input
 
 # Servers don't go away by themselves like the driver does, so kill it.
 echo "Killing Servers..."
 killall BrokerageHouseMain DriverMarketMain DriverCustomerMain 2> /dev/null
 
-$abs_top_srcdir/scripts/${DBDIR}/stop-db
+${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop-db
+
+if [ ${USE_OPROFILE} -eq 1 ]; then
+	oprofile_annotate ${OUTPUT_DIR} &
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+		oprofile_annotate ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
+	fi
+	wait
+fi
+
+if [ ${USE_OPROFILE} -eq 1 ]; then
+	oprofile_stop
+	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+		oprofile_stop ${DB_HOSTNAME}
+	fi
+fi
+
+
+if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	@RSYNC@ -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
+			${DB_OUTPUT_DIR}/
+fi
 
 # Move the database log.  (No, not the transaction log.)
 chmod 644 ${DB_OUTPUT_DIR}/log

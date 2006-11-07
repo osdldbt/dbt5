@@ -19,3 +19,16 @@ LDFLAGS=-L$(LIBPQXX)/lib -lpqxx -L$(LIBPG)/lib -lpq -Wl,-R$(LIBPQXX)/lib -Wl,-R$
 
 To build the smallest database possible:
 	scripts/pgsql/build-db -c 1000 -i 1000 -s 1 -w 1
+
+-----
+
+2-tier notes
+
+Default PostgreSQL installations from CVS or source disable the tpc/ip listener
+except for localhost connections.  It can be enabled through the
+scripts/run-workload scripts using '-d "-c listen_addresses=*"' to enable
+listening from all ip accresses, or by setting the postgresql.conf file.
+
+The scripts/pgsql/create-db scripts will copy over a pg_hba.conf file only if
+the scripts has to run initdb.  This pg_hba.conf enables anyone from anywhere
+to connect to the database.
