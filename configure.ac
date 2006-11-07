@@ -188,13 +188,22 @@ if test "$database_to_use" == "pgsql"; then
 	[chmod +x scripts/pgsql/create-indexes])
   AC_CONFIG_FILES([scripts/pgsql/create-tables],
 	[chmod +x scripts/pgsql/create-tables])
-  AC_CONFIG_FILES([scripts/pgsql/db_stat.sh],
-	[chmod +x scripts/pgsql/db_stat.sh])
+  AC_CONFIG_FILES([scripts/pgsql/db-stat],
+	[chmod +x scripts/pgsql/db-stat])
   AC_CONFIG_FILES([scripts/pgsql/drop-db],
 	[chmod +x scripts/pgsql/drop-db])
   AC_CONFIG_FILES([scripts/pgsql/load-stored-procs],
 	[chmod +x scripts/pgsql/load-stored-procs])
   AC_CONFIG_FILES([scripts/pgsql/pgsql_profile])
+
+
+  if test "$pgsql_path" == "yes"; then
+    AC_PATH_PROGS(PG_CONFIG, pg_config, no)
+  else
+    DB_LDFLAGS="$DB_LDFLAGS -Wl,-R$pgsql_path/lib"
+    AC_PATH_PROGS(PG_CONFIG, pg_config, no, "$pgsql_path/bin")
+  fi
+  AC_SUBST(PG_CONFIG)
 
   dnl
   dnl Find pqxx libraries
@@ -215,6 +224,7 @@ Libpqxx configuration script pqxx-config not found.  Make sure this is in your
 command path before configuring.  Without it, the configure script has no way to
 find the right location for the libpqxx library.])
   fi
+  AC_SUBST(PQXX_CONFIG)
 
   LIBPQXX_CFLAGS=`$PQXX_CONFIG --cflags`
   LIBPQXX_LDFLAGS=`$PQXX_CONFIG --libs`

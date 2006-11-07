@@ -244,7 +244,7 @@ ITERNATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
 ${abs_top_srcdir}/scripts/sysstats.sh --iter ${ITERNATIONS} \
 		--sample ${SAMPLE_LENGTH} \
 		--outdir ${OUTPUT_DIR} > ${OUTPUT_DIR}/stats.out 2>&1 &
-${abs_top_srcdir}/scripts/${DBDIR}/db_stat.sh -o ${DB_OUTPUT_DIR} \
+${abs_top_srcdir}/scripts/${DBDIR}/db-stat -o ${DB_OUTPUT_DIR} \
 		-i ${ITERNATIONS} \
 		-s ${SAMPLE_LENGTH} > ${OUTPUT_DIR}/dbstats.out 2>&1 &
 

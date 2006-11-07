@@ -1,10 +1,9 @@
-#!/bin/sh
-
+#!/bin/bash
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+# Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
 #
 
 DIR=`dirname $0`
@@ -25,7 +24,9 @@ while getopts "i:o:s:" opt; do
 done
 
 # Get database version.
-${PSQL} --version >> $OUTPUT_DIR/readme.txt
+@PG_CONFIG@ --version >> $OUTPUT_DIR/readme.txt
+PQXX_VERSION=`@PQXX_CONFIG@ --version`
+echo "libpqxx ${PQXX_VERSION}" >> $OUTPUT_DIR/readme.txt
 
 # Get database parameters.
 ${PSQL} -e -d ${DBNAME} -c "show all"  > $OUTPUT_DIR/param.out
