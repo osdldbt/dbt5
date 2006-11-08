@@ -1,0 +1,17 @@
+See addition README-* for more specific instructions depending on software used.
+
+-----
+
+# configure
+./configure --with-<database>
+
+# Build EGen, separate build system from the rest of the kit.
+(cd src/EGen_v3.14/prj && make)
+
+# Build the rest of the kit.
+make
+
+# See README-<database} for specific database creation notes.
+
+# Run a quick 60 second test.
+scripts/run-workload -c 1000 -t 60 -u 1 -e 1 -f 500 -i 1 -s 100
