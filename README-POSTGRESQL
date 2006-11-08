@@ -17,8 +17,8 @@ LDFLAGS=-L$(LIBPQXX)/lib -lpqxx -L$(LIBPG)/lib -lpq -Wl,-R$(LIBPQXX)/lib -Wl,-R$
 
 -----
 
-To build the smallest database possible:
-	scripts/pgsql/build-db -c 1000 -i 1000 -s 1 -w 1
+To build a small database possible:
+	scripts/pgsql/build-db -c 1000 -i 1000 -s 500 -w 1
 
 -----
 
