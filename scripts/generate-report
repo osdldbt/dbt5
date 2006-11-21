@@ -1,0 +1,418 @@
+#!/usr/bin/perl -w
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2006 Mark Wong & Open Source Development Labs, Inc.
+#
+# 2006 Rilson Nascimento
+
+use strict;
+use warnings;
+use Getopt::Long;
+use Test::Parser::Dbt5;
+use Test::Presenter::Dbt5;
+
+my $dir;
+my $format = "png";
+my $indir;
+my $outdir = "report";
+my $xml_file;
+
+#
+# Disk devices per tablespace.
+#
+my $account_permission;
+my $customer;
+my $customer_account;
+my $customer_taxrate;
+my $log;
+my $holding;
+my $holding_history;
+my $holding_summary;
+my $watch_item;
+my $watch_list;
+my $broker;
+my $cash_transaction;
+my $charge;
+my $commission_rate;
+my $settlement;
+my $trade;
+my $trade_history;
+my $trade_request;
+my $trade_type;
+my $company;
+my $company_competitor;
+my $daily_market;
+my $exchange;
+my $financial;
+my $industry;
+my $last_trade;
+my $news_item;
+my $news_xref;
+my $sector;
+my $security;
+my $address;
+my $status_type;
+my $taxrate;
+my $zip_code;
+#
+# Primary key tablespaces.
+#
+my $pkaccount_permission;
+my $pkcustomer;
+my $pkcustomer_account;
+my $pkcustomer_taxrate;
+my $pkholding;
+my $pkholding_history;
+my $pkholding_summary;
+my $pkwatch_item;
+my $pkwatch_list;
+my $pkbroker;
+my $pkcash_transaction;
+my $pkcharge;
+my $pkcommission_rate;
+my $pksettlement;
+my $pktrade;
+my $pktrade_history;
+my $pktrade_request;
+my $pktrade_type;
+my $pkcompany;
+my $pkcompany_competitor;
+my $pkdaily_market;
+my $pkexchange;
+my $pkfinancial;
+my $pkindustry;
+my $pklast_trade;
+my $pknews_item;
+my $pknews_xref;
+my $pksector;
+my $pksecurity;
+my $pkaddress;
+my $pkstatus_type;
+my $pktaxrate;
+my $pkzip_code;
+#
+# Index tablespaces
+#
+
+GetOptions(
+    'dir=s' => \$dir,
+    'format=s' => \$format,
+    'indir=s' => \$indir,
+    'log=s' => \$log,
+    'outdir=s' => \$outdir,
+    'xml-file=s' => \$xml_file,
+    'account_permission=s' => \$account_permission,
+    'customer=s' => \$customer,
+    'customer_account=s' => \$customer_account,
+    'customer_taxrate=s' => \$customer_taxrate,
+    'holding=s' => \$holding,
+    'holding_history=s' => \$holding_history,
+    'holding_summary=s' => \$holding_summary,
+    'watch_item=s' => \$watch_item,
+    'watch_list=s' => \$watch_list,
+    'broker=s' => \$broker,
+    'cash_transaction=s' => \$cash_transaction,
+    'charge=s' => \$charge,
+    'commission_rate=s' => \$commission_rate,
+    'settlement=s' => \$settlement,
+    'trade=s' => \$trade,
+    'trade_history=s' => \$trade_history,
+    'trade_request=s' => \$trade_request,
+    'trade_type=s' => \$trade_type,
+    'company=s' => \$company,
+    'company_competitor=s' => \$company_competitor,
+    'daily_market=s' => \$daily_market,
+    'exchange=s' => \$exchange,
+    'financial=s' => \$financial,
+    'industry=s' => \$industry,
+    'last_trade=s' => \$last_trade,
+    'news_item=s' => \$news_item,
+    'news_xref=s' => \$news_xref,
+    'sector=s' => \$sector,
+    'security=s' => \$security,
+    'address=s' => \$address,
+    'status_type=s' => \$status_type,
+    'taxrate=s' => \$taxrate,
+    'zip_code=s' => \$zip_code,
+    'pkaccount_permission=s' => \$pkaccount_permission,
+    'pkcustomer=s' => \$pkcustomer,
+    'pkcustomer_account=s' => \$pkcustomer_account,
+    'pkcustomer_taxrate=s' => \$pkcustomer_taxrate,
+    'pkholding=s' => \$pkholding,
+    'pkholding_history=s' => \$pkholding_history,
+    'pkholding_summary=s' => \$pkholding_summary,
+    'pkwatch_item=s' => \$pkwatch_item,
+    'pkwatch_list=s' => \$pkwatch_list,
+    'pkbroker=s' => \$pkbroker,
+    'pkcash_transaction=s' => \$pkcash_transaction,
+    'pkcharge=s' => \$pkcharge,
+    'pkcommission_rate=s' => \$pkcommission_rate,
+    'pksettlement=s' => \$pksettlement,
+    'pktrade=s' => \$pktrade,
+    'pktrade_history=s' => \$pktrade_history,
+    'pktrade_request=s' => \$pktrade_request,
+    'pktrade_type=s' => \$pktrade_type,
+    'pkcompany=s' => \$pkcompany,
+    'pkcompany_competitor=s' => \$pkcompany_competitor,
+    'pkdaily_market=s' => \$pkdaily_market,
+    'pkexchange=s' => \$pkexchange,
+    'pkfinancial=s' => \$pkfinancial,
+    'pkindustry=s' => \$pkindustry,
+    'pklast_trade=s' => \$pklast_trade,
+    'pknews_item=s' => \$pknews_item,
+    'pknews_xref=s' => \$pknews_xref,
+    'pksector=s' => \$pksector,
+    'pksecurity=s' => \$pksecurity,
+    'pkaddress=s' => \$pkaddress,
+    'pkstatus_type=s' => \$pkstatus_type,
+    'pktaxrate=s' => \$pktaxrate,
+    'pkzip_code=s' => \$pkzip_code
+);
+
+my $presenter;
+if ($xml_file) {
+  if (-f $xml_file) {
+    $presenter = Test::Presenter::Dbt5->new($xml_file);
+  } else {
+    print "'$xml_file' does not exist.\n";
+    exit(1);
+  }
+} elsif (-d $indir) {
+  my $parser = new Test::Parser::Dbt5;;
+  $parser->parse($indir);
+  $presenter = Test::Presenter::Dbt5->new($parser->data());
+} else {
+  #usage
+  exit(1);
+}
+
+unless ($presenter) {
+  print "no xml data\n";
+  exit(1);
+}
+
+#
+# Tables.
+#
+if ($log) {
+  $presenter->set_devices('log', split(/,/, $log));
+}
+if ($account_permission) {
+  $presenter->set_devices('account_permission', split(/,/, $account_permission));
+}
+if ($customer) {
+  $presenter->set_devices('customer', split(/,/, $customer));
+}
+if ($customer_account) {
+  $presenter->set_devices('customer_account', split(/,/, $customer_account));
+}
+if ($customer_taxrate) {
+  $presenter->set_devices('customer_taxrate', split(/,/, $customer_taxrate));
+}
+if ($holding) {
+  $presenter->set_devices('holding', split(/,/, $holding));
+}
+if ($holding_history) {
+  $presenter->set_devices('holding_history', split(/,/, $holding_history));
+}
+if ($holding_summary) {
+  $presenter->set_devices('holding_summary', split(/,/, $holding_summary));
+}
+if ($watch_item) {
+  $presenter->set_devices('watch_item', split(/,/, $watch_item));
+}
+if ($watch_list) {
+  $presenter->set_devices('watch_list', split(/,/, $watch_list));
+}
+if ($broker) {
+  $presenter->set_devices('broker', split(/,/, $broker));
+}
+if ($cash_transaction) {
+  $presenter->set_devices('cash_transaction', split(/,/, $cash_transaction));
+}
+if ($charge) {
+  $presenter->set_devices('charge', split(/,/, $charge));
+}
+if ($commission_rate) {
+  $presenter->set_devices('commission_rate', split(/,/, $commission_rate));
+}
+if ($settlement) {
+  $presenter->set_devices('settlement', split(/,/, $settlement));
+}
+if ($trade) {
+  $presenter->set_devices('trade', split(/,/, $trade));
+}
+if ($trade_history) {
+  $presenter->set_devices('trade_history', split(/,/, $trade_history));
+}
+if ($trade_request) {
+  $presenter->set_devices('trade_request', split(/,/, $trade_request));
+}
+if ($trade_type) {
+  $presenter->set_devices('trade_type', split(/,/, $trade_type));
+}
+if ($company) {
+  $presenter->set_devices('company', split(/,/, $company));
+}
+if ($company_competitor) {
+  $presenter->set_devices('company_competitor', split(/,/, $company_competitor));
+}
+if ($daily_market) {
+  $presenter->set_devices('daily_market', split(/,/, $daily_market));
+}
+if ($exchange) {
+  $presenter->set_devices('exchange', split(/,/, $exchange));
+}
+if ($financial) {
+  $presenter->set_devices('financial', split(/,/, $financial));
+}
+if ($industry) {
+  $presenter->set_devices('industry', split(/,/, $industry));
+}
+if ($last_trade) {
+  $presenter->set_devices('last_trade', split(/,/, $last_trade));
+}
+if ($news_item) {
+  $presenter->set_devices('news_item', split(/,/, $news_item));
+}
+if ($news_xref) {
+  $presenter->set_devices('news_xref', split(/,/, $news_xref));
+}
+if ($sector) {
+  $presenter->set_devices('sector', split(/,/, $sector));
+}
+if ($security) {
+  $presenter->set_devices('security', split(/,/, $security));
+}
+if ($address) {
+  $presenter->set_devices('address', split(/,/, $address));
+}
+if ($status_type) {
+  $presenter->set_devices('status_type', split(/,/, $status_type));
+}
+if ($taxrate) {
+  $presenter->set_devices('taxrate', split(/,/, $taxrate));
+}
+if ($zip_code) {
+  $presenter->set_devices('zip_code', split(/,/, $zip_code));
+}
+#
+# Primary key indexes.
+#
+if ($pkaccount_permission) {
+  $presenter->set_devices('pkaccount_permission', split(/,/, $pkaccount_permission));
+}
+if ($pkcustomer) {
+  $presenter->set_devices('pkcustomer', split(/,/, $pkcustomer));
+}
+if ($pkcustomer_account) {
+  $presenter->set_devices('pkcustomer_account', split(/,/, $pkcustomer_account));
+}
+if ($pkcustomer_taxrate) {
+  $presenter->set_devices('pkcustomer_taxrate', split(/,/, $pkcustomer_taxrate));
+}
+if ($pkholding) {
+  $presenter->set_devices('pkholding', split(/,/, $pkholding));
+}
+if ($pkholding_history) {
+  $presenter->set_devices('pkholding_history', split(/,/, $pkholding_history));
+}
+if ($pkholding_summary) {
+  $presenter->set_devices('pkholding_summary', split(/,/, $pkholding_summary));
+}
+if ($pkwatch_item) {
+  $presenter->set_devices('pkwatch_item', split(/,/, $pkwatch_item));
+}
+if ($pkwatch_list) {
+  $presenter->set_devices('pkwatch_list', split(/,/, $pkwatch_list));
+}
+if ($pkbroker) {
+  $presenter->set_devices('pkbroker', split(/,/, $pkbroker));
+}
+if ($pkcash_transaction) {
+  $presenter->set_devices('pkcash_transaction', split(/,/, $pkcash_transaction));
+}
+if ($pkcharge) {
+  $presenter->set_devices('pkcharge', split(/,/, $pkcharge));
+}
+if ($pkcommission_rate) {
+  $presenter->set_devices('pkcommission_rate', split(/,/, $pkcommission_rate));
+}
+if ($pksettlement) {
+  $presenter->set_devices('pksettlement', split(/,/, $pksettlement));
+}
+if ($pktrade) {
+  $presenter->set_devices('pktrade', split(/,/, $pktrade));
+}
+if ($pktrade_history) {
+  $presenter->set_devices('pktrade_history', split(/,/, $pktrade_history));
+}
+if ($pktrade_request) {
+  $presenter->set_devices('pktrade_request', split(/,/, $pktrade_request));
+}
+if ($pktrade_type) {
+  $presenter->set_devices('pktrade_type', split(/,/, $pktrade_type));
+}
+if ($pkcompany) {
+  $presenter->set_devices('pkcompany', split(/,/, $pkcompany));
+}
+if ($pkcompany_competitor) {
+  $presenter->set_devices('pkcompany_competitor', split(/,/, $pkcompany_competitor));
+}
+if ($pkdaily_market) {
+  $presenter->set_devices('pkdaily_market', split(/,/, $pkdaily_market));
+}
+if ($pkexchange) {
+  $presenter->set_devices('pkexchange', split(/,/, $pkexchange));
+}
+if ($pkfinancial) {
+  $presenter->set_devices('pkfinancial', split(/,/, $pkfinancial));
+}
+if ($pkindustry) {
+  $presenter->set_devices('pkindustry', split(/,/, $pkindustry));
+}
+if ($pklast_trade) {
+  $presenter->set_devices('pklast_trade', split(/,/, $pklast_trade));
+}
+if ($pknews_item) {
+  $presenter->set_devices('pknews_item', split(/,/, $pknews_item));
+}
+if ($pknews_xref) {
+  $presenter->set_devices('pknews_xref', split(/,/, $pknews_xref));
+}
+if ($pksector) {
+  $presenter->set_devices('pksector', split(/,/, $pksector));
+}
+if ($pksecurity) {
+  $presenter->set_devices('pksecurity', split(/,/, $pksecurity));
+}
+if ($pkaddress) {
+  $presenter->set_devices('pkaddress', split(/,/, $pkaddress));
+}
+if ($pkstatus_type) {
+  $presenter->set_devices('pkstatus_type', split(/,/, $pkstatus_type));
+}
+if ($pktaxrate) {
+  $presenter->set_devices('pktaxrate', split(/,/, $pktaxrate));
+}
+if ($pkzip_code) {
+  $presenter->set_devices('pkzip_code', split(/,/, $pkzip_code));
+}
+#
+# Indexes.
+#
+
+#
+# Start creating report.
+#
+$presenter->format($format);
+$presenter->outdir($outdir);
+$presenter->plot();
+system "mkdir -p $outdir";
+open(H, "> $outdir/index.html")
+    or die "Couldn't open $outdir/index.html for writing: $!\n";
+print H $presenter->to_html();
+close(H);
+print "DBT-5 report generated.\n";
