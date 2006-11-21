@@ -24,7 +24,7 @@ GetOptions(
 );
 
 unless ($dir) {
-  print "usage: post-process --dir <directory> [--xml]\n";
+  print "usage: post-process --dir <directory> [--xml] [--quiet]\n";
   exit 0;
 }
 
@@ -49,10 +49,10 @@ unless ($quiet) {
   }
   for my $t (@transactions) {
     if ($t->{total} == 0) {
-      printf("%12s  %5.2f  %7.3f : %7.3f %12d %12d  %6.2f\n",
+      printf("%-17s  %5.2f  %7.3f : %7.3f %12d %12d  %6.2f\n",
           $t->{name}, 0, 0, 0, 0, 0, 0);
     } else {
-      printf("%12s  %5.2f  %7.3f : %7.3f %12d %12d  %6.2f\n",
+      printf("%-17s  %5.2f  %7.3f : %7.3f %12d %12d  %6.2f\n",
           $t->{name},
           ($t->{total} + $t->{rollbacks}) / $total * 100.0,
           $t->{rt_avg},
