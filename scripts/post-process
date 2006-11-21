@@ -1,0 +1,74 @@
+#!/usr/bin/perl -w
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2006 Mark Wong & Open Source Development Labs, Inc.
+#
+# 2006 Rilson Nascimento
+
+use strict;
+use warnings;
+use Getopt::Long;
+
+use Test::Parser::Dbt5;
+
+my $dir;
+my $quiet;
+my $xml;
+
+GetOptions(
+    'dir=s' => \$dir,
+    'quiet' => \$quiet,
+    'xml' => \$xml
+);
+
+unless ($dir) {
+  print "usage: post-process --dir <directory> [--xml]\n";
+  exit 0;
+}
+
+my $parser = new Test::Parser::Dbt5;
+$parser->parse($dir);
+
+if ($xml) {
+  $parser->to_xml();
+}
+
+unless ($quiet) {
+  printf("                          Response Time (s)\n");
+  printf(" Transaction           %%  Average :  90th %%      Total      Rollbacks      %%\n");
+  printf("-----------------  -----  -----------------  -----------  -----------  ------\n");
+  my @transactions = $parser->transactions();
+  my $total = 0;
+  #
+  # Get total transaction count first.
+  #
+  for my $t (@transactions) {
+    $total += $t->{total} + $t->{rollbacks};
+  }
+  for my $t (@transactions) {
+    if ($t->{total} == 0) {
+      printf("%12s  %5.2f  %7.3f : %7.3f %12d %12d  %6.2f\n",
+          $t->{name}, 0, 0, 0, 0, 0, 0);
+    } else {
+      printf("%12s  %5.2f  %7.3f : %7.3f %12d %12d  %6.2f\n",
+          $t->{name},
+          ($t->{total} + $t->{rollbacks}) / $total * 100.0,
+          $t->{rt_avg},
+          $t->{rt_90th},
+          $t->{total} + $t->{rollbacks},
+          $t->{rollbacks},
+          $t->{rollback_per});
+    }
+  }
+  printf("-----------------  -----  -----------------  -----------  -----------  ------\n");
+
+  printf("\n");
+  printf("%0.2f trade-result transactions per second (TRTPS)\n",
+      $parser->metric());
+  printf("%0.1f minute duration\n", $parser->duration());
+  printf("%d total unknown errors\n", $parser->errors());
+  printf("%d second(s) ramping up\n", $parser->rampup());
+  printf("\n");
+}
