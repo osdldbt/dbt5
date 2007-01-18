@@ -13,11 +13,10 @@ use Getopt::Long;
 use Test::Parser::Dbt5;
 use Test::Presenter::Dbt5;
 
-my $dir;
 my $format = "png";
 my $indir;
 my $outdir = "report";
-my $xml_file;
+my $xml_file = undef;
 
 #
 # Disk devices per tablespace.
@@ -97,7 +96,6 @@ my $pkzip_code;
 #
 
 GetOptions(
-    'dir=s' => \$dir,
     'format=s' => \$format,
     'indir=s' => \$indir,
     'log=s' => \$log,
