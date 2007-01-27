@@ -208,12 +208,12 @@ ${PSQL} -e -d ${DBNAME} -c "CREATE SEQUENCE seq_trade_id;" || exit 1
 # Creating domains to meta-type definitions (clause 2.2.3)
 
 ${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN S_COUNT_T AS BIGINT NOT NULL;" || exit 1
-${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN IDENT_T AS BIGINT NOT NULL;" || exit 1
-${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN TRADE_T AS BIGINT NOT NULL;" || exit 1
+${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN IDENT_T AS BIGINT NULL;" || exit 1
+${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN TRADE_T AS BIGINT NULL;" || exit 1
 ${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN BALANCE_T AS NUMERIC(12,2) NOT NULL;" || exit 1
 ${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN S_PRICE_T AS NUMERIC(8,2);" || exit 1
-${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN S_QTY_T AS INTEGER NOT NULL;" || exit 1
-${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN VALUE_T AS NUMERIC(10,2) NOT NULL;" || exit 1
+${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN S_QTY_T AS INTEGER NULL;" || exit 1
+${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN VALUE_T AS NUMERIC(10,2) NULL;" || exit 1
 ${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN FIN_AGG_T AS NUMERIC(15,2) NOT NULL;" || exit 1
 
 # Note: when the specification states CHAR(n), the implementer can choose 
