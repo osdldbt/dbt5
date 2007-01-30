@@ -25,8 +25,10 @@ public:
 	CMEESUTtest(CDBConnection *pDBConn);
 	~CMEESUTtest();
 
-	virtual bool TradeResult( PTradeResultTxnInput pTxnInput );	// return whether it was successful
-	virtual bool MarketFeed( PMarketFeedTxnInput pTxnInput );	// return whether it was successful
+	// return whether it was successful
+	virtual bool TradeResult( PTradeResultTxnInput pTxnInput );
+	// return whether it was successful
+	virtual bool MarketFeed( PMarketFeedTxnInput pTxnInput );
 	
 	friend void* TPCE::TradeResultAsync(void* data);
 	friend bool TPCE::RunTradeResultAsync( CMEESUTtest* );

@@ -22,18 +22,22 @@ CTradeResultDB::~CTradeResultDB()
 }
 
 // Call Trade Result Frame 1
-void CTradeResultDB::DoTradeResultFrame1(PTradeResultFrame1Input pFrame1Input, PTradeResultFrame1Output pFrame1Output)
+void CTradeResultDB::DoTradeResultFrame1(PTradeResultFrame1Input pFrame1Input,
+		PTradeResultFrame1Output pFrame1Output)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 	ostringstream osCall;
-	osCall << "select * from TradeResultFrame1("<<pFrame1Input->trade_id<<") as (acct_id ident_t, charge value_t, "
-		"hs_qty s_qty_t, is_lifo smallint, symbol char(15), trade_is_cash smallint, trade_qty s_qty_t, type_id char(3),"
-		"type_is_market smallint, type_is_sell smallint, type_name char(12))";
+	osCall << "select * from TradeResultFrame1(" << pFrame1Input->trade_id <<
+			") as (acct_id ident_t, charge value_t, hs_qty s_qty_t, is_lifo "
+			"smallint, symbol char(15), trade_is_cash smallint, "
+			"trade_qty s_qty_t, type_id char(3), type_is_market smallint, "
+			"type_is_sell smallint, type_name char(12))";
 
 	// start transaction but not commit in this frame
 	BeginTxn();
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;"); // Isolation level required by Clause 7.4.1.3
+	// Isolation level required by Clause 7.4.1.3
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;");
 	result R( m_Txn->exec( osCall.str() ) );
 
 	if (R.empty()) 
@@ -84,19 +88,24 @@ void CTradeResultDB::DoTradeResultFrame1(PTradeResultFrame1Input pFrame1Input, P
 }
 
 // Call Trade Result Frame 2
-void CTradeResultDB::DoTradeResultFrame2(PTradeResultFrame2Input pFrame2Input, PTradeResultFrame2Output pFrame2Output)
+void CTradeResultDB::DoTradeResultFrame2(PTradeResultFrame2Input pFrame2Input,
+		PTradeResultFrame2Output pFrame2Output)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 	
 	ostringstream osCall;
-	osCall << "select * from TradeResultFrame2("<<pFrame2Input->acct_id<<"::IDENT_T,"<<pFrame2Input->hs_qty<<"::S_QTY_T,"
-			<<pFrame2Input->is_lifo<<"::smallint,'"<<pFrame2Input->symbol<<"'::char(15),"
-			<<pFrame2Input->trade_id<<"::TRADE_T,"<<pFrame2Input->trade_price<<"::S_PRICE_T,"
-			<<pFrame2Input->trade_qty<<"::S_QTY_T,"<<pFrame2Input->type_is_sell<<"::smallint) as "
-			"(broker_id IDENT_T, buy_value numeric(12,2), cust_id IDENT_T, sell_value numeric(12,2),"
-			"tax_status smallint, trade_dts_year double precision, trade_dts_month double precision,"
-			"trade_dts_day double precision, trade_dts_hour double precision,"
-			"trade_dts_minute double precision, trade_dts_second double precision)";
+	osCall << "select * from TradeResultFrame2(" << pFrame2Input->acct_id <<
+			"::IDENT_T," << pFrame2Input->hs_qty << "::S_QTY_T," <<
+			pFrame2Input->is_lifo << "::smallint,'" << pFrame2Input->symbol <<
+			"'::char(15)," << pFrame2Input->trade_id << "::TRADE_T," <<
+			pFrame2Input->trade_price << "::S_PRICE_T," <<
+			pFrame2Input->trade_qty << "::S_QTY_T," <<
+			pFrame2Input->type_is_sell << "::smallint) as (broker_id IDENT_T, "
+			"buy_value numeric(12,2), cust_id IDENT_T, sell_value "
+			"numeric(12,2), tax_status smallint, trade_dts_year double "
+			"precision, trade_dts_month double precision, trade_dts_day double "
+			"precision, trade_dts_hour double precision, trade_dts_minute "
+			"double precision, trade_dts_second double precision)";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -133,15 +142,17 @@ void CTradeResultDB::DoTradeResultFrame2(PTradeResultFrame2Input pFrame2Input, P
 	    <<"- trade_price:"<<pFrame2Input->trade_price<<endl
 	    <<"- trade_qty:"<<pFrame2Input->trade_qty<<endl
 	    <<"- type_is_sell:"<<pFrame2Input->type_is_sell<<endl;
-	cout<<"Trade Result Frame 2 (output)"<<endl
-	    <<"- broker_id: "<<pFrame2Output->broker_id<<endl
-	    <<"- buy_value: "<<pFrame2Output->buy_value<<endl
-	    <<"- cust_id: "<<pFrame2Output->cust_id<<endl
-	    <<"- sell_value: "<<pFrame2Output->sell_value<<endl
-	    <<"- tax_status: "<<pFrame2Output->tax_status<<endl
-	    <<"- trade_dts: "<<pFrame2Output->trade_dts.year<<"-"<<pFrame2Output->trade_dts.month<<"-"
-	    	<<pFrame2Output->trade_dts.day<<" "<<pFrame2Output->trade_dts.hour<<":"
-	    	<<pFrame2Output->trade_dts.minute<<":"<<pFrame2Output->trade_dts.second<<endl;
+	cout << "Trade Result Frame 2 (output)" << endl <<
+		"- broker_id: " << pFrame3Output->broker_id << endl <<
+		"- buy_value: " << pFrame2Output->buy_value << endl <<
+		"- cust_id: " << pFrame2Output->cust_id << endl <<
+		"- sell_value: " << pFrame2Output->sell_value << endl <<
+		"- tax_status: " << pFrame2Output->tax_status << endl <<
+		"- trade_dts: " << pFrame2Output->trade_dts.year << "-" <<
+		pFrame2Output->trade_dts.month << "-" << pFrame2Output->trade_dts.day <<
+		" " << pFrame2Output->trade_dts.hour << ":" <<
+		pFrame2Output->trade_dts.minute << ":" <<
+		pFrame2Output->trade_dts.second << endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
 
@@ -153,14 +164,17 @@ void CTradeResultDB::DoTradeResultFrame2(PTradeResultFrame2Input pFrame2Input, P
 }
 
 // Call Trade Result Frame 3
-void CTradeResultDB::DoTradeResultFrame3(PTradeResultFrame3Input pFrame3Input, PTradeResultFrame3Output pFrame3Output)
+void CTradeResultDB::DoTradeResultFrame3(PTradeResultFrame3Input pFrame3Input,
+		PTradeResultFrame3Output pFrame3Output)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 	ostringstream osCall;
-	osCall << "select * from TradeResultFrame3("<<pFrame3Input->buy_value<<"::numeric(12,2),"<<pFrame3Input->cust_id<<
-			"::IDENT_T,"<<pFrame3Input->sell_value<<"::numeric(12,2),"<<pFrame3Input->trade_id<<
-			"::TRADE_T,"<<pFrame3Input->tax_amount<<"::VALUE_T)";
+	osCall << "select * from TradeResultFrame3(" << pFrame3Input->buy_value <<
+			"::numeric(12,2)," << pFrame3Input->cust_id << "::IDENT_T," <<
+			pFrame3Input->sell_value << "::numeric(12,2)," <<
+			pFrame3Input->trade_id << "::TRADE_T," <<
+			pFrame3Input->tax_amount << "::VALUE_T)";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -196,14 +210,16 @@ void CTradeResultDB::DoTradeResultFrame3(PTradeResultFrame3Input pFrame3Input, P
 }
 
 // Call Trade Result Frame 4
-void CTradeResultDB::DoTradeResultFrame4(PTradeResultFrame4Input pFrame4Input, PTradeResultFrame4Output pFrame4Output)
+void CTradeResultDB::DoTradeResultFrame4(PTradeResultFrame4Input pFrame4Input,
+		PTradeResultFrame4Output pFrame4Output)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 	ostringstream osCall;
-	osCall << "select * from TradeResultFrame4("<<pFrame4Input->cust_id<<"::IDENT_T,'"<<pFrame4Input->symbol<<
-			"'::char(15),"<<pFrame4Input->trade_qty<<"::S_QTY_T,'"<<pFrame4Input->type_id<<"'::char(3)) "
-			" as (comm_rate numeric(5,2), s_name varchar)";
+	osCall << "select * from TradeResultFrame4(" << pFrame4Input->cust_id <<
+			"::IDENT_T,'" << pFrame4Input->symbol << "'::char(15)," <<
+			pFrame4Input->trade_qty << "::S_QTY_T,'" << pFrame4Input->type_id <<
+			"'::char(3)) as (comm_rate numeric(5,2), s_name varchar)";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -240,30 +256,40 @@ void CTradeResultDB::DoTradeResultFrame4(PTradeResultFrame4Input pFrame4Input, P
 }
 
 // Call Trade Result Frame 5
-void CTradeResultDB::DoTradeResultFrame5(PTradeResultFrame5Input pFrame5Input, PTradeResultFrame5Output pFrame5Output)
+void CTradeResultDB::DoTradeResultFrame5(PTradeResultFrame5Input pFrame5Input,
+		PTradeResultFrame5Output pFrame5Output)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
-	cout<<"Trade Result Frame 5 (input)"<<endl
-	    <<"- broker_id:"<<pFrame5Input->broker_id<<endl
-	    <<"- comm_amount:"<<pFrame5Input->comm_amount<<endl
-	    <<"- st_completed_id:"<<pFrame5Input->st_completed_id<<endl
-	    <<"- trade_dts: "<<pFrame5Input->trade_dts.year<<"-"<<pFrame5Input->trade_dts.month<<"-"
-	    	<<pFrame5Input->trade_dts.day<<" "<<pFrame5Input->trade_dts.hour<<":"
-	    	<<pFrame5Input->trade_dts.minute<<":"<<pFrame5Input->trade_dts.second<<endl
-	    <<"- trade_id:"<<pFrame5Input->trade_id<<endl
-	    <<"- trade_price:"<<pFrame5Input->trade_price<<endl;
+	cout << "Trade Result Frame 5 (input)" << endl <<
+			"- broker_id:" << pFrame5Input->broker_id << endl <<
+			"- comm_amount:" << pFrame5Input->comm_amount << endl <<
+			"- st_completed_id:" << pFrame5Input->st_completed_id << endl <<
+			"- trade_dts: " << pFrame5Input->trade_dts.year << "-" <<
+			pFrame5Input->trade_dts.month << "-" <<
+			pFrame5Input->trade_dts.day << " " <<
+			pFrame5Input->trade_dts.hour << ":" <<
+			pFrame5Input->trade_dts.minute << ":" <<
+			pFrame5Input->trade_dts.second << endl <<
+			"- trade_id:" << pFrame5Input->trade_id << endl <<
+			"- trade_price:" << pFrame5Input->trade_price << endl;
 	m_coutLock.ReleaseLock();
 #endif //DEBUG
 
 	ostringstream osCall;
-	osCall << "select * from TradeResultFrame5("<<pFrame5Input->broker_id<<"::IDENT_T,"<<pFrame5Input->comm_amount<<
-			"::numeric(5,2),'"<<pFrame5Input->st_completed_id<<"'::char(4),'"<<pFrame5Input->trade_dts.year<<
-			"-"<<pFrame5Input->trade_dts.month<<"-"<<pFrame5Input->trade_dts.day<<" "<<pFrame5Input->trade_dts.hour<<
-			":"<<pFrame5Input->trade_dts.minute<<":"<<pFrame5Input->trade_dts.second<<"'::timestamp,"
-			<<pFrame5Input->trade_id<<"::IDENT_T,"<<pFrame5Input->trade_price<<"::S_PRICE_T);";
+	osCall << "select * from TradeResultFrame5(" << pFrame5Input->broker_id <<
+			"::IDENT_T," << pFrame5Input->comm_amount << "::numeric(5,2),'" <<
+			pFrame5Input->st_completed_id << "'::char(4),'" <<
+			pFrame5Input->trade_dts.year << "-" <<
+			pFrame5Input->trade_dts.month << "-" <<
+			pFrame5Input->trade_dts.day << " " <<
+			pFrame5Input->trade_dts.hour << ":" <<
+			pFrame5Input->trade_dts.minute << ":" <<
+			pFrame5Input->trade_dts.second << "'::timestamp," <<
+			pFrame5Input->trade_id << "::IDENT_T," <<
+			pFrame5Input->trade_price << "::S_PRICE_T);";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -283,18 +309,29 @@ void CTradeResultDB::DoTradeResultFrame5(PTradeResultFrame5Input pFrame5Input, P
 }
 
 // Call Trade Result Frame 6
-void CTradeResultDB::DoTradeResultFrame6(PTradeResultFrame6Input pFrame6Input, PTradeResultFrame6Output pFrame6Output)
+void CTradeResultDB::DoTradeResultFrame6(PTradeResultFrame6Input pFrame6Input,
+		PTradeResultFrame6Output pFrame6Output)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 	ostringstream osCall;
-	osCall << "select * from TradeResultFrame6("<<pFrame6Input->acct_id<<"::IDENT_T, '"<<pFrame6Input->due_date.year<<
-			"-"<<pFrame6Input->due_date.month<<"-"<<pFrame6Input->due_date.day<<" "<<pFrame6Input->due_date.hour<<
-			":"<<pFrame6Input->due_date.minute<<":"<<pFrame6Input->due_date.second<<"'::timestamp,'"<<
-			m_Txn->esc(pFrame6Input->s_name)<<"'::varchar, "<<pFrame6Input->se_amount<<"::VALUE_T,'"<<pFrame6Input->trade_dts.year<<
-			"-"<<pFrame6Input->trade_dts.month<<"-"<<pFrame6Input->trade_dts.day<<" "<<pFrame6Input->trade_dts.hour<<
-			":"<<pFrame6Input->trade_dts.minute<<":"<<pFrame6Input->trade_dts.second<<"'::timestamp,"<<
-			pFrame6Input->trade_id<<"::IDENT_T,"<<pFrame6Input->trade_is_cash<<"::smallint,"<<pFrame6Input->trade_qty<<
-			"::S_QTY_T,'"<<pFrame6Input->type_name<<"'::char(12))";
+	osCall << "select * from TradeResultFrame6(" << pFrame6Input->acct_id <<
+			"::IDENT_T, '" << pFrame6Input->due_date.year << "-"<<
+			pFrame6Input->due_date.month << "-" << pFrame6Input->due_date.day <<
+			" " << pFrame6Input->due_date.hour << ":" <<
+			pFrame6Input->due_date.minute << ":" <<
+			pFrame6Input->due_date.second << "'::timestamp,'" <<
+			m_Txn->esc(pFrame6Input->s_name) << "'::varchar, " <<
+			pFrame6Input->se_amount << "::VALUE_T,'" <<
+			pFrame6Input->trade_dts.year << "-" <<
+			pFrame6Input->trade_dts.month << "-" <<
+			pFrame6Input->trade_dts.day << " " <<
+			pFrame6Input->trade_dts.hour << ":" <<
+			pFrame6Input->trade_dts.minute << ":" <<
+			pFrame6Input->trade_dts.second << "'::timestamp," <<
+			pFrame6Input->trade_id << "::IDENT_T," <<
+			pFrame6Input->trade_is_cash << "::smallint," <<
+			pFrame6Input->trade_qty << "::S_QTY_T,'" <<
+			pFrame6Input->type_name << "'::char(12))";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -312,20 +349,25 @@ void CTradeResultDB::DoTradeResultFrame6(PTradeResultFrame6Input pFrame6Input, P
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
-	cout<<"Trade Result Frame 6 (input)"<<endl
-	    <<"- acct_id:"<<pFrame6Input->acct_id<<endl
-	    <<"- due_date: "<<pFrame6Input->due_date.year<<"-"<<pFrame6Input->due_date.month<<"-"
-	    	<<pFrame6Input->due_date.day<<" "<<pFrame6Input->due_date.hour<<":"
-	    	<<pFrame6Input->due_date.minute<<":"<<pFrame6Input->due_date.second<<endl
-	    <<"- s_name:"<<pFrame6Input->s_name<<endl
-	    <<"- se_amount:"<<pFrame6Input->se_amount<<endl
-	    <<"- trade_dts: "<<pFrame6Input->trade_dts.year<<"-"<<pFrame6Input->trade_dts.month<<"-"
-	    	<<pFrame6Input->trade_dts.day<<" "<<pFrame6Input->trade_dts.hour<<":"
-	    	<<pFrame6Input->trade_dts.minute<<":"<<pFrame6Input->trade_dts.second<<endl
-	    <<"- trade_id:"<<pFrame6Input->trade_id<<endl
-	    <<"- trade_is_cash:"<<pFrame6Input->trade_is_cash<<endl
-	    <<"- trade_qty:"<<pFrame6Input->trade_qty<<endl
-	    <<"- type_name:"<<pFrame6Input->type_name<<endl;
+	cout << "Trade Result Frame 6 (input)" << endl <<
+			"- acct_id:" << pFrame6Input->acct_id << endl <<
+			"- due_date: " << pFrame6Input->due_date.year << "-" <<
+			pFrame6Input->due_date.month << "-" << pFrame6Input->due_date.day <<
+			" " << pFrame6Input->due_date.hour << ":" <<
+			pFrame6Input->due_date.minute << ":" <<
+			pFrame6Input->due_date.second << endl <<
+			"- s_name:" << pFrame6Input->s_name << endl <<
+			"- se_amount:" << pFrame6Input->se_amount << endl <<
+			"- trade_dts: " << pFrame6Input->trade_dts.year << "-" <<
+			pFrame6Input->trade_dts.month << "-" <<
+			pFrame6Input->trade_dts.day << " " <<
+			pFrame6Input->trade_dts.hour << ":" <<
+			pFrame6Input->trade_dts.minute << ":" <<
+			pFrame6Input->trade_dts.second << endl <<
+			"- trade_id:" << pFrame6Input->trade_id << endl <<
+			"- trade_is_cash:" << pFrame6Input->trade_is_cash << endl <<
+			"- trade_qty:" << pFrame6Input->trade_qty << endl <<
+			"- type_name:" << pFrame6Input->type_name << endl;
 	cout<<"Trade Result Frame 6 (output)"<<endl
 	    <<"- acct_bal:"<<pFrame6Output->acct_bal<<endl;
 	m_coutLock.ReleaseLock();

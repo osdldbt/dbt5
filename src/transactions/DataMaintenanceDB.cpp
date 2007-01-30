@@ -22,18 +22,24 @@ CDataMaintenanceDB::~CDataMaintenanceDB()
 }
 
 // Call Data Maintenance Frame 1
-void CDataMaintenanceDB::DoDataMaintenanceFrame1(PDataMaintenanceFrame1Input pFrame1Input, PDataMaintenanceFrame1Output pFrame1Output)
+void CDataMaintenanceDB::DoDataMaintenanceFrame1(
+		PDataMaintenanceFrame1Input pFrame1Input,
+		PDataMaintenanceFrame1Output pFrame1Output)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 	ostringstream osCall;
-	osCall << "select * from DataMaintenanceFrame1("<<pFrame1Input->add_flag<<"::smallint,"<<pFrame1Input->c_id<<"::ident_t,"
-			<<pFrame1Input->co_id<<"::ident_t,"<<pFrame1Input->day_of_month<<"::smallint,'"<<pFrame1Input->symbol
-			<<"'::char(15),'"<<pFrame1Input->table_name<<"'::char(18),'"<<pFrame1Input->tx_id
-			<<"'::char(4))"; //as (status smallint)";
+	osCall << "select * from DataMaintenanceFrame1(" <<
+			pFrame1Input->add_flag << "::smallint," << pFrame1Input->c_id <<
+			"::ident_t," << pFrame1Input->co_id << "::ident_t," <<
+			pFrame1Input->day_of_month << "::smallint,'" <<
+			pFrame1Input->symbol << "'::char(15),'" <<
+			pFrame1Input->table_name << "'::char(18),'" <<
+			pFrame1Input->tx_id <<"'::char(4))"; //as (status smallint)";
 
 	BeginTxn();
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"); // Isolation level required by Clause 7.4.1.3
+	// Isolation level required by Clause 7.4.1.3
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
 	result R( m_Txn->exec( osCall.str() ) );
 	CommitTxn();
 

@@ -13,8 +13,7 @@ using namespace TPCE;
 char* addr = "localhost";
 
 CSendToMarket::CSendToMarket(ofstream* pfile, int MEport)
-: m_pfLog(pfile),
-  m_MEport(MEport)
+: m_pfLog(pfile), m_MEport(MEport)
 {
 }
 
@@ -30,7 +29,8 @@ bool CSendToMarket::SendToMarket(TTradeRequest &trade_mes)
 		m_Socket.Connect(addr, m_MEport);
 	
 		// send Trade Request to MEE
-		m_Socket.Send(reinterpret_cast<void*>(&trade_mes), sizeof(TTradeRequest));
+		m_Socket.Send(reinterpret_cast<void*>(&trade_mes),
+				sizeof(TTradeRequest));
 	
 		// close connection
 		m_Socket.CloseAccSocket();

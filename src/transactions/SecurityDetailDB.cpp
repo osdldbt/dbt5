@@ -22,40 +22,65 @@ CSecurityDetailDB::~CSecurityDetailDB()
 }
 
 // Call Security Detail Frame 1
-void CSecurityDetailDB::DoSecurityDetailFrame1(PSecurityDetailFrame1Input pFrame1Input, PSecurityDetailFrame1Output pFrame1Output)
+void CSecurityDetailDB::DoSecurityDetailFrame1(
+		PSecurityDetailFrame1Input pFrame1Input,
+		PSecurityDetailFrame1Output pFrame1Output)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 	ostringstream osCall;
-	osCall << "select * from SecurityDetailFrame1("<<pFrame1Input->access_lob_flag<<"::smallint, "
-		<<pFrame1Input->max_rows_to_return<<"::integer, '"<<pFrame1Input->start_day.year<<"-"
-		<<pFrame1Input->start_day.month<<"-"<<pFrame1Input->start_day.day<<" "<<pFrame1Input->start_day.hour
-		<<":"<<pFrame1Input->start_day.minute<<":"<<pFrame1Input->start_day.second<<"'::timestamp, '"
-		<<pFrame1Input->symbol<<"'::char(15)) as (fin_len integer, day_len integer, news_len integer, cp_co_name "
-		"text, cp_in_name text, fin_year text, fin_qtr text, fin_start_year text, fin_start_month text, "
-		"fin_start_day text, fin_start_hour text, fin_start_minute text, fin_start_second text, fin_rev text, fin_net_earn "
-		"text, fin_basic_eps text, fin_dilut_eps text, fin_margin text, fin_invent text, fin_assets text, fin_liab text, "
-		"fin_out_basic text, fin_out_dilut text, day_date_year text, day_date_month text, day_date_day text, day_date_hour "
-		"text, day_date_minute text, day_date_second text, day_close text, day_high text, day_low text, day_vol text, "
-		"news_it text, news_year text, news_month text, news_day text, news_hour text, news_minute text, news_sec text, "
-		"news_src text, news_auth text, news_headline text, news_summary text, last_price S_PRICE_T, last_open S_PRICE_T, "
-		"last_vol S_COUNT_T, S_NAME varchar, CO_ID IDENT_T, CO_NAME varchar, CO_SP_RATE char(4), CO_CEO varchar, CO_DESC "
-		"varchar, open_year double precision, open_month double precision, open_day double precision, open_hour double "
-		"precision, open_minute double precision, open_second double precision, CO_ST_ID char(4), CA_AD_LINE1 varchar, "
-		"CA_AD_LINE2 varchar, ZCA_ZC_TOWN varchar, ZCA_ZC_DIV varchar, CA_AD_ZC_CODE char(12), CA_AD_CTRY varchar, "
-		"S_NUM_OUT S_COUNT_T, s_start_year double precision, s_start_month double precision, s_start_day double precision, "
-		"s_start_hour double precision, s_start_minute double precision, s_start_second double precision, s_exch_year double "
-		"precision, s_exch_month double precision, s_exch_day double precision, s_exch_hour double precision, s_exch_minute "
-		"double precision, s_exch_second double precision, S_PE VALUE_T, S_52WK_HIGH S_PRICE_T, high_year double precision, "
-		"high_month double precision, high_day double precision, high_hour double precision, high_minute double precision, "
-		"high_second double precision, S_52WK_LOW S_PRICE_T, low_year double precision, low_month double precision, low_day "
-		"double precision, low_hour double precision, low_minute double precision, low_second double precision, S_DIVIDEND "
-		"VALUE_T, S_YIELD NUMERIC(5,2), ZEA_ZC_DIV varchar, EA_AD_CTRY varchar, EA_AD_LINE1 varchar, EA_AD_LINE2 varchar, "
-		"ZEA_ZC_TOWN varchar, EA_AD_ZC_CODE char(12), EX_CLOSE smallint, EX_DESC varchar, EX_NAME varchar, EX_NUM_SYMB "
-		"integer, EX_OPEN smallint);";
+	osCall << "select * from SecurityDetailFrame1(" <<
+			pFrame1Input->access_lob_flag << "::smallint, " <<
+			pFrame1Input->max_rows_to_return << "::integer, '" <<
+			pFrame1Input->start_day.year << "-" <<
+			pFrame1Input->start_day.month << "-" <<
+			pFrame1Input->start_day.day << " " <<
+			pFrame1Input->start_day.hour << ":" <<
+			pFrame1Input->start_day.minute << ":" <<
+			pFrame1Input->start_day.second <<
+			"'::timestamp, '" << pFrame1Input->symbol <<
+			"'::char(15)) as (fin_len integer, day_len integer, news_len "
+			"integer, cp_co_name text, cp_in_name text, fin_year text, fin_qtr "
+			"text, fin_start_year text, fin_start_month text, fin_start_day "
+			"text, fin_start_hour text, fin_start_minute text, "
+			"fin_start_second text, fin_rev text, fin_net_earn text, "
+			"fin_basic_eps text, fin_dilut_eps text, fin_margin text, "
+			"fin_invent text, fin_assets text, fin_liab text, fin_out_basic "
+			"text, fin_out_dilut text, day_date_year text, day_date_month "
+			"text, day_date_day text, day_date_hour text, day_date_minute "
+			"text, day_date_second text, day_close text, day_high text, "
+			"day_low text, day_vol text, news_it text, news_year text, "
+			"news_month text, news_day text, news_hour text, news_minute text, "
+			"news_sec text, news_src text, news_auth text, news_headline text, "
+			"news_summary text, last_price S_PRICE_T, last_open S_PRICE_T, "
+			"last_vol S_COUNT_T, S_NAME varchar, CO_ID IDENT_T, CO_NAME "
+			"varchar, CO_SP_RATE char(4), CO_CEO varchar, CO_DESC varchar, "
+			"open_year double precision, open_month double precision, open_day "
+			"double precision, open_hour double precision, open_minute double "
+			"precision, open_second double precision, CO_ST_ID char(4), "
+			"CA_AD_LINE1 varchar, CA_AD_LINE2 varchar, ZCA_ZC_TOWN varchar, "
+			"ZCA_ZC_DIV varchar, CA_AD_ZC_CODE char(12), CA_AD_CTRY varchar, "
+			"S_NUM_OUT S_COUNT_T, s_start_year double precision, s_start_month "
+			"double precision, s_start_day double precision, s_start_hour "
+			"double precision, s_start_minute double precision, s_start_second "
+			"double precision, s_exch_year double precision, s_exch_month "
+			"double precision, s_exch_day double precision, s_exch_hour double "
+			"precision, s_exch_minute double precision, s_exch_second double "
+			"precision, S_PE VALUE_T, S_52WK_HIGH S_PRICE_T, high_year double "
+			"precision, high_month double precision, high_day double "
+			"precision, high_hour double precision, high_minute double "
+			"precision, high_second double precision, S_52WK_LOW S_PRICE_T, "
+			"low_year double precision, low_month double precision, low_day "
+			"double precision, low_hour double precision, low_minute double "
+			"precision, low_second double precision, S_DIVIDEND VALUE_T, "
+			"S_YIELD NUMERIC(5,2), ZEA_ZC_DIV varchar, EA_AD_CTRY varchar, "
+			"EA_AD_LINE1 varchar, EA_AD_LINE2 varchar, ZEA_ZC_TOWN varchar, "
+			"EA_AD_ZC_CODE char(12), EX_CLOSE smallint, EX_DESC varchar, "
+			"EX_NAME varchar, EX_NUM_SYMB integer, EX_OPEN smallint);";
 
 	BeginTxn();
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"); // Isolation level required by Clause 7.4.1.3
+	// Isolation level required by Clause 7.4.1.3
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
 	result R( m_Txn->exec( osCall.str() ) );
 	CommitTxn();
 
@@ -597,89 +622,112 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(PSecurityDetailFrame1Input pFrame
 		pFrame1Input->start_day.second<<endl
 	    <<"- max_rows_to_return: "<<pFrame1Input->max_rows_to_return<<endl
 	    <<"- symbol: "<<pFrame1Input->symbol<<endl;
-	cout<<"Security Detail Frame 1 (output)"<<endl
-	    <<"- fin_len: "<<pFrame1Output->fin_len<<endl
-	    <<"- day_len: "<<pFrame1Output->day_len <<endl
-	    <<"- news_len: "<<pFrame1Output->news_len<<endl
-	    <<"- cp_co_name[0]: "<<pFrame1Output->cp_co_name[0]<<endl
-	    <<"- cp_in_name[0]: "<<pFrame1Output->cp_in_name[0]<<endl
-	    <<"- fin[0].year: "<<pFrame1Output->fin[0].year<<endl
-	    <<"- fin[0].qtr: "<<pFrame1Output->fin[0].qtr<<endl
-	    <<"- fin[0].start_date: "<<pFrame1Output->fin[0].start_date.year<<"-"<<pFrame1Output->fin[0].start_date.month<<"-"
-	    <<pFrame1Output->fin[0].start_date.day<<" "<<pFrame1Output->fin[0].start_date.hour<<":"
-	    <<pFrame1Output->fin[0].start_date.minute<<":"<<pFrame1Output->fin[0].start_date.second<<endl
-	    <<"- fin[0].rev: "<<pFrame1Output->fin[0].rev<<endl
-	    <<"- fin[0].net_earn: "<<pFrame1Output->fin[0].net_earn<<endl
-	    <<"- fin[0].basic_eps: "<<pFrame1Output->fin[0].basic_eps<<endl
-	    <<"- fin[0].dilut_eps: "<<pFrame1Output->fin[0].dilut_eps<<endl
-	    <<"- fin[0].margin: "<<pFrame1Output->fin[0].margin<<endl
-	    <<"- fin[0].invent: "<<pFrame1Output->fin[0].invent<<endl
-	    <<"- fin[0].assets: "<<pFrame1Output->fin[0].assets<<endl
-	    <<"- fin[0].liab: "<<pFrame1Output->fin[0].liab<<endl
-	    <<"- fin[0].out_basic: "<<pFrame1Output->fin[0].out_basic<<endl
-	    <<"- fin[0].out_dilut: "<<pFrame1Output->fin[0].out_dilut<<endl
-	    <<"- day[0].date: "<<pFrame1Output->day[0].date.year<<"-"<<pFrame1Output->day[0].date.month<<"-"
-	    <<pFrame1Output->day[0].date.day<<" "<<pFrame1Output->day[0].date.hour<<":"
-	    <<pFrame1Output->day[0].date.minute<<":"<<pFrame1Output->day[0].date.second<<endl
-	    <<"- day[0].close: "<<pFrame1Output->day[0].close<<endl
-	    <<"- day[0].high: "<<pFrame1Output->day[0].high<<endl
-	    <<"- day[0].low: "<<pFrame1Output->day[0].low<<endl
-	    <<"- day[0].vol: "<<pFrame1Output->day[0].vol<<endl
-	    <<"- news[0].item: "<<pFrame1Output->news[0].item<<endl
-	    <<"- news[0].dts: "<<pFrame1Output->news[0].dts.year<<"-"<<pFrame1Output->news[0].dts.month<<"-"
-	    <<pFrame1Output->news[0].dts.day<<" "<<pFrame1Output->news[0].dts.hour<<":"
-	    <<pFrame1Output->news[0].dts.minute<<":"<<pFrame1Output->news[0].dts.second<<endl
-	    <<"- news[0].src: "<<pFrame1Output->news[0].src<<endl
-	    <<"- news[0].auth: "<<pFrame1Output->news[0].auth<<endl
-	    <<"- news[0].headline: "<<pFrame1Output->news[0].headline<<endl
-	    <<"- news[0].summary: "<<pFrame1Output->news[0].summary<<endl
-	    <<"- last_price: "<<pFrame1Output->last_price<<endl
-	    <<"- last_open: "<<pFrame1Output->last_open<<endl
-	    <<"- last_vol: "<<pFrame1Output->last_vol<<endl
-	    <<"- s_name: "<<pFrame1Output->s_name<<endl
-	    <<"- co_name: "<<pFrame1Output->co_name<<endl
-	    <<"- sp_rate: "<<pFrame1Output->sp_rate<<endl
-	    <<"- ceo_name: "<<pFrame1Output->ceo_name<<endl
-	    <<"- co_desc: "<<pFrame1Output->co_desc<<endl
-	    <<"- open_date: "<<pFrame1Output->open_date.year<<"-"<<pFrame1Output->open_date.month<<"-"
-	    <<pFrame1Output->open_date.day<<" "<<pFrame1Output->open_date.hour<<":"
-	    <<pFrame1Output->open_date.minute<<":"<<pFrame1Output->open_date.second<<endl
-	    <<"- co_st_id: "<<pFrame1Output->co_st_id<<endl
-	    <<"- co_ad_line1: "<<pFrame1Output->co_ad_line1<<endl
-	    <<"- co_ad_line2: "<<pFrame1Output->co_ad_line2<<endl
-	    <<"- co_ad_town: "<<pFrame1Output->co_ad_town<<endl
-	    <<"- co_ad_div: "<<pFrame1Output->co_ad_div<<endl
-	    <<"- co_ad_zip: "<<pFrame1Output->co_ad_zip<<endl
-	    <<"- co_ad_cty: "<<pFrame1Output->co_ad_cty<<endl
-	    <<"- num_out: "<<pFrame1Output->num_out<<endl
-	    <<"- start_date: "<<pFrame1Output->start_date.year<<"-"<<pFrame1Output->start_date.month<<"-"
-	    <<pFrame1Output->start_date.day<<" "<<pFrame1Output->start_date.hour<<":"
-	    <<pFrame1Output->start_date.minute<<":"<<pFrame1Output->start_date.second<<endl
-	    <<"- ex_date: "<<pFrame1Output->ex_date.year<<"-"<<pFrame1Output->ex_date.month<<"-"
-	    <<pFrame1Output->ex_date.day<<" "<<pFrame1Output->ex_date.hour<<":"
-	    <<pFrame1Output->ex_date.minute<<":"<<pFrame1Output->ex_date.second<<endl
-	    <<"- pe_ratio: "<<pFrame1Output->pe_ratio<<endl
-	    <<"- s52_wk_high: "<<pFrame1Output->s52_wk_high<<endl
-	    <<"- s52_wk_high_date: "<<pFrame1Output->s52_wk_high_date.year<<"-"<<pFrame1Output->s52_wk_high_date.month<<"-"
-	    <<pFrame1Output->s52_wk_high_date.day<<" "<<pFrame1Output->s52_wk_high_date.hour<<":"
-	    <<pFrame1Output->s52_wk_high_date.minute<<":"<<pFrame1Output->s52_wk_high_date.second<<endl
-	    <<"- s52_wk_low: "<<pFrame1Output->s52_wk_low<<endl
-	    <<"- s52_wk_low_date: "<<pFrame1Output->s52_wk_low_date.year<<"-"<<pFrame1Output->s52_wk_low_date.month<<"-"
-	    <<pFrame1Output->s52_wk_low_date.day<<" "<<pFrame1Output->s52_wk_low_date.hour<<":"
-	    <<pFrame1Output->s52_wk_low_date.minute<<":"<<pFrame1Output->s52_wk_low_date.second<<endl
-	    <<"- divid: "<<pFrame1Output->divid<<endl
-	    <<"- yield: "<<pFrame1Output->yield<<endl
-	    <<"- ex_ad_div: "<<pFrame1Output->ex_ad_div<<endl
-	    <<"- ex_ad_cty: "<<pFrame1Output->ex_ad_cty<<endl
-	    <<"- ex_ad_line1: "<<pFrame1Output->ex_ad_line1<<endl
-	    <<"- ex_ad_line2: "<<pFrame1Output->ex_ad_line2<<endl
-	    <<"- ex_ad_town: "<<pFrame1Output->ex_ad_town<<endl
-	    <<"- ex_ad_zip: "<<pFrame1Output->ex_ad_zip<<endl
-	    <<"- ex_close: "<<pFrame1Output->ex_close<<endl
-	    <<"- ex_desc: "<<pFrame1Output->ex_desc<<endl
-	    <<"- ex_name: "<<pFrame1Output->ex_name<<endl
-	    <<"- ex_num_symb: "<<pFrame1Output->ex_num_symb<<endl
-	    <<"- ex_open: "<<pFrame1Output->ex_open<<endl;
+	cout << "Security Detail Frame 1 (output)" << endl <<
+			"- fin_len: " << pFrame1Output->fin_len << endl <<
+			"- day_len: " << pFrame1Output->day_len << endl <<
+			"- news_len: " << pFrame1Output->news_len << endl <<
+			"- cp_co_name[0]: " << pFrame1Output->cp_co_name[0] << endl <<
+			"- cp_in_name[0]: " << pFrame1Output->cp_in_name[0] << endl <<
+			"- fin[0].year: " << pFrame1Output->fin[0].year << endl <<
+			"- fin[0].qtr: " << pFrame1Output->fin[0].qtr << endl <<
+			"- fin[0].start_date: " << pFrame1Output->fin[0].start_date.year <<
+			"-" << pFrame1Output->fin[0].start_date.month << "-" <<
+			pFrame1Output->fin[0].start_date.day << " " <<
+			pFrame1Output->fin[0].start_date.hour << ":" <<
+			pFrame1Output->fin[0].start_date.minute << ":" <<
+			pFrame1Output->fin[0].start_date.second << endl <<
+			"- fin[0].rev: "<<pFrame1Output->fin[0].rev << endl <<
+			"- fin[0].net_earn: " << pFrame1Output->fin[0].net_earn << endl <<
+			"- fin[0].basic_eps: " << pFrame1Output->fin[0].basic_eps << endl <<
+			"- fin[0].dilut_eps: " << pFrame1Output->fin[0].dilut_eps << endl <<
+			"- fin[0].margin: " << pFrame1Output->fin[0].margin << endl <<
+			"- fin[0].invent: " << pFrame1Output->fin[0].invent << endl <<
+			"- fin[0].assets: " << pFrame1Output->fin[0].assets << endl <<
+			"- fin[0].liab: " << pFrame1Output->fin[0].liab << endl <<
+			"- fin[0].out_basic: " << pFrame1Output->fin[0].out_basic << endl <<
+			"- fin[0].out_dilut: " << pFrame1Output->fin[0].out_dilut << endl <<
+			"- day[0].date: " << pFrame1Output->day[0].date.year << "-" <<
+			pFrame1Output->day[0].date.month << "-" <<
+			pFrame1Output->day[0].date.day << " " <<
+			pFrame1Output->day[0].date.hour << ":" <<
+			pFrame1Output->day[0].date.minute << ":" <<
+			pFrame1Output->day[0].date.second << endl <<
+			"- day[0].close: " << pFrame1Output->day[0].close << endl <<
+			"- day[0].high: " << pFrame1Output->day[0].high << endl <<
+			"- day[0].low: " << pFrame1Output->day[0].low << endl <<
+			"- day[0].vol: " << pFrame1Output->day[0].vol << endl <<
+			"- news[0].item: " << pFrame1Output->news[0].item << endl <<
+			"- news[0].dts: " << pFrame1Output->news[0].dts.year << "-" <<
+			pFrame1Output->news[0].dts.month << "-" <<
+			pFrame1Output->news[0].dts.day << " " <<
+			pFrame1Output->news[0].dts.hour << ":" <<
+			pFrame1Output->news[0].dts.minute << ":" <<
+			pFrame1Output->news[0].dts.second << endl <<
+			"- news[0].src: " << pFrame1Output->news[0].src << endl <<
+			"- news[0].auth: " << pFrame1Output->news[0].auth << endl <<
+			"- news[0].headline: " << pFrame1Output->news[0].headline << endl <<
+			"- news[0].summary: " << pFrame1Output->news[0].summary << endl <<
+			"- last_price: " << pFrame1Output->last_price << endl <<
+			"- last_open: " << pFrame1Output->last_open << endl <<
+			"- last_vol: " << pFrame1Output->last_vol << endl <<
+			"- s_name: " << pFrame1Output->s_name << endl <<
+			"- co_name: " << pFrame1Output->co_name << endl <<
+			"- sp_rate: " << pFrame1Output->sp_rate << endl <<
+			"- ceo_name: " << pFrame1Output->ceo_name << endl <<
+			"- co_desc: " << pFrame1Output->co_desc << endl <<
+			"- open_date: " << pFrame1Output->open_date.year << "-" <<
+			pFrame1Output->open_date.month << "-" <<
+			pFrame1Output->open_date.day << " " <<
+			pFrame1Output->open_date.hour << ":" <<
+			pFrame1Output->open_date.minute << ":" <<
+			pFrame1Output->open_date.second << endl << "- co_st_id: " <<
+			pFrame1Output->co_st_id << endl << "- co_ad_line1: " <<
+			pFrame1Output->co_ad_line1 << endl <<
+			"- co_ad_line2: " << pFrame1Output->co_ad_line2 << endl <<
+			"- co_ad_town: " << pFrame1Output->co_ad_town << endl <<
+			"- co_ad_div: " << pFrame1Output->co_ad_div << endl <<
+			"- co_ad_zip: " << pFrame1Output->co_ad_zip << endl <<
+			"- co_ad_cty: " << pFrame1Output->co_ad_cty << endl <<
+			"- num_out: " << pFrame1Output->num_out << endl <<
+			"- start_date: " << pFrame1Output->start_date.year << "-" <<
+			pFrame1Output->start_date.month << "-" <<
+			pFrame1Output->start_date.day << " " <<
+			pFrame1Output->start_date.hour << ":" <<
+			pFrame1Output->start_date.minute << ":" <<
+			pFrame1Output->start_date.second << endl <<
+			"- ex_date: " << pFrame1Output->ex_date.year << "-" <<
+			pFrame1Output->ex_date.month << "-" <<
+			pFrame1Output->ex_date.day << " " << pFrame1Output->ex_date.hour <<
+			":" << pFrame1Output->ex_date.minute << ":" <<
+			pFrame1Output->ex_date.second << endl <<
+			"- pe_ratio: " << pFrame1Output->pe_ratio << endl <<
+			"- s52_wk_high: " << pFrame1Output->s52_wk_high << endl <<
+			"- s52_wk_high_date: " << pFrame1Output->s52_wk_high_date.year <<
+			"-" << pFrame1Output->s52_wk_high_date.month << "-" <<
+			pFrame1Output->s52_wk_high_date.day << " " <<
+			pFrame1Output->s52_wk_high_date.hour << ":" <<
+			pFrame1Output->s52_wk_high_date.minute << ":" <<
+			pFrame1Output->s52_wk_high_date.second << endl <<
+			"- s52_wk_low: " << pFrame1Output->s52_wk_low << endl <<
+			"- s52_wk_low_date: " << pFrame1Output->s52_wk_low_date.year <<
+			"-" << pFrame1Output->s52_wk_low_date.month << "-" <<
+			pFrame1Output->s52_wk_low_date.day << " " <<
+			pFrame1Output->s52_wk_low_date.hour << ":" <<
+			pFrame1Output->s52_wk_low_date.minute << ":" <<
+			pFrame1Output->s52_wk_low_date.second << endl <<
+			"- divid: " << pFrame1Output->divid << endl <<
+			"- yield: " << pFrame1Output->yield << endl <<
+			"- ex_ad_div: " << pFrame1Output->ex_ad_div << endl <<
+			"- ex_ad_cty: " << pFrame1Output->ex_ad_cty << endl <<
+			"- ex_ad_line1: " << pFrame1Output->ex_ad_line1 << endl <<
+			"- ex_ad_line2: " << pFrame1Output->ex_ad_line2 << endl <<
+			"- ex_ad_town: " << pFrame1Output->ex_ad_town << endl <<
+			"- ex_ad_zip: " << pFrame1Output->ex_ad_zip << endl <<
+			"- ex_close: " << pFrame1Output->ex_close << endl <<
+			"- ex_desc: " << pFrame1Output->ex_desc << endl <<
+			"- ex_name: " << pFrame1Output->ex_name << endl <<
+			"- ex_num_symb: " << pFrame1Output->ex_num_symb << endl <<
+			"- ex_open: " << pFrame1Output->ex_open << endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
 	

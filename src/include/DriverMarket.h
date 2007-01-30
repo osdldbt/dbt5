@@ -31,13 +31,14 @@ private:
 	void LogErrorMessage(const string sErr);
 
 	friend void* TPCE::MarketWorkerThread(void* data);
-	friend void TPCE::EntryMarketWorkerThread(void* data);	// entry point for driver worker thread
+	// entry point for driver worker thread
+	friend void TPCE::EntryMarketWorkerThread(void* data);
 
 
 public:
-	CDriverMarket(char* szFileLoc, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
-				int iListenPort, char* szBHaddr, int iBHlistenPort,
-				char *outputDirectory);
+	CDriverMarket(char* szFileLoc, TIdent iConfiguredCustomerCount,
+			TIdent iActiveCustomerCount, int iListenPort, char* szBHaddr,
+			int iBHlistenPort, char *outputDirectory);
 	~CDriverMarket();
 
 	void Listener(void);

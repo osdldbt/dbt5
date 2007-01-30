@@ -11,7 +11,8 @@
 using namespace TPCE;
 
 // Constructor: Creates PgSQL connection
-CDBConnection::CDBConnection(const char *szHost, const char *szDBName, const char *szPostmasterPort)
+CDBConnection::CDBConnection(const char *szHost, const char *szDBName,
+		const char *szPostmasterPort)
 {
 	char	szConnectStr[256];
 	sprintf( szConnectStr, "host=%s dbname=%s port=%s", 
@@ -24,7 +25,8 @@ CDBConnection::CDBConnection(const char *szHost, const char *szDBName, const cha
 // Destructor: Disconnect from server
 CDBConnection::~CDBConnection()
 {
-	m_Txn->commit(); // does nothing since this is a dummy transaction, just from completeness	
+	// does nothing since this is a dummy transaction, just from completeness	
+	m_Txn->commit();
 	m_Conn->disconnect();
 	
 	delete m_Txn;

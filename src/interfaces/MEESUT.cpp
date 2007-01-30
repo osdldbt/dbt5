@@ -10,8 +10,8 @@
 
 using namespace TPCE;
 
-CMEESUT::CMEESUT(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix, 
-			CSyncLock* pLogLock, CSyncLock* pMixLock)
+CMEESUT::CMEESUT(char* addr, const int iListenPort, ofstream* pflog,
+		ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock)
 : CBaseInterface(addr, iListenPort, pflog, pfmix, pLogLock, pMixLock)
 {
 }
@@ -32,8 +32,9 @@ void* TPCE::TradeResultAsync(void* data)
 	memset(pRequest, 0, sizeof(TMsgDriverBrokerage));
 
 	pRequest->TxnType = TRADE_RESULT;
-	memcpy( &(pRequest->TxnInput.TradeResultTxnInput), &(pThrParam->TxnInput.m_TradeResultTxnInput), 
-								sizeof( pRequest->TxnInput.TradeResultTxnInput ));
+	memcpy( &(pRequest->TxnInput.TradeResultTxnInput),
+			&(pThrParam->TxnInput.m_TradeResultTxnInput),
+			sizeof( pRequest->TxnInput.TradeResultTxnInput ));
 
 	// communicate with the SUT and log response time
 	pThrParam->pCMEESUT->TalkToSUT(pRequest);
@@ -51,21 +52,25 @@ bool TPCE::RunTradeResultAsync( void* data )
 
 	try
 	{
-		int status = pthread_attr_init(&threadAttribute); // initialize the attribute object
+		// initialize the attribute object
+		int status = pthread_attr_init(&threadAttribute);
 		if (status != 0)
 		{
 			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_INIT );
 		}
 	
 		// set the detachstate attribute to detached
-		status = pthread_attr_setdetachstate(&threadAttribute, PTHREAD_CREATE_DETACHED);
+		status = pthread_attr_setdetachstate(&threadAttribute,
+				PTHREAD_CREATE_DETACHED);
 		if (status != 0)
 		{
 			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_DETACH );
 		}
 	
-		// create the thread in the detached state - Call Trade Result asyncronously
-		status = pthread_create(&threadID, &threadAttribute, &TradeResultAsync, data);
+		// create the thread in the detached state - Call Trade Result
+		// asyncronously
+		status = pthread_create(&threadID, &threadAttribute, &TradeResultAsync,
+				data);
 
 		if (status != 0)
 		{
@@ -92,7 +97,8 @@ bool CMEESUT::TradeResult( PTradeResultTxnInput pTxnInput )
 	memset(pThrParam, 0, sizeof(TMEESUTThreadParam));
 
 	pThrParam->pCMEESUT = this;
-	memcpy(&(pThrParam->TxnInput.m_TradeResultTxnInput), pTxnInput, sizeof(TTradeResultTxnInput));
+	memcpy(&(pThrParam->TxnInput.m_TradeResultTxnInput), pTxnInput,
+			sizeof(TTradeResultTxnInput));
 
 	return ( RunTradeResultAsync( reinterpret_cast<void*>(pThrParam) ) );
 }
@@ -109,8 +115,9 @@ void* TPCE::MarketFeedAsync(void* data)
 	memset(pRequest, 0, sizeof(TMsgDriverBrokerage));
 
 	pRequest->TxnType = MARKET_FEED;
-	memcpy( &(pRequest->TxnInput.MarketFeedTxnInput), &(pThrParam->TxnInput.m_MarketFeedTxnInput), 
-								sizeof( pRequest->TxnInput.MarketFeedTxnInput ));
+	memcpy( &(pRequest->TxnInput.MarketFeedTxnInput),
+			&(pThrParam->TxnInput.m_MarketFeedTxnInput),
+			sizeof( pRequest->TxnInput.MarketFeedTxnInput ));
 
 	// communicate with the SUT and log response time
 	pThrParam->pCMEESUT->TalkToSUT(pRequest);
@@ -128,21 +135,25 @@ bool TPCE::RunMarketFeedAsync(void* data)
 
 	try
 	{
-		int status = pthread_attr_init(&threadAttribute); // initialize the attribute object
+		// initialize the attribute object
+		int status = pthread_attr_init(&threadAttribute);
 		if (status != 0)
 		{
 			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_INIT );
 		}
 	
 		// set the detachstate attribute to detached
-		status = pthread_attr_setdetachstate(&threadAttribute, PTHREAD_CREATE_DETACHED);
+		status = pthread_attr_setdetachstate(&threadAttribute,
+				PTHREAD_CREATE_DETACHED);
 		if (status != 0)
 		{
 			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_DETACH );
 		}
 	
-		// create the thread in the detached state - Call Trade Result asyncronously
-		status = pthread_create(&threadID, &threadAttribute, &MarketFeedAsync, data);
+		// create the thread in the detached state - Call Trade Result
+		// asyncronously
+		status = pthread_create(&threadID, &threadAttribute, &MarketFeedAsync,
+				data);
 
 		if (status != 0)
 		{
@@ -169,7 +180,8 @@ bool CMEESUT::MarketFeed( PMarketFeedTxnInput pTxnInput )
 	memset(pThrParam, 0, sizeof(TMEESUTThreadParam));
 
 	pThrParam->pCMEESUT = this;
-	memcpy(&(pThrParam->TxnInput.m_MarketFeedTxnInput), pTxnInput, sizeof(TMarketFeedTxnInput));
+	memcpy(&(pThrParam->TxnInput.m_MarketFeedTxnInput), pTxnInput,
+			sizeof(TMarketFeedTxnInput));
 
 	return ( RunMarketFeedAsync( reinterpret_cast<void*>(pThrParam) ) );
 }

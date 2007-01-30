@@ -21,7 +21,8 @@ public:
 	CDataMaintenanceDB(CDBConnection *pDBConn);
 	~CDataMaintenanceDB();
 
-	void DoDataMaintenanceFrame1(PDataMaintenanceFrame1Input pFrame1Input, PDataMaintenanceFrame1Output pFrame1Output);
+	void DoDataMaintenanceFrame1(PDataMaintenanceFrame1Input pFrame1Input,
+			PDataMaintenanceFrame1Output pFrame1Output);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

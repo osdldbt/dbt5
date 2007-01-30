@@ -48,15 +48,21 @@ void CMarketFeedDB::DoMarketFeedFrame1(PMarketFeedFrame1Input pFrame1Input,
 	osSymbol << "\"";
 
 	ostringstream osCall;
-	osCall << "select * from MarketFeedFrame1("<<max_feed_len<<"::smallint,'{"<<osPrice.str()<<"}','"
-			<<pFrame1Input->StatusAndTradeType.status_submitted<<"'::char(4),'{"<<osSymbol.str()<<"}',"
-			"'{"<<osQty.str()<<"}','"<<pFrame1Input->StatusAndTradeType.type_limit_buy<<"'::char(3),'"
-			<<pFrame1Input->StatusAndTradeType.type_limit_sell<<"'::char(3),'"
-			<<pFrame1Input->StatusAndTradeType.type_stop_loss<<"'::char(3)) as (symbol char(15),"
-			"trade_id TRADE_T, price numeric(8,2), trade_quant integer, trade_type char(3))";
+	osCall << "select * from MarketFeedFrame1(" << max_feed_len <<
+			"::smallint,'{" << osPrice.str() << "}','" <<
+			pFrame1Input->StatusAndTradeType.status_submitted <<
+			"'::char(4),'{" << osSymbol.str() << "}', '{" << osQty.str() <<
+			"}','" << pFrame1Input->StatusAndTradeType.type_limit_buy <<
+			"'::char(3),'" <<
+			pFrame1Input->StatusAndTradeType.type_limit_sell <<
+			"'::char(3),'" <<
+			pFrame1Input->StatusAndTradeType.type_stop_loss <<
+			"'::char(3)) as (symbol char(15), trade_id TRADE_T, price "
+			"numeric(8,2), trade_quant integer, trade_type char(3))";
 
 	BeginTxn();
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;"); // Isolation level required by Clause 7.4.1.3
+	// Isolation level required by Clause 7.4.1.3
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;");
 	result R( m_Txn->exec( osCall.str() ) );
 	// Sponsors should consider committing the database changes
 	// before calling the send_to_market interface (we're doing that)
@@ -76,7 +82,8 @@ void CMarketFeedDB::DoMarketFeedFrame1(PMarketFeedFrame1Input pFrame1Input,
 			m_TriggeredLimitOrders.trade_qty = c[3].as(int());
 			sprintf( m_TriggeredLimitOrders.trade_type_id, "%s", c[4].c_str());
 
-			bSent = pSendToMarket->SendToMarketFromFrame( m_TriggeredLimitOrders );
+			bSent = pSendToMarket->SendToMarketFromFrame(
+					m_TriggeredLimitOrders);
 			if (bSent)
 			{
 				++i;
@@ -90,17 +97,18 @@ void CMarketFeedDB::DoMarketFeedFrame1(PMarketFeedFrame1Input pFrame1Input,
 	}
 	pFrame1Output->status = CBaseTxnErr::SUCCESS;
 	
-#ifdef DEBUG
-	m_coutLock.ClaimLock();
-	cout<<"Market Feed Frame 1 (input)"<<endl
-	    <<"- max_feed_len: "<<max_feed_len<<endl
-	    <<"- price_quote: "<<"{"<<osPrice.str()<<"}"<<endl
-	    <<"- status_submitted: "<<pFrame1Input->StatusAndTradeType.status_submitted<<endl
-	    <<"- symbol: "<<"{"<<osSymbol.str()<<"}"<<endl
-	    <<"- trade_qty: "<<"{"<<osQty.str()<<"}"<<endl
-	    <<"- type_limit_buy: "<<pFrame1Input->StatusAndTradeType.type_limit_buy<<endl
-	    <<"- type_limit_sell: "<<pFrame1Input->StatusAndTradeType.type_limit_sell<<endl
-	    <<"- type_stop_loss: "<<pFrame1Input->StatusAndTradeType.type_stop_loss<<endl;
+#ifdef DEBUG m_coutLock.ClaimLock(); cout << "Market Feed Frame 1 (input)" << endl << "- max_feed_len: " << max_feed_len << endl <<
+			"- price_quote: " << "{" << osPrice.str() << "}"<< endl <<
+			"- status_submitted: " <<
+			pFrame1Input->StatusAndTradeType.status_submitted << endl <<
+			"- symbol: " << "{" << osSymbol.str() << "}" << endl <<
+			"- trade_qty: " << "{" << osQty.str() << "}" << endl <<
+			"- type_limit_buy: " <<
+			pFrame1Input->StatusAndTradeType.type_limit_buy << endl <<
+			"- type_limit_sell: " <<
+			pFrame1Input->StatusAndTradeType.type_limit_sell << endl <<
+			"- type_stop_loss: " <<
+			pFrame1Input->StatusAndTradeType.type_stop_loss << endl;
 	cout<<"Market Feed Frame 1 (output)"<<endl
 	    <<"- send_len: "<<pFrame1Output->send_len<<endl;
 	m_coutLock.ReleaseLock();

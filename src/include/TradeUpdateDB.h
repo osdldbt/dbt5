@@ -25,9 +25,12 @@ public:
 	CTradeUpdateDB(CDBConnection *pDBConn);
 	~CTradeUpdateDB();
 
-	void DoTradeUpdateFrame1(PTradeUpdateFrame1Input pFrame1Input, PTradeUpdateFrame1Output pFrame1Output);
-	void DoTradeUpdateFrame2(PTradeUpdateFrame2Input pFrame2Input, PTradeUpdateFrame2Output pFrame2Output);
-	void DoTradeUpdateFrame3(PTradeUpdateFrame3Input pFrame3Input, PTradeUpdateFrame3Output pFrame3Output);
+	void DoTradeUpdateFrame1(PTradeUpdateFrame1Input pFrame1Input,
+			PTradeUpdateFrame1Output pFrame1Output);
+	void DoTradeUpdateFrame2(PTradeUpdateFrame2Input pFrame2Input,
+			PTradeUpdateFrame2Output pFrame2Output);
+	void DoTradeUpdateFrame3(PTradeUpdateFrame3Input pFrame3Input,
+			PTradeUpdateFrame3Output pFrame3Output);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

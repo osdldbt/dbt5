@@ -21,7 +21,8 @@ public:
 	CSecurityDetailDB(CDBConnection *pDBConn);
 	~CSecurityDetailDB();
 
-	void DoSecurityDetailFrame1(PSecurityDetailFrame1Input pFrame1Input, PSecurityDetailFrame1Output pFrame1Output);
+	void DoSecurityDetailFrame1(PSecurityDetailFrame1Input pFrame1Input,
+			PSecurityDetailFrame1Output pFrame1Output);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

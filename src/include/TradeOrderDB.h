@@ -29,10 +29,14 @@ public:
 	CTradeOrderDB(CDBConnection *pDBConn);
 	~CTradeOrderDB();
 
-	void DoTradeOrderFrame1(PTradeOrderFrame1Input pFrame1Input, PTradeOrderFrame1Output pFrame1Output);
-	void DoTradeOrderFrame2(PTradeOrderFrame2Input pFrame2Input, PTradeOrderFrame2Output pFrame2Output);
-	void DoTradeOrderFrame3(PTradeOrderFrame3Input pFrame3Input, PTradeOrderFrame3Output pFrame3Output);
-	void DoTradeOrderFrame4(PTradeOrderFrame4Input pFrame4Input, PTradeOrderFrame4Output pFrame4Output);
+	void DoTradeOrderFrame1(PTradeOrderFrame1Input pFrame1Input,
+			PTradeOrderFrame1Output pFrame1Output);
+	void DoTradeOrderFrame2(PTradeOrderFrame2Input pFrame2Input,
+			PTradeOrderFrame2Output pFrame2Output);
+	void DoTradeOrderFrame3(PTradeOrderFrame3Input pFrame3Input,
+			PTradeOrderFrame3Output pFrame3Output);
+	void DoTradeOrderFrame4(PTradeOrderFrame4Input pFrame4Input,
+			PTradeOrderFrame4Output pFrame4Output);
 	void DoTradeOrderFrame5(PTradeOrderFrame5Output pFrame5Output);
 	void DoTradeOrderFrame6(PTradeOrderFrame6Output pFrame6Output);
 

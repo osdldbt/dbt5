@@ -27,10 +27,14 @@ public:
 	CTradeLookupDB(CDBConnection *pDBConn);
 	~CTradeLookupDB();
 
-	void DoTradeLookupFrame1(PTradeLookupFrame1Input pFrame1Input, PTradeLookupFrame1Output pFrame1Output);
-	void DoTradeLookupFrame2(PTradeLookupFrame2Input pFrame2Input, PTradeLookupFrame2Output pFrame2Output);
-	void DoTradeLookupFrame3(PTradeLookupFrame3Input pFrame3Input, PTradeLookupFrame3Output pFrame3Output);
-	void DoTradeLookupFrame4(PTradeLookupFrame4Input pFrame4Input, PTradeLookupFrame4Output pFrame4Output);
+	void DoTradeLookupFrame1(PTradeLookupFrame1Input pFrame1Input,
+			PTradeLookupFrame1Output pFrame1Output);
+	void DoTradeLookupFrame2(PTradeLookupFrame2Input pFrame2Input,
+			PTradeLookupFrame2Output pFrame2Output);
+	void DoTradeLookupFrame3(PTradeLookupFrame3Input pFrame3Input,
+			PTradeLookupFrame3Output pFrame3Output);
+	void DoTradeLookupFrame4(PTradeLookupFrame4Input pFrame4Input,
+			PTradeLookupFrame4Output pFrame4Output);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

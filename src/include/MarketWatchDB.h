@@ -21,7 +21,8 @@ public:
 	CMarketWatchDB(CDBConnection *pDBConn);
 	~CMarketWatchDB();
 
-	void DoMarketWatchFrame1(PMarketWatchFrame1Input pFrame1Input, PMarketWatchFrame1Output pFrame1Output);
+	void DoMarketWatchFrame1(PMarketWatchFrame1Input pFrame1Input,
+			PMarketWatchFrame1Output pFrame1Output);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

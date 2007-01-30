@@ -11,7 +11,8 @@
 using namespace TPCE;
 
 // Constructor
-CCESUT::CCESUT(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock)
+CCESUT::CCESUT(char* addr, const int iListenPort, ofstream* pflog,
+		ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock)
 : CBaseInterface(addr, iListenPort, pflog, pfmix, pLogLock, pMixLock)
 {
 }
@@ -30,7 +31,8 @@ bool CCESUT::BrokerVolume( PBrokerVolumeTxnInput pTxnInput )
 	memset(pRequest, 0, sizeof(*pRequest));
 
 	pRequest->TxnType = BROKER_VOLUME;
-	memcpy( &(pRequest->TxnInput.BrokerVolumeTxnInput), pTxnInput, sizeof( pRequest->TxnInput.BrokerVolumeTxnInput ));
+	memcpy( &(pRequest->TxnInput.BrokerVolumeTxnInput), pTxnInput,
+			sizeof( pRequest->TxnInput.BrokerVolumeTxnInput ));
 	
 	TalkToSUT(pRequest);
 	return true;
@@ -45,7 +47,8 @@ bool CCESUT::CustomerPosition( PCustomerPositionTxnInput pTxnInput )
 	memset(pRequest, 0, sizeof(*pRequest));
 
 	pRequest->TxnType = CUSTOMER_POSITION;
-	memcpy( &(pRequest->TxnInput.CustomerPositionTxnInput), pTxnInput, sizeof( pRequest->TxnInput.CustomerPositionTxnInput ));
+	memcpy( &(pRequest->TxnInput.CustomerPositionTxnInput), pTxnInput,
+			sizeof( pRequest->TxnInput.CustomerPositionTxnInput ));
 	
 	TalkToSUT(pRequest);
 	return true;	
@@ -60,7 +63,8 @@ bool CCESUT::MarketWatch( PMarketWatchTxnInput pTxnInput )
 	memset(pRequest, 0, sizeof(*pRequest));
 
 	pRequest->TxnType = MARKET_WATCH;
-	memcpy( &(pRequest->TxnInput.MarketWatchTxnInput), pTxnInput, sizeof( pRequest->TxnInput.MarketWatchTxnInput ));
+	memcpy( &(pRequest->TxnInput.MarketWatchTxnInput), pTxnInput,
+			sizeof( pRequest->TxnInput.MarketWatchTxnInput ));
 	
 	TalkToSUT(pRequest);
 	return true;
@@ -75,7 +79,8 @@ bool CCESUT::SecurityDetail( PSecurityDetailTxnInput pTxnInput )
 	memset(pRequest, 0, sizeof(*pRequest));
 
 	pRequest->TxnType = SECURITY_DETAIL;
-	memcpy( &(pRequest->TxnInput.SecurityDetailTxnInput), pTxnInput, sizeof( pRequest->TxnInput.SecurityDetailTxnInput ));
+	memcpy( &(pRequest->TxnInput.SecurityDetailTxnInput), pTxnInput,
+			sizeof( pRequest->TxnInput.SecurityDetailTxnInput ));
 	
 	TalkToSUT(pRequest);
 	return true;
@@ -90,7 +95,8 @@ bool CCESUT::TradeLookup( PTradeLookupTxnInput pTxnInput )
 	memset(pRequest, 0, sizeof(*pRequest));
 
 	pRequest->TxnType = TRADE_LOOKUP;
-	memcpy( &(pRequest->TxnInput.TradeLookupTxnInput), pTxnInput, sizeof( pRequest->TxnInput.TradeLookupTxnInput ));
+	memcpy( &(pRequest->TxnInput.TradeLookupTxnInput), pTxnInput,
+			sizeof( pRequest->TxnInput.TradeLookupTxnInput ));
 	
 	TalkToSUT(pRequest);
 	return true;
@@ -105,14 +111,16 @@ bool CCESUT::TradeStatus( PTradeStatusTxnInput pTxnInput )
 	memset(pRequest, 0, sizeof(*pRequest));
 
 	pRequest->TxnType = TRADE_STATUS;
-	memcpy( &(pRequest->TxnInput.TradeStatusTxnInput), pTxnInput, sizeof( pRequest->TxnInput.TradeStatusTxnInput ));
+	memcpy( &(pRequest->TxnInput.TradeStatusTxnInput), pTxnInput,
+			sizeof( pRequest->TxnInput.TradeStatusTxnInput ));
 	
 	TalkToSUT(pRequest);
 	return true;
 }
 
 // Trade Order
-bool CCESUT::TradeOrder( PTradeOrderTxnInput pTxnInput, INT32 iTradeType, bool bExecutorIsAccountOwner )
+bool CCESUT::TradeOrder( PTradeOrderTxnInput pTxnInput, INT32 iTradeType,
+		bool bExecutorIsAccountOwner )
 {
 	//cout<<"Trade Order requested"<<endl;
 
@@ -120,7 +128,8 @@ bool CCESUT::TradeOrder( PTradeOrderTxnInput pTxnInput, INT32 iTradeType, bool b
 	memset(pRequest, 0, sizeof(*pRequest));
 
 	pRequest->TxnType = TRADE_ORDER;
-	memcpy( &(pRequest->TxnInput.TradeOrderTxnInput), pTxnInput, sizeof( pRequest->TxnInput.TradeOrderTxnInput ));
+	memcpy( &(pRequest->TxnInput.TradeOrderTxnInput), pTxnInput,
+			sizeof( pRequest->TxnInput.TradeOrderTxnInput ));
 	
 	TalkToSUT(pRequest);
 	return true;
@@ -135,7 +144,8 @@ bool CCESUT::TradeUpdate( PTradeUpdateTxnInput pTxnInput )
 	memset(pRequest, 0, sizeof(*pRequest));
 
 	pRequest->TxnType = TRADE_UPDATE;
-	memcpy( &(pRequest->TxnInput.TradeUpdateTxnInput), pTxnInput, sizeof( pRequest->TxnInput.TradeUpdateTxnInput ));
+	memcpy( &(pRequest->TxnInput.TradeUpdateTxnInput), pTxnInput,
+			sizeof( pRequest->TxnInput.TradeUpdateTxnInput ));
 	
 	TalkToSUT(pRequest);
 	return true;

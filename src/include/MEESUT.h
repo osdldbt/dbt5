@@ -21,12 +21,14 @@ private:
 	TMarketFeedTxnInput	m_MarketFeedTxnInput;
 	
 public:
-	CMEESUT(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix, 
+	CMEESUT(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix,
 			CSyncLock* pLogLock, CSyncLock* pMixLock);
 	~CMEESUT();
 
-	virtual bool TradeResult( PTradeResultTxnInput pTxnInput );	// return whether it was successful
-	virtual bool MarketFeed( PMarketFeedTxnInput pTxnInput );	// return whether it was successful
+	// return whether it was successful
+	virtual bool TradeResult( PTradeResultTxnInput pTxnInput );
+	// return whether it was successful
+	virtual bool MarketFeed( PMarketFeedTxnInput pTxnInput );
 	
 	friend void* TPCE::TradeResultAsync(void* data);
 	friend bool TPCE::RunTradeResultAsync(void* data);

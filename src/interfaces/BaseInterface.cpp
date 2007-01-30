@@ -11,8 +11,9 @@
 using namespace TPCE;
 
 // constructor
-CBaseInterface::CBaseInterface(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix,
-							CSyncLock* pLogLock, CSyncLock* pMixLock)
+CBaseInterface::CBaseInterface(char* addr, const int iListenPort,
+		ofstream* pflog, ofstream* pfmix, CSyncLock* pLogLock,
+		CSyncLock* pMixLock)
 : m_szBHAddress(addr),
   m_iBHlistenPort(iListenPort),
   m_pLogLock(pLogLock),
@@ -41,7 +42,8 @@ void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 		// connect to BrokerageHouse
 		sock.Connect(m_szBHAddress, m_iBHlistenPort);
 	
-		// record txn start time -- please, see TPC-E specification clause 6.2.1.3
+		// record txn start time -- please, see TPC-E specification clause
+		// 6.2.1.3
 		StartTime.SetToCurrent();
 	
 		// send and wait for response
@@ -59,7 +61,8 @@ void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 		TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
 	
 		//log response time
-		LogResponseTime(Reply.iStatus, pRequest->TxnType, (TxnTime.MSec()/1000.0));
+		LogResponseTime(Reply.iStatus, pRequest->TxnType,
+				(TxnTime.MSec()/1000.0));
 		delete pRequest;
 	}
 	catch(CSocketErr *pErr)
@@ -90,15 +93,18 @@ void CBaseInterface::LogResponseTime(int iStatus, int iTxnType, double dRT)
 	m_pMixLock->ClaimLock();
 	if (iStatus == CBaseTxnErr::SUCCESS)
 	{
-		*(m_pfMix)<<(int)time(NULL)<<","<<iTxnType<< ","<<dRT<<","<<(int)pthread_self()<<endl;
+		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "," << dRT <<
+				"," << (int) pthread_self() << endl;
 	}
 	else if (iStatus == CBaseTxnErr::ROLLBACK)
 	{
-		*(m_pfMix)<<(int)time(NULL)<<","<<iTxnType<<"R"<<","<<dRT<<","<<(int)pthread_self()<<endl;
+		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "R" << "," <<
+				dRT << "," << (int) pthread_self() << endl;
 	}
 	else
 	{
-		*(m_pfMix)<<(int)time(NULL)<<","<<"E"<<","<<dRT<<","<<(int)pthread_self()<<endl;
+		*(m_pfMix) << (int) time(NULL) << "," << "E" << "," << dRT << "," <<
+				(int) pthread_self() << endl;
 	}
 	m_pfMix->flush();
 	m_pMixLock->ReleaseLock();

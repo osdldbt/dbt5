@@ -24,8 +24,10 @@ public:
 	CCustomerPositionDB(CDBConnection *pDBConn);
 	~CCustomerPositionDB();
 
-	void DoCustomerPositionFrame1(PCustomerPositionFrame1Input pFrame1Input, PCustomerPositionFrame1Output pFrame1Output);
-	void DoCustomerPositionFrame2(PCustomerPositionFrame2Input pFrame2Input, PCustomerPositionFrame2Output pFrame2Output);
+	void DoCustomerPositionFrame1(PCustomerPositionFrame1Input pFrame1Input,
+			PCustomerPositionFrame1Output pFrame1Output);
+	void DoCustomerPositionFrame2(PCustomerPositionFrame2Input pFrame2Input,
+			PCustomerPositionFrame2Output pFrame2Output);
 	void DoCustomerPositionFrame3(PCustomerPositionFrame3Output pFrame3Output);
 
 	// Function to pass any exception thrown inside

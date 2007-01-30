@@ -11,7 +11,8 @@
 using namespace TPCE;
 
 // constructor
-CDMSUT::CDMSUT(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock)
+CDMSUT::CDMSUT(char* addr, const int iListenPort, ofstream* pflog,
+		ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock)
 : CBaseInterface(addr, iListenPort, pflog, pfmix, pLogLock, pMixLock)
 {
 }
@@ -30,7 +31,8 @@ bool CDMSUT::DataMaintenance( PDataMaintenanceTxnInput pTxnInput )
 	memset(pRequest, 0, sizeof(TMsgDriverBrokerage));
 
 	pRequest->TxnType = DATA_MAINTENANCE;
-	memcpy( &(pRequest->TxnInput.DataMaintenanceTxnInput), pTxnInput, sizeof( TDataMaintenanceTxnInput ));
+	memcpy( &(pRequest->TxnInput.DataMaintenanceTxnInput), pTxnInput,
+			sizeof( TDataMaintenanceTxnInput ));
 	
 	TalkToSUT(pRequest);
 	return true;
@@ -45,7 +47,8 @@ bool CDMSUT::TradeCleanup( PTradeCleanupTxnInput pTxnInput )
 	memset(pRequest, 0, sizeof(TMsgDriverBrokerage));
 
 	pRequest->TxnType = TRADE_CLEANUP;
-	memcpy( &(pRequest->TxnInput.TradeCleanupTxnInput), pTxnInput, sizeof( TTradeCleanupTxnInput ));
+	memcpy( &(pRequest->TxnInput.TradeCleanupTxnInput), pTxnInput,
+			sizeof( TTradeCleanupTxnInput ));
 	
 	TalkToSUT(pRequest);
 	return true;

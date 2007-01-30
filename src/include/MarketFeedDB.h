@@ -17,7 +17,8 @@ class CMarketFeedDB : public CTxnBaseDB
 	TMarketFeedFrame1Input	Frame1Input;
 	TMarketFeedFrame1Output	Frame1Output;
 
-	TTradeRequest		m_TriggeredLimitOrders;	// member used to send triggered orders to MEE
+	// member used to send triggered orders to MEE
+	TTradeRequest		m_TriggeredLimitOrders;
 public:
 	CMarketFeedDB(CDBConnection *pDBConn);
 	~CMarketFeedDB();

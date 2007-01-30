@@ -24,15 +24,23 @@ public:
 			CSyncLock* pLogLock, CSyncLock* pMixLock);
 	~CCESUT(void);
 
-	virtual bool BrokerVolume( PBrokerVolumeTxnInput pTxnInput );			// return whether it was successful
-	virtual bool CustomerPosition( PCustomerPositionTxnInput pTxnInput );		// return whether it was successful
-	virtual bool MarketWatch( PMarketWatchTxnInput pTxnInput );			// return whether it was successful
-	virtual bool SecurityDetail( PSecurityDetailTxnInput pTxnInput );		// return whether it was successful
-	virtual bool TradeLookup( PTradeLookupTxnInput pTxnInput );			// return whether it was successful
-	virtual bool TradeOrder( PTradeOrderTxnInput pTxnInput, INT32 iTradeType, bool bExecutorIsAccountOwner );
-											// return whether it was successful
-	virtual bool TradeStatus( PTradeStatusTxnInput pTxnInput );			// return whether it was successful
-	virtual bool TradeUpdate( PTradeUpdateTxnInput pTxnInput );			// return whether it was successful
+	// return whether it was successful
+	virtual bool BrokerVolume( PBrokerVolumeTxnInput pTxnInput );
+	// return whether it was successful
+	virtual bool CustomerPosition( PCustomerPositionTxnInput pTxnInput );
+	// return whether it was successful
+	virtual bool MarketWatch( PMarketWatchTxnInput pTxnInput );
+	// return whether it was successful
+	virtual bool SecurityDetail( PSecurityDetailTxnInput pTxnInput );
+	// return whether it was successful
+	virtual bool TradeLookup( PTradeLookupTxnInput pTxnInput );
+	// return whether it was successful
+	virtual bool TradeOrder( PTradeOrderTxnInput pTxnInput, INT32 iTradeType,
+			bool bExecutorIsAccountOwner );
+	// return whether it was successful
+	virtual bool TradeStatus( PTradeStatusTxnInput pTxnInput );
+	// return whether it was successful
+	virtual bool TradeUpdate( PTradeUpdateTxnInput pTxnInput );
 
 };
 

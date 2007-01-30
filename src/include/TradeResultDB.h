@@ -31,12 +31,18 @@ public:
 	CTradeResultDB(CDBConnection *pDBConn);
 	~CTradeResultDB();
 
-	void DoTradeResultFrame1(PTradeResultFrame1Input pFrame1Input, PTradeResultFrame1Output pFrame1Output);
-	void DoTradeResultFrame2(PTradeResultFrame2Input pFrame2Input, PTradeResultFrame2Output pFrame2Output);
-	void DoTradeResultFrame3(PTradeResultFrame3Input pFrame3Input, PTradeResultFrame3Output pFrame3Output);
-	void DoTradeResultFrame4(PTradeResultFrame4Input pFrame4Input, PTradeResultFrame4Output pFrame4Output);
-	void DoTradeResultFrame5(PTradeResultFrame5Input pFrame5Input, PTradeResultFrame5Output pFrame5Output);
-	void DoTradeResultFrame6(PTradeResultFrame6Input pFrame6Input, PTradeResultFrame6Output pFrame6Output);
+	void DoTradeResultFrame1(PTradeResultFrame1Input pFrame1Input,
+			PTradeResultFrame1Output pFrame1Output);
+	void DoTradeResultFrame2(PTradeResultFrame2Input pFrame2Input,
+			PTradeResultFrame2Output pFrame2Output);
+	void DoTradeResultFrame3(PTradeResultFrame3Input pFrame3Input,
+			PTradeResultFrame3Output pFrame3Output);
+	void DoTradeResultFrame4(PTradeResultFrame4Input pFrame4Input,
+			PTradeResultFrame4Output pFrame4Output);
+	void DoTradeResultFrame5(PTradeResultFrame5Input pFrame5Input,
+			PTradeResultFrame5Output pFrame5Output);
+	void DoTradeResultFrame6(PTradeResultFrame6Input pFrame6Input,
+			PTradeResultFrame6Output pFrame6Output);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

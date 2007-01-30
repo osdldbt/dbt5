@@ -12,30 +12,42 @@
 using namespace TPCE;
 
 // Establish defaults for command line options
-char*		szBHaddr = "localhost";					// Brokerage House address
+char*		szBHaddr = "localhost";	// Brokerage House address
 int		iListenPort = DriverMarketPort;				// socket port to listen
 int		iBHlistenPort = BrokerageHousePort;
-TIdent		iConfiguredCustomerCount = iDefaultLoadUnitSize;	// # of customers for this instance
-TIdent		iActiveCustomerCount = iDefaultLoadUnitSize;		// total number of customers in the database
+// # of customers for this instance
+TIdent		iConfiguredCustomerCount = iDefaultLoadUnitSize;
+// total number of customers in the database
+TIdent		iActiveCustomerCount = iDefaultLoadUnitSize;
 
-char		szFileLoc[iMaxPath];					// Security.txt file location
-char		outputDirectory[iMaxPath] = ".";					// path to output files
+// Security.txt file location
+char		szFileLoc[iMaxPath];
+// path to output files
+char		outputDirectory[iMaxPath] = ".";
 
 // shows program usage
 void Usage()
 {
-	cerr<<"\nUsage: DriverMarketMain [options]"<<endl<<endl;
-	cerr<<"  where"<<endl;
-	cerr<<"   Option	Default				   Description"<<endl;
-	cerr<<"   =========	===============================    ============================="<<endl;
-	cerr<<"   -s string	"<<szFileLoc<<"    Location of Security.txt file"<<endl;
-	cerr<<"   -c number	"<<iConfiguredCustomerCount<<"\t\t\t\t   Configured customer count"<<endl;
-	cerr<<"   -a number	"<<iActiveCustomerCount<<"\t\t\t\t   Active customer count"<<endl;
-	cerr<<"   -l number	"<<iListenPort<<"\t\t\t\t   Socket listen port"<<endl;
-	cerr<<"   -h string	"<<szBHaddr<<"\t     Brokerage House address"<<endl;
-	cerr<<"   -b number	"<<iBHlistenPort<<"\t\t\t\t   Brokerage House listen port"<<endl;
-	cerr<<"   -o string	"<<outputDirectory<<"\t\t\t\t   directory for output files"<<endl;
-	cerr<<endl;
+	cerr << "\nUsage: DriverMarketMain [options]" << endl << endl;
+	cerr << "  where" << endl;
+	cerr << "   Option	Default				   Description" << endl;
+	cerr << "   =========	===============================    =============================" <<
+			endl;
+	cerr << "   -s string	" << szFileLoc <<
+			"    Location of Security.txt file" << endl;
+	cerr << "   -c number	" << iConfiguredCustomerCount <<
+			"\t\t\t\t   Configured customer count" << endl;
+	cerr << "   -a number	" << iActiveCustomerCount <<
+			"\t\t\t\t   Active customer count" << endl;
+	cerr << "   -l number	" << iListenPort <<
+			"\t\t\t\t   Socket listen port" << endl;
+	cerr << "   -h string	" << szBHaddr << "\t     Brokerage House address" <<
+			endl;
+	cerr << "   -b number	" << iBHlistenPort <<
+			"\t\t\t\t   Brokerage House listen port" << endl;
+	cerr << "   -o string	" << outputDirectory <<
+			"\t\t\t\t   directory for output files" << endl;
+	cerr << endl;
 }
 
 // Parse command line
@@ -61,10 +73,10 @@ void ParseCommandLine( int argc, char *argv[] )
 		*  switch or in the next argv
 		*/
 		vp = sp + 1;
-			// Allow for switched that don't have any parameters.
-			// Need to check that the next argument is in fact a parameter
-			// and not the next switch that starts with '-'.
-			//
+		// Allow for switched that don't have any parameters.
+		// Need to check that the next argument is in fact a parameter
+		// and not the next switch that starts with '-'.
+		//
 		if ( (*vp == 0) && ((arg + 1) < argc) && (argv[arg + 1][0] != '-') )
 			{        
 			vp = argv[++arg];
@@ -92,8 +104,7 @@ void ParseCommandLine( int argc, char *argv[] )
 				sscanf(vp, "%d", &iBHlistenPort);
 				break;
 			case 'o':
-				strncpy(outputDirectory, vp,
-						sizeof(outputDirectory));
+				strncpy(outputDirectory, vp, sizeof(outputDirectory));
 				break;
 			default:
 				Usage();
@@ -126,10 +137,12 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		CDriverMarket	DriverMarket(szFileLoc, iConfiguredCustomerCount, iActiveCustomerCount,
-							iListenPort, szBHaddr, iBHlistenPort,
-							outputDirectory);
-		cout<<endl<<"Market Exchange opened to business, waiting trade requests..."<<endl;
+		CDriverMarket	DriverMarket(szFileLoc, iConfiguredCustomerCount,
+				iActiveCustomerCount, iListenPort, szBHaddr, iBHlistenPort,
+				outputDirectory);
+		cout << endl <<
+				"Market Exchange opened to business, waiting trade requests..." <<
+				endl;
 	
 		DriverMarket.Listener();
 	}
@@ -143,7 +156,8 @@ int main(int argc, char* argv[])
 		}
 		return 1;
 	}
-	// operator new will throw std::bad_alloc exception if there is no sufficient memory for the request.
+	// operator new will throw std::bad_alloc exception if there is no
+	// sufficient memory for the request.
 	catch (std::bad_alloc err)
 	{
 		cout<<endl<<endl<<"*** Out of memory ***"<<endl;

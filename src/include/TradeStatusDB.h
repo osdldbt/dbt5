@@ -21,7 +21,8 @@ public:
 	CTradeStatusDB(CDBConnection *pDBConn);
 	~CTradeStatusDB();
 
-	void DoTradeStatusFrame1(PTradeStatusFrame1Input pFrame1Input, PTradeStatusFrame1Output pFrame1Output);
+	void DoTradeStatusFrame1(PTradeStatusFrame1Input pFrame1Input,
+			PTradeStatusFrame1Output pFrame1Output);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

@@ -24,8 +24,10 @@ public:
 	CDMSUTtest(CDBConnection *pDBConn);
 	~CDMSUTtest();
 
-	virtual bool DataMaintenance( PDataMaintenanceTxnInput pTxnInput );	// return whether it was successful
-	virtual bool TradeCleanup( PTradeCleanupTxnInput pTxnInput );	// return whether it was successful
+	// return whether it was successful
+	virtual bool DataMaintenance( PDataMaintenanceTxnInput pTxnInput );
+	// return whether it was successful
+	virtual bool TradeCleanup( PTradeCleanupTxnInput pTxnInput );
 };
 
 }	// namespace TPCE

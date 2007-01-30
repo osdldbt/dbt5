@@ -21,7 +21,8 @@ public:
 	connection*			m_Conn;		// libpqxx Connection
 	nontransaction*			m_Txn;		// libpqxx dummy Transaction
 
-	CDBConnection(const char *szHost, const char *szDBName, const char *szPostmasterPort);
+	CDBConnection(const char *szHost, const char *szDBName,
+			const char *szPostmasterPort);
 	~CDBConnection();
 
 	void BeginTxn();

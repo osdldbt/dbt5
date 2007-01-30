@@ -22,14 +22,18 @@ CTradeCleanupDB::~CTradeCleanupDB()
 }
 
 // Call Trade Cleanup Frame 1
-void CTradeCleanupDB::DoTradeCleanupFrame1(PTradeCleanupFrame1Input pFrame1Input, PTradeCleanupFrame1Output pFrame1Output)
+void CTradeCleanupDB::DoTradeCleanupFrame1(
+		PTradeCleanupFrame1Input pFrame1Input,
+		PTradeCleanupFrame1Output pFrame1Output)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 	ostringstream osCall;
-	osCall << "select * from TradeCleanupFrame1('"<<pFrame1Input->st_canceled_id<<"'::char(4),'"
-			<<pFrame1Input->st_pending_id<<"'::char(4),'"<<pFrame1Input->st_submitted_id<<
-			"'::char(4),"<<pFrame1Input->start_trade_id<<")";
+	osCall << "select * from TradeCleanupFrame1('" <<
+			pFrame1Input->st_canceled_id << "'::char(4),'" <<
+			pFrame1Input->st_pending_id << "'::char(4),'" <<
+			pFrame1Input->st_submitted_id << "'::char(4)," <<
+			pFrame1Input->start_trade_id << ")";
 
 	BeginTxn();
 	result R( m_Txn->exec( osCall.str() ) );

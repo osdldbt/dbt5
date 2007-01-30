@@ -22,7 +22,9 @@ CBrokerVolumeDB::~CBrokerVolumeDB()
 }
 
 // Call Broker Volume Frame 1
-void CBrokerVolumeDB::DoBrokerVolumeFrame1(PBrokerVolumeFrame1Input pFrame1Input, PBrokerVolumeFrame1Output pFrame1Output)
+void CBrokerVolumeDB::DoBrokerVolumeFrame1(
+		PBrokerVolumeFrame1Input pFrame1Input,
+		PBrokerVolumeFrame1Output pFrame1Output)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
@@ -36,11 +38,13 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(PBrokerVolumeFrame1Input pFrame1Input
 	}
 
 	ostringstream osCall;
-	osCall << "select * from BrokerVolumeFrame1('{"<<osBrokers.str()<<"}','"<<pFrame1Input->sector_name<<"') as "
-			"(b_name varchar, sum double precision)";
+	osCall << "select * from BrokerVolumeFrame1('{" << osBrokers.str() <<
+			"}','" << pFrame1Input->sector_name <<
+			"') as (b_name varchar, sum double precision)";
 
 	BeginTxn();
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"); // Isolation level required by Clause 7.4.1.3
+	// Isolation level required by Clause 7.4.1.3
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
 	result R( m_Txn->exec( osCall.str() ) );
 
 	// stored procedure can return an empty result set by design

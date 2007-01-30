@@ -70,10 +70,10 @@ bool ParseCommandLine( int argc, char *argv[] )
 		*  switch or in the next argv
 		*/
 		vp = sp + 1;
-			// Allow for switched that don't have any parameters.
-			// Need to check that the next argument is in fact a parameter
-			// and not the next switch that starts with '-'.
-			//
+		// Allow for switched that don't have any parameters.
+		// Need to check that the next argument is in fact a parameter
+		// and not the next switch that starts with '-'.
+		//
 		if ( (*vp == 0) && ((arg + 1) < argc) && (argv[arg + 1][0] != '-') )
 		{
 			vp = argv[++arg];
@@ -154,9 +154,11 @@ void TradeOrder(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	// using TPC-provided input generator class
 	bool	bExecutorIsAccountOwner;
 	INT32	iTradeType;
-	pTxnInputGenerator->GenerateTradeOrderInput( m_TradeOrderTxnInput, iTradeType, bExecutorIsAccountOwner );
+	pTxnInputGenerator->GenerateTradeOrderInput( m_TradeOrderTxnInput,
+			iTradeType, bExecutorIsAccountOwner );
 
-	m_TradeOrder.DoTxn(&m_TradeOrderTxnInput, &m_TradeOrderTxnOutput);	// Perform Trade Order
+	// Perform Trade Order
+	m_TradeOrder.DoTxn(&m_TradeOrderTxnInput, &m_TradeOrderTxnOutput);
 }
 
 
@@ -174,7 +176,8 @@ void TradeStatus(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateTradeStatusInput( m_TradeStatusTxnInput );
 
-	m_TradeStatus.DoTxn(&m_TradeStatusTxnInput, &m_TradeStatusTxnOutput);	// Perform Trade Status
+	// Perform Trade Status
+	m_TradeStatus.DoTxn(&m_TradeStatusTxnInput, &m_TradeStatusTxnOutput);
 }
 
 
@@ -192,7 +195,8 @@ void TradeLookup(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateTradeLookupInput( m_TradeLookupTxnInput );
 
-	m_TradeLookup.DoTxn(&m_TradeLookupTxnInput, &m_TradeLookupTxnOutput);	// Perform Trade Lookup
+	// Perform Trade Lookup
+	m_TradeLookup.DoTxn(&m_TradeLookupTxnInput, &m_TradeLookupTxnOutput);
 }
 
 
@@ -210,12 +214,14 @@ void TradeUpdate(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateTradeUpdateInput( m_TradeUpdateTxnInput );
 
-	m_TradeUpdate.DoTxn(&m_TradeUpdateTxnInput, &m_TradeUpdateTxnOutput);	// Perform Trade Update
+	// Perform Trade Update
+	m_TradeUpdate.DoTxn(&m_TradeUpdateTxnInput, &m_TradeUpdateTxnOutput);
 }
 
 
 // Customer Position
-void CustomerPosition(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+void CustomerPosition(CDBConnection* pConn,
+		CCETxnInputGenerator* pTxnInputGenerator)
 {
 	// customer position harness code (TPC provided)
 	// this class uses our implementation of CCustomerPositionDB class
@@ -226,9 +232,11 @@ void CustomerPosition(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGener
 	TCustomerPositionTxnOutput	m_CustomerPositionTxnOutput;
 	
 	// using TPC-provided input generator class
-	pTxnInputGenerator->GenerateCustomerPositionInput( m_CustomerPositionTxnInput );
+	pTxnInputGenerator->GenerateCustomerPositionInput(
+			m_CustomerPositionTxnInput);
 
-	m_CustomerPosition.DoTxn(&m_CustomerPositionTxnInput, &m_CustomerPositionTxnOutput);	// Perform Customer Position
+	m_CustomerPosition.DoTxn(&m_CustomerPositionTxnInput,
+			&m_CustomerPositionTxnOutput);	// Perform Customer Position
 }
 
 
@@ -246,7 +254,8 @@ void BrokerVolume(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateBrokerVolumeInput( m_BrokerVolumeTxnInput );
 
-	m_BrokerVolume.DoTxn(&m_BrokerVolumeTxnInput, &m_BrokerVolumeTxnOutput);	// Perform Broker Volume
+	// Perform Broker Volume
+	m_BrokerVolume.DoTxn(&m_BrokerVolumeTxnInput, &m_BrokerVolumeTxnOutput);
 }
 
 
@@ -264,7 +273,9 @@ void SecurityDetail(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerat
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateSecurityDetailInput( m_SecurityDetailTxnInput );
 
-	m_SecurityDetail.DoTxn(&m_SecurityDetailTxnInput, &m_SecurityDetailTxnOutput);	// Perform Security Detail
+	// Perform Security Detail
+	m_SecurityDetail.DoTxn(&m_SecurityDetailTxnInput,
+			&m_SecurityDetailTxnOutput);
 }
 
 
@@ -282,15 +293,16 @@ void MarketWatch(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateMarketWatchInput( m_MarketWatchTxnInput );
 
-	m_MarketWatch.DoTxn(&m_MarketWatchTxnInput, &m_MarketWatchTxnOutput);	// Perform Market Watch
+	// Perform Market Watch
+	m_MarketWatch.DoTxn(&m_MarketWatchTxnInput, &m_MarketWatchTxnOutput);
 }
 
 
 // Data Maintenance
 void DataMaintenance(CDM* pCDM)
 {
-	// using TPC-provided Data Maintenance class to perform the Data Maintenance transaction.
-	// Testing all tables
+	// using TPC-provided Data Maintenance class to perform the Data
+	// Maintenance transaction.  Testing all tables
 	for (int i = 0; i <= 11; i++)
 	{
 		pCDM->DoTxn();
@@ -312,7 +324,8 @@ unsigned int AutoRng()
 	struct tm ltr;
 	gettimeofday(&tv, NULL);
 	struct tm* lt = localtime_r(&tv.tv_sec, &ltr);
-	return (((lt->tm_hour * MinutesPerHour + lt->tm_min) * SecondsPerMinute + lt->tm_sec) * MsPerSecond + tv.tv_usec / 1000);
+	return (((lt->tm_hour * MinutesPerHour + lt->tm_min) * SecondsPerMinute +
+			lt->tm_sec) * MsPerSecond + tv.tv_usec / 1000);
 }
 
 // main
@@ -341,12 +354,14 @@ int main(int argc, char* argv[])
 		char*	szInDir = "EGen_v3.14/flat_in";
 	
 		CInputFiles	inputFiles;
-		inputFiles.Initialize(eDriverEGenLoader, iDefaultLoadUnitSize, iDefaultLoadUnitSize, szInDir);
+		inputFiles.Initialize(eDriverEGenLoader, iDefaultLoadUnitSize,
+				iDefaultLoadUnitSize, szInDir);
 	
 		TDriverCETxnSettings	m_DriverCETxnSettings;
 	
-		CCETxnInputGenerator	m_TxnInputGenerator(inputFiles, iDefaultLoadUnitSize, iDefaultLoadUnitSize, 
-								500, 10*HoursPerWorkDay, &log, &m_DriverCETxnSettings);
+		CCETxnInputGenerator	m_TxnInputGenerator(inputFiles,
+				iDefaultLoadUnitSize, iDefaultLoadUnitSize, 500,
+				10 * HoursPerWorkDay, &log, &m_DriverCETxnSettings);
 	
 		if (Seed == 0) 
 		{
@@ -358,9 +373,10 @@ int main(int argc, char* argv[])
 
 		// Initialize DM - Data Maintenance class
 		// DM is used by Data-Maintenance and Trade-Cleanup transactions
-		CDMSUTtest	m_CDMSUT( &m_Conn );	// Data-Maintenance SUT interface (provided by us)
-		CDM		m_CDM( &m_CDMSUT, &log, inputFiles, iDefaultLoadUnitSize, iDefaultLoadUnitSize,
-						10, 500, 1 );	// provided by TPC
+		// Data-Maintenance SUT interface (provided by us)
+		CDMSUTtest	m_CDMSUT( &m_Conn );
+		CDM		m_CDM( &m_CDMSUT, &log, inputFiles, iDefaultLoadUnitSize,
+				iDefaultLoadUnitSize, 10, 500, 1 );	// provided by TPC
 
 		CDateTime	StartTime, EndTime, TxnTime;	// to time the transaction
 		StartTime.SetToCurrent();
@@ -371,7 +387,9 @@ int main(int argc, char* argv[])
 			case TRADE_ORDER:
 			case TRADE_RESULT:
 			case MARKET_FEED:
-				cout<<"=== Testing Trade Order, Trade Result and Market Feed ==="<<endl<<endl;
+				cout <<
+						"=== Testing Trade Order, Trade Result and Market Feed ==="
+					<< endl << endl;
 				TradeOrder( &m_Conn, &m_TxnInputGenerator );
 				break;
 			case TRADE_LOOKUP:

@@ -23,7 +23,8 @@ void* TPCE::MarketWorkerThread(void* data)
 
 	try
 	{
-		sockDrv.Receive( reinterpret_cast<void*>(pMessage), sizeof(TTradeRequest));
+		sockDrv.Receive( reinterpret_cast<void*>(pMessage),
+				sizeof(TTradeRequest));
 	
 		//close connection
 		close(pThrParam->iSockfd);
@@ -58,21 +59,24 @@ void TPCE::EntryMarketWorkerThread(void* data)
 
 	try
 	{
-		int status = pthread_attr_init(&threadAttribute); // initialize the attribute object
+		// initialize the attribute object
+		int status = pthread_attr_init(&threadAttribute);
 		if (status != 0)
 		{
 			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_INIT );
 		}
 	
 		// set the detachstate attribute to detached
-		status = pthread_attr_setdetachstate(&threadAttribute, PTHREAD_CREATE_DETACHED);
+		status = pthread_attr_setdetachstate(&threadAttribute,
+				PTHREAD_CREATE_DETACHED);
 		if (status != 0)
 		{
 			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_DETACH );
 		}
 	
 		// create the thread in the detached state
-		status = pthread_create(&threadID, &threadAttribute, &MarketWorkerThread, data);
+		status = pthread_create(&threadID, &threadAttribute,
+				&MarketWorkerThread, data);
 	
 		if (status != 0)
 		{
@@ -81,7 +85,8 @@ void TPCE::EntryMarketWorkerThread(void* data)
 	}
 	catch(CThreadErr *pErr)
 	{
-		close(pThrParam->iSockfd); // close recently accepted connection, to release threads
+		// close recently accepted connection, to release threads
+		close(pThrParam->iSockfd);
 
 		ostringstream osErr;
 		osErr<<endl<<"Error: "<<pErr->ErrorText()
@@ -108,10 +113,12 @@ CDriverMarket::CDriverMarket(char* szFileLoc, TIdent iConfiguredCustomerCount, T
 	m_fMix.open(filename, ios::out);
 
 	// Initialize MEESUT
-	m_pCMEESUT = new CMEESUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix, &m_LogLock, &m_MixLock);
+	m_pCMEESUT = new CMEESUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix,
+			&m_LogLock, &m_MixLock);
 	
 	// Initialize SecurityFile
-	m_pSecurities = new CSecurityFile(szFileLoc, iConfiguredCustomerCount, iActiveCustomerCount);
+	m_pSecurities = new CSecurityFile(szFileLoc, iConfiguredCustomerCount,
+			iActiveCustomerCount);
 
 	// Initialize MEE
 	m_pCMEE = new CMEE( 0, m_pCMEESUT, m_pLog, m_pSecurities, 1 );
@@ -148,7 +155,8 @@ void CDriverMarket::Listener( void )
 	
 			// create new parameter structure
 			pThrParam = new TMarketThreadParam;
-			memset(pThrParam, 0, sizeof(TMarketThreadParam));   // zero the structure
+			// zero the structure
+			memset(pThrParam, 0, sizeof(TMarketThreadParam));
 	
 			pThrParam->iSockfd = acc_socket;
 			pThrParam->pDriverMarket = this;

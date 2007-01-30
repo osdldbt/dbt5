@@ -34,15 +34,17 @@ private:
 	void LogErrorMessage(const string sErr);
 
 	friend void* TPCE::CustomerWorkerThread(void* data);
-	friend void TPCE::EntryCustomerWorkerThread(void* data, int i);	// entry point for driver worker thread
+	// entry point for driver worker thread
+	friend void TPCE::EntryCustomerWorkerThread(void* data, int i);
 
 	friend void* TPCE::DMWorkerThread(void* data);
 	friend void TPCE::EntryDMWorkerThread(CDriverCustomer* ptr);
 public:
-	CDriverCustomer(char* szInDir, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
-				INT32 iScaleFactor, INT32 iDaysOfInitialTrades, UINT32 UniqueId,
-				char* szBHaddr, int iBHlistenPort, int iUsers, int iPacingDelay,
-				char* outputDirectory);
+	CDriverCustomer(char* szInDir, TIdent iConfiguredCustomerCount,
+			TIdent iActiveCustomerCount, INT32 iScaleFactor,
+			INT32 iDaysOfInitialTrades, UINT32 UniqueId, char* szBHaddr,
+			int iBHlistenPort, int iUsers, int iPacingDelay,
+			char* outputDirectory);
 	~CDriverCustomer();
 
 	void RunTest(int iSleep, int iTestDuration);

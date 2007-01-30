@@ -21,7 +21,8 @@ public:
 	CTradeCleanupDB(CDBConnection *pDBConn);
 	~CTradeCleanupDB();
 
-	void DoTradeCleanupFrame1(PTradeCleanupFrame1Input pFrame1Input, PTradeCleanupFrame1Output pFrame1Output);
+	void DoTradeCleanupFrame1(PTradeCleanupFrame1Input pFrame1Input,
+			PTradeCleanupFrame1Output pFrame1Output);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

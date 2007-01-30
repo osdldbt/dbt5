@@ -31,9 +31,11 @@ bool CSendToMarketTest::SendToMarket(TTradeRequest &trade_mes)
 	CEGenLogger log(eDriverEGenLoader, 0, "temp.log", &fmt);
 
 	// Initialize MEE - Market Exchange Emulator class
-	CMEESUTtest		m_CMEESUT( NULL /*&m_Conn*/ ); // I am creating connections on the fly inside the thread
+	// I am creating connections on the fly inside the thread
+	CMEESUTtest		m_CMEESUT( NULL /*&m_Conn*/ );
 	char*	szFileName = "EGen_v3.14/flat_in/Security.txt";
-	CSecurityFile	*Securities = new CSecurityFile(szFileName, iDefaultLoadUnitSize, iDefaultLoadUnitSize);
+	CSecurityFile	*Securities = new CSecurityFile(szFileName,
+			iDefaultLoadUnitSize, iDefaultLoadUnitSize);
 
 	CMEE		m_CMEE( 0, &m_CMEESUT, &log, Securities, 1 );
 	m_CMEE.SetBaseTime();
@@ -49,9 +51,11 @@ bool CSendToMarketTest::SendToMarket(TTradeRequest &trade_mes)
 	else // market-order
 	{
 		cout<<"Market-Order: Trade-Result & Market-Feed should trigger"<<endl;
-		for (int i=0; i<=15; i++)  // we have to fill MEE's buffer, so it can trigger Market-Feed
+		// we have to fill MEE's buffer, so it can trigger Market-Feed
+		for (int i=0; i<=15; i++)
 		{
-			m_CMEE.SubmitTradeRequest( &trade_mes );  // we're submitting the same trade 20 times...
+			// we're submitting the same trade 20 times...
+			m_CMEE.SubmitTradeRequest( &trade_mes );
 			sleep(1);				  // ...one second between submissions
 		}
 	}

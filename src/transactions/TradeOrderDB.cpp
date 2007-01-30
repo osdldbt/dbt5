@@ -22,18 +22,21 @@ CTradeOrderDB::~CTradeOrderDB()
 }
 
 // Call Trade Order Frame 1
-void CTradeOrderDB::DoTradeOrderFrame1(PTradeOrderFrame1Input pFrame1Input, PTradeOrderFrame1Output pFrame1Output)
+void CTradeOrderDB::DoTradeOrderFrame1(PTradeOrderFrame1Input pFrame1Input,
+		PTradeOrderFrame1Output pFrame1Output)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 	ostringstream osCall;
-	osCall << "select * from TradeOrderFrame1("<<pFrame1Input->acct_id<<") as (acct_name varchar,"
-			"broker_name varchar, cust_f_name varchar, cust_id IDENT_T,"
-			"cust_l_name varchar, cust_tier smallint, tax_id varchar, tax_status smallint);";
+	osCall << "select * from TradeOrderFrame1(" << pFrame1Input->acct_id <<
+			") as (acct_name varchar, broker_name varchar, cust_f_name "
+			"varchar, cust_id IDENT_T, cust_l_name varchar, cust_tier "
+			"smallint, tax_id varchar, tax_status smallint);";
 
 	// start transaction but not commit in this frame
 	BeginTxn();
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;"); // Isolation level required by Clause 7.4.1.3
+	// Isolation level required by Clause 7.4.1.3
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;");
 	result R( m_Txn->exec( osCall.str() ) );
 
 	if (R.empty()) 
@@ -76,13 +79,16 @@ void CTradeOrderDB::DoTradeOrderFrame1(PTradeOrderFrame1Input pFrame1Input, PTra
 }
 
 // Call Trade Order Frame 2
-void CTradeOrderDB::DoTradeOrderFrame2(PTradeOrderFrame2Input pFrame2Input, PTradeOrderFrame2Output pFrame2Output)
+void CTradeOrderDB::DoTradeOrderFrame2(PTradeOrderFrame2Input pFrame2Input,
+		PTradeOrderFrame2Output pFrame2Output)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 	
 	ostringstream osCall;
-	osCall << "select TradeOrderFrame2("<<pFrame2Input->acct_id<<",'"<<m_Txn->esc(pFrame2Input->exec_f_name)<<"','"
-			<<m_Txn->esc(pFrame2Input->exec_l_name)<<"','"<<pFrame2Input->exec_tax_id<<"');";
+	osCall << "select TradeOrderFrame2("<< pFrame2Input->acct_id << ",'" <<
+			m_Txn->esc(pFrame2Input->exec_f_name) << "','"  <<
+			m_Txn->esc(pFrame2Input->exec_l_name) << "','" <<
+			pFrame2Input->exec_tax_id<<"');";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -105,21 +111,29 @@ void CTradeOrderDB::DoTradeOrderFrame2(PTradeOrderFrame2Input pFrame2Input, PTra
 }
 
 // Call Trade Order Frame 3
-void CTradeOrderDB::DoTradeOrderFrame3(PTradeOrderFrame3Input pFrame3Input, PTradeOrderFrame3Output pFrame3Output)
+void CTradeOrderDB::DoTradeOrderFrame3(PTradeOrderFrame3Input pFrame3Input,
+		PTradeOrderFrame3Output pFrame3Output)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 	ostringstream osCall;
-	osCall << "select * from TradeOrderFrame3("<<pFrame3Input->acct_id<<"::IDENT_T,"<<pFrame3Input->cust_id<<"::IDENT_T,"
-			<<pFrame3Input->cust_tier<<"::smallint,"<<pFrame3Input->is_lifo<<"::smallint,'"
-			<<pFrame3Input->issue<<"'::char(6),'"<<pFrame3Input->st_pending_id<<"'::char(4),'"
-			<<pFrame3Input->st_submitted_id<<"'::char(4),"<<pFrame3Input->tax_status<<"::smallint,"
-			<<pFrame3Input->trade_qty<<"::S_QTY_T,'"<<pFrame3Input->trade_type_id<<"'::char(3),"
-			<<pFrame3Input->type_is_margin<<"::smallint,'"<<m_Txn->esc(pFrame3Input->co_name)<<"'::varchar,"
-			<<pFrame3Input->requested_price<<"::S_PRICE_T,'"<<pFrame3Input->symbol<<"'::varchar) as "
-			"(comp_name varchar, requested_price S_PRICE_T, symb_name varchar, buy_value BALANCE_T,"
-			"charge_amount VALUE_T, comm_rate S_PRICE_T, cust_assets BALANCE_T, market_price S_PRICE_T,"
-			"sec_name varchar, sell_value BALANCE_T, status_id char(4), tax_amount VALUE_T,"
+	osCall << "select * from TradeOrderFrame3(" << pFrame3Input->acct_id <<
+			"::IDENT_T," << pFrame3Input->cust_id << "::IDENT_T," <<
+			pFrame3Input->cust_tier << "::smallint," << pFrame3Input->is_lifo <<
+			"::smallint,'" << pFrame3Input->issue << "'::char(6),'" <<
+			pFrame3Input->st_pending_id << "'::char(4),'" <<
+			pFrame3Input->st_submitted_id << "'::char(4)," <<
+			pFrame3Input->tax_status << "::smallint," <<
+			pFrame3Input->trade_qty << "::S_QTY_T,'" <<
+			pFrame3Input->trade_type_id << "'::char(3)," <<
+			pFrame3Input->type_is_margin << "::smallint,'" <<
+			m_Txn->esc(pFrame3Input->co_name) << "'::varchar," <<
+			pFrame3Input->requested_price << "::S_PRICE_T,'" <<
+			pFrame3Input->symbol << "'::varchar) as (comp_name varchar, "
+			"requested_price S_PRICE_T, symb_name varchar, buy_value "
+			"BALANCE_T, charge_amount VALUE_T, comm_rate S_PRICE_T, "
+			"cust_assets BALANCE_T, market_price S_PRICE_T, sec_name varchar, "
+			"sell_value BALANCE_T, status_id char(4), tax_amount VALUE_T,"
 			"type_is_market smallint, type_is_sell smallint);";
 
 	// we are inside a transaction
@@ -190,17 +204,22 @@ void CTradeOrderDB::DoTradeOrderFrame3(PTradeOrderFrame3Input pFrame3Input, PTra
 }
 
 // Call Trade Order Frame 4
-void CTradeOrderDB::DoTradeOrderFrame4(PTradeOrderFrame4Input pFrame4Input, PTradeOrderFrame4Output pFrame4Output)
+void CTradeOrderDB::DoTradeOrderFrame4(PTradeOrderFrame4Input pFrame4Input,
+		PTradeOrderFrame4Output pFrame4Output)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 	ostringstream osCall;
-	osCall << "select TradeOrderFrame4("<<pFrame4Input->acct_id<<"::ident_t,"<<pFrame4Input->charge_amount<<"::value_t,"
-			<<pFrame4Input->comm_amount<<"::value_t,'"<<m_Txn->esc(pFrame4Input->exec_name)<<"'::char(6),"
-			<<pFrame4Input->is_cash<<"::smallint,"<<pFrame4Input->is_lifo<<"::smallint,"<<pFrame4Input->requested_price
-			<<"::s_price_t,'"<<pFrame4Input->status_id<<"'::char(4),'"
-			<<pFrame4Input->symbol<<"'::varchar,"<<pFrame4Input->trade_qty<<"::s_qty_t,'"
-			<<pFrame4Input->trade_type_id<<"'::char(3),"<<pFrame4Input->type_is_market<<"::smallint)";
+	osCall << "select TradeOrderFrame4(" << pFrame4Input->acct_id <<
+			"::ident_t," << pFrame4Input->charge_amount << "::value_t," <<
+			pFrame4Input->comm_amount << "::value_t,'" <<
+			m_Txn->esc(pFrame4Input->exec_name) << "'::char(6)," <<
+			pFrame4Input->is_cash << "::smallint," << pFrame4Input->is_lifo <<
+			"::smallint," << pFrame4Input->requested_price << "::s_price_t,'" <<
+			pFrame4Input->status_id << "'::char(4),'" << pFrame4Input->symbol <<
+			"'::varchar," << pFrame4Input->trade_qty << "::s_qty_t,'" <<
+			pFrame4Input->trade_type_id << "'::char(3)," <<
+			pFrame4Input->type_is_market << "::smallint)";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );

@@ -135,7 +135,8 @@ int main(int argc, char* argv[])
 		}
 		return 1;
 	}
-	// operator new will throw std::bad_alloc exception if there is no sufficient memory for the request.
+	// operator new will throw std::bad_alloc exception if there is no
+	// sufficient memory for the request.
 	catch (std::bad_alloc err)
 	{
 		cout<<endl<<endl<<"*** Out of memory ***"<<endl;

@@ -21,7 +21,8 @@ public:
 	CBrokerVolumeDB(CDBConnection *pDBConn);
 	~CBrokerVolumeDB();
 
-	void DoBrokerVolumeFrame1(PBrokerVolumeFrame1Input pFrame1Input, PBrokerVolumeFrame1Output pFrame1Output);
+	void DoBrokerVolumeFrame1(PBrokerVolumeFrame1Input pFrame1Input,
+			PBrokerVolumeFrame1Output pFrame1Output);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

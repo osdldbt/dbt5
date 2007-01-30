@@ -31,8 +31,8 @@ private:
 	
 public:
 
-	CBaseInterface(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix, 
-						CSyncLock* pLogLock, CSyncLock* pMixLock);
+	CBaseInterface(char* addr, const int iListenPort, ofstream* pflog,
+			ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock);
 	~CBaseInterface(void);
 
 };
