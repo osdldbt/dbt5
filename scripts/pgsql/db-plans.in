@@ -1,0 +1,943 @@
+#!/bin/bash
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2007 Mark Wong
+#
+
+#
+# If the SQL in funcs.c is updated, this file should be updated to match.
+#
+
+explain() {
+	SQL="EXPLAIN ${@}"
+	@PSQL@ -e -d ${DBNAME} -c "${SQL}" >> ${OUTPUT_FILE} 2>&1
+}
+
+TOPDIR="@abs_top_srcdir@"
+source ${TOPDIR}/scripts/dbt5_profile || exit 1
+
+while getopts "o:" opt; do
+    case ${opt} in
+    o)
+        OUTPUT_FILE=${OPTARG}
+        ;;
+    esac
+done
+
+if [ "${OUTPUT_FILE}" == "" ]; then
+    echo "usage: db-plans -o <outfile>"
+    exit 1
+fi
+
+echo "-------------------------" > ${OUTPUT_FILE}
+echo "Broker Volume Transaction" >> ${OUTPUT_FILE}
+echo "-------------------------" >> ${OUTPUT_FILE}
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 1" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT B_NAME, sum(TR_QTY * TR_BID_PRICE)::double precision 
+FROM TRADE_REQUEST, SECTOR, INDUSTRY, COMPANY, BROKER, SECURITY, 
+     CUSTOMER_ACCOUNT 
+WHERE TR_CA_ID = CA_ID 
+  AND CA_B_ID = B_ID 
+  AND TR_S_SYMB = S_SYMB 
+  AND S_CO_ID = CO_ID 
+  AND CO_IN_ID = IN_ID 
+  AND SC_ID = IN_SC_ID 
+  AND B_NAME = ANY (array['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 
+                          'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't']) 
+  AND SC_NAME = 'a' 
+GROUP BY B_NAME 
+ORDER BY 2 DESC;
+"
+
+echo "-----------------------------" >> ${OUTPUT_FILE}
+echo "Customer Position Transaction" >> ${OUTPUT_FILE}
+echo "-----------------------------" >> ${OUTPUT_FILE}
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 1" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT  C_ID
+FROM    CUSTOMER
+WHERE   C_TAX_ID = 'a';
+"
+
+explain "
+SELECT CA_ID, CA_BAL, sum(HS_QTY * LT_PRICE) as soma
+FROM   CUSTOMER_ACCOUNT left outer join
+       HOLDING_SUMMARY on HS_CA_ID = CA_ID,
+       LAST_TRADE
+WHERE  CA_C_ID = 1
+  AND LT_S_SYMB = HS_S_SYMB
+GROUP BY CA_ID, CA_BAL
+ORDER BY 3 asc
+LIMIT 1
+"
+
+explain "
+SELECT 1, 'a', 2, 'b', 'c', C_ST_ID,
+       C_L_NAME, C_F_NAME, C_M_NAME, C_GNDR, C_TIER, extract(year from C_DOB),
+       extract(month from C_DOB), extract(day from C_DOB),
+       extract(hour from C_DOB), extract(minute from C_DOB),
+       extract(second from C_DOB), C_AD_ID, C_CTRY_1, C_AREA_1, C_LOCAL_1,
+       C_EXT_1, C_CTRY_2, C_AREA_2, C_LOCAL_2, C_EXT_2, C_CTRY_3, C_AREA_3,
+       C_LOCAL_3, C_EXT_3, C_EMAIL_1, C_EMAIL_2
+FROM   CUSTOMER
+WHERE  C_ID = 1;
+"
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 2" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT T_ID, T_S_SYMB, T_QTY, ST_NAME, extract(year from TH_DTS),
+       extract(month from TH_DTS), extract(day from TH_DTS),
+       extract(hour from TH_DTS), extract(minute from TH_DTS),
+       extract(second from TH_DTS)
+FROM   (SELECT T_ID as ID
+        FROM    TRADE
+        WHERE   T_CA_ID = 1
+        ORDER BY T_DTS desc LIMIT 10) as T,
+       TRADE,
+       TRADE_HISTORY,
+       STATUS_TYPE
+WHERE T_ID = ID
+  AND TH_T_ID = T_ID
+  AND ST_ID = TH_ST_ID
+ORDER BY TH_DTS desc
+LIMIT 30
+"
+
+echo "----------------------------" >> ${OUTPUT_FILE}
+echo "Data Maintenance Transaction" >> ${OUTPUT_FILE}
+echo "----------------------------" >> ${OUTPUT_FILE}
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 1" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT count(*)
+FROM   ACCOUNT_PERMISSION
+WHERE  AP_CA_ID in (SELECT CA_ID
+                    FROM   CUSTOMER_ACCOUNT
+                    WHERE  CA_C_ID = 1);
+"
+
+explain "
+SELECT AP_ACL, AP_CA_ID
+FROM   ACCOUNT_PERMISSION
+WHERE  AP_CA_ID = (SELECT min(AP_CA_ID)
+                   FROM   ACCOUNT_PERMISSION
+                   WHERE  AP_CA_ID in (SELECT CA_ID
+                                       FROM   CUSTOMER_ACCOUNT
+                                       WHERE  CA_C_ID = 1))
+LIMIT 1;
+"
+
+explain "
+SELECT AD_LINE2, AD_ID
+FROM   ADDRESS, CUSTOMER
+WHERE  AD_ID = C_AD_ID
+  AND C_ID = 1;
+"
+
+explain "
+SELECT CO_SP_RATE
+FROM   COMPANY
+WHERE  CO_ID = 1;
+"
+
+explain "
+SELECT C_EMAIL_2
+FROM   CUSTOMER
+WHERE  C_ID = 1;
+"
+
+explain "
+SELECT TX_RATE
+FROM   TAXRATE
+WHERE  TX_ID = '999';
+"
+
+explain "
+SELECT count(*)
+FROM   CUSTOMER_TAXRATE
+WHERE  CX_C_ID = 1
+  AND  CX_TX_ID = '999';
+"
+
+explain "
+SELECT count(*)
+FROM   EXCHANGE
+WHERE  EX_DESC like '%LAST UPDATED%'
+"
+
+explain "
+SELECT count(*)
+FROM   FINANCIAL
+WHERE  FI_CO_ID = 1
+  AND  substring(FI_QTR_START_DATE from 9 for 2)::smallint = 1;
+"
+
+explain "
+SELECT TX_NAME
+FROM   TAXRATE
+WHERE  TX_ID = 'a';
+"
+
+explain "
+SELECT max(WL_ID)
+FROM   WATCH_LIST
+WHERE  WL_C_ID = 1;
+"
+
+explain "
+SELECT max(WI_S_SYMB)
+FROM   WATCH_ITEM
+WHERE  WI_WL_ID = 1
+  AND  WI_S_SYMB NOT IN ('AA','ZAPS','ZONS');
+"
+
+explain "
+SELECT max(WL_ID)
+FROM   WATCH_LIST;
+"
+
+explain "
+SELECT max(WL_ID)
+FROM   WATCH_LIST
+WHERE  WL_ID in (SELECT distinct(WI_WL_ID)
+                 FROM   WATCH_ITEM
+                 WHERE  WI_S_SYMB != 'AA'
+                   AND  WI_S_SYMB != 'ZAPS'
+                   AND  WI_S_SYMB != 'ZONS'
+                 GROUP BY WI_WL_ID);
+"
+
+explain "
+SELECT max(WL_ID)
+FROM   WATCH_LIST;
+"
+
+echo "-----------------------" >> ${OUTPUT_FILE}
+echo "Market Feed Transaction" >> ${OUTPUT_FILE}
+echo "-----------------------" >> ${OUTPUT_FILE}
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 1" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT TR_T_ID, TR_BID_PRICE, TR_TT_ID, TR_QTY
+FROM   TRADE_REQUEST
+WHERE  TR_S_SYMB = 'a'
+  and  ((TR_TT_ID = 1 and TR_BID_PRICE >= 3)
+     or (TR_TT_ID = 2 and TR_BID_PRICE <= 4)
+     or (TR_TT_ID = 3 and TR_BID_PRICE >= 5));
+"
+
+echo "------------------------" >> ${OUTPUT_FILE}
+echo "Market Watch Transaction" >> ${OUTPUT_FILE}
+echo "------------------------" >> ${OUTPUT_FILE}
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 1" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT distinct WI_S_SYMB
+FROM   WATCH_ITEM
+WHERE  WI_WL_ID in (SELECT WL_ID
+                    FROM WATCH_LIST
+                    WHERE WL_C_ID = 1);
+"
+
+explain "
+SELECT S_SYMB
+FROM   INDUSTRY, COMPANY, SECURITY
+WHERE  IN_NAME = 'a'
+  AND CO_IN_ID = IN_ID
+  AND CO_ID BETWEEN 1 AND 2
+  AND S_CO_ID = CO_ID;
+"
+
+explain "
+SELECT HS_S_SYMB
+FROM   HOLDING_SUMMARY
+WHERE  HS_CA_ID = 1;
+"
+
+explain "
+SELECT LT_PRICE
+FROM   LAST_TRADE
+WHERE  LT_S_SYMB = 'a';
+"
+
+explain "
+SELECT S_NUM_OUT
+FROM   SECURITY
+WHERE  S_SYMB = 'a';
+"
+
+explain "
+SELECT DM_CLOSE
+FROM   DAILY_MARKET
+WHERE  DM_S_SYMB = 'a'
+ORDER BY DM_DATE desc
+LIMIT 1;
+"
+
+echo "---------------------------" >> ${OUTPUT_FILE}
+echo "Security Detail Transaction" >> ${OUTPUT_FILE}
+echo "---------------------------" >> ${OUTPUT_FILE}
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 1" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT CO_ID
+FROM SECURITY, COMPANY
+WHERE S_SYMB = 'a'
+  AND S_CO_ID = CO_ID;
+"
+
+explain "
+SELECT CO_NAME, IN_NAME 
+FROM   COMPANY_COMPETITOR, COMPANY, INDUSTRY
+WHERE  CP_CO_ID = 1
+  AND CO_ID = CP_COMP_CO_ID
+  AND IN_ID = CP_IN_ID
+LIMIT 3;
+"
+
+explain "
+SELECT FI_YEAR, FI_QTR, extract(year from FI_QTR_START_DATE) as year,
+       extract(month from FI_QTR_START_DATE) as month,
+       extract(day from FI_QTR_START_DATE) as day,
+       extract(hour from FI_QTR_START_DATE) as hour,
+       extract(minute from FI_QTR_START_DATE) as minute,
+       extract(second from FI_QTR_START_DATE) as second,
+       FI_REVENUE, FI_NET_EARN, FI_BASIC_EPS, FI_DILUT_EPS, FI_MARGIN,
+       FI_INVENTORY, FI_ASSETS, FI_LIABILITY, FI_OUT_BASIC, FI_OUT_DILUT
+FROM FINANCIAL
+WHERE FI_CO_ID = 1
+ORDER BY FI_YEAR asc, FI_QTR
+LIMIT 20;
+"
+
+explain "
+SELECT extract(year from DM_DATE) as year,
+       extract(month from DM_DATE) as month,
+       extract(day from DM_DATE) as day,
+       extract(hour from DM_DATE) as hour,
+       extract(minute from DM_DATE) as minute,
+       extract(second from DM_DATE) as second,
+       DM_CLOSE,
+       DM_HIGH,
+       DM_LOW,
+       DM_VOL
+FROM  DAILY_MARKET
+WHERE DM_S_SYMB = 'a'
+  AND DM_DATE >= "2006-01-01"
+ORDER BY DM_DATE asc
+LIMIT 1;
+"
+
+explain "
+SELECT LT_PRICE, LT_OPEN_PRICE, LT_VOL
+FROM LAST_TRADE
+WHERE LT_S_SYMB = 'a';
+"
+
+explain "
+SELECT NI_ITEM, extract(year from NI_DTS) as year,
+       extract(month from NI_DTS) as month, extract(day from NI_DTS) as day,
+       extract(hour from NI_DTS) as hour, extract(minute from NI_DTS) as minute,
+       extract(second from NI_DTS) as second, NI_SOURCE, NI_AUTHOR
+FROM NEWS_XREF, NEWS_ITEM
+WHERE NI_ID = NX_NI_ID
+  AND NX_CO_ID = 1
+LIMIT 2;
+"
+
+explain "
+SELECT extract(year from NI_DTS) as year, extract(month from NI_DTS) as month,
+       extract(day from NI_DTS) as day, extract(hour from NI_DTS) as hour,
+       extract(minute from NI_DTS) as minute,
+       extract(second from NI_DTS) as second, NI_SOURCE, NI_AUTHOR, NI_HEADLINE,
+       NI_SUMMARY
+FROM NEWS_XREF, NEWS_ITEM
+WHERE NI_ID = NX_NI_ID
+  AND NX_CO_ID = 1
+LIMIT 2;
+"
+
+explain "
+SELECT 1, 2, 3, 'cp_co_name', 'cp_in_name', 'fin_year', 'fin_qtr',
+       'fin_start_year', 'fin_start_month', 'fin_start_day', 'fin_start_hour',
+       'fin_start_min', 'fin_start_sec', 'fin_rev', 'fin_net_earn',
+       'fin_basic_eps', 'fin_dilut_eps', 'fin_margin', 'fin_invent',
+       'fin_assets', 'fin_liab', 'fin_out_basic', 'fin_out_dilut',
+       'day_date_year', 'day_date_month', 'day_date_day', 'day_date_hour',
+       'day_date_minute', 'day_date_second', 'day_close', 'day_high',
+       'day_low', 'day_vol', 'news_it', 'news_year', 'news_month', 'news_day',
+       'news_hour', 'news_minute', 'news_second', 'news_src', 'news_auth',
+       'news_headline', 'news_summary', 'last_price', 'last_open', 'last_vol',
+       S_NAME, CO_ID, CO_NAME, CO_SP_RATE, CO_CEO, CO_DESC,
+       extract(year from CO_OPEN_DATE) as year,
+       extract(month from CO_OPEN_DATE) as month,
+       extract(day from CO_OPEN_DATE) as day,
+       extract(hour from CO_OPEN_DATE) as hour,
+       extract(minute from CO_OPEN_DATE) as minute,
+       extract(second from CO_OPEN_DATE) as second,
+       CO_ST_ID, CA.AD_LINE1, CA.AD_LINE2, ZCA.ZC_TOWN, ZCA.ZC_DIV,
+       CA.AD_ZC_CODE, CA.AD_CTRY, S_NUM_OUT,
+       extract(year from S_START_DATE) as year,
+       extract(month from S_START_DATE) as month,
+       extract(day from S_START_DATE) as day,
+       extract(hour from S_START_DATE) as hour,
+       extract(minute from S_START_DATE) as minute,
+       extract(second from S_START_DATE) as second,
+       extract(year from S_EXCH_DATE) as year,
+       extract(month from S_EXCH_DATE) as month,
+       extract(day from S_EXCH_DATE) as day,
+       extract(hour from S_EXCH_DATE) as hour,
+       extract(minute from S_EXCH_DATE) as minute,
+       extract(second from S_EXCH_DATE) as second,
+       S_PE, S_52WK_HIGH, extract(year from S_52WK_HIGH_DATE) as year,
+       extract(month from S_52WK_HIGH_DATE) as month,
+       extract(day from S_52WK_HIGH_DATE) as day,
+       extract(hour from S_52WK_HIGH_DATE) as hour,
+       extract(minute from S_52WK_HIGH_DATE) as minute,
+       extract(second from S_52WK_HIGH_DATE) as second, S_52WK_LOW,
+       extract(year from S_52WK_LOW_DATE) as year,
+       extract(month from S_52WK_LOW_DATE) as month,
+       extract(day from S_52WK_LOW_DATE) as day,
+       extract(hour from S_52WK_LOW_DATE) as hour,
+       extract(minute from S_52WK_LOW_DATE) as minute,
+       extract(second from S_52WK_LOW_DATE) as second, S_DIVIDEND, S_YIELD,
+       ZEA.ZC_DIV, EA.AD_CTRY, EA.AD_LINE1, EA.AD_LINE2, ZEA.ZC_TOWN,
+       EA.AD_ZC_CODE, EX_CLOSE, EX_CLOSE, EX_DESC, EX_NAME, EX_NUM_SYMB, EX_OPEN
+FROM SECURITY, COMPANY, ADDRESS CA, ADDRESS EA, ZIP_CODE ZCA, ZIP_CODE ZEA,
+     EXCHANGE
+WHERE S_SYMB = 'a'
+  AND CO_ID = S_CO_ID
+  AND CA.AD_ID = CO_AD_ID
+  AND EA.AD_ID = EX_AD_ID
+  AND EX_ID = S_EX_ID
+  AND ca.ad_zc_code = zca.zc_code
+  AND ea.ad_zc_code = zea.zc_code;
+"
+
+echo "-------------------------" >> ${OUTPUT_FILE}
+echo "Trade Cleanup Transaction" >> ${OUTPUT_FILE}
+echo "-------------------------" >> ${OUTPUT_FILE}
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 1" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT  TR_T_ID
+FROM    TRADE_REQUEST
+ORDER BY TR_T_ID;
+"
+
+explain "
+SELECT  T_ID
+FROM    TRADE
+WHERE   T_ID >= 1
+  AND   T_ST_ID = 2;
+"
+
+echo "------------------------" >> ${OUTPUT_FILE}
+echo "Trade Lookup Transaction" >> ${OUTPUT_FILE}
+echo "------------------------" >> ${OUTPUT_FILE}
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 1" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT  T_BID_PRICE, T_EXEC_NAME, T_IS_CASH, TT_IS_MKRT, T_TRADE_PRICE
+FROM    TRADE, TRADE_TYPE
+WHERE   T_ID = 1
+  AND   T_TT_ID = TT_ID;
+"
+
+explain "
+SELECT  SE_AMT, SE_CASH_DUE_DATE, SE_CASH_TYPE
+FROM    SETTLEMENT
+WHERE   SE_T_ID = 1;
+"
+
+explain "
+SELECT  CT_AMT, CT_DTS, CT_NAME
+FROM    CASH_TRANSACTION
+WHERE   CT_T_ID = 1;
+"
+
+explain "
+SELECT TH_DTS, TH_ST_ID
+FROM TRADE_HISTORY
+WHERE TH_T_ID = 1
+ORDER BY TH_DTS;
+"
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 2" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT T_BID_PRICE, T_EXEC_NAME, T_IS_CASH, T_ID, T_TRADE_PRICE
+FROM   TRADE
+WHERE  T_CA_ID = 1
+  AND  T_DTS >= '2006-01-01'
+ORDER BY T_DTS asc
+LIMIT 1
+"
+
+explain "
+SELECT  SE_AMT, SE_CASH_DUE_DATE, SE_CASH_TYPE
+FROM    SETTLEMENT
+WHERE   SE_T_ID = 1;
+"
+
+explain "
+SELECT  CT_AMT, CT_DTS, CT_NAME
+FROM    CASH_TRANSACTION
+WHERE   CT_T_ID = 1;
+"
+
+explain "
+SELECT TH_DTS, TH_ST_ID
+FROM TRADE_HISTORY
+WHERE TH_T_ID = 1
+ORDER BY TH_DTS
+"
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 3" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT T_CA_ID, T_EXEC_NAME, T_IS_CASH, T_ID, T_TRADE_PRICE, T_QTY, T_DTS,
+       T_TT_ID
+FROM   TRADE
+WHERE T_S_SYMB = 'a'
+  AND T_DTS >= '2006-01-01'
+  AND T_CA_ID <= 1
+ORDER BY T_DTS asc
+LIMIT 1
+"
+
+explain "
+SELECT  SE_AMT, SE_CASH_DUE_DATE, SE_CASH_TYPE
+FROM    SETTLEMENT
+WHERE   SE_T_ID = 1;
+"
+
+explain "
+SELECT  CT_AMT, CT_DTS, CT_NAME
+FROM    CASH_TRANSACTION
+WHERE   CT_T_ID = 1;
+"
+
+explain "
+SELECT TH_DTS, TH_ST_ID
+FROM TRADE_HISTORY
+WHERE TH_T_ID = 1
+ORDER BY TH_DTS;
+"
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 4" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT  T_ID
+FROM    TRADE
+WHERE   T_CA_ID = 1
+  AND   T_DTS >= '2006-01-01'
+ORDER BY T_DTS asc
+LIMIT 1;
+"
+
+echo "-----------------------" >> ${OUTPUT_FILE}
+echo "Trade Order Transaction" >> ${OUTPUT_FILE}
+echo "-----------------------" >> ${OUTPUT_FILE}
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 1" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT  CA_NAME, CA_B_ID, CA_C_ID, CA_TAX_ST 
+FROM   CUSTOMER_ACCOUNT
+WHERE  CA_ID = 1;
+"
+
+explain "
+SELECT  C_F_NAME, C_L_NAME, C_TIER, C_TAX_ID
+FROM    CUSTOMER
+WHERE   C_ID = 1;
+"
+
+explain "
+SELECT  B_NAME
+FROM    BROKER
+WHERE   B_ID=1;
+"
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 2" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT  COUNT(*)
+FROM    ACCOUNT_PERMISSION
+WHERE   AP_CA_ID = 1
+  AND   AP_F_NAME = 'a'
+  AND   AP_L_NAME = 'b'
+  AND   AP_TAX_ID = 2;
+"
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 3" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT  CO_ID
+FROM    COMPANY 
+WHERE   CO_NAME = 'a';
+"
+
+explain "
+SELECT  S_EX_ID, S_NAME, S_SYMB
+FROM    SECURITY
+WHERE   S_CO_ID = 1
+  AND   S_ISSUE = 'a';
+"
+
+explain "
+SELECT  TT_IS_MKRT, TT_IS_SELL
+FROM    TRADE_TYPE
+WHERE   TT_ID = 'a';
+"
+
+explain "
+SELECT  HS_QTY
+FROM    HOLDING_SUMMARY
+WHERE   HS_CA_ID = 1
+  AND   HS_S_SYMB = 'a';
+"
+
+explain "
+SELECT  H_QTY, H_PRICE
+FROM    HOLDING
+WHERE   H_CA_ID = 1
+  AND   H_S_SYMB = 'a'
+ORDER BY H_DTS DESC;
+"
+
+explain "
+SELECT  H_QTY, H_PRICE
+FROM    HOLDING
+WHERE   H_CA_ID = 1
+  AND   H_S_SYMB = 'a'
+ORDER BY H_DTS ASC;
+"
+
+explain "
+SELECT  H_QTY, H_PRICE
+FROM    HOLDING
+WHERE   H_CA_ID = 1
+  AND   H_S_SYMB = 'a'
+ORDER BY H_DTS DESC;
+"
+
+explain "
+SELECT  H_QTY, H_PRICE
+FROM    HOLDING
+WHERE   H_CA_ID = 1
+  AND   H_S_SYMB = 'a'
+ORDER BY H_DTS ASC;
+"
+
+explain "
+SELECT  sum(TX_RATE)
+FROM    TAXRATE
+WHERE   TX_ID IN (SELECT  CX_TX_ID
+                  FROM    CUSTOMER_TAXRATE
+                  WHERE   CX_C_ID = 1);
+"
+
+explain "
+SELECT  CR_RATE
+FROM    COMMISSION_RATE
+WHERE   CR_C_TIER = 1
+  AND   CR_TT_ID = 'a'
+  AND   CR_EX_ID = 1
+  AND   CR_FROM_QTY <= 2
+  AND   CR_TO_QTY >= 2;
+"
+
+explain "
+SELECT  CH_CHRG
+FROM    CHARGE
+WHERE   CH_C_TIER = 1
+  AND   CH_TT_ID = 'a';
+"
+
+explain "
+SELECT  CA_BAL
+FROM    CUSTOMER_ACCOUNT
+WHERE   CA_ID = 1;
+"
+
+explain "
+SELECT  sum(HS_QTY * LT_PRICE)
+FROM    HOLDING_SUMMARY, LAST_TRADE
+WHERE   HS_CA_ID = 1
+  AND   LT_S_SYMB = HS_S_SYMB;
+"
+
+echo "------------------------" >> ${OUTPUT_FILE}
+echo "Trade Result Transaction" >> ${OUTPUT_FILE}
+echo "------------------------" >> ${OUTPUT_FILE}
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 1" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT  T_CA_ID, T_TT_ID, T_S_SYMB, T_QTY, T_CHRG, T_LIFO, T_IS_CASH
+FROM    TRADE
+WHERE   T_ID = 1;
+"
+
+explain "
+SELECT  TT_NAME, TT_IS_SELL, TT_IS_MKRT
+FROM    TRADE_TYPE
+WHERE   TT_ID = 1;
+"
+
+explain "
+SELECT  HS_QTY
+FROM    HOLDING_SUMMARY
+WHERE   HS_CA_ID = 1
+  AND   HS_S_SYMB = 'a';
+"
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 2" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT  CA_B_ID, CA_C_ID, CA_TAX_ST
+FROM    CUSTOMER_ACCOUNT
+WHERE   CA_ID = 1;
+"
+
+explain "
+SELECT  H_T_ID, H_QTY, H_PRICE
+FROM    HOLDING
+WHERE   H_CA_ID = 1
+  AND   H_S_SYMB = 'a'
+ORDER BY H_DTS desc;
+"
+
+explain "
+SELECT  H_T_ID, H_QTY, H_PRICE
+FROM    HOLDING
+WHERE   H_CA_ID = 1
+  AND   H_S_SYMB = 'a'
+ORDER BY H_DTS asc;
+"
+
+explain "
+SELECT  H_T_ID, H_QTY, H_PRICE
+FROM    HOLDING
+WHERE   H_CA_ID = 1
+  AND H_S_SYMB = 'a'
+ORDER BY H_DTS desc;
+"
+
+explain "
+SELECT  H_T_ID, H_QTY, H_PRICE
+FROM    HOLDING
+WHERE   H_CA_ID = 1
+  AND H_S_SYMB = 'a'
+ORDER BY H_DTS asc;
+"
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 3" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT  sum(TX_RATE)
+FROM    TAXRATE
+WHERE   TX_ID IN (SELECT   CX_TX_ID
+                  FROM    CUSTOMER_TAXRATE
+                  WHERE   CX_C_ID = 1);
+"
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 4" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT  S_EX_ID, S_NAME
+FROM    SECURITY
+WHERE   S_SYMB = 'a';
+"
+
+explain "
+SELECT  C_TIER
+FROM    CUSTOMER
+WHERE   C_ID = 1;
+"
+
+explain "
+SELECT  CR_RATE
+FROM    COMMISSION_RATE
+WHERE   CR_C_TIER = 1
+  AND   CR_TT_ID = 'a'
+  AND   CR_EX_ID = 2
+  AND   CR_FROM_QTY <= 3
+  AND   CR_TO_QTY >= 3
+LIMIT 1;
+"
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 6" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT  CA_BAL
+FROM    CUSTOMER_ACCOUNT
+WHERE   CA_ID = 1;
+"
+
+echo "------------------------" >> ${OUTPUT_FILE}
+echo "Trade Status Transaction" >> ${OUTPUT_FILE}
+echo "------------------------" >> ${OUTPUT_FILE}
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 1" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT  C_L_NAME, C_F_NAME, B_NAME
+FROM    CUSTOMER_ACCOUNT, CUSTOMER, BROKER
+WHERE   CA_ID = 1
+  AND   C_ID = CA_C_ID
+  AND   B_ID = CA_B_ID;
+"
+
+explain "
+SELECT  'cust_l_name', 'cust_f_name', 'broker_name', T_CHRG, T_EXEC_NAME,
+        EX_NAME, S_NAME, ST_NAME, T_S_SYMB, extract(year from T_DTS),
+        extract(month from T_DTS), extract(day from T_DTS),
+        extract(hour from T_DTS), extract(minute from T_DTS),
+        extract(second from T_DTS), T_ID, T_QTY, TT_NAME
+FROM    TRADE, STATUS_TYPE, TRADE_TYPE, SECURITY, EXCHANGE
+WHERE   T_CA_ID = 1
+  AND   ST_ID = T_ST_ID
+  AND   TT_ID = T_TT_ID
+  AND   S_SYMB = T_S_SYMB
+  AND   EX_ID = S_EX_ID
+ORDER BY T_DTS desc
+LIMIT 50;
+"
+
+echo "------------------------" >> ${OUTPUT_FILE}
+echo "Trade Update Transaction" >> ${OUTPUT_FILE}
+echo "------------------------" >> ${OUTPUT_FILE}
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 1" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+
+explain "
+SELECT  T_EXEC_NAME
+FROM    TRADE
+WHERE   T_ID = 1;
+"
+
+explain "
+SELECT  T_BID_PRICE, T_EXEC_NAME, T_IS_CASH, TT_IS_MKRT, T_TRADE_PRICE
+FROM    TRADE, TRADE_TYPE
+WHERE   T_ID = 1
+  AND   T_TT_ID = TT_ID;
+"
+
+explain "
+SELECT  SE_AMT, SE_CASH_DUE_DATE, SE_CASH_TYPE
+FROM    SETTLEMENT
+WHERE   SE_T_ID = 1;
+"
+
+explain "
+SELECT  CT_AMT, CT_DTS, CT_NAME
+FROM    CASH_TRANSACTION
+WHERE   CT_T_ID = 1;
+"
+
+explain "
+SELECT TH_DTS, TH_ST_ID
+FROM TRADE_HISTORY
+WHERE TH_T_ID = 1
+ORDER BY TH_DTS
+"
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 2" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+explain "
+SELECT T_BID_PRICE, T_EXEC_NAME, T_IS_CASH, T_ID, T_TRADE_PRICE
+FROM    TRADE
+WHERE   T_CA_ID = 1
+  AND   T_DTS >= "2006-01-01"
+ORDER BY T_DTS asc
+LIMIT 1
+"
+
+explain "
+SELECT  SE_CASH_TYPE
+FROM    SETTLEMENT
+WHERE   SE_T_ID = 1;
+"
+
+explain "
+SELECT  SE_AMT, SE_CASH_DUE_DATE, SE_CASH_TYPE
+FROM    SETTLEMENT
+WHERE   SE_T_ID = 1;
+"
+
+explain "
+SELECT  CT_AMT, CT_DTS, CT_NAME
+FROM    CASH_TRANSACTION
+WHERE   CT_T_ID = 1;
+"
+
+explain "
+SELECT TH_DTS, TH_ST_ID
+FROM TRADE_HISTORY
+WHERE TH_T_ID = 1
+ORDER BY TH_DTS;
+"

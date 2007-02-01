@@ -195,6 +195,8 @@ if test "$database_to_use" == "pgsql"; then
 	[chmod +x scripts/pgsql/create-indexes])
   AC_CONFIG_FILES([scripts/pgsql/create-tables],
 	[chmod +x scripts/pgsql/create-tables])
+  AC_CONFIG_FILES([scripts/pgsql/db-plans],
+	[chmod +x scripts/pgsql/db-plans])
   AC_CONFIG_FILES([scripts/pgsql/db-stat],
 	[chmod +x scripts/pgsql/db-stat])
   AC_CONFIG_FILES([scripts/pgsql/drop-db],
