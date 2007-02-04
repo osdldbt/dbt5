@@ -3,18 +3,21 @@
  *
  * Trade Order transaction
  * ------------------------
- * The Trade Order transaction is designed to emulate the process of ordering the
- * trade, buy or sell, of a security by a Customer, Broker, or authorized third-party.
+ * The Trade Order transaction is designed to emulate the process of ordering
+ * the trade, buy or sell, of a security by a Customer, Broker, or authorized
+ * third-party.
  *
  * Based on TPC-E Standard Specification Draft Revision 0.32.2e Clause 3.3.1.
  */
 
 /*
  * Frame 1
- * Responsible for retrieving information about the customer, customer account, and its broker
+ * Responsible for retrieving information about the customer, customer account,
+ * and its broker
  */
 
-CREATE OR REPLACE FUNCTION TradeOrderFrame1 (IN acct_id IDENT_T) RETURNS record AS $$
+CREATE OR REPLACE FUNCTION TradeOrderFrame1 (IN acct_id IDENT_T)
+		RETURNS record AS $$
 DECLARE
 	-- output parameters
 	acct_name	varchar;
@@ -109,7 +112,8 @@ $$ LANGUAGE 'plpgsql';
 
 /*
  * Frame 3
- * Responsible for estimating the overall impact of executing the requested trade
+ * Responsible for estimating the overall impact of executing the requested
+ * trade
  */
 
 CREATE OR REPLACE FUNCTION TradeOrderFrame3(
@@ -214,9 +218,10 @@ BEGIN
 	FROM	TRADE_TYPE
 	WHERE	TT_ID = trade_type_id;
 
-	-- If this is a limit-order, then the requested_price was passed in to us, but
-	-- if this this a market-order, then we need to set the requested_price to the
-	-- current market price.
+	-- If this is a limit-order, then the requested_price was passed in to us,
+    -- but
+	-- if this this a market-order, then we need to set the requested_price to
+    -- the current market price.
 	IF type_is_market THEN
 		required_price = market_price;
 	END IF;
@@ -238,7 +243,8 @@ BEGIN
 	--
 		IF holdsum_qty > 0 THEN
 			IF is_lifo THEN
-				-- Estimates will be based on closing most recently acquired holdings
+				-- Estimates will be based on closing most recently acquired
+				-- holdings
 				-- Could return 0, 1 or many rows
 				OPEN	hold_list FOR
 				SELECT	H_QTY,
@@ -259,10 +265,11 @@ BEGIN
 				ORDER BY H_DTS ASC;
 			END IF;
 
-			-- Estimate, based on the requested price, any profit that may be realized
-			-- by selling current holdings for this security. The customer may have
-			-- multiple holdings for this security (representing different purchases of
-			-- this security at different times and therefore, most likely, different prices).
+			-- Estimate, based on the requested price, any profit that may be
+			-- realized by selling current holdings for this security. The
+			-- customer may have multiple holdings for this security
+			-- (representing different purchases of this security at different
+			-- times and therefore, most likely, different prices).
 
 			WHILE needed_qty > 0 LOOP
 				FETCH	hold_list
@@ -271,13 +278,14 @@ BEGIN
 				EXIT WHEN NOT FOUND;
 
 				IF hold_qty > needed_qty THEN
-					-- Only a portion of this holding would be sold as a result of the
-					-- trade.
+					-- Only a portion of this holding would be sold as a
+					-- result of the trade.
 					buy_value = buy_value + (needed_qty * hold_price);
 					sell_value = sell_value + (needed_qty * required_price);
 					needed_qty = 0;
 				ELSE
-					-- All of this holding would be sold as a result of this trade.
+					-- All of this holding would be sold as a result of this
+					-- trade.
 					buy_value = buy_value + (hold_qty * hold_price);
 					sell_value = sell_value + (hold_qty * required_price);
 					needed_qty = needed_qty - hold_qty;
@@ -288,18 +296,20 @@ BEGIN
 		END IF;
 
 		-- NOTE: If needed_qty is still greater than 0 at this point, then the
-		-- customer would be liquidating all current holdings for this security, and
-		-- then short-selling this remaining balance for the transaction.
+		-- customer would be liquidating all current holdings for this
+		-- security, and then short-selling this remaining balance for the
+		-- transaction.
 	ELSE
-		-- This is a buy transaction, so estimate the impact to any currently held
-		-- short positions in the security. These are represented as negative H_QTY
-		-- holdings. Short postions will be covered before opening a long postion in
-		-- this security.
+		-- This is a buy transaction, so estimate the impact to any currently
+		-- held short positions in the security. These are represented as
+		-- negative H_QTY holdings. Short postions will be covered before
+		-- opening a long postion in this security.
 
 		IF holdsum_qty < 0 THEN  -- Existing short position to buy
 
 			IF is_lifo THEN
-				-- Estimates will be based on closing most recently acquired holdings
+				-- Estimates will be based on closing most recently acquired
+				-- holdings
 				-- Could return 0, 1 or many rows
 
 				OPEN 	hold_list FOR
@@ -322,11 +332,11 @@ BEGIN
 				ORDER BY H_DTS ASC;
 			END IF;
 
-			-- Estimate, based on the requested price, any profit that may be realized
-			-- by covering short postions currently held for this security. The customer
-			-- may have multiple holdings for this security (representing different
-			-- purchases of this security at different times and therefore, most
-			-- likely, different prices).
+			-- Estimate, based on the requested price, any profit that may be
+			-- realized by covering short postions currently held for this
+			-- security. The customer may have multiple holdings for this
+			-- security (representing different purchases of this security at
+			-- different times and therefore, most likely, different prices).
 
 			WHILE needed_qty > 0 LOOP
 				FETCH	hold_list
@@ -335,8 +345,8 @@ BEGIN
 				EXIT WHEN NOT FOUND;
 
 				IF (hold_qty + needed_qty < 0) THEN
-					-- Only a portion of this holding would be covered (bought back) as
-					-- a result of this trade.
+					-- Only a portion of this holding would be covered (bought
+					-- back) as -- a result of this trade.
 					sell_value = sell_value + (needed_qty * hold_price);
 					buy_value = buy_value + (needed_qty * required_price);
 					needed_qty = 0;
@@ -495,8 +505,8 @@ BEGIN
 	SELECT currval('seq_trade_id')
 	INTO trade_id;
 
-	-- Record pending trade information in TRADE_REQUEST table if this trade is a
-	-- limit trade
+	-- Record pending trade information in TRADE_REQUEST table if this trade
+	-- is a limit trade
 
 	IF type_is_market = 0 THEN
 		INSERT INTO TRADE_REQUEST (

@@ -3,8 +3,9 @@
  *
  * Trade Status transaction
  * ------------------------
- * This transaction returns the status of fifty trades. A list of all trades for a 
- * given customer's account is retrieved and the fifty most recently placed trades are selected.
+ * This transaction returns the status of fifty trades. A list of all trades
+ * for a given customer's account is retrieved and the fifty most recently
+ * placed trades are selected.
  *
  * Based on TPC-E Standard Specification Draft Revision 0.32.2c Clause 3.3.5.
  */
@@ -15,7 +16,8 @@
  * responsible for retrieving information on the 50 most recent trades
  */
 
-CREATE OR REPLACE FUNCTION TradeStatusFrame1 (IN acct_id IDENT_T) RETURNS SETOF record AS $$
+CREATE OR REPLACE FUNCTION TradeStatusFrame1 (IN acct_id IDENT_T)
+		RETURNS SETOF record AS $$
 DECLARE
 	-- output parameters
 	cust_l_name VARCHAR;

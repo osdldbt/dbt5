@@ -35,8 +35,8 @@ BEGIN
 	FROM	TRADE_REQUEST
 	ORDER BY TR_T_ID;
 
-	/* Insert a submitted followed by canceled record into TRADE_HISTORY, mark the trade
-	canceled and delete the pending trade */
+	/* Insert a submitted followed by canceled record into TRADE_HISTORY, mark
+       the trade canceled and delete the pending trade */
 
 	FETCH	pending_list
 	INTO	tr_trade_id;
@@ -63,8 +63,8 @@ BEGIN
 
 	DELETE FROM TRADE_REQUEST;
 
-	/* Find submitted trades, change the status to canceled and insert a canceled record
-	into TRADE_HISTORY*/
+	/* Find submitted trades, change the status to canceled and insert a
+       canceled record into TRADE_HISTORY*/
 
 	OPEN submit_list FOR
 	SELECT	T_ID

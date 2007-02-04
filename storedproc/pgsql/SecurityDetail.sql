@@ -3,7 +3,8 @@
  *
  * Security Detail transaction
  * -------------------------
- * This transaction returns all available information related to a given security.
+ * This transaction returns all available information related to a given
+ * security.
  * 
  *
  * Based on TPC-E Standard Specification Draft Revision 0.32.2e Clause 3.3.8.

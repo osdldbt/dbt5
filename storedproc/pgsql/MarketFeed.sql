@@ -12,8 +12,8 @@
 /*
  * Frame 1
  * responsible to find the symbol and to modify the row in the LAST_TRADE table
- * for that symbol with the new price, to add the quantity traded to the daily volume,
- * and to modify the last trade date
+ * for that symbol with the new price, to add the quantity traded to the daily
+ * volume, and to modify the last trade date
  */
 
 CREATE OR REPLACE FUNCTION MarketFeedFrame1 (

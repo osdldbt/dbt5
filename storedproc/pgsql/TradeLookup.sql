@@ -3,16 +3,19 @@
  *
  * Trade Lookup transaction
  * ------------------------
- * The Trade-Lookup transaction is designed to emulate the information retrieval by 
- * either a customer or a broker to satisfy their questions regarding a particular account, 
- * a group of trade transaction identifiers or a particular security
+ * The Trade-Lookup transaction is designed to emulate the information
+ * retrieval by 
+ * either a customer or a broker to satisfy their questions regarding a
+ * particular account, a group of trade transaction identifiers or a 
+ * particular security
  *
  * Based on TPC-E Standard Specification Draft Revision 0.32.2e Clause 3.3.3.
  */
 
 /*
  * Frame 1
- * responsible for retrieving information about the specified array of trade IDs.
+ * responsible for retrieving information about the specified array of trade
+ * IDs.
  */
 
 CREATE OR REPLACE FUNCTION TradeLookupFrame1 (
@@ -102,23 +105,43 @@ BEGIN
 		END LOOP;
 
 		FOR rs IN 
-			select bid_price, exec_name, is_cash, is_market, trade_price, settlement_amount,
-			extract(year from settlement_cash_due_date), extract(month from settlement_cash_due_date),
-			extract(day from settlement_cash_due_date), extract(hour from settlement_cash_due_date),
-			extract(minute from settlement_cash_due_date), extract(second from settlement_cash_due_date),
-			settlement_cash_type, cash_transaction_amount, extract(year from cash_transaction_dts),
-			extract(month from cash_transaction_dts), extract(day from cash_transaction_dts),
-			extract(hour from cash_transaction_dts), extract(minute from cash_transaction_dts),
-			extract(second from cash_transaction_dts), cash_transaction_name,
-			extract(year from trade_history_dts[1]), extract(month from trade_history_dts[1]), 
-			extract(day from trade_history_dts[1]), extract(hour from trade_history_dts[1]), 
-			extract(minute from trade_history_dts[1]), extract(second from trade_history_dts[1]), trade_history_status_id[1],
-			extract(year from trade_history_dts[2]), extract(month from trade_history_dts[2]),
-			extract(day from trade_history_dts[2]), extract(hour from trade_history_dts[2]),
-			extract(minute from trade_history_dts[2]), extract(second from trade_history_dts[2]), trade_history_status_id[2],
-			extract(year from trade_history_dts[3]), extract(month from trade_history_dts[3]),
-			extract(day from trade_history_dts[3]),	extract(hour from trade_history_dts[3]),
-			extract(minute from trade_history_dts[3]), extract(second from trade_history_dts[3]), trade_history_status_id[3]
+				select bid_price, exec_name, is_cash, is_market, trade_price,
+				       settlement_amount,
+				       extract(year from settlement_cash_due_date),
+				       extract(month from settlement_cash_due_date),
+				       extract(day from settlement_cash_due_date),
+				       extract(hour from settlement_cash_due_date),
+				       extract(minute from settlement_cash_due_date),
+				       extract(second from settlement_cash_due_date),
+				       settlement_cash_type, cash_transaction_amount,
+				       extract(year from cash_transaction_dts),
+				       extract(month from cash_transaction_dts),
+				       extract(day from cash_transaction_dts),
+				       extract(hour from cash_transaction_dts),
+				       extract(minute from cash_transaction_dts),
+				       extract(second from cash_transaction_dts),
+				       cash_transaction_name,
+				       extract(year from trade_history_dts[1]),
+				       extract(month from trade_history_dts[1]), 
+				       extract(day from trade_history_dts[1]),
+				       extract(hour from trade_history_dts[1]), 
+				       extract(minute from trade_history_dts[1]),
+				       extract(second from trade_history_dts[1]),
+				       trade_history_status_id[1],
+				       extract(year from trade_history_dts[2]),
+				       extract(month from trade_history_dts[2]),
+				       extract(day from trade_history_dts[2]),
+				       extract(hour from trade_history_dts[2]),
+				       extract(minute from trade_history_dts[2]),
+				       extract(second from trade_history_dts[2]),
+				       trade_history_status_id[2],
+				       extract(year from trade_history_dts[3]),
+				       extract(month from trade_history_dts[3]),
+				       extract(day from trade_history_dts[3])
+				       extract(hour from trade_history_dts[3]),
+				       extract(minute from trade_history_dts[3]),
+				       extract(second from trade_history_dts[3]),
+				       trade_history_status_id[3]
 		LOOP
 			RETURN NEXT rs;
 		END LOOP;
@@ -131,8 +154,8 @@ $$ LANGUAGE 'plpgsql';
 
 /*
  * Frame 2
- * returns information for the first N (max_trades) trades executed for the specified
- * customer account at or after the specified time.
+ * returns information for the first N (max_trades) trades executed for the
+ * specified customer account at or after the specified time.
  */
 
 CREATE OR REPLACE FUNCTION TradeLookupFrame2(
@@ -211,23 +234,44 @@ BEGIN
 		END LOOP;
 
 		FOR aux IN
-		SELECT  rs.T_BID_PRICE::S_PRICE_T, rs.T_EXEC_NAME, rs.T_IS_CASH, rs.T_TRADE_PRICE::S_PRICE_T, rs.T_ID::TRADE_T,
-			settlement_amount, extract(year from settlement_cash_due_date), extract(month from settlement_cash_due_date),
-			extract(day from settlement_cash_due_date), extract(hour from settlement_cash_due_date),
-			extract(minute from settlement_cash_due_date), extract(second from settlement_cash_due_date),
-			settlement_cash_type, cash_transaction_amount, extract(year from cash_transaction_dts),
-			extract(month from cash_transaction_dts), extract(day from cash_transaction_dts),
-			extract(hour from cash_transaction_dts), extract(minute from cash_transaction_dts),
-			extract(second from cash_transaction_dts), cash_transaction_name, 
-			extract(year from trade_history_dts[1]), extract(month from trade_history_dts[1]), 
-			extract(day from trade_history_dts[1]), extract(hour from trade_history_dts[1]), 
-			extract(minute from trade_history_dts[1]), extract(second from trade_history_dts[1]), trade_history_status_id[1],
-			extract(year from trade_history_dts[2]), extract(month from trade_history_dts[2]),
-			extract(day from trade_history_dts[2]), extract(hour from trade_history_dts[2]),
-			extract(minute from trade_history_dts[2]), extract(second from trade_history_dts[2]), trade_history_status_id[2],
-			extract(year from trade_history_dts[3]), extract(month from trade_history_dts[3]),
-			extract(day from trade_history_dts[3]),	extract(hour from trade_history_dts[3]),
-			extract(minute from trade_history_dts[3]), extract(second from trade_history_dts[3]), trade_history_status_id[3]
+				SELECT rs.T_BID_PRICE::S_PRICE_T, rs.T_EXEC_NAME, rs.T_IS_CASH,
+				       rs.T_TRADE_PRICE::S_PRICE_T, rs.T_ID::TRADE_T,
+				       settlement_amount,
+				       extract(year from settlement_cash_due_date),
+				       extract(month from settlement_cash_due_date),
+				       extract(day from settlement_cash_due_date),
+				       extract(hour from settlement_cash_due_date),
+				       extract(minute from settlement_cash_due_date),
+				       extract(second from settlement_cash_due_date),
+				       settlement_cash_type, cash_transaction_amount,
+				       extract(year from cash_transaction_dts),
+				       extract(month from cash_transaction_dts),
+				       extract(day from cash_transaction_dts),
+				       extract(hour from cash_transaction_dts),
+				       extract(minute from cash_transaction_dts),
+				       extract(second from cash_transaction_dts),
+				       cash_transaction_name, 
+				       extract(year from trade_history_dts[1]),
+				       extract(month from trade_history_dts[1]), 
+				       extract(day from trade_history_dts[1]),
+				       extract(hour from trade_history_dts[1]), 
+				       extract(minute from trade_history_dts[1]),
+				       extract(second from trade_history_dts[1]),
+				       trade_history_status_id[1],
+				       extract(year from trade_history_dts[2]),
+				       extract(month from trade_history_dts[2]),
+				       extract(day from trade_history_dts[2]),
+				       extract(hour from trade_history_dts[2]),
+				       extract(minute from trade_history_dts[2]),
+				       extract(second from trade_history_dts[2]),
+				       trade_history_status_id[2],
+				       extract(year from trade_history_dts[3]),
+				       extract(month from trade_history_dts[3]),
+				       extract(day from trade_history_dts[3]),
+				       extract(hour from trade_history_dts[3]),
+				       extract(minute from trade_history_dts[3]),
+				       extract(second from trade_history_dts[3]),
+				       trade_history_status_id[3]
 		LOOP
 			RETURN NEXT aux;
 		END LOOP;
@@ -240,7 +284,8 @@ $$ LANGUAGE 'plpgsql';
 
 /*
  * Frame 3
- * returns up to N (max_trades) trades for a given security on or after a specified point in time.
+ * returns up to N (max_trades) trades for a given security on or after a
+ * specified point in time.
  */
 
 CREATE OR REPLACE FUNCTION TradeLookupFrame3(
@@ -323,26 +368,48 @@ BEGIN
 		END LOOP;
 
 		FOR aux IN
-		SELECT	rs.T_CA_ID, cash_transaction_amount, extract(year from cash_transaction_dts),
-			extract(month from cash_transaction_dts), extract(day from cash_transaction_dts),
-			extract(hour from cash_transaction_dts), extract(minute from cash_transaction_dts),
-			extract(second from cash_transaction_dts), cash_transaction_name, rs.T_EXEC_NAME,
-			rs.T_IS_CASH, rs.T_TRADE_PRICE, rs.T_QTY, settlement_amount, 
-			extract(year from settlement_cash_due_date), extract(month from settlement_cash_due_date),
-			extract(day from settlement_cash_due_date), extract(hour from settlement_cash_due_date),
-			extract(minute from settlement_cash_due_date), extract(second from settlement_cash_due_date),
-			settlement_cash_type, extract(year from rs.T_DTS), extract(month from rs.T_DTS),
-			extract(day from rs.T_DTS), extract(hour from rs.T_DTS), extract(minute from rs.T_DTS), 
-			extract(second from rs.T_DTS), extract(year from trade_history_dts[1]), 
-			extract(month from trade_history_dts[1]), extract(day from trade_history_dts[1]), 
-			extract(hour from trade_history_dts[1]), extract(minute from trade_history_dts[1]), 
-			extract(second from trade_history_dts[1]), trade_history_status_id[1], extract(year from trade_history_dts[2]),
-			extract(month from trade_history_dts[2]), extract(day from trade_history_dts[2]), 
-			extract(hour from trade_history_dts[2]), extract(minute from trade_history_dts[2]), 
-			extract(second from trade_history_dts[2]), trade_history_status_id[2], extract(year from trade_history_dts[3]),
-			extract(month from trade_history_dts[3]), extract(day from trade_history_dts[3]),
-			extract(hour from trade_history_dts[3]), extract(minute from trade_history_dts[3]),
-			extract(second from trade_history_dts[3]), trade_history_status_id[3], rs.T_ID, rs.T_TT_ID
+				SELECT rs.T_CA_ID, cash_transaction_amount,
+				       extract(year from cash_transaction_dts),
+				       extract(month from cash_transaction_dts),
+				       extract(day from cash_transaction_dts),
+				       extract(hour from cash_transaction_dts),
+				       extract(minute from cash_transaction_dts),
+				       extract(second from cash_transaction_dts),
+				       cash_transaction_name, rs.T_EXEC_NAME,
+				       rs.T_IS_CASH, rs.T_TRADE_PRICE, rs.T_QTY,
+				       settlement_amount, 
+				       extract(year from settlement_cash_due_date),
+				       extract(month from settlement_cash_due_date),
+				       extract(day from settlement_cash_due_date),
+				       extract(hour from settlement_cash_due_date),
+				       extract(minute from settlement_cash_due_date),
+				       extract(second from settlement_cash_due_date),
+				       settlement_cash_type, extract(year from rs.T_DTS),
+				       extract(month from rs.T_DTS),
+				       extract(day from rs.T_DTS), extract(hour from rs.T_DTS),
+				       extract(minute from rs.T_DTS), 
+				       extract(second from rs.T_DTS),
+				       extract(year from trade_history_dts[1]), 
+				       extract(month from trade_history_dts[1]),
+				       extract(day from trade_history_dts[1]), 
+				       extract(hour from trade_history_dts[1]),
+				       extract(minute from trade_history_dts[1]), 
+				       extract(second from trade_history_dts[1]),
+				       trade_history_status_id[1],
+				       extract(year from trade_history_dts[2]),
+				       extract(month from trade_history_dts[2]),
+				       extract(day from trade_history_dts[2]), 
+				       extract(hour from trade_history_dts[2]),
+				       extract(minute from trade_history_dts[2]), 
+				       extract(second from trade_history_dts[2]),
+				       trade_history_status_id[2],
+				       extract(year from trade_history_dts[3]),
+				       extract(month from trade_history_dts[3]),
+				       extract(day from trade_history_dts[3]),
+				       extract(hour from trade_history_dts[3]),
+				       extract(minute from trade_history_dts[3]),
+					   extract(second from trade_history_dts[3]),
+					   trade_history_status_id[3], rs.T_ID, rs.T_TT_ID
 		LOOP
 			RETURN NEXT aux;
 		END LOOP;
@@ -355,12 +422,13 @@ $$ LANGUAGE 'plpgsql';
 
 /*
  * Frame 4
- * identifies the first trade for the specified customer account on or after the specified time.
+ * identifies the first trade for the specified customer account on or after
+ * the specified time.
  */
 
 CREATE OR REPLACE FUNCTION TradeLookupFrame4(
-						IN acct_id	IDENT_T,
-						IN trade_dts	timestamp) RETURNS SETOF record AS $$
+		IN acct_id	IDENT_T,
+		IN trade_dts	timestamp) RETURNS SETOF record AS $$
 DECLARE
 	-- Local Frame variables
 	rs		RECORD;

@@ -4,15 +4,17 @@
  * Customer Position transaction
  * ------------------------
  * This transaction takes a customer tax ID or customer ID as input and is 
- * responsible for calculating the current market value of each one of that customer’s accounts.
+ * responsible for calculating the current market value of each one of that
+ * customer’s accounts.
  *
  * Based on TPC-E Standard Specification Draft Revision 0.32.2e Clause 3.3.6.
  */
 
 /*
  * Frame 1
- * retrieves the detailed customer information and finds the cash balance for each of the 
- * customer’s accounts as well as the total value of the holdings in each account.
+ * retrieves the detailed customer information and finds the cash balance for
+ * each of the customer’s accounts as well as the total value of the 
+ * holdings in each account.
  */
 
 CREATE OR REPLACE FUNCTION CustomerPositionFrame1 (
@@ -117,8 +119,8 @@ $$ LANGUAGE 'plpgsql';
 
 /*
  * Frame 2
- * returns information for the first N (max_trades) trades executed for the specified
- * customer account at or after the specified time.
+ * returns information for the first N (max_trades) trades executed for the
+ * specified customer account at or after the specified time.
  */
 
 CREATE OR REPLACE FUNCTION CustomerPositionFrame2(IN acct_id IDENT_T) RETURNS SETOF record AS $$

@@ -3,7 +3,8 @@
  *
  * Trade Result transaction
  * ------------------------
- * The Trade-Result transaction represents the completion of a stock market trade.
+ * The Trade-Result transaction represents the completion of a stock market
+ * trade.
  *
  * Based on TPC-E Standard Specification Draft Revision 0.32.2e Clause 3.3.2.
  */
@@ -13,7 +14,8 @@
  * responsible for retrieving information about the customer and its trade.
  */
 
-CREATE OR REPLACE FUNCTION TradeResultFrame1 (IN trade_id TRADE_T) RETURNS record AS $$
+CREATE OR REPLACE FUNCTION TradeResultFrame1 (IN trade_id TRADE_T)
+		RETURNS record AS $$
 DECLARE
 	-- output parameters
 	acct_id		IDENT_T;
@@ -141,7 +143,8 @@ BEGIN
 	-- Determine if sell or buy order
 	IF type_is_sell THEN 
 
-		IF holdsum_qty = 0 THEN -- no prior holdings exist, but one will be inserted
+		IF holdsum_qty = 0 THEN
+			-- no prior holdings exist, but one will be inserted
 			INSERT INTO	HOLDING_SUMMARY (
 						HS_CA_ID,
 						HS_S_SYMB,
@@ -276,7 +279,8 @@ BEGIN
 
 	ELSE -- The trade is a BUY
 
-		IF holdsum_qty = 0 THEN -- no prior holdings exist, but one will be inserted
+		IF holdsum_qty = 0 THEN
+			-- no prior holdings exist, but one will be inserted
 			INSERT INTO	HOLDING_SUMMARY (
 						HS_CA_ID,
 						HS_S_SYMB,
@@ -434,7 +438,8 @@ $$ LANGUAGE 'plpgsql';
 
 /*
  * Frame 3
- * Responsible for computing the amount of tax due by the customer as a result of the trade
+ * Responsible for computing the amount of tax due by the customer as a result
+ * of the trade
  * 
  */
 
@@ -471,7 +476,8 @@ $$ LANGUAGE 'plpgsql';
 
 /*
  * Frame 4
- * responsible for computing the commission for the broker who executed the trade.
+ * responsible for computing the commission for the broker who executed the
+ * trade.
  * 
  */
 
@@ -525,7 +531,8 @@ $$ LANGUAGE 'plpgsql';
 
 /*
  * Frame 5
- * responsible for recording the result of the trade and the broker's commission.
+ * responsible for recording the result of the trade and the broker's
+ * commission.
  * 
  */
 
@@ -600,7 +607,8 @@ BEGIN
 		WHERE	CA_ID = acct_id;
 
 		INSERT INTO CASH_TRANSACTION (CT_DTS, CT_T_ID, CT_AMT, CT_NAME)
-		VALUES (trade_dts, trade_id, se_amount, (type_name || ' ' || trade_qty || ' shares of ' || s_name) );
+		VALUES (trade_dts, trade_id, se_amount,
+		        (type_name || ' ' || trade_qty || ' shares of ' || s_name) );
 	END IF;
 
 	SELECT	CA_BAL
