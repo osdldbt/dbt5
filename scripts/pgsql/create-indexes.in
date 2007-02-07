@@ -58,6 +58,18 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	TS_PK_TAXRATE_DIR="${TSDIR}/pk_taxrate/ts"
 	TS_PK_ZIP_CODE_DIR="${TSDIR}/pk_zip_code/ts"
 
+	TS_I_C_TAX_ID_DIR="${TSDIR}/i_c_tax_id/ts"
+	TS_I_CA_C_ID_DIR="${TSDIR}/i_ca_c_id/ts"
+	TS_I_WL_C_ID_DIR="${TSDIR}/i_wl_c_id/ts"
+	TS_I_DM_S_SYMB_DIR="${TSDIR}/i_dm_s_symb/ts"
+	TS_I_TR_S_SYM_DIR="${TSDIR}/i_tr_s_symb/ts"
+	TS_I_T_ST_ID_DIR="${TSDIR}/i_t_st_id/ts"
+	TS_I_T_ST_ID_DIR="${TSDIR}/i_t_st_id/ts"
+	TS_I_T_CA_ID_DIR="${TSDIR}/i_t_ca_id/ts"
+	TS_I_CO_NAME_DIR="${TSDIR}/i_co_name/ts"
+	TS_I_SECURITY_DIR="${TSDIR}/i_security/ts"
+	TS_I_HOLDING_DIR="${TSDIR}/i_holding/ts"
+
 	#
 	# Creating 'ts' subdirectories because PostgreSQL doesn't like that
 	# 'lost+found' directory if a device was mounted at
@@ -97,6 +109,17 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	mkdir -p ${TS_PK_TAXRATE_DIR} || exit 1
 	mkdir -p ${TS_PK_ZIP_CODE_DIR} || exit 1
 
+	mkdir -p ${TS_I_C_TAX_ID_DIR} || exit 1
+	mkdir -p ${TS_I_CA_C_ID_DIR} || exit 1
+	mkdir -p ${TS_I_WL_C_ID_DIR} || exit 1
+	mkdir -p ${TS_I_DM_S_SYMB_DIR} || exit 1
+	mkdir -p ${TS_I_TR_S_SYM_DIR} || exit 1
+	mkdir -p ${TS_I_T_ST_ID_DIR} || exit 1
+	mkdir -p ${TS_I_T_CA_ID_DIR} || exit 1
+	mkdir -p ${TS_I_CO_NAME_DIR} || exit 1
+	mkdir -p ${TS_I_SECURITY_DIR} || exit 1
+	mkdir -p ${TS_I_HOLDING_DIR} || exit 1
+
 	TS_PK_ACCOUNT_PERMISSION="TABLESPACE dbt5_pk_account_permission"
 	TS_PK_CUSTOMER="TABLESPACE dbt5_pk_customer"
 	TS_PK_CUSTOMER_ACCOUNT="TABLESPACE dbt5_pk_customer_account"
@@ -130,6 +153,17 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	TS_PK_STATUS_TYPE="TABLESPACE dbt5_pk_status_type"
 	TS_PK_TAXRATE="TABLESPACE dbt5_pk_taxrate"
 	TS_PK_ZIP_CODE="TABLESPACE dbt5_pk_zip_code"
+
+	TS_I_C_TAX_ID="TABLESPACE dbt5_i_c_tax_id"
+	TS_I_CA_C_ID="TABLESPACE dbt5_i_ca_c_id"
+	TS_I_WL_C_ID="TABLESPACE dbt5_i_wl_c_id"
+	TS_I_DM_S_SYMB="TABLESPACE dbt5_i_dm_s_symb"
+	TS_I_TR_S_SYMB="TABLESPACE dbt5_i_tr_s_symb"
+	TS_I_T_ST_ID="TABLESPACE dbt5_i_t_st_id"
+	TS_I_T_CA_ID="TABLESPACE dbt5_i_t_ca_id"
+	TS_I_CO_NAME_ID="TABLESPACE dbt5_i_co_name"
+	TS_I_SECURITY="TABLESPACE dbt5_i_security"
+	TS_I_HOLDING="TABLESPACE dbt5_i_holding"
 
 	#
 	# Don't need to '|| exit 1' in case the tablespaces already exist.
@@ -273,6 +307,17 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	TS_PK_STATUS_TYPE="USING INDEX ${TS_PK_STATUS_TYPE}"
 	TS_PK_TAXRATE="USING INDEX ${TS_PK_TAXRATE}"
 	TS_PK_ZIP_CODE="USING INDEX ${TS_PK_ZIP_CODE}"
+
+	TS_I_C_TAX_ID="USING INDEX ${TS_I_C_TAX_ID}"
+	TS_I_CA_C_ID="USING INDEX ${TS_I_CA_C_ID}"
+	TS_I_WL_C_ID="USING INDEX ${TS_I_WL_C_ID}"
+	TS_I_DM_S_SYMB="USING INDEX ${TS_I_DM_S_SYMB}"
+	TS_I_TR_S_SYMB="USING INDEX ${TS_I_TR_S_SYMB}"
+	TS_I_T_ST_ID="USING INDEX ${TS_I_T_ST_ID}"
+	TS_I_T_CA_ID="USING INDEX ${TS_I_T_CA_ID}"
+	TS_I_CO_NAME="USING INDEX ${TS_I_CO_NAME}"
+	TS_I_SECURITY="USING INDEX ${TS_I_SECURITY}"
+	TS_I_HOLDING="USING INDEX ${TS_I_HOLDING}"
 fi
 
 # PKs
@@ -862,6 +907,58 @@ ${PSQL} -e -d ${DBNAME} -c "
 ALTER TABLE address
 ADD CONSTRAINT fk_address FOREIGN KEY (ad_zc_code) 
 REFERENCES zip_code (zc_code);
+" || exit 1 &
+
+# Additional indexes
+
+${PSQL} -e -d ${DBNAME} -c "
+CREATE INDEX i_c_tax_id
+ON customer (c_tax_id);
+" || exit 1 &
+
+${PSQL} -e -d ${DBNAME} -c "
+CREATE INDEX i_ca_c_id
+ON customer_account (ca_c_id);
+" || exit 1 &
+
+${PSQL} -e -d ${DBNAME} -c "
+CREATE INDEX i_wl_c_id
+ON watch_list (wl_c_id);
+" || exit 1 &
+
+${PSQL} -e -d ${DBNAME} -c "
+CREATE INDEX i_dm_s_symb
+ON daily_market (dm_s_symb);
+" || exit 1 &
+
+${PSQL} -e -d ${DBNAME} -c "
+CREATE INDEX i_tr_s_symb
+ON trade_request (tr_s_symb);
+" || exit 1 &
+
+${PSQL} -e -d ${DBNAME} -c "
+CREATE INDEX i_t_st_id
+ON trade (t_st_id);
+" || exit 1 &
+
+${PSQL} -e -d ${DBNAME} -c "
+CREATE INDEX i_t_ca_id
+ON trade (t_ca_id);
+" || exit 1 &
+
+${PSQL} -e -d ${DBNAME} -c "
+CREATE INDEX i_co_name
+ON company (co_name);
+" || exit 1 &
+
+${PSQL} -e -d ${DBNAME} -c "
+CREATE INDEX i_security
+ON security (s_co_id, s_issue);
+" || exit 1 &
+
+${PSQL} -e -d ${DBNAME} -c "
+CREATE INDEX i_holding
+ON holding (h_ca_id, h_s_symb);
 " || exit 1 &
 
 wait
