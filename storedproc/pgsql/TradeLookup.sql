@@ -137,7 +137,7 @@ BEGIN
 				       trade_history_status_id[2],
 				       extract(year from trade_history_dts[3]),
 				       extract(month from trade_history_dts[3]),
-				       extract(day from trade_history_dts[3])
+				       extract(day from trade_history_dts[3]),
 				       extract(hour from trade_history_dts[3]),
 				       extract(minute from trade_history_dts[3]),
 				       extract(second from trade_history_dts[3]),
