@@ -484,11 +484,8 @@ sort -t "," -k 1 ${DRIVER_OUTPUT_DIR}/ce_mix.log \
 echo
 echo "4. Run Post processing analyses"
 
-${abs_top_srcdir}/scripts/mix-analyzer \
-		--infile ${DRIVER_OUTPUT_DIR}/mix.log \
-		--outdir ${DRIVER_OUTPUT_DIR} > ${DRIVER_OUTPUT_DIR}/results.out
-cp -p ${abs_top_srcdir}/scripts/trtps.input ${DRIVER_OUTPUT_DIR} || exit 1
-cd ${DRIVER_OUTPUT_DIR} && @GNUPLOT@ trtps.input
+${abs_top_srcdir}/scripts/post-process --dir ${OUTPUT_DIR} \
+		--xml > ${DRIVER_OUTPUT_DIR}/results.out
 
 # Servers don't go away by themselves like the driver does, so kill it.
 echo "Killing Servers..."
@@ -522,12 +519,7 @@ chmod 644 ${DB_OUTPUT_DIR}/log
 
 # Postprocessing of Database Statistics
 @SAR@ -f ${OUTPUT_DIR}/sar_raw.out -A > ${OUTPUT_DIR}/sar.out
-$abs_top_srcdir/scripts/vmplot.sh -i ${OUTPUT_DIR}/vmstat.out \
-		-o ${OUTPUT_DIR}/plots
 perl $abs_top_srcdir/scripts/${DBDIR}/analyze_stats.pl --dir $DB_OUTPUT_DIR
-
-# Create summary in HTML.
-$abs_top_srcdir/scripts/gen_html.sh $OUTPUT_DIR
 
 echo ">> Test completed."
 echo "Results are in: $OUTPUT_DIR"
