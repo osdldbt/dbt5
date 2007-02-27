@@ -29,7 +29,7 @@ void CTradeStatusDB::DoTradeStatusFrame1(PTradeStatusFrame1Input pFrame1Input,
 
 	ostringstream osCall;
 	osCall << "SELECT * from TradeStatusFrame1(" << pFrame1Input->acct_id <<
-			") as (fname varchar, lname varchar,broker varchar, "
+			") as (lname varchar, fname varchar, broker varchar, "
 			"charge value_t, exec_name varchar, ex_name varchar, s_name "
 			"varchar,status_name char(10), symbol char(15), trade_dts_year "
 			"double precision, trade_dts_month double precision, trade_dts_day "
@@ -49,6 +49,8 @@ void CTradeStatusDB::DoTradeStatusFrame1(PTradeStatusFrame1Input pFrame1Input,
 		//throw logic_error("empty result set!");
 		cout<<"warning: empty result set at DoTradeStatusFrame1"<<endl
 			<<"- acct_id: "<<pFrame1Input->acct_id<<endl;
+		pFrame1Output->status = CBaseTxnErr::SUCCESS;
+		return;
 	}
 
 	result::const_iterator c = R.begin();

@@ -716,6 +716,9 @@ void CTradeLookupDB::DoTradeLookupFrame4(PTradeLookupFrame4Input pFrame4Input,
 	{
 		//throw logic_error("TradeLookupFrame4: empty result set");
 		cout<<"warning: empty result set at DoTradeLookupFrame4"<<endl;
+ 		pFrame4Output->num_found = 0;
+		pFrame4Output->status = CBaseTxnErr::SUCCESS;
+		return;
 	}
 	result::const_iterator c = R.begin();
 

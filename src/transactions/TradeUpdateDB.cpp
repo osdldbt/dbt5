@@ -285,6 +285,9 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(PTradeUpdateFrame2Input pFrame2Input,
 	{
 		//throw logic_error("TradeUpdateFrame2: empty result set");
 		cout<<"warning: empty result set at DoTradeUpdateFrame2"<<endl;
+ 		pFrame2Output->num_found = 0;
+		pFrame2Output->status = CBaseTxnErr::SUCCESS;
+		return;
 	}
 	result::const_iterator c = R.begin();
 
