@@ -55,19 +55,19 @@ void CTradeStatusDB::DoTradeStatusFrame1(PTradeStatusFrame1Input pFrame1Input,
 
 	result::const_iterator c = R.begin();
 	
-	sprintf(pFrame1Output->cust_l_name, "%s", c[0].c_str() );
-	sprintf(pFrame1Output->cust_f_name, "%s", c[1].c_str() );
-	sprintf(pFrame1Output->broker_name, "%s", c[2].c_str() );
+	strcpy(pFrame1Output->cust_l_name, c[0].c_str());
+	strcpy(pFrame1Output->cust_f_name, c[1].c_str());
+	strcpy(pFrame1Output->broker_name, c[2].c_str());
 
 	int i = 0;	
 	for ( c; c != R.end(); ++c )
 	{
 		pFrame1Output->charge[i] = c[3].as(double());
-		sprintf(pFrame1Output->exec_name[i], "%s", c[4].c_str() );
-		sprintf(pFrame1Output->ex_name[i], "%s", c[5].c_str() );
-		sprintf(pFrame1Output->s_name[i], "%s", c[6].c_str() );
-		sprintf(pFrame1Output->status_name[i], "%s", c[7].c_str() );
-		sprintf(pFrame1Output->symbol[i], "%s", c[8].c_str() );
+		strcpy(pFrame1Output->exec_name[i], c[4].c_str());
+		strcpy(pFrame1Output->ex_name[i], c[5].c_str());
+		strcpy(pFrame1Output->s_name[i], c[6].c_str());
+		strcpy(pFrame1Output->status_name[i], c[7].c_str());
+		strcpy(pFrame1Output->symbol[i], c[8].c_str() );
 		pFrame1Output->trade_dts[i].year = c[9].as(int());
 		pFrame1Output->trade_dts[i].month = c[10].as(int());
 		pFrame1Output->trade_dts[i].day = c[11].as(int());
@@ -76,7 +76,7 @@ void CTradeStatusDB::DoTradeStatusFrame1(PTradeStatusFrame1Input pFrame1Input,
 		pFrame1Output->trade_dts[i].second = int(c[14].as(double()));
 		pFrame1Output->trade_id[i] = c[15].as(int());
 		pFrame1Output->trade_qty[i] = c[16].as(int());
-		sprintf(pFrame1Output->type_name[i], "%s", c[17].c_str() );
+		strcpy(pFrame1Output->type_name[i], c[17].c_str());
 		
 		i++;
 	}

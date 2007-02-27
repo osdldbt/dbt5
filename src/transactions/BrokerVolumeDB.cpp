@@ -53,7 +53,7 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(
 	i = 0;	
 	for ( c; c != R.end(); ++c )
 	{
-		sprintf(pFrame1Output->broker_name[i], "%s", c[0].c_str());
+		strcpy(pFrame1Output->broker_name[i], c[0].c_str());
 		pFrame1Output->volume[i] = c[1].as(double());
 		
 		i++;

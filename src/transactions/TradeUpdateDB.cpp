@@ -80,7 +80,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(PTradeUpdateFrame1Input pFrame1Input,
 	for ( c; c != R.end(); ++c )
 	{
 		pFrame1Output->trade_info[i].bid_price = c[2].as(double());
-		sprintf(pFrame1Output->trade_info[i].exec_name, "%s", c[3].c_str());
+		strcpy(pFrame1Output->trade_info[i].exec_name, c[3].c_str());
 		pFrame1Output->trade_info[i].is_cash = c[4].as(int());
 		pFrame1Output->trade_info[i].is_market = c[5].as(int());
 		pFrame1Output->trade_info[i].trade_price = c[6].as(double());
@@ -97,7 +97,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(PTradeUpdateFrame1Input pFrame1Input,
 				c[12].as(int());
 		pFrame1Output->trade_info[i].settlement_cash_due_date.second =
 				int(c[13].as(double()));
-		sprintf(pFrame1Output->trade_info[i].settlement_cash_type, "%s",
+		strcpy(pFrame1Output->trade_info[i].settlement_cash_type,
 				c[14].c_str());
 		pFrame1Output->trade_info[i].cash_transaction_amount =
 				c[15].as(double());
@@ -112,7 +112,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(PTradeUpdateFrame1Input pFrame1Input,
 				c[20].as(int());
 		pFrame1Output->trade_info[i].cash_transaction_dts.second =
 				int(c[21].as(double()));
-		sprintf(pFrame1Output->trade_info[i].cash_transaction_name, "%s",
+		strcpy(pFrame1Output->trade_info[i].cash_transaction_name,
 				c[22].c_str());
 		pFrame1Output->trade_info[i].trade_history_dts[0].year =
 				c[23].as(int());
@@ -125,7 +125,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(PTradeUpdateFrame1Input pFrame1Input,
 				c[27].as(int());
 		pFrame1Output->trade_info[i].trade_history_dts[0].second =
 				int(c[28].as(double()));
-		sprintf(pFrame1Output->trade_info[i].trade_history_status_id[0], "%s",
+		strcpy(pFrame1Output->trade_info[i].trade_history_status_id[0],
 				c[29].c_str());
 		pFrame1Output->trade_info[i].trade_history_dts[1].year =
 				c[30].as(int());
@@ -138,7 +138,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(PTradeUpdateFrame1Input pFrame1Input,
 				c[34].as(int());
 		pFrame1Output->trade_info[i].trade_history_dts[1].second =
 				int(c[35].as(double()));
-		sprintf(pFrame1Output->trade_info[i].trade_history_status_id[1], "%s",
+		strcpy(pFrame1Output->trade_info[i].trade_history_status_id[1],
 				c[36].c_str());
 		pFrame1Output->trade_info[i].trade_history_dts[2].year =
 				c[37].as(int());
@@ -151,7 +151,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(PTradeUpdateFrame1Input pFrame1Input,
 				c[41].as(int());
 		pFrame1Output->trade_info[i].trade_history_dts[2].second =
 				int(c[42].as(double()));
-		sprintf(pFrame1Output->trade_info[i].trade_history_status_id[2], "%s",
+		strcpy(pFrame1Output->trade_info[i].trade_history_status_id[2],
 				c[43].c_str());
 
 		i++;
@@ -297,7 +297,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(PTradeUpdateFrame2Input pFrame2Input,
 	for ( c; c != R.end(); ++c )
 	{
 		pFrame2Output->trade_info[i].bid_price = c[1].as(double());
-		sprintf(pFrame2Output->trade_info[i].exec_name, "%s", c[2].c_str());
+		strcpy(pFrame2Output->trade_info[i].exec_name, c[2].c_str());
 		pFrame2Output->trade_info[i].is_cash = c[3].as(int());
 		pFrame2Output->trade_info[i].trade_price = c[4].as(double());
 		pFrame2Output->trade_info[i].trade_id = c[5].as(int());
@@ -314,7 +314,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(PTradeUpdateFrame2Input pFrame2Input,
 				c[11].as(int());
 		pFrame2Output->trade_info[i].settlement_cash_due_date.second =
 				int(c[12].as(double()));
-		sprintf(pFrame2Output->trade_info[i].settlement_cash_type, "%s",
+		strcpy(pFrame2Output->trade_info[i].settlement_cash_type,
 				c[13].c_str());
 		pFrame2Output->trade_info[i].cash_transaction_amount =
 				c[14].as(double());
@@ -330,7 +330,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(PTradeUpdateFrame2Input pFrame2Input,
 				c[19].as(int());
 		pFrame2Output->trade_info[i].cash_transaction_dts.second =
 				int(c[20].as(double()));
-		sprintf(pFrame2Output->trade_info[i].cash_transaction_name, "%s",
+		strcpy(pFrame2Output->trade_info[i].cash_transaction_name,
 				c[21].c_str());
 		pFrame2Output->trade_info[i].trade_history_dts[0].year =
 				c[22].as(int());
@@ -343,7 +343,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(PTradeUpdateFrame2Input pFrame2Input,
 				 c[26].as(int());
 		pFrame2Output->trade_info[i].trade_history_dts[0].second =
 				 int(c[27].as(double()));
-		sprintf(pFrame2Output->trade_info[i].trade_history_status_id[0], "%s",
+		strcpy(pFrame2Output->trade_info[i].trade_history_status_id[0],
 				 c[28].c_str());
 		pFrame2Output->trade_info[i].trade_history_dts[1].year =
 				 c[29].as(int());
@@ -356,7 +356,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(PTradeUpdateFrame2Input pFrame2Input,
 				 c[33].as(int());
 		pFrame2Output->trade_info[i].trade_history_dts[1].second =
 				 int(c[34].as(double()));
-		sprintf(pFrame2Output->trade_info[i].trade_history_status_id[1], "%s",
+		strcpy(pFrame2Output->trade_info[i].trade_history_status_id[1],
 				 c[35].c_str());
 		pFrame2Output->trade_info[i].trade_history_dts[2].year =
 				 c[36].as(int());
@@ -369,7 +369,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(PTradeUpdateFrame2Input pFrame2Input,
 				 c[40].as(int());
 		pFrame2Output->trade_info[i].trade_history_dts[2].second =
 				 int(c[41].as(double()));
-		sprintf(pFrame2Output->trade_info[i].trade_history_status_id[2], "%s",
+		strcpy(pFrame2Output->trade_info[i].trade_history_status_id[2],
 				 c[42].c_str());
 
 		i++;
@@ -537,9 +537,9 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(PTradeUpdateFrame3Input pFrame3Input,
 				c[7].as(int());
 		pFrame3Output->trade_info[i].cash_transaction_dts.second =
 				int(c[8].as(double()));
-		sprintf(pFrame3Output->trade_info[i].cash_transaction_name, "%s",
+		strcpy(pFrame3Output->trade_info[i].cash_transaction_name,
 				c[9].c_str());
-		sprintf(pFrame3Output->trade_info[i].exec_name, "%s", c[10].c_str());
+		strcpy(pFrame3Output->trade_info[i].exec_name, c[10].c_str());
 		pFrame3Output->trade_info[i].is_cash = c[11].as(int());
 		pFrame3Output->trade_info[i].price = c[12].as(double());
 		pFrame3Output->trade_info[i].quantity = c[13].as(int());
@@ -556,7 +556,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(PTradeUpdateFrame3Input pFrame3Input,
 				c[19].as(int());
 		pFrame3Output->trade_info[i].settlement_cash_due_date.second =
 				int(c[20].as(double()));
-		sprintf(pFrame3Output->trade_info[i].settlement_cash_type, "%s",
+		strcpy(pFrame3Output->trade_info[i].settlement_cash_type,
 				c[21].c_str());
 		pFrame3Output->trade_info[i].trade_dts.year = c[22].as(int());
 		pFrame3Output->trade_info[i].trade_dts.month = c[23].as(int());
@@ -575,7 +575,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(PTradeUpdateFrame3Input pFrame3Input,
 				c[32].as(int());
 		pFrame3Output->trade_info[i].trade_history_dts[0].second =
 				int(c[33].as(double()));
-		sprintf(pFrame3Output->trade_info[i].trade_history_status_id[0], "%s",
+		strcpy(pFrame3Output->trade_info[i].trade_history_status_id[0],
 				c[34].c_str());
 		pFrame3Output->trade_info[i].trade_history_dts[1].year =
 				c[35].as(int());
@@ -588,7 +588,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(PTradeUpdateFrame3Input pFrame3Input,
 				c[39].as(int());
 		pFrame3Output->trade_info[i].trade_history_dts[1].second =
 				int(c[40].as(double()));
-		sprintf(pFrame3Output->trade_info[i].trade_history_status_id[1], "%s",
+		strcpy(pFrame3Output->trade_info[i].trade_history_status_id[1],
 				c[41].c_str());
 		pFrame3Output->trade_info[i].trade_history_dts[2].year =
 				c[42].as(int());
@@ -601,10 +601,10 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(PTradeUpdateFrame3Input pFrame3Input,
 				c[46].as(int());
 		pFrame3Output->trade_info[i].trade_history_dts[2].second =
 				int(c[47].as(double()));
-		sprintf(pFrame3Output->trade_info[i].trade_history_status_id[2], "%s",
+		strcpy(pFrame3Output->trade_info[i].trade_history_status_id[2],
 				c[48].c_str());
 		pFrame3Output->trade_info[i].trade_id = c[49].as(int());
-		sprintf(pFrame3Output->trade_info[i].trade_type, "%s", c[50].c_str());
+		strcpy(pFrame3Output->trade_info[i].trade_type, c[50].c_str());
 
 		i++;
 	}

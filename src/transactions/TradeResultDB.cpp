@@ -51,13 +51,13 @@ void CTradeResultDB::DoTradeResultFrame1(PTradeResultFrame1Input pFrame1Input,
 	pFrame1Output->charge = c[1].as(double());
 	pFrame1Output->hs_qty = c[2].as(int());
 	pFrame1Output->is_lifo = c[3].as(int());
-	sprintf(pFrame1Output->symbol, "%s", c[4].c_str());
+	strcpy(pFrame1Output->symbol, c[4].c_str());
 	pFrame1Output->trade_is_cash = c[5].as(int());
 	pFrame1Output->trade_qty = c[6].as(int());
-	sprintf(pFrame1Output->type_id, "%s", c[7].c_str());
+	strcpy(pFrame1Output->type_id, c[7].c_str());
 	pFrame1Output->type_is_market = c[8].as(int());
 	pFrame1Output->type_is_sell = c[9].as(int());
-	sprintf(pFrame1Output->type_name, "%s", c[10].c_str());
+	strcpy(pFrame1Output->type_name, c[10].c_str());
 
 	pFrame1Output->status = CBaseTxnErr::SUCCESS;
 
@@ -232,7 +232,7 @@ void CTradeResultDB::DoTradeResultFrame4(PTradeResultFrame4Input pFrame4Input,
 	result::const_iterator c = R.begin();
 
 	pFrame4Output->comm_rate = c[0].as(double());
-	sprintf(pFrame4Output->s_name, "%s", c[1].c_str());
+	strcpy(pFrame4Output->s_name, c[1].c_str());
 	pFrame4Output->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG

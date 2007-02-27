@@ -76,11 +76,11 @@ void CMarketFeedDB::DoMarketFeedFrame1(PMarketFeedFrame1Input pFrame1Input,
 		bool bSent;	
 		for ( c; c != R.end(); ++c )
 		{
-			sprintf( m_TriggeredLimitOrders.symbol, "%s", c[0].c_str());
+			strcpy(m_TriggeredLimitOrders.symbol, c[0].c_str());
 			m_TriggeredLimitOrders.trade_id = c[1].as(int());
 			m_TriggeredLimitOrders.price_quote =  c[2].as(double());
 			m_TriggeredLimitOrders.trade_qty = c[3].as(int());
-			sprintf( m_TriggeredLimitOrders.trade_type_id, "%s", c[4].c_str());
+			strcpy(m_TriggeredLimitOrders.trade_type_id, c[4].c_str());
 
 			bSent = pSendToMarket->SendToMarketFromFrame(
 					m_TriggeredLimitOrders);
@@ -97,7 +97,8 @@ void CMarketFeedDB::DoMarketFeedFrame1(PMarketFeedFrame1Input pFrame1Input,
 	}
 	pFrame1Output->status = CBaseTxnErr::SUCCESS;
 	
-#ifdef DEBUG m_coutLock.ClaimLock(); cout << "Market Feed Frame 1 (input)" << endl << "- max_feed_len: " << max_feed_len << endl <<
+#ifdef DEBUG
+	m_coutLock.ClaimLock(); cout << "Market Feed Frame 1 (input)" << endl << "- max_feed_len: " << max_feed_len << endl <<
 			"- price_quote: " << "{" << osPrice.str() << "}"<< endl <<
 			"- status_submitted: " <<
 			pFrame1Input->StatusAndTradeType.status_submitted << endl <<

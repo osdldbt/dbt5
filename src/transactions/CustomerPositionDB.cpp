@@ -92,12 +92,12 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 
 	pFrame1Output->cust_id = c[0].as(int());
 	pFrame1Output->acct_len = c[2].as(int());
-	sprintf(pFrame1Output->c_st_id, "%s", c[5].c_str() );	
-	sprintf(pFrame1Output->c_l_name, "%s", c[6].c_str() );
-	sprintf(pFrame1Output->c_f_name, "%s", c[7].c_str() );
-	sprintf(pFrame1Output->c_m_name, "%s", c[8].c_str() );
-	sprintf(pFrame1Output->c_gndr, "%s", c[9].c_str() );
-	sprintf(&pFrame1Output->c_tier, "%s", c[10].c_str() );
+	strcpy(pFrame1Output->c_st_id, c[5].c_str());	
+	strcpy(pFrame1Output->c_l_name, c[6].c_str());
+	strcpy(pFrame1Output->c_f_name, c[7].c_str());
+	strcpy(pFrame1Output->c_m_name, c[8].c_str());
+	strcpy(pFrame1Output->c_gndr, c[9].c_str());
+	strcpy(&pFrame1Output->c_tier, c[10].c_str());
 	pFrame1Output->c_dob.year = c[11].as(int());
 	pFrame1Output->c_dob.month = c[12].as(int());
 	pFrame1Output->c_dob.day = c[13].as(int());
@@ -105,20 +105,20 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 	pFrame1Output->c_dob.minute = c[15].as(int());
 	pFrame1Output->c_dob.second = int(c[16].as(double()));
 	pFrame1Output->c_ad_id = c[17].as(int());
-	sprintf(pFrame1Output->c_ctry_1, "%s", c[18].c_str() );
-	sprintf(pFrame1Output->c_area_1, "%s", c[19].c_str() );
-	sprintf(pFrame1Output->c_local_1, "%s", c[20].c_str() );
-	sprintf(pFrame1Output->c_ext_1, "%s", c[21].c_str() );
-	sprintf(pFrame1Output->c_ctry_2, "%s", c[22].c_str() );
-	sprintf(pFrame1Output->c_area_2, "%s", c[23].c_str() );
-	sprintf(pFrame1Output->c_local_2, "%s", c[24].c_str() );
-	sprintf(pFrame1Output->c_ext_2, "%s", c[25].c_str() );
-	sprintf(pFrame1Output->c_ctry_3, "%s", c[26].c_str() );
-	sprintf(pFrame1Output->c_area_3, "%s", c[27].c_str() );
-	sprintf(pFrame1Output->c_local_3, "%s", c[28].c_str() );
-	sprintf(pFrame1Output->c_ext_3, "%s", c[29].c_str() );
-	sprintf(pFrame1Output->c_email_1, "%s", c[30].c_str() );
-	sprintf(pFrame1Output->c_email_2, "%s", c[31].c_str() );
+	strcpy(pFrame1Output->c_ctry_1, c[18].c_str());
+	strcpy(pFrame1Output->c_area_1, c[19].c_str());
+	strcpy(pFrame1Output->c_local_1, c[20].c_str());
+	strcpy(pFrame1Output->c_ext_1, c[21].c_str());
+	strcpy(pFrame1Output->c_ctry_2, c[22].c_str());
+	strcpy(pFrame1Output->c_area_2, c[23].c_str());
+	strcpy(pFrame1Output->c_local_2, c[24].c_str());
+	strcpy(pFrame1Output->c_ext_2, c[25].c_str());
+	strcpy(pFrame1Output->c_ctry_3, c[26].c_str());
+	strcpy(pFrame1Output->c_area_3, c[27].c_str());
+	strcpy(pFrame1Output->c_local_3, c[28].c_str());
+	strcpy(pFrame1Output->c_ext_3, c[29].c_str());
+	strcpy(pFrame1Output->c_email_1, c[30].c_str());
+	strcpy(pFrame1Output->c_email_2, c[31].c_str());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -197,9 +197,9 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 	for ( c; c != R.end(); ++c )
 	{
 		pFrame2Output->trade_id[i] = c[0].as(int());
-		sprintf(pFrame2Output->symbol[i], "%s", c[1].c_str());
+		strcpy(pFrame2Output->symbol[i], c[1].c_str());
 		pFrame2Output->qty[i] = c[2].as(int());
-		sprintf(pFrame2Output->trade_status[i], "%s", c[3].c_str());
+		strcpy(pFrame2Output->trade_status[i], c[3].c_str());
 		pFrame2Output->hist_dts[i].year = c[4].as(int());
 		pFrame2Output->hist_dts[i].month = c[5].as(int());
 		pFrame2Output->hist_dts[i].day = c[6].as(int());

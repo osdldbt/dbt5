@@ -100,7 +100,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	int i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p)
 	{
-		sprintf(pFrame1Output->cp_co_name[i], "%s", (*p).c_str() );	
+		strcpy(pFrame1Output->cp_co_name[i], (*p).c_str());	
 		i++;
 	}
 
@@ -111,7 +111,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p)
 	{
-		sprintf(pFrame1Output->cp_in_name[i], "%s", (*p).c_str() );	
+		strcpy(pFrame1Output->cp_in_name[i], (*p).c_str());	
 		i++;
 	}
 
@@ -430,7 +430,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p)
 	{
-		sprintf(pFrame1Output->news[i].item, "%s", (*p).c_str() );	
+		strcpy(pFrame1Output->news[i].item, (*p).c_str());	
 		i++;
 	}
 
@@ -507,7 +507,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p)
 	{
-		sprintf(pFrame1Output->news[i].src, "%s", (*p).c_str() );	
+		strcpy(pFrame1Output->news[i].src, (*p).c_str());	
 		i++;
 	}
 
@@ -518,7 +518,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p)
 	{
-		sprintf(pFrame1Output->news[i].auth, "%s", (*p).c_str() );	
+		strcpy(pFrame1Output->news[i].auth, (*p).c_str());	
 		i++;
 	}
 
@@ -529,7 +529,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p)
 	{
-		sprintf(pFrame1Output->news[i].headline, "%s", (*p).c_str() );	
+		strcpy(pFrame1Output->news[i].headline, (*p).c_str());	
 		i++;
 	}
 
@@ -540,32 +540,32 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p)
 	{
-		sprintf(pFrame1Output->news[i].summary, "%s", (*p).c_str() );	
+		strcpy(pFrame1Output->news[i].summary, (*p).c_str());	
 		i++;
 	}
 
 	pFrame1Output->last_price = c[44].as(double());
 	pFrame1Output->last_open = c[45].as(double());
 	pFrame1Output->last_vol = c[46].as(int());
-	sprintf(pFrame1Output->s_name, "%s", c[47].c_str() );	
+	strcpy(pFrame1Output->s_name, c[47].c_str());	
 	//co_id - 48
-	sprintf(pFrame1Output->co_name, "%s", c[49].c_str() );	
-	sprintf(pFrame1Output->sp_rate, "%s", c[50].c_str() );	
-	sprintf(pFrame1Output->ceo_name, "%s", c[51].c_str() );	
-	sprintf(pFrame1Output->co_desc, "%s", c[52].c_str() );	
+	strcpy(pFrame1Output->co_name, c[49].c_str());	
+	strcpy(pFrame1Output->sp_rate, c[50].c_str());	
+	strcpy(pFrame1Output->ceo_name, c[51].c_str());	
+	strcpy(pFrame1Output->co_desc, c[52].c_str());	
 	pFrame1Output->open_date.year = c[53].as(int());
 	pFrame1Output->open_date.month = c[54].as(int());
 	pFrame1Output->open_date.day = c[55].as(int());
 	pFrame1Output->open_date.hour = c[56].as(int());
 	pFrame1Output->open_date.minute = c[57].as(int());
 	pFrame1Output->open_date.second = int(c[58].as(double()));
-	sprintf(pFrame1Output->co_st_id, "%s", c[59].c_str() );	
-	sprintf(pFrame1Output->co_ad_line1, "%s", c[60].c_str() );	
-	sprintf(pFrame1Output->co_ad_line2, "%s", c[61].c_str() );	
-	sprintf(pFrame1Output->co_ad_town, "%s", c[62].c_str() );	
-	sprintf(pFrame1Output->co_ad_div, "%s", c[63].c_str() );	
-	sprintf(pFrame1Output->co_ad_zip, "%s", c[64].c_str() );	
-	sprintf(pFrame1Output->co_ad_cty, "%s", c[65].c_str() );	
+	strcpy(pFrame1Output->co_st_id, c[59].c_str());
+	strcpy(pFrame1Output->co_ad_line1, c[60].c_str());
+	strcpy(pFrame1Output->co_ad_line2, c[61].c_str());
+	strcpy(pFrame1Output->co_ad_town, c[62].c_str());
+	strcpy(pFrame1Output->co_ad_div, c[63].c_str());
+	strcpy(pFrame1Output->co_ad_zip, c[64].c_str());
+	strcpy(pFrame1Output->co_ad_cty, c[65].c_str());
 	pFrame1Output->num_out = c[66].as(int());
 	pFrame1Output->start_date.year = c[67].as(int());
 	pFrame1Output->start_date.month = c[68].as(int());
@@ -596,15 +596,15 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	pFrame1Output->s52_wk_low_date.second = int(c[93].as(double()));
 	pFrame1Output->divid = c[94].as(double());
 	pFrame1Output->yield = c[95].as(double());
-	sprintf(pFrame1Output->ex_ad_div, "%s", c[96].c_str() );
-	sprintf(pFrame1Output->ex_ad_cty, "%s", c[97].c_str() );
-	sprintf(pFrame1Output->ex_ad_line1, "%s", c[98].c_str() );
-	sprintf(pFrame1Output->ex_ad_line2, "%s", c[99].c_str() );
-	sprintf(pFrame1Output->ex_ad_town, "%s", c[100].c_str() );
-	sprintf(pFrame1Output->ex_ad_zip, "%s", c[101].c_str() );
+	strcpy(pFrame1Output->ex_ad_div, c[96].c_str());
+	strcpy(pFrame1Output->ex_ad_cty, c[97].c_str());
+	strcpy(pFrame1Output->ex_ad_line1, c[98].c_str());
+	strcpy(pFrame1Output->ex_ad_line2, c[99].c_str());
+	strcpy(pFrame1Output->ex_ad_town, c[100].c_str());
+	strcpy(pFrame1Output->ex_ad_zip, c[101].c_str());
 	pFrame1Output->ex_close = c[102].as(int());
-	sprintf(pFrame1Output->ex_desc, "%s", c[103].c_str() );
-	sprintf(pFrame1Output->ex_name, "%s", c[104].c_str() );
+	strcpy(pFrame1Output->ex_desc, c[103].c_str());
+	strcpy(pFrame1Output->ex_name, c[104].c_str());
 	pFrame1Output->ex_num_symb = c[105].as(int());
 	pFrame1Output->ex_open = c[106].as(int());
 

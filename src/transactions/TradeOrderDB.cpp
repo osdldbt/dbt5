@@ -46,13 +46,13 @@ void CTradeOrderDB::DoTradeOrderFrame1(PTradeOrderFrame1Input pFrame1Input,
 	}
 	result::const_iterator c = R.begin();
 	
-	sprintf(pFrame1Output->acct_name, "%s", c[0].c_str());
-	sprintf(pFrame1Output->broker_name, "%s", c[1].c_str());
-	sprintf(pFrame1Output->cust_f_name, "%s", c[2].c_str());
+	strcpy(pFrame1Output->acct_name, c[0].c_str());
+	strcpy(pFrame1Output->broker_name, c[1].c_str());
+	strcpy(pFrame1Output->cust_f_name, c[2].c_str());
 	pFrame1Output->cust_id = c[3].as(int());
-	sprintf(pFrame1Output->cust_l_name, "%s", c[4].c_str());
+	strcpy(pFrame1Output->cust_l_name, c[4].c_str());
 	pFrame1Output->cust_tier = c[5].as(int());
-	sprintf(pFrame1Output->tax_id, "%s", c[6].c_str());
+	strcpy(pFrame1Output->tax_id, c[6].c_str());
 	pFrame1Output->tax_status = c[7].as(int());
 
 #ifdef DEBUG
@@ -146,17 +146,17 @@ void CTradeOrderDB::DoTradeOrderFrame3(PTradeOrderFrame3Input pFrame3Input,
 	}
 	result::const_iterator c = R.begin();
 	
-	sprintf(pFrame3Output->co_name, "%s", c[0].c_str());
+	strcpy(pFrame3Output->co_name, c[0].c_str());
 	pFrame3Output->requested_price = c[1].as(double());
-	sprintf(pFrame3Output->symbol, "%s", c[2].c_str());
+	strcpy(pFrame3Output->symbol, c[2].c_str());
 	pFrame3Output->buy_value = c[3].as(double());
 	pFrame3Output->charge_amount = c[4].as(double());
 	pFrame3Output->comm_rate = c[5].as(double());
 	pFrame3Output->cust_assets = c[6].as(double());
 	pFrame3Output->market_price = c[7].as(double());
-	sprintf(pFrame3Output->s_name, "%s", c[8].c_str());
+	strcpy(pFrame3Output->s_name, c[8].c_str());
 	pFrame3Output->sell_value = c[9].as(double());
-	sprintf(pFrame3Output->status_id, "%s", c[10].c_str());
+	strcpy(pFrame3Output->status_id, c[10].c_str());
 	pFrame3Output->tax_amount = c[11].as(double());
 	pFrame3Output->type_is_market = c[12].as(int());
 	pFrame3Output->type_is_sell = c[13].as(int());
