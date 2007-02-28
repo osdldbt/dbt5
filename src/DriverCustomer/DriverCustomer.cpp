@@ -16,13 +16,15 @@ int stop_time = 0;
 
 void* TPCE::CustomerWorkerThread(void* data)
 {
-	PCustomerThreadParam pThrParam = reinterpret_cast<PCustomerThreadParam>(data);
+	PCustomerThreadParam pThrParam =
+			reinterpret_cast<PCustomerThreadParam>(data);
 
 	ostringstream osErr;
 	struct timespec ts, rem;
 
 	ts.tv_sec = (time_t) (pThrParam->pDriverCustomer->m_iPacingDelay / 1000);
-	ts.tv_nsec = (long) (pThrParam->pDriverCustomer->m_iPacingDelay % 1000) * 1000000;
+	ts.tv_nsec = (long) (pThrParam->pDriverCustomer->m_iPacingDelay % 1000) *
+			1000000;
 
 	do
 	{
@@ -34,7 +36,8 @@ void* TPCE::CustomerWorkerThread(void* data)
 			if (errno == EINTR) {
 				memcpy(&ts, &rem, sizeof(timespec));
 			} else {
-				osErr<<"pacing delay time invalid "<<ts.tv_sec<<" s "<<ts.tv_nsec<<" ns"<<endl;
+				osErr << "pacing delay time invalid " << ts.tv_sec << " s "
+						<< ts.tv_nsec << " ns" << endl;
 				pThrParam->pDriverCustomer->LogErrorMessage(osErr.str());
 				break;
 			}
@@ -51,19 +54,22 @@ void* TPCE::CustomerWorkerThread(void* data)
 // entry point for worker thread
 void TPCE::EntryCustomerWorkerThread(void* data, int iThrNumber)
 {
-	PCustomerThreadParam pThrParam = reinterpret_cast<PCustomerThreadParam>(data);
+	PCustomerThreadParam pThrParam =
+			reinterpret_cast<PCustomerThreadParam>(data);
 	pthread_attr_t threadAttribute; // thread attribute
 
 	try
 	{
-		int status = pthread_attr_init(&threadAttribute); // initialize the attribute object
+		// initialize the attribute object
+		int status = pthread_attr_init(&threadAttribute);
 		if (status != 0)
 		{
 			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_INIT );
 		}
 	
 		// create the thread in the joinable state
-		status = pthread_create(&g_tid[iThrNumber], &threadAttribute, &CustomerWorkerThread, data);
+		status = pthread_create(&g_tid[iThrNumber], &threadAttribute,
+				&CustomerWorkerThread, data);
 					
 		if (status != 0)
 		{
@@ -82,17 +88,19 @@ void TPCE::EntryCustomerWorkerThread(void* data, int iThrNumber)
 }
 
 // Constructor
-CDriverCustomer::CDriverCustomer(char* szInDir, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
-				INT32 iScaleFactor, INT32 iDaysOfInitialTrades, UINT32 UniqueId, 
-				char* szBHaddr, int iBHlistenPort, int iUsers, int iPacingDelay,				char* outputDirectory)
-: m_iUsers(iUsers),
-  m_iPacingDelay(iPacingDelay)
+CDriverCustomer::CDriverCustomer(char* szInDir,
+		TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
+		INT32 iScaleFactor, INT32 iDaysOfInitialTrades, UINT32 UniqueId,
+		char* szBHaddr, int iBHlistenPort, int iUsers, int iPacingDelay,
+		char* outputDirectory)
+: m_iUsers(iUsers), m_iPacingDelay(iPacingDelay)
 {
 	char filename[1024];
 	sprintf(filename, "%s/DriverCustomer.log", outputDirectory);
 	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
 	m_pDriverCETxnSettings = new TDriverCETxnSettings;
-	m_InputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount, iActiveCustomerCount, szInDir);
+	m_InputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount,
+			iActiveCustomerCount, szInDir);
 
 	sprintf(filename, "%s/DriverCustomer_Error.log", outputDirectory);
 	m_fLog.open(filename, ios::out);
@@ -100,18 +108,22 @@ CDriverCustomer::CDriverCustomer(char* szInDir, TIdent iConfiguredCustomerCount,
 	m_fMix.open(filename, ios::out);
 
 	// initialize CESUT interface
-	m_pCCESUT = new CCESUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix, &m_LogLock, &m_MixLock);
+	m_pCCESUT = new CCESUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix,
+			&m_LogLock, &m_MixLock);
 
 	// initialize CE - Customer Emulator
-	m_pCCE = new CCE( m_pCCESUT, m_pLog, m_InputFiles, iConfiguredCustomerCount, iActiveCustomerCount, 
-					iScaleFactor, iDaysOfInitialTrades, UniqueId, m_pDriverCETxnSettings );
+	m_pCCE = new CCE(m_pCCESUT, m_pLog, m_InputFiles,
+			iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
+			iDaysOfInitialTrades, UniqueId, m_pDriverCETxnSettings);
 
 	// initialize DMSUT interface
-	m_pCDMSUT = new CDMSUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix, &m_LogLock, &m_MixLock);
+	m_pCDMSUT = new CDMSUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix,
+			&m_LogLock, &m_MixLock);
 
 	// initialize DM - Data Maintenance
-	m_pCDM = new CDM( m_pCDMSUT, m_pLog, m_InputFiles, iConfiguredCustomerCount, iActiveCustomerCount,
-					iScaleFactor, iDaysOfInitialTrades, UniqueId );
+	m_pCDM = new CDM(m_pCDMSUT, m_pLog, m_InputFiles,
+			iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
+			iDaysOfInitialTrades, UniqueId);
 }
 
 // Destructor
@@ -140,7 +152,8 @@ void CDriverCustomer::RunTest(int iSleep, int iTestDuration)
 	ts.tv_nsec = (long) (iSleep % 1000) * 1000000;
 
 	// Caulculate when the test should stop.
-	int threads_start_time = (int) ((double) iSleep / 1000.0 * (double) m_iUsers);
+	int threads_start_time =
+			(int) ((double) iSleep / 1000.0 * (double) m_iUsers);
 	stop_time = time(NULL) + iTestDuration + threads_start_time;
 
 	CDateTime dtAux;
@@ -153,7 +166,9 @@ void CDriverCustomer::RunTest(int iSleep, int iTestDuration)
 	cout<<"Test will stop at "<<dtAux.ToStr(02)<<endl;
 
 	// before starting the test run Trade-Cleanup transaction
-	cout<<endl<<"Running Trade-Cleanup transaction before starting the test..."<<endl;
+	cout << endl <<
+			"Running Trade-Cleanup transaction before starting the test..." <<
+			endl;
 	m_pCDM->DoCleanupTxn();
 	cout<<"Trade-Cleanup transaction completed."<<endl<<endl;
 
@@ -168,7 +183,8 @@ void CDriverCustomer::RunTest(int iSleep, int iTestDuration)
 	for (int i = 1; i <= m_iUsers; i++)  // i=0 is Data-Maintenance
 	{
 		pThrParam = new TCustomerThreadParam;
-		memset(pThrParam, 0, sizeof(TCustomerThreadParam));   // zero the structure
+		// zero the structure
+		memset(pThrParam, 0, sizeof(TCustomerThreadParam));
 		pThrParam->pDriverCustomer = this;
 
 		EntryCustomerWorkerThread( reinterpret_cast<void*>(pThrParam), i );
@@ -179,7 +195,8 @@ void CDriverCustomer::RunTest(int iSleep, int iTestDuration)
 				memcpy(&ts, &rem, sizeof(timespec));
 			} else {
 				ostringstream osErr;
-				osErr<<"sleep time invalid "<<ts.tv_sec<<" s "<<ts.tv_nsec<<" ns"<<endl;
+				osErr << "sleep time invalid " << ts.tv_sec << " s " <<
+						ts.tv_nsec << " ns" << endl;
 				LogErrorMessage(osErr.str());
 				break;
 			}
@@ -194,11 +211,13 @@ void CDriverCustomer::RunTest(int iSleep, int iTestDuration)
 	LogErrorMessage(">> End of ramp-up.\n\n");
 
 	// wait until all threads quit
-	for (int i = 0; i <= m_iUsers; i++)  // 0 represents the Data-Maintenance thread
+	// 0 represents the Data-Maintenance thread
+	for (int i = 0; i <= m_iUsers; i++)
 	{
 		if (pthread_join(g_tid[i], NULL) != 0)
 		{
-			throw new CThreadErr( CThreadErr::ERR_THREAD_JOIN, "DriverCustomer::RunTest" );
+			throw new CThreadErr( CThreadErr::ERR_THREAD_JOIN,
+					"DriverCustomer::RunTest" );
 		}
 	}
 }
@@ -207,7 +226,8 @@ void CDriverCustomer::RunTest(int iSleep, int iTestDuration)
 // DM worker thread
 void* TPCE::DMWorkerThread(void* data)
 {
-	PCustomerThreadParam pThrParam = reinterpret_cast<PCustomerThreadParam>(data);
+	PCustomerThreadParam pThrParam =
+			reinterpret_cast<PCustomerThreadParam>(data);
 
 	do
 	{
@@ -215,7 +235,8 @@ void* TPCE::DMWorkerThread(void* data)
 		sleep(60);	// Data-Maintenance runs once a minute
 	} while (time(NULL) < stop_time);
 
-	pThrParam->pDriverCustomer->LogErrorMessage("Data-Maintenance thread terminated.\n");
+	pThrParam->pDriverCustomer->LogErrorMessage(
+			"Data-Maintenance thread terminated.\n");
 	delete pThrParam;
 	
 	return NULL;
@@ -232,24 +253,28 @@ void TPCE::EntryDMWorkerThread(CDriverCustomer* ptr)
 
 	try
 	{
-		int status = pthread_attr_init(&threadAttribute); // initialize the attribute object
+		// initialize the attribute object
+		int status = pthread_attr_init(&threadAttribute);
 		if (status != 0)
 		{
 			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_INIT );
 		}
 	
 		// create the thread in the joinable state
-		status = pthread_create(&g_tid[0], &threadAttribute, &DMWorkerThread, reinterpret_cast<void*>(pThrParam));
+		status = pthread_create(&g_tid[0], &threadAttribute, &DMWorkerThread,
+				reinterpret_cast<void*>(pThrParam));
 					
 		if (status != 0)
 		{
 			throw new CThreadErr( CThreadErr::ERR_THREAD_CREATE );
 		}
-		pThrParam->pDriverCustomer->LogErrorMessage(">> Data-Maintenance thread started.\n");
+		pThrParam->pDriverCustomer->LogErrorMessage(
+				">> Data-Maintenance thread started.\n");
 	}
 	catch(CThreadErr *pErr)
 	{
-		pThrParam->pDriverCustomer->LogErrorMessage("Data-Maintenance Thread not created");
+		pThrParam->pDriverCustomer->LogErrorMessage(
+				"Data-Maintenance Thread not created");
 		delete pErr;
 	}
 }
