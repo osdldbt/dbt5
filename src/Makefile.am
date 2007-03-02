@@ -46,6 +46,9 @@ TestTxn_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                   $(TXN)/TradeResultDB.cpp \
                   $(TXN)/TradeOrderDB.cpp \
                   $(TXN)/TradeStatusDB.cpp \
+                  $(INTF)/BaseInterface.cpp \
+                  $(INTF)/CESUT.cpp \
+                  $(INTF)/CSocket.cpp \
                   $(INTF)/TxnHarnessSendToMarketTest.cpp \
                   TestTransactions/TestTxn.cpp
 TestTxn_LDADD = $(DB_LDFLAGS)
