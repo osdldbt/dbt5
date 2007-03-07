@@ -14,7 +14,7 @@
 using namespace TPCE;
 
 // Establish defaults for command line options
-char*		szBHaddr = "localhost";					// Brokerage House address
+char	szBHaddr[1024] = "localhost";					// Brokerage House address
 int		iBHlistenPort = BrokerageHousePort;
 // # of customers in one load unit
 int		iLoadUnitSize = iDefaultLoadUnitSize;
