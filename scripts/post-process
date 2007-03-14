@@ -4,8 +4,7 @@
 # Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2006 Mark Wong & Open Source Development Labs, Inc.
-#
-# 2006 Rilson Nascimento
+# Copyright (C) 2006 Rilson Nascimento.
 
 use strict;
 use warnings;
@@ -45,21 +44,34 @@ unless ($quiet) {
   # Get total transaction count first.
   #
   for my $t (@transactions) {
-    $total += $t->{total} + $t->{rollbacks};
+    if ($t->{name} ne "Data Maintenance") {
+    	$total += $t->{total} + $t->{rollbacks};
+    }
   }
   for my $t (@transactions) {
     if ($t->{total} == 0) {
       printf("%-17s  %5.2f  %7.3f : %7.3f %12d %12d  %6.2f\n",
           $t->{name}, 0, 0, 0, 0, 0, 0);
     } else {
-      printf("%-17s  %5.2f  %7.3f : %7.3f %12d %12d  %6.2f\n",
-          $t->{name},
-          ($t->{total} + $t->{rollbacks}) / $total * 100.0,
-          $t->{rt_avg},
-          $t->{rt_90th},
-          $t->{total} + $t->{rollbacks},
-          $t->{rollbacks},
-          $t->{rollback_per});
+      if ($t->{name} ne "Data Maintenance") {
+	      printf("%-17s  %5.2f  %7.3f : %7.3f %12d %12d  %6.2f\n",
+        	  $t->{name},
+	          ($t->{total} + $t->{rollbacks}) / $total * 100.0,
+	          $t->{rt_avg},
+	          $t->{rt_90th},
+	          $t->{total} + $t->{rollbacks},
+	          $t->{rollbacks},
+	          $t->{rollback_per});
+      } else {
+              printf("%-17s  %-5s  %7.3f : %7.3f %12d %12d  %6.2f\n",
+                  $t->{name},
+                  "n/a",
+                  $t->{rt_avg},
+                  $t->{rt_90th},
+                  $t->{total} + $t->{rollbacks},
+                  $t->{rollbacks},
+                  $t->{rollback_per});
+      }
     }
   }
   printf("-----------------  -----  -----------------  -----------  -----------  ------\n");
