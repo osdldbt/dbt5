@@ -41,8 +41,7 @@ BEGIN
 	now_dts = now();
 
 	FOR i IN 1..MaxSize LOOP
-		BEGIN;
-		SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+		-- start transaction
 		UPDATE	LAST_TRADE
 		SET	LT_PRICE = price_quote[i],
 			LT_VOL = LT_VOL + trade_qty[i],
@@ -96,7 +95,7 @@ BEGIN
 		END LOOP;
 	
 		CLOSE request_list;
-		COMMIT;
+		-- commit transaction
 	END LOOP;
 END;
 $$ LANGUAGE 'plpgsql';

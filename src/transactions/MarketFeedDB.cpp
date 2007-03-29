@@ -30,9 +30,7 @@ void CMarketFeedDB::DoMarketFeedFrame1(PMarketFeedFrame1Input pFrame1Input,
 
 	ostringstream osSymbol, osPrice, osQty;
 
-	for (int i = 0;
-			i < (sizeof(pFrame1Input->Entries) /
-					sizeof(pFrame1Input->Entries[0])); ++i)
+	for (int i = 0; i < (sizeof(pFrame1Input->Entries)/sizeof(pFrame1Input->Entries[0])); ++i)
 	{
 		if (i == 0)
 		{
@@ -62,7 +60,14 @@ void CMarketFeedDB::DoMarketFeedFrame1(PMarketFeedFrame1Input pFrame1Input,
 			"'::char(3)) as (symbol char(15), trade_id TRADE_T, price "
 			"numeric(8,2), trade_quant integer, trade_type char(3))";
 
+	BeginTxn();
+	// Isolation level required by Clause 7.4.1.3
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;");
 	result R( m_Txn->exec( osCall.str() ) );
+	// Sponsors should consider committing the database changes
+	// before calling the send_to_market interface (we're doing that)
+	CommitTxn();
+
 	if (!R.empty()) 
 	{
 		result::const_iterator c = R.begin();
