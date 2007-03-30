@@ -365,6 +365,8 @@ else
 			-o ${DB_OUTPUT_DIR} || exit 1
 fi
 
+${abs_top_srcdir}/scripts/${DBDIR}/db-plans -o ${DB_OUTPUT_DIR}/plan0.txt
+
 echo ""
 echo "************************************************************************"
 echo "*                  DBT-5 test for PostgreSQL started                   *"
