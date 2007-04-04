@@ -43,6 +43,9 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
 	{
 		//throw logic_error("TradeCleanupFrame1: empty result set");
 		cerr<<"warning: empty result set at DoTradeCleanupFrame1"<<endl;
+		// Should this be set to success?
+ 		pFrame1Output->status = CBaseTxnErr::SUCCESS;
+		return;
 	}
 	result::const_iterator c = R.begin();
  	pFrame1Output->status = c[0].as(int());

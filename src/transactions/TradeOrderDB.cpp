@@ -43,6 +43,7 @@ void CTradeOrderDB::DoTradeOrderFrame1(PTradeOrderFrame1Input pFrame1Input,
 	{
 		//throw logic_error("TradeOrderFrame1: empty result set");
 		cout<<"warning: empty result set at DoTradeOrderFrame1"<<endl;
+		return;
 	}
 	result::const_iterator c = R.begin();
 	
@@ -97,6 +98,10 @@ void CTradeOrderDB::DoTradeOrderFrame2(PTradeOrderFrame2Input pFrame2Input,
 	{
 		//throw logic_error("TradeOrderFrame2: empty result set");
 		cout<<"warning: empty result set at DoTradeOrderFrame2"<<endl;
+		RollbackTxn();
+		// Should this set to SUCCESS?
+		pFrame2Output->status = CBaseTxnErr::SUCCESS;
+		return;
 	}
 	result::const_iterator c = R.begin();
 	
@@ -143,6 +148,7 @@ void CTradeOrderDB::DoTradeOrderFrame3(PTradeOrderFrame3Input pFrame3Input,
 	{
 		//throw logic_error("TradeOrderFrame3: empty result set");
 		cout<<"warning: empty result set at DoTradeOrderFrame3"<<endl;
+		return;
 	}
 	result::const_iterator c = R.begin();
 	
@@ -228,6 +234,9 @@ void CTradeOrderDB::DoTradeOrderFrame4(PTradeOrderFrame4Input pFrame4Input,
 	{
 		//throw logic_error("TradeOrderFrame4: empty result set");
 		cout<<"warning: empty result set at DoTradeOrderFrame4"<<endl;
+		// Should this be set to SUCCESS?
+		pFrame4Output->status = CBaseTxnErr::SUCCESS;
+		return;
 	}
 	result::const_iterator c = R.begin();
 

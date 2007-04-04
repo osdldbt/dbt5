@@ -44,6 +44,8 @@ void CTradeResultDB::DoTradeResultFrame1(PTradeResultFrame1Input pFrame1Input,
 	{
 		//throw logic_error("TradeResultFrame1: empty result set");
 		cerr<<"warning: empty result set at DoTradeResultFrame1"<<endl;
+		pFrame1Output->status = CBaseTxnErr::SUCCESS;
+		return;
 	}
 	result::const_iterator c = R.begin();
 	
@@ -114,6 +116,7 @@ void CTradeResultDB::DoTradeResultFrame2(PTradeResultFrame2Input pFrame2Input,
 	{
 		//throw logic_error("TradeResultFrame2: empty result set");
 		cerr<<"warning: empty result set at DoTradeResultFrame2"<<endl;
+		return;
 	}
 	result::const_iterator c = R.begin();
 
@@ -183,6 +186,7 @@ void CTradeResultDB::DoTradeResultFrame3(PTradeResultFrame3Input pFrame3Input,
 	{
 		//throw logic_error("TradeResultFrame3: empty result set");
 		cerr<<"warning: empty result set at DoTradeResultFrame3"<<endl;
+		return;
 	}
 	result::const_iterator c = R.begin();
 
@@ -228,6 +232,7 @@ void CTradeResultDB::DoTradeResultFrame4(PTradeResultFrame4Input pFrame4Input,
 	{
 		//throw logic_error("TradeResultFrame4: empty result set");
 		cerr<<"warning: empty result set at DoTradeResultFrame4"<<endl;
+		return;
 	}
 	result::const_iterator c = R.begin();
 
@@ -341,6 +346,7 @@ void CTradeResultDB::DoTradeResultFrame6(PTradeResultFrame6Input pFrame6Input,
 	{
 		//throw logic_error("TradeResultFrame6: empty result set");
 		cerr<<"warning: empty result set at DoTradeResultFrame6"<<endl;
+		return;
 	}
 	result::const_iterator c = R.begin();
 

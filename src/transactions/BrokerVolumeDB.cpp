@@ -46,6 +46,7 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(
 	// Isolation level required by Clause 7.4.1.3
 	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
 	result R( m_Txn->exec( osCall.str() ) );
+	CommitTxn();
 
 	// stored procedure can return an empty result set by design
 	result::const_iterator c = R.begin();

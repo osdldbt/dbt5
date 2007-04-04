@@ -40,10 +40,13 @@ void CMarketWatchDB::DoMarketWatchFrame1(PMarketWatchFrame1Input pFrame1Input, P
 		//throw logic_error("TradeLookupFrame1: empty result set");
 		cout<<"warning: empty result set at DoMarketWatchFrame1"<<endl;
 	}
-	result::const_iterator c = R.begin();
+	else
+	{
+		result::const_iterator c = R.begin();
 
-	pFrame1Output->status = c[0].as(int());
-	pFrame1Output->pct_change = c[1].as(double());
+		pFrame1Output->status = c[0].as(int());
+		pFrame1Output->pct_change = c[1].as(double());
+	}
 
 	if (pFrame1Output->status == 0)	// status ok
 	{

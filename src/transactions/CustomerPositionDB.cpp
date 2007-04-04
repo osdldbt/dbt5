@@ -52,6 +52,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 	{
 		//throw logic_error("empty result set!");
 		cout<<"warning: empty result set at DoCustomerPositionFrame1"<<endl;
+		return;
 	}
 	result::const_iterator c = R.begin();
 

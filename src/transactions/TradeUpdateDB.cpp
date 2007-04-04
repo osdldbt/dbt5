@@ -70,6 +70,9 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(PTradeUpdateFrame1Input pFrame1Input,
 	{
 		//throw logic_error("TradeUpdateFrame1: empty result set");
 		cout<<"warning: empty result set at DoTradeUpdateFrame1"<<endl;
+		// Should this still be set to SUCCESS?
+		pFrame1Output->status = CBaseTxnErr::SUCCESS;
+		return;
 	}
 	result::const_iterator c = R.begin();
 
@@ -513,6 +516,10 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(PTradeUpdateFrame3Input pFrame3Input,
 	{
 		//throw logic_error("TradeUpdateFrame3: empty result set");
 		cout<<"warning: empty result set at DoTradeUpdateFrame3"<<endl;
+ 		pFrame3Output->num_found = 0;
+		// Should this be set to SUCCESS?
+		pFrame3Output->status = CBaseTxnErr::SUCCESS;
+		return;
 	}
 	result::const_iterator c = R.begin();
 	result::const_iterator e = R.end(); --e;
