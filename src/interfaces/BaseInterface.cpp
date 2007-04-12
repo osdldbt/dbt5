@@ -28,6 +28,38 @@ CBaseInterface::~CBaseInterface()
 {
 }
 
+// connect to BrokerageHouse
+void CBaseInterface::Connect()
+{
+	try
+	{
+		sock.Connect(m_szBHAddress, m_iBHlistenPort);
+	}
+	catch(CSocketErr *pErr)
+	{
+		ostringstream osErr;
+		osErr << "Error: " << pErr->ErrorText() << " at " <<
+				"CBaseInterface::TalkToSUT" << endl;
+		LogErrorMessage(osErr.str());
+	}
+}
+
+// close connection to BrokerageHouse
+void CBaseInterface::Disconnect()
+{
+	try
+	{
+		sock.CloseAccSocket();
+	}
+	catch(CSocketErr *pErr)
+	{
+		ostringstream osErr;
+		osErr << "Error: " << pErr->ErrorText() << " at " <<
+				"CBaseInterface::TalkToSUT" << endl;
+		LogErrorMessage(osErr.str());
+	}
+}
+
 // Connect to BrokerageHouse, send request, receive reply, and calculate RT
 void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 {
@@ -35,13 +67,11 @@ void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 	memset(&Reply, 0, sizeof(Reply)); 
 
 	CDateTime	StartTime, EndTime, TxnTime;	// to time the transaction
-	CSocket		sock;
 
 	try
 	{
-		// connect to BrokerageHouse
-		sock.Connect(m_szBHAddress, m_iBHlistenPort);
-	
+		Connect();
+
 		// record txn start time -- please, see TPC-E specification clause
 		// 6.2.1.3
 		StartTime.SetToCurrent();
@@ -52,9 +82,8 @@ void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 	
 		// record txn end time
 		EndTime.SetToCurrent();
-	
-		// close connection
-		sock.CloseAccSocket();
+
+		Disconnect();
 	
 		// calculate txn response time
 		TxnTime.Set(0);	// clear time

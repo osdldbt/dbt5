@@ -15,6 +15,10 @@ namespace TPCE
 
 class CBaseInterface
 {
+protected:
+	void TalkToSUT(PMsgDriverBrokerage pRequest);
+	void LogErrorMessage(const string sErr);
+
 	char*			m_szBHAddress;
 	int			m_iBHlistenPort;
 	CSyncLock*		m_pLogLock;
@@ -22,11 +26,8 @@ class CBaseInterface
 	ofstream*		m_pfLog;	// error log file
 	ofstream*		m_pfMix;	// mix log file
 
-protected:
-	void TalkToSUT(PMsgDriverBrokerage pRequest);
-	void LogErrorMessage(const string sErr);
-
 private:
+	CSocket		sock;
 	void LogResponseTime(int iStatus, int iTxnType, double dRT);
 	
 public:
@@ -34,7 +35,8 @@ public:
 	CBaseInterface(char* addr, const int iListenPort, ofstream* pflog,
 			ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock);
 	~CBaseInterface(void);
-
+	void Connect();
+	void Disconnect();
 };
 
 }	// namespace TPCE
