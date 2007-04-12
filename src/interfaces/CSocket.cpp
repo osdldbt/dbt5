@@ -23,6 +23,14 @@ CSocket::CSocket(void)
 {
 }
 
+CSocket::CSocket(char* address, int port)
+: m_listenfd(0),
+  m_sockfd(0)
+{
+	strcpy(this->address, address);
+	this->port = port;
+}
+
 //Destructor
 CSocket::~CSocket()
 {
@@ -46,7 +54,7 @@ int CSocket::Accept(void)
 }
 
 // Connect
-void CSocket::Connect(char* address, const int port)
+void CSocket::Connect()
 {
 	errno = 0;
 	m_sockfd = socket(AF_INET, SOCK_STREAM, ResolveProto("tcp"));

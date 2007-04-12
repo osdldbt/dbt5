@@ -15,10 +15,12 @@ char* addr = "localhost";
 CSendToMarket::CSendToMarket(ofstream* pfile, int MEport)
 : m_pfLog(pfile), m_MEport(MEport)
 {
+	m_Socket = new CSocket(addr, m_MEport);
 }
 
 CSendToMarket::~CSendToMarket()
 {
+	delete m_Socket;
 }
 
 bool CSendToMarket::SendToMarket(TTradeRequest &trade_mes)
@@ -26,18 +28,18 @@ bool CSendToMarket::SendToMarket(TTradeRequest &trade_mes)
 	try
 	{
 		// connect to the Market Exchange
-		m_Socket.Connect(addr, m_MEport);
-	
+		m_Socket->Connect();
+
 		// send Trade Request to MEE
-		m_Socket.Send(reinterpret_cast<void*>(&trade_mes),
+		m_Socket->Send(reinterpret_cast<void*>(&trade_mes),
 				sizeof(TTradeRequest));
-	
+
 		// close connection
-		m_Socket.CloseAccSocket();
+		m_Socket->CloseAccSocket();
 	}
 	catch(CSocketErr *pErr)
 	{
-		m_Socket.CloseAccSocket();	// close connection
+		m_Socket->CloseAccSocket();	// close connection
 
 		ostringstream osErr;
 		osErr<<endl<<"Cannot send to market"<<endl

@@ -27,7 +27,7 @@ protected:
 	ofstream*		m_pfMix;	// mix log file
 
 private:
-	CSocket		sock;
+	CSocket	*sock;
 	void LogResponseTime(int iStatus, int iTxnType, double dRT);
 	
 public:

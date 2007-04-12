@@ -21,11 +21,13 @@ CBaseInterface::CBaseInterface(char* addr, const int iListenPort,
   m_pfLog(pflog),
   m_pfMix(pfmix)
 {
+	sock = new CSocket(m_szBHAddress, m_iBHlistenPort);
 }
 
 // destructor
 CBaseInterface::~CBaseInterface()
 {
+	delete sock;
 }
 
 // connect to BrokerageHouse
@@ -33,7 +35,7 @@ void CBaseInterface::Connect()
 {
 	try
 	{
-		sock.Connect(m_szBHAddress, m_iBHlistenPort);
+		sock->Connect();
 	}
 	catch(CSocketErr *pErr)
 	{
@@ -49,7 +51,7 @@ void CBaseInterface::Disconnect()
 {
 	try
 	{
-		sock.CloseAccSocket();
+		sock->CloseAccSocket();
 	}
 	catch(CSocketErr *pErr)
 	{
@@ -77,14 +79,14 @@ void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 		StartTime.SetToCurrent();
 	
 		// send and wait for response
-		sock.Send(reinterpret_cast<void*>(pRequest), sizeof(*pRequest));
-		sock.Receive( reinterpret_cast<void*>(&Reply), sizeof(Reply));
+		sock->Send(reinterpret_cast<void*>(pRequest), sizeof(*pRequest));
+		sock->Receive( reinterpret_cast<void*>(&Reply), sizeof(Reply));
 	
 		// record txn end time
 		EndTime.SetToCurrent();
 
 		Disconnect();
-	
+
 		// calculate txn response time
 		TxnTime.Set(0);	// clear time
 		TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
@@ -96,7 +98,7 @@ void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 	}
 	catch(CSocketErr *pErr)
 	{
-		sock.CloseAccSocket(); // close connection
+		sock->CloseAccSocket(); // close connection
 		LogResponseTime(-1, 0, 0);
 
 		ostringstream osErr;

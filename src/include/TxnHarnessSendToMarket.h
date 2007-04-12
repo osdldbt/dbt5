@@ -17,7 +17,7 @@ class CSendToMarket : public CSendToMarketInterface
 {
 	ofstream*	m_pfLog;
 	int		m_MEport;
-	CSocket		m_Socket;
+	CSocket		*m_Socket;
 	CSyncLock	m_LogLock;
 
 public:
