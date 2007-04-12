@@ -26,22 +26,24 @@ void* TPCE::WorkerThread(void* data)
 	CDBConnection* pDBConnection = NULL;
 	CTradeResult* pTradeResult = NULL;
 
-	try
+	// new connection
+	pDBConnection = new CDBConnection(
+			pThrParam->pBrokerageHouse->m_szHost,
+			pThrParam->pBrokerageHouse->m_szDBName,
+			pThrParam->pBrokerageHouse->m_szPostmasterPort);
+	do
 	{
-		sockDrv.Receive(reinterpret_cast<void*>(pMessage),
-				sizeof(TMsgDriverBrokerage));
-
 		try
 		{
-			// new connection
-			pDBConnection = new CDBConnection(
-					pThrParam->pBrokerageHouse->m_szHost,
-					pThrParam->pBrokerageHouse->m_szDBName,
-					pThrParam->pBrokerageHouse->m_szPostmasterPort);
+			sockDrv.Receive(reinterpret_cast<void*>(pMessage),
+					sizeof(TMsgDriverBrokerage));
 
-			//  Parse Txn type
-			switch ( pMessage->TxnType )
+			try
 			{
+
+				//  Parse Txn type
+				switch ( pMessage->TxnType )
+				{
 				case BROKER_VOLUME:
 				{
 					CBrokerVolume* pBrokerVolume = new CBrokerVolume(
@@ -222,39 +224,45 @@ void* TPCE::WorkerThread(void* data)
 					iRet = ERR_TYPE_WRONGTXN;
 				}
 					
+				}
 			}
+			// exceptions thrown by pqxx
+			catch (const pqxx::broken_connection &e)
+			{
+				ostringstream osErr;
+				osErr << "pqxx broken connection: " << e.what() << endl <<
+						" at " << "BrokerageHouse::WorkerThread" << endl;
+				pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
+				iRet = ERR_TYPE_PQXX;
+			}
+			catch (const pqxx::sql_error &e)
+			{
+				ostringstream osErr;
+				osErr << "pqxx SQL error: " << e.what() << endl <<
+						"Query was: '" << e.query() << "'" << endl << " at " <<
+						"BrokerageHouse::WorkerThread" << endl;
+				pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
+				iRet = ERR_TYPE_PQXX;
+			}
+	
+			// send status to driver
+			Reply.iStatus = iRet;
+			sockDrv.Send( reinterpret_cast<void*>(&Reply), sizeof(Reply) );
 		}
-		// exceptions thrown by pqxx
-		catch (const pqxx::broken_connection &e)
+		catch(CSocketErr *pErr)
 		{
+			sockDrv.CloseAccSocket();
+
 			ostringstream osErr;
-			osErr << "pqxx broken connection: " << e.what() << endl <<
-					" at " << "BrokerageHouse::WorkerThread" << endl;
-			pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
-			iRet = ERR_TYPE_PQXX;
-		}
-		catch (const pqxx::sql_error &e)
-		{
-			ostringstream osErr;
-			osErr << "pqxx SQL error: " << e.what() << endl <<
-					"Query was: '" << e.query() << "'" << endl << " at " <<
+			osErr << endl << "Error: " << pErr->ErrorText() << " at " <<
 					"BrokerageHouse::WorkerThread" << endl;
 			pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
-			iRet = ERR_TYPE_PQXX;
+			delete pErr;
+
+			// The socket has been closed, break and let this thread die.
+			break;
 		}
-	
-		// send status to driver
-		Reply.iStatus = iRet;
-		sockDrv.Send( reinterpret_cast<void*>(&Reply), sizeof(Reply) );
-	}
-	catch(CSocketErr *pErr)
-	{
-		ostringstream osErr;
-		osErr << endl << "Error: " << pErr->ErrorText() << " at " <<
-				"BrokerageHouse::WorkerThread" << endl;
-		pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
-		delete pErr;
-	}
+	} while (true);
 
 	delete pDBConnection;		// close connection with the database
 	close(pThrParam->iSockfd);	// close socket connection with the driver

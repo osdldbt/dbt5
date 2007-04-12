@@ -21,28 +21,31 @@ void* TPCE::MarketWorkerThread(void* data)
 	PTradeRequest pMessage = new TTradeRequest;
 	memset(pMessage, 0, sizeof(TTradeRequest));   // zero the structure
 
-	try
+	do
 	{
-		sockDrv.Receive( reinterpret_cast<void*>(pMessage),
-				sizeof(TTradeRequest));
+		try
+		{
+			sockDrv.Receive( reinterpret_cast<void*>(pMessage),
+					sizeof(TTradeRequest));
 	
-		//close connection
-		close(pThrParam->iSockfd);
-		
-		// submit trade request
-		pThrParam->pDriverMarket->m_pCMEE->SubmitTradeRequest( pMessage );
-	}
-	catch(CSocketErr *pErr)
-	{
-		sockDrv.CloseAccSocket();	// close connection
+			// submit trade request
+			pThrParam->pDriverMarket->m_pCMEE->SubmitTradeRequest( pMessage );
+		}
+		catch(CSocketErr *pErr)
+		{
+			sockDrv.CloseAccSocket();	// close connection
 
-		ostringstream osErr;
-		osErr<<endl<<"Trade Request not submitted to Market Exchange"
-		     <<endl<<"Error: "<<pErr->ErrorText()
-		     <<" at "<<"DriverMarket::MarketWorkerThread"<<endl;
-		pThrParam->pDriverMarket->LogErrorMessage(osErr.str());
-		delete pErr;
-	}
+			ostringstream osErr;
+			osErr<<endl<<"Trade Request not submitted to Market Exchange"
+		     	<<endl<<"Error: "<<pErr->ErrorText()
+		     	<<" at "<<"DriverMarket::MarketWorkerThread"<<endl;
+			pThrParam->pDriverMarket->LogErrorMessage(osErr.str());
+			delete pErr;
+
+			// The socket is closed, break and let this thread die.
+			break;
+		}
+	} while (true);
 
 	delete pMessage;
 	delete pThrParam;
