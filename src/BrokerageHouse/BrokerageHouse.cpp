@@ -31,6 +31,10 @@ void* TPCE::WorkerThread(void* data)
 			pThrParam->pBrokerageHouse->m_szHost,
 			pThrParam->pBrokerageHouse->m_szDBName,
 			pThrParam->pBrokerageHouse->m_szPostmasterPort);
+	CSendToMarket* pSendToMarket = new CSendToMarket(
+			&(pThrParam->pBrokerageHouse->m_fLog));
+	CMarketFeed* pMarketFeed = new CMarketFeed(pDBConnection, pSendToMarket);
+	CTradeOrder* pTradeOrder = new CTradeOrder(pDBConnection, pSendToMarket);
 	do
 	{
 		try
@@ -67,15 +71,9 @@ void* TPCE::WorkerThread(void* data)
 		
 				case MARKET_FEED:
 				{
-					CSendToMarket* pSendToMarket = new CSendToMarket(
-							&(pThrParam->pBrokerageHouse->m_fLog));
-					CMarketFeed* pMarketFeed = new CMarketFeed(pDBConnection,
-							pSendToMarket);
 					iRet = pThrParam->pBrokerageHouse->RunMarketFeed(
 							&(pMessage->TxnInput.MarketFeedTxnInput),
 							*pMarketFeed );
-					delete pMarketFeed;
-					delete pSendToMarket;
 					break;
 				}
 				case MARKET_WATCH:
@@ -110,15 +108,9 @@ void* TPCE::WorkerThread(void* data)
 				}
 				case TRADE_ORDER:
 				{
-					CSendToMarket* pSendToMarket = new CSendToMarket(
-							&(pThrParam->pBrokerageHouse->m_fLog));
-					CTradeOrder* pTradeOrder = new CTradeOrder(pDBConnection,
-							pSendToMarket);
 					iRet = pThrParam->pBrokerageHouse->RunTradeOrder(
 							&(pMessage->TxnInput.TradeOrderTxnInput),
 							*pTradeOrder );
-					delete pTradeOrder;
-					delete pSendToMarket;
 					break;
 				}
 				case TRADE_RESULT:
@@ -264,6 +256,9 @@ void* TPCE::WorkerThread(void* data)
 		}
 	} while (true);
 
+	delete pMarketFeed;
+	delete pTradeOrder;
+	delete pSendToMarket;
 	delete pDBConnection;		// close connection with the database
 	close(pThrParam->iSockfd);	// close socket connection with the driver
 	delete pThrParam;

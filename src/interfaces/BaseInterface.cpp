@@ -22,11 +22,13 @@ CBaseInterface::CBaseInterface(char* addr, const int iListenPort,
   m_pfMix(pfmix)
 {
 	sock = new CSocket(m_szBHAddress, m_iBHlistenPort);
+	Connect();
 }
 
 // destructor
 CBaseInterface::~CBaseInterface()
 {
+	Disconnect();
 	delete sock;
 }
 
@@ -72,8 +74,6 @@ void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 
 	try
 	{
-		Connect();
-
 		// record txn start time -- please, see TPC-E specification clause
 		// 6.2.1.3
 		StartTime.SetToCurrent();
@@ -84,8 +84,6 @@ void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 	
 		// record txn end time
 		EndTime.SetToCurrent();
-
-		Disconnect();
 
 		// calculate txn response time
 		TxnTime.Set(0);	// clear time

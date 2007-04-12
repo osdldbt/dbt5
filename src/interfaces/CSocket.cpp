@@ -84,8 +84,18 @@ void CSocket::Connect()
 	}
 	
 	errno = 0;
-	if ((connect(m_sockfd, (struct sockaddr *) &sa, sizeof(sa))) == -1)
+	// Try to connect 5 times total, waiting 1 second between attempts.
+	bool ok = false;
+	for (int i = 0; i < 5; i++)
 	{
+		if ((connect(m_sockfd, (struct sockaddr *) &sa, sizeof(sa))) != -1)
+		{
+			ok = true;
+			break;
+		}
+		sleep(1);
+	}
+	if (ok == false) {
 		ThrowError(CSocketErr::ERR_SOCKET_CONNECT);
 	}
 
