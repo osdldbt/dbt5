@@ -19,7 +19,7 @@
 
 CREATE OR REPLACE FUNCTION CustomerPositionFrame1 (
 						IN cust_id	IDENT_T,
-						IN tax_id	char(4),
+						IN tax_id	char(20),
 						IN max_acct_len integer) RETURNS SETOF record AS $$
 DECLARE
 	-- output parameters
