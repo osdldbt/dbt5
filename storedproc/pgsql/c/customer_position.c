@@ -90,6 +90,7 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(CustomerPositionFrame1);
 
+/* Clause 3.3.2.3 */
 Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 {
 	FuncCallContext *funcctx;
@@ -347,6 +348,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 
 PG_FUNCTION_INFO_V1(CustomerPositionFrame2);
 
+/* Clause 3.3.2.4 */
 Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 {
 	FuncCallContext *funcctx;

@@ -63,6 +63,7 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(BrokerVolumeFrame1);
 
+/* Clause 3.3.1.3 */
 Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 {
 	FuncCallContext *funcctx;
