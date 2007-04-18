@@ -6,7 +6,7 @@ AM_INIT_AUTOMAKE
 
 dnl Check for programs.
 AC_PROG_CXX
-CXXFLAGS="-D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS"
+CXXFLAGS="-g -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS"
 
 dnl Replace below with this in future release AC_PROG_EGREP
 AC_PATH_PROGS([EGREP], ['grep -E'], ,
@@ -90,6 +90,15 @@ dnl
 fi
 if test "$threaded" == "no" ; then
   AC_MSG_ERROR([Multithread support not available.])
+fi
+
+AC_ARG_ENABLE(debug, "Build with DEBUG symbol.", [enable_debug="yes"],
+    [enable_debug="no"])
+
+if test "$enable_debug" == "yes"; then
+  CFLAGS_DEBUG="-DDEBUG"
+  CFLAGS="$CFLAGS $CFLAGS_DEBUG"
+  AC_SUBST(CFLAGS_DEBUG)
 fi
 
 dnl
@@ -204,6 +213,7 @@ if test "$database_to_use" == "pgsql"; then
   AC_CONFIG_FILES([scripts/pgsql/load-stored-procs],
 	[chmod +x scripts/pgsql/load-stored-procs])
   AC_CONFIG_FILES([scripts/pgsql/pgsql_profile])
+  AC_CONFIG_FILES([storedproc/pgsql/c/Makefile])
 
 
   if test "$pgsql_path" == "yes"; then
@@ -225,6 +235,35 @@ if test "$database_to_use" == "pgsql"; then
     AC_PATH_PROGS(PG_CONFIG, pg_config, no)
   fi
   AC_SUBST(PG_CONFIG)
+
+  if test -z "$PG_CONFIG" || test ! -r "$PG_CONFIG"; then
+    AC_MSG_ERROR([
+libpq configuration script pg_config not found.  Make sure this is in your
+command path before configuring.  Without it, the configure script has no way to
+find the right location for the libpq library.])
+  fi
+
+  if test "$PG_CONFIG" != "no"; then
+    AC_MSG_CHECKING([for PostgreSQL libraries])
+
+    BINDIR=`$PG_CONFIG --bindir`
+    AC_SUBST(BINDIR)
+    INCLUDEDIR=`$PG_CONFIG --includedir`
+    PKGINCLUDEDIR=`$PG_CONFIG --pkgincludedir`
+    INCLUDEDIR_SERVER=`$PG_CONFIG --includedir-server`
+
+    DB_CFLAGS="-I$INCLUDEDIR -I$PKGINCLUDEDIR -I$INCLUDEDIR_SERVER"
+    LIBDIR=`$PG_CONFIG --libdir`
+    DB_LDFLAGS="-L$LIBDIR -Wl,-R$LIBDIR -lpq $LDFLAGS"
+
+    POSTGRESQL_VERSION=`$PG_CONFIG --version | sed -e 's#PostgreSQL ##'`
+
+    AC_DEFINE([HAVE_POSTGRESQL], [1],
+        [Define to 1 if PostgreSQL libraries are available])
+
+    found_postgresql="yes"
+    AC_MSG_RESULT([yes])
+  fi
 
   if test "$pqxx_path" != "yes"; then
     DB_LDFLAGS="$DB_LDFLAGS -Wl,-R$pqxx_path/lib"

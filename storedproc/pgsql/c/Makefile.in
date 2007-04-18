@@ -1,0 +1,6 @@
+MODULES = broker_volume customer_position
+DATA_built = broker_volume.sql customer_position.sql
+PG_CPPFLAGS = @CFLAGS_DEBUG@
+
+PGXS := $(shell @BINDIR@/pg_config --pgxs)
+include $(PGXS)
