@@ -175,15 +175,21 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		sprintf(values[2], "%d", 1);
 
 		if (SPI_processed == 0) {
+			/* Total number of tuples to be returned. */
+			funcctx->max_calls = 0;
+
 			values[0] = (char *) palloc(3 * sizeof(char));
 			values[3] = (char *) palloc(3 * sizeof(char));
 			strcpy(values[0], "{}");
 			strcpy(values[3], "{}");
 		} else {
-			values[0] = (char *) palloc((100 * SPI_processed + SPI_processed +
-					2) * sizeof(char));
-			values[3] = (char *) palloc(17 * SPI_processed + SPI_processed +
-					2 * sizeof(char));
+			/* Total number of tuples to be returned. */
+			funcctx->max_calls = 1;
+
+			values[0] = (char *) palloc((101 * SPI_processed + 2) *
+					sizeof(char));
+			values[3] = (char *) palloc(18 * SPI_processed + 2 *
+					sizeof(char));
 
 			strcpy(values[0], "{");
 			strcpy(values[3], "{");
@@ -203,9 +209,6 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 			strcat(values[0], "}");
 			strcat(values[3], "}");
 		}
-
-		/* total number of tuples to be returned */
-		funcctx->max_calls = 1;
 
 		/* Build a tuple descriptor for our result type */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=

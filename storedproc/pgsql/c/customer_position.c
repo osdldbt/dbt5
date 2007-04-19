@@ -103,8 +103,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 	if (SRF_IS_FIRSTCALL()) {
 		MemoryContext oldcontext;
 
-		char tax_id[21];
-		text *tax_id_raw;
+		text *tax_id;
 
 		int ret;
 		char sql[1024];
@@ -120,9 +119,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		 */
 		values = (char **) palloc(sizeof(char *) * 23);
 		values[0] = (char *) palloc(12 * sizeof(char));
-		values[1] = (char *) palloc(132 * sizeof(char));
 		values[2] = (char *) palloc(3 * sizeof(char));
-		values[3] = (char *) palloc(192 * sizeof(char));
 		values[4] = (char *) palloc(12 * sizeof(char));
 		values[5] = (char *) palloc(4 * sizeof(char));
 		values[6] = (char *) palloc(4 * sizeof(char));
@@ -144,15 +141,6 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		values[22] = (char *) palloc(11 * sizeof(char));
 		values[23] = (char *) palloc(2 * sizeof(char));
 
-		/*
-		 * I think this is the fastest way to initialize the strings, as
-		 * opposed to zeroing out the entire chunk of memory since palloc()
-		 * doesn't zero out the memory for us.
-		 */
-		for (i = 0; i < 24; i++) {
-			values[i][0] = '\0';
-		}
-
 		/* Create a function context for cross-call persistence. */
 		funcctx = SRF_FIRSTCALL_INIT();
 
@@ -160,17 +148,17 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
 		cust_id = PG_GETARG_INT64(0);
-		tax_id_raw = PG_GETARG_TEXT_P(1);
-		strcpy(tax_id, DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(tax_id_raw))));
+		tax_id= PG_GETARG_TEXT_P(1);
 #ifdef DEBUG
 		elog(NOTICE, "[1] %ld", cust_id);
-		elog(NOTICE, "[2] %s", tax_id);
+		elog(NOTICE, "[2] %s", DatumGetCString(DirectFunctionCall1(textout,
+				PointerGetDatum(tax_id))));
 #endif /* DEBUG */
 
 		SPI_connect();
 		if (cust_id == 0) {
-			sprintf(sql, CPF1_1, tax_id);
+			sprintf(sql, CPF1_1, DatumGetCString(DirectFunctionCall1(textout,
+					PointerGetDatum(tax_id))));
 #ifdef DEBUG
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
@@ -184,6 +172,9 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 				elog(NOTICE, "Got cust_id ok: %ld", cust_id);
 #endif /* DEBUG */
 			} else {
+				/* Total number of tuples to be returned. */
+				funcctx->max_calls = 0;
+
 				elog(NOTICE, "ERROR: did not get cust_id.");
 			}
 		}
@@ -194,7 +185,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
 #ifdef DEBUG
-		elog(NOTICE, "%d row(s) returned.", SPI_processed);
+		elog(NOTICE, "%d row(s) returned from CPF1_2.", SPI_processed);
 #endif /* DEBUG */
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			char *tmp;
@@ -204,59 +195,131 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 
 			strcpy(values[4], SPI_getvalue(tuple, tupdesc, 8));
+
 			tmp = SPI_getvalue(tuple, tupdesc, 10);
 			if (tmp != NULL)
 				strcpy(values[5], tmp);
+			else
+				values[5][0] = '\0';
+
 			tmp = SPI_getvalue(tuple, tupdesc, 14);
 			if (tmp != NULL)
 				strcpy(values[6], tmp);
+			else
+				values[6][0] = '\0';
+
 			tmp = SPI_getvalue(tuple, tupdesc, 18);
 			if (tmp != NULL)
 				strcpy(values[7], tmp);
+			else
+				values[7][0] = '\0';
+
 			tmp = SPI_getvalue(tuple, tupdesc, 9);
 			if (tmp != NULL)
 				strcpy(values[8], tmp);
+			else
+				values[8][0] = '\0';
+
 			tmp = SPI_getvalue(tuple, tupdesc, 13);
 			if (tmp != NULL)
 				strcpy(values[9], tmp);
+			else
+				values[9][0] = '\0';
+
 			tmp = SPI_getvalue(tuple, tupdesc, 17);
 			if (tmp != NULL)
 				strcpy(values[10], tmp);
+			else
+				values[10][0] = '\0';
+
 			strcpy(values[11], SPI_getvalue(tuple, tupdesc, 7));
+
 			tmp = SPI_getvalue(tuple, tupdesc, 21);
 			if (tmp != NULL)
 				strcpy(values[12], tmp);
+			else
+				values[12][0] = '\0';
+
 			tmp = SPI_getvalue(tuple, tupdesc, 22);
 			if (tmp != NULL)
 				strcpy(values[13], tmp);
+			else
+				values[13][0] = '\0';
+
 			tmp = SPI_getvalue(tuple, tupdesc, 12);
 			if (tmp != NULL)
 				strcpy(values[14], tmp);
+			else
+				values[14][0] = '\0';
+
 			tmp = SPI_getvalue(tuple, tupdesc, 16);
 			if (tmp != NULL)
 				strcpy(values[15], tmp);
+			else
+				values[15][0] = '\0';
+
 			tmp = SPI_getvalue(tuple, tupdesc, 20);
 			if (tmp != NULL)
 				strcpy(values[16], tmp);
+			else
+				values[16][0] = '\0';
+
 			strcpy(values[17], SPI_getvalue(tuple, tupdesc, 3));
+
 			tmp = SPI_getvalue(tuple, tupdesc, 5);
 			if (tmp != NULL)
 				strcpy(values[18], tmp);
+			else
+				values[18][0] = '\0';
+
 			strcpy(values[19], SPI_getvalue(tuple, tupdesc, 2));
+
 			tmp = SPI_getvalue(tuple, tupdesc, 11);
 			if (tmp != NULL)
 				strcpy(values[20], tmp);
+			else
+				values[20][0] = '\0';
+
 			tmp = SPI_getvalue(tuple, tupdesc, 15);
 			if (tmp != NULL)
 				strcpy(values[21], tmp);
+			else
+				values[21][0] = '\0';
+
 			tmp = SPI_getvalue(tuple, tupdesc, 19);
 			if (tmp != NULL)
 				strcpy(values[22], tmp);
+			else
+				values[22][0] = '\0';
+
 			tmp = SPI_getvalue(tuple, tupdesc, 4);
 			if (tmp != NULL)
 				strcpy(values[23], tmp);
+			else
+				values[23][0] = '\0';
 		} else {
-			elog(NOTICE, "ERROR: CPF1_2 failed.");
+/*
+			values[4][0] = '\0';
+			values[5][0] = '\0';
+			values[6][0] = '\0';
+			values[7][0] = '\0';
+			values[8][0] = '\0';
+			values[9][0] = '\0';
+			values[10][0] = '\0';
+			values[11][0] = '\0';
+			values[12][0] = '\0';
+			values[13][0] = '\0';
+			values[14][0] = '\0';
+			values[15][0] = '\0';
+			values[16][0] = '\0';
+			values[17][0] = '\0';
+			values[18][0] = '\0';
+			values[19][0] = '\0';
+			values[20][0] = '\0';
+			values[21][0] = '\0';
+			values[22][0] = '\0';
+			values[23][0] = '\0';
+*/
 		}
 
 		sprintf(sql, CPF1_3, cust_id);
@@ -266,12 +329,20 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_exec(sql, 0);
 		sprintf(values[2], "%d", SPI_processed);
 #ifdef DEBUG
-		elog(NOTICE, "%d row(s) returned.", SPI_processed);
+		elog(NOTICE, "%d row(s) returned from CPF1_3.", SPI_processed);
 #endif /* DEBUG */
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+			/* Total number of tuples to be returned. */
+			funcctx->max_calls = 1;
+
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
+
+			values[1] = (char *) palloc((12 * SPI_processed + 2) *
+					sizeof(char));
+			values[3] = (char *) palloc((18 * SPI_processed + 2) *
+					sizeof(char));
 
 			strcpy(values[1], "{");
 			strcpy(values[3], "{");
@@ -291,11 +362,16 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			strcat(values[1], "}");
 			strcat(values[3], "}");
 		} else {
-			elog(NOTICE, "ERROR: CPF1_3 failed.");
-		}
+			/* Total number of tuples to be returned. */
+			funcctx->max_calls = 0;
 
-		/* Total number of tuples to be returned. */
-		funcctx->max_calls = 1;
+/*
+			values[1] = (char *) palloc(3 * sizeof(char));
+			values[3] = (char *) palloc(3 * sizeof(char));
+			strcpy(values[1], "{}");
+			strcpy(values[3], "{}");
+*/
+		}
 
 		/* Build a tuple descriptor for our result type. */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
@@ -326,6 +402,12 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		HeapTuple tuple;
 
 		snprintf(values[0], 12, "%ld", cust_id);
+
+#ifdef DEBUG
+		for (i = 0; i < 24; i++) {
+			elog(NOTICE, "%d '%s'", i, values[i]);
+		}
+#endif /* DEBUG */
 
 		/* Build a tuple. */
 		tuple = BuildTupleFromCStrings(funcctx->attinmeta, values);
@@ -378,22 +460,8 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 */
 		values = (char **) palloc(sizeof(char *) * 7);
-		values[0] = (char *) palloc(602 * sizeof(char));
 		values[1] = (char *) palloc(3 * sizeof(char));
-		values[2] = (char *) palloc(202 * sizeof(char));
 		values[3] = (char *) palloc(2 * sizeof(char));
-		values[4] = (char *) palloc(472 * sizeof(char));
-		values[5] = (char *) palloc(472 * sizeof(char));
-		values[6] = (char *) palloc(322 * sizeof(char));
-
-		/*
-		 * I think this is the fastest way to initialize the strings, as
-		 * opposed to zeroing out the entire chunk of memory since palloc()
-		 * doesn't zero out the memory for us.
-		 */
-		for (i = 0; i < 7; i++) {
-			values[i][0] = '\0';
-		}
 
 		/* Create a function context for cross-call persistence. */
 		funcctx = SRF_FIRSTCALL_INIT();
@@ -413,12 +481,22 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 		elog(NOTICE, "%d row(s) returned.", SPI_processed);
 #endif /* DEBUG */
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+			/* Total number of tuples to be returned. */
+			funcctx->max_calls = 1;
+
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 
-			/* FIXME: How is 'status' supposed to be set? */
-			strcpy(values[3], "1");
+			values[0] = (char *) palloc((27 * SPI_processed + 2) *
+					sizeof(char));
+			values[2] = (char *) palloc((7 * SPI_processed + 2) * sizeof(char));
+			values[4] = (char *) palloc((16 * SPI_processed + 2) *
+					sizeof(char));
+			values[5] = (char *) palloc((16 * SPI_processed + 2) *
+					sizeof(char));
+			values[6] = (char *) palloc((11 * SPI_processed + 2) *
+					sizeof(char));
 
 			strcpy(values[0], "{");
 			strcpy(values[2], "{");
@@ -456,11 +534,28 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 			strcat(values[5], "}");
 			strcat(values[6], "}");
 		} else {
-			elog(NOTICE, "ERROR: CPF2_1 failed.");
+			/* Total number of tuples to be returned. */
+			funcctx->max_calls = 0;
+
+			/*
+			 * FIXME: Probably don't need to do this if we're not going to
+			 * return any rows, but if we do then we don't need to figure
+			 * out what pieces of memory we need to free later in the function.
+			 */
+			values[0] = (char *) palloc(3 * sizeof(char));
+			values[2] = (char *) palloc(3 * sizeof(char));
+			values[4] = (char *) palloc(3 * sizeof(char));
+			values[5] = (char *) palloc(3 * sizeof(char));
+			values[6] = (char *) palloc(3 * sizeof(char));
+			strcpy(values[0], "{}");
+			strcpy(values[2], "{}");
+			strcpy(values[4], "{}");
+			strcpy(values[5], "{}");
+			strcpy(values[6], "{}");
 		}
 
-		/* Total number of tuples to be returned. */
-		funcctx->max_calls = 1;
+		/* FIXME: How is 'status' supposed to be set? */
+		strcpy(values[3], "1");
 
 		/* Build a tuple descriptor for our result type. */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
@@ -492,7 +587,7 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 7; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "%d '%s'", i, values[i]);
 		}
 #endif /* DEBUG */
 
