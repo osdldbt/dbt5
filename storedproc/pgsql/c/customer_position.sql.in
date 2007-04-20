@@ -8,7 +8,7 @@
  * responsible for calculating the current market value of each one of that
  * customer’s accounts.
  *
- * Based on TPC-E Standard Specification Draft Revision 0.32.2e Clause 3.3.6.
+ * Based on TPC-E Standard Specification Draft Revision 1.0.0 Clause 3.3.6.
  */
 
 /*
@@ -28,8 +28,7 @@ CREATE OR REPLACE FUNCTION CustomerPositionFrame1(INOUT cust_id IDENT_T,
 		OUT c_f_name CHAR(30), OUT c_gndr CHAR(1), OUT c_l_name CHAR(30),
 		OUT c_local_1 CHAR(10), OUT c_local_2 CHAR(10), OUT c_local_3 CHAR(10),
 		OUT c_m_name CHAR(1))
-RETURNS SETOF record AS '@abs_top_srcdir@/storedproc/pgsql/c/customer_position',
-    'CustomerPositionFrame1'
+RETURNS SETOF record AS 'MODULE_PATHNAME', 'CustomerPositionFrame1'
 LANGUAGE C IMMUTABLE STRICT;
 
 /*
@@ -42,5 +41,5 @@ CREATE OR REPLACE FUNCTION CustomerPositionFrame2(IN acct_id IDENT_T,
 		OUT hist_dts TIMESTAMP[], OUT hist_len INTEGER, OUT qty INTEGER[],
 		OUT status INTEGER, OUT symbol CHAR(15)[], OUT trade_id BIGINT[],
 		OUT trade_status CHAR(10)[])
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'CustomerPositionFrame1'
+RETURNS SETOF record AS 'MODULE_PATHNAME', 'CustomerPositionFrame2'
 LANGUAGE C IMMUTABLE STRICT;
