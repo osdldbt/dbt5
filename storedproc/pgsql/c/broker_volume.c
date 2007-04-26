@@ -119,7 +119,7 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		p = ARR_DATA_PTR(broker_list);
 		if (nitems > 0) {
 #ifdef DEBUG
-			elog(NOTICE, "[0.1] %s",
+			elog(NOTICE, "[0.0] %s",
 					DatumGetCString(DirectFunctionCall1(textout,
 					PointerGetDatum(p))));
 #endif
