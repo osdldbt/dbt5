@@ -1,0 +1,26 @@
+/*
+ * Market Feed transaction
+ * ------------------------
+ * The Market-Feed transaction receives the latest prices for securities
+ * that come in on the market feed ticker.
+ *
+ * Based on TPC-E Standard Specification Draft Revision 1.0.0 Clause 3.3.9.
+ *
+ * 2006-2007 Rilson Nascimento
+ * 2006-2007 Mark Wong
+ */
+
+/*
+ * Frame 1
+ * responsible to find the symbol and to modify the row in the LAST_TRADE table
+ * for that symbol with the new price, to add the quantity traded to the daily
+ * volume, and to modify the last trade date
+ */
+
+CREATE OR REPLACE FUNCTION MarketFeedFrame1(
+		IN price_quote NUMERIC(8, 2)[], IN status_submitted CHAR(4),
+		IN symbol CHAR(15)[], IN trade_qty INTEGER[], IN type_limit_buy CHAR(3),
+		IN type_limit_sell CHAR(3), IN type_stop_loss CHAR(3),
+		OUT send_len INTEGER, OUT status INTEGER)
+RETURNS SETOF record AS 'MODULE_PATHNAME', 'MarketFeedFrame1'
+LANGUAGE C IMMUTABLE STRICT;
