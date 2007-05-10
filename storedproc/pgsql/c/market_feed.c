@@ -283,7 +283,6 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 					trade_id,
 					date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
 					date->tm_hour, date->tm_min, date->tm_sec,
-					status_submitted,
 					status_submitted);
 #ifdef DEBUG
 				elog(NOTICE, "SQL\n%s", sql);
