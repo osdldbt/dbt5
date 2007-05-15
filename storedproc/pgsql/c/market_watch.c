@@ -77,11 +77,7 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 	int call_cntr;
 	int max_calls;
 
-	int i, j, k;
-
-	int nitems_pq;
-	char *p_tq;
-	char *p_s;
+	int i;
 
 	char **values = NULL;
 
@@ -101,16 +97,6 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 		char *industry_name_p = (char *) PG_GETARG_TEXT_P(3);
 		DateADT start_date_p = PG_GETARG_DATEADT(4);
 		int64 starting_co_id = PG_GETARG_INT64(5);
-
-		Datum *transdatums_pq;
-
-		int16 typlen_s;
-		bool typbyval_s;
-		char typalign_s;
-
-		int16 typlen_tq;
-		bool typbyval_tq;
-		char typalign_tq;
 
 		int ret;
 		TupleDesc tupdesc;
