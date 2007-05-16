@@ -224,18 +224,6 @@ if test "$database_to_use" == "pgsql"; then
   fi
   AC_SUBST(PG_CONFIG)
 
-  dnl
-  dnl Find pqxx libraries
-  dnl
-
-  if test "$pgsql_path" != "yes"; then
-    DB_LDFLAGS="$DB_LDFLAGS -Wl,-R$pgsql_path/lib"
-    AC_PATH_PROGS(PG_CONFIG, pg_config, no, "$pgsql_path/bin")
-  else
-    AC_PATH_PROGS(PG_CONFIG, pg_config, no)
-  fi
-  AC_SUBST(PG_CONFIG)
-
   if test -z "$PG_CONFIG" || test ! -r "$PG_CONFIG"; then
     AC_MSG_ERROR([
 libpq configuration script pg_config not found.  Make sure this is in your
@@ -264,6 +252,10 @@ find the right location for the libpq library.])
     found_postgresql="yes"
     AC_MSG_RESULT([yes])
   fi
+
+  dnl
+  dnl Find pqxx libraries
+  dnl
 
   if test "$pqxx_path" != "yes"; then
     DB_LDFLAGS="$DB_LDFLAGS -Wl,-R$pqxx_path/lib"
