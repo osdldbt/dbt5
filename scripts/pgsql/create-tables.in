@@ -459,7 +459,7 @@ CREATE TABLE trade_type (
     tt_id char(3) NOT NULL,
     tt_name char(12) NOT NULL,
     tt_is_sell smallint NOT NULL,
-    tt_is_mkrt smallint NOT NULL)
+    tt_is_mrkt smallint NOT NULL)
     ${TS_TRADE_TYPE};
 " || exit 1
 

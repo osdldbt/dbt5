@@ -54,7 +54,7 @@ BEGIN
 		SELECT	T_BID_PRICE,
 			T_EXEC_NAME,
 			T_IS_CASH,
-			TT_IS_MKRT,
+			TT_IS_MRKT,
 			T_TRADE_PRICE
 		INTO	bid_price,
 			exec_name,

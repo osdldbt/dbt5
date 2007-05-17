@@ -52,7 +52,7 @@ BEGIN
 
 	SELECT	TT_NAME,
 		TT_IS_SELL,
-		TT_IS_MKRT
+		TT_IS_MRKT
 	INTO	type_name,
 		type_is_sell,
 		type_is_market

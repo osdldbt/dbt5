@@ -211,7 +211,7 @@ BEGIN
 	WHERE	LT_S_SYMB = symb_name;
 	
 	-- Set trade characteristics based on the type of trade.
-	SELECT	TT_IS_MKRT,
+	SELECT	TT_IS_MRKT,
 		TT_IS_SELL
 	INTO	type_is_market,
 		type_is_sell
