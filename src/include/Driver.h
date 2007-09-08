@@ -47,6 +47,8 @@ public:
 	int iPacingDelay;
 	char outputDirectory[iMaxPath];
 	CSyncLock m_MixLock;
+	CDMSUT *m_pCDMSUT;
+	CDM *m_pCDM;
 
 	CDriver(char* szInDir, TIdent iConfiguredCustomerCount,
 			TIdent iActiveCustomerCount, INT32 iScaleFactor,

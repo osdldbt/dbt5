@@ -24,8 +24,6 @@ class CCustomer
 	CInputFiles		m_InputFiles;
 	CCESUT*			m_pCCESUT;
 	CCE*			m_pCCE;
-	CDMSUT*			m_pCDMSUT;
-	CDM*			m_pCDM;
 	PDriverCETxnSettings	m_pDriverCETxnSettings;
 	CSyncLock		m_LogLock;
 	ofstream		m_fLog;		// error log file

@@ -46,6 +46,15 @@ CDriver::CDriver(char* szInDir,
 	this->iUsers = iUsers;
 	this->iPacingDelay = iPacingDelay;
 	strcpy(this->outputDirectory, outputDirectory);
+	//
+	// initialize DMSUT interface
+	m_pCDMSUT = new CDMSUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix,
+			&m_LogLock, &m_MixLock);
+
+	// initialize DM - Data Maintenance
+	m_pCDM = new CDM(m_pCDMSUT, m_pLog, m_InputFiles,
+			iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
+			iDaysOfInitialTrades, UniqueId);
 }
 
 void* TPCE::CustomerWorkerThread(void* data)
@@ -137,6 +146,9 @@ void TPCE::EntryCustomerWorkerThread(void* data, int iThrNumber)
 // Destructor
 CDriver::~CDriver()
 {
+	delete m_pCDM;
+	delete m_pCDMSUT;
+
 	m_fMix.close();
 	m_fLog.close();
 
@@ -172,7 +184,7 @@ void CDriver::RunTest(int iSleep, int iTestDuration)
 	cout << endl <<
 			"Running Trade-Cleanup transaction before starting the test..." <<
 			endl;
-	// FIXME: Call to clean up goes here!!!
+	m_pCDM->DoCleanupTxn();
 	cout<<"Trade-Cleanup transaction completed."<<endl<<endl;
 
 	LogErrorMessage(">> Start of ramp-up.\n");
@@ -234,7 +246,7 @@ void* TPCE::DMWorkerThread(void* data)
 
 	do
 	{
-		// FIXME: Call to data maintenance goes here!!!
+		pThrParam->pDriver->m_pCDM->DoTxn();
 		sleep(60);	// Data-Maintenance runs once a minute
 	} while (time(NULL) < stop_time);
 
