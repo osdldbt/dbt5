@@ -1,32 +1,27 @@
 /*
- * DriverCustomer.h
- * This class represents the Customer Emulator driver
+ * Driver.h
+ * This class represents the workload driver
  *
  * 2006 Rilson Nascimento
  *
  * 03 August 2006
  */
 
-#ifndef DRIVER_CUSTOMER_H
-#define DRIVER_CUSTOMER_H
+#ifndef DRIVER_H
+#define DRIVER_H
 
 namespace TPCE
 {
 
-class CDriverCustomer
+class CDriver
 {
 	int			m_iUsers;
 	int			m_iPacingDelay;
 	CLogFormatTab		m_fmt;
 	CEGenLogger*		m_pLog;
 	CInputFiles		m_InputFiles;
-	CCESUT*			m_pCCESUT;
-	CCE*			m_pCCE;
-	CDMSUT*			m_pCDMSUT;
-	CDM*			m_pCDM;
 	PDriverCETxnSettings	m_pDriverCETxnSettings;
 	CSyncLock		m_LogLock;
-	CSyncLock		m_MixLock;
 	ofstream		m_fLog;		// error log file
 	ofstream		m_fMix;		// mix log file
 
@@ -38,14 +33,27 @@ private:
 	friend void TPCE::EntryCustomerWorkerThread(void* data, int i);
 
 	friend void* TPCE::DMWorkerThread(void* data);
-	friend void TPCE::EntryDMWorkerThread(CDriverCustomer* ptr);
+	friend void TPCE::EntryDMWorkerThread(CDriver* ptr);
 public:
-	CDriverCustomer(char* szInDir, TIdent iConfiguredCustomerCount,
+	char szInDir[iMaxPath];
+	TIdent iConfiguredCustomerCount;
+	TIdent iActiveCustomerCount;
+	INT32 iScaleFactor;
+	INT32 iDaysOfInitialTrades;
+	UINT32 UniqueId;
+	char szBHaddr[1024];
+	int iBHlistenPort;
+	int iUsers;
+	int iPacingDelay;
+	char outputDirectory[iMaxPath];
+	CSyncLock m_MixLock;
+
+	CDriver(char* szInDir, TIdent iConfiguredCustomerCount,
 			TIdent iActiveCustomerCount, INT32 iScaleFactor,
 			INT32 iDaysOfInitialTrades, UINT32 UniqueId, char* szBHaddr,
 			int iBHlistenPort, int iUsers, int iPacingDelay,
 			char* outputDirectory);
-	~CDriverCustomer();
+	~CDriver();
 
 	void RunTest(int iSleep, int iTestDuration);
 };
@@ -53,10 +61,10 @@ public:
 //parameter structure for the threads
 typedef struct TCustomerThreadParam
 {
-	CDriverCustomer*	pDriverCustomer;
+	CDriver*    pDriver;
 } *PCustomerThreadParam;
 
 
 }	// namespace TPCE
 
-#endif	// DRIVER_CUSTOMER_H
+#endif	// DRIVER_H

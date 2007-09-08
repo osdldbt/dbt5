@@ -12,11 +12,11 @@ DBDIR=@database_to_use@
 source ${abs_top_srcdir}/scripts/dbt5_profile || exit 1
 
 trap 'echo "Test was interrupted by Control-C."; \
-	killall BrokerageHouseMain; killall DriverMarketMain; killall DriverCustomerMain; \
+	killall BrokerageHouseMain; killall DriverMarketMain; killall DriverMain; \
 	killall sar; killall sadc; killall vmstat; killall iostat; \
         ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop-db' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
-	killall BrokerageHouseMain; killall DriverMarketMain; killall DriverCustomerMain; \
+	killall BrokerageHouseMain; killall DriverMarketMain; killall DriverMain; \
 	killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat; \
 	${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop-db' TERM
 
@@ -430,12 +430,12 @@ fi
 
 echo
 echo "3. Starting Customer driver: $USERS user(s), 1 user starting every $SLEEPY milliseconds..."
-${abs_top_srcdir}/src/DriverCustomerMain -c ${CUSTOMERS} -a ${CUSTOMERS} \
+${abs_top_srcdir}/src/DriverMain -c ${CUSTOMERS} -a ${CUSTOMERS} \
 		-f ${SCALE_FACTOR} -d ${ITD} -t ${DURATION} -s ${SLEEPY} \
 		-u ${USERS} -p ${PACING_DELAY} -g ${SEED} \
 		-e ${EGENDIR}/flat_in \
 		-o ${DRIVER_OUTPUT_DIR} > ${OUTPUT_DIR}/driver.out 2>&1 &
-DCMPID=`ps -C DriverCustomerMain -o pid=`
+DCMPID=`ps -C DriverMain -o pid=`
 echo "Results will be written to: $OUTPUT_DIR"
 
 do_sleep $SLEEP_RAMPUP
@@ -459,7 +459,7 @@ fi
 # Sleep for the duration of the run.
 do_sleep $DURATION
 
-# Wait for DriverCustomerMain to exit
+# Wait for DriverMain to exit
 #if [ -n ${DCMPID} ]; then
 	#wait ${DCMPID}
 #fi
@@ -494,7 +494,7 @@ ${abs_top_srcdir}/scripts/post-process --dir ${OUTPUT_DIR} \
 
 # Servers don't go away by themselves like the driver does, so kill it.
 echo "Killing Servers..."
-killall BrokerageHouseMain DriverMarketMain DriverCustomerMain 2> /dev/null
+killall BrokerageHouseMain DriverMarketMain DriverMain 2> /dev/null
 
 ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop-db
 

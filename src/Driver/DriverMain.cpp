@@ -1,5 +1,5 @@
 /*
- * DriverCustomerMain.cpp
+ * DriverMain.cpp
  *
  * 2006 Rilson Nascimento
  *
@@ -84,14 +84,14 @@ void ParseCommandLine( int argc, char *argv[] )
 	// Scan the command line arguments
 	for ( arg = 1; arg < argc; ++arg ) {
 
-		// Look for a switch 
+		// Look for a switch
 		sp = argv[arg];
 		if ( *sp == '-' )
 		{
 			++sp;
 		}
 		*sp = (char)tolower( *sp );
-		
+
 		/*
 		*  Find the switch's argument.  It is either immediately after the
 		*  switch or in the next argv
@@ -102,10 +102,10 @@ void ParseCommandLine( int argc, char *argv[] )
 			// and not the next switch that starts with '-'.
 			//
 		if ( (*vp == 0) && ((arg + 1) < argc) && (argv[arg + 1][0] != '-') )
-			{        
+			{
 			vp = argv[++arg];
 		}
-		
+
 		// Parse the switch
 		switch ( *sp )
 		{
@@ -171,8 +171,8 @@ bool ValidateParameters()
 	if ((iLoadUnitSize > iConfiguredCustomerCount) ||
 			(0 != iConfiguredCustomerCount % iLoadUnitSize))
 	{
-		cerr << "The specified customer count (-c " << iConfiguredCustomerCount 
-			<< ") must be a non-zero integral multiple of the load unit size (" 
+		cerr << "The specified customer count (-c " << iConfiguredCustomerCount
+			<< ") must be a non-zero integral multiple of the load unit size ("
 			<< iLoadUnitSize << ")." << endl;
 
 		bRet = false;
@@ -183,12 +183,12 @@ bool ValidateParameters()
 	if ((iLoadUnitSize > iActiveCustomerCount) ||
 			(0 != iActiveCustomerCount % iLoadUnitSize))
 	{
-		cerr << "The total customer count (-t " << iActiveCustomerCount 
-			<< ") must be a non-zero integral multiple of the load unit size (" 
+		cerr << "The total customer count (-t " << iActiveCustomerCount
+			<< ") must be a non-zero integral multiple of the load unit size ("
 			<< iLoadUnitSize << ")." << endl;
 
 		bRet = false;
-	}	
+	}
 
 	// Completed trades in 8 hours must be a non-zero integral multiple of 100
 	// so that exactly 1% extra trade ids can be assigned to simulate aborts.
@@ -205,9 +205,9 @@ bool ValidateParameters()
 		bRet = false;
 	}
 
-	if (iDaysOfInitialTrades <= 0) 
+	if (iDaysOfInitialTrades <= 0)
 	{
-		cerr << "The specified number of 8-Hour Workdays (-w " 
+		cerr << "The specified number of 8-Hour Workdays (-w "
 			<< (iDaysOfInitialTrades) << ") must be non-zero." << endl;
 
 		bRet = false;
@@ -252,7 +252,7 @@ int main(int argc, char* argv[])
 	if (!ValidateParameters())
 	{
 		return ERROR_INVALID_OPTION_VALUE;	// exit returning a non-zero code
-	}	
+	}
 
 	// Let the user know what settings will be used.
 	cout<<endl<<"Using the following settings:"<<endl<<endl;
@@ -272,12 +272,12 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		CDriverCustomer    DriverCustomer(szInDir, iConfiguredCustomerCount,
+		CDriver Driver(szInDir, iConfiguredCustomerCount,
 				iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades,
 				UniqueId, szBHaddr, iBHlistenPort, iUsers, iPacingDelay,
 				outputDirectory);
-		DriverCustomer.RunTest(iSleep, iTestDuration);
-		
+		Driver.RunTest(iSleep, iTestDuration);
+
 	}
 	catch (CBaseErr *pErr)
 	{

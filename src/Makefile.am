@@ -10,7 +10,7 @@ TXN=transactions
 INTF=interfaces
 EGEN=@egen_path@/src
 
-bin_PROGRAMS = TestTxn BrokerageHouseMain DriverCustomerMain DriverMarketMain
+bin_PROGRAMS = TestTxn BrokerageHouseMain DriverMain DriverMarketMain
 
 TestTxn_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                   $(EGEN)/InputFlatFilesStructure.cpp \
@@ -74,8 +74,9 @@ BrokerageHouseMain_SOURCES = $(EGEN)/DateTime.cpp \
                              BrokerageHouse/BrokerageHouse.cpp
 BrokerageHouseMain_LDADD = $(DB_LDFLAGS)
 
-DriverCustomerMain_SOURCES = DriverCustomer/DriverCustomer.cpp \
-                             DriverCustomer/DriverCustomerMain.cpp \
+DriverMain_SOURCES = Driver/Driver.cpp \
+                             Driver/DriverMain.cpp \
+                             Customer/Customer.cpp \
                              $(EGEN)/CETxnMixGenerator.cpp \
                              $(EGEN)/CETxnInputGenerator.cpp \
                              $(EGEN)/ReadRowFunctions.cpp \
@@ -94,7 +95,7 @@ DriverCustomerMain_SOURCES = DriverCustomer/DriverCustomer.cpp \
                              $(INTF)/DMSUT.cpp \
                              $(EGEN)/DM.cpp \
                              $(INTF)/BaseInterface.cpp
-DriverCustomerMain_LDFLAGS = $(DB_LDFLAGS)
+DriverMain_LDFLAGS = $(DB_LDFLAGS)
 
 DriverMarketMain_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                            $(EGEN)/EGenVersion.cpp \
