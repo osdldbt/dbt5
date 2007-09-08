@@ -435,6 +435,7 @@ ${abs_top_srcdir}/src/DriverCustomerMain -c ${CUSTOMERS} -a ${CUSTOMERS} \
 		-u ${USERS} -p ${PACING_DELAY} -g ${SEED} \
 		-e ${EGENDIR}/flat_in \
 		-o ${DRIVER_OUTPUT_DIR} > ${OUTPUT_DIR}/driver.out 2>&1 &
+DCMPID=`ps -C DriverCustomerMain -o pid=`
 echo "Results will be written to: $OUTPUT_DIR"
 
 do_sleep $SLEEP_RAMPUP
@@ -459,7 +460,9 @@ fi
 do_sleep $DURATION
 
 # Wait for DriverCustomerMain to exit
-wait `ps -C DriverCustomerMain -o pid=`
+#if [ -n ${DCMPID} ]; then
+	#wait ${DCMPID}
+#fi
 
 # Collect profile data.
 if [ -f /proc/profile ]; then
