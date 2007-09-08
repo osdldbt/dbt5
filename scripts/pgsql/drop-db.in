@@ -15,4 +15,12 @@ if [ -z ${PGDATA} ] ; then
 	exit 1
 fi
 
-${DROPDB} ${DBNAME} || exit 1
+while getopts "p:" OPT; do
+	case ${OPT} in
+	p)
+		PORT=${OPTARG}
+		;;
+	esac
+done
+
+${DROPDB} -p ${PORT} ${DBNAME} || exit 1

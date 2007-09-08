@@ -12,6 +12,14 @@ source ${TOPDIR}/scripts/dbt5_profile || exit 1
 DIR=`dirname $0`
 . ${DIR}/pgsql_profile || exit 1
 
+while getopts "p:" OPT; do
+	case ${OPT} in
+	p)
+		PORT=${OPTARG}
+		;;
+	esac
+done
+
 # Create database
 echo "Creating database..."
 if [ -d ${PGDATA} ]; then
@@ -24,12 +32,12 @@ else
 	cp -p ${DIR}/pg_hba.conf ${PGDATA}/ || exit 1
 fi
 
-${DIR}/start-db
+${DIR}/start-db -p "-c port=${PORT}"
 
 # Give the database a few seconds to get going
 sleep 4
 
-${CREATEDB} -E SQL_ASCII ${DBNAME} || exit 1
-${CREATELANG} plpgsql ${DBNAME} || exit 1
+${CREATEDB} -p ${PORT} -E SQL_ASCII ${DBNAME} || exit 1
+${CREATELANG} -p ${PORT} plpgsql ${DBNAME} || exit 1
 
 exit 0

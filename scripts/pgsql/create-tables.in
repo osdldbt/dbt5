@@ -14,8 +14,11 @@ source ${TOPDIR}/scripts/dbt5_profile || exit 1
 DIR=`dirname $0`
 
 USE_TABLESPACES=0
-while getopts "t" OPT; do
+while getopts "p:t" OPT; do
 	case ${OPT} in
+	p)
+		PORT=${OPTARG}
+		;;
 	t)
 		USE_TABLESPACES=1
 		;;
@@ -133,115 +136,115 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	#
 	# Don't need to '|| exit 1' in case the tablespaces do not already exist.
 	#
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_ACCOUNT_PERMISSION};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_ACCOUNT_PERMISSION};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_ACCOUNT_PERMISSION} LOCATION '${TS_ACCOUNT_PERMISSION_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_CUSTOMER};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_CUSTOMER};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_CUSTOMER} LOCATION '${TS_CUSTOMER_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_CUSTOMER_ACCOUNT};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_CUSTOMER_ACCOUNT};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_CUSTOMER_ACCOUNT} LOCATION '${TS_CUSTOMER_ACCOUNT_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_CUSTOMER_TAXRATE};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_CUSTOMER_TAXRATE};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_CUSTOMER_TAXRATE} LOCATION '${TS_CUSTOMER_TAXRATE_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_HOLDING};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_HOLDING} LOCATION '${TS_HOLDING_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_HOLDING_HISTORY};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_HOLDING};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE ${TS_HOLDING} LOCATION '${TS_HOLDING_DIR}';"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_HOLDING_HISTORY};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_HOLDING_HISTORY} LOCATION '${TS_HOLDING_HISTORY_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_HOLDING_SUMMARY};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_HOLDING_SUMMARY};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_HOLDING_SUMMARY} LOCATION '${TS_HOLDING_SUMMARY_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_WATCH_ITEM};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_WATCH_ITEM};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_WATCH_ITEM} LOCATION '${TS_WATCH_ITEM_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_WATCH_LIST};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_WATCH_LIST};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_WATCH_LIST} LOCATION '${TS_WATCH_LIST_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_BROKER};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_BROKER} LOCATION '${TS_BROKER_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_CASH_TRANSACTION};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_BROKER};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE ${TS_BROKER} LOCATION '${TS_BROKER_DIR}';"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_CASH_TRANSACTION};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_CASH_TRANSACTION} LOCATION '${TS_CASH_TRANSACTION_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_CHARGE};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_CHARGE} LOCATION '${TS_CHARGE_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_COMMISSION_RATE};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_COMMISSION_RATE} LOCATION '${TS_COMMISSION_RATE_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_SETTLEMENT};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_SETTLEMENT} LOCATION '${TS_SETTLEMENT_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_TRADE};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_TRADE} LOCATION '${TS_TRADE_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_TRADE_HISTORY};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_CHARGE};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE ${TS_CHARGE} LOCATION '${TS_CHARGE_DIR}';"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_COMMISSION_RATE};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE ${TS_COMMISSION_RATE} LOCATION '${TS_COMMISSION_RATE_DIR}';"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_SETTLEMENT};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE ${TS_SETTLEMENT} LOCATION '${TS_SETTLEMENT_DIR}';"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_TRADE};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE ${TS_TRADE} LOCATION '${TS_TRADE_DIR}';"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_TRADE_HISTORY};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_TRADE_HISTORY} LOCATION '${TS_TRADE_HISTORY_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_TRADE_REQUEST};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_TRADE_REQUEST};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_TRADE_REQUEST} LOCATION '${TS_TRADE_REQUEST_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_TRADE_TYPE};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_TRADE_TYPE};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_TRADE_TYPE} LOCATION '${TS_TRADE_TYPE_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_COMPANY};"
-	${PSQL} -e -d ${DBNAME} -c "CREATE ${TS_COMPANY} LOCATION '${TS_COMPANY_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_COMPANY_COMPETITOR};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_COMPANY};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE ${TS_COMPANY} LOCATION '${TS_COMPANY_DIR}';"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_COMPANY_COMPETITOR};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_COMPANY_COMPETITOR} LOCATION '${TS_COMPANY_COMPETITOR_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_DAILY_MARKET};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_DAILY_MARKET};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_DAILY_MARKET} LOCATION '${TS_DAILY_MARKET_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_EXCHANGE};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_EXCHANGE};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_EXCHANGE} LOCATION '${TS_EXCHANGE_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_FINANCIAL};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_FINANCIAL};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_FINANCIAL} LOCATION '${TS_FINANCIAL_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_INDUSTRY};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_INDUSTRY};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_INDUSTRY} LOCATION '${TS_INDUSTRY_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_LAST_TRADE};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_LAST_TRADE};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_LAST_TRADE} LOCATION '${TS_LAST_TRADE_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_NEWS_ITEM};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_NEWS_ITEM};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_NEWS_ITEM} LOCATION '${TS_NEWS_ITEM_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_NEWS_XREF};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_NEWS_XREF};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_NEWS_XREF} LOCATION '${TS_NEWS_XREF_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_SECTOR};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_SECTOR};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_SECTOR} LOCATION '${TS_SECTOR_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_SECURITY};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_SECURITY};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_SECURITY} LOCATION '${TS_SECURITY_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_ADDRESS};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_ADDRESS};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_ADDRESS} LOCATION '${TS_ADDRESS_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_STATUS_TYPE};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_STATUS_TYPE};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_STATUS_TYPE} LOCATION '${TS_STATUS_TYPE_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_TAXRATE};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_TAXRATE};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_TAXRATE} LOCATION '${TS_TAXRATE_DIR}';"
-	${PSQL} -e -d ${DBNAME} -c "DROP ${TS_ZIP_CODE};"
-	${PSQL} -e -d ${DBNAME} \
+	${PSQL} -p ${PORT} -e -d ${DBNAME} -c "DROP ${TS_ZIP_CODE};"
+	${PSQL} -p ${PORT} -e -d ${DBNAME} \
 			-c "CREATE ${TS_ZIP_CODE} LOCATION '${TS_ZIP_CODE_DIR}';"
 fi
 
 # Creating sequence for Trade tables, t_id field
 
-${PSQL} -e -d ${DBNAME} -c "CREATE SEQUENCE seq_trade_id;" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE SEQUENCE seq_trade_id;" || exit 1
 
 # Creating domains to meta-type definitions (clause 2.2.3)
 
-${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN S_COUNT_T AS BIGINT;" || exit 1
-${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN IDENT_T AS BIGINT NULL;" || exit 1
-${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN TRADE_T AS BIGINT NULL;" || exit 1
-${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN BALANCE_T AS NUMERIC(12,2);" || exit 1
-${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN S_PRICE_T AS NUMERIC(8,2);" || exit 1
-${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN S_QTY_T AS INTEGER NULL;" || exit 1
-${PSQL} -e -d ${DBNAME} \
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE DOMAIN S_COUNT_T AS BIGINT;" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE DOMAIN IDENT_T AS BIGINT NULL;" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE DOMAIN TRADE_T AS BIGINT NULL;" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE DOMAIN BALANCE_T AS NUMERIC(12,2);" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE DOMAIN S_PRICE_T AS NUMERIC(8,2);" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE DOMAIN S_QTY_T AS INTEGER NULL;" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} \
 		-c "CREATE DOMAIN VALUE_T AS NUMERIC(10,2) NULL;" || exit 1
-${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN FIN_AGG_T AS NUMERIC(15,2) NOT NULL;" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE DOMAIN FIN_AGG_T AS NUMERIC(15,2) NOT NULL;" || exit 1
 
 # Note: when the specification states CHAR(n), the implementer can choose 
 #       whether it pads strings with spaces to always have the maximum length,
@@ -250,7 +253,7 @@ ${PSQL} -e -d ${DBNAME} -c "CREATE DOMAIN FIN_AGG_T AS NUMERIC(15,2) NOT NULL;" 
 # Customer Tables
 
 # Clause 2.2.5.1
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE account_permission (
     ap_ca_id IDENT_T,
     ap_acl char(4) NOT NULL,
@@ -261,7 +264,7 @@ CREATE TABLE account_permission (
 " || exit 1	
 
 # Clause 2.2.5.2
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE customer (
     c_id IDENT_T,
     c_tax_id VARCHAR(20) NOT NULL,
@@ -291,7 +294,7 @@ CREATE TABLE customer (
 " || exit 1
 
 # Clause 2.2.5.3
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE customer_account (
     ca_id IDENT_T,
     ca_b_id IDENT_T,
@@ -303,7 +306,7 @@ CREATE TABLE customer_account (
 " || exit 1
 
 # Clause 2.2.5.4
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE customer_taxrate (
     cx_tx_id char(4) NOT NULL,
     cx_c_id IDENT_T)
@@ -311,7 +314,7 @@ CREATE TABLE customer_taxrate (
 " || exit 1
 
 # Clause 2.2.5.5
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE holding (
     h_t_id TRADE_T,
     h_ca_id IDENT_T,
@@ -323,7 +326,7 @@ CREATE TABLE holding (
 " || exit 1
 
 # Clause 2.2.5.6
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE holding_history (
     hh_h_t_id TRADE_T,
     hh_t_id TRADE_T,
@@ -333,7 +336,7 @@ CREATE TABLE holding_history (
 " || exit 1
 
 # Clause 2.2.5.7
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE holding_summary (
     hs_ca_id IDENT_T,
     hs_s_symb char(15) NOT NULL,
@@ -342,7 +345,7 @@ CREATE TABLE holding_summary (
 " || exit 1
 
 # Clause 2.2.5.8
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE watch_item (
     wi_wl_id IDENT_T,
     wi_s_symb char(15) NOT NULL)
@@ -350,7 +353,7 @@ CREATE TABLE watch_item (
 " || exit 1
 
 # Clause 2.2.5.9
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE watch_list (
     wl_id IDENT_T,
     wl_c_id IDENT_T)
@@ -360,7 +363,7 @@ CREATE TABLE watch_list (
 # Broker Tables
 
 # Clause 2.2.6.1
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE broker (
     b_id IDENT_T,
     b_st_id char(4) NOT NULL,
@@ -371,7 +374,7 @@ CREATE TABLE broker (
 " || exit 1
 
 # Clause 2.2.6.2
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE cash_transaction (
     ct_t_id TRADE_T,
     ct_dts TIMESTAMP NOT NULL,
@@ -381,7 +384,7 @@ CREATE TABLE cash_transaction (
 " || exit 1
 
 # Clause 2.2.6.3
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE charge (
     ch_tt_id char(3) NOT NULL,
     ch_c_tier SMALLINT,
@@ -390,7 +393,7 @@ CREATE TABLE charge (
 " || exit 1
 
 # Clause 2.2.6.4
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE commission_rate (
     cr_c_tier SMALLINT,
     cr_tt_id char(3) NOT NULL,
@@ -402,7 +405,7 @@ CREATE TABLE commission_rate (
 " || exit 1
 
 # Clause 2.2.6.5
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE settlement (
     se_t_id TRADE_T,
     se_cash_type VARCHAR(40) NOT NULL,
@@ -412,7 +415,7 @@ CREATE TABLE settlement (
 " || exit 1
 
 # Clause 2.2.6.6
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE trade (
     t_id TRADE_T,
     t_dts TIMESTAMP NOT NULL,
@@ -433,7 +436,7 @@ CREATE TABLE trade (
 " || exit 1
 
 # Clause 2.2.6.7
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE trade_history (
     th_t_id TRADE_T,
     th_dts TIMESTAMP NOT NULL,
@@ -442,7 +445,7 @@ CREATE TABLE trade_history (
 " || exit 1
 
 # Clause 2.2.6.8
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE trade_request (
     tr_t_id TRADE_T,
     tr_tt_id char(3) NOT NULL,
@@ -454,7 +457,7 @@ CREATE TABLE trade_request (
 " || exit 1
 
 # Clause 2.2.6.9
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE trade_type (
     tt_id char(3) NOT NULL,
     tt_name char(12) NOT NULL,
@@ -466,7 +469,7 @@ CREATE TABLE trade_type (
 # Market Tables
 
 # Clause 2.2.7.1
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE company (
     co_id IDENT_T,
     co_st_id char(4) NOT NULL,
@@ -481,7 +484,7 @@ CREATE TABLE company (
 " || exit 1
 
 # Clause 2.2.7.2
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE company_competitor (
     cp_co_id IDENT_T,
     cp_comp_co_id IDENT_T,
@@ -490,7 +493,7 @@ CREATE TABLE company_competitor (
 " || exit 1
 
 # Clause 2.2.7.3
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE daily_market (
     dm_date TIMESTAMP NOT NULL,
     dm_s_symb char(15) NOT NULL,
@@ -502,7 +505,7 @@ CREATE TABLE daily_market (
 " || exit 1
 
 # Clause 2.2.7.4
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE exchange (
     ex_id char(6) NOT NULL,
     ex_name VARCHAR(100) NOT NULL,
@@ -515,7 +518,7 @@ CREATE TABLE exchange (
 " || exit 1
 
 # Clause 2.2.7.5
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE financial (
     fi_co_id IDENT_T,
     fi_year SMALLINT NOT NULL,
@@ -535,7 +538,7 @@ CREATE TABLE financial (
 " || exit 1
 
 # Clause 2.2.7.6
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE industry (
     in_id char(2) NOT NULL,
     in_name VARCHAR(50) NOT NULL,
@@ -544,7 +547,7 @@ CREATE TABLE industry (
 " || exit 1
 
 # Clause 2.2.7.7
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE last_trade (
     lt_s_symb char(15) NOT NULL,
     lt_dts TIMESTAMP NOT NULL,
@@ -560,7 +563,7 @@ CREATE TABLE last_trade (
 #	stored outside the table. 
 #	TEXT seems to be simpler to handle
 
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE news_item (
     ni_id IDENT_T,
     ni_headline VARCHAR(80) NOT NULL,
@@ -573,7 +576,7 @@ CREATE TABLE news_item (
 " || exit 1
 
 # Clause 2.2.7.9
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE news_xref (
     nx_ni_id IDENT_T,
     nx_co_id IDENT_T)
@@ -581,7 +584,7 @@ CREATE TABLE news_xref (
 " || exit 1
 
 # Clause 2.2.7.10
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE sector (
     sc_id char(2) NOT NULL,
     sc_name VARCHAR(30) NOT NULL)
@@ -589,7 +592,7 @@ CREATE TABLE sector (
 " || exit 1
 
 # Clause 2.2.7.11
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE security (
     s_symb char(15) NOT NULL,
     s_issue char(6) NOT NULL,
@@ -613,7 +616,7 @@ CREATE TABLE security (
 # Dimension Tables
 
 # Clause 2.2.8.1
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE address (
     ad_id IDENT_T,
     ad_line1 VARCHAR(80),
@@ -624,7 +627,7 @@ CREATE TABLE address (
 " || exit 1
 
 # Clause 2.2.8.2
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE status_type (
     st_id char(4) NOT NULL,
     st_name char(10) NOT NULL)
@@ -632,7 +635,7 @@ CREATE TABLE status_type (
 " || exit 1
 
 # Clause 2.2.8.3
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE taxrate (
     tx_id char(4) NOT NULL,
     tx_name VARCHAR(50) NOT NULL,
@@ -641,7 +644,7 @@ CREATE TABLE taxrate (
 " || exit 1
 
 # Clause 2.2.8.4
-${PSQL} -e -d ${DBNAME} -c "
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE zip_code (
     zc_code char(12) NOT NULL,
     zc_town VARCHAR(80) NOT NULL,

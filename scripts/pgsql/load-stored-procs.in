@@ -10,38 +10,46 @@
 TOPDIR="@abs_top_srcdir@"
 source ${TOPDIR}/scripts/dbt5_profile || exit 1
 
+while getopts "p:" OPT; do
+	case ${OPT} in
+	p)
+		PORT=${OPTARG}
+		;;
+	esac
+done
+
 # Broker Volume transaction
-${PSQL} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/BrokerVolume.sql || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/BrokerVolume.sql || exit 1
 
 # Customer Position transaction
-${PSQL} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/CustomerPosition.sql || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/CustomerPosition.sql || exit 1
 
 # Data Maintenance transaction
-${PSQL} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/DataMaintenance.sql || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/DataMaintenance.sql || exit 1
 
 # Market Feed transaction
-${PSQL} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/MarketFeed.sql || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/MarketFeed.sql || exit 1
 
 # Market Watch transaction
-${PSQL} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/MarketWatch.sql || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/MarketWatch.sql || exit 1
 
 # Security Detail transaction
-${PSQL} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/SecurityDetail.sql || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/SecurityDetail.sql || exit 1
 
 # Trade Cleanup transaction
-${PSQL} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/TradeCleanup.sql || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/TradeCleanup.sql || exit 1
 
 # Trade Lookup transaction
-${PSQL} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/TradeLookup.sql || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/TradeLookup.sql || exit 1
 
 # Trade Order transaction
-${PSQL} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/TradeOrder.sql || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/TradeOrder.sql || exit 1
 
 # Trade Result transaction
-${PSQL} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/TradeResult.sql || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/TradeResult.sql || exit 1
 
 # Trade Status transaction
-${PSQL} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/TradeStatus.sql || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/TradeStatus.sql || exit 1
 
 # Trade Update transaction
-${PSQL} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/TradeUpdate.sql || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} -f ${TOPDIR}/storedproc/pgsql/TradeUpdate.sql || exit 1

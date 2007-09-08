@@ -21,6 +21,7 @@ PG_AUTOVACUUM=@PG_AUTOVACUUM@; export PG_AUTOVACUUM
 
 # Our database will be named dbt5
 DBNAME=dbt5; export DBNAME
+PORT=5432
 
 # Data instance path.  Storage location for this instance of the database
 # should be within the working directory.  If you're going to mount a device,
