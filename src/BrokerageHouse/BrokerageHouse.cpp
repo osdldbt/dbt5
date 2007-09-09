@@ -235,6 +235,8 @@ void* TPCE::WorkerThread(void* data)
 						"BrokerageHouse::WorkerThread" << endl;
 				pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
 				iRet = ERR_TYPE_PQXX;
+				// Rollback any transaction in place.
+				pDBConnection->RollbackTxn();
 			}
 	
 			// send status to driver
