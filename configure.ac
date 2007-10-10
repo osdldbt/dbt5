@@ -137,6 +137,12 @@ if test "$database_to_use" = "pgsql"; then
     path_to_check="$pgsql_path/bin"
   fi
 
+  dnl check for pkg_config
+  AC_PATH_PROGS(PKG_CONFIG, pkg-config, no, [])
+  if test -z "$PKG_CONFIG" ; then
+    AC_MSG_ERROR([*** pkg-config is required])
+  fi
+
   dnl check for pg_config
   AC_PATH_PROGS(PG_CONFIG, pg_config, no, [$path_to_check])
   if test -z "$PG_CONFIG" ; then
@@ -236,21 +242,8 @@ if test "$database_to_use" = "pgsql"; then
   dnl Find pqxx libraries
   dnl
 
-  if test "$pqxx_path" != "yes"; then
-    DB_LDFLAGS="$DB_LDFLAGS -Wl,-R$pqxx_path/lib"
-  fi
-
-  AC_PATH_PROGS(PQXX_CONFIG, pqxx-config, , $pqxx_path/bin:$PATH)
-  if test -z "$PQXX_CONFIG" || test ! -r "$PQXX_CONFIG"; then
-	  AC_MSG_ERROR([
-Libpqxx configuration script pqxx-config not found.  Make sure this is in your
-command path before configuring.  Without it, the configure script has no way to
-find the right location for the libpqxx library.])
-  fi
-  AC_SUBST(PQXX_CONFIG)
-
-  LIBPQXX_CFLAGS=`$PQXX_CONFIG --cflags`
-  LIBPQXX_LDFLAGS=`$PQXX_CONFIG --libs`
+  LIBPQXX_CFLAGS=`$PKG_CONFIG --cflags libpqxx`
+  LIBPQXX_LDFLAGS=`$PKG_CONFIG --libs libpqxx`
   DB_CFLAGS="$DB_CFLAGS $LIBPQXX_CFLAGS"
   DB_LDFLAGS="$DB_LDFLAGS $LIBPQXX_LDFLAGS"
   AC_MSG_NOTICE([using libpqxx headers at $LIBPQXX_CFLAGS])
