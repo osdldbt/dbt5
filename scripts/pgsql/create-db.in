@@ -6,14 +6,24 @@
 # Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
 #
 
+usage()
+{
+	echo "usage: create-db -h"
+	echo "usage: create-db [-p port]"
+}
+
 TOPDIR="@abs_top_srcdir@"
 source ${TOPDIR}/scripts/dbt5_profile || exit 1
 
 DIR=`dirname $0`
 . ${DIR}/pgsql_profile || exit 1
 
-while getopts "p:" OPT; do
+while getopts "hp:" OPT; do
 	case ${OPT} in
+	h)
+		usage
+		exit 0
+		;;
 	p)
 		PORT=${OPTARG}
 		;;

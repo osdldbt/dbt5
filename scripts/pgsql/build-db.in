@@ -16,6 +16,8 @@ usage()
 	echo "        Number of customers (total in the database)"
 	echo "    -i <customers>"
 	echo "        Number of customers (for this instance)"
+	echo "    -l <port>"
+	echo "        database port (default=5432)"
 	echo "    -p <database_parameters>"
 	echo "        PostgreSQL database parameters"
 	echo "    -r"
