@@ -12,18 +12,18 @@ AUTOMAKE_OPTIONS = foreign
 SUBDIRS = . src
 
 EXTRA_DIST = \
-storedproc/pgsql/BrokerVolume.sql \
-storedproc/pgsql/CustomerPosition.sql \
-storedproc/pgsql/DataMaintenance.sql \
-storedproc/pgsql/MarketFeed.sql \
-storedproc/pgsql/MarketWatch.sql \
-storedproc/pgsql/SecurityDetail.sql \
-storedproc/pgsql/TradeCleanup.sql \
-storedproc/pgsql/TradeLookup.sql \
-storedproc/pgsql/TradeOrder.sql \
-storedproc/pgsql/TradeResult.sql \
-storedproc/pgsql/TradeStatus.sql \
-storedproc/pgsql/TradeUpdate.sql \
+storedproc/pgsql/pgsql/BrokerVolume.sql \
+storedproc/pgsql/pgsql/CustomerPosition.sql \
+storedproc/pgsql/pgsql/DataMaintenance.sql \
+storedproc/pgsql/pgsql/MarketFeed.sql \
+storedproc/pgsql/pgsql/MarketWatch.sql \
+storedproc/pgsql/pgsql/SecurityDetail.sql \
+storedproc/pgsql/pgsql/TradeCleanup.sql \
+storedproc/pgsql/pgsql/TradeLookup.sql \
+storedproc/pgsql/pgsql/TradeOrder.sql \
+storedproc/pgsql/pgsql/TradeResult.sql \
+storedproc/pgsql/pgsql/TradeStatus.sql \
+storedproc/pgsql/pgsql/TradeUpdate.sql \
 scripts/gen_html.sh \
 scripts/mix_analyzer.pl \
 scripts/run_workload.sh.in \
