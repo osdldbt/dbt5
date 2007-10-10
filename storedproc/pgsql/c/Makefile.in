@@ -1,7 +1,7 @@
 MODULES = broker_volume customer_position market_feed market_watch \
-		security_detail
+		security_detail trade_lookup
 DATA_built = broker_volume.sql customer_position.sql market_feed.sql \
-		market_watch.sql security_detail.sql
+		market_watch.sql security_detail.sql trade_lookup.sql
 PG_CPPFLAGS = @CFLAGS_DEBUG@
 
 PGXS := $(shell @BINDIR@/pg_config --pgxs)

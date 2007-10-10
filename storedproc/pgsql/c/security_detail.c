@@ -455,16 +455,16 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		result = HeapTupleGetDatum(tuple);
 
 		/* Clean up. */
-		pfree(values[14]);                                                   
-		pfree(values[15]);                                                   
-		pfree(values[16]);                                                   
-		pfree(values[17]);                                                   
-		pfree(values[31]);                                                   
-		pfree(values[32]);                                                   
-		pfree(values[36]);                                                   
-		pfree(values[37]);                                                   
-		pfree(values[44]);                                                   
-		pfree(values);                                                   
+		pfree(values[14]);
+		pfree(values[15]);
+		pfree(values[16]);
+		pfree(values[17]);
+		pfree(values[31]);
+		pfree(values[32]);
+		pfree(values[36]);
+		pfree(values[37]);
+		pfree(values[44]);
+		pfree(values);
 
 		SRF_RETURN_NEXT(funcctx, result);
 	} else {
