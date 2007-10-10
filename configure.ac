@@ -109,9 +109,8 @@ dnl PostgreSQL
 AC_ARG_WITH(postgresql,
   [AC_HELP_STRING([--with-postgresql=DIR],
       [Default on. Set to the path of the PostgreSQL's installation, or leave
-          unset if the path is already in the compiler search path.])],
-  [pgsql_path=$withval database_to_use="pgsql"],
-  [database_to_use="pgsql"]
+          unset if the path is already your search path.])],
+  [pgsql_path=$withval database_to_use="pgsql"]
 )
 
 AC_ARG_WITH(pqxx,
@@ -131,67 +130,63 @@ AC_ARG_WITH(egen,
 AC_SUBST(egen_path)
 
 dnl Set up rules depending on what database is selected.
-if test "$database_to_use" == "pgsql"; then
+if test "$database_to_use" = "pgsql"; then
+  if test "$pgsql_path" = "yes"; then
+    path_to_check="$PATH"
+  else
+    path_to_check="$pgsql_path/bin"
+  fi
+
+  dnl check for pg_config
+  AC_PATH_PROGS(PG_CONFIG, pg_config, no, [$path_to_check])
+  if test -z "$PG_CONFIG" ; then
+    AC_MSG_ERROR([*** pg_config is required])
+  fi
+  AC_SUBST(PG_CONFIG)
 
   dnl check for initdb
-  AC_PATH_PROGS(INITDB, initdb, ,
-    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
-  )
+  AC_PATH_PROGS(INITDB, initdb, no, [$path_to_check])
   if test -z "$INITDB" ; then
     AC_MSG_ERROR([*** initdb is required])
   fi
 
   dnl check for createdb
-  AC_PATH_PROGS(CREATEDB, createdb, ,
-    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
-  )
+  AC_PATH_PROGS(CREATEDB, createdb, no, [$path_to_check])
   if test -z "$CREATEDB" ; then
     AC_MSG_ERROR([*** createdb is required])
   fi
 
-  AC_PATH_PROGS(CREATELANG, createlang, ,
-    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
-  )
+  AC_PATH_PROGS(CREATELANG, createlang, no, [$path_to_check])
   if test -z "$CREATELANG" ; then
     AC_MSG_ERROR([*** createlang is required])
   fi
 
   dnl check for createuser
-  AC_PATH_PROGS(CREATEUSER, createuser, ,
-    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
-  )
+  AC_PATH_PROGS(CREATEUSER, createuser, no, [$path_to_check])
   if test -z "$CREATEUSER" ; then
     AC_MSG_ERROR([*** createuser is required])
   fi
 
   dnl check for dropdb
-  AC_PATH_PROGS(DROPDB, dropdb, ,
-    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
-  )
+  AC_PATH_PROGS(DROPDB, dropdb, no, [$path_to_check])
   if test -z "$DROPDB" ; then
     AC_MSG_ERROR([*** dropdb is required])
   fi
 
   dnl check for pg_ctl 
-  AC_PATH_PROGS(PG_CTL, pg_ctl, ,
-    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
-  )
+  AC_PATH_PROGS(PG_CTL, pg_ctl, no, [$path_to_check])
   if test -z "$PG_CTL" ; then 
     AC_MSG_ERROR([*** pg_ctl is required])
   fi
 
   dnl check for psql
-  AC_PATH_PROGS(PSQL, psql, ,
-    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
-  )
+  AC_PATH_PROGS(PSQL, psql, no, [$path_to_check])
   if test -z "$PSQL" ; then
     AC_MSG_ERROR([*** psql is required])
   fi
 
   dnl check for vacuumdb
-  AC_PATH_PROGS(VACUUMDB, vacuumdb, ,
-    [$pgsql_path/bin:$PATH:/bin:/usr/bin:/usr/local/bin]
-  )
+  AC_PATH_PROGS(VACUUMDB, vacuumdb, no, [$path_to_check])
   if test -z "$VACUUMDB" ; then
     AC_MSG_ERROR([*** vacuumdb is required])
   fi
@@ -214,22 +209,6 @@ if test "$database_to_use" == "pgsql"; then
 	[chmod +x scripts/pgsql/load-stored-procs])
   AC_CONFIG_FILES([scripts/pgsql/pgsql_profile])
   AC_CONFIG_FILES([storedproc/pgsql/c/Makefile])
-
-
-  if test "$pgsql_path" == "yes"; then
-    AC_PATH_PROGS(PG_CONFIG, pg_config, no)
-  else
-    DB_LDFLAGS="$DB_LDFLAGS -Wl,-R$pgsql_path/lib"
-    AC_PATH_PROGS(PG_CONFIG, pg_config, no, "$pgsql_path/bin")
-  fi
-  AC_SUBST(PG_CONFIG)
-
-  if test -z "$PG_CONFIG" || test ! -r "$PG_CONFIG"; then
-    AC_MSG_ERROR([
-libpq configuration script pg_config not found.  Make sure this is in your
-command path before configuring.  Without it, the configure script has no way to
-find the right location for the libpq library.])
-  fi
 
   if test "$PG_CONFIG" != "no"; then
     AC_MSG_CHECKING([for PostgreSQL libraries])
