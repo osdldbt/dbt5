@@ -1,0 +1,80 @@
+/*
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
+ *
+ * Copyright (C) 2007 Mark Wong
+ */
+
+CREATE OR REPLACE FUNCTION TradeOrderFrame1 (
+		IN acct_id BIGINT,
+		OUT acct_name VARCHAR(50),
+		OUT broker_id BIGINT,
+		OUT broker_name VARCHAR(100),
+		OUT cust_f_name VARCHAR(30),
+		OUT cust_id BIGINT,
+		OUT cust_l_name VARCHAR(30),
+		OUT cust_tier SMALLINT,
+		OUT status INTEGER,
+		OUT tax_id VARCHAR(20),
+		OUT tax_status SMALLINT)
+RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeOrderFrame1'
+LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION TradeOrderFrame2 (
+		IN acct_id BIGINT,
+		IN exec_f_name VARCHAR(30),
+		IN exec_l_name VARCHAR(30),
+		IN exec_tax_id VARCHAR(20),
+		OUT ap_acl VARCHAR(4),
+		OUT status INTEGER)
+RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeOrderFrame2'
+LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION TradeOrderFrame3 (
+		IN acct_id BIGINT,
+		IN cust_id BIGINT,
+		IN cust_tier SMALLINT,
+		IN is_lifo SMALLINT,
+		IN issue CHAR(6),
+		IN st_pending_id VARCHAR(10),
+		IN st_submitted_id VARCHAR(10),
+		IN tax_status SMALLINT,
+		IN trade_qty INTEGER,
+		IN trade_type_id CHAR(3),
+		IN type_is_margin SMALLINT,
+		INOUT co_name VARCHAR(60),
+		INOUT requested_price NUMERIC(8, 2),
+		INOUT symbol CHAR(15),
+		OUT buy_value NUMERIC(8, 2),
+		OUT charge_amount NUMERIC(10, 2),
+		OUT comm_rate NUMERIC(5, 2),
+		OUT cust_assets NUMERIC(8, 2),
+		OUT market_price NUMERIC(8, 2),
+		OUT s_name VARCHAR(70),
+		OUT sell_value NUMERIC(8, 2),
+		OUT status INTEGER,
+		OUT status_id VARCHAR(10),
+		OUT tax_amount NUMERIC(8, 2),
+		OUT type_is_market SMALLINT,
+		OUT type_is_sell SMALLINT)
+RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeOrderFrame3'
+LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION TradeOrderFrame4 (
+		IN acct_id BIGINT,
+		IN broker_id BIGINT,
+		IN charge_amount NUMERIC(10, 2),
+		IN comm_amount NUMERIC(10, 2),
+		IN exec_name VARCHAR(64),
+		IN is_cash SMALLINT,
+		IN is_lifo SMALLINT,
+		IN requested_price NUMERIC(8, 2),
+		IN status_id VARCHAR(10),
+		IN symbol CHAR(15),
+		IN trade_qty INTEGER,
+		IN trade_type_id CHAR(3),
+		IN type_is_market SMALLINT,
+		OUT status INTEGER,
+		OUT trade_id BIGINT)
+RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeOrderFrame4'
+LANGUAGE C IMMUTABLE STRICT;
