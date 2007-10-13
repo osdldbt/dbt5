@@ -16,6 +16,8 @@
 #include <funcapi.h> /* for returning set of rows in order_status */
 #include <utils/numeric.h>
 
+#include "frame.h"
+
 #define TOF1_1 \
 		"SELECT ca_name, ca_b_id, ca_c_id, ca_tax_st\n" \
 		"FROM customer_account\n" \
@@ -161,8 +163,6 @@ void dump_tof3_inputs(int, int, int, int, char *, char *, char *, int, int,
 void dump_tof4_inputs(int, int, double, char *, int, int, double, char *,
 		char *, int, char *, int);
 
-void fail_frame(unsigned int *, char *, char *);
-
 Datum TradeOrderFrame1(PG_FUNCTION_ARGS);
 Datum TradeOrderFrame2(PG_FUNCTION_ARGS);
 Datum TradeOrderFrame3(PG_FUNCTION_ARGS);
@@ -232,13 +232,6 @@ void dump_tof4_inputs(int acct_id, int broker_id, double charge_amount,
 	elog(NOTICE, "TOF4: trade_type_id %s", trade_type_id);
 	elog(NOTICE, "TOF4: type_is_market %d", type_is_market);
 	elog(NOTICE, "TOF4: INPUTS END");
-}
-
-void fail_frame(unsigned int *rows, char *status, char *sql)
-{
-	elog(WARNING, "UNEXPECTED EXECUTION RESULT:\n%s", sql);
-	strcpy(status, "1");
-	*rows = 0;
 }
 
 /* Clause 3.3.7.3 */
@@ -319,7 +312,7 @@ Datum TradeOrderFrame1(PG_FUNCTION_ARGS)
 				strcpy(values[i_tax_status], SPI_getvalue(tuple, tupdesc, 4));
 			}
 		} else {
-			fail_frame(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof1_inputs(acct_id);
 		}
 
@@ -339,7 +332,7 @@ Datum TradeOrderFrame1(PG_FUNCTION_ARGS)
 				strcpy(values[i_tax_id], SPI_getvalue(tuple, tupdesc, 4));
 			}
 		} else {
-			fail_frame(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof1_inputs(acct_id);
 		}
 
@@ -356,7 +349,7 @@ Datum TradeOrderFrame1(PG_FUNCTION_ARGS)
 				strcpy(values[i_broker_name], SPI_getvalue(tuple, tupdesc, 1));
 			}
 		} else {
-			fail_frame(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof1_inputs(acct_id);
 		}
 
@@ -491,7 +484,7 @@ Datum TradeOrderFrame2(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			strcpy(values[i_ap_acl], SPI_getvalue(tuple, tupdesc, 1));
 		} else {
-			fail_frame(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof2_inputs(acct_id, exec_f_name, exec_l_name, exec_tax_id);
 		}
 
@@ -682,7 +675,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 				tuple = tuptable->vals[0];
 				strcpy(co_id, SPI_getvalue(tuple, tupdesc, 1));
 			} else {
-				fail_frame(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
 						st_pending_id, st_submitted_id, tax_status, trade_qty,
 						trade_type_id, type_is_margin, co_name, requested_price,
@@ -702,7 +695,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 				strcpy(values[i_s_name], SPI_getvalue(tuple, tupdesc, 2));
 				strcpy(values[i_symbol], SPI_getvalue(tuple, tupdesc, 3));
 			} else {
-				fail_frame(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
 						st_pending_id, st_submitted_id, tax_status, trade_qty,
 						trade_type_id, type_is_margin, co_name, requested_price,
@@ -723,7 +716,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 				strcpy(exch_id, SPI_getvalue(tuple, tupdesc, 2));
 				strcpy(values[i_s_name], SPI_getvalue(tuple, tupdesc, 3));
 			} else {
-				fail_frame(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
 						st_pending_id, st_submitted_id, tax_status, trade_qty,
 						trade_type_id, type_is_margin, co_name, requested_price,
@@ -741,7 +734,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 				tuple = tuptable->vals[0];
 				strcpy(values[i_co_name], SPI_getvalue(tuple, tupdesc, 1));
 			} else {
-				fail_frame(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
 						st_pending_id, st_submitted_id, tax_status, trade_qty,
 						trade_type_id, type_is_margin, co_name, requested_price,
@@ -760,7 +753,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			strcpy(values[i_market_price], SPI_getvalue(tuple, tupdesc, 1));
 		} else {
-			fail_frame(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
 					st_pending_id, st_submitted_id, tax_status, trade_qty,
 					trade_type_id, type_is_margin, co_name, requested_price,
@@ -779,7 +772,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 			strcpy(values[i_type_is_market], SPI_getvalue(tuple, tupdesc, 1));
 			strcpy(values[i_type_is_sell], SPI_getvalue(tuple, tupdesc, 2));
 		} else {
-			fail_frame(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
 					st_pending_id, st_submitted_id, tax_status, trade_qty,
 					trade_type_id, type_is_margin, co_name, requested_price,
@@ -802,7 +795,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			hs_qty = atoi(SPI_getvalue(tuple, tupdesc, 1));
 		} else {
-			fail_frame(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
 					st_pending_id, st_submitted_id, tax_status, trade_qty,
 					trade_type_id, type_is_margin, co_name, requested_price,
@@ -825,7 +818,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
 			} else {
-				fail_frame(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
 						st_pending_id, st_submitted_id, tax_status, trade_qty,
 						trade_type_id, type_is_margin, co_name, requested_price,
@@ -868,7 +861,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 					tuptable = SPI_tuptable;
 					rows = SPI_processed;
 				} else {
-					fail_frame(&funcctx->max_calls, values[i_status], sql);
+					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 					dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo,
 							issue, st_pending_id, st_submitted_id, tax_status,
 							trade_qty, trade_type_id, type_is_margin, co_name,
@@ -913,7 +906,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 				tax_amount = (sell_value - buy_value) *
 						atof(SPI_getvalue(tuple, tupdesc, 1));
 			} else {
-				fail_frame(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
 						st_pending_id, st_submitted_id, tax_status, trade_qty,
 						trade_type_id, type_is_margin, co_name, requested_price,
@@ -934,7 +927,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			strcpy(values[i_comm_rate], SPI_getvalue(tuple, tupdesc, 1));
 		} else {
-			fail_frame(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
 					st_pending_id, st_submitted_id, tax_status, trade_qty,
 					trade_type_id, type_is_margin, co_name, requested_price,
@@ -952,7 +945,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			strcpy(values[i_charge_amount], SPI_getvalue(tuple, tupdesc, 1));
 		} else {
-			fail_frame(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
 					st_pending_id, st_submitted_id, tax_status, trade_qty,
 					trade_type_id, type_is_margin, co_name, requested_price,
@@ -973,7 +966,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 				tuple = tuptable->vals[0];
 				acct_bal = atof(SPI_getvalue(tuple, tupdesc, 1));
 			} else {
-				fail_frame(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
 						st_pending_id, st_submitted_id, tax_status, trade_qty,
 						trade_type_id, type_is_margin, co_name, requested_price,
@@ -996,7 +989,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 					sprintf(values[i_cust_assets], "%8.2f", acct_bal);
 				}
 			} else {
-				fail_frame(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
 						st_pending_id, st_submitted_id, tax_status, trade_qty,
 						trade_type_id, type_is_margin, co_name, requested_price,
@@ -1167,7 +1160,7 @@ Datum TradeOrderFrame4(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
 		if (ret != SPI_OK_INSERT_RETURNING) {
-			fail_frame(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof4_inputs(acct_id, broker_id, charge_amount, exec_name,
 					is_cash, is_lifo, requested_price, status_id, symbol,
 					trade_qty, trade_type_id, type_is_market);
@@ -1190,7 +1183,7 @@ Datum TradeOrderFrame4(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			ret = SPI_exec(sql, 0);
 			if (ret != SPI_OK_INSERT) {
-				fail_frame(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tof4_inputs(acct_id, broker_id, charge_amount, exec_name,
 						is_cash, is_lifo, requested_price, status_id, symbol,
 						trade_qty, trade_type_id, type_is_market);
@@ -1203,7 +1196,7 @@ Datum TradeOrderFrame4(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
 		if (ret != SPI_OK_INSERT) {
-			fail_frame(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof4_inputs(acct_id, broker_id, charge_amount, exec_name,
 					is_cash, is_lifo, requested_price, status_id, symbol,
 					trade_qty, trade_type_id, type_is_market);
