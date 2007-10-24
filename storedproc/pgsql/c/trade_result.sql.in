@@ -1,0 +1,89 @@
+/*
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
+ *
+ * Copyright (C) 2007 Mark Wong
+ */
+
+CREATE OR REPLACE FUNCTION TradeResultFrame1 (
+		IN trade_id BIGINT,
+		OUT acct_id BIGINT,
+		OUT charge NUMERIC(10, 2),
+		OUT hs_qty INTEGER,
+		OUT is_lifo SMALLINT,
+		OUT status INTEGER,
+		OUT symbol CHAR(15),
+		OUT trade_is_cash SMALLINT,
+		OUT trade_qty INTEGER,
+		OUT type_id CHAR(3),
+		OUT type_is_market SMALLINT,
+		OUT type_is_sell SMALLINT,
+		OUT type_name CHAR(12))
+RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeResultFrame1'
+LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION TradeResultFrame2 (
+		IN acct_id BIGINT,
+		IN hs_qty INTEGER,
+		IN is_lifo SMALLINT,
+		IN symbol CHAR(15),
+		IN trade_id BIGINT,
+		IN trade_price NUMERIC(8, 2),
+		IN trade_qty INTEGER,
+		IN type_is_sell SMALLINT,
+		OUT broker_id BIGINT,
+		OUT buy_value NUMERIC(8, 2),
+		OUT cust_id BIGINT,
+		OUT sell_value NUMERIC(8, 2),
+		OUT status INTEGER,
+		OUT tax_status SMALLINT,
+		OUT trade_dts TIMESTAMP)
+RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeResultFrame2'
+LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION TradeResultFrame3 (
+		IN buy_value NUMERIC(8, 2),
+		IN cust_id BIGINT,
+		IN sell_value NUMERIC(8, 2),
+		IN trade_id BIGINT,
+		OUT status INTEGER,
+		OUT tax_amount NUMERIC(8, 2))
+RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeResultFrame3'
+LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION TradeResultFrame4 (
+		IN cust_id BIGINT,
+		IN symbol CHAR(15),
+		IN trade_qty INTEGER,
+		IN type_id CHAR(3),
+		OUT comm_rate NUMERIC(5, 2),
+		OUT s_name VARCHAR(70),
+		OUT status INTEGER)
+RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeResultFrame4'
+LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION TradeResultFrame5 (
+		IN broker_id BIGINT,
+		IN comm_amount NUMERIC(5, 2),
+		IN st_completed_id CHAR(4),
+		IN trade_dts TIMESTAMP,
+		IN trade_id BIGINT,
+		IN trade_price NUMERIC(8, 2),
+		OUT status INTEGER)
+RETURNS INTEGER AS 'MODULE_PATHNAME', 'TradeResultFrame5'
+LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION TradeResultFrame6 (
+		IN acct_id BIGINT,
+		IN due_date TIMESTAMP,
+		IN s_name VARCHAR(70),
+		IN se_amount NUMERIC(10, 2),
+		IN trade_dts TIMESTAMP,
+		IN trade_id BIGINT,
+		IN trade_is_cash SMALLINT,
+		IN trade_qty INTEGER,
+		IN type_name CHAR(12),
+		OUT acct_bal NUMERIC(12, 2),
+		OUT status INTEGER)
+RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeResultFrame6'
+LANGUAGE C IMMUTABLE STRICT;

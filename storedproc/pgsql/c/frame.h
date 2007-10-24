@@ -15,4 +15,35 @@
 		strcpy(status, "1"); \
 		*rows = 0;
 
+#define FAIL_FRAME2(status, sql) \
+		elog(WARNING, "UNEXPECTED EXECUTION RESULT:\n%s", sql); \
+		status = 1;
+
+/* PostgreSQL types */
+#define BIGINT_LEN 10
+#define INTEGER_LEN 5
+#define SMALLINT_LEN 3
+
+/* Domains */
+#define BALANCE_T_LEN 14
+#define S_PRICE_T_LEN 10
+#define VALUE_T_LEN 12
+
+/* Table column sizes */
+
+#define CR_RATE_LEN 7
+
+#define S_EX_ID_LEN 6
+#define S_NAME_LEN 70
+#define S_SYMB_LEN 15
+
+#define T_ST_ID_LEN 4
+
+#define TT_ID_LEN 3
+#define TT_NAME_LEN 12
+
+#define STATUS_LEN 1
+
+#define USE_ISO_DATES 1
+
 #endif /* _FRAME_H_ */
