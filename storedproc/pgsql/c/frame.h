@@ -31,12 +31,22 @@
 
 /* Table column sizes */
 
+#define B_NAME_LEN 100
+
+#define C_F_NAME_LEN 30
+#define C_L_NAME_LEN 30
+
 #define CR_RATE_LEN 7
+
+#define EX_NAME_LEN 100
 
 #define S_EX_ID_LEN 6
 #define S_NAME_LEN 70
 #define S_SYMB_LEN 15
 
+#define ST_NAME_LEN 10
+
+#define T_EXEC_NAME_LEN 64
 #define T_ST_ID_LEN 4
 
 #define TT_ID_LEN 3
