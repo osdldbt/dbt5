@@ -1,0 +1,85 @@
+/*
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
+ *
+ * Copyright (C) 2007 Mark Wong
+ */
+
+CREATE OR REPLACE FUNCTION TradeUpdateFrame1 (
+		IN max_trades INTEGER,
+		IN max_updates INTEGER,
+		IN trade_id BIGINT[],
+		OUT bid_price NUMERIC(8,2)[],
+		OUT cash_transaction_amount NUMERIC(10,2)[],
+		OUT cash_transaction_dts TIMESTAMP[],
+		OUT cash_transaction_name VARCHAR(100)[],
+		OUT exec_name VARCHAR(64)[],
+		OUT is_cash SMALLINT[],
+		OUT is_market SMALLINT[],
+		OUT num_found INTEGER,
+		OUT num_updated INTEGER,
+		OUT settlement_amount NUMERIC(10,2)[],
+		OUT settlement_cash_due_date TIMESTAMP[],
+		OUT settlement_cash_type VARCHAR(40)[],
+		OUT status INTEGER,
+		OUT trade_history_dts TIMESTAMP[],
+		OUT trade_history_status_id CHAR(4)[],
+		OUT trade_price NUMERIC(8,2)[])
+RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeUpdateFrame1'
+LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION TradeUpdateFrame2 (
+		IN acct_id BIGINT,
+		IN end_trade_dts TIMESTAMP,
+		IN max_trades INTEGER,
+		IN max_updates INTEGER,
+		IN start_trade_dts TIMESTAMP,
+		OUT bid_price NUMERIC(8,2)[],
+		OUT cash_transaction_amount NUMERIC(10,2)[],
+		OUT cash_transaction_dts TIMESTAMP[],
+		OUT cash_transaction_name VARCHAR(100)[],
+		OUT exec_name VARCHAR(64)[],
+		OUT is_cash SMALLINT[],
+		OUT num_found INTEGER,
+		OUT num_updated INTEGER,
+		OUT settlement_amount NUMERIC(10,2)[],
+		OUT settlement_cash_due_date TIMESTAMP[],
+		OUT settlement_cash_type VARCHAR(40)[],
+		OUT status INTEGER,
+		OUT trade_history_dts TIMESTAMP[],
+		OUT trade_history_status_id CHAR(4)[],
+		OUT trade_list BIGINT[],
+		OUT trade_price NUMERIC(8,2)[])
+RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeUpdateFrame2'
+LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION TradeUpdateFrame3 (
+		IN end_trade_dts TIMESTAMP,
+		IN max_acct_id BIGINT,
+		IN max_trades INTEGER,
+		IN max_updates INTEGER,
+		IN start_trade_dts TIMESTAMP,
+		IN symbol CHAR(15),
+		OUT acct_id BIGINT[],
+		OUT cash_transaction_amount NUMERIC(10,2)[],
+		OUT cash_transaction_dts TIMESTAMP[],
+		OUT cash_transaction_name VARCHAR(100)[],
+		OUT exec_name VARCHAR(64)[],
+		OUT is_cash SMALLINT[],
+		OUT num_found INTEGER,
+		OUT num_updated INTEGER,
+		OUT price NUMERIC(8,2)[],
+		OUT quantity INTEGER[],
+		OUT s_name VARCHAR(70)[],
+		OUT settlement_amount NUMERIC(10,2)[],
+		OUT settlement_cash_due_date TIMESTAMP[],
+		OUT settlement_cash_type VARCHAR(40)[],
+		OUT status INTEGER,
+		OUT trade_dts TIMESTAMP[],
+		OUT trade_history_dts TIMESTAMP[],
+		OUT trade_history_status_id CHAR(4)[],
+		OUT trade_list BIGINT[],
+		OUT type_name CHAR(12)[],
+		OUT trade_type CHAR(3)[])
+RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeUpdateFrame3'
+LANGUAGE C IMMUTABLE STRICT;

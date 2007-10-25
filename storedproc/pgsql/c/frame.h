@@ -38,11 +38,15 @@
 
 #define CR_RATE_LEN 7
 
+#define CT_NAME_LEN 100
+
 #define EX_NAME_LEN 100
 
 #define S_EX_ID_LEN 6
 #define S_NAME_LEN 70
 #define S_SYMB_LEN 15
+
+#define SE_CASH_TYPE_LEN 40
 
 #define ST_NAME_LEN 10
 
