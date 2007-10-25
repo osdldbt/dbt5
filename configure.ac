@@ -95,11 +95,13 @@ fi
 AC_ARG_ENABLE(debug, "Build with DEBUG symbol.", [enable_debug="yes"],
     [enable_debug="no"])
 
-if test "$enable_debug" == "yes"; then
-  CFLAGS_DEBUG="-DDEBUG"
-  CFLAGS="$CFLAGS $CFLAGS_DEBUG"
-  AC_SUBST(CFLAGS_DEBUG)
+DEBUG_FLAG=
+if test "$enable_debug" = "yes"; then
+  DEBUG_FLAG="-DDEBUG"
+  CFLAGS="$CFLAGS $DEBUG_FLAG"
+  CPPFLAGS="$CPPFLAGS $DEBUG_FLAG"
 fi
+AC_SUBST(DEBUG_FLAG)
 
 dnl
 dnl Database related configuration.

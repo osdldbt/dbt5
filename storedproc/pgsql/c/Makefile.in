@@ -4,5 +4,6 @@ DATA_built = broker_volume.sql customer_position.sql market_feed.sql \
 		market_watch.sql security_detail.sql trade_lookup.sql trade_order.sql \
 		trade_result.sql trade_status.sql
 
+PG_CPPFLAGS=@DEBUG_FLAG@
 PGXS := $(shell @BINDIR@/pg_config --pgxs)
 include $(PGXS)
