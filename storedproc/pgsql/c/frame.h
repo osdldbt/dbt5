@@ -31,10 +31,17 @@
 
 /* Table column sizes */
 
+#define AD_LINE2_LEN 80
+
+#define AP_ACL_LEN 4
+
 #define B_NAME_LEN 100
 
+#define C_EMAIL_2_LEN 50
 #define C_F_NAME_LEN 30
 #define C_L_NAME_LEN 30
+
+#define CO_SP_RATE_LEN 5
 
 #define CR_RATE_LEN 7
 
@@ -55,6 +62,9 @@
 
 #define TT_ID_LEN 3
 #define TT_NAME_LEN 12
+
+#define TX_ID_LEN 4
+#define TX_NAME_LEN 50
 
 #define STATUS_LEN 1
 
