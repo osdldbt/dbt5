@@ -11,12 +11,14 @@
 #define _FRAME_H_
 
 #define FAIL_FRAME(rows, status, sql) \
-		elog(WARNING, "UNEXPECTED EXECUTION RESULT:\n%s", sql); \
+		elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", \
+				__FILE__, __LINE__, sql); \
 		strcpy(status, "1"); \
 		*rows = 0;
 
 #define FAIL_FRAME2(status, sql) \
-		elog(WARNING, "UNEXPECTED EXECUTION RESULT:\n%s", sql); \
+		elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", \
+				__FILE__, __LINE__, sql); \
 		status = 1;
 
 /* PostgreSQL types */
