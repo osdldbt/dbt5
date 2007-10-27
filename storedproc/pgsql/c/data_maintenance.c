@@ -588,8 +588,12 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 
 		if ((p = strstr(tx_name, " Tax ")) > 0) {
 			p[1] = 't';
-		} else {
+		} else if ((p = strstr(tx_name, " tax ")) > 0) {
 			p[1] = 'T';
+		} else {
+			FAIL_FRAME2(status, sql);
+			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
+					table_name, tx_id, vol_incr);
 		}
 
 #ifdef DEBUG
