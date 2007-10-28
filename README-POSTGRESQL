@@ -2,6 +2,13 @@ libpqxx-2.6 or newer is required.
 
 -----
 
+When building the stored procedures, you need to have the path to the
+PostgreSQL installation you want to test first in your $PATH environment
+variable.  The PGXS stuff uses your $PATH over the path set with the
+--with-postgresql flag used for configure for some reason.
+
+-----
+
 The EGen Makefile needs to be edited to include the database libraries in order
 to load the database.  Here is an example:
 
