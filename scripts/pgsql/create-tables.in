@@ -3,10 +3,10 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2002-2007 Mark Wong & Open Source Development Labs, Inc.
 #
 # 2006 Rilson Nascimento
-# based on TPC-Benchmark E Specification, Revision 0.32
+# Based on TPC Benchmark (TM) E Specification, Revision 1.3.0.
 
 TOPDIR="@abs_top_srcdir@"
 source ${TOPDIR}/scripts/dbt5_profile || exit 1
@@ -232,19 +232,27 @@ fi
 
 # Creating sequence for Trade tables, t_id field
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE SEQUENCE seq_trade_id;" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} \
+		-c "CREATE SEQUENCE seq_trade_id;" || exit 1
 
 # Creating domains to meta-type definitions (clause 2.2.3)
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE DOMAIN S_COUNT_T AS BIGINT;" || exit 1
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE DOMAIN IDENT_T AS BIGINT NULL;" || exit 1
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE DOMAIN TRADE_T AS BIGINT NULL;" || exit 1
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE DOMAIN BALANCE_T AS NUMERIC(12,2);" || exit 1
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE DOMAIN S_PRICE_T AS NUMERIC(8,2);" || exit 1
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE DOMAIN S_QTY_T AS INTEGER NULL;" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} \
+		-c "CREATE DOMAIN S_COUNT_T AS BIGINT;" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} \
+		-c "CREATE DOMAIN IDENT_T AS BIGINT NULL;" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} \
+		-c "CREATE DOMAIN TRADE_T AS BIGINT NULL;" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} \
+		-c "CREATE DOMAIN BALANCE_T AS NUMERIC(12,2);" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} \
+		-c "CREATE DOMAIN S_PRICE_T AS NUMERIC(8,2);" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} \
+		-c "CREATE DOMAIN S_QTY_T AS INTEGER NULL;" || exit 1
 ${PSQL} -p ${PORT} -e -d ${DBNAME} \
 		-c "CREATE DOMAIN VALUE_T AS NUMERIC(10,2) NULL;" || exit 1
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE DOMAIN FIN_AGG_T AS NUMERIC(15,2) NOT NULL;" || exit 1
+${PSQL} -p ${PORT} -e -d ${DBNAME} \
+		-c "CREATE DOMAIN FIN_AGG_T AS NUMERIC(15,2) NOT NULL;" || exit 1
 
 # Note: when the specification states CHAR(n), the implementer can choose 
 #       whether it pads strings with spaces to always have the maximum length,
@@ -255,8 +263,8 @@ ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "CREATE DOMAIN FIN_AGG_T AS NUMERIC(15,2) 
 # Clause 2.2.5.1
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE account_permission (
-    ap_ca_id IDENT_T,
-    ap_acl char(4) NOT NULL,
+    ap_ca_id IDENT_T NOT NULL,
+    ap_acl CHAR(4) NOT NULL,
     ap_tax_id VARCHAR(20) NOT NULL,
     ap_l_name VARCHAR(30) NOT NULL,
     ap_f_name VARCHAR(30) NOT NULL)
@@ -266,28 +274,28 @@ CREATE TABLE account_permission (
 # Clause 2.2.5.2
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE customer (
-    c_id IDENT_T,
+    c_id IDENT_T NOT NULL,
     c_tax_id VARCHAR(20) NOT NULL,
-    c_st_id char(4) NOT NULL,
+    c_st_id CHAR(4) NOT NULL,
     c_l_name VARCHAR(30) NOT NULL,
     c_f_name VARCHAR(30) NOT NULL,
-    c_m_name char(1),
-    c_gndr char(1),
+    c_m_name CHAR(1),
+    c_gndr CHAR(1),
     c_tier SMALLINT NOT NULL,
-    c_dob TIMESTAMP NOT NULL,
-    c_ad_id IDENT_T,
-    c_ctry_1 char(3),
-    c_area_1 char(3),
-    c_local_1 char(10),
-    c_ext_1 char(5),
-    c_ctry_2 char(3),
-    c_area_2 char(3),
-    c_local_2 char(10),
-    c_ext_2 char(5),
-    c_ctry_3 char(3),
-    c_area_3 char(3),
-    c_local_3 char(10),
-    c_ext_3 char(5),
+    c_dob DATE NOT NULL,
+    c_ad_id IDENT_T NOT NULL,
+    c_ctry_1 CHAR(3),
+    c_area_1 CHAR(3),
+    c_local_1 CHAR(10),
+    c_ext_1 CHAR(5),
+    c_ctry_2 CHAR(3),
+    c_area_2 CHAR(3),
+    c_local_2 CHAR(10),
+    c_ext_2 CHAR(5),
+    c_ctry_3 CHAR(3),
+    c_area_3 CHAR(3),
+    c_local_3 CHAR(10),
+    c_ext_3 CHAR(5),
     c_email_1 VARCHAR(50),
     c_email_2 VARCHAR(50))
     ${TS_CUSTOMER};
@@ -296,67 +304,67 @@ CREATE TABLE customer (
 # Clause 2.2.5.3
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE customer_account (
-    ca_id IDENT_T,
-    ca_b_id IDENT_T,
-    ca_c_id IDENT_T,
+    ca_id IDENT_T NOT NULL,
+    ca_b_id IDENT_T NOT NULL,
+    ca_c_id IDENT_T NOT NULL,
     ca_name VARCHAR(50),
     ca_tax_st SMALLINT NOT NULL,
-    ca_bal BALANCE_T)
+    ca_bal BALANCE_T NOT NULL)
     ${TS_CUSTOMER_ACCOUNT};
 " || exit 1
 
 # Clause 2.2.5.4
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE customer_taxrate (
-    cx_tx_id char(4) NOT NULL,
-    cx_c_id IDENT_T)
+    cx_tx_id CHAR(4) NOT NULL,
+    cx_c_id IDENT_T NOT NULL)
     ${TS_CUSTOMER_TAXRATE};
 " || exit 1
 
 # Clause 2.2.5.5
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE holding (
-    h_t_id TRADE_T,
-    h_ca_id IDENT_T,
-    h_s_symb char(15) NOT NULL,
+    h_t_id TRADE_T NOT NULL,
+    h_ca_id IDENT_T NOT NULL,
+    h_s_symb CHAR(15) NOT NULL,
     h_dts TIMESTAMP NOT NULL,
     h_price S_PRICE_T NOT NULL CHECK (h_price > 0),
-    h_qty S_QTY_T)
+    h_qty S_QTY_T NOT NULL)
     ${TS_HOLDING};
 " || exit 1
 
 # Clause 2.2.5.6
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE holding_history (
-    hh_h_t_id TRADE_T,
-    hh_t_id TRADE_T,
-    hh_before_qty S_QTY_T,
-    hh_after_qty S_QTY_T)
+    hh_h_t_id TRADE_T NOT NULL,
+    hh_t_id TRADE_T NOT NULL,
+    hh_before_qty S_QTY_T NOT NULL,
+    hh_after_qty S_QTY_T NOT NULL)
     ${TS_HOLDING_HISTORY};
 " || exit 1
 
 # Clause 2.2.5.7
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE holding_summary (
-    hs_ca_id IDENT_T,
-    hs_s_symb char(15) NOT NULL,
-    hs_qty S_QTY_T)
+    hs_ca_id IDENT_T NOT NULL,
+    hs_s_symb CHAR(15) NOT NULL,
+    hs_qty S_QTY_T NOT NULL)
     ${TS_HOLDING_SUMMARY};
 " || exit 1
 
 # Clause 2.2.5.8
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE watch_item (
-    wi_wl_id IDENT_T,
-    wi_s_symb char(15) NOT NULL)
+    wi_wl_id IDENT_T NOT NULL,
+    wi_s_symb CHAR(15) NOT NULL)
     ${TS_WATCH_ITEM};
 " || exit 1
 
 # Clause 2.2.5.9
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE watch_list (
-    wl_id IDENT_T,
-    wl_c_id IDENT_T)
+    wl_id IDENT_T NOT NULL,
+    wl_c_id IDENT_T NOT NULL)
     ${TS_WATCH_LIST};
 " || exit 1
 
@@ -365,20 +373,20 @@ CREATE TABLE watch_list (
 # Clause 2.2.6.1
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE broker (
-    b_id IDENT_T,
-    b_st_id char(4) NOT NULL,
+    b_id IDENT_T NOT NULL,
+    b_st_id CHAR(4) NOT NULL,
     b_name VARCHAR(100) NOT NULL,
     b_num_trades INTEGER NOT NULL,
-    b_comm_total BALANCE_T)
+    b_comm_total BALANCE_T NOT NULL)
     ${TS_BROKER};
 " || exit 1
 
 # Clause 2.2.6.2
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE cash_transaction (
-    ct_t_id TRADE_T,
+    ct_t_id TRADE_T NOT NULL,
     ct_dts TIMESTAMP NOT NULL,
-    ct_amt VALUE_T,
+    ct_amt VALUE_T NOT NULL,
     ct_name VARCHAR(100))
     ${TS_CASH_TRANSACTION};
 " || exit 1
@@ -386,7 +394,7 @@ CREATE TABLE cash_transaction (
 # Clause 2.2.6.3
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE charge (
-    ch_tt_id char(3) NOT NULL,
+    ch_tt_id CHAR(3) NOT NULL,
     ch_c_tier SMALLINT,
     ch_chrg VALUE_T CHECK (ch_chrg > 0))
     ${TS_CHARGE};
@@ -395,74 +403,74 @@ CREATE TABLE charge (
 # Clause 2.2.6.4
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE commission_rate (
-    cr_c_tier SMALLINT,
-    cr_tt_id char(3) NOT NULL,
-    cr_ex_id char(6) NOT NULL,
-    cr_from_qty S_QTY_T CHECK (cr_from_qty >= 0),
-    cr_to_qty S_QTY_T CHECK (cr_to_qty > cr_from_qty),
-    cr_rate NUMERIC(5,2) NOT NULL CHECK (cr_rate >= 0))
+    cr_c_tier SMALLINT NOT NULL,
+    cr_tt_id CHAR(3) NOT NULL,
+    cr_ex_id CHAR(6) NOT NULL,
+    cr_from_qty S_QTY_T NOT NULL CHECK (cr_from_qty >= 0) NOT NULL,
+    cr_to_qty S_QTY_T NOT NULL CHECK (cr_to_qty > cr_from_qty),
+    cr_rate NUMERIC(5, 2) NOT NULL CHECK (cr_rate >= 0))
     ${TS_COMMISSION_RATE};
 " || exit 1
 
 # Clause 2.2.6.5
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE settlement (
-    se_t_id TRADE_T,
+    se_t_id TRADE_T NOT NULL,
     se_cash_type VARCHAR(40) NOT NULL,
-    se_cash_due_date TIMESTAMP NOT NULL,
-    se_amt VALUE_T)
+    se_cash_due_date DATE NOT NULL,
+    se_amt VALUE_T NOT NULL)
     ${TS_SETTLEMENT};
 " || exit 1
 
 # Clause 2.2.6.6
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE trade (
-    t_id TRADE_T,
+    t_id TRADE_T NOT NULL,
     t_dts TIMESTAMP NOT NULL,
-    t_st_id char(4) NOT NULL,
-    t_tt_id char(3) NOT NULL,
-    t_is_cash smallint NOT NULL,
-    t_s_symb char(15) NOT NULL,
-    t_qty S_QTY_T CHECK (t_qty > 0),
+    t_st_id CHAR(4) NOT NULL,
+    t_tt_id CHAR(3) NOT NULL,
+    t_is_cash BOOLEAN NOT NULL,
+    t_s_symb CHAR(15) NOT NULL,
+    t_qty S_QTY_T NOT NULL CHECK (t_qty > 0),
     t_bid_price S_PRICE_T NOT NULL CHECK (t_bid_price > 0),
-    t_ca_id IDENT_T,
+    t_ca_id IDENT_T NOT NULL,
     t_exec_name VARCHAR(64) NOT NULL,
     t_trade_price S_PRICE_T,
-    t_chrg VALUE_T CHECK (t_chrg >= 0),
-    t_comm VALUE_T CHECK (t_comm >= 0),
-    t_tax VALUE_T CHECK (t_tax >= 0),
-    t_lifo smallint NOT NULL)
+    t_chrg VALUE_T NOT NULL CHECK (t_chrg >= 0),
+    t_comm VALUE_T NOT NULL CHECK (t_comm >= 0),
+    t_tax VALUE_T NOT NULL CHECK (t_tax >= 0),
+    t_lifo BOOLEAN NOT NULL)
     ${TS_TRADE};
 " || exit 1
 
 # Clause 2.2.6.7
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE trade_history (
-    th_t_id TRADE_T,
+    th_t_id TRADE_T NOT NULL,
     th_dts TIMESTAMP NOT NULL,
-    th_st_id char(4) NOT NULL)
+    th_st_id CHAR(4) NOT NULL)
     ${TS_TRADE_HISTORY};
 " || exit 1
 
 # Clause 2.2.6.8
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE trade_request (
-    tr_t_id TRADE_T,
-    tr_tt_id char(3) NOT NULL,
-    tr_s_symb char(15) NOT NULL,
-    tr_qty S_QTY_T CHECK (tr_qty > 0),
+    tr_t_id TRADE_T NOT NULL,
+    tr_tt_id CHAR(3) NOT NULL,
+    tr_s_symb CHAR(15) NOT NULL,
+    tr_qty S_QTY_T NOT NULL CHECK (tr_qty > 0),
     tr_bid_price S_PRICE_T NOT NULL CHECK (tr_bid_price > 0),
-    tr_ca_id IDENT_T)
+    tr_ca_id IDENT_T NOT NULL)
     ${TS_TRADE_REQUEST};
 " || exit 1
 
 # Clause 2.2.6.9
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE trade_type (
-    tt_id char(3) NOT NULL,
-    tt_name char(12) NOT NULL,
-    tt_is_sell smallint NOT NULL,
-    tt_is_mrkt smallint NOT NULL)
+    tt_id CHAR(3) NOT NULL,
+    tt_name CHAR(12) NOT NULL,
+    tt_is_sell BOOLEAN NOT NULL,
+    tt_is_mrkt BOOLEAN NOT NULL)
     ${TS_TRADE_TYPE};
 " || exit 1
 
@@ -471,85 +479,85 @@ CREATE TABLE trade_type (
 # Clause 2.2.7.1
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE company (
-    co_id IDENT_T,
-    co_st_id char(4) NOT NULL,
+    co_id IDENT_T NOT NULL,
+    co_st_id CHAR(4) NOT NULL,
     co_name VARCHAR(60) NOT NULL,
-    co_in_id char(2) NOT NULL,
-    co_sp_rate char(4) NOT NULL,
+    co_in_id CHAR(2) NOT NULL,
+    co_sp_rate CHAR(4) NOT NULL,
     co_ceo VARCHAR(100) NOT NULL,
-    co_ad_id IDENT_T,
+    co_ad_id IDENT_T NOT NULL,
     co_desc VARCHAR(150) NOT NULL,
-    co_open_date TIMESTAMP NOT NULL)
+    co_open_date DATE NOT NULL)
     ${TS_COMPANY};
 " || exit 1
 
 # Clause 2.2.7.2
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE company_competitor (
-    cp_co_id IDENT_T,
-    cp_comp_co_id IDENT_T,
-    cp_in_id char(2) NOT NULL)
+    cp_co_id IDENT_T NOT NULL,
+    cp_comp_co_id IDENT_T NOT NULL,
+    cp_in_id CHAR(2) NOT NULL)
     ${TS_COMPANY_COMPETITOR};
 " || exit 1
 
 # Clause 2.2.7.3
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE daily_market (
-    dm_date TIMESTAMP NOT NULL,
-    dm_s_symb char(15) NOT NULL,
+    dm_date DATE NOT NULL,
+    dm_s_symb CHAR(15) NOT NULL,
     dm_close S_PRICE_T NOT NULL,
     dm_high S_PRICE_T NOT NULL,
     dm_low S_PRICE_T NOT NULL,
-    dm_vol S_COUNT_T)
+    dm_vol S_COUNT_T NOT NULL)
     ${TS_DAILY_MARKET};
 " || exit 1
 
 # Clause 2.2.7.4
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE exchange (
-    ex_id char(6) NOT NULL,
+    ex_id CHAR(6) NOT NULL,
     ex_name VARCHAR(100) NOT NULL,
     ex_num_symb INTEGER NOT NULL,
-    ex_open SMALLINT NOT NULL,
-    ex_close SMALLINT NOT NULL,
+    ex_open INTEGER NOT NULL,
+    ex_close INTEGER NOT NULL,
     ex_desc VARCHAR(150),
-    ex_ad_id IDENT_T)
+    ex_ad_id IDENT_T NOT NULL)
     ${TS_EXCHANGE};
 " || exit 1
 
 # Clause 2.2.7.5
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE financial (
-    fi_co_id IDENT_T,
-    fi_year SMALLINT NOT NULL,
-    fi_qtr SMALLINT,
-    fi_qtr_start_date TIMESTAMP NOT NULL,
-    fi_revenue FIN_AGG_T,
-    fi_net_earn FIN_AGG_T,
-    fi_basic_eps VALUE_T,
-    fi_dilut_eps VALUE_T,
-    fi_margin VALUE_T,
-    fi_inventory FIN_AGG_T,
-    fi_assets FIN_AGG_T,
-    fi_liability FIN_AGG_T,
-    fi_out_basic S_COUNT_T,
-    fi_out_dilut S_COUNT_T)
+    fi_co_id IDENT_T NOT NULL,
+    fi_year INTEGER NOT NULL,
+    fi_qtr SMALLINT NOT NULL,
+    fi_qtr_start_date DATE NOT NULL,
+    fi_revenue FIN_AGG_T NOT NULL,
+    fi_net_earn FIN_AGG_T NOT NULL,
+    fi_basic_eps VALUE_T NOT NULL,
+    fi_dilut_eps VALUE_T NOT NULL,
+    fi_margin VALUE_T NOT NULL,
+    fi_inventory FIN_AGG_T NOT NULL,
+    fi_assets FIN_AGG_T NOT NULL,
+    fi_liability FIN_AGG_T NOT NULL,
+    fi_out_basic S_COUNT_T NOT NULL,
+    fi_out_dilut S_COUNT_T NOT NULL)
     ${TS_FINANCIAL};
 " || exit 1
 
 # Clause 2.2.7.6
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE industry (
-    in_id char(2) NOT NULL,
+    in_id CHAR(2) NOT NULL,
     in_name VARCHAR(50) NOT NULL,
-    in_sc_id char(2) NOT NULL)
+    in_sc_id CHAR(2) NOT NULL)
     ${TS_INDUSTRY};
 " || exit 1
 
 # Clause 2.2.7.7
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE last_trade (
-    lt_s_symb char(15) NOT NULL,
+    lt_s_symb CHAR(15) NOT NULL,
     lt_dts TIMESTAMP NOT NULL,
     lt_price S_PRICE_T NOT NULL,
     lt_open_price S_PRICE_T NOT NULL,
@@ -565,10 +573,10 @@ CREATE TABLE last_trade (
 
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE news_item (
-    ni_id IDENT_T,
+    ni_id IDENT_T NOT NULL,
     ni_headline VARCHAR(80) NOT NULL,
     ni_summary VARCHAR(255) NOT NULL,
-    ni_item text NOT NULL,
+    ni_item BYTEA NOT NULL,
     ni_dts TIMESTAMP NOT NULL,
     ni_source VARCHAR(30) NOT NULL,
     ni_author VARCHAR(30))
@@ -578,15 +586,15 @@ CREATE TABLE news_item (
 # Clause 2.2.7.9
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE news_xref (
-    nx_ni_id IDENT_T,
-    nx_co_id IDENT_T)
+    nx_ni_id IDENT_T NOT NULL,
+    nx_co_id IDENT_T NOT NULL)
     ${TS_NEWS_XREF};
 " || exit 1
 
 # Clause 2.2.7.10
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE sector (
-    sc_id char(2) NOT NULL,
+    sc_id CHAR(2) NOT NULL,
     sc_name VARCHAR(30) NOT NULL)
     ${TS_SECTOR};
 " || exit 1
@@ -594,21 +602,21 @@ CREATE TABLE sector (
 # Clause 2.2.7.11
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE security (
-    s_symb char(15) NOT NULL,
-    s_issue char(6) NOT NULL,
-    s_st_id char(4) NOT NULL,
+    s_symb CHAR(15) NOT NULL,
+    s_issue CHAR(6) NOT NULL,
+    s_st_id CHAR(4) NOT NULL,
     s_name VARCHAR(70) NOT NULL,
-    s_ex_id char(6) NOT NULL,
-    s_co_id IDENT_T,
-    s_num_out S_COUNT_T,
-    s_start_date TIMESTAMP NOT NULL,
-    s_exch_date TIMESTAMP NOT NULL,
-    s_pe VALUE_T,
-    s_52wk_high S_PRICE_T,
-    s_52wk_high_date TIMESTAMP NOT NULL,
-    s_52wk_low S_PRICE_T,
-    s_52wk_low_date TIMESTAMP NOT NULL,
-    s_dividend VALUE_T,
+    s_ex_id CHAR(6) NOT NULL,
+    s_co_id IDENT_T NOT NULL,
+    s_num_out S_COUNT_T NOT NULL,
+    s_start_date DATE NOT NULL,
+    s_exch_date DATE NOT NULL,
+    s_pe VALUE_T NOT NULL,
+    s_52wk_high S_PRICE_T NOT NULL,
+    s_52wk_high_date DATE NOT NULL,
+    s_52wk_low S_PRICE_T NOT NULL,
+    s_52wk_low_date DATE NOT NULL,
+    s_dividend VALUE_T NOT NULL,
     s_yield NUMERIC(5,2) NOT NULL)
     ${TS_SECURITY};
 " || exit 1
@@ -618,10 +626,10 @@ CREATE TABLE security (
 # Clause 2.2.8.1
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE address (
-    ad_id IDENT_T,
+    ad_id IDENT_T NOT NULL,
     ad_line1 VARCHAR(80),
     ad_line2 VARCHAR(80),
-    ad_zc_code char(12) NOT NULL,
+    ad_zc_code CHAR(12) NOT NULL,
     ad_ctry VARCHAR(80))
     ${TS_ADDRESS};
 " || exit 1
@@ -629,15 +637,15 @@ CREATE TABLE address (
 # Clause 2.2.8.2
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE status_type (
-    st_id char(4) NOT NULL,
-    st_name char(10) NOT NULL)
+    st_id CHAR(4) NOT NULL,
+    st_name CHAR(10) NOT NULL)
     ${TS_STATUS_TYPE};
 " || exit 1
 
 # Clause 2.2.8.3
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE taxrate (
-    tx_id char(4) NOT NULL,
+    tx_id CHAR(4) NOT NULL,
     tx_name VARCHAR(50) NOT NULL,
     tx_rate NUMERIC(6,5) NOT NULL CHECK (tx_rate >= 0))
     ${TS_TAXRATE};
@@ -646,7 +654,7 @@ CREATE TABLE taxrate (
 # Clause 2.2.8.4
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 CREATE TABLE zip_code (
-    zc_code char(12) NOT NULL,
+    zc_code CHAR(12) NOT NULL,
     zc_town VARCHAR(80) NOT NULL,
     zc_div VARCHAR(80) NOT NULL)
     ${TS_ZIP_CODE};
