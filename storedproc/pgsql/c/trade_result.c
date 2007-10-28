@@ -1271,7 +1271,7 @@ Datum TradeResultFrame5(PG_FUNCTION_ARGS)
 	double comm_amount;
 	double trade_price;
 	char trade_dts[MAXDATELEN + 1];
-	char st_completed_id[T_ST_ID_LEN + 1];
+	char st_completed_id[ST_ID_LEN + 1];
 
 	strcpy(st_completed_id, DatumGetCString(DirectFunctionCall1(textout,
 			PointerGetDatum(st_completed_id_p))));

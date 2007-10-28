@@ -57,10 +57,10 @@
 
 #define SE_CASH_TYPE_LEN 40
 
+#define ST_ID_LEN 4
 #define ST_NAME_LEN 10
 
 #define T_EXEC_NAME_LEN 64
-#define T_ST_ID_LEN 4
 
 #define TT_ID_LEN 3
 #define TT_NAME_LEN 12
