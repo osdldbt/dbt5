@@ -27,7 +27,7 @@ PG_MODULE_MAGIC;
 		"SELECT ap_acl\n" \
 		"FROM account_permission\n" \
 		"WHERE ap_ca_id = %ld\n" \
-		"ORDER BY AP_ACL DESC\n" \
+		"ORDER BY ap_acl DESC\n" \
 		"LIMIT 1"
 
 #define DMF1_2 \
