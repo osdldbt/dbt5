@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2007 Mark Wong
  *
- * Based on TPC-E Standard Specification Revision 1.0
+ * Based on TPC-E Standard Specification Revision 1.3.0.
  */
 
 #include <sys/types.h>
@@ -16,43 +16,22 @@
 #include <funcapi.h> /* for returning set of rows in order_status */
 #include <utils/lsyscache.h>
 
-/*
- * FIXME
- * This is part of the FROM clause and the WHERE clause from the 1.0.0 spec.
- * Why doesn't it match the database?
-...
-		"         SECURITY,\n" \
-		"         CUSTOMER_ACCOUNT\n" \
-...
-		"WHERE    TR_B_ID = B_ID\n" \
-		"         AND TR_S_SYMB = S_SYMB\n" \
-		"         AND S_CO_ID = CO_ID\n" \
-		"         AND CO_IN_ID = IN_ID\n" \
-		"         AND SC_ID = IN_SC_ID\n" \
-		"         AND B_NAME IN (%s)\n" \
-		"         AND SC_NAME = %s\n" \
-...
-*/
+#include "frame.h"
+
 #define BVF1_1 \
-		"SELECT   B_NAME,\n" \
-		"         SUM(TR_QTY * TR_BID_PRICE)\n" \
-		"FROM     TRADE_REQUEST,\n" \
-		"         SECTOR,\n" \
-		"         INDUSTRY,\n" \
-		"         COMPANY,\n" \
-		"         BROKER,\n" \
-		"         SECURITY,\n" \
-		"         CUSTOMER_ACCOUNT\n" \
-		"WHERE    TR_CA_ID = CA_ID\n" \
-		"         AND CA_B_ID = B_ID\n" \
-		"         AND TR_S_SYMB = S_SYMB\n" \
-		"         AND S_CO_ID = CO_ID\n" \
-		"         AND CO_IN_ID = IN_ID\n" \
-		"         AND SC_ID = IN_SC_ID\n" \
-		"         AND B_NAME IN (%s)\n" \
-		"         AND SC_NAME = '%s'\n" \
-		"GROUP BY B_NAME\n" \
-		"ORDER BY 2 DESC;"
+		"SELECT b_name, SUM(tr_qty * tr_bid_price)\n" \
+		"FROM trade_request, sector, industry, company, broker,\n" \
+		"     security, customer_account\n" \
+		"WHERE tr_ca_id = ca_id\n" \
+		"  AND ca_b_id = b_id\n" \
+		"  AND tr_s_symb = s_symb\n" \
+		"  AND s_co_id = co_id\n" \
+		"  AND co_in_id = in_id\n" \
+		"  AND sc_id = in_sc_id\n" \
+		"  AND b_name IN (%s)\n" \
+		"  AND sc_name = '%s'\n" \
+		"GROUP BY b_name\n" \
+		"ORDER BY 2 DESC"
 
 #ifdef PG_MODULE_MAGIC
 PG_MODULE_MAGIC;
@@ -62,6 +41,39 @@ PG_MODULE_MAGIC;
 Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(BrokerVolumeFrame1);
+
+void dump_bvf1_inputs(ArrayType *, text *);
+
+void dump_bvf1_inputs(ArrayType *broker_list_p, text *sector_name_p) {
+	int ndim, nitems;
+	int *dim;
+
+	int16 typlen;
+	bool typbyval;
+	char typalign;
+
+	int i;
+
+	char *broker_list;
+
+	ndim = ARR_NDIM(broker_list_p);
+	dim = ARR_DIMS(broker_list_p);
+	nitems = ArrayGetNItems(ndim, dim);
+	get_typlenbyvalalign(ARR_ELEMTYPE(broker_list_p), &typlen, &typbyval,
+			&typalign);
+
+	broker_list = ARR_DATA_PTR(broker_list_p);
+	for (i = 0; i < nitems; i++) {
+		elog(NOTICE, "[0.%d] %s", i,
+				DatumGetCString(DirectFunctionCall1(textout,
+				PointerGetDatum(broker_list))));
+		broker_list = att_addlength(broker_list, typlen,
+				PointerGetDatum(broker_list));                   
+		broker_list = (char *) att_align(broker_list, typalign);
+	}
+	elog(NOTICE, "[1] %s", DatumGetCString(DirectFunctionCall1(textout,
+			PointerGetDatum(sector_name_p))));
+}
 
 /* Clause 3.3.1.3 */
 Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
@@ -75,7 +87,7 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 
 	int ndim, nitems;
 	int *dim;
-	char *p;	
+	char *broker_list;	
 
 	char **values = NULL;
 
@@ -83,8 +95,10 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 	if (SRF_IS_FIRSTCALL()) {
 		MemoryContext oldcontext;
 
-		ArrayType *broker_list = PG_GETARG_ARRAYTYPE_P(0);
-		char *sector_name = (char *) PG_GETARG_TEXT_P(1);
+		ArrayType *broker_list_p = PG_GETARG_ARRAYTYPE_P(0);
+		text *sector_name_p = PG_GETARG_TEXT_P(1);
+
+		enum bvf1 { i_broker_name=0, i_list_len, i_status, i_volume };
 
 		int16 typlen;
 		bool typbyval;
@@ -96,7 +110,7 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		HeapTuple tuple = NULL;
 
 		char sql[2048];
-		char bl[2048];
+		char broker_list_array[B_NAME_LEN * 41 + 3] = "";
 
 		/*
 		 * Prepare a values array for building the returned tuple.
@@ -104,48 +118,44 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 */
 		values = (char **) palloc(sizeof(char *) * 4);
-		values[1] = (char *) palloc(3 * sizeof(char));
-		values[2] = (char *) palloc(2 * sizeof(char));
+		values[i_list_len] = (char *) palloc((SMALLINT_LEN + 1) * sizeof(char));
+		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
+
+		strcpy(values[i_status], "0");
+		funcctx->max_calls = 1;
 
 		/*
 		 * This might be overkill since we always expect single dimensions
 		 * arrays.
 		 */
-		ndim = ARR_NDIM(broker_list);
-		dim = ARR_DIMS(broker_list);
+		ndim = ARR_NDIM(broker_list_p);
+		dim = ARR_DIMS(broker_list_p);
 		nitems = ArrayGetNItems(ndim, dim);
-		get_typlenbyvalalign(ARR_ELEMTYPE(broker_list), &typlen, &typbyval,
+		get_typlenbyvalalign(ARR_ELEMTYPE(broker_list_p), &typlen, &typbyval,
 				&typalign);
-		p = ARR_DATA_PTR(broker_list);
+		broker_list = ARR_DATA_PTR(broker_list_p);
 		if (nitems > 0) {
-#ifdef DEBUG
-			elog(NOTICE, "[0.0] %s",
+			strcat(broker_list_array, "'");
+			strcat(broker_list_array,
 					DatumGetCString(DirectFunctionCall1(textout,
-					PointerGetDatum(p))));
-#endif
-			strcat(bl, "'");
-			strcat(bl, DatumGetCString(DirectFunctionCall1(textout,
-					PointerGetDatum(p))));
-			strcat(bl, "'");
-			p = att_addlength(p, typlen, PointerGetDatum(p));                   
-			p = (char *) att_align(p, typalign);
+					PointerGetDatum(broker_list))));
+			strcat(broker_list_array, "'");
+			broker_list = att_addlength(broker_list, typlen,
+					PointerGetDatum(broker_list));                   
+			broker_list = (char *) att_align(broker_list, typalign);
 		}
 		for (i = 1; i < nitems; i++) {
-#ifdef DEBUG
-			elog(NOTICE, "[0.%d] %s", i,
+			strcat(broker_list_array, ",'");
+			strcat(broker_list_array,
 					DatumGetCString(DirectFunctionCall1(textout,
-					PointerGetDatum(p))));
-#endif
-			strcat(bl, ",'");
-			strcat(bl, DatumGetCString(DirectFunctionCall1(textout,
-					PointerGetDatum(p))));
-			strcat(bl, "'");
-			p = att_addlength(p, typlen, PointerGetDatum(p));                   
-			p = (char *) att_align(p, typalign);
+					PointerGetDatum(broker_list))));
+			strcat(broker_list_array, "'");
+			broker_list = att_addlength(broker_list, typlen,
+					PointerGetDatum(broker_list));                   
+			broker_list = (char *) att_align(broker_list, typalign);
 		}
 #ifdef DEBUG
-		elog(NOTICE, "[1] %s", DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(sector_name))));
+		dump_bvf1_inputs(broker_list_p, sector_name_p);
 #endif
 
 		/* create a function context for cross-call persistence */
@@ -156,8 +166,9 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 
 		SPI_connect();
 
-		sprintf(sql, BVF1_1, bl, DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(sector_name))));
+		sprintf(sql, BVF1_1, broker_list_array,
+				DatumGetCString(DirectFunctionCall1(textout,
+				PointerGetDatum(sector_name_p))));
 #ifdef DEBUG
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
@@ -167,47 +178,37 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 		} else {
-			elog(NOTICE, "ERROR: sql not ok");
+			dump_bvf1_inputs(broker_list_p, sector_name_p);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 		}
 
-		sprintf(values[1], "%d", SPI_processed);
-		/* FIXME: How do se we status properly? */
-		sprintf(values[2], "%d", 1);
+		sprintf(values[i_list_len], "%d", SPI_processed);
+		values[i_broker_name] = (char *) palloc((B_NAME_LEN *
+				(SPI_processed + 1) + 3) * sizeof(char));
+		values[i_volume] = (char *) palloc((INTEGER_LEN *
+				(SPI_processed + 1) + 3) * sizeof(char));
 
 		if (SPI_processed == 0) {
-			/* Total number of tuples to be returned. */
-			funcctx->max_calls = 0;
-
-			values[0] = (char *) palloc(3 * sizeof(char));
-			values[3] = (char *) palloc(3 * sizeof(char));
-			strcpy(values[0], "{}");
-			strcpy(values[3], "{}");
+			strcpy(values[i_broker_name], "{}");
+			strcpy(values[i_volume], "{}");
 		} else {
-			/* Total number of tuples to be returned. */
-			funcctx->max_calls = 1;
-
-			values[0] = (char *) palloc((101 * SPI_processed + 2) *
-					sizeof(char));
-			values[3] = (char *) palloc(18 * SPI_processed + 2 *
-					sizeof(char));
-
-			strcpy(values[0], "{");
-			strcpy(values[3], "{");
+			strcpy(values[i_broker_name], "{");
+			strcpy(values[i_volume], "{");
 
 			if (SPI_processed > 0) {
-				strcat(values[0], SPI_getvalue(tuple, tupdesc, 1));
-				strcat(values[3], SPI_getvalue(tuple, tupdesc, 2));
+				strcat(values[i_broker_name], SPI_getvalue(tuple, tupdesc, 1));
+				strcat(values[i_volume], SPI_getvalue(tuple, tupdesc, 2));
 			}
 			for (i = 1; i < SPI_processed; i++) {
 				tuple = tuptable->vals[i];
-				strcat(values[0], ",");
-				strcat(values[0], SPI_getvalue(tuple, tupdesc, 1));
+				strcat(values[i_broker_name], ",");
+				strcat(values[i_broker_name], SPI_getvalue(tuple, tupdesc, 1));
 
-				strcat(values[3], ",");
-				strcat(values[3], SPI_getvalue(tuple, tupdesc, 2));
+				strcat(values[i_volume], ",");
+				strcat(values[i_volume], SPI_getvalue(tuple, tupdesc, 2));
 			}
-			strcat(values[0], "}");
-			strcat(values[3], "}");
+			strcat(values[i_broker_name], "}");
+			strcat(values[i_volume], "}");
 		}
 
 		/* Build a tuple descriptor for our result type */

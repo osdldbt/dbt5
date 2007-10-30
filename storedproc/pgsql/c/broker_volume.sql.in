@@ -6,8 +6,11 @@
  */
 
 CREATE OR REPLACE FUNCTION BrokerVolumeFrame1 (
-    	IN broker_list VARCHAR[], IN sector_name VARCHAR,
-		OUT broker_name CHAR(100)[], OUT list_len INTEGER, OUT status INTEGER,
+		IN broker_list VARCHAR[],
+		IN sector_name VARCHAR,
+		OUT broker_name CHAR(100)[],
+		OUT list_len INTEGER,
+		OUT status INTEGER,
 		OUT volume NUMERIC(14, 2)[])
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'BrokerVolumeFrame1'
 LANGUAGE C IMMUTABLE STRICT;
