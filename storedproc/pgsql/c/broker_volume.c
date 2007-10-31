@@ -28,7 +28,7 @@
 		"  AND s_co_id = co_id\n" \
 		"  AND co_in_id = in_id\n" \
 		"  AND sc_id = in_sc_id\n" \
-		"  AND b_name IN (%s)\n" \
+		"  AND b_name = ANY (%s)\n" \
 		"  AND sc_name = '%s'\n" \
 		"GROUP BY b_name\n" \
 		"ORDER BY 2 DESC"
@@ -110,7 +110,7 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		HeapTuple tuple = NULL;
 
 		char sql[2048];
-		char broker_list_array[B_NAME_LEN * 41 + 3] = "";
+		char broker_list_array[(B_NAME_LEN + 3) * 40 + 5] = "'{";
 
 		/*
 		 * Prepare a values array for building the returned tuple.
@@ -122,7 +122,6 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
 
 		strcpy(values[i_status], "0");
-		funcctx->max_calls = 1;
 
 		/*
 		 * This might be overkill since we always expect single dimensions
@@ -134,32 +133,35 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		get_typlenbyvalalign(ARR_ELEMTYPE(broker_list_p), &typlen, &typbyval,
 				&typalign);
 		broker_list = ARR_DATA_PTR(broker_list_p);
+		/* Turn the broker_list input into an array format. */
 		if (nitems > 0) {
-			strcat(broker_list_array, "'");
+			strcat(broker_list_array, "\"");
 			strcat(broker_list_array,
 					DatumGetCString(DirectFunctionCall1(textout,
 					PointerGetDatum(broker_list))));
-			strcat(broker_list_array, "'");
 			broker_list = att_addlength(broker_list, typlen,
 					PointerGetDatum(broker_list));                   
 			broker_list = (char *) att_align(broker_list, typalign);
+			strcat(broker_list_array, "\"");
 		}
 		for (i = 1; i < nitems; i++) {
-			strcat(broker_list_array, ",'");
+			strcat(broker_list_array, ",\"");
 			strcat(broker_list_array,
 					DatumGetCString(DirectFunctionCall1(textout,
 					PointerGetDatum(broker_list))));
-			strcat(broker_list_array, "'");
 			broker_list = att_addlength(broker_list, typlen,
 					PointerGetDatum(broker_list));                   
 			broker_list = (char *) att_align(broker_list, typalign);
+			strcat(broker_list_array, "\"");
 		}
+		strcat(broker_list_array, "}'");
 #ifdef DEBUG
 		dump_bvf1_inputs(broker_list_p, sector_name_p);
 #endif
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
+		funcctx->max_calls = 1;
 
 		/* switch to memory context appropriate for multiple function calls */
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
