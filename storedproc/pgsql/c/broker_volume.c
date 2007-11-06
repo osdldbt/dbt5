@@ -63,16 +63,19 @@ void dump_bvf1_inputs(ArrayType *broker_list_p, text *sector_name_p) {
 			&typalign);
 
 	broker_list = ARR_DATA_PTR(broker_list_p);
+	elog(NOTICE, "BVF1: INPUTS START");
 	for (i = 0; i < nitems; i++) {
-		elog(NOTICE, "[0.%d] %s", i,
+		elog(NOTICE, "BVF1: broker_list[%d] %s", i,
 				DatumGetCString(DirectFunctionCall1(textout,
 				PointerGetDatum(broker_list))));
 		broker_list = att_addlength(broker_list, typlen,
 				PointerGetDatum(broker_list));                   
 		broker_list = (char *) att_align(broker_list, typalign);
 	}
-	elog(NOTICE, "[1] %s", DatumGetCString(DirectFunctionCall1(textout,
+	elog(NOTICE, "BVF1: sector_name %s",
+			DatumGetCString(DirectFunctionCall1(textout,
 			PointerGetDatum(sector_name_p))));
+	elog(NOTICE, "BVF1: INPUTS END");
 }
 
 /* Clause 3.3.1.3 */
