@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2007 Mark Wong
  *
- * Based on TPC-E Standard Specification Revision 1.0
+ * Based on TPC-E Standard Specification Revision 1.3.0
  */
 
 #include <sys/types.h>
@@ -14,6 +14,9 @@
 #include <executor/spi.h> /* this should include most necessary APIs */
 #include <executor/executor.h>  /* for GetAttributeByName() */
 #include <funcapi.h> /* for returning set of rows in order_status */
+#include <utils/datetime.h>
+
+#include "frame.h"
 
 #ifdef PG_MODULE_MAGIC
 PG_MODULE_MAGIC;
@@ -90,6 +93,23 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(CustomerPositionFrame1);
 
+void dump_cpf1_inputs(long, text *);
+void dump_cpf2_inputs(long);
+
+void dump_cpf1_inputs(long cust_id, text *tax_id_p) {
+	elog(NOTICE, "CPF1: INPUTS START");
+	elog(NOTICE, "CPF1: cust_id %ld", cust_id);
+	elog(NOTICE, "CPF1: tax_id %s", DatumGetCString(DirectFunctionCall1(textout,
+			PointerGetDatum(tax_id_p))));
+	elog(NOTICE, "CPF1: INPUTS END"); 
+}
+
+void dump_cpf2_inputs(long acct_id) {
+	elog(NOTICE, "CPF2: INPUTS START");
+	elog(NOTICE, "CPF2: acct_id %ld", acct_id);
+	elog(NOTICE, "CPF2: INPUTS END"); 
+}
+
 /* Clause 3.3.2.3 */
 Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 {
@@ -103,7 +123,15 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 	if (SRF_IS_FIRSTCALL()) {
 		MemoryContext oldcontext;
 
-		text *tax_id;
+		text *tax_id_p;
+
+		enum cpf1 {
+				i_cust_id=0, i_acct_id, i_acct_len, i_asset_total, i_c_ad_id,
+				i_c_area_1, i_c_area_2, i_c_area_3, i_c_ctry_1, i_c_ctry_2,
+				i_c_ctry_3, i_c_dob, i_c_email_1, i_c_email_2, i_c_ext_1,
+				i_c_ext_2, i_c_ext_3, i_c_f_name, i_c_gndr, i_c_l_name,
+				i_c_local_1, i_c_local_2, i_c_local_3, i_c_m_name
+		};
 
 		int ret;
 		char sql[1024];
@@ -118,28 +146,33 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 */
 		values = (char **) palloc(sizeof(char *) * 23);
-		values[0] = (char *) palloc(12 * sizeof(char));
-		values[2] = (char *) palloc(3 * sizeof(char));
-		values[4] = (char *) palloc(12 * sizeof(char));
-		values[5] = (char *) palloc(4 * sizeof(char));
-		values[6] = (char *) palloc(4 * sizeof(char));
-		values[7] = (char *) palloc(4 * sizeof(char));
-		values[8] = (char *) palloc(4 * sizeof(char));
-		values[9] = (char *) palloc(4 * sizeof(char));
-		values[10] = (char *) palloc(4 * sizeof(char));
-		values[11] = (char *) palloc(20 * sizeof(char));
-		values[12] = (char *) palloc(51 * sizeof(char));
-		values[13] = (char *) palloc(51 * sizeof(char));
-		values[14] = (char *) palloc(6 * sizeof(char));
-		values[15] = (char *) palloc(6 * sizeof(char));
-		values[16] = (char *) palloc(6 * sizeof(char));
-		values[17] = (char *) palloc(31 * sizeof(char));
-		values[18] = (char *) palloc(2 * sizeof(char));
-		values[19] = (char *) palloc(31 * sizeof(char));
-		values[20] = (char *) palloc(11 * sizeof(char));
-		values[21] = (char *) palloc(11 * sizeof(char));
-		values[22] = (char *) palloc(11 * sizeof(char));
-		values[23] = (char *) palloc(2 * sizeof(char));
+		values[i_cust_id] = (char *) palloc((IDENT_T_LEN + 1) * sizeof(char));
+		values[i_acct_len] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
+		values[i_c_ad_id] = (char *) palloc((IDENT_T_LEN + 1) * sizeof(char));
+		values[i_c_area_1] = (char *) palloc((C_AREA_1_LEN + 1) * sizeof(char));
+		values[i_c_area_2] = (char *) palloc((C_AREA_2_LEN + 1) * sizeof(char));
+		values[i_c_area_3] = (char *) palloc((C_AREA_3_LEN + 1) * sizeof(char));
+		values[i_c_ctry_1] = (char *) palloc((C_CTRY_1_LEN + 1) * sizeof(char));
+		values[i_c_ctry_2] = (char *) palloc((C_CTRY_2_LEN + 1) * sizeof(char));
+		values[i_c_ctry_3] = (char *) palloc((C_CTRY_3_LEN + 1) * sizeof(char));
+		values[i_c_dob] = (char *) palloc((MAXDATELEN + 1) * sizeof(char));
+		values[i_c_email_1] =
+				(char *) palloc((C_EMAIL_1_LEN + 1) * sizeof(char));
+		values[i_c_email_2] =
+				(char *) palloc((C_EMAIL_2_LEN + 1) * sizeof(char));
+		values[i_c_ext_1] = (char *) palloc((C_EXT_1_LEN + 1) * sizeof(char));
+		values[i_c_ext_2] = (char *) palloc((C_EXT_2_LEN + 1) * sizeof(char));
+		values[i_c_ext_3] = (char *) palloc((C_EXT_3_LEN + 1) * sizeof(char));
+		values[i_c_f_name] = (char *) palloc((C_F_NAME_LEN + 1) * sizeof(char));
+		values[i_c_gndr] = (char *) palloc((C_GNDR_LEN + 1) * sizeof(char));
+		values[i_c_l_name] = (char *) palloc((C_L_NAME_LEN + 1) * sizeof(char));
+		values[i_c_local_1] =
+				(char *) palloc((C_LOCAL_1_LEN + 1) * sizeof(char));
+		values[i_c_local_2] =
+				(char *) palloc((C_LOCAL_2_LEN + 1) * sizeof(char));
+		values[i_c_local_3] =
+				(char *) palloc((C_LOCAL_3_LEN + 1) * sizeof(char));
+		values[i_c_m_name] = (char *) palloc((C_M_NAME_LEN + 1) * sizeof(char));
 
 		/* Create a function context for cross-call persistence. */
 		funcctx = SRF_FIRSTCALL_INIT();
@@ -148,17 +181,15 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
 		cust_id = PG_GETARG_INT64(0);
-		tax_id= PG_GETARG_TEXT_P(1);
+		tax_id_p= PG_GETARG_TEXT_P(1);
 #ifdef DEBUG
-		elog(NOTICE, "[1] %ld", cust_id);
-		elog(NOTICE, "[2] %s", DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(tax_id))));
+		dump_cpf1_inputs(cust_id, tax_id_p);
 #endif /* DEBUG */
 
 		SPI_connect();
 		if (cust_id == 0) {
 			sprintf(sql, CPF1_1, DatumGetCString(DirectFunctionCall1(textout,
-					PointerGetDatum(tax_id))));
+					PointerGetDatum(tax_id_p))));
 #ifdef DEBUG
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
@@ -172,10 +203,8 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 				elog(NOTICE, "Got cust_id ok: %ld", cust_id);
 #endif /* DEBUG */
 			} else {
-				/* Total number of tuples to be returned. */
-				funcctx->max_calls = 0;
-
-				elog(NOTICE, "ERROR: did not get cust_id.");
+				dump_cpf1_inputs(cust_id, tax_id_p);
+				FAIL_FRAME3(&funcctx->max_calls, sql);
 			}
 		}
 
@@ -194,132 +223,109 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 
-			strcpy(values[4], SPI_getvalue(tuple, tupdesc, 8));
+			strcpy(values[i_c_ad_id], SPI_getvalue(tuple, tupdesc, 8));
 
 			tmp = SPI_getvalue(tuple, tupdesc, 10);
 			if (tmp != NULL)
-				strcpy(values[5], tmp);
+				strcpy(values[i_c_area_1], tmp);
 			else
-				values[5][0] = '\0';
+				values[i_c_area_1][0] = '\0';
 
 			tmp = SPI_getvalue(tuple, tupdesc, 14);
 			if (tmp != NULL)
-				strcpy(values[6], tmp);
+				strcpy(values[i_c_area_2], tmp);
 			else
-				values[6][0] = '\0';
+				values[i_c_area_2][0] = '\0';
 
 			tmp = SPI_getvalue(tuple, tupdesc, 18);
 			if (tmp != NULL)
-				strcpy(values[7], tmp);
+				strcpy(values[i_c_area_3], tmp);
 			else
-				values[7][0] = '\0';
+				values[i_c_area_3][0] = '\0';
 
 			tmp = SPI_getvalue(tuple, tupdesc, 9);
 			if (tmp != NULL)
-				strcpy(values[8], tmp);
+				strcpy(values[i_c_ctry_1], tmp);
 			else
-				values[8][0] = '\0';
+				values[i_c_ctry_1][0] = '\0';
 
 			tmp = SPI_getvalue(tuple, tupdesc, 13);
 			if (tmp != NULL)
-				strcpy(values[9], tmp);
+				strcpy(values[i_c_ctry_2], tmp);
 			else
-				values[9][0] = '\0';
+				values[i_c_ctry_2][0] = '\0';
 
 			tmp = SPI_getvalue(tuple, tupdesc, 17);
 			if (tmp != NULL)
-				strcpy(values[10], tmp);
+				strcpy(values[i_c_ctry_3], tmp);
 			else
-				values[10][0] = '\0';
+				values[i_c_ctry_3][0] = '\0';
 
-			strcpy(values[11], SPI_getvalue(tuple, tupdesc, 7));
+			strcpy(values[i_c_dob], SPI_getvalue(tuple, tupdesc, 7));
 
 			tmp = SPI_getvalue(tuple, tupdesc, 21);
 			if (tmp != NULL)
-				strcpy(values[12], tmp);
+				strcpy(values[i_c_email_1], tmp);
 			else
-				values[12][0] = '\0';
+				values[i_c_email_1][0] = '\0';
 
 			tmp = SPI_getvalue(tuple, tupdesc, 22);
 			if (tmp != NULL)
-				strcpy(values[13], tmp);
+				strcpy(values[i_c_email_2], tmp);
 			else
-				values[13][0] = '\0';
+				values[i_c_email_2][0] = '\0';
 
 			tmp = SPI_getvalue(tuple, tupdesc, 12);
 			if (tmp != NULL)
-				strcpy(values[14], tmp);
+				strcpy(values[i_c_ext_1], tmp);
 			else
-				values[14][0] = '\0';
+				values[i_c_ext_1][0] = '\0';
 
 			tmp = SPI_getvalue(tuple, tupdesc, 16);
 			if (tmp != NULL)
-				strcpy(values[15], tmp);
+				strcpy(values[i_c_ext_2], tmp);
 			else
-				values[15][0] = '\0';
+				values[i_c_ext_2][0] = '\0';
 
 			tmp = SPI_getvalue(tuple, tupdesc, 20);
 			if (tmp != NULL)
-				strcpy(values[16], tmp);
+				strcpy(values[i_c_ext_3], tmp);
 			else
-				values[16][0] = '\0';
+				values[i_c_ext_3][0] = '\0';
 
-			strcpy(values[17], SPI_getvalue(tuple, tupdesc, 3));
+			strcpy(values[i_c_f_name], SPI_getvalue(tuple, tupdesc, 3));
 
 			tmp = SPI_getvalue(tuple, tupdesc, 5);
 			if (tmp != NULL)
-				strcpy(values[18], tmp);
+				strcpy(values[i_c_gndr], tmp);
 			else
-				values[18][0] = '\0';
+				values[i_c_gndr][0] = '\0';
 
-			strcpy(values[19], SPI_getvalue(tuple, tupdesc, 2));
+			strcpy(values[i_c_l_name], SPI_getvalue(tuple, tupdesc, 2));
 
 			tmp = SPI_getvalue(tuple, tupdesc, 11);
 			if (tmp != NULL)
-				strcpy(values[20], tmp);
+				strcpy(values[i_c_local_1], tmp);
 			else
-				values[20][0] = '\0';
+				values[i_c_local_1][0] = '\0';
 
 			tmp = SPI_getvalue(tuple, tupdesc, 15);
 			if (tmp != NULL)
-				strcpy(values[21], tmp);
+				strcpy(values[i_c_local_2], tmp);
 			else
-				values[21][0] = '\0';
+				values[i_c_local_2][0] = '\0';
 
 			tmp = SPI_getvalue(tuple, tupdesc, 19);
 			if (tmp != NULL)
-				strcpy(values[22], tmp);
+				strcpy(values[i_c_local_3], tmp);
 			else
-				values[22][0] = '\0';
+				values[i_c_local_3][0] = '\0';
 
 			tmp = SPI_getvalue(tuple, tupdesc, 4);
 			if (tmp != NULL)
-				strcpy(values[23], tmp);
+				strcpy(values[i_c_m_name], tmp);
 			else
-				values[23][0] = '\0';
-		} else {
-/*
-			values[4][0] = '\0';
-			values[5][0] = '\0';
-			values[6][0] = '\0';
-			values[7][0] = '\0';
-			values[8][0] = '\0';
-			values[9][0] = '\0';
-			values[10][0] = '\0';
-			values[11][0] = '\0';
-			values[12][0] = '\0';
-			values[13][0] = '\0';
-			values[14][0] = '\0';
-			values[15][0] = '\0';
-			values[16][0] = '\0';
-			values[17][0] = '\0';
-			values[18][0] = '\0';
-			values[19][0] = '\0';
-			values[20][0] = '\0';
-			values[21][0] = '\0';
-			values[22][0] = '\0';
-			values[23][0] = '\0';
-*/
+				values[i_c_m_name][0] = '\0';
 		}
 
 		sprintf(sql, CPF1_3, cust_id);
@@ -327,7 +333,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
-		sprintf(values[2], "%d", SPI_processed);
+		sprintf(values[i_acct_len], "%d", SPI_processed);
 #ifdef DEBUG
 		elog(NOTICE, "%d row(s) returned from CPF1_3.", SPI_processed);
 #endif /* DEBUG */
@@ -339,39 +345,40 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 
-			values[1] = (char *) palloc((12 * SPI_processed + 2) *
+			values[i_acct_id] = (char *) palloc((12 * SPI_processed + 2) *
 					sizeof(char));
-			values[3] = (char *) palloc((18 * SPI_processed + 2) *
+			values[i_asset_total] = (char *) palloc((18 * SPI_processed + 2) *
 					sizeof(char));
 
-			strcpy(values[1], "{");
-			strcpy(values[3], "{");
+			strcpy(values[i_acct_id], "{");
+			strcpy(values[i_asset_total], "{");
 
 			if (SPI_processed > 0) {
-				strcat(values[1], SPI_getvalue(tuple, tupdesc, 1));
-				strcat(values[3], SPI_getvalue(tuple, tupdesc, 3));
+				strcat(values[i_acct_id], SPI_getvalue(tuple, tupdesc, 1));
+				strcat(values[i_asset_total], SPI_getvalue(tuple, tupdesc, 3));
 			}
 			for (i = 1; i < SPI_processed; i++) {
 				tuple = tuptable->vals[i];
-				strcat(values[1], ",");
-				strcat(values[1], SPI_getvalue(tuple, tupdesc, 1));
+				strcat(values[i_acct_id], ",");
+				strcat(values[i_acct_id], SPI_getvalue(tuple, tupdesc, 1));
 
-				strcat(values[3], ",");
-				strcat(values[3], SPI_getvalue(tuple, tupdesc, 3));
+				strcat(values[i_asset_total], ",");
+				strcat(values[i_asset_total], SPI_getvalue(tuple, tupdesc, 3));
 			}
-			strcat(values[1], "}");
-			strcat(values[3], "}");
-		} else {
-			/* Total number of tuples to be returned. */
-			funcctx->max_calls = 0;
+			strcat(values[i_acct_id], "}");
+			strcat(values[i_asset_total], "}");
 
+		} else {
+			dump_cpf1_inputs(cust_id, tax_id_p);
+			FAIL_FRAME3(&funcctx->max_calls, sql);
 /*
-			values[1] = (char *) palloc(3 * sizeof(char));
-			values[3] = (char *) palloc(3 * sizeof(char));
-			strcpy(values[1], "{}");
-			strcpy(values[3], "{}");
+			values[i_acct_id] = (char *) palloc(3 * sizeof(char));
+			values[i_asset_total] = (char *) palloc(3 * sizeof(char));
+			strcpy(values[i_acct_id], "{}");
+			strcpy(values[i_asset_total], "{}");
 */
 		}
+		snprintf(values[i_cust_id], 12, "%ld", cust_id);
 
 		/* Build a tuple descriptor for our result type. */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
@@ -400,8 +407,6 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 	if (funcctx->call_cntr < funcctx->max_calls) {
 		Datum result;
 		HeapTuple tuple;
-
-		snprintf(values[0], 12, "%ld", cust_id);
 
 #ifdef DEBUG
 		for (i = 0; i < 24; i++) {
@@ -446,12 +451,17 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 
 		int64 acct_id;
 
+		enum cpf2 {
+				i_hist_dts=0, i_hist_len, i_qty, i_status, i_symbol,
+				i_trade_id, i_trade_status
+		};
+
 		int ret;
 		char sql[1024];
 
 		acct_id = PG_GETARG_INT64(0);
 #ifdef DEBUG
-		elog(NOTICE, "[1] %ld", acct_id);
+		dump_cpf2_inputs(acct_id);
 #endif /* DEBUG */
 
 		/*
@@ -460,11 +470,14 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 */
 		values = (char **) palloc(sizeof(char *) * 7);
-		values[1] = (char *) palloc(3 * sizeof(char));
-		values[3] = (char *) palloc(2 * sizeof(char));
+		values[i_hist_len] = (char *) palloc(3 * sizeof(char));
+		values[i_status] = (char *) palloc(2 * sizeof(char));
+
+		strcpy(values[i_status], "0");
 
 		/* Create a function context for cross-call persistence. */
 		funcctx = SRF_FIRSTCALL_INIT();
+		funcctx->max_calls = 1;
 
 		/* Switch to memory context appropriate for multiple function calls. */
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
@@ -476,7 +489,7 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
-		sprintf(values[1], "%d", SPI_processed);
+		sprintf(values[i_hist_len], "%d", SPI_processed);
 #ifdef DEBUG
 		elog(NOTICE, "%d row(s) returned.", SPI_processed);
 #endif /* DEBUG */
@@ -488,74 +501,72 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 
-			values[0] = (char *) palloc((27 * SPI_processed + 2) *
+			values[i_hist_dts] = (char *) palloc((27 * SPI_processed + 2) *
 					sizeof(char));
-			values[2] = (char *) palloc((7 * SPI_processed + 2) * sizeof(char));
-			values[4] = (char *) palloc((16 * SPI_processed + 2) *
+			values[i_qty] =
+					(char *) palloc((7 * SPI_processed + 2) * sizeof(char));
+			values[i_symbol] = (char *) palloc((16 * SPI_processed + 2) *
 					sizeof(char));
-			values[5] = (char *) palloc((16 * SPI_processed + 2) *
+			values[i_trade_id] = (char *) palloc((16 * SPI_processed + 2) *
 					sizeof(char));
-			values[6] = (char *) palloc((11 * SPI_processed + 2) *
+			values[i_trade_status] = (char *) palloc((11 * SPI_processed + 2) *
 					sizeof(char));
 
-			strcpy(values[0], "{");
-			strcpy(values[2], "{");
-			strcpy(values[4], "{");
-			strcpy(values[5], "{");
-			strcpy(values[6], "{");
+			strcpy(values[i_hist_dts], "{");
+			strcpy(values[i_qty], "{");
+			strcpy(values[i_symbol], "{");
+			strcpy(values[i_trade_id], "{");
+			strcpy(values[i_trade_status], "{");
 			if (SPI_processed > 0) {
-				strcat(values[0], SPI_getvalue(tuple, tupdesc, 5));
-				strcat(values[2], SPI_getvalue(tuple, tupdesc, 3));
-				strcat(values[4], SPI_getvalue(tuple, tupdesc, 2));
-				strcat(values[5], SPI_getvalue(tuple, tupdesc, 1));
-				strcat(values[6], SPI_getvalue(tuple, tupdesc, 4));
+				strcat(values[i_hist_dts], SPI_getvalue(tuple, tupdesc, 5));
+				strcat(values[i_qty], SPI_getvalue(tuple, tupdesc, 3));
+				strcat(values[i_symbol], SPI_getvalue(tuple, tupdesc, 2));
+				strcat(values[i_trade_id], SPI_getvalue(tuple, tupdesc, 1));
+				strcat(values[i_trade_status], SPI_getvalue(tuple, tupdesc, 4));
 			}
 			for (i = 1; i < SPI_processed; i++) {
 				tuple = tuptable->vals[i];
 
-				strcat(values[0], ",");
-				strcat(values[0], SPI_getvalue(tuple, tupdesc, 5));
+				strcat(values[i_hist_dts], ",");
+				strcat(values[i_hist_dts], SPI_getvalue(tuple, tupdesc, 5));
 
-				strcat(values[2], ",");
-				strcat(values[2], SPI_getvalue(tuple, tupdesc, 3));
+				strcat(values[i_qty], ",");
+				strcat(values[i_qty], SPI_getvalue(tuple, tupdesc, 3));
 
-				strcat(values[4], ",");
-				strcat(values[4], SPI_getvalue(tuple, tupdesc, 2));
+				strcat(values[i_symbol], ",");
+				strcat(values[i_symbol], SPI_getvalue(tuple, tupdesc, 2));
 
-				strcat(values[5], ",");
-				strcat(values[5], SPI_getvalue(tuple, tupdesc, 1));
+				strcat(values[i_trade_id], ",");
+				strcat(values[i_trade_id], SPI_getvalue(tuple, tupdesc, 1));
 
-				strcat(values[6], ",");
-				strcat(values[6], SPI_getvalue(tuple, tupdesc, 4));
+				strcat(values[i_trade_status], ",");
+				strcat(values[i_trade_status], SPI_getvalue(tuple, tupdesc, 4));
 			}
-			strcat(values[0], "}");
-			strcat(values[2], "}");
-			strcat(values[4], "}");
-			strcat(values[5], "}");
-			strcat(values[6], "}");
+			strcat(values[i_hist_dts], "}");
+			strcat(values[i_qty], "}");
+			strcat(values[i_symbol], "}");
+			strcat(values[i_trade_id], "}");
+			strcat(values[i_trade_status], "}");
 		} else {
-			/* Total number of tuples to be returned. */
-			funcctx->max_calls = 0;
+			dump_cpf2_inputs(acct_id);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 
 			/*
 			 * FIXME: Probably don't need to do this if we're not going to
 			 * return any rows, but if we do then we don't need to figure
 			 * out what pieces of memory we need to free later in the function.
 			 */
-			values[0] = (char *) palloc(3 * sizeof(char));
-			values[2] = (char *) palloc(3 * sizeof(char));
-			values[4] = (char *) palloc(3 * sizeof(char));
-			values[5] = (char *) palloc(3 * sizeof(char));
-			values[6] = (char *) palloc(3 * sizeof(char));
-			strcpy(values[0], "{}");
-			strcpy(values[2], "{}");
-			strcpy(values[4], "{}");
-			strcpy(values[5], "{}");
-			strcpy(values[6], "{}");
+			values[i_hist_dts] = (char *) palloc(3 * sizeof(char));
+			values[i_qty] = (char *) palloc(3 * sizeof(char));
+			values[i_symbol] = (char *) palloc(3 * sizeof(char));
+			values[i_trade_id] = (char *) palloc(3 * sizeof(char));
+			values[i_trade_status] = (char *) palloc(3 * sizeof(char));
+			strcpy(values[i_hist_dts], "{}");
+			strcpy(values[i_qty], "{}");
+			strcpy(values[i_symbol], "{}");
+			strcpy(values[i_trade_id], "{}");
+			strcpy(values[i_trade_status], "{}");
 		}
-
-		/* FIXME: How is 'status' supposed to be set? */
-		strcpy(values[3], "1");
 
 		/* Build a tuple descriptor for our result type. */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=

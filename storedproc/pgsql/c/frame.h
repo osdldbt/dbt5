@@ -21,6 +21,11 @@
 				__FILE__, __LINE__, sql); \
 		status = 1;
 
+#define FAIL_FRAME3(rows, sql) \
+		elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", \
+				__FILE__, __LINE__, sql); \
+		*rows = 0;
+
 /* PostgreSQL types */
 #define BIGINT_LEN 10
 #define INTEGER_LEN 5
@@ -28,6 +33,7 @@
 
 /* Domains */
 #define BALANCE_T_LEN 14
+#define IDENT_T_LEN BIGINT_LEN
 #define S_PRICE_T_LEN 10
 #define VALUE_T_LEN 12
 
@@ -39,9 +45,24 @@
 
 #define B_NAME_LEN 100
 
+#define C_AREA_1_LEN 3
+#define C_AREA_2_LEN 3
+#define C_AREA_3_LEN 3
+#define C_CTRY_1_LEN 3
+#define C_CTRY_2_LEN 3
+#define C_CTRY_3_LEN 3
+#define C_EMAIL_1_LEN 50
 #define C_EMAIL_2_LEN 50
+#define C_EXT_1_LEN 5
+#define C_EXT_2_LEN 5
+#define C_EXT_3_LEN 5
 #define C_F_NAME_LEN 30
+#define C_GNDR_LEN 1
 #define C_L_NAME_LEN 30
+#define C_LOCAL_1_LEN 10
+#define C_LOCAL_2_LEN 10
+#define C_LOCAL_3_LEN 10
+#define C_M_NAME_LEN 1
 
 #define CO_SP_RATE_LEN 5
 

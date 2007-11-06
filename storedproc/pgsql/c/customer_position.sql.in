@@ -19,7 +19,7 @@
  */
 
 CREATE OR REPLACE FUNCTION CustomerPositionFrame1(INOUT cust_id IDENT_T,
-		IN tax_id CHAR(20), OUT acct_id INTEGER[], OUT acct_len INTEGER,
+		IN tax_id CHAR(20), OUT acct_id BIGINT[], OUT acct_len INTEGER,
 		OUT asset_total NUMERIC(14,2)[], OUT c_ad_id IDENT_T,
 		OUT c_area_1 CHAR(3), OUT c_area_2 CHAR(3), OUT c_area_3 CHAR(3),
 		OUT c_ctry_1 CHAR(3), OUT c_ctry_2 CHAR(3), OUT c_ctry_3 CHAR(3),
