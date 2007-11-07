@@ -4,7 +4,7 @@
  * The Market-Feed transaction receives the latest prices for securities
  * that come in on the market feed ticker.
  *
- * Based on TPC-E Standard Specification Draft Revision 1.0.0 Clause 3.3.9.
+ * Based on TPC-E Standard Specification Draft Revision 1.3.0 Clause 3.3.9.
  *
  * 2006-2007 Rilson Nascimento
  * 2006-2007 Mark Wong

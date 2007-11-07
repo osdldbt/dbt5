@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2007 Mark Wong
  *
- * Based on TPC-E Standard Specification Revision 1.0
+ * Based on TPC-E Standard Specification Revision 1.3.0
  */
 
 #include <sys/types.h>
@@ -19,17 +19,27 @@
 #include <utils/lsyscache.h>
 #include <utils/numeric.h>
 
+#include "frame.h"
+
+/*
+ * Copied this out of the PostgreSQL backend code.  That probably means
+ * there is a more appropriate way to do it...
+ */
 typedef int16 NumericDigit;
 #define NUMERIC_NDIGITS(num) \
 		((VARSIZE(num) - NUMERIC_HDRSZ) / sizeof(NumericDigit))
 
-/* Does the timestamp need to be more accurate? */
+/*
+ * Use now() all over the place because the value won't change within a
+ * transaction.
+ */
+
 #define MFF1_1 \
 		"UPDATE LAST_TRADE\n" \
-		"SET    LT_PRICE = %s,\n" \
-		"       LT_VOL = LT_VOL + %d,\n" \
-		"       LT_DTS = '%04d-%02d-%02d %02d:%02d:%02d'\n" \
-		"WHERE  LT_S_SYMB = '%s';"
+		"SET    lt_price = %s,\n" \
+		"       lt_vol = lt_vol + %d,\n" \
+		"       lt_dts = now()\n" \
+		"WHERE  lt_s_symb = '%s'"
 
 #define MFF1_2 \
 		"SELECT tr_t_id,\n" \
@@ -47,7 +57,7 @@ typedef int16 NumericDigit;
 
 #define MFF1_3 \
 		"UPDATE trade\n" \
-		"SET    t_dts = '%04d-%02d-%02d %02d:%02d:%02d',\n" \
+		"SET    t_dts = now(),\n" \
 		"       t_st_id = '%s'\n" \
 		"WHERE  t_id = %s;"
 
@@ -61,7 +71,7 @@ typedef int16 NumericDigit;
 		"            th_dts,\n" \
 		"            th_st_id)\n" \
 		"VALUES     (th_t_id = %s,\n" \
-		"            th_dts = '%04d-%02d-%02d %02d:%02d:%02d',\n" \
+		"            th_dts = now(),\n" \
 		"            th_st_id = '%s');"
 
 #ifdef PG_MODULE_MAGIC
@@ -72,6 +82,71 @@ PG_MODULE_MAGIC;
 Datum MarketFeedFrame1(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(MarketFeedFrame1);
+
+void dump_mff1_inputs(ArrayType *, char *, ArrayType *, ArrayType *, char *,
+		char *, char *);
+
+void dump_mff1_inputs(ArrayType *price_quote_p, char *status_submitted_p,
+		ArrayType *symbol_p, ArrayType *trade_qty, char *type_limit_buy_p,
+		char *type_limit_sell_p, char *type_stop_loss_p) {
+	int i;
+	int nitems_pq;
+	Datum *transdatums_pq;
+	char *p_s;
+
+	int16 typlen_s;
+	bool typbyval_s;
+	char typalign_s;
+
+	int16 typlen_tq;
+	bool typbyval_tq;
+	char typalign_tq;
+
+	int *p_tq;
+
+	deconstruct_array(price_quote_p, NUMERICOID, -1, false, 'i',
+			&transdatums_pq, NULL, &nitems_pq);
+
+	get_typlenbyvalalign(ARR_ELEMTYPE(trade_qty), &typlen_tq, &typbyval_tq,
+			&typalign_tq);
+	p_tq = (int *) ARR_DATA_PTR(trade_qty);
+
+	get_typlenbyvalalign(ARR_ELEMTYPE(symbol_p), &typlen_s, &typbyval_s,
+			&typalign_s);
+	p_s = ARR_DATA_PTR(symbol_p);
+
+	elog(NOTICE, "MFF1: INPUTS START");
+	for (i = 0; i < nitems_pq; i++) {
+		elog(NOTICE, "MFF1: price_quote[%d] %s", i,
+				DatumGetCString(DirectFunctionCall1(numeric_out,
+						transdatums_pq[i])));
+	}
+	elog(NOTICE, "MFF1: status_submitted '%s'",
+			DatumGetCString(DirectFunctionCall1(textout,
+			PointerGetDatum(status_submitted_p))));
+	for (i = 0; i < nitems_pq; i++) {
+		elog(NOTICE, "MFF1: symbol[%d] '%s'", i,
+				DatumGetCString(DirectFunctionCall1(textout,
+						PointerGetDatum(p_s))));
+	}
+	for (i = 0; i < nitems_pq; i++) {
+		elog(NOTICE, "MFF1: trade_qty[%d] %d", i, p_tq[i]);
+
+		p_s = att_addlength(p_s, typlen_s, PointerGetDatum(p_s));
+		p_s = (char *) att_align(p_s, typalign_s);
+	}
+
+	elog(NOTICE, "MFF1: type_limit_buy '%s'",
+			DatumGetCString(DirectFunctionCall1(textout,
+			PointerGetDatum(type_limit_buy_p))));
+	elog(NOTICE, "MFF1: type_limit_sell '%s'",
+			DatumGetCString(DirectFunctionCall1(textout,
+			PointerGetDatum(type_limit_sell_p))));
+	elog(NOTICE, "MFF1: type_stop_loss '%s'",
+			DatumGetCString(DirectFunctionCall1(textout,
+			PointerGetDatum(type_stop_loss_p))));
+	elog(NOTICE, "MFF1: INPUTS END");
+}
 
 /* Clause 3.3.1.3 */
 Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
@@ -84,7 +159,7 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 	int i, j, k;
 
 	int nitems_pq;
-	char *p_tq;
+	int *p_tq;
 	char *p_s;
 
 	char **values = NULL;
@@ -98,8 +173,10 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		ArrayType *symbol_p = PG_GETARG_ARRAYTYPE_P(2);
 		ArrayType *trade_qty = PG_GETARG_ARRAYTYPE_P(3);
 		char *type_limit_buy_p = (char *) PG_GETARG_TEXT_P(4);
-        char *type_limit_sell_p = (char *) PG_GETARG_TEXT_P(5);
+		char *type_limit_sell_p = (char *) PG_GETARG_TEXT_P(5);
 		char *type_stop_loss_p = (char *) PG_GETARG_TEXT_P(6);
+
+		enum mff1 { i_send_len=0, i_status };
 
 		Datum *transdatums_pq;
 
@@ -116,16 +193,13 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		SPITupleTable *tuptable = NULL;
 		HeapTuple tuple = NULL;
 
-		time_t t1;
-		struct tm *date;
-
 		char sql[2048];
-		char price_quote[18];
-		char status_submitted[5];
-		char symbol[16];
-		char type_limit_buy[4];
-        char type_limit_sell[4];
-		char type_stop_loss[4];
+		char price_quote[S_PRICE_T_LEN + 1];
+		char status_submitted[ST_ID_LEN + 1];
+		char symbol[S_SYMB_LEN + 1];
+		char type_limit_buy[TT_ID_LEN + 1];
+		char type_limit_sell[TT_ID_LEN + 1];
+		char type_stop_loss[TT_ID_LEN + 1];
 		char *trade_id;
 
 		/*
@@ -134,11 +208,10 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 */
 		values = (char **) palloc(sizeof(char *) * 2);
-		values[0] = (char *) palloc(8 * sizeof(char));
-		values[1] = (char *) palloc(2 * sizeof(char));
+		values[i_send_len] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
+		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
 
-		/* FIXME: How do se we status properly? */
-		sprintf(values[1], "%d", 1);
+		sprintf(values[i_status], "%d", 0);
 
 		/*
 		 * This might be overkill since we always expect single dimensions
@@ -152,7 +225,7 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 
 		get_typlenbyvalalign(ARR_ELEMTYPE(trade_qty), &typlen_tq, &typbyval_tq,
 				&typalign_tq);
-		p_tq = ARR_DATA_PTR(trade_qty);
+		p_tq = (int *) ARR_DATA_PTR(trade_qty);
 
 		deconstruct_array(price_quote_p, NUMERICOID, -1, false, 'i',
 				&transdatums_pq, NULL, &nitems_pq);
@@ -166,29 +239,11 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		strcpy(type_stop_loss, DatumGetCString(DirectFunctionCall1(textout,
                 PointerGetDatum(type_stop_loss_p))));
 
-		sprintf(values[1], "%d", 1);
+		sprintf(values[i_status], "%d", 1);
 #ifdef DEBUG
-		for (i = 0; i < nitems_pq; i++) {
-			elog(NOTICE, "[0.%d] %s", i,
-					DatumGetCString(DirectFunctionCall1(numeric_out,
-							transdatums_pq[i])));
-			elog(NOTICE, "[2.%d] %s", i,
-					DatumGetCString(DirectFunctionCall1(textout,
-							PointerGetDatum(p_s))));
-			elog(NOTICE, "[3.%d] %d", i, (int) (((int *)p_tq)[i]));
-
-			p_s = att_addlength(p_s, typlen_s, PointerGetDatum(p_s));
-			p_s = (char *) att_align(p_s, typalign_s);
-		}
-		p_s = ARR_DATA_PTR(symbol_p);
-		elog(NOTICE, "[1] %s", DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(status_submitted_p))));
-		elog(NOTICE, "[4] %s", DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(type_limit_buy_p))));
-        elog(NOTICE, "[5] %s", DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(type_limit_sell_p))));
-		elog(NOTICE, "[6] %s", DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(type_stop_loss_p))));
+		dump_mff1_inputs(price_quote_p, status_submitted_p, symbol_p,
+				trade_qty, type_limit_buy_p, type_limit_sell_p,
+				type_stop_loss_p);
 #endif
 
 		/* create a function context for cross-call persistence */
@@ -196,9 +251,6 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 
 		/* switch to memory context appropriate for multiple function calls */
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
-
-		time(&t1);
-		date = localtime(&t1);
 
 		SPI_connect();
 
@@ -221,17 +273,17 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 			sprintf(sql, MFF1_1,
 					DatumGetCString(DirectFunctionCall1(numeric_out,            
 							transdatums_pq[i])),
-					(int) (((int *)p_tq)[i]),
-					date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
-					date->tm_hour, date->tm_min, date->tm_sec,
+					p_tq[i],
 					symbol);
 #ifdef DEBUG
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 			ret = SPI_exec(sql, 0);
-			if (ret == SPI_OK_UPDATE) {
-			} else {
-				elog(NOTICE, "ERROR: sql not ok = %d", ret);
+			if (ret != SPI_OK_UPDATE) {
+				dump_mff1_inputs(price_quote_p, status_submitted_p, symbol_p,
+						trade_qty, type_limit_buy_p, type_limit_sell_p,
+						type_stop_loss_p);
+				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			}
 
 			sprintf(sql, MFF1_2, symbol, type_stop_loss, price_quote,
@@ -241,7 +293,10 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			ret = SPI_exec(sql, 0);
 			if (ret != SPI_OK_SELECT) {
-				elog(NOTICE, "ERROR: sql not ok = %d", ret);
+				dump_mff1_inputs(price_quote_p, status_submitted_p, symbol_p,
+						trade_qty, type_limit_buy_p, type_limit_sell_p,
+						type_stop_loss_p);
+				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				continue;
 			}
 #ifdef DEBUG
@@ -257,17 +312,16 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 				elog(NOTICE, "trade_id = %s", trade_id);
 #endif /* DEBUG */
 
-				sprintf(sql, MFF1_3,
-					date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
-					date->tm_hour, date->tm_min, date->tm_sec,
-					status_submitted,
-					trade_id);
+				sprintf(sql, MFF1_3, status_submitted, trade_id);
 #ifdef DEBUG
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 				ret = SPI_exec(sql, 0);
 				if (ret != SPI_OK_UPDATE) {
-					elog(NOTICE, "ERROR: sql not ok = %d", ret);
+					dump_mff1_inputs(price_quote_p, status_submitted_p,
+							symbol_p, trade_qty, type_limit_buy_p,
+							type_limit_sell_p, type_stop_loss_p);
+					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				}
 
 				sprintf(sql, MFF1_4, trade_id);
@@ -276,17 +330,23 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 				ret = SPI_exec(sql, 0);
 				if (ret != SPI_OK_DELETE) {
-					elog(NOTICE, "ERROR: sql not ok = %d", ret);
+					dump_mff1_inputs(price_quote_p, status_submitted_p,
+							symbol_p, trade_qty, type_limit_buy_p,
+							type_limit_sell_p, type_stop_loss_p);
+					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				}
 
-				sprintf(sql, MFF1_5,
-					trade_id,
-					date->tm_year + 1900, date->tm_mon + 1, date->tm_mday,
-					date->tm_hour, date->tm_min, date->tm_sec,
-					status_submitted);
+				sprintf(sql, MFF1_5, trade_id, status_submitted);
 #ifdef DEBUG
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
+				ret = SPI_exec(sql, 0);
+				if (ret != SPI_OK_INSERT) {
+					dump_mff1_inputs(price_quote_p, status_submitted_p,
+							symbol_p, trade_qty, type_limit_buy_p,
+							type_limit_sell_p, type_stop_loss_p);
+					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+				}
 			}
 
 			/* BEGIN/COMMIT statements not supported with SPI. */
@@ -300,7 +360,7 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 			p_s = att_addlength(p_s, typlen_s, PointerGetDatum(p_s));
 			p_s = (char *) att_align(p_s, typalign_s);
 		}
-		sprintf(values[0], "%d", k);
+		sprintf(values[i_send_len], "%d", k);
 		funcctx->max_calls = 1;
 
 		/* Build a tuple descriptor for our result type */
