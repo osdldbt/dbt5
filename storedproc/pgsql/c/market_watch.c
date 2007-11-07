@@ -19,6 +19,8 @@
 #include <utils/date.h>
 #include <utils/datetime.h>
 
+#include "frame.h"
+
 #define BAD_INPUT_DATA 1
 
 #define MWF1_1 \
@@ -69,6 +71,20 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(MarketWatchFrame1);
 
+void dump_mwf1_inputs(long, long, long, char *, char *, long);
+
+void dump_mwf1_inputs(long acct_id, long cust_id, long ending_co_id,
+		char *industry_name, char *start_date, long starting_co_id) {
+	elog(NOTICE, "MWF1: INPUTS START");
+	elog(NOTICE, "MWF1: %ld", acct_id);
+	elog(NOTICE, "MWF1: %ld", cust_id);
+	elog(NOTICE, "MWF1: %ld", ending_co_id);
+	elog(NOTICE, "MWF1: '%s'", industry_name);
+	elog(NOTICE, "MWF1: %s", pstrdup(start_date));
+	elog(NOTICE, "MWF1: %ld", starting_co_id);
+	elog(NOTICE, "MWF1: INPUTS END");
+}
+
 /* Clause 3.3.1.3 */
 Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 {
@@ -98,6 +114,8 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 		DateADT start_date_p = PG_GETARG_DATEADT(4);
 		int64 starting_co_id = PG_GETARG_INT64(5);
 
+		enum mwf1 { i_pct_change=0, i_status };
+
 		int ret;
 		TupleDesc tupdesc;
 		SPITupleTable *tuptable = NULL;
@@ -121,21 +139,18 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 */
 		values = (char **) palloc(sizeof(char *) * 2);
-		values[0] = (char *) palloc(64 * sizeof(char));
-		values[1] = (char *) palloc(2 * sizeof(char));
-
+		values[i_pct_change] = (char *) palloc(64 * sizeof(char));
+		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
 
 #ifdef DEBUG
-		elog(NOTICE, "[0] %ld", acct_id);
-		elog(NOTICE, "[1] %ld", cust_id);
-		elog(NOTICE, "[2] %ld", ending_co_id);
-		elog(NOTICE, "[3] '%s'", industry_name);
-		elog(NOTICE, "[4] %s", pstrdup(buf));
-		elog(NOTICE, "[5] %ld", starting_co_id);
+		dump_mwf1_inputs(acct_id, cust_id, ending_co_id, industry_name,
+				buf, starting_co_id);
 #endif
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
+		funcctx->max_calls = 1;
+
 
 		/* switch to memory context appropriate for multiple function calls */
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
@@ -155,9 +170,10 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
-		if (ret == SPI_OK_SELECT) {
-		} else {
-			elog(NOTICE, "ERROR: sql not ok = %d", ret);
+		if (ret != SPI_OK_SELECT) {
+			dump_mwf1_inputs(acct_id, cust_id, ending_co_id, industry_name,
+					buf, starting_co_id);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 		}
 
 		if (status != BAD_INPUT_DATA) {
@@ -187,7 +203,9 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 				ret = SPI_exec(sql, 0);
 				if (ret != SPI_OK_SELECT) {
-					elog(NOTICE, "ERROR: sql not ok = %d", ret);
+					dump_mwf1_inputs(acct_id, cust_id, ending_co_id,
+							industry_name, buf, starting_co_id);
+					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				}
 				tupdesc4 = SPI_tuptable->tupdesc;
 				tuptable4 = SPI_tuptable;
@@ -204,6 +222,8 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 				ret = SPI_exec(sql, 0);
 				if (ret != SPI_OK_SELECT) {
+					dump_mwf1_inputs(acct_id, cust_id, ending_co_id,
+							industry_name, buf, starting_co_id);
 					elog(NOTICE, "ERROR: sql not ok = %d", ret);
 				}
 				tupdesc4 = SPI_tuptable->tupdesc;
@@ -220,7 +240,9 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 				ret = SPI_exec(sql, 0);
 				if (ret != SPI_OK_SELECT) {
-					elog(NOTICE, "ERROR: sql not ok = %d", ret);
+					dump_mwf1_inputs(acct_id, cust_id, ending_co_id,
+							industry_name, buf, starting_co_id);
+					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				}
 
 				if (SPI_processed == 0) {
@@ -248,8 +270,8 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 			elog(NOTICE, "pct_change = %f", pct_change);
 #endif /* DEBUG */
 		}
-
-		funcctx->max_calls = 1;
+		sprintf(values[i_pct_change], "%f", pct_change);
+		sprintf(values[i_status], "%d", status);
 
 		/* Build a tuple descriptor for our result type */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
@@ -282,8 +304,6 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 		HeapTuple tuple;
 		Datum result;
 
-		sprintf(values[0], "%f", pct_change);
-		sprintf(values[1], "%d", status);
 #ifdef DEBUG                                                                    
 		for (i = 0; i < 2; i++) {
 			elog(NOTICE, "%d %s", i, values[i]);
