@@ -59,7 +59,7 @@ PG_MODULE_MAGIC;
 		"         SUM(hs_qty * lt_price) AS soma\n" \
 		"FROM     customer_account\n" \
 		"         LEFT OUTER JOIN holding_summary\n" \
-		"           ON hs_ca_id = ca_id,\n" \
+		"                      ON hs_ca_id = ca_id,\n" \
 		"         last_trade\n" \
 		"WHERE    ca_c_id = %ld\n" \
 		"         AND lt_s_symb = hs_s_symb\n" \
@@ -130,7 +130,8 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 				i_c_area_1, i_c_area_2, i_c_area_3, i_c_ctry_1, i_c_ctry_2,
 				i_c_ctry_3, i_c_dob, i_c_email_1, i_c_email_2, i_c_ext_1,
 				i_c_ext_2, i_c_ext_3, i_c_f_name, i_c_gndr, i_c_l_name,
-				i_c_local_1, i_c_local_2, i_c_local_3, i_c_m_name
+				i_c_local_1, i_c_local_2, i_c_local_3, i_c_m_name, i_c_st_id,
+				i_c_tier, i_cash_bal, i_status
 		};
 
 		int ret;
@@ -145,7 +146,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		 * This should be an array of C strings, which will
 		 * be processed later by the type input functions.
 		 */
-		values = (char **) palloc(sizeof(char *) * 23);
+		values = (char **) palloc(sizeof(char *) * 28);
 		values[i_cust_id] = (char *) palloc((IDENT_T_LEN + 1) * sizeof(char));
 		values[i_acct_len] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
 		values[i_c_ad_id] = (char *) palloc((IDENT_T_LEN + 1) * sizeof(char));
@@ -173,9 +174,13 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		values[i_c_local_3] =
 				(char *) palloc((C_LOCAL_3_LEN + 1) * sizeof(char));
 		values[i_c_m_name] = (char *) palloc((C_M_NAME_LEN + 1) * sizeof(char));
+		values[i_c_st_id] = (char *) palloc((ST_ID_LEN + 1) * sizeof(char));
+		values[i_c_tier] = (char *) palloc((C_TIER_LEN + 1) * sizeof(char));
+		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
 
 		/* Create a function context for cross-call persistence. */
 		funcctx = SRF_FIRSTCALL_INIT();
+		strcpy(values[i_status], "0");
 
 		/* Switch to memory context appropriate for multiple function calls. */
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
@@ -204,7 +209,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			} else {
 				dump_cpf1_inputs(cust_id, tax_id_p);
-				FAIL_FRAME3(&funcctx->max_calls, sql);
+				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			}
 		}
 
@@ -223,25 +228,25 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 
+			strcpy(values[i_c_st_id], SPI_getvalue(tuple, tupdesc, 1));
+			strcpy(values[i_c_l_name], SPI_getvalue(tuple, tupdesc, 2));
+			strcpy(values[i_c_f_name], SPI_getvalue(tuple, tupdesc, 3));
+
+			tmp = SPI_getvalue(tuple, tupdesc, 4);
+			if (tmp != NULL)
+				strcpy(values[i_c_m_name], tmp);
+			else
+				values[i_c_m_name][0] = '\0';
+
+			tmp = SPI_getvalue(tuple, tupdesc, 5);
+			if (tmp != NULL)
+				strcpy(values[i_c_gndr], tmp);
+			else
+				values[i_c_gndr][0] = '\0';
+
+			strcpy(values[i_c_tier], SPI_getvalue(tuple, tupdesc, 6));
+			strcpy(values[i_c_dob], SPI_getvalue(tuple, tupdesc, 7));
 			strcpy(values[i_c_ad_id], SPI_getvalue(tuple, tupdesc, 8));
-
-			tmp = SPI_getvalue(tuple, tupdesc, 10);
-			if (tmp != NULL)
-				strcpy(values[i_c_area_1], tmp);
-			else
-				values[i_c_area_1][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 14);
-			if (tmp != NULL)
-				strcpy(values[i_c_area_2], tmp);
-			else
-				values[i_c_area_2][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 18);
-			if (tmp != NULL)
-				strcpy(values[i_c_area_3], tmp);
-			else
-				values[i_c_area_3][0] = '\0';
 
 			tmp = SPI_getvalue(tuple, tupdesc, 9);
 			if (tmp != NULL)
@@ -249,11 +254,47 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			else
 				values[i_c_ctry_1][0] = '\0';
 
+			tmp = SPI_getvalue(tuple, tupdesc, 10);
+			if (tmp != NULL)
+				strcpy(values[i_c_area_1], tmp);
+			else
+				values[i_c_area_1][0] = '\0';
+
+			tmp = SPI_getvalue(tuple, tupdesc, 11);
+			if (tmp != NULL)
+				strcpy(values[i_c_local_1], tmp);
+			else
+				values[i_c_local_1][0] = '\0';
+
+			tmp = SPI_getvalue(tuple, tupdesc, 12);
+			if (tmp != NULL)
+				strcpy(values[i_c_ext_1], tmp);
+			else
+				values[i_c_ext_1][0] = '\0';
+
 			tmp = SPI_getvalue(tuple, tupdesc, 13);
 			if (tmp != NULL)
 				strcpy(values[i_c_ctry_2], tmp);
 			else
 				values[i_c_ctry_2][0] = '\0';
+
+			tmp = SPI_getvalue(tuple, tupdesc, 14);
+			if (tmp != NULL)
+				strcpy(values[i_c_area_2], tmp);
+			else
+				values[i_c_area_2][0] = '\0';
+
+			tmp = SPI_getvalue(tuple, tupdesc, 15);
+			if (tmp != NULL)
+				strcpy(values[i_c_local_2], tmp);
+			else
+				values[i_c_local_2][0] = '\0';
+
+			tmp = SPI_getvalue(tuple, tupdesc, 16);
+			if (tmp != NULL)
+				strcpy(values[i_c_ext_2], tmp);
+			else
+				values[i_c_ext_2][0] = '\0';
 
 			tmp = SPI_getvalue(tuple, tupdesc, 17);
 			if (tmp != NULL)
@@ -261,7 +302,23 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			else
 				values[i_c_ctry_3][0] = '\0';
 
-			strcpy(values[i_c_dob], SPI_getvalue(tuple, tupdesc, 7));
+			tmp = SPI_getvalue(tuple, tupdesc, 18);
+			if (tmp != NULL)
+				strcpy(values[i_c_area_3], tmp);
+			else
+				values[i_c_area_3][0] = '\0';
+
+			tmp = SPI_getvalue(tuple, tupdesc, 19);
+			if (tmp != NULL)
+				strcpy(values[i_c_local_3], tmp);
+			else
+				values[i_c_local_3][0] = '\0';
+
+			tmp = SPI_getvalue(tuple, tupdesc, 20);
+			if (tmp != NULL)
+				strcpy(values[i_c_ext_3], tmp);
+			else
+				values[i_c_ext_3][0] = '\0';
 
 			tmp = SPI_getvalue(tuple, tupdesc, 21);
 			if (tmp != NULL)
@@ -274,58 +331,6 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 				strcpy(values[i_c_email_2], tmp);
 			else
 				values[i_c_email_2][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 12);
-			if (tmp != NULL)
-				strcpy(values[i_c_ext_1], tmp);
-			else
-				values[i_c_ext_1][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 16);
-			if (tmp != NULL)
-				strcpy(values[i_c_ext_2], tmp);
-			else
-				values[i_c_ext_2][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 20);
-			if (tmp != NULL)
-				strcpy(values[i_c_ext_3], tmp);
-			else
-				values[i_c_ext_3][0] = '\0';
-
-			strcpy(values[i_c_f_name], SPI_getvalue(tuple, tupdesc, 3));
-
-			tmp = SPI_getvalue(tuple, tupdesc, 5);
-			if (tmp != NULL)
-				strcpy(values[i_c_gndr], tmp);
-			else
-				values[i_c_gndr][0] = '\0';
-
-			strcpy(values[i_c_l_name], SPI_getvalue(tuple, tupdesc, 2));
-
-			tmp = SPI_getvalue(tuple, tupdesc, 11);
-			if (tmp != NULL)
-				strcpy(values[i_c_local_1], tmp);
-			else
-				values[i_c_local_1][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 15);
-			if (tmp != NULL)
-				strcpy(values[i_c_local_2], tmp);
-			else
-				values[i_c_local_2][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 19);
-			if (tmp != NULL)
-				strcpy(values[i_c_local_3], tmp);
-			else
-				values[i_c_local_3][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 4);
-			if (tmp != NULL)
-				strcpy(values[i_c_m_name], tmp);
-			else
-				values[i_c_m_name][0] = '\0';
 		}
 
 		sprintf(sql, CPF1_3, cust_id);
@@ -345,16 +350,20 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 
-			values[i_acct_id] = (char *) palloc((12 * SPI_processed + 2) *
-					sizeof(char));
-			values[i_asset_total] = (char *) palloc((18 * SPI_processed + 2) *
-					sizeof(char));
+			values[i_acct_id] = (char *) palloc(((IDENT_T_LEN + 1) *
+					(SPI_processed + 1) + 2) * sizeof(char));
+			values[i_cash_bal] = (char *) palloc(((BALANCE_T_LEN + 1) *
+					(SPI_processed + 1) +2) * sizeof(char));
+			values[i_asset_total] = (char *) palloc(((S_PRICE_T_LEN + 1) *
+					(SPI_processed + 1) + 2) * sizeof(char));
 
 			strcpy(values[i_acct_id], "{");
+			strcpy(values[i_cash_bal], "{");
 			strcpy(values[i_asset_total], "{");
 
 			if (SPI_processed > 0) {
 				strcat(values[i_acct_id], SPI_getvalue(tuple, tupdesc, 1));
+				strcat(values[i_cash_bal], SPI_getvalue(tuple, tupdesc, 2));
 				strcat(values[i_asset_total], SPI_getvalue(tuple, tupdesc, 3));
 			}
 			for (i = 1; i < SPI_processed; i++) {
@@ -362,19 +371,24 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 				strcat(values[i_acct_id], ",");
 				strcat(values[i_acct_id], SPI_getvalue(tuple, tupdesc, 1));
 
+				strcat(values[i_cash_bal], ",");
+				strcat(values[i_cash_bal], SPI_getvalue(tuple, tupdesc, 2));
+
 				strcat(values[i_asset_total], ",");
 				strcat(values[i_asset_total], SPI_getvalue(tuple, tupdesc, 3));
 			}
 			strcat(values[i_acct_id], "}");
+			strcat(values[i_cash_bal], "}");
 			strcat(values[i_asset_total], "}");
 
 		} else {
 			dump_cpf1_inputs(cust_id, tax_id_p);
-			FAIL_FRAME3(&funcctx->max_calls, sql);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 /*
 			values[i_acct_id] = (char *) palloc(3 * sizeof(char));
 			values[i_asset_total] = (char *) palloc(3 * sizeof(char));
 			strcpy(values[i_acct_id], "{}");
+			strcpy(values[i_bash_bal], "{}");
 			strcpy(values[i_asset_total], "{}");
 */
 		}
@@ -409,7 +423,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		HeapTuple tuple;
 
 #ifdef DEBUG
-		for (i = 0; i < 24; i++) {
+		for (i = 0; i < 28; i++) {
 			elog(NOTICE, "%d '%s'", i, values[i]);
 		}
 #endif /* DEBUG */
@@ -421,7 +435,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		result = HeapTupleGetDatum(tuple);
 
 		/* Free memory. */
-		for (i = 0; i < 24; i++) {
+		for (i = 0; i < 28; i++) {
 			pfree(values[i]);
 		}
 		pfree(values);

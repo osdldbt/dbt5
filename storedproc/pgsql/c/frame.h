@@ -21,11 +21,6 @@
 				__FILE__, __LINE__, sql); \
 		status = 1;
 
-#define FAIL_FRAME3(rows, sql) \
-		elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", \
-				__FILE__, __LINE__, sql); \
-		*rows = 0;
-
 /* PostgreSQL types */
 #define BIGINT_LEN 10
 #define INTEGER_LEN 5
@@ -63,6 +58,7 @@
 #define C_LOCAL_2_LEN 10
 #define C_LOCAL_3_LEN 10
 #define C_M_NAME_LEN 1
+#define C_TIER_LEN SMALLINT_LEN
 
 #define CO_SP_RATE_LEN 5
 

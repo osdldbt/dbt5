@@ -18,16 +18,36 @@
  * holdings in each account.
  */
 
-CREATE OR REPLACE FUNCTION CustomerPositionFrame1(INOUT cust_id IDENT_T,
-		IN tax_id CHAR(20), OUT acct_id BIGINT[], OUT acct_len INTEGER,
-		OUT asset_total NUMERIC(14,2)[], OUT c_ad_id IDENT_T,
-		OUT c_area_1 CHAR(3), OUT c_area_2 CHAR(3), OUT c_area_3 CHAR(3),
-		OUT c_ctry_1 CHAR(3), OUT c_ctry_2 CHAR(3), OUT c_ctry_3 CHAR(3),
-		OUT c_dob DATE, OUT c_email_1 CHAR(50), OUT c_email_2 CHAR(50),
-		OUT c_ext_1 CHAR(5), OUT c_ext_2 CHAR(5), OUT c_ext_3 CHAR(5),
-		OUT c_f_name CHAR(30), OUT c_gndr CHAR(1), OUT c_l_name CHAR(30),
-		OUT c_local_1 CHAR(10), OUT c_local_2 CHAR(10), OUT c_local_3 CHAR(10),
-		OUT c_m_name CHAR(1))
+CREATE OR REPLACE FUNCTION CustomerPositionFrame1(
+		INOUT cust_id IDENT_T,
+		IN tax_id CHAR(20),
+		OUT acct_id BIGINT[],
+		OUT acct_len INTEGER,
+		OUT asset_total NUMERIC(14,2)[],
+		OUT c_ad_id IDENT_T,
+		OUT c_area_1 CHAR(3),
+		OUT c_area_2 CHAR(3),
+		OUT c_area_3 CHAR(3),
+		OUT c_ctry_1 CHAR(3),
+		OUT c_ctry_2 CHAR(3),
+		OUT c_ctry_3 CHAR(3),
+		OUT c_dob DATE,
+		OUT c_email_1 CHAR(50),
+		OUT c_email_2 CHAR(50),
+		OUT c_ext_1 CHAR(5),
+		OUT c_ext_2 CHAR(5),
+		OUT c_ext_3 CHAR(5),
+		OUT c_f_name CHAR(30),
+		OUT c_gndr CHAR(1),
+		OUT c_l_name CHAR(30),
+		OUT c_local_1 CHAR(10),
+		OUT c_local_2 CHAR(10),
+		OUT c_local_3 CHAR(10),
+		OUT c_m_name CHAR(1),
+		OUT c_st_id CHAR(4),
+		OUT c_tier SMALLINT,
+		OUT cash_bal NUMERIC(12, 2)[],
+		OUT status INTEGER)
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'CustomerPositionFrame1'
 LANGUAGE C IMMUTABLE STRICT;
 
