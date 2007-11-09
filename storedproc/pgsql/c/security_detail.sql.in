@@ -6,7 +6,7 @@
  */
 
 CREATE OR REPLACE FUNCTION SecurityDetailFrame1 (
-    	IN access_lob_flag BOOL,
+		IN access_lob_flag BOOL,
 		IN max_rows_to_return INTEGER,
 		IN start_date DATE,
 		IN symbol VARCHAR,

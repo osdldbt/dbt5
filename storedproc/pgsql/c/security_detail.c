@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2007 Mark Wong
  *
- * Based on TPC-E Standard Specification Revision 1.1.0
+ * Based on TPC-E Standard Specification Revision 1.3.0
  */
 
 #include <sys/types.h>
@@ -17,6 +17,8 @@
 #include <miscadmin.h>
 #include <utils/date.h>
 #include <utils/datetime.h>
+
+#include "frame.h"
 
 /* FIXME: These values should be inherited from the egen headers. */
 #define MAX_COMP_LEN 3
@@ -159,6 +161,18 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(SecurityDetailFrame1);
 
+void dump_sdf1_inputs(bool, int, char *, char *);
+
+void dump_sdf1_inputs(bool access_lob_flag, int max_rows_to_return,
+		char *start_date, char *symbol) {
+	elog(NOTICE, "SDF1: INPUTS START");
+	elog(NOTICE, "SDF1: access_lob_flag %d", access_lob_flag);
+	elog(NOTICE, "SDF1: max_rows_to_return %d", max_rows_to_return);
+	elog(NOTICE, "SDF1: start_date %s", pstrdup(start_date));
+	elog(NOTICE, "SDF1: symbol '%s'", symbol);
+	elog(NOTICE, "SDF1: INPUTS END");
+}
+
 /* Clause 3.3.5.3 */
 Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 {
@@ -175,13 +189,26 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 	if (SRF_IS_FIRSTCALL()) {
 		MemoryContext oldcontext;
 
-		bool access_log_flag = PG_GETARG_BOOL(0);
+		bool access_lob_flag = PG_GETARG_BOOL(0);
 		int max_rows_to_return = PG_GETARG_INT32(1);
 		DateADT start_date_p = PG_GETARG_DATEADT(2);
 		char *symbol_p = (char *) PG_GETARG_TEXT_P(3);
-		char symbol[16];
+		char symbol[S_SYMB_LEN + 1];
 		struct pg_tm tt, *tm = &tt;
 		char buf[MAXDATELEN + 1];
+
+		enum sdf1 {
+			i_x52_wk_high=0, i_x52_wk_high_date, i_x52_wk_low,
+			i_x52_wk_low_date, i_ceo_name, i_co_ad_ctry, i_co_ad_div,
+			i_co_ad_line1, i_co_ad_line2, i_co_ad_town, i_co_ad_zip,
+			i_co_desc, i_co_name, i_co_st_id, i_cp_co_name, i_cp_in_name,
+			i_day, i_day_len, i_divid, i_ex_ad_ctry, i_ex_ad_div,
+			i_ex_ad_line1, i_ex_ad_line2, i_ex_ad_town, i_ex_ad_zip,
+			i_ex_close, i_ex_date, i_ex_desc, i_ex_name, i_ex_num_symb,
+			i_ex_open, i_fin, i_fin_len, i_last_open, i_last_price,
+			i_last_vol, i_news, i_news_len, i_num_out, i_open_date,
+			i_pe_ratio, i_s_name, i_sp_rate, i_start_date, i_status, i_yield
+		};
 
 		int ret;
 		TupleDesc tupdesc;
@@ -198,10 +225,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 				&(tm->tm_year), &(tm->tm_mon), &(tm->tm_mday));
 		EncodeDateOnly(tm, DateStyle, buf);
 #ifdef DEBUG
-		elog(NOTICE, "[0] %d", access_log_flag);
-		elog(NOTICE, "[1] %d", max_rows_to_return);
-		elog(NOTICE, "[2] %s", pstrdup(buf));
-		elog(NOTICE, "[3] %s", symbol);
+		dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
 #endif
 
 		/*
@@ -210,37 +234,30 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 */
 		values = (char **) palloc(sizeof(char *) * 46);
-		values[14] = (char *) palloc(sizeof(char *) * (MAX_COMP_LEN * 63 + 2));
-		values[15] = (char *) palloc(sizeof(char *) * (MAX_COMP_LEN * 53 + 2));
-		/*
-		 * FIXME:
-		 * I don't understand what to do here with 'day', setting an empty
-		 * array.
-		 */
-		values[16] = (char *) palloc(sizeof(char *) * 3);
-		strcpy(values[16], "{}");
-		values[17] = (char *) palloc(sizeof(char *) * 11);
-		/*
-		 * FIXME:
-		 * I don't understand what to do here with 'fin', setting an empty
-		 * array.
-		 */
-		values[31] = (char *) palloc(sizeof(char *) * 3);
-		strcpy(values[31], "{}");
-		values[32] = (char *) palloc(sizeof(char *) * 11);
-		/*
-		 * FIXME:
-		 * I don't understand what to do here with 'news', setting an empty
-		 * array.
-		 */
-		values[36] = (char *) palloc(sizeof(char *) * 3);
-		strcpy(values[36], "{}");
-		values[37] = (char *) palloc(sizeof(char *) * 11);
-		values[44] = (char *) palloc(sizeof(char *) * 2);
-		strcpy(values[44], "0");
+		values[i_cp_co_name] = (char *) palloc(sizeof(char) *
+				(MAX_COMP_LEN * CO_NAME_LEN + 3));
+		values[i_cp_in_name] = (char *) palloc(sizeof(char) *
+				(MAX_COMP_LEN * IN_NAME_LEN + 3));
+		values[i_day] = (char *) palloc(sizeof(char) * ((MAXDATELEN +
+				DM_CLOSE_LEN + DM_HIGH_LEN + DM_LOW_LEN + DM_VOL_LEN + 7) *
+				max_rows_to_return + 3));
+		values[i_day_len] = (char *) palloc(sizeof(char) * (INTEGER_LEN + 1));
+		values[i_fin] = (char *) palloc(((FI_YEAR_LEN + FI_QTR_LEN +
+				MAXDATELEN + FI_REVENUE_LEN + FI_NET_EARN_LEN +
+				FI_BASIC_EPS_LEN + FI_MARGIN_LEN + FI_INVENTORY_LEN +
+				FI_ASSETS_LEN + FI_LIABILITY_LEN + FI_OUT_BASIC_LEN +
+				FI_OUT_DILUT_LEN + 14) * MAX_FIN_LEN + 3) * sizeof(char));
+		values[i_fin_len] = (char *) palloc(sizeof(char) * (INTEGER_LEN + 1));
+		values[i_news] = (char *) palloc(sizeof(char) * ((NI_ITEM_LEN +
+				MAXDATELEN + NI_SOURCE_LEN + NI_AUTHOR_LEN + 19) *
+				MAX_NEWS_LEN + 3));
+		values[i_news_len] = (char *) palloc(sizeof(char) * (INTEGER_LEN + 1));
+		values[i_status] = (char *) palloc(sizeof(char) * (STATUS_LEN + 1));
+		strcpy(values[i_status], "0");
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
+		funcctx->max_calls = 1;
 
 		/* switch to memory context appropriate for multiple function calls */
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
@@ -257,46 +274,45 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 
+			values[i_s_name] = SPI_getvalue(tuple, tupdesc, 1);
 			co_id = SPI_getvalue(tuple, tupdesc, 2);
-			values[0] = SPI_getvalue(tuple, tupdesc, 19);
-			values[1] = SPI_getvalue(tuple, tupdesc, 20);
-			values[2] = SPI_getvalue(tuple, tupdesc, 21);
-			values[3] = SPI_getvalue(tuple, tupdesc, 22);
-			values[4] = SPI_getvalue(tuple, tupdesc, 5);
-			values[5] = SPI_getvalue(tuple, tupdesc, 14);
-			values[6] = SPI_getvalue(tuple, tupdesc, 12);
-			values[7] = SPI_getvalue(tuple, tupdesc, 9);
-			values[8] = SPI_getvalue(tuple, tupdesc, 10);
-			values[9] = SPI_getvalue(tuple, tupdesc, 11);
-			values[10] = SPI_getvalue(tuple, tupdesc, 13);
-			values[11] = SPI_getvalue(tuple, tupdesc, 6);
-			values[12] = SPI_getvalue(tuple, tupdesc, 3);
-			values[13] = SPI_getvalue(tuple, tupdesc, 8);
-			values[18] = SPI_getvalue(tuple, tupdesc, 23);
-			values[19] = SPI_getvalue(tuple, tupdesc, 26);
-			values[20] = SPI_getvalue(tuple, tupdesc, 25);
-			values[21] = SPI_getvalue(tuple, tupdesc, 27);
-			values[22] = SPI_getvalue(tuple, tupdesc, 28);
-			values[23] = SPI_getvalue(tuple, tupdesc, 29);
-			values[24] = SPI_getvalue(tuple, tupdesc, 30);
-			values[25] = SPI_getvalue(tuple, tupdesc, 31);
-			values[26] = SPI_getvalue(tuple, tupdesc, 17);
-			values[27] = SPI_getvalue(tuple, tupdesc, 32);
-			values[28] = SPI_getvalue(tuple, tupdesc, 33);
-			values[29] = SPI_getvalue(tuple, tupdesc, 34);
-			values[30] = SPI_getvalue(tuple, tupdesc, 35);
-			values[38] = SPI_getvalue(tuple, tupdesc, 15);
-			values[39] = SPI_getvalue(tuple, tupdesc, 7);
-			values[40] = SPI_getvalue(tuple, tupdesc, 18);
-			values[41] = SPI_getvalue(tuple, tupdesc, 1);
-			values[42] = SPI_getvalue(tuple, tupdesc, 4);
-			values[43] = SPI_getvalue(tuple, tupdesc, 16);
-			values[45] = SPI_getvalue(tuple, tupdesc, 24);
+			values[i_co_name] = SPI_getvalue(tuple, tupdesc, 3);
+			values[i_sp_rate] = SPI_getvalue(tuple, tupdesc, 4);
+			values[i_ceo_name] = SPI_getvalue(tuple, tupdesc, 5);
+			values[i_co_desc] = SPI_getvalue(tuple, tupdesc, 6);
+			values[i_open_date] = SPI_getvalue(tuple, tupdesc, 7);
+			values[i_co_st_id] = SPI_getvalue(tuple, tupdesc, 8);
+			values[i_co_ad_line1] = SPI_getvalue(tuple, tupdesc, 9);
+			values[i_co_ad_line2] = SPI_getvalue(tuple, tupdesc, 10);
+			values[i_co_ad_town] = SPI_getvalue(tuple, tupdesc, 11);
+			values[i_co_ad_div] = SPI_getvalue(tuple, tupdesc, 12);
+			values[i_co_ad_zip] = SPI_getvalue(tuple, tupdesc, 13);
+			values[i_co_ad_ctry] = SPI_getvalue(tuple, tupdesc, 14);
+			values[i_num_out] = SPI_getvalue(tuple, tupdesc, 15);
+			values[i_start_date] = SPI_getvalue(tuple, tupdesc, 16);
+			values[i_ex_date] = SPI_getvalue(tuple, tupdesc, 17);
+			values[i_pe_ratio] = SPI_getvalue(tuple, tupdesc, 18);
+			values[i_x52_wk_high] = SPI_getvalue(tuple, tupdesc, 19);
+			values[i_x52_wk_high_date] = SPI_getvalue(tuple, tupdesc, 20);
+			values[i_x52_wk_low] = SPI_getvalue(tuple, tupdesc, 21);
+			values[i_x52_wk_low_date] = SPI_getvalue(tuple, tupdesc, 22);
+			values[i_divid] = SPI_getvalue(tuple, tupdesc, 23);
+			values[i_yield] = SPI_getvalue(tuple, tupdesc, 24);
+			values[i_ex_ad_div] = SPI_getvalue(tuple, tupdesc, 25);
+			values[i_ex_ad_ctry] = SPI_getvalue(tuple, tupdesc, 26);
+			values[i_ex_ad_line1] = SPI_getvalue(tuple, tupdesc, 27);
+			values[i_ex_ad_line2] = SPI_getvalue(tuple, tupdesc, 28);
+			values[i_ex_ad_town] = SPI_getvalue(tuple, tupdesc, 29);
+			values[i_ex_ad_zip] = SPI_getvalue(tuple, tupdesc, 30);
+			values[i_ex_close] = SPI_getvalue(tuple, tupdesc, 31);
+			values[i_ex_desc] = SPI_getvalue(tuple, tupdesc, 32);
+			values[i_ex_name] = SPI_getvalue(tuple, tupdesc, 33);
+			values[i_ex_num_symb] = SPI_getvalue(tuple, tupdesc, 34);
+			values[i_ex_open] = SPI_getvalue(tuple, tupdesc, 35);
 		} else {
-			elog(NOTICE, "ERROR: sql not ok = %d", ret);
-			strcpy(values[44], "1");
+			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 		}
-
 
 		sprintf(sql, SDF1_2, co_id, MAX_COMP_LEN);
 #ifdef DEBUG
@@ -307,37 +323,38 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 
-			strcpy(values[14], "{");
-			strcpy(values[15], "{");
+			strcpy(values[i_cp_co_name], "{");
+			strcpy(values[i_cp_in_name], "{");
 
 			if (SPI_processed > 0) {
 				tuple = tuptable->vals[0];
 
-				strcat(values[14], "\"");
-				strcat(values[14], SPI_getvalue(tuple, tupdesc, 1));
-				strcat(values[14], "\"");
+				strcat(values[i_cp_co_name], "\"");
+				strcat(values[i_cp_co_name], SPI_getvalue(tuple, tupdesc, 1));
+				strcat(values[i_cp_co_name], "\"");
 
-				strcat(values[15], "\"");
-				strcat(values[15], SPI_getvalue(tuple, tupdesc, 2));
-				strcat(values[15], "\"");
+				strcat(values[i_cp_in_name], "\"");
+				strcat(values[i_cp_in_name], SPI_getvalue(tuple, tupdesc, 2));
+				strcat(values[i_cp_in_name], "\"");
 			}
 			for (i = 1; i < SPI_processed; i++) {
 				tuple = tuptable->vals[i];
 
-				strcat(values[14], ",\"");
-				strcat(values[14], SPI_getvalue(tuple, tupdesc, 1));
-				strcat(values[14], "\"");
+				strcat(values[i_cp_co_name], ",\"");
+				strcat(values[i_cp_co_name], SPI_getvalue(tuple, tupdesc, 1));
+				strcat(values[i_cp_co_name], "\"");
 
-				strcat(values[15], ",\"");
-				strcat(values[15], SPI_getvalue(tuple, tupdesc, 2));
-				strcat(values[15], "\"");
+				strcat(values[i_cp_in_name], ",\"");
+				strcat(values[i_cp_in_name], SPI_getvalue(tuple, tupdesc, 2));
+				strcat(values[i_cp_in_name], "\"");
 			}
-			strcat(values[14], "}");
-			strcat(values[15], "}");
+			strcat(values[i_cp_co_name], "}");
+			strcat(values[i_cp_in_name], "}");
 		} else {
-			elog(NOTICE, "ERROR: sql not ok = %d", ret);
-			strcpy(values[14], "{}");
-			strcpy(values[44], "1");
+			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+			strcpy(values[i_cp_co_name], "{}");
+			strcpy(values[i_cp_in_name], "{}");
 		}
 
 		sprintf(sql, SDF1_3, co_id, MAX_FIN_LEN);
@@ -348,12 +365,55 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
-			sprintf(values[32], "%d", SPI_processed);
 		} else {
-			elog(NOTICE, "ERROR: sql not ok = %d", ret);
-			strcpy(values[32], "0");
-			strcpy(values[44], "1");
+			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 		}
+		sprintf(values[i_fin_len], "%d", SPI_processed);
+		strcpy(values[i_fin], "{");
+		for (i = 0; i < SPI_processed; i++) {
+			tuple = tuptable->vals[i];
+			if (i > 0) {
+				strcat(values[i_fin], ",");
+			}
+			strcat(values[i_fin], "{");
+			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 1));
+			strcat(values[i_fin], ",");
+			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 2));
+			strcat(values[i_fin], ",");
+
+			/*
+			 * FIXME: This is supposed to be an array of number but this is
+			 * a date.  What is supposed to be going on here?  Using the
+			 * number 0 as a place holder.
+			 */
+/*
+			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 3));
+*/
+			strcat(values[i_fin], "0");
+			strcat(values[i_fin], ",");
+			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 4));
+			strcat(values[i_fin], ",");
+			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 5));
+			strcat(values[i_fin], ",");
+			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 6));
+			strcat(values[i_fin], ",");
+			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 7));
+			strcat(values[i_fin], ",");
+			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 8));
+			strcat(values[i_fin], ",");
+			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 9));
+			strcat(values[i_fin], ",");
+			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 10));
+			strcat(values[i_fin], ",");
+			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 11));
+			strcat(values[i_fin], ",");
+			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 12));
+			strcat(values[i_fin], ",");
+			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 13));
+			strcat(values[i_fin], "}");
+		}
+		strcat(values[i_fin], "}");
 
 		sprintf(sql, SDF1_4, symbol, pstrdup(buf), max_rows_to_return);
 #ifdef DEBUG
@@ -363,12 +423,37 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
-			sprintf(values[17], "%d", SPI_processed);
 		} else {
-			elog(NOTICE, "ERROR: sql not ok = %d", ret);
-			strcpy(values[17], "0");
-			strcpy(values[44], "1");
+			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 		}
+		sprintf(values[i_day_len], "%d", SPI_processed);
+		strcpy(values[i_day], "{");
+		for (i = 0; i < SPI_processed; i++) {
+			tuple = tuptable->vals[i];
+			if (i > 0) {
+				strcat(values[i_day], ",");
+			}
+			strcat(values[i_day], "{");
+			/*
+			 * FIXME: This is supposed to be an array of number but this is
+			 * a date.  What is supposed to be going on here?  Using the
+			 * number 0 as a place holder.
+			 */
+			strcat(values[i_day], "0");
+/*
+			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 1));
+*/
+			strcat(values[i_day], ",");
+			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 2));
+			strcat(values[i_day], ",");
+			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 3));
+			strcat(values[i_day], ",");
+			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 4));
+			strcat(values[i_day], ",");
+			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 5));
+		}
+		strcat(values[i_day], "}");
 
 		sprintf(sql, SDF1_5, symbol);
 #ifdef DEBUG
@@ -379,18 +464,18 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			values[33] = SPI_getvalue(tuple, tupdesc, 2);
-			values[34] = SPI_getvalue(tuple, tupdesc, 1);
-			values[35] = SPI_getvalue(tuple, tupdesc, 3);
+			values[i_last_open] = SPI_getvalue(tuple, tupdesc, 2);
+			values[i_last_price] = SPI_getvalue(tuple, tupdesc, 1);
+			values[i_last_vol] = SPI_getvalue(tuple, tupdesc, 3);
 		} else {
-			elog(NOTICE, "ERROR: sql not ok = %d", ret);
-			values[33] = NULL;
-			values[34] = NULL;
-			values[35] = NULL;
-			strcpy(values[44], "1");
+			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+			values[i_last_open] = NULL;
+			values[i_last_price] = NULL;
+			values[i_last_vol] = NULL;
 		}
 
-		if (access_log_flag == true) {
+		if (access_lob_flag == true) {
 			sprintf(sql, SDF1_6, co_id, MAX_NEWS_LEN);
 		} else {
 			sprintf(sql, SDF1_7, co_id, MAX_NEWS_LEN);
@@ -402,14 +487,36 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
-			sprintf(values[37], "%d", SPI_processed);
 		} else {
-			elog(NOTICE, "ERROR: sql not ok = %d", ret);
-			strcpy(values[37], "0");
-			strcpy(values[44], "1");
+			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 		}
-
-		funcctx->max_calls = 1;
+			sprintf(values[i_news_len], "%d", SPI_processed);
+		strcpy(values[i_news], "{");
+		for (i = 0; i < SPI_processed; i++) {
+			tuple = tuptable->vals[i];
+			if (i > 0) {
+				strcat(values[i_news], ",");
+			}
+			strcat(values[i_news], "{");
+			/*
+			 * FIXME: This is supposed to be an array of number but this is
+			 * a date.  What is supposed to be going on here?  Using the
+			 * number 0 as a place holder.
+			 */
+			strcat(values[i_news], "\"");
+			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 1));
+			strcat(values[i_news], "\",\"");
+			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 2));
+			strcat(values[i_news], "\",\"");
+			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 3));
+			strcat(values[i_news], "\",\"");
+			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 4));
+			strcat(values[i_news], "\",\"");
+			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 5));
+			strcat(values[i_news], "\"");
+		}
+		strcat(values[i_news], "}");
 
 		/* Build a tuple descriptor for our result type */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
@@ -453,18 +560,6 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 
 		/* Make the tuple into a datum. */
 		result = HeapTupleGetDatum(tuple);
-
-		/* Clean up. */
-		pfree(values[14]);
-		pfree(values[15]);
-		pfree(values[16]);
-		pfree(values[17]);
-		pfree(values[31]);
-		pfree(values[32]);
-		pfree(values[36]);
-		pfree(values[37]);
-		pfree(values[44]);
-		pfree(values);
 
 		SRF_RETURN_NEXT(funcctx, result);
 	} else {
