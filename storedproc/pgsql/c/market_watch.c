@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2007 Mark Wong
  *
- * Based on TPC-E Standard Specification Revision 1.1.0
+ * Based on TPC-E Standard Specification Revision 1.3.0
  */
 
 #include <sys/types.h>
@@ -122,7 +122,7 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 		HeapTuple tuple = NULL;
 
 		char buf[MAXDATELEN + 1];
-		char industry_name[51];
+		char industry_name[IN_NAME_LEN + 1];
 
 		char sql[2048] = "";
 
@@ -183,16 +183,16 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 			SPITupleTable *tuptable4 = NULL;
 			HeapTuple tuple4 = NULL;
 
-			char symbol[16];
-			char new_price[11];
-			char old_price[11];
-			char s_num_out[64];
+			char *symbol;
+			char *new_price;
+			char *old_price;
+			char *s_num_out;
 
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			for (i = 0; i < count; i++) {
 				tuple = tuptable->vals[i];
-				strcpy(symbol, SPI_getvalue(tuple, tupdesc, 1));
+				symbol = SPI_getvalue(tuple, tupdesc, 1);
 #ifdef DEBUG
 				elog(NOTICE, "  symbol = '%s'", symbol);
 #endif /* DEBUG */
@@ -210,7 +210,7 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 				tupdesc4 = SPI_tuptable->tupdesc;
 				tuptable4 = SPI_tuptable;
 				tuple4 = tuptable4->vals[0];
-				strcpy(new_price, SPI_getvalue(tuple4, tupdesc4, 1));
+				new_price = SPI_getvalue(tuple4, tupdesc4, 1);
 #ifdef DEBUG
 				elog(NOTICE, "  new_price  = %s", new_price);
 				elog(NOTICE, "  new_price  = %f", atof(new_price));
@@ -229,7 +229,7 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 				tupdesc4 = SPI_tuptable->tupdesc;
 				tuptable4 = SPI_tuptable;
 				tuple4 = tuptable4->vals[0];
-				strcpy(s_num_out, SPI_getvalue(tuple4, tupdesc4, 1));
+				s_num_out = SPI_getvalue(tuple4, tupdesc4, 1);
 #ifdef DEBUG
 				elog(NOTICE, "  s_num_out  = %s", s_num_out);
 #endif /* DEBUG */
@@ -251,7 +251,7 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 					tupdesc4 = SPI_tuptable->tupdesc;
 					tuptable4 = SPI_tuptable;
 					tuple4 = tuptable4->vals[0];
-					strcpy(old_price, SPI_getvalue(tuple4, tupdesc4, 1));
+					old_price = SPI_getvalue(tuple4, tupdesc4, 1);
 #ifdef DEBUG
 					elog(NOTICE, "  old_price  = %s", old_price);
 					elog(NOTICE, "  old_price  = %f", atof(old_price));
@@ -315,12 +315,6 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 
 		/* Make the tuple into a datum. */
 		result = HeapTupleGetDatum(tuple);
-
-		/* Clean up. */
-		for (i = 0; i < 2; i++) {                                               
-			pfree(values[i]);                                                   
-		} 
-		pfree(values);                                                   
 
 		SRF_RETURN_NEXT(funcctx, result);
 	} else {
