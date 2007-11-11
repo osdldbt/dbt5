@@ -25,8 +25,6 @@ CMarketWatchDB::~CMarketWatchDB()
 void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
 		TMarketWatchFrame1Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "select * from MarketWatchFrame1("<<pIn->acct_id<<","<<pIn->c_id<<","<<
 			pIn->ending_co_id<<",'"<<pIn->industry_name<<"', "<<

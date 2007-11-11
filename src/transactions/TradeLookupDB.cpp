@@ -25,8 +25,6 @@ CTradeLookupDB::~CTradeLookupDB()
 void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 		TTradeLookupFrame1Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osTrades;
 	int i = 0;
 	osTrades << pIn->trade_id[i];
@@ -231,8 +229,6 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 		TTradeLookupFrame2Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "select * from tradelookupframe2(" << pIn->acct_id <<
 			"::IDENT_T," << pIn->max_trades << ",'" <<
@@ -443,8 +439,6 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 		TTradeLookupFrame3Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "SELECT * from TradeLookupFrame3(" << pIn->max_acct_id <<
 			"::IDENT_T," << pIn->max_trades << "::integer,'" <<
@@ -675,8 +669,6 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 void CTradeLookupDB::DoTradeLookupFrame4(const TTradeLookupFrame4Input *pIn,
 		TTradeLookupFrame4Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "select * from TradeLookupFrame4(" << pIn->acct_id <<
 			"::IDENT_T, '" << pIn->trade_dts.year << "-" <<

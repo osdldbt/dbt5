@@ -25,8 +25,6 @@ CTradeUpdateDB::~CTradeUpdateDB()
 void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 		TTradeUpdateFrame1Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osTrades;
 	int i = 0;
 	osTrades << pIn->trade_id[i];
@@ -240,8 +238,6 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 		TTradeUpdateFrame2Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "select * from TradeUpdateFrame2(" << pIn->acct_id <<
 			"::IDENT_T," << pIn->max_trades << "," <<
@@ -458,8 +454,6 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 void CTradeUpdateDB::DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
 		TTradeUpdateFrame3Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "SELECT * from TradeUpdateFrame3(" << pIn->max_acct_id <<
 			"::IDENT_T," << pIn->max_trades << "::integer," <<

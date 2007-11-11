@@ -26,8 +26,6 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 		const TDataMaintenanceFrame1Input *pIn,
 		TDataMaintenanceFrame1Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "SELECT * FROM DataMaintenanceFrame1(" <<
 			pIn->acct_id << ", " <<

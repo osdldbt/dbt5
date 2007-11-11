@@ -26,8 +26,6 @@ void CTradeResultDB::DoTradeResultFrame1(
 		const TTradeResultFrame1Input *pIn,
 		TTradeResultFrame1Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "select * from TradeResultFrame1(" << pIn->trade_id <<
 			") as (acct_id ident_t, charge value_t, hs_qty s_qty_t, is_lifo "
@@ -89,8 +87,6 @@ void CTradeResultDB::DoTradeResultFrame2(
 		const TTradeResultFrame2Input *pIn,
 		TTradeResultFrame2Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-	
 	ostringstream osCall;
 	osCall << "select * from TradeResultFrame2(" << pIn->acct_id <<
 			"::IDENT_T," << pIn->hs_qty << "::S_QTY_T," <<
@@ -161,8 +157,6 @@ void CTradeResultDB::DoTradeResultFrame3(
 		const TTradeResultFrame3Input *pIn,
 		TTradeResultFrame3Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "select * from TradeResultFrame3(" << pIn->buy_value <<
 			"::numeric(12,2)," << pIn->cust_id << "::IDENT_T," <<
@@ -201,8 +195,6 @@ void CTradeResultDB::DoTradeResultFrame4(
 		const TTradeResultFrame4Input *pIn,
 		TTradeResultFrame4Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "select * from TradeResultFrame4(" << pIn->cust_id <<
 			"::IDENT_T,'" << pIn->symbol << "'::char(15)," <<
@@ -243,8 +235,6 @@ void CTradeResultDB::DoTradeResultFrame5(
 		const TTradeResultFrame5Input *pIn,
 		TTradeResultFrame5Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
 	cout << "Trade Result Frame 5 (input)" << endl <<
@@ -291,7 +281,6 @@ void CTradeResultDB::DoTradeResultFrame6(
 		const TTradeResultFrame6Input *pIn,
 		TTradeResultFrame6Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
 	ostringstream osCall;
 	osCall << "select * from TradeResultFrame6(" << pIn->acct_id <<
 			"::IDENT_T, '" << pIn->due_date.year << "-"<<

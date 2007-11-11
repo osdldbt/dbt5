@@ -26,8 +26,6 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 		const TMarketFeedFrame1Input *pIn, TMarketFeedFrame1Output *pOut,
 		CSendToMarketInterface *pSendToMarket)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osSymbol, osPrice, osQty;
 
 	for (int i = 0; i < (sizeof(pIn->Entries)/sizeof(pIn->Entries[0])); ++i)

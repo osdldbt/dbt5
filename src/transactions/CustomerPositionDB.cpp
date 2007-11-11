@@ -26,8 +26,6 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 		const TCustomerPositionFrame1Input *pIn,
 		TCustomerPositionFrame1Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "select * from CustomerPositionFrame1(" <<
 			pIn->cust_id << ",'" << pIn->tax_id << "'," <<
@@ -167,8 +165,6 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 		const TCustomerPositionFrame2Input *pIn,
 		TCustomerPositionFrame2Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "select * from CustomerPositionFrame2(" <<
 			pIn->acct_id <<

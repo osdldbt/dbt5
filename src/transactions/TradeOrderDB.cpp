@@ -25,8 +25,6 @@ CTradeOrderDB::~CTradeOrderDB()
 void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 		TTradeOrderFrame1Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "select * from TradeOrderFrame1(" << pIn->acct_id <<
 			") as (acct_name varchar, broker_name varchar, cust_f_name "
@@ -77,8 +75,6 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 void CTradeOrderDB::DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
 		TTradeOrderFrame2Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-	
 	ostringstream osCall;
 	osCall << "select TradeOrderFrame2("<< pIn->acct_id << ",'" <<
 			m_Txn->esc(pIn->exec_f_name) << "','"  <<
@@ -106,8 +102,6 @@ void CTradeOrderDB::DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
 void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 		TTradeOrderFrame3Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "select * from TradeOrderFrame3(" << pIn->acct_id <<
 			"::IDENT_T," << pIn->cust_id << "::IDENT_T," <<
@@ -194,8 +188,6 @@ void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 		TTradeOrderFrame4Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "select TradeOrderFrame4(" << pIn->acct_id <<
 			"::ident_t," << pIn->charge_amount << "::value_t," <<

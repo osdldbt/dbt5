@@ -26,8 +26,6 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 		const TSecurityDetailFrame1Input *pIn,
 		TSecurityDetailFrame1Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "select * from SecurityDetailFrame1(" <<
 			pIn->access_lob_flag << "::smallint, " <<

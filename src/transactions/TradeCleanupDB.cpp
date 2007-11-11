@@ -26,8 +26,6 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
 		const TTradeCleanupFrame1Input *pIn,
 		TTradeCleanupFrame1Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osCall;
 	osCall << "select * from TradeCleanupFrame1('" <<
 			pIn->st_canceled_id << "'::char(4),'" <<

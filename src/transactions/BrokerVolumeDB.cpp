@@ -25,8 +25,6 @@ CBrokerVolumeDB::~CBrokerVolumeDB()
 void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 		TBrokerVolumeFrame1Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
-
 	ostringstream osBrokers;
 	int i = 0;
 	osBrokers << pIn->broker_list[i];
