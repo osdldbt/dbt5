@@ -160,12 +160,6 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 			"- c_email_2: " << pOut->c_email_2 << endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-	
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 // Call Customer Position Frame 2
@@ -231,12 +225,6 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 		pOut->hist_dts[0].second<<endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-	
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 // Call Customer Position Frame 3

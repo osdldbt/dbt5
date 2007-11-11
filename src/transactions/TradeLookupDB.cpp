@@ -225,12 +225,6 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 			pOut->trade_info[0].trade_history_status_id[2] << endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 // Call Trade Lookup Frame 2
@@ -443,12 +437,6 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 			pOut->trade_info[0].trade_history_status_id[2] << endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 // Call Trade Lookup Frame 3
@@ -681,12 +669,6 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 			endl;
 	m_coutLock.ReleaseLock();
 #endif //DEBUG
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 // Call Trade Lookup Frame 4
@@ -760,12 +742,6 @@ void CTradeLookupDB::DoTradeLookupFrame4(const TTradeLookupFrame4Input *pIn,
 			"- trade_id: " << pOut->trade_id << endl;
 	m_coutLock.ReleaseLock();
 #endif //DEBUG
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 

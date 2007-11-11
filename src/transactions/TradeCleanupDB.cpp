@@ -61,14 +61,7 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
 	    <<"- status: "<<pOut->status<<endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-	
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
-
 
 void CTradeCleanupDB::Cleanup(void* pException)
 {

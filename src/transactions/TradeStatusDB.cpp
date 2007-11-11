@@ -108,12 +108,6 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 			"- type_name[0]: " << pOut->type_name[0] << endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-	
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 void CTradeStatusDB::Cleanup(void* pException)

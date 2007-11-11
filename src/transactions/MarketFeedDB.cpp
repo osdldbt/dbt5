@@ -114,12 +114,6 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 	    <<"- send_len: "<<pOut->send_len<<endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-	
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 

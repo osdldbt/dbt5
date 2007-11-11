@@ -730,12 +730,6 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 			"- ex_open: " << pOut->ex_open << endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-	
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 

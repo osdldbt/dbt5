@@ -82,12 +82,6 @@ void CTradeResultDB::DoTradeResultFrame1(
 	    <<"- type_name: "<<pOut->type_name<<endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 // Call Trade Result Frame 2
@@ -160,12 +154,6 @@ void CTradeResultDB::DoTradeResultFrame2(
 		pOut->trade_dts.second << endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 // Call Trade Result Frame 3
@@ -206,12 +194,6 @@ void CTradeResultDB::DoTradeResultFrame3(
 	    <<"- tax_amount:"<<pOut->tax_amount<<endl;
 	m_coutLock.ReleaseLock();
 #endif //DEBUG
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 // Call Trade Result Frame 4
@@ -254,12 +236,6 @@ void CTradeResultDB::DoTradeResultFrame4(
 	    <<"- s_name:"<<pOut->s_name<<endl;
 	m_coutLock.ReleaseLock();
 #endif //DEBUG
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 // Call Trade Result Frame 5
@@ -308,12 +284,6 @@ void CTradeResultDB::DoTradeResultFrame5(
 		cerr<<"warning: empty result set at DoTradeResultFrame5"<<endl;
 	}
 	pOut->status = CBaseTxnErr::SUCCESS;
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION	
 }
 
 // Call Trade Result Frame 6
@@ -382,12 +352,6 @@ void CTradeResultDB::DoTradeResultFrame6(
 	    <<"- acct_bal:"<<pOut->acct_bal<<endl;
 	m_coutLock.ReleaseLock();
 #endif //DEBUG
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION		
 }
 
 // Clean-up

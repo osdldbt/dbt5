@@ -234,12 +234,6 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 			pOut->trade_info[0].trade_history_status_id[2] << endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 // Call Trade Lookup Frame 2
@@ -458,12 +452,6 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 			pOut->trade_info[0].trade_history_status_id[2] << endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 // Call Trade Lookup Frame 3
@@ -706,14 +694,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
 			endl;
 	m_coutLock.ReleaseLock();
 #endif //DEBUG
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
-
 
 // Clean-up
 void CTradeUpdateDB::Cleanup(void* pException)

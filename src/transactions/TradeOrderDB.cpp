@@ -71,12 +71,6 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 	    <<"- tax_status: "<<pOut->tax_status<<endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 // Call Trade Order Frame 2
@@ -106,12 +100,6 @@ void CTradeOrderDB::DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
 	result::const_iterator c = R.begin();
 	
 	pOut->status = CBaseTxnErr::SUCCESS;
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 // Call Trade Order Frame 3
@@ -200,12 +188,6 @@ void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 	    <<"- type_is_sell: "<<pOut->type_is_sell<<endl;
 	m_coutLock.ReleaseLock();
 #endif //DEBUG
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 // Call Trade Order Frame 4
@@ -261,12 +243,6 @@ void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 	    <<"- trade_id: "<<pOut->trade_id<<endl;
 	m_coutLock.ReleaseLock();
 #endif //DEBUG
-
-#elif defined(COMPILE_C_FUNCTION)
-//
-// TODO C-language function
-//
-#endif //COMPILE_PLSQL_FUNCTION
 }
 
 // Call Trade Order Frame 5
