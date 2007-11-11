@@ -555,14 +555,6 @@ PRIMARY KEY (s_symb)
 ${TS_PK_SECURITY};
 " || exit 1 &
 
-# Clause 2.2.7.11
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
-ALTER TABLE security
-ADD CONSTRAINT pk_security
-PRIMARY KEY (s_symb)
-${TS_PK_SECURITY};
-" || exit 1 &
-
 # Clause 2.2.8.1
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 ALTER TABLE address
@@ -807,6 +799,12 @@ ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
 ALTER TABLE trade_request
 ADD CONSTRAINT fk_trade_request_ca FOREIGN KEY (tr_ca_id) 
 REFERENCES customer_account (ca_id);
+" || exit 1 &
+
+${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+ALTER TABLE trade_request
+ADD CONSTRAINT fk_trade_request_b FOREIGN KEY (tr_b_id) 
+REFERENCES broker (b_id);
 " || exit 1 &
 
 # Clause 2.2.7.1

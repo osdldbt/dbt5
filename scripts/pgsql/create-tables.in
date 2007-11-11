@@ -460,7 +460,8 @@ CREATE TABLE trade_request (
     tr_s_symb CHAR(15) NOT NULL,
     tr_qty S_QTY_T NOT NULL CHECK (tr_qty > 0),
     tr_bid_price S_PRICE_T NOT NULL CHECK (tr_bid_price > 0),
-    tr_ca_id IDENT_T NOT NULL)
+    tr_ca_id IDENT_T NOT NULL,
+    tr_b_id IDENT_T NOT NULL)
     ${TS_TRADE_REQUEST};
 " || exit 1
 
