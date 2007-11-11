@@ -126,7 +126,7 @@ AC_ARG_WITH(egen,
   [AC_HELP_STRING([--with-egen=DIR],
       [Default is to use EGen distributed with his kit.])],
   [egen_path=$withval],
-  [egen_path="EGen_v3.14"]
+  [egen_path="egen"]
 )
 
 AC_SUBST(egen_path)
@@ -252,6 +252,7 @@ if test "$database_to_use" = "pgsql"; then
   AC_MSG_NOTICE([using libpqxx libraries at $LIBPQXX_LDFLAGS])
 
   STORED_PROC_TYPE="COMPILE_PLSQL_FUNCTION"
+  CFLAGS="$CFLAGS $DEBUG_FLAG -DCOMPILE_PGSQL_LOAD"
 fi
 
 AC_SUBST(DB_CFLAGS)
