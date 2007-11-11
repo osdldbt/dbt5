@@ -10,50 +10,60 @@
 TOPDIR="@abs_top_srcdir@"
 source ${TOPDIR}/scripts/dbt5_profile || exit 1
 
-PGSQLDIR="${TOPDIR}/storedproc/pgsql/pgsql"
+PGSPDIR="${TOPDIR}/storedproc/pgsql"
+LANGDIR="c"
 
-while getopts "p:" OPT; do
+while getopts "cp:q" OPT; do
 	case ${OPT} in
+	c)
+		LANGDIR="c"
+		(cd ${PGSPDIR}/${LANGDIR} && make install) || exit 1
+		;;
 	p)
 		PORT=${OPTARG}
+		;;
+	q)
+		LANGDIR="pgsql"
 		;;
 	esac
 done
 
+PGSQLDIR="${PGSPDIR}/${LANGDIR}"
+
 PSQL="${PSQL} -p ${PORT} -e -d ${DBNAME}"
 
 # Broker Volume transaction
-${PSQL} -f ${PGSQLDIR}/BrokerVolume.sql || exit 1
+${PSQL} -f ${PGSQLDIR}/broker_volume.sql || exit 1
 
 # Customer Position transaction
-${PSQL} -f ${PGSQLDIR}/CustomerPosition.sql || exit 1
+${PSQL} -f ${PGSQLDIR}/customer_position.sql || exit 1
 
 # Data Maintenance transaction
-${PSQL} -f ${PGSQLDIR}/DataMaintenance.sql || exit 1
+${PSQL} -f ${PGSQLDIR}/data_maintenance.sql || exit 1
 
 # Market Feed transaction
-${PSQL} -f ${PGSQLDIR}/MarketFeed.sql || exit 1
+${PSQL} -f ${PGSQLDIR}/market_feed.sql || exit 1
 
 # Market Watch transaction
-${PSQL} -f ${PGSQLDIR}/MarketWatch.sql || exit 1
+${PSQL} -f ${PGSQLDIR}/market_watch.sql || exit 1
 
 # Security Detail transaction
-${PSQL} -f ${PGSQLDIR}/SecurityDetail.sql || exit 1
+${PSQL} -f ${PGSQLDIR}/security_detail.sql || exit 1
 
 # Trade Cleanup transaction
-${PSQL} -f ${PGSQLDIR}/TradeCleanup.sql || exit 1
+${PSQL} -f ${PGSQLDIR}/trade_cleanup.sql || exit 1
 
 # Trade Lookup transaction
-${PSQL} -f ${PGSQLDIR}/TradeLookup.sql || exit 1
+${PSQL} -f ${PGSQLDIR}/trade_lookup.sql || exit 1
 
 # Trade Order transaction
-${PSQL} -f ${PGSQLDIR}/TradeOrder.sql || exit 1
+${PSQL} -f ${PGSQLDIR}/trade_order.sql || exit 1
 
 # Trade Result transaction
-${PSQL} -f ${PGSQLDIR}/TradeResult.sql || exit 1
+${PSQL} -f ${PGSQLDIR}/trade_result.sql || exit 1
 
 # Trade Status transaction
-${PSQL} -f ${PGSQLDIR}/TradeStatus.sql || exit 1
+${PSQL} -f ${PGSQLDIR}/trade_status.sql || exit 1
 
 # Trade Update transaction
-${PSQL} -f ${PGSQLDIR}/TradeUpdate.sql || exit 1
+${PSQL} -f ${PGSQLDIR}/trade_update.sql || exit 1
