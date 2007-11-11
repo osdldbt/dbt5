@@ -1,28 +1,27 @@
 /*
  * TradeStatusDB.h
  *
- * 2006 Rilson Nascimento
+ * Copyright (C) 2006-2007 Rilson Nascimento
  *
  * 13 June 2006
  */
 
 #ifndef TRADE_STATUS_DB_H
 #define TRADE_STATUS_DB_H
+
+#include <TxnHarnessDBInterface.h>
  
 namespace TPCE
 {
 
-class CTradeStatusDB : public CTxnBaseDB
+class CTradeStatusDB : public CTxnBaseDB, public CTradeStatusDBInterface
 {
-	TTradeStatusFrame1Input		Frame1Input;
-	TTradeStatusFrame1Output	Frame1Output;
-
 public:
 	CTradeStatusDB(CDBConnection *pDBConn);
 	~CTradeStatusDB();
 
-	void DoTradeStatusFrame1(PTradeStatusFrame1Input pFrame1Input,
-			PTradeStatusFrame1Output pFrame1Output);
+	virtual void DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
+			TTradeStatusFrame1Output *pOut);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

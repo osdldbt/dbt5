@@ -1,7 +1,7 @@
 /*
  * CSocket.cpp
  *
- * 2006 Rilson Nascimento
+ * Copyright (C) 2006-2007 Rilson Nascimento
  *
  * 25 June 2006
  */
@@ -10,7 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <CSocket.h>
-#include <dbt5error.h>
+#include <CThreadErr.h>
 
 #define LISTENQ     1024
 

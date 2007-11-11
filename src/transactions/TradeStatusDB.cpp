@@ -22,13 +22,13 @@ CTradeStatusDB::~CTradeStatusDB()
 }
 
 // Call Trade Status Frame 1
-void CTradeStatusDB::DoTradeStatusFrame1(PTradeStatusFrame1Input pFrame1Input,
-		PTradeStatusFrame1Output pFrame1Output)
+void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
+		TTradeStatusFrame1Output *pOut)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 	ostringstream osCall;
-	osCall << "SELECT * from TradeStatusFrame1(" << pFrame1Input->acct_id <<
+	osCall << "SELECT * from TradeStatusFrame1(" << pIn->acct_id <<
 			") as (lname varchar, fname varchar, broker varchar, "
 			"charge value_t, exec_name varchar, ex_name varchar, s_name "
 			"varchar,status_name char(10), symbol char(15), trade_dts_year "
@@ -48,64 +48,64 @@ void CTradeStatusDB::DoTradeStatusFrame1(PTradeStatusFrame1Input pFrame1Input,
 	{
 		//throw logic_error("empty result set!");
 		cout<<"warning: empty result set at DoTradeStatusFrame1"<<endl
-			<<"- acct_id: "<<pFrame1Input->acct_id<<endl;
-		pFrame1Output->status = CBaseTxnErr::SUCCESS;
+			<<"- acct_id: "<<pIn->acct_id<<endl;
+		pOut->status = CBaseTxnErr::SUCCESS;
 		return;
 	}
 
 	result::const_iterator c = R.begin();
 	
-	strcpy(pFrame1Output->cust_l_name, c[0].c_str());
-	strcpy(pFrame1Output->cust_f_name, c[1].c_str());
-	strcpy(pFrame1Output->broker_name, c[2].c_str());
+	strcpy(pOut->cust_l_name, c[0].c_str());
+	strcpy(pOut->cust_f_name, c[1].c_str());
+	strcpy(pOut->broker_name, c[2].c_str());
 
 	int i = 0;	
 	for ( c; c != R.end(); ++c )
 	{
-		pFrame1Output->charge[i] = c[3].as(double());
-		strcpy(pFrame1Output->exec_name[i], c[4].c_str());
-		strcpy(pFrame1Output->ex_name[i], c[5].c_str());
-		strcpy(pFrame1Output->s_name[i], c[6].c_str());
-		strcpy(pFrame1Output->status_name[i], c[7].c_str());
-		strcpy(pFrame1Output->symbol[i], c[8].c_str() );
-		pFrame1Output->trade_dts[i].year = c[9].as(int());
-		pFrame1Output->trade_dts[i].month = c[10].as(int());
-		pFrame1Output->trade_dts[i].day = c[11].as(int());
-		pFrame1Output->trade_dts[i].hour = c[12].as(int());
-		pFrame1Output->trade_dts[i].minute = c[13].as(int());
-		pFrame1Output->trade_dts[i].second = int(c[14].as(double()));
-		pFrame1Output->trade_id[i] = c[15].as(int());
-		pFrame1Output->trade_qty[i] = c[16].as(int());
-		strcpy(pFrame1Output->type_name[i], c[17].c_str());
+		pOut->charge[i] = c[3].as(double());
+		strcpy(pOut->exec_name[i], c[4].c_str());
+		strcpy(pOut->ex_name[i], c[5].c_str());
+		strcpy(pOut->s_name[i], c[6].c_str());
+		strcpy(pOut->status_name[i], c[7].c_str());
+		strcpy(pOut->symbol[i], c[8].c_str() );
+		pOut->trade_dts[i].year = c[9].as(int());
+		pOut->trade_dts[i].month = c[10].as(int());
+		pOut->trade_dts[i].day = c[11].as(int());
+		pOut->trade_dts[i].hour = c[12].as(int());
+		pOut->trade_dts[i].minute = c[13].as(int());
+		pOut->trade_dts[i].second = int(c[14].as(double()));
+		pOut->trade_id[i] = c[15].as(int());
+		pOut->trade_qty[i] = c[16].as(int());
+		strcpy(pOut->type_name[i], c[17].c_str());
 		
 		i++;
 	}
 
-	pFrame1Output->status = CBaseTxnErr::SUCCESS;
+	pOut->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
 	cout << "Trade Status Frame 1 (input)" << endl <<
-			"- acct_id: " << pFrame1Input->acct_id << endl;
+			"- acct_id: " << pIn->acct_id << endl;
 	cout << "Trade Status Frame 1 (output)" << endl <<
-			"- cust_l_name: " << pFrame1Output->cust_l_name << endl <<
-			"- cust_f_name: " << pFrame1Output->cust_f_name << endl <<
-			"- broker_name: " << pFrame1Output->broker_name << endl <<
-			"- charge[0]: " << pFrame1Output->charge[0] << endl <<
-			"- exec_name[0]: " << pFrame1Output->exec_name[0] << endl <<
-			"- ex_name[0]: " << pFrame1Output->ex_name[0] << endl <<
-			"- s_name[0]: " << pFrame1Output->s_name[0] << endl <<
-			"- status_name[0]: " << pFrame1Output->status_name[0] << endl <<
-			"- symbol[0]: " << pFrame1Output->symbol[0] << endl <<
-			"- trade_dts[0]: " << pFrame1Output->trade_dts[0].year << "-" <<
-			pFrame1Output->trade_dts[0].month << "-" <<
-			pFrame1Output->trade_dts[0].day << " " <<
-			pFrame1Output->trade_dts[0].hour << ":" <<
-			pFrame1Output->trade_dts[0].minute << ":" <<
-			pFrame1Output->trade_dts[0].second << endl <<
-			"- trade_id[0]: " << pFrame1Output->trade_id[0] << endl <<
-			"- trade_qty[0]: " << pFrame1Output->trade_qty[0] << endl <<
-			"- type_name[0]: " << pFrame1Output->type_name[0] << endl;
+			"- cust_l_name: " << pOut->cust_l_name << endl <<
+			"- cust_f_name: " << pOut->cust_f_name << endl <<
+			"- broker_name: " << pOut->broker_name << endl <<
+			"- charge[0]: " << pOut->charge[0] << endl <<
+			"- exec_name[0]: " << pOut->exec_name[0] << endl <<
+			"- ex_name[0]: " << pOut->ex_name[0] << endl <<
+			"- s_name[0]: " << pOut->s_name[0] << endl <<
+			"- status_name[0]: " << pOut->status_name[0] << endl <<
+			"- symbol[0]: " << pOut->symbol[0] << endl <<
+			"- trade_dts[0]: " << pOut->trade_dts[0].year << "-" <<
+			pOut->trade_dts[0].month << "-" <<
+			pOut->trade_dts[0].day << " " <<
+			pOut->trade_dts[0].hour << ":" <<
+			pOut->trade_dts[0].minute << ":" <<
+			pOut->trade_dts[0].second << endl <<
+			"- trade_id[0]: " << pOut->trade_id[0] << endl <<
+			"- trade_qty[0]: " << pOut->trade_qty[0] << endl <<
+			"- type_name[0]: " << pOut->type_name[0] << endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
 	

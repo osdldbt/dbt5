@@ -21,8 +21,8 @@ CMEESUTtest::~CMEESUTtest()
 {
 }
 
-// Trade Result
 //
+// Trade Result
 //
 void* TPCE::TradeResultAsync(void* data)
 {
@@ -36,7 +36,8 @@ void* TPCE::TradeResultAsync(void* data)
 
 	// trade result harness code (TPC provided)
 	// this class uses our implementation of CTradeResultDB class
-	CTradeResult		m_TradeResult( m_pConn );
+	CTradeResultDB		m_TradeResultDB( m_pConn );
+	CTradeResult		m_TradeResult( &m_TradeResultDB );
 
 	// Market-Feed output parameters
 	TTradeResultTxnOutput	m_TradeResultTxnOutput;
@@ -106,7 +107,8 @@ void* TPCE::MarketFeedAsync(void* data)
 
 	// trade result harness code (TPC provided)
 	// this class uses our implementation of CMarketFeedDB class
-	CMarketFeed		m_MarketFeed( m_pConn, &m_SendToMarket );
+	CMarketFeedDB m_MarketFeedDB( m_pConn );
+	CMarketFeed		m_MarketFeed( &m_MarketFeedDB, &m_SendToMarket );
 
 	// Market-Feed output parameters
 	TMarketFeedTxnOutput	m_MarketFeedTxnOutput;

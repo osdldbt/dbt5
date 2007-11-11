@@ -1,48 +1,37 @@
 /*
  * TradeResultDB.h
  *
- * 2006 Rilson Nascimento
+ * Copyright (C) 2006-2007 Rilson Nascimento
  *
  * 07 July 2006
  */
 
 #ifndef TRADE_RESULT_DB_H
 #define TRADE_RESULT_DB_H
+
+#include <TxnHarnessDBInterface.h> 
  
 namespace TPCE
 {
 
-class CTradeResultDB : public CTxnBaseDB
+class CTradeResultDB : public CTxnBaseDB, public CTradeResultDBInterface
 {
-	TTradeResultFrame1Input		Frame1Input;
-	TTradeResultFrame1Output	Frame1Output;
-	TTradeResultFrame2Input		Frame2Input;
-	TTradeResultFrame2Output	Frame2Output;
-	TTradeResultFrame3Input		Frame3Input;
-	TTradeResultFrame3Output	Frame3Output;
-	TTradeResultFrame4Input		Frame4Input;
-	TTradeResultFrame4Output	Frame4Output;
-	TTradeResultFrame5Input		Frame5Input;
-	TTradeResultFrame5Output	Frame5Output;
-	TTradeResultFrame6Input		Frame6Input;
-	TTradeResultFrame6Output	Frame6Output;
-
 public:
 	CTradeResultDB(CDBConnection *pDBConn);
 	~CTradeResultDB();
 
-	void DoTradeResultFrame1(PTradeResultFrame1Input pFrame1Input,
-			PTradeResultFrame1Output pFrame1Output);
-	void DoTradeResultFrame2(PTradeResultFrame2Input pFrame2Input,
-			PTradeResultFrame2Output pFrame2Output);
-	void DoTradeResultFrame3(PTradeResultFrame3Input pFrame3Input,
-			PTradeResultFrame3Output pFrame3Output);
-	void DoTradeResultFrame4(PTradeResultFrame4Input pFrame4Input,
-			PTradeResultFrame4Output pFrame4Output);
-	void DoTradeResultFrame5(PTradeResultFrame5Input pFrame5Input,
-			PTradeResultFrame5Output pFrame5Output);
-	void DoTradeResultFrame6(PTradeResultFrame6Input pFrame6Input,
-			PTradeResultFrame6Output pFrame6Output);
+	virtual void DoTradeResultFrame1(const TTradeResultFrame1Input *pIn,
+			TTradeResultFrame1Output *pOut);
+	virtual void DoTradeResultFrame2(const TTradeResultFrame2Input *pIn,
+			TTradeResultFrame2Output *pOut);
+	virtual void DoTradeResultFrame3(const TTradeResultFrame3Input *pIn,
+			TTradeResultFrame3Output *pOut);
+	virtual void DoTradeResultFrame4(const TTradeResultFrame4Input *pIn,
+			TTradeResultFrame4Output *pOut);
+	virtual void DoTradeResultFrame5(const TTradeResultFrame5Input *pIn,
+			TTradeResultFrame5Output *pOut);
+	virtual void DoTradeResultFrame6(const TTradeResultFrame6Input *pIn,
+			TTradeResultFrame6Output *pOut);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

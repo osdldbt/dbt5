@@ -1,6 +1,6 @@
 /*
  *  header files used throughout the project
- *  2006 Rilson Nascimento
+ *  Copyright (C) 2006-2007 Rilson Nascimento
  */
 
 #ifndef TRANSACTIONS_H
@@ -16,7 +16,7 @@ using namespace std;
 #include <pqxx/pqxx>
 using namespace pqxx;
 
-#include <dbt5error.h>
+#include <CThreadErr.h>
 #include <CSocket.h>
 #include <SocketPorts.h>
 #include <EGenStandardTypes.h>

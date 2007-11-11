@@ -1,7 +1,7 @@
 /*
  * MarketFeedDB.h
  *
- * 2006 Rilson Nascimento
+ * Copyright (C) 2006-2007 Rilson Nascimento
  *
  * 21 July 2006
  */
@@ -9,23 +9,22 @@
 #ifndef MARKET_FEED_DB_H
 #define MARKET_FEED_DB_H
 
+#include <TxnHarnessDBInterface.h> 
+
 namespace TPCE
 {
 
-class CMarketFeedDB : public CTxnBaseDB
+class CMarketFeedDB : public CTxnBaseDB, public CMarketFeedDBInterface
 {
-	TMarketFeedFrame1Input	Frame1Input;
-	TMarketFeedFrame1Output	Frame1Output;
-
 	// member used to send triggered orders to MEE
 	TTradeRequest		m_TriggeredLimitOrders;
 public:
 	CMarketFeedDB(CDBConnection *pDBConn);
 	~CMarketFeedDB();
 
-	void DoMarketFeedFrame1(PMarketFeedFrame1Input pFrame1Input, 
-					PMarketFeedFrame1Output pFrame1Output,
-					CSendToMarketInterface*	pSendToMarket);
+	virtual void DoMarketFeedFrame1(const TMarketFeedFrame1Input *pIn, 
+			TMarketFeedFrame1Output *pOut,
+			CSendToMarketInterface *pSendToMarket);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

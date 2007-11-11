@@ -33,8 +33,10 @@ void* TPCE::WorkerThread(void* data)
 			pThrParam->pBrokerageHouse->m_szPostmasterPort);
 	CSendToMarket* pSendToMarket = new CSendToMarket(
 			&(pThrParam->pBrokerageHouse->m_fLog));
-	CMarketFeed* pMarketFeed = new CMarketFeed(pDBConnection, pSendToMarket);
-	CTradeOrder* pTradeOrder = new CTradeOrder(pDBConnection, pSendToMarket);
+	CMarketFeedDB m_MarketFeedDB(pDBConnection);
+	CMarketFeed* pMarketFeed = new CMarketFeed(&m_MarketFeedDB, pSendToMarket);
+	CTradeOrderDB TradeOrderDB(pDBConnection);
+	CTradeOrder *pTradeOrder = new CTradeOrder(&TradeOrderDB, pSendToMarket);
 	do
 	{
 		try
@@ -50,8 +52,9 @@ void* TPCE::WorkerThread(void* data)
 				{
 				case BROKER_VOLUME:
 				{
-					CBrokerVolume* pBrokerVolume = new CBrokerVolume(
-							pDBConnection);
+					CBrokerVolumeDB BrokerVolumeDB(pDBConnection);
+					CBrokerVolume *pBrokerVolume = new CBrokerVolume(
+							&BrokerVolumeDB);
 					iRet = pThrParam->pBrokerageHouse->RunBrokerVolume(
 							&(pMessage->TxnInput.BrokerVolumeTxnInput),
 							*pBrokerVolume );
@@ -60,8 +63,9 @@ void* TPCE::WorkerThread(void* data)
 				}
 				case CUSTOMER_POSITION:
 				{
-					CCustomerPosition* pCustomerPosition =
-							new CCustomerPosition(pDBConnection);
+					CCustomerPositionDB CustomerPositionDB(pDBConnection);
+					CCustomerPosition *pCustomerPosition =
+							new CCustomerPosition(&CustomerPositionDB);
 					iRet = pThrParam->pBrokerageHouse->RunCustomerPosition(
 							&(pMessage->TxnInput.CustomerPositionTxnInput),
 							*pCustomerPosition );
@@ -78,8 +82,9 @@ void* TPCE::WorkerThread(void* data)
 				}
 				case MARKET_WATCH:
 				{
-					CMarketWatch* pMarketWatch =
-							new CMarketWatch(pDBConnection);
+					CMarketWatchDB MarketWatchDB(pDBConnection);
+					CMarketWatch *pMarketWatch =
+							new CMarketWatch(&MarketWatchDB);
 					iRet = pThrParam->pBrokerageHouse->RunMarketWatch(
 							&(pMessage->TxnInput.MarketWatchTxnInput),
 							*pMarketWatch );
@@ -88,8 +93,10 @@ void* TPCE::WorkerThread(void* data)
 				}
 				case SECURITY_DETAIL:
 				{
-					CSecurityDetail* pSecurityDetail = new CSecurityDetail(
+					CSecurityDetailDB SecurityDetailDB = CSecurityDetailDB(
 							pDBConnection);
+					CSecurityDetail *pSecurityDetail = new CSecurityDetail(
+							&SecurityDetailDB);
 					iRet = pThrParam->pBrokerageHouse->RunSecurityDetail(
 							&(pMessage->TxnInput.SecurityDetailTxnInput),
 							*pSecurityDetail );
@@ -98,8 +105,9 @@ void* TPCE::WorkerThread(void* data)
 				}
 				case TRADE_LOOKUP:
 				{
-					CTradeLookup* pTradeLookup =
-							new CTradeLookup(pDBConnection);
+					CTradeLookupDB TradeLookupDB(pDBConnection);
+					CTradeLookup *pTradeLookup =
+							new CTradeLookup(&TradeLookupDB);
 					iRet = pThrParam->pBrokerageHouse->RunTradeLookup(
 							&(pMessage->TxnInput.TradeLookupTxnInput),
 							*pTradeLookup );
@@ -120,7 +128,8 @@ void* TPCE::WorkerThread(void* data)
 					{
 						try
 						{
-							pTradeResult = new CTradeResult(pDBConnection);
+							CTradeResultDB TradeResultDB(pDBConnection);
+							pTradeResult = new CTradeResult(&TradeResultDB);
 							iRet = pThrParam->pBrokerageHouse->RunTradeResult(
 									&(pMessage->TxnInput.TradeResultTxnInput),
 									*pTradeResult );
@@ -172,8 +181,9 @@ void* TPCE::WorkerThread(void* data)
 				}
 				case TRADE_STATUS:
 				{
-					CTradeStatus* pTradeStatus =
-							new CTradeStatus(pDBConnection);
+					CTradeStatusDB TradeStatusDB(pDBConnection);
+					CTradeStatus *pTradeStatus =
+							new CTradeStatus(&TradeStatusDB);
 					iRet = pThrParam->pBrokerageHouse->RunTradeStatus(
 							&(pMessage->TxnInput.TradeStatusTxnInput),
 							*pTradeStatus );
@@ -182,8 +192,9 @@ void* TPCE::WorkerThread(void* data)
 				}
 				case TRADE_UPDATE:
 				{
-					CTradeUpdate* pTradeUpdate =
-							new CTradeUpdate(pDBConnection);
+					CTradeUpdateDB TradeUpdateDB(pDBConnection);
+					CTradeUpdate *pTradeUpdate =
+							new CTradeUpdate(&TradeUpdateDB);
 					iRet = pThrParam->pBrokerageHouse->RunTradeUpdate(
 							&(pMessage->TxnInput.TradeUpdateTxnInput),
 							*pTradeUpdate );
@@ -192,8 +203,9 @@ void* TPCE::WorkerThread(void* data)
 				}
 				case DATA_MAINTENANCE:
 				{
-					CDataMaintenance* pDataMaintenance =
-							new CDataMaintenance(pDBConnection);
+					CDataMaintenanceDB DataMaintenanceDB(pDBConnection);
+					CDataMaintenance *pDataMaintenance =
+							new CDataMaintenance(&DataMaintenanceDB);
 					iRet = pThrParam->pBrokerageHouse->RunDataMaintenance(
 							&(pMessage->TxnInput.DataMaintenanceTxnInput),
 							*pDataMaintenance );
@@ -202,8 +214,9 @@ void* TPCE::WorkerThread(void* data)
 				}
 				case TRADE_CLEANUP:
 				{
-					CTradeCleanup* pTradeCleanup = new CTradeCleanup(
-							pDBConnection);
+					CTradeCleanupDB TradeCleanupDB(pDBConnection);
+					CTradeCleanup *pTradeCleanup = new CTradeCleanup(
+							&TradeCleanupDB);
 					iRet = pThrParam->pBrokerageHouse->RunTradeCleanup(
 							&(pMessage->TxnInput.TradeCleanupTxnInput),
 							*pTradeCleanup );

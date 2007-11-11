@@ -1,28 +1,27 @@
 /*
  * DataMaintenanceDB.h
  *
- * 2006 Rilson Nascimento
+ * Copyright (C) 2006-2007 Rilson Nascimento
  *
  * 17 July 2006
  */
 
 #ifndef DATA_MAINTENANCE_DB_H
 #define DATA_MAINTENANCE_DB_H
+
+#include <TxnHarnessDBInterface.h> 
  
 namespace TPCE
 {
 
-class CDataMaintenanceDB : public CTxnBaseDB
+class CDataMaintenanceDB : public CTxnBaseDB, public CDataMaintenanceDBInterface
 {
-	TDataMaintenanceFrame1Input	Frame1Input;
-	TDataMaintenanceFrame1Output	Frame1Output;
-
 public:
 	CDataMaintenanceDB(CDBConnection *pDBConn);
 	~CDataMaintenanceDB();
 
-	void DoDataMaintenanceFrame1(PDataMaintenanceFrame1Input pFrame1Input,
-			PDataMaintenanceFrame1Output pFrame1Output);
+	void DoDataMaintenanceFrame1(const TDataMaintenanceFrame1Input *pIn,
+			TDataMaintenanceFrame1Output *pOut);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

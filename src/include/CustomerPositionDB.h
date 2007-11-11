@@ -1,40 +1,38 @@
 /*
  * CustomerPositionDB.h
  *
- * 2006 Rilson Nascimento
+ * Copyright (C) 2006-2007 Rilson Nascimento
  *
  * 12 July 2006
  */
 
 #ifndef CUSTOMER_POSITION_DB_H
 #define CUSTOMER_POSITION_DB_H
+
+#include <TxnHarnessDBInterface.h> 
  
 namespace TPCE
 {
 
-class CCustomerPositionDB : public CTxnBaseDB
+class CCustomerPositionDB : public CTxnBaseDB,
+		public CCustomerPositionDBInterface
 {
-	TCustomerPositionFrame1Input	Frame1Input;
-	TCustomerPositionFrame1Output	Frame1Output;
-	TCustomerPositionFrame2Input	Frame2Input;
-	TCustomerPositionFrame2Output	Frame2Output;
-	TCustomerPositionFrame3Output	Frame3Output;
-
 public:
 	CCustomerPositionDB(CDBConnection *pDBConn);
 	~CCustomerPositionDB();
 
-	void DoCustomerPositionFrame1(PCustomerPositionFrame1Input pFrame1Input,
-			PCustomerPositionFrame1Output pFrame1Output);
-	void DoCustomerPositionFrame2(PCustomerPositionFrame2Input pFrame2Input,
-			PCustomerPositionFrame2Output pFrame2Output);
-	void DoCustomerPositionFrame3(PCustomerPositionFrame3Output pFrame3Output);
+	virtual void DoCustomerPositionFrame1(
+			const TCustomerPositionFrame1Input *pIn,
+			TCustomerPositionFrame1Output *pOut);
+	virtual void DoCustomerPositionFrame2(
+			const TCustomerPositionFrame2Input *pIn,
+			TCustomerPositionFrame2Output *pOut);
+	virtual void DoCustomerPositionFrame3(TCustomerPositionFrame3Output *pOut);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
 	void Cleanup(void* pException);
-
 };
 
 }	// namespace TPCE

@@ -17,7 +17,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 
-#include <dbt5error.h>
+#include <CThreadErr.h>
 
 namespace TPCE
 {

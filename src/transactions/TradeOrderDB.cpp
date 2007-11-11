@@ -22,13 +22,13 @@ CTradeOrderDB::~CTradeOrderDB()
 }
 
 // Call Trade Order Frame 1
-void CTradeOrderDB::DoTradeOrderFrame1(PTradeOrderFrame1Input pFrame1Input,
-		PTradeOrderFrame1Output pFrame1Output)
+void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
+		TTradeOrderFrame1Output *pOut)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 	ostringstream osCall;
-	osCall << "select * from TradeOrderFrame1(" << pFrame1Input->acct_id <<
+	osCall << "select * from TradeOrderFrame1(" << pIn->acct_id <<
 			") as (acct_name varchar, broker_name varchar, cust_f_name "
 			"varchar, cust_id IDENT_T, cust_l_name varchar, cust_tier "
 			"smallint, tax_id varchar, tax_status smallint);";
@@ -47,28 +47,28 @@ void CTradeOrderDB::DoTradeOrderFrame1(PTradeOrderFrame1Input pFrame1Input,
 	}
 	result::const_iterator c = R.begin();
 	
-	strcpy(pFrame1Output->acct_name, c[0].c_str());
-	strcpy(pFrame1Output->broker_name, c[1].c_str());
-	strcpy(pFrame1Output->cust_f_name, c[2].c_str());
-	pFrame1Output->cust_id = c[3].as(int());
-	strcpy(pFrame1Output->cust_l_name, c[4].c_str());
-	pFrame1Output->cust_tier = c[5].as(int());
-	strcpy(pFrame1Output->tax_id, c[6].c_str());
-	pFrame1Output->tax_status = c[7].as(int());
+	strcpy(pOut->acct_name, c[0].c_str());
+	strcpy(pOut->broker_name, c[1].c_str());
+	strcpy(pOut->cust_f_name, c[2].c_str());
+	pOut->cust_id = c[3].as(int());
+	strcpy(pOut->cust_l_name, c[4].c_str());
+	pOut->cust_tier = c[5].as(int());
+	strcpy(pOut->tax_id, c[6].c_str());
+	pOut->tax_status = c[7].as(int());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
 	cout<<"Trade Order Frame 1 (input)"<<endl
-	    <<"- acct_id: "<<pFrame1Input->acct_id<<endl;
+	    <<"- acct_id: "<<pIn->acct_id<<endl;
 	cout<<"Trade Order Frame 1 (output)"<<endl
-	    <<"- acct_name: "<<pFrame1Output->acct_name<<endl
-	    <<"- broker_name: "<<pFrame1Output->broker_name<<endl
-	    <<"- cust_f_name: "<<pFrame1Output->cust_f_name<<endl
-	    <<"- cust_id: "<<pFrame1Output->cust_id<<endl
-	    <<"- cust_l_name: "<<pFrame1Output->cust_l_name<<endl
-	    <<"- cust_tier: "<<pFrame1Output->cust_tier<<endl
-	    <<"- tax_id: "<<pFrame1Output->tax_id<<endl
-	    <<"- tax_status: "<<pFrame1Output->tax_status<<endl;
+	    <<"- acct_name: "<<pOut->acct_name<<endl
+	    <<"- broker_name: "<<pOut->broker_name<<endl
+	    <<"- cust_f_name: "<<pOut->cust_f_name<<endl
+	    <<"- cust_id: "<<pOut->cust_id<<endl
+	    <<"- cust_l_name: "<<pOut->cust_l_name<<endl
+	    <<"- cust_tier: "<<pOut->cust_tier<<endl
+	    <<"- tax_id: "<<pOut->tax_id<<endl
+	    <<"- tax_status: "<<pOut->tax_status<<endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
 
@@ -80,16 +80,16 @@ void CTradeOrderDB::DoTradeOrderFrame1(PTradeOrderFrame1Input pFrame1Input,
 }
 
 // Call Trade Order Frame 2
-void CTradeOrderDB::DoTradeOrderFrame2(PTradeOrderFrame2Input pFrame2Input,
-		PTradeOrderFrame2Output pFrame2Output)
+void CTradeOrderDB::DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
+		TTradeOrderFrame2Output *pOut)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 	
 	ostringstream osCall;
-	osCall << "select TradeOrderFrame2("<< pFrame2Input->acct_id << ",'" <<
-			m_Txn->esc(pFrame2Input->exec_f_name) << "','"  <<
-			m_Txn->esc(pFrame2Input->exec_l_name) << "','" <<
-			pFrame2Input->exec_tax_id<<"');";
+	osCall << "select TradeOrderFrame2("<< pIn->acct_id << ",'" <<
+			m_Txn->esc(pIn->exec_f_name) << "','"  <<
+			m_Txn->esc(pIn->exec_l_name) << "','" <<
+			pIn->exec_tax_id<<"');";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -100,13 +100,12 @@ void CTradeOrderDB::DoTradeOrderFrame2(PTradeOrderFrame2Input pFrame2Input,
 		cout<<"warning: empty result set at DoTradeOrderFrame2"<<endl;
 		RollbackTxn();
 		// Should this set to SUCCESS?
-		pFrame2Output->status = CBaseTxnErr::SUCCESS;
+		pOut->status = CBaseTxnErr::SUCCESS;
 		return;
 	}
 	result::const_iterator c = R.begin();
 	
-	pFrame2Output->bad_permission = c[0].as(int());
-	pFrame2Output->status = CBaseTxnErr::SUCCESS;
+	pOut->status = CBaseTxnErr::SUCCESS;
 
 #elif defined(COMPILE_C_FUNCTION)
 //
@@ -116,25 +115,25 @@ void CTradeOrderDB::DoTradeOrderFrame2(PTradeOrderFrame2Input pFrame2Input,
 }
 
 // Call Trade Order Frame 3
-void CTradeOrderDB::DoTradeOrderFrame3(PTradeOrderFrame3Input pFrame3Input,
-		PTradeOrderFrame3Output pFrame3Output)
+void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
+		TTradeOrderFrame3Output *pOut)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 	ostringstream osCall;
-	osCall << "select * from TradeOrderFrame3(" << pFrame3Input->acct_id <<
-			"::IDENT_T," << pFrame3Input->cust_id << "::IDENT_T," <<
-			pFrame3Input->cust_tier << "::smallint," << pFrame3Input->is_lifo <<
-			"::smallint,'" << pFrame3Input->issue << "'::char(6),'" <<
-			pFrame3Input->st_pending_id << "'::char(4),'" <<
-			pFrame3Input->st_submitted_id << "'::char(4)," <<
-			pFrame3Input->tax_status << "::smallint," <<
-			pFrame3Input->trade_qty << "::S_QTY_T,'" <<
-			pFrame3Input->trade_type_id << "'::char(3)," <<
-			pFrame3Input->type_is_margin << "::smallint,'" <<
-			m_Txn->esc(pFrame3Input->co_name) << "'::varchar," <<
-			pFrame3Input->requested_price << "::S_PRICE_T,'" <<
-			pFrame3Input->symbol << "'::varchar) as (comp_name varchar, "
+	osCall << "select * from TradeOrderFrame3(" << pIn->acct_id <<
+			"::IDENT_T," << pIn->cust_id << "::IDENT_T," <<
+			pIn->cust_tier << "::smallint," << pIn->is_lifo <<
+			"::smallint,'" << pIn->issue << "'::char(6),'" <<
+			pIn->st_pending_id << "'::char(4),'" <<
+			pIn->st_submitted_id << "'::char(4)," <<
+			pIn->tax_status << "::smallint," <<
+			pIn->trade_qty << "::S_QTY_T,'" <<
+			pIn->trade_type_id << "'::char(3)," <<
+			pIn->type_is_margin << "::smallint,'" <<
+			m_Txn->esc(pIn->co_name) << "'::varchar," <<
+			pIn->requested_price << "::S_PRICE_T,'" <<
+			pIn->symbol << "'::varchar) as (comp_name varchar, "
 			"requested_price S_PRICE_T, symb_name varchar, buy_value "
 			"BALANCE_T, charge_amount VALUE_T, comm_rate S_PRICE_T, "
 			"cust_assets BALANCE_T, market_price S_PRICE_T, sec_name varchar, "
@@ -152,53 +151,53 @@ void CTradeOrderDB::DoTradeOrderFrame3(PTradeOrderFrame3Input pFrame3Input,
 	}
 	result::const_iterator c = R.begin();
 	
-	strcpy(pFrame3Output->co_name, c[0].c_str());
-	pFrame3Output->requested_price = c[1].as(double());
-	strcpy(pFrame3Output->symbol, c[2].c_str());
-	pFrame3Output->buy_value = c[3].as(double());
-	pFrame3Output->charge_amount = c[4].as(double());
-	pFrame3Output->comm_rate = c[5].as(double());
-	pFrame3Output->cust_assets = c[6].as(double());
-	pFrame3Output->market_price = c[7].as(double());
-	strcpy(pFrame3Output->s_name, c[8].c_str());
-	pFrame3Output->sell_value = c[9].as(double());
-	strcpy(pFrame3Output->status_id, c[10].c_str());
-	pFrame3Output->tax_amount = c[11].as(double());
-	pFrame3Output->type_is_market = c[12].as(int());
-	pFrame3Output->type_is_sell = c[13].as(int());
+	strcpy(pOut->co_name, c[0].c_str());
+	pOut->requested_price = c[1].as(double());
+	strcpy(pOut->symbol, c[2].c_str());
+	pOut->buy_value = c[3].as(double());
+	pOut->charge_amount = c[4].as(double());
+	pOut->comm_rate = c[5].as(double());
+	pOut->cust_assets = c[6].as(double());
+	pOut->market_price = c[7].as(double());
+	strcpy(pOut->s_name, c[8].c_str());
+	pOut->sell_value = c[9].as(double());
+	strcpy(pOut->status_id, c[10].c_str());
+	pOut->tax_amount = c[11].as(double());
+	pOut->type_is_market = c[12].as(int());
+	pOut->type_is_sell = c[13].as(int());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
 	cout<<"Trade Order Frame 3 (input)"<<endl
-	    <<"- acct_id: "<<pFrame3Input->acct_id<<endl
-	    <<"- cust_id: "<<pFrame3Input->cust_id<<endl
-	    <<"- cust_tier: "<<pFrame3Input->cust_tier<<endl
-	    <<"- is_lifo: "<<pFrame3Input->is_lifo<<endl
-	    <<"- issue: "<<pFrame3Input->issue<<endl
-	    <<"- st_pending_id: "<<pFrame3Input->st_pending_id<<endl
-	    <<"- st_submitted_id: "<<pFrame3Input->st_submitted_id<<endl
-	    <<"- tax_status: "<<pFrame3Input->tax_status<<endl
-	    <<"- trade_qty: "<<pFrame3Input->trade_qty<<endl
-	    <<"- trade_type_id: "<<pFrame3Input->trade_type_id<<endl
-	    <<"- type_is_margin: "<<pFrame3Input->type_is_margin<<endl
-	    <<"- co_name: "<<pFrame3Input->co_name<<endl
-	    <<"- requested_price: "<<pFrame3Input->requested_price<<endl
-	    <<"- symbol: "<<pFrame3Input->symbol<<endl;
+	    <<"- acct_id: "<<pIn->acct_id<<endl
+	    <<"- cust_id: "<<pIn->cust_id<<endl
+	    <<"- cust_tier: "<<pIn->cust_tier<<endl
+	    <<"- is_lifo: "<<pIn->is_lifo<<endl
+	    <<"- issue: "<<pIn->issue<<endl
+	    <<"- st_pending_id: "<<pIn->st_pending_id<<endl
+	    <<"- st_submitted_id: "<<pIn->st_submitted_id<<endl
+	    <<"- tax_status: "<<pIn->tax_status<<endl
+	    <<"- trade_qty: "<<pIn->trade_qty<<endl
+	    <<"- trade_type_id: "<<pIn->trade_type_id<<endl
+	    <<"- type_is_margin: "<<pIn->type_is_margin<<endl
+	    <<"- co_name: "<<pIn->co_name<<endl
+	    <<"- requested_price: "<<pIn->requested_price<<endl
+	    <<"- symbol: "<<pIn->symbol<<endl;
 	cout<<"Trade Order Frame 3 (output)"<<endl
-	    <<"- co_name: "<<pFrame3Output->co_name<<endl
-	    <<"- requested_price: "<<pFrame3Output->requested_price<<endl
-	    <<"- symbol: "<<pFrame3Output->symbol<<endl
-	    <<"- buy_value: "<<pFrame3Output->buy_value<<endl
-	    <<"- charge_amount: "<<pFrame3Output->charge_amount<<endl
-	    <<"- comm_rate: "<<pFrame3Output->comm_rate<<endl
-	    <<"- cust_assets: "<<pFrame3Output->cust_assets<<endl
-	    <<"- market_price: "<<pFrame3Output->market_price<<endl
-	    <<"- s_name: "<<pFrame3Output->s_name<<endl
-	    <<"- sell_value: "<<pFrame3Output->sell_value<<endl
-	    <<"- status_id: "<<pFrame3Output->status_id<<endl
-	    <<"- tax_amount: "<<pFrame3Output->tax_amount<<endl
-	    <<"- type_is_market: "<<pFrame3Output->type_is_market<<endl
-	    <<"- type_is_sell: "<<pFrame3Output->type_is_sell<<endl;
+	    <<"- co_name: "<<pOut->co_name<<endl
+	    <<"- requested_price: "<<pOut->requested_price<<endl
+	    <<"- symbol: "<<pOut->symbol<<endl
+	    <<"- buy_value: "<<pOut->buy_value<<endl
+	    <<"- charge_amount: "<<pOut->charge_amount<<endl
+	    <<"- comm_rate: "<<pOut->comm_rate<<endl
+	    <<"- cust_assets: "<<pOut->cust_assets<<endl
+	    <<"- market_price: "<<pOut->market_price<<endl
+	    <<"- s_name: "<<pOut->s_name<<endl
+	    <<"- sell_value: "<<pOut->sell_value<<endl
+	    <<"- status_id: "<<pOut->status_id<<endl
+	    <<"- tax_amount: "<<pOut->tax_amount<<endl
+	    <<"- type_is_market: "<<pOut->type_is_market<<endl
+	    <<"- type_is_sell: "<<pOut->type_is_sell<<endl;
 	m_coutLock.ReleaseLock();
 #endif //DEBUG
 
@@ -210,22 +209,22 @@ void CTradeOrderDB::DoTradeOrderFrame3(PTradeOrderFrame3Input pFrame3Input,
 }
 
 // Call Trade Order Frame 4
-void CTradeOrderDB::DoTradeOrderFrame4(PTradeOrderFrame4Input pFrame4Input,
-		PTradeOrderFrame4Output pFrame4Output)
+void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
+		TTradeOrderFrame4Output *pOut)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 	ostringstream osCall;
-	osCall << "select TradeOrderFrame4(" << pFrame4Input->acct_id <<
-			"::ident_t," << pFrame4Input->charge_amount << "::value_t," <<
-			pFrame4Input->comm_amount << "::value_t,'" <<
-			m_Txn->esc(pFrame4Input->exec_name) << "'::char(6)," <<
-			pFrame4Input->is_cash << "::smallint," << pFrame4Input->is_lifo <<
-			"::smallint," << pFrame4Input->requested_price << "::s_price_t,'" <<
-			pFrame4Input->status_id << "'::char(4),'" << pFrame4Input->symbol <<
-			"'::varchar," << pFrame4Input->trade_qty << "::s_qty_t,'" <<
-			pFrame4Input->trade_type_id << "'::char(3)," <<
-			pFrame4Input->type_is_market << "::smallint)";
+	osCall << "select TradeOrderFrame4(" << pIn->acct_id <<
+			"::ident_t," << pIn->charge_amount << "::value_t," <<
+			pIn->comm_amount << "::value_t,'" <<
+			m_Txn->esc(pIn->exec_name) << "'::char(6)," <<
+			pIn->is_cash << "::smallint," << pIn->is_lifo <<
+			"::smallint," << pIn->requested_price << "::s_price_t,'" <<
+			pIn->status_id << "'::char(4),'" << pIn->symbol <<
+			"'::varchar," << pIn->trade_qty << "::s_qty_t,'" <<
+			pIn->trade_type_id << "'::char(3)," <<
+			pIn->type_is_market << "::smallint)";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -235,31 +234,31 @@ void CTradeOrderDB::DoTradeOrderFrame4(PTradeOrderFrame4Input pFrame4Input,
 		//throw logic_error("TradeOrderFrame4: empty result set");
 		cout<<"warning: empty result set at DoTradeOrderFrame4"<<endl;
 		// Should this be set to SUCCESS?
-		pFrame4Output->status = CBaseTxnErr::SUCCESS;
+		pOut->status = CBaseTxnErr::SUCCESS;
 		return;
 	}
 	result::const_iterator c = R.begin();
 
-	pFrame4Output->trade_id = c[0].as(int());
-	pFrame4Output->status = CBaseTxnErr::SUCCESS;
+	pOut->trade_id = c[0].as(int());
+	pOut->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
 	cout<<"Trade Order Frame 4 (input)"<<endl
-	    <<"- acct_id: "<<pFrame4Input->acct_id<<endl
-	    <<"- charge_amount: "<<pFrame4Input->charge_amount<<endl
-	    <<"- comm_amount: "<<pFrame4Input->comm_amount<<endl
-	    <<"- exec_name: "<<pFrame4Input->exec_name<<endl
-	    <<"- is_cash: "<<pFrame4Input->is_cash<<endl
-	    <<"- is_lifo: "<<pFrame4Input->is_lifo<<endl
-	    <<"- requested_price: "<<pFrame4Input->requested_price<<endl
-	    <<"- status_id: "<<pFrame4Input->status_id<<endl
-	    <<"- symbol: "<<pFrame4Input->symbol<<endl
-	    <<"- trade_qty: "<<pFrame4Input->trade_qty<<endl
-	    <<"- trade_type_id: "<<pFrame4Input->trade_type_id<<endl
-	    <<"- type_is_market: "<<pFrame4Input->type_is_market<<endl;
+	    <<"- acct_id: "<<pIn->acct_id<<endl
+	    <<"- charge_amount: "<<pIn->charge_amount<<endl
+	    <<"- comm_amount: "<<pIn->comm_amount<<endl
+	    <<"- exec_name: "<<pIn->exec_name<<endl
+	    <<"- is_cash: "<<pIn->is_cash<<endl
+	    <<"- is_lifo: "<<pIn->is_lifo<<endl
+	    <<"- requested_price: "<<pIn->requested_price<<endl
+	    <<"- status_id: "<<pIn->status_id<<endl
+	    <<"- symbol: "<<pIn->symbol<<endl
+	    <<"- trade_qty: "<<pIn->trade_qty<<endl
+	    <<"- trade_type_id: "<<pIn->trade_type_id<<endl
+	    <<"- type_is_market: "<<pIn->type_is_market<<endl;
 	cout<<"Trade Order Frame 4 (output)"<<endl
-	    <<"- trade_id: "<<pFrame4Output->trade_id<<endl;
+	    <<"- trade_id: "<<pOut->trade_id<<endl;
 	m_coutLock.ReleaseLock();
 #endif //DEBUG
 
@@ -271,19 +270,19 @@ void CTradeOrderDB::DoTradeOrderFrame4(PTradeOrderFrame4Input pFrame4Input,
 }
 
 // Call Trade Order Frame 5
-void CTradeOrderDB::DoTradeOrderFrame5(PTradeOrderFrame5Output pFrame5Output)
+void CTradeOrderDB::DoTradeOrderFrame5(TTradeOrderFrame5Output *pOut)
 {
 	// rollback the transaction we are inside
 	RollbackTxn();
-	pFrame5Output->status = CBaseTxnErr::ROLLBACK;
+	pOut->status = CBaseTxnErr::ROLLBACK;
 }
 
 // Call Trade Order Frame 6
-void CTradeOrderDB::DoTradeOrderFrame6(PTradeOrderFrame6Output pFrame6Output)
+void CTradeOrderDB::DoTradeOrderFrame6(TTradeOrderFrame6Output *pOut)
 {
 	// commit the transaction we are inside
 	CommitTxn();
-	pFrame6Output->status = CBaseTxnErr::SUCCESS;
+	pOut->status = CBaseTxnErr::SUCCESS;
 }
 
 // Clean-up

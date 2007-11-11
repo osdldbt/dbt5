@@ -22,14 +22,15 @@ CMarketWatchDB::~CMarketWatchDB()
 }
 
 // Call Market Watch Frame 1
-void CMarketWatchDB::DoMarketWatchFrame1(PMarketWatchFrame1Input pFrame1Input, PMarketWatchFrame1Output pFrame1Output)
+void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
+		TMarketWatchFrame1Output *pOut)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 	ostringstream osCall;
-	osCall << "select * from MarketWatchFrame1("<<pFrame1Input->acct_id<<","<<pFrame1Input->c_id<<","<<
-			pFrame1Input->ending_co_id<<",'"<<pFrame1Input->industry_name<<"', "<<
-			pFrame1Input->starting_co_id<<") as (status smallint, pct_change double precision)";
+	osCall << "select * from MarketWatchFrame1("<<pIn->acct_id<<","<<pIn->c_id<<","<<
+			pIn->ending_co_id<<",'"<<pIn->industry_name<<"', "<<
+			pIn->starting_co_id<<") as (status smallint, pct_change double precision)";
 
 	BeginTxn();
 	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"); // Isolation level required by Clause 7.4.1.3
@@ -44,11 +45,11 @@ void CMarketWatchDB::DoMarketWatchFrame1(PMarketWatchFrame1Input pFrame1Input, P
 	{
 		result::const_iterator c = R.begin();
 
-		pFrame1Output->status = c[0].as(int());
-		pFrame1Output->pct_change = c[1].as(double());
+		pOut->status = c[0].as(int());
+		pOut->pct_change = c[1].as(double());
 	}
 
-	if (pFrame1Output->status == 0)	// status ok
+	if (pOut->status == 0)	// status ok
 	{
 		CommitTxn();
 	}
@@ -60,14 +61,14 @@ void CMarketWatchDB::DoMarketWatchFrame1(PMarketWatchFrame1Input pFrame1Input, P
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
 	cout<<"Market Watch Frame 1 (input)"<<endl
-	    <<"- acct_id: "<<pFrame1Input->acct_id<<endl
-	    <<"- cust_id: "<<pFrame1Input->c_id<<endl
-	    <<"- ending_co_id: "<<pFrame1Input->ending_co_id<<endl
-	    <<"- industry_name: "<<pFrame1Input->industry_name<<endl
-	    <<"- starting_co_id: "<<pFrame1Input->starting_co_id<<endl;
+	    <<"- acct_id: "<<pIn->acct_id<<endl
+	    <<"- cust_id: "<<pIn->c_id<<endl
+	    <<"- ending_co_id: "<<pIn->ending_co_id<<endl
+	    <<"- industry_name: "<<pIn->industry_name<<endl
+	    <<"- starting_co_id: "<<pIn->starting_co_id<<endl;
 	cout<<"Market Watch Frame 1 (output)"<<endl
-	    <<"- status: "<<pFrame1Output->status<<endl
-	    <<"- pct_change: "<<pFrame1Output->pct_change<<endl;
+	    <<"- status: "<<pOut->status<<endl
+	    <<"- pct_change: "<<pOut->pct_change<<endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
 	

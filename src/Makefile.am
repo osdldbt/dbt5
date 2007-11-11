@@ -3,16 +3,18 @@
 
 AUTOMAKE_OPTIONS = no-dependencies
 
-DEFS=-D@STORED_PROC_TYPE@ #-DDEBUG
+DEFS=-D@STORED_PROC_TYPE@
 INCLUDES=-I@egen_path@/inc -Iinclude @DB_CFLAGS@
 
 TXN=transactions
 INTF=interfaces
 EGEN=@egen_path@/src
 
-bin_PROGRAMS = TestTxn BrokerageHouseMain DriverMain DriverMarketMain
+bin_PROGRAMS = BrokerageHouseMain DriverMain DriverMarketMain TestTxn
 
 TestTxn_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
+                  $(EGEN)/BaseLogger.cpp \
+                  $(EGEN)/EGenLogFormatterTab.cpp \
                   $(EGEN)/InputFlatFilesStructure.cpp \
                   $(EGEN)/error.cpp \
                   $(EGEN)/EGenVersion.cpp \
@@ -77,6 +79,8 @@ BrokerageHouseMain_LDADD = $(DB_LDFLAGS)
 DriverMain_SOURCES = Driver/Driver.cpp \
                              Driver/DriverMain.cpp \
                              Customer/Customer.cpp \
+                             $(EGEN)/BaseLogger.cpp \
+                             $(EGEN)/EGenLogFormatterTab.cpp \
                              $(EGEN)/CETxnMixGenerator.cpp \
                              $(EGEN)/CETxnInputGenerator.cpp \
                              $(EGEN)/ReadRowFunctions.cpp \
@@ -98,6 +102,8 @@ DriverMain_SOURCES = Driver/Driver.cpp \
 DriverMain_LDFLAGS = $(DB_LDFLAGS)
 
 DriverMarketMain_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
+                           $(EGEN)/BaseLogger.cpp \
+                           $(EGEN)/EGenLogFormatterTab.cpp \
                            $(EGEN)/EGenVersion.cpp \
                            $(EGEN)/error.cpp \
                            $(INTF)/CSocket.cpp \

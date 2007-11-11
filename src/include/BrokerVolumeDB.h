@@ -1,34 +1,32 @@
 /*
  * BrokerVolumeDB.h
  *
- * 2006 Rilson Nascimento
+ * Copyright (C) 2006-2007 Rilson Nascimento
  *
  * 13 July 2006
  */
 
 #ifndef BROKER_VOLUME_DB_H
 #define BROKER_VOLUME_DB_H
+
+#include <TxnHarnessDBInterface.h> 
  
 namespace TPCE
 {
 
-class CBrokerVolumeDB : public CTxnBaseDB
+class CBrokerVolumeDB : public CTxnBaseDB, public CBrokerVolumeDBInterface
 {
-	TBrokerVolumeFrame1Input	Frame1Input;
-	TBrokerVolumeFrame1Output	Frame1Output;
-
 public:
 	CBrokerVolumeDB(CDBConnection *pDBConn);
 	~CBrokerVolumeDB();
 
-	void DoBrokerVolumeFrame1(PBrokerVolumeFrame1Input pFrame1Input,
-			PBrokerVolumeFrame1Output pFrame1Output);
+	virtual void DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
+			TBrokerVolumeFrame1Output *pOut);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
 	void Cleanup(void* pException);
-
 };
 
 }	// namespace TPCE

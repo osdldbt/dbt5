@@ -158,7 +158,8 @@ void TradeOrder(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 
 	// trade order harness code (TPC provided)
 	// this class uses our implementation of CTradeOrderDB class
-	CTradeOrder		m_TradeOrder(pConn, &m_pSendToMarket);
+	CTradeOrderDB m_TradeOrderDB(pConn);
+	CTradeOrder m_TradeOrder(&m_TradeOrderDB, &m_pSendToMarket);
 
 	// trade order input/output parameters
 	TTradeOrderTxnInput	m_TradeOrderTxnInput;
@@ -185,7 +186,8 @@ void TradeStatus(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 {
 	// trade status harness code (TPC provided)
 	// this class uses our implementation of CTradeStatusDB class
-	CTradeStatus		m_TradeStatus(pConn);
+	CTradeStatusDB m_TradeStatusDB(pConn);
+	CTradeStatus m_TradeStatus(&m_TradeStatusDB);
 
 	// trade status input/output parameters
 	TTradeStatusTxnInput	m_TradeStatusTxnInput;
@@ -208,7 +210,8 @@ void TradeLookup(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 {
 	// trade lookup harness code (TPC provided)
 	// this class uses our implementation of CTradeLookupDB class
-	CTradeLookup		m_TradeLookup(pConn);
+	CTradeLookupDB m_TradeLookupDB(pConn);
+	CTradeLookup m_TradeLookup(&m_TradeLookupDB);
 
 	// trade lookup input/output parameters
 	TTradeLookupTxnInput	m_TradeLookupTxnInput;
@@ -231,7 +234,8 @@ void TradeUpdate(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 {
 	// trade update harness code (TPC provided)
 	// this class uses our implementation of CTradeUpdateDB class
-	CTradeUpdate		m_TradeUpdate(pConn);
+	CTradeUpdateDB m_TradeUpdateDB(pConn);
+	CTradeUpdate m_TradeUpdate(&m_TradeUpdateDB);
 
 	// trade update input/output parameters
 	TTradeUpdateTxnInput	m_TradeUpdateTxnInput;
@@ -255,7 +259,8 @@ void CustomerPosition(CDBConnection* pConn,
 {
 	// customer position harness code (TPC provided)
 	// this class uses our implementation of CCustomerPositionDB class
-	CCustomerPosition		m_CustomerPosition(pConn);
+	CCustomerPositionDB m_CustomerPositionDB(pConn);
+	CCustomerPosition m_CustomerPosition(&m_CustomerPositionDB);
 
 	// customer position input/output parameters
 	TCustomerPositionTxnInput	m_CustomerPositionTxnInput;
@@ -281,7 +286,8 @@ void BrokerVolume(CDBConnection* pConn,
 {
 	// Broker Volume harness code (TPC provided)
 	// this class uses our implementation of CBrokerVolumeDB class
-	CBrokerVolume		m_BrokerVolume(pConn);
+	CBrokerVolumeDB m_BrokerVolumeDB(pConn);
+	CBrokerVolume m_BrokerVolume(&m_BrokerVolumeDB);
 
 	// broker volume input/output parameters
 	TBrokerVolumeTxnInput	m_BrokerVolumeTxnInput;
@@ -305,7 +311,8 @@ void SecurityDetail(CDBConnection* pConn,
 {
 	// Security Detail harness code (TPC provided)
 	// this class uses our implementation of CSecurityDetailDB class
-	CSecurityDetail		m_SecurityDetail(pConn);
+	CSecurityDetailDB m_SecurityDetailDB(pConn);
+	CSecurityDetail m_SecurityDetail(&m_SecurityDetailDB);
 
 	// security detail input/output parameters
 	TSecurityDetailTxnInput	m_SecurityDetailTxnInput;
@@ -329,7 +336,8 @@ void MarketWatch(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 {
 	// Market Watch harness code (TPC provided)
 	// this class uses our implementation of CMarketWatchDB class
-	CMarketWatch		m_MarketWatch(pConn);
+	CMarketWatchDB m_MarketWatchDB(pConn);
+	CMarketWatch m_MarketWatch(&m_MarketWatchDB);
 
 	// Market Watch input/output parameters
 	TMarketWatchTxnInput	m_MarketWatchTxnInput;

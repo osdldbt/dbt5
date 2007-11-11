@@ -22,27 +22,27 @@ CMarketFeedDB::~CMarketFeedDB()
 }
 
 // Call Market Feed Frame 1
-void CMarketFeedDB::DoMarketFeedFrame1(PMarketFeedFrame1Input pFrame1Input, 
-					PMarketFeedFrame1Output pFrame1Output,
-					CSendToMarketInterface*	pSendToMarket)
+void CMarketFeedDB::DoMarketFeedFrame1(
+		const TMarketFeedFrame1Input *pIn, TMarketFeedFrame1Output *pOut,
+		CSendToMarketInterface *pSendToMarket)
 {
 #if defined(COMPILE_PLSQL_FUNCTION)
 
 	ostringstream osSymbol, osPrice, osQty;
 
-	for (int i = 0; i < (sizeof(pFrame1Input->Entries)/sizeof(pFrame1Input->Entries[0])); ++i)
+	for (int i = 0; i < (sizeof(pIn->Entries)/sizeof(pIn->Entries[0])); ++i)
 	{
 		if (i == 0)
 		{
-			osSymbol << "\"" << pFrame1Input->Entries[i].symbol;
-			osPrice << pFrame1Input->Entries[i].price_quote;
-			osQty << pFrame1Input->Entries[i].trade_qty;
+			osSymbol << "\"" << pIn->Entries[i].symbol;
+			osPrice << pIn->Entries[i].price_quote;
+			osQty << pIn->Entries[i].trade_qty;
 		}
 		else
 		{
-			osSymbol << "\",\"" << pFrame1Input->Entries[i].symbol;
-			osPrice << "," << pFrame1Input->Entries[i].price_quote;
-			osQty << "," << pFrame1Input->Entries[i].trade_qty;
+			osSymbol << "\",\"" << pIn->Entries[i].symbol;
+			osPrice << "," << pIn->Entries[i].price_quote;
+			osQty << "," << pIn->Entries[i].trade_qty;
 		}
 	}
 	osSymbol << "\"";
@@ -50,13 +50,13 @@ void CMarketFeedDB::DoMarketFeedFrame1(PMarketFeedFrame1Input pFrame1Input,
 	ostringstream osCall;
 	osCall << "select * from MarketFeedFrame1(" << max_feed_len <<
 			"::smallint,'{" << osPrice.str() << "}','" <<
-			pFrame1Input->StatusAndTradeType.status_submitted <<
+			pIn->StatusAndTradeType.status_submitted <<
 			"'::char(4),'{" << osSymbol.str() << "}', '{" << osQty.str() <<
-			"}','" << pFrame1Input->StatusAndTradeType.type_limit_buy <<
+			"}','" << pIn->StatusAndTradeType.type_limit_buy <<
 			"'::char(3),'" <<
-			pFrame1Input->StatusAndTradeType.type_limit_sell <<
+			pIn->StatusAndTradeType.type_limit_sell <<
 			"'::char(3),'" <<
-			pFrame1Input->StatusAndTradeType.type_stop_loss <<
+			pIn->StatusAndTradeType.type_stop_loss <<
 			"'::char(3)) as (symbol char(15), trade_id TRADE_T, price "
 			"numeric(8,2), trade_quant integer, trade_type char(3))";
 
@@ -89,29 +89,29 @@ void CMarketFeedDB::DoMarketFeedFrame1(PMarketFeedFrame1Input pFrame1Input,
 				++i;
 			}
 		}
-		pFrame1Output->send_len = i;	
+		pOut->send_len = i;	
 	}
 	else
 	{
-		pFrame1Output->send_len = 0;
+		pOut->send_len = 0;
 	}
-	pFrame1Output->status = CBaseTxnErr::SUCCESS;
+	pOut->status = CBaseTxnErr::SUCCESS;
 	
 #ifdef DEBUG
 	m_coutLock.ClaimLock(); cout << "Market Feed Frame 1 (input)" << endl << "- max_feed_len: " << max_feed_len << endl <<
 			"- price_quote: " << "{" << osPrice.str() << "}"<< endl <<
 			"- status_submitted: " <<
-			pFrame1Input->StatusAndTradeType.status_submitted << endl <<
+			pIn->StatusAndTradeType.status_submitted << endl <<
 			"- symbol: " << "{" << osSymbol.str() << "}" << endl <<
 			"- trade_qty: " << "{" << osQty.str() << "}" << endl <<
 			"- type_limit_buy: " <<
-			pFrame1Input->StatusAndTradeType.type_limit_buy << endl <<
+			pIn->StatusAndTradeType.type_limit_buy << endl <<
 			"- type_limit_sell: " <<
-			pFrame1Input->StatusAndTradeType.type_limit_sell << endl <<
+			pIn->StatusAndTradeType.type_limit_sell << endl <<
 			"- type_stop_loss: " <<
-			pFrame1Input->StatusAndTradeType.type_stop_loss << endl;
+			pIn->StatusAndTradeType.type_stop_loss << endl;
 	cout<<"Market Feed Frame 1 (output)"<<endl
-	    <<"- send_len: "<<pFrame1Output->send_len<<endl;
+	    <<"- send_len: "<<pOut->send_len<<endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
 	
