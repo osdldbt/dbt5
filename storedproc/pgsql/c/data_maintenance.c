@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2007 Mark Wong
  *
- * Based on TPC-E Standard Specification Revision 1.3.
+ * Based on TPC-E Standard Specification Revision 1.3.0.
  */
 
 #include <sys/types.h>
@@ -242,7 +242,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 	SPI_connect();
 
 	if (strcmp(table_name, "ACCOUNT_PERMISSION") == 0) {
-		char acl[AP_ACL_LEN + 1];
+		char *acl = NULL;;
 
 		sprintf(sql, DMF1_1, acct_id);
 #ifdef DEBUG
@@ -253,7 +253,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			strcpy(acl, SPI_getvalue(tuple, tupdesc, 1));
+			acl = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
@@ -280,8 +280,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		}
 	} else if (strcmp(table_name, "ADDRESS") == 0) {
 		long ad_id = 0;
-		char line2[AD_LINE2_LEN + 1];
-		char *str;
+		char *line2 = NULL;
 
 		if (c_id != 0) {
 			sprintf(sql, DMF1_3a, c_id);
@@ -296,12 +295,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			str = SPI_getvalue(tuple, tupdesc, 1);
-			if (str != NULL) {
-				strcpy(line2, str);
-			} else {
-				line2[0] = '\0';
-			}
+			line2 = SPI_getvalue(tuple, tupdesc, 1);
 			ad_id = atol(SPI_getvalue(tuple, tupdesc, 2));
 		} else {
 			FAIL_FRAME2(status, sql);
@@ -324,7 +318,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 					table_name, tx_id, vol_incr);
 		}
 	} else if (strcmp(table_name, "COMPANY") == 0) {
-		char sprate[CO_SP_RATE_LEN + 1];
+		char *sprate = NULL;
 
 		sprintf(sql, DMF1_5, co_id);
 #ifdef DEBUG
@@ -335,7 +329,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			strcpy(sprate, SPI_getvalue(tuple, tupdesc, 1));
+			sprate = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
@@ -362,7 +356,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 					table_name, tx_id, vol_incr);
 		}
 	} else if (strcmp(table_name, "CUSTOMER") == 0) {
-		char email2[C_EMAIL_2_LEN + 1] = "";
+		char *email2 = NULL;
 		int len = 0;
 		int lenMindspring = strlen("@mindspring.com");
 
@@ -375,7 +369,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			strcpy(email2, SPI_getvalue(tuple, tupdesc, 1));
+			email2 = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
@@ -400,7 +394,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		}
 	} else if (strcmp(table_name, "CUSTOMER_TAXRATE") == 0) {
 		char new_tax_rate[TX_ID_LEN + 1];
-		char old_tax_rate[TX_ID_LEN + 1];
+		char *old_tax_rate = NULL;
 
 		sprintf(sql, DMF1_9, c_id);
 #ifdef DEBUG
@@ -411,7 +405,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			strcpy(old_tax_rate, SPI_getvalue(tuple, tupdesc, 1));
+			old_tax_rate = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
@@ -612,8 +606,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		}
 	} else if (strcmp(table_name, "WATCH_ITEM") == 0) {
 		int cnt;
-		char old_symbol[S_SYMB_LEN + 1];
-		char new_symbol[S_SYMB_LEN + 1];
+		char *old_symbol = NULL;
+		char *new_symbol = NULL;
 
 		sprintf(sql, DMF1_20, c_id);
 #ifdef DEBUG
@@ -646,7 +640,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			strcpy(old_symbol, SPI_getvalue(tuple, tupdesc, 1));
+			old_symbol = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
@@ -666,7 +660,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			strcpy(new_symbol, SPI_getvalue(tuple, tupdesc, 1));
+			new_symbol = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,

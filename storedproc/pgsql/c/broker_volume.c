@@ -259,12 +259,6 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		/* Make the tuple into a datum. */
 		result = HeapTupleGetDatum(tuple);
 
-		/* Clean up. */
-		for (i = 0; i < 4; i++) {                                               
-			pfree(values[i]);                                                   
-		} 
-		pfree(values);                                                   
-
 		SRF_RETURN_NEXT(funcctx, result);
 	} else {
 		/* Do when there is no more left. */

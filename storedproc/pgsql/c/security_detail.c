@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2007 Mark Wong
  *
- * Based on TPC-E Standard Specification Revision 1.3.0
+ * Based on TPC-E Standard Specification Revision 1.3.0.
  */
 
 #include <sys/types.h>

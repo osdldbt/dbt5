@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2007 Mark Wong
  *
- * Based on TPC-E Standard Specification Revision 1.3.0
+ * Based on TPC-E Standard Specification Revision 1.3.0.
  */
 
 #include <sys/types.h>
@@ -405,12 +405,6 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 
 		/* Make the tuple into a datum. */
 		result = HeapTupleGetDatum(tuple);
-
-		/* Clean up. */
-		for (i = 0; i < 2; i++) {                                               
-			pfree(values[i]);                                                   
-		} 
-		pfree(values);                                                   
 
 		SRF_RETURN_NEXT(funcctx, result);
 	} else {

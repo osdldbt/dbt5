@@ -23,6 +23,7 @@
 
 /* PostgreSQL types */
 #define BIGINT_LEN 10
+#define BOOLEAN_LEN 1
 #define INTEGER_LEN 5
 #define SMALLINT_LEN 3
 
@@ -32,6 +33,8 @@
 #define IDENT_T_LEN BIGINT_LEN
 #define S_COUNT_T_LEN BIGINT_LEN
 #define S_PRICE_T_LEN 10
+#define S_QTY_T_LEN INTEGER_LEN
+#define TRADE_T_LEN BIGINT_LEN
 #define VALUE_T_LEN 12
 
 /* Table column sizes */
@@ -39,6 +42,9 @@
 #define AD_LINE2_LEN 80
 
 #define AP_ACL_LEN 4
+#define AP_F_NAME_LEN  30
+#define AP_L_NAME_LEN  30
+#define AP_TAX_ID_LEN  20
 
 #define B_NAME_LEN 100
 

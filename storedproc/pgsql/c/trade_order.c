@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2007 Mark Wong
  *
- * Based on TPC-E Standard Specification Revision 1.3.
+ * Based on TPC-E Standard Specification Revision 1.3.0.
  */
 
 #include <sys/types.h>
@@ -135,20 +135,14 @@
 		"        %d, %8.2f, %d, '%s', NULL, %10.2f, %10.2f, 0, %d)\n" \
 		"RETURNING t_id, t_dts"
 
-/* FIXME: tr_b_id is supposed to be in the table. */
 #define TOF4_2 \
-		"INSERT INTO trade_request(tr_t_id, tr_tt_id, tr_s_symb, tr_qty,\n" \
-		"                          tr_bid_price)\n" \
-		"VALUES (%s, '%s', '%s', %d, %8.2f)"
-/*
 		"INSERT INTO trade_request(tr_t_id, tr_tt_id, tr_s_symb, tr_qty,\n" \
 		"                          tr_bid_price, tr_b_id)\n" \
 		"VALUES (%s, '%s', '%s', %d, %8.2f, %d)"
-*/
 
 #define TOF4_3 \
 		"INSERT INTO trade_history(th_t_id, th_dts, th_st_id)\n" \
-		"VALUES(%s, '%s', '%s')"
+		"VALUES(%s, now(), '%s')"
 
 
 #ifdef PG_MODULE_MAGIC
@@ -271,16 +265,7 @@ Datum TradeOrderFrame1(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 */
 		values = (char **) palloc(sizeof(char *) * 10);
-		values[i_acct_name] = (char *) palloc(51 * sizeof(char));
-		values[i_broker_id] = (char *) palloc(11 * sizeof(char));
-		values[i_broker_name] = (char *) palloc(101 * sizeof(char));
-		values[i_cust_f_name] = (char *) palloc(31 * sizeof(char));
-		values[i_cust_id] = (char *) palloc(11 * sizeof(char));
-		values[i_cust_l_name] = (char *) palloc(31 * sizeof(char));
-		values[i_cust_tier] = (char *) palloc(4 * sizeof(char));
-		values[i_status] = (char *) palloc(2 * sizeof(char));
-		values[i_tax_id] = (char *) palloc(21 * sizeof(char));
-		values[i_tax_status] = (char *) palloc(4 * sizeof(char));
+		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
 
 #ifdef DEBUG
 		dump_tof1_inputs(acct_id);
@@ -306,10 +291,10 @@ Datum TradeOrderFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			if (SPI_processed > 0) {
 				tuple = tuptable->vals[0];
-				strcpy(values[i_acct_name], SPI_getvalue(tuple, tupdesc, 1));
-				strcpy(values[i_broker_id], SPI_getvalue(tuple, tupdesc, 2));
-				strcpy(values[i_cust_id], SPI_getvalue(tuple, tupdesc, 3));
-				strcpy(values[i_tax_status], SPI_getvalue(tuple, tupdesc, 4));
+				values[i_acct_name] = SPI_getvalue(tuple, tupdesc, 1);
+				values[i_broker_id] = SPI_getvalue(tuple, tupdesc, 2);
+				values[i_cust_id] = SPI_getvalue(tuple, tupdesc, 3);
+				values[i_tax_status] = SPI_getvalue(tuple, tupdesc, 4);
 			}
 		} else {
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
@@ -326,10 +311,10 @@ Datum TradeOrderFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			if (SPI_processed > 0) {
 				tuple = tuptable->vals[0];
-				strcpy(values[i_cust_f_name], SPI_getvalue(tuple, tupdesc, 1));
-				strcpy(values[i_cust_l_name], SPI_getvalue(tuple, tupdesc, 2));
-				strcpy(values[i_cust_tier], SPI_getvalue(tuple, tupdesc, 3));
-				strcpy(values[i_tax_id], SPI_getvalue(tuple, tupdesc, 4));
+				values[i_cust_f_name] = SPI_getvalue(tuple, tupdesc, 1);
+				values[i_cust_l_name] = SPI_getvalue(tuple, tupdesc, 2);
+				values[i_cust_tier] = SPI_getvalue(tuple, tupdesc, 3);
+				values[i_tax_id] = SPI_getvalue(tuple, tupdesc, 4);
 			}
 		} else {
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
@@ -346,7 +331,7 @@ Datum TradeOrderFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			if (SPI_processed > 0) {
 				tuple = tuptable->vals[0];
-				strcpy(values[i_broker_name], SPI_getvalue(tuple, tupdesc, 1));
+				values[i_broker_name] = SPI_getvalue(tuple, tupdesc, 1);
 			}
 		} else {
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
@@ -396,12 +381,6 @@ Datum TradeOrderFrame1(PG_FUNCTION_ARGS)
 		/* Make the tuple into a datum. */
 		result = HeapTupleGetDatum(tuple);
 
-		/* Clean up. */
-		for (i = 0; i < 10; i++) {
-			pfree(values[i]);
-		}
-		pfree(values);
-
 		SRF_RETURN_NEXT(funcctx, result);
 	} else {
 		/* Do when there is no more left. */
@@ -433,9 +412,9 @@ Datum TradeOrderFrame2(PG_FUNCTION_ARGS)
 		char *exec_l_name_p = (char *) PG_GETARG_TEXT_P(2);
 		char *exec_tax_id_p = (char *) PG_GETARG_TEXT_P(3);
 
-		char exec_f_name[31];
-		char exec_l_name[31];
-		char exec_tax_id[21];
+		char exec_f_name[AP_F_NAME_LEN + 1];
+		char exec_l_name[AP_L_NAME_LEN + 1];
+		char exec_tax_id[AP_TAX_ID_LEN + 1];
 
 		int ret;
 		TupleDesc tupdesc;
@@ -450,7 +429,6 @@ Datum TradeOrderFrame2(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 */
 		values = (char **) palloc(sizeof(char *) * 2);
-		values[i_ap_acl] = (char *) palloc(5 * sizeof(char));
 		values[i_status] = (char *) palloc(2 * sizeof(char));
 
 		strcpy(exec_f_name, DatumGetCString(DirectFunctionCall1(textout,
@@ -482,7 +460,7 @@ Datum TradeOrderFrame2(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			strcpy(values[i_ap_acl], SPI_getvalue(tuple, tupdesc, 1));
+			values[i_ap_acl] = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof2_inputs(acct_id, exec_f_name, exec_l_name, exec_tax_id);
@@ -531,12 +509,6 @@ Datum TradeOrderFrame2(PG_FUNCTION_ARGS)
 		/* Make the tuple into a datum. */
 		result = HeapTupleGetDatum(tuple);
 
-		/* Clean up. */
-		for (i = 0; i < 2; i++) {
-			pfree(values[i]);
-		}
-		pfree(values);
-
 		SRF_RETURN_NEXT(funcctx, result);
 	} else {
 		/* Do when there is no more left. */
@@ -583,18 +555,18 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 		Numeric requested_price_num = PG_GETARG_NUMERIC(12);
 		char *symbol_p = (char *) PG_GETARG_TEXT_P(13);
 
-		char co_name[61];
+		char co_name[CO_NAME_LEN + 1];
 		char issue[7];
 		char st_pending_id[10];
 		char st_submitted_id[10];
-		char trade_type_id[4];
-		char symbol[16];
+		char trade_type_id[TT_ID_LEN + 1];
+		char symbol[S_SYMB_LEN + 1];
 		double requested_price;
 		int hs_qty = 0;
 		int needed_qty;
 		double buy_value = 0;
 		double sell_value = 0;
-		char exch_id[7];
+		char *exch_id = NULL;
 
 		int ret;
 		TupleDesc tupdesc;
@@ -602,7 +574,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 		HeapTuple tuple = NULL;
 
 		char sql[2048];
-		char co_id[11];
+		char *co_id = NULL;
 		double tax_amount = 0;
 
 		strcpy(co_name, DatumGetCString(DirectFunctionCall1(textout,
@@ -628,21 +600,17 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 */
 		values = (char **) palloc(sizeof(char *) * 15);
-		values[i_co_name] = (char *) palloc(61 * sizeof(char));
-		values[i_requested_price] = (char *) palloc(10 * sizeof(char));
-		values[i_symbol] = (char *) palloc(15 * sizeof(char));
-		values[i_buy_value] = (char *) palloc(10 * sizeof(char));
-		values[i_charge_amount] = (char *) palloc(12 * sizeof(char));
-		values[i_comm_rate] = (char *) palloc(7 * sizeof(char));
-		values[i_cust_assets] = (char *) palloc(10 * sizeof(char));
-		values[i_market_price] = (char *) palloc(10 * sizeof(char));
-		values[i_s_name] = (char *) palloc(71 * sizeof(char));
-		values[i_sell_value] = (char *) palloc(10 * sizeof(char));
-		values[i_status] = (char *) palloc(6 * sizeof(char));
-		values[i_status_id] = (char *) palloc(11 * sizeof(char));
-		values[i_tax_amount] = (char *) palloc(10 * sizeof(char));
-		values[i_type_is_market] = (char *) palloc(4 * sizeof(char));
-		values[i_type_is_sell] = (char *) palloc(4 * sizeof(char));
+		values[i_requested_price] = (char *) palloc((S_PRICE_T_LEN + 1) *
+				sizeof(char));
+		values[i_buy_value] = (char *) palloc((S_PRICE_T_LEN + 1) *
+				sizeof(char));
+		values[i_cust_assets] = (char *) palloc((S_PRICE_T_LEN + 1) *
+				sizeof(char));
+		values[i_sell_value] = (char *) palloc((S_PRICE_T_LEN + 1) *
+				sizeof(char));
+		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
+		values[i_tax_amount] = (char *) palloc((S_PRICE_T_LEN + 1) *
+				sizeof(char));
 
 #ifdef DEBUG
 		dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
@@ -664,7 +632,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 
 		if (strlen(symbol) == 0) {
 			sprintf(sql, TOF3_1a, co_name);
-			strcpy(values[i_co_name], co_name);
+			values[i_co_name] = co_name;
 #ifdef DEBUG
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
@@ -673,7 +641,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
 				tuple = tuptable->vals[0];
-				strcpy(co_id, SPI_getvalue(tuple, tupdesc, 1));
+				co_id = SPI_getvalue(tuple, tupdesc, 1);
 			} else {
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
@@ -691,9 +659,9 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
 				tuple = tuptable->vals[0];
-				strcpy(exch_id, SPI_getvalue(tuple, tupdesc, 1));
-				strcpy(values[i_s_name], SPI_getvalue(tuple, tupdesc, 2));
-				strcpy(values[i_symbol], SPI_getvalue(tuple, tupdesc, 3));
+				exch_id = SPI_getvalue(tuple, tupdesc, 1);
+				values[i_s_name] = SPI_getvalue(tuple, tupdesc, 2);
+				values[i_symbol] = SPI_getvalue(tuple, tupdesc, 3);
 			} else {
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
@@ -703,7 +671,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 			}
 		} else {
 			sprintf(sql, TOF3_1b, symbol);
-			strcpy(values[i_symbol], symbol);
+			values[i_symbol] = symbol;
 #ifdef DEBUG
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
@@ -712,9 +680,9 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
 				tuple = tuptable->vals[0];
-				strcpy(co_id, SPI_getvalue(tuple, tupdesc, 1));
-				strcpy(exch_id, SPI_getvalue(tuple, tupdesc, 2));
-				strcpy(values[i_s_name], SPI_getvalue(tuple, tupdesc, 3));
+				co_id = SPI_getvalue(tuple, tupdesc, 1);
+				exch_id = SPI_getvalue(tuple, tupdesc, 2);
+				values[i_s_name] = SPI_getvalue(tuple, tupdesc, 3);
 			} else {
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
@@ -732,7 +700,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
 				tuple = tuptable->vals[0];
-				strcpy(values[i_co_name], SPI_getvalue(tuple, tupdesc, 1));
+				values[i_co_name] = SPI_getvalue(tuple, tupdesc, 1);
 			} else {
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
@@ -751,7 +719,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			strcpy(values[i_market_price], SPI_getvalue(tuple, tupdesc, 1));
+			values[i_market_price] = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
@@ -769,8 +737,8 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			strcpy(values[i_type_is_market], SPI_getvalue(tuple, tupdesc, 1));
-			strcpy(values[i_type_is_sell], SPI_getvalue(tuple, tupdesc, 2));
+			values[i_type_is_market] = SPI_getvalue(tuple, tupdesc, 1);
+			values[i_type_is_sell] = SPI_getvalue(tuple, tupdesc, 2);
 		} else {
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
@@ -780,7 +748,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 		}
 
 		if (values[i_type_is_market][0] == '1') {
-			strcpy(values[i_requested_price], values[i_market_price]);
+			values[i_requested_price] = values[i_market_price];
 		}
 
 		needed_qty = trade_qty;
@@ -925,7 +893,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			strcpy(values[i_comm_rate], SPI_getvalue(tuple, tupdesc, 1));
+			values[i_comm_rate] = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
@@ -943,7 +911,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			strcpy(values[i_charge_amount], SPI_getvalue(tuple, tupdesc, 1));
+			values[i_charge_amount] = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
@@ -997,9 +965,9 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 			}
 
 			if (values[i_type_is_market][0] == '1') {
-				strcpy(values[i_status_id], st_submitted_id);
+				values[i_status_id] = st_submitted_id;
 			} else {
-				strcpy(values[i_status_id], st_pending_id);
+				values[i_status_id] = st_pending_id;
 			}
 		}
 
@@ -1046,12 +1014,6 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 		/* Make the tuple into a datum. */
 		result = HeapTupleGetDatum(tuple);
 
-		/* Clean up. */
-		for (i = 0; i < 15; i++) {
-			pfree(values[i]);
-		}
-		pfree(values);
-
 		SRF_RETURN_NEXT(funcctx, result);
 	} else {
 		/* Do when there is no more left. */
@@ -1092,10 +1054,10 @@ Datum TradeOrderFrame4(PG_FUNCTION_ARGS)
 		char *trade_type_id_p = (char *) PG_GETARG_TEXT_P(11);
 		int type_is_market = PG_GETARG_INT16(12);
 
-		char exec_name[65];
-		char status_id[11];
-		char symbol[16];
-		char trade_type_id[4];
+		char exec_name[T_EXEC_NAME_LEN + 1];
+		char status_id[ST_ID_LEN + 1];
+		char symbol[S_SYMB_LEN + 1];
+		char trade_type_id[TT_ID_LEN + 1];
 		double charge_amount = 0;
 		double comm_amount;
 		double requested_price;
@@ -1106,7 +1068,6 @@ Datum TradeOrderFrame4(PG_FUNCTION_ARGS)
 		HeapTuple tuple = NULL;
 
 		char sql[2048];
-		char now_dts[27];
 
 		strcpy(exec_name, DatumGetCString(DirectFunctionCall1(textout,
 				PointerGetDatum(exec_name_p))));
@@ -1133,8 +1094,7 @@ Datum TradeOrderFrame4(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 */
 		values = (char **) palloc(sizeof(char *) * 2);
-		values[i_status] = (char *) palloc(6 * sizeof(char));
-		values[i_trade_id] = (char *) palloc(11 * sizeof(char));
+		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
 
 		strcpy(values[i_status], "0");
 #ifdef DEBUG
@@ -1168,16 +1128,11 @@ Datum TradeOrderFrame4(PG_FUNCTION_ARGS)
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
 		tuple = tuptable->vals[0];
-		strcpy(values[i_trade_id], SPI_getvalue(tuple, tupdesc, 1));
-		strcpy(now_dts, SPI_getvalue(tuple, tupdesc, 2));
+		values[i_trade_id] = SPI_getvalue(tuple, tupdesc, 1);
 
 		if (type_is_market == 0) {
 			sprintf(sql, TOF4_2, values[i_trade_id], trade_type_id, symbol,
-					trade_qty, requested_price);
-/* FIXME: see note next to query #define
-			sprintf(sql, TOF4_2, trade_id, trade_type_id, symbol,
 					trade_qty, requested_price, broker_id);
-*/
 #ifdef DEBUG
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
@@ -1190,7 +1145,7 @@ Datum TradeOrderFrame4(PG_FUNCTION_ARGS)
 			}
 		}
 
-		sprintf(sql, TOF4_3, values[i_trade_id], now_dts, status_id);
+		sprintf(sql, TOF4_3, values[i_trade_id], status_id);
 #ifdef DEBUG
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
@@ -1244,12 +1199,6 @@ Datum TradeOrderFrame4(PG_FUNCTION_ARGS)
 
 		/* Make the tuple into a datum. */
 		result = HeapTupleGetDatum(tuple);
-
-		/* Clean up. */
-		for (i = 0; i < 2; i++) {
-			pfree(values[i]);
-		}
-		pfree(values);
 
 		SRF_RETURN_NEXT(funcctx, result);
 	} else {

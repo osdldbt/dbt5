@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2007 Mark Wong
  *
- * Based on TPC-E Standard Specification Revision 1.3.
+ * Based on TPC-E Standard Specification Revision 1.3.0.
  */
 
 #include <sys/types.h>
@@ -30,8 +30,7 @@ PG_MODULE_MAGIC;
 
 #define TCF1_2 \
 		"INSERT INTO trade_history(th_t_id, th_dts, th_st_id)\n" \
-		"VALUES (%s, now(), '%s')\n" \
-		"RETURNING th_dts"
+		"VALUES (%s, now(), '%s')"
 
 #define TCF1_3 \
 		"DELETE FROM trade_request"
@@ -39,19 +38,19 @@ PG_MODULE_MAGIC;
 #define TCF1_4 \
 		"SELECT t_id\n" \
 		"FROM trade\n" \
-		"WHERE t_id > = %ld\n" \
+		"WHERE t_id >= %ld\n" \
 		"  AND t_st_id = '%s'"
 
 #define TCF1_5 \
 		"UPDATE trade\n" \
 		"SET t_st_id = '%s',\n" \
-		"    t_dts = '%s'\n" \
+		"    t_dts = now()\n" \
 		"WHERE t_id = %s\n" \
 		"RETURNING t_dts"
 
 #define TCF1_6 \
 		"INSERT INTO trade_history(th_t_id, th_dts, th_st_id)\n" \
-		"VALUES (%s, '%s', '%s')"
+		"VALUES (%s, now(), '%s')"
 
 /* Prototypes. */
 void dump_tcf1_inputs(char *, char *, char *, long);
@@ -113,22 +112,16 @@ elog(NOTICE, "fu");
 	elog(NOTICE, "SQL\n%s", TCF1_1);
 #endif /* DEBUG */
 	ret = SPI_exec(TCF1_1, 0);
-	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+	if (ret == SPI_OK_SELECT) {
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
 	} else {
 		dump_tcf1_inputs(st_canceled_id, st_pending_id, st_submitted_id,
 				trade_id);
-		FAIL_FRAME2(status, sql);
+		FAIL_FRAME2(status, TCF1_1);
 	}
 
 	for (i = 0; i < SPI_processed; i++) {
-		TupleDesc l_tupdesc = NULL;
-		SPITupleTable *l_tuptable = NULL;
-		HeapTuple l_tuple = NULL;
-
-		char now_dts[MAXDATELEN + 1];;
-
 		tuple = tuptable->vals[i];
 		tr_t_id = SPI_getvalue(tuple, tupdesc, 1);
 
@@ -137,12 +130,7 @@ elog(NOTICE, "fu");
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
-		if (ret == SPI_OK_INSERT_RETURNING && SPI_processed > 0) {
-			l_tupdesc = SPI_tuptable->tupdesc;
-			l_tuptable = SPI_tuptable;
-			l_tuple = l_tuptable->vals[i];
-			strcpy(now_dts, SPI_getvalue(tuple, tupdesc, 1));
-		} else {
+		if (ret != SPI_OK_INSERT) {
 			dump_tcf1_inputs(st_canceled_id, st_pending_id, st_submitted_id,
 					trade_id);
 			FAIL_FRAME2(status, sql);
@@ -164,7 +152,7 @@ elog(NOTICE, "fu");
 	elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 	ret = SPI_exec(sql, 0);
-	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+	if (ret == SPI_OK_SELECT) {
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
 	} else {
@@ -174,33 +162,23 @@ elog(NOTICE, "fu");
 	}
 
 	for (i = 0; i < SPI_processed; i++) {
-		TupleDesc l_tupdesc;
-		SPITupleTable *l_tuptable = NULL;
-		HeapTuple l_tuple = NULL;
-
 		char *t_id;
-		char now_dts[MAXDATELEN + 1];;
 
-		l_tuple = l_tuptable->vals[i];
+		tuple = tuptable->vals[i];
 		t_id = SPI_getvalue(tuple, tupdesc, 1);
 
-		sprintf(sql, TCF1_5, st_canceled_id, now_dts, t_id);
+		sprintf(sql, TCF1_5, st_canceled_id, t_id);
 #ifdef DEBUG
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
-		if (ret == SPI_OK_UPDATE_RETURNING && SPI_processed > 0) {
-			l_tupdesc = SPI_tuptable->tupdesc;
-			l_tuptable = SPI_tuptable;
-			l_tuple = l_tuptable->vals[i];
-			strcpy(now_dts, SPI_getvalue(tuple, tupdesc, 1));
-		} else {
+		if (ret != SPI_OK_UPDATE) {
 			dump_tcf1_inputs(st_canceled_id, st_pending_id, st_submitted_id,
 					trade_id);
 			FAIL_FRAME2(status, sql);
 		}
 
-		sprintf(sql, TCF1_6, t_id, now_dts, st_canceled_id);
+		sprintf(sql, TCF1_6, t_id, st_canceled_id);
 #ifdef DEBUG
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */

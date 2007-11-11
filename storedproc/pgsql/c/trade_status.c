@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2007 Mark Wong
  *
- * Based on TPC-E Standard Specification Revision 1.3.
+ * Based on TPC-E Standard Specification Revision 1.3.0.
  */
 
 #include <sys/types.h>
@@ -93,14 +93,8 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 */
 		values = (char **) palloc(sizeof(char *) * 14);
-		values[i_broker_name] =
-				(char *) palloc((B_NAME_LEN + 1) * sizeof(char));
 		values[i_charge] =
 				(char *) palloc((VALUE_T_LEN + 1) * sizeof(char) * 50);
-		values[i_cust_f_name] =
-				(char *) palloc((C_F_NAME_LEN + 1) * sizeof(char));
-		values[i_cust_l_name] =
-				(char *) palloc((C_L_NAME_LEN + 1) * sizeof(char));
 		values[i_ex_name] =
 				(char *) palloc((EX_NAME_LEN + 1) * sizeof(char) * 50);
 		values[i_exec_name] =
@@ -204,9 +198,9 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			if (SPI_processed > 0) {
 				tuple = tuptable->vals[0];
-				strcpy(values[i_cust_l_name], SPI_getvalue(tuple, tupdesc, 1));
-				strcpy(values[i_cust_f_name], SPI_getvalue(tuple, tupdesc, 2));
-				strcpy(values[i_broker_name], SPI_getvalue(tuple, tupdesc, 3));
+				values[i_cust_l_name] = SPI_getvalue(tuple, tupdesc, 1);
+				values[i_cust_f_name] = SPI_getvalue(tuple, tupdesc, 2);
+				values[i_broker_name] = SPI_getvalue(tuple, tupdesc, 3);
 			}
 		} else {
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
@@ -254,12 +248,6 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 
 		/* Make the tuple into a datum. */
 		result = HeapTupleGetDatum(tuple);
-
-		/* Clean up. */
-		for (i = 0; i < 14; i++) {
-			pfree(values[i]);
-		}
-		pfree(values);
 
 		SRF_RETURN_NEXT(funcctx, result);
 	} else {

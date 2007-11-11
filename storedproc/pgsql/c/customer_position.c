@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2007 Mark Wong
  *
- * Based on TPC-E Standard Specification Revision 1.3.0
+ * Based on TPC-E Standard Specification Revision 1.3.0.
  */
 
 #include <sys/types.h>
@@ -149,33 +149,6 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		values = (char **) palloc(sizeof(char *) * 28);
 		values[i_cust_id] = (char *) palloc((IDENT_T_LEN + 1) * sizeof(char));
 		values[i_acct_len] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
-		values[i_c_ad_id] = (char *) palloc((IDENT_T_LEN + 1) * sizeof(char));
-		values[i_c_area_1] = (char *) palloc((C_AREA_1_LEN + 1) * sizeof(char));
-		values[i_c_area_2] = (char *) palloc((C_AREA_2_LEN + 1) * sizeof(char));
-		values[i_c_area_3] = (char *) palloc((C_AREA_3_LEN + 1) * sizeof(char));
-		values[i_c_ctry_1] = (char *) palloc((C_CTRY_1_LEN + 1) * sizeof(char));
-		values[i_c_ctry_2] = (char *) palloc((C_CTRY_2_LEN + 1) * sizeof(char));
-		values[i_c_ctry_3] = (char *) palloc((C_CTRY_3_LEN + 1) * sizeof(char));
-		values[i_c_dob] = (char *) palloc((MAXDATELEN + 1) * sizeof(char));
-		values[i_c_email_1] =
-				(char *) palloc((C_EMAIL_1_LEN + 1) * sizeof(char));
-		values[i_c_email_2] =
-				(char *) palloc((C_EMAIL_2_LEN + 1) * sizeof(char));
-		values[i_c_ext_1] = (char *) palloc((C_EXT_1_LEN + 1) * sizeof(char));
-		values[i_c_ext_2] = (char *) palloc((C_EXT_2_LEN + 1) * sizeof(char));
-		values[i_c_ext_3] = (char *) palloc((C_EXT_3_LEN + 1) * sizeof(char));
-		values[i_c_f_name] = (char *) palloc((C_F_NAME_LEN + 1) * sizeof(char));
-		values[i_c_gndr] = (char *) palloc((C_GNDR_LEN + 1) * sizeof(char));
-		values[i_c_l_name] = (char *) palloc((C_L_NAME_LEN + 1) * sizeof(char));
-		values[i_c_local_1] =
-				(char *) palloc((C_LOCAL_1_LEN + 1) * sizeof(char));
-		values[i_c_local_2] =
-				(char *) palloc((C_LOCAL_2_LEN + 1) * sizeof(char));
-		values[i_c_local_3] =
-				(char *) palloc((C_LOCAL_3_LEN + 1) * sizeof(char));
-		values[i_c_m_name] = (char *) palloc((C_M_NAME_LEN + 1) * sizeof(char));
-		values[i_c_st_id] = (char *) palloc((ST_ID_LEN + 1) * sizeof(char));
-		values[i_c_tier] = (char *) palloc((C_TIER_LEN + 1) * sizeof(char));
 		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
 
 		/* Create a function context for cross-call persistence. */
@@ -222,115 +195,32 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		elog(NOTICE, "%d row(s) returned from CPF1_2.", SPI_processed);
 #endif /* DEBUG */
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
-			char *tmp;
-
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 
-			strcpy(values[i_c_st_id], SPI_getvalue(tuple, tupdesc, 1));
-			strcpy(values[i_c_l_name], SPI_getvalue(tuple, tupdesc, 2));
-			strcpy(values[i_c_f_name], SPI_getvalue(tuple, tupdesc, 3));
-
-			tmp = SPI_getvalue(tuple, tupdesc, 4);
-			if (tmp != NULL)
-				strcpy(values[i_c_m_name], tmp);
-			else
-				values[i_c_m_name][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 5);
-			if (tmp != NULL)
-				strcpy(values[i_c_gndr], tmp);
-			else
-				values[i_c_gndr][0] = '\0';
-
-			strcpy(values[i_c_tier], SPI_getvalue(tuple, tupdesc, 6));
-			strcpy(values[i_c_dob], SPI_getvalue(tuple, tupdesc, 7));
-			strcpy(values[i_c_ad_id], SPI_getvalue(tuple, tupdesc, 8));
-
-			tmp = SPI_getvalue(tuple, tupdesc, 9);
-			if (tmp != NULL)
-				strcpy(values[i_c_ctry_1], tmp);
-			else
-				values[i_c_ctry_1][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 10);
-			if (tmp != NULL)
-				strcpy(values[i_c_area_1], tmp);
-			else
-				values[i_c_area_1][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 11);
-			if (tmp != NULL)
-				strcpy(values[i_c_local_1], tmp);
-			else
-				values[i_c_local_1][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 12);
-			if (tmp != NULL)
-				strcpy(values[i_c_ext_1], tmp);
-			else
-				values[i_c_ext_1][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 13);
-			if (tmp != NULL)
-				strcpy(values[i_c_ctry_2], tmp);
-			else
-				values[i_c_ctry_2][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 14);
-			if (tmp != NULL)
-				strcpy(values[i_c_area_2], tmp);
-			else
-				values[i_c_area_2][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 15);
-			if (tmp != NULL)
-				strcpy(values[i_c_local_2], tmp);
-			else
-				values[i_c_local_2][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 16);
-			if (tmp != NULL)
-				strcpy(values[i_c_ext_2], tmp);
-			else
-				values[i_c_ext_2][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 17);
-			if (tmp != NULL)
-				strcpy(values[i_c_ctry_3], tmp);
-			else
-				values[i_c_ctry_3][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 18);
-			if (tmp != NULL)
-				strcpy(values[i_c_area_3], tmp);
-			else
-				values[i_c_area_3][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 19);
-			if (tmp != NULL)
-				strcpy(values[i_c_local_3], tmp);
-			else
-				values[i_c_local_3][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 20);
-			if (tmp != NULL)
-				strcpy(values[i_c_ext_3], tmp);
-			else
-				values[i_c_ext_3][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 21);
-			if (tmp != NULL)
-				strcpy(values[i_c_email_1], tmp);
-			else
-				values[i_c_email_1][0] = '\0';
-
-			tmp = SPI_getvalue(tuple, tupdesc, 22);
-			if (tmp != NULL)
-				strcpy(values[i_c_email_2], tmp);
-			else
-				values[i_c_email_2][0] = '\0';
+			values[i_c_st_id] = SPI_getvalue(tuple, tupdesc, 1);
+			values[i_c_l_name] = SPI_getvalue(tuple, tupdesc, 2);
+			values[i_c_f_name] = SPI_getvalue(tuple, tupdesc, 3);
+			values[i_c_m_name] = SPI_getvalue(tuple, tupdesc, 4);
+			values[i_c_gndr] = SPI_getvalue(tuple, tupdesc, 5);
+			values[i_c_tier] = SPI_getvalue(tuple, tupdesc, 6);
+			values[i_c_dob] = SPI_getvalue(tuple, tupdesc, 7);
+			values[i_c_ad_id] = SPI_getvalue(tuple, tupdesc, 8);
+			values[i_c_ctry_1] = SPI_getvalue(tuple, tupdesc, 9);
+			values[i_c_area_1] = SPI_getvalue(tuple, tupdesc, 10);
+			values[i_c_local_1] = SPI_getvalue(tuple, tupdesc, 11);
+			values[i_c_ext_1] = SPI_getvalue(tuple, tupdesc, 12);
+			values[i_c_ctry_2] = SPI_getvalue(tuple, tupdesc, 13);
+			values[i_c_area_2] = SPI_getvalue(tuple, tupdesc, 14);
+			values[i_c_local_2] = SPI_getvalue(tuple, tupdesc, 15);
+			values[i_c_ext_2] = SPI_getvalue(tuple, tupdesc, 16);
+			values[i_c_ctry_3] = SPI_getvalue(tuple, tupdesc, 17);
+			values[i_c_area_3] = SPI_getvalue(tuple, tupdesc, 18);
+			values[i_c_local_3] = SPI_getvalue(tuple, tupdesc, 19);
+			values[i_c_ext_3] = SPI_getvalue(tuple, tupdesc, 20);
+			values[i_c_email_1] = SPI_getvalue(tuple, tupdesc, 21);
+			values[i_c_email_2] = SPI_getvalue(tuple, tupdesc, 22);
 		}
 
 		sprintf(sql, CPF1_3, cust_id);
@@ -434,12 +324,6 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		/* Make the tuple into a datum. */
 		result = HeapTupleGetDatum(tuple);
 
-		/* Free memory. */
-		for (i = 0; i < 28; i++) {
-			pfree(values[i]);
-		}
-		pfree(values);
-
 		SRF_RETURN_NEXT(funcctx, result);
 	} else {
 		SPI_finish();
@@ -484,8 +368,8 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 */
 		values = (char **) palloc(sizeof(char *) * 7);
-		values[i_hist_len] = (char *) palloc(3 * sizeof(char));
-		values[i_status] = (char *) palloc(2 * sizeof(char));
+		values[i_hist_len] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
+		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
 
 		strcpy(values[i_status], "0");
 
@@ -515,16 +399,17 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 
-			values[i_hist_dts] = (char *) palloc((27 * SPI_processed + 2) *
-					sizeof(char));
+			values[i_hist_dts] = (char *) palloc(((MAXDATELEN + 1) *
+					SPI_processed + 3) * sizeof(char));
 			values[i_qty] =
-					(char *) palloc((7 * SPI_processed + 2) * sizeof(char));
-			values[i_symbol] = (char *) palloc((16 * SPI_processed + 2) *
-					sizeof(char));
-			values[i_trade_id] = (char *) palloc((16 * SPI_processed + 2) *
-					sizeof(char));
-			values[i_trade_status] = (char *) palloc((11 * SPI_processed + 2) *
-					sizeof(char));
+					(char *) palloc(((INTEGER_LEN + 1) * SPI_processed + 3) *
+				sizeof(char));
+			values[i_symbol] = (char *) palloc(((S_SYMB_LEN + 1) *
+					SPI_processed + 3) * sizeof(char));
+			values[i_trade_id] = (char *) palloc(((IDENT_T_LEN + 1) *
+					SPI_processed + 3) * sizeof(char));
+			values[i_trade_status] = (char *) palloc(((ST_NAME_LEN + 1) *
+					SPI_processed + 3) * sizeof(char));
 
 			strcpy(values[i_hist_dts], "{");
 			strcpy(values[i_qty], "{");
@@ -622,11 +507,6 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 		/* Make the tuple into a datum. */
 		result = HeapTupleGetDatum(tuple);
 
-		/* Free memory. */
-		for (i = 0; i < 7; i++) {
-			pfree(values[i]);
-		}
-		pfree(values);
 		SRF_RETURN_NEXT(funcctx, result);
 	} else {
 		SPI_finish();
