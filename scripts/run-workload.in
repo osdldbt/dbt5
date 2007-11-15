@@ -365,8 +365,6 @@ else
 			-o ${DB_OUTPUT_DIR} || exit 1
 fi
 
-${abs_top_srcdir}/scripts/${DBDIR}/db-plans -o ${DB_OUTPUT_DIR}/plan0.txt
-
 echo ""
 echo "************************************************************************"
 echo "*                  DBT-5 test for PostgreSQL started                   *"
@@ -389,7 +387,7 @@ echo "************************************************************************"
 echo
 echo "1. Starting Brokerage House server"
 ${abs_top_srcdir}/src/BrokerageHouseMain -s ${DB_HOSTNAME} -d ${DB_NAME} \
-		-p $DB_PORT \
+		-p ${DB_PORT} \
 		-o ${DRIVER_OUTPUT_DIR} > ${OUTPUT_DIR}/bh.out 2>&1 &
 
 do_sleep 1
@@ -414,6 +412,7 @@ ${abs_top_srcdir}/scripts/sysstats.sh --iter ${ITERNATIONS} \
 ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/db-stat \
 		-o ${DB_OUTPUT_DIR} \
 		-i ${ITERNATIONS} \
+		-p ${DB_PORT} \
 		-s ${SAMPLE_LENGTH} > ${OUTPUT_DIR}/dbstats.out 2>&1 &
 
 # Initialize oprofile before we start the driver.

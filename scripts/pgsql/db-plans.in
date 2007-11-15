@@ -12,16 +12,19 @@
 
 explain() {
 	SQL="EXPLAIN ${@}"
-	@PSQL@ -e -d ${DBNAME} -c "${SQL}" >> ${OUTPUT_FILE} 2>&1
+	@PSQL@ -e -p ${PORT} -d ${DBNAME} -c "${SQL}" >> ${OUTPUT_FILE} 2>&1
 }
 
 TOPDIR="@abs_top_srcdir@"
 source ${TOPDIR}/scripts/dbt5_profile || exit 1
 
-while getopts "o:" opt; do
+while getopts "o:p:" opt; do
     case ${opt} in
     o)
         OUTPUT_FILE=${OPTARG}
+        ;;
+    p)
+        PORT=${OPTARG}
         ;;
     esac
 done
