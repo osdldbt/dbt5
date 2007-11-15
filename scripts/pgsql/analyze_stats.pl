@@ -85,6 +85,12 @@ sub process {
 	my $png_filename = $filename;
 	$png_filename =~ s/data$/png/;
 	open( FILE, ">$stats_dir/$input_filename" );
+	print FILE "set grid xtics ytics\n";
+	print FILE "set xlabel \"Elapsed Time (Minutes)\"\n";
+	print FILE "set ylabel \"$ylabel\"\n";
+	print FILE "set term png small\n";
+	print FILE "set output \"$png_filename\"\n";
+	print FILE "set yrange [0:]\n";
 	print FILE "plot \"$filename\" using 1:2 title \"$names[ 0 ]\" with lines, \\\n";
 	my $i;
 	for ( $i = 1; $i < (scalar @names) - 1; $i++ ) {
@@ -93,13 +99,6 @@ sub process {
 	}
 	print FILE "\"$filename\" using 1:" . ($i + 2) .
 		" title \"$names[ $i ]\" with lines\n";
-	print FILE "set grid xtics ytics\n";
-	print FILE "set xlabel \"Elapsed Time (Minutes)\"\n";
-	print FILE "set ylabel \"$ylabel\"\n";
-	print FILE "set term png small\n";
-	print FILE "set output \"$png_filename\"\n";
-	print FILE "set yrange [0:]\n";
-	print FILE "replot\n";
 	close( FILE );
 }
 
