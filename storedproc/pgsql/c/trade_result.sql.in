@@ -12,13 +12,13 @@ CREATE OR REPLACE FUNCTION TradeResultFrame1 (
 		OUT hs_qty INTEGER,
 		OUT is_lifo SMALLINT,
 		OUT status INTEGER,
-		OUT symbol CHAR(15),
+		OUT symbol VARCHAR(15),
 		OUT trade_is_cash SMALLINT,
 		OUT trade_qty INTEGER,
-		OUT type_id CHAR(3),
+		OUT type_id VARCHAR(3),
 		OUT type_is_market SMALLINT,
 		OUT type_is_sell SMALLINT,
-		OUT type_name CHAR(12))
+		OUT type_name VARCHAR(12))
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeResultFrame1'
 LANGUAGE C IMMUTABLE STRICT;
 
@@ -26,7 +26,7 @@ CREATE OR REPLACE FUNCTION TradeResultFrame2 (
 		IN acct_id BIGINT,
 		IN hs_qty INTEGER,
 		IN is_lifo SMALLINT,
-		IN symbol CHAR(15),
+		IN symbol VARCHAR(15),
 		IN trade_id BIGINT,
 		IN trade_price NUMERIC(8, 2),
 		IN trade_qty INTEGER,
@@ -53,9 +53,9 @@ LANGUAGE C IMMUTABLE STRICT;
 
 CREATE OR REPLACE FUNCTION TradeResultFrame4 (
 		IN cust_id BIGINT,
-		IN symbol CHAR(15),
+		IN symbol VARCHAR(15),
 		IN trade_qty INTEGER,
-		IN type_id CHAR(3),
+		IN type_id VARCHAR(3),
 		OUT comm_rate NUMERIC(5, 2),
 		OUT s_name VARCHAR(70),
 		OUT status INTEGER)
@@ -65,7 +65,7 @@ LANGUAGE C IMMUTABLE STRICT;
 CREATE OR REPLACE FUNCTION TradeResultFrame5 (
 		IN broker_id BIGINT,
 		IN comm_amount NUMERIC(5, 2),
-		IN st_completed_id CHAR(4),
+		IN st_completed_id VARCHAR(4),
 		IN trade_dts TIMESTAMP,
 		IN trade_id BIGINT,
 		IN trade_price NUMERIC(8, 2),
@@ -82,7 +82,7 @@ CREATE OR REPLACE FUNCTION TradeResultFrame6 (
 		IN trade_id BIGINT,
 		IN trade_is_cash SMALLINT,
 		IN trade_qty INTEGER,
-		IN type_name CHAR(12),
+		IN type_name VARCHAR(12),
 		OUT acct_bal NUMERIC(12, 2),
 		OUT status INTEGER)
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeResultFrame6'

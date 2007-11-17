@@ -18,9 +18,14 @@
  */
 
 CREATE OR REPLACE FUNCTION MarketFeedFrame1(
-		IN price_quote NUMERIC(8, 2)[], IN status_submitted CHAR(4),
-		IN symbol CHAR(15)[], IN trade_qty INTEGER[], IN type_limit_buy CHAR(3),
-		IN type_limit_sell CHAR(3), IN type_stop_loss CHAR(3),
-		OUT send_len INTEGER, OUT status INTEGER)
+		IN price_quote NUMERIC(8, 2)[],
+		IN status_submitted VARCHAR(4),
+		IN symbol VARCHAR(15)[],
+		IN trade_qty INTEGER[],
+		IN type_limit_buy VARCHAR(3),
+		IN type_limit_sell VARCHAR(3),
+		IN type_stop_loss VARCHAR(3),
+		OUT send_len INTEGER,
+		OUT status INTEGER)
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'MarketFeedFrame1'
 LANGUAGE C IMMUTABLE STRICT;

@@ -10,9 +10,9 @@ CREATE OR REPLACE FUNCTION DataMaintenanceFrame1 (
 		IN c_id BIGINT,
 		IN co_id BIGINT,
 		IN day_of_month INTEGER,
-		IN symbol CHAR(15),
+		IN symbol VARCHAR(15),
 		IN table_name VARCHAR,
-		IN tx_id CHAR(4),
+		IN tx_id VARCHAR(4),
 		IN vol_incr INTEGER,
 		OUT status INTEGER)
 RETURNS INTEGER AS 'MODULE_PATHNAME', 'DataMaintenanceFrame1'

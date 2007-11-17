@@ -23,7 +23,7 @@ CREATE OR REPLACE FUNCTION TradeUpdateFrame1 (
 		OUT settlement_cash_type VARCHAR(40)[],
 		OUT status INTEGER,
 		OUT trade_history_dts TIMESTAMP[],
-		OUT trade_history_status_id CHAR(4)[],
+		OUT trade_history_status_id VARCHAR(4)[],
 		OUT trade_price NUMERIC(8,2)[])
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeUpdateFrame1'
 LANGUAGE C IMMUTABLE STRICT;
@@ -47,7 +47,7 @@ CREATE OR REPLACE FUNCTION TradeUpdateFrame2 (
 		OUT settlement_cash_type VARCHAR(40)[],
 		OUT status INTEGER,
 		OUT trade_history_dts TIMESTAMP[],
-		OUT trade_history_status_id CHAR(4)[],
+		OUT trade_history_status_id VARCHAR(4)[],
 		OUT trade_list BIGINT[],
 		OUT trade_price NUMERIC(8,2)[])
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeUpdateFrame2'
@@ -59,7 +59,7 @@ CREATE OR REPLACE FUNCTION TradeUpdateFrame3 (
 		IN max_trades INTEGER,
 		IN max_updates INTEGER,
 		IN start_trade_dts TIMESTAMP,
-		IN symbol CHAR(15),
+		IN symbol VARCHAR(15),
 		OUT acct_id BIGINT[],
 		OUT cash_transaction_amount NUMERIC(10,2)[],
 		OUT cash_transaction_dts TIMESTAMP[],
@@ -77,9 +77,9 @@ CREATE OR REPLACE FUNCTION TradeUpdateFrame3 (
 		OUT status INTEGER,
 		OUT trade_dts TIMESTAMP[],
 		OUT trade_history_dts TIMESTAMP[],
-		OUT trade_history_status_id CHAR(4)[],
+		OUT trade_history_status_id VARCHAR(4)[],
 		OUT trade_list BIGINT[],
-		OUT type_name CHAR(12)[],
-		OUT trade_type CHAR(3)[])
+		OUT type_name VARCHAR(12)[],
+		OUT trade_type VARCHAR(3)[])
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeUpdateFrame3'
 LANGUAGE C IMMUTABLE STRICT;

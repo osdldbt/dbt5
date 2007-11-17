@@ -21,7 +21,7 @@ CREATE OR REPLACE FUNCTION TradeLookupFrame1 (
 		OUT settlement_cash_type VARCHAR(40)[],
 		OUT status INTEGER,
 		OUT trade_history_dts TIMESTAMP[],
-		OUT trade_history_status_id CHAR(4)[],
+		OUT trade_history_status_id VARCHAR(4)[],
 		OUT trade_price NUMERIC(8,2)[])
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeLookupFrame1'
 LANGUAGE C IMMUTABLE STRICT;
@@ -43,7 +43,7 @@ CREATE OR REPLACE FUNCTION TradeLookupFrame2 (
 		OUT settlement_cash_type VARCHAR(40)[],
 		OUT status INTEGER,
 		OUT trade_history_dts TIMESTAMP[],
-		OUT trade_history_status_id CHAR(4)[],
+		OUT trade_history_status_id VARCHAR(4)[],
 		OUT trade_list BIGINT[],
 		OUT trade_price NUMERIC(8,2)[])
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeLookupFrame2'
@@ -69,9 +69,10 @@ CREATE OR REPLACE FUNCTION TradeLookupFrame3 (
 		OUT settlement_cash_type VARCHAR(40)[],
 		OUT status INTEGER,
 		OUT trade_dts TIMESTAMP[],
-		OUT trade_history_status_id CHAR(4)[],
+		OUT trade_history_dts TIMESTAMP[],
+		OUT trade_history_status_id VARCHAR(4)[],
 		OUT trade_list BIGINT[],
-		OUT trade_type CHAR(3)[])
+		OUT trade_type VARCHAR(3)[])
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeLookupFrame3'
 LANGUAGE C IMMUTABLE STRICT;
 

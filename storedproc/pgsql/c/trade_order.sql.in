@@ -35,16 +35,16 @@ CREATE OR REPLACE FUNCTION TradeOrderFrame3 (
 		IN cust_id BIGINT,
 		IN cust_tier SMALLINT,
 		IN is_lifo SMALLINT,
-		IN issue CHAR(6),
+		IN issue VARCHAR(6),
 		IN st_pending_id VARCHAR(10),
 		IN st_submitted_id VARCHAR(10),
 		IN tax_status SMALLINT,
 		IN trade_qty INTEGER,
-		IN trade_type_id CHAR(3),
+		IN trade_type_id VARCHAR(3),
 		IN type_is_margin SMALLINT,
 		INOUT co_name VARCHAR(60),
 		INOUT requested_price NUMERIC(8, 2),
-		INOUT symbol CHAR(15),
+		INOUT symbol VARCHAR(15),
 		OUT buy_value NUMERIC(8, 2),
 		OUT charge_amount NUMERIC(10, 2),
 		OUT comm_rate NUMERIC(5, 2),
@@ -55,8 +55,8 @@ CREATE OR REPLACE FUNCTION TradeOrderFrame3 (
 		OUT status INTEGER,
 		OUT status_id VARCHAR(10),
 		OUT tax_amount NUMERIC(8, 2),
-		OUT type_is_market SMALLINT,
-		OUT type_is_sell SMALLINT)
+		OUT type_is_market BOOLEAN,
+		OUT type_is_sell BOOLEAN)
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeOrderFrame3'
 LANGUAGE C IMMUTABLE STRICT;
 
@@ -70,9 +70,9 @@ CREATE OR REPLACE FUNCTION TradeOrderFrame4 (
 		IN is_lifo SMALLINT,
 		IN requested_price NUMERIC(8, 2),
 		IN status_id VARCHAR(10),
-		IN symbol CHAR(15),
+		IN symbol VARCHAR(15),
 		IN trade_qty INTEGER,
-		IN trade_type_id CHAR(3),
+		IN trade_type_id VARCHAR(3),
 		IN type_is_market SMALLINT,
 		OUT status INTEGER,
 		OUT trade_id BIGINT)

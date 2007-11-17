@@ -15,11 +15,11 @@ CREATE OR REPLACE FUNCTION TradeStatusFrame1 (
 		OUT exec_name VARCHAR(64)[],
 		OUT s_name VARCHAR(70)[],
 		OUT status INTEGER,
-		OUT st_name CHAR(10)[],
-		OUT symbol CHAR(15)[],
+		OUT st_name VARCHAR(10)[],
+		OUT symbol VARCHAR(15)[],
 		OUT trade_dts TIMESTAMP[],
 		OUT trade_id BIGINT[],
 		OUT trade_qty INTEGER[],
-		OUT type_name CHAR(12)[])
+		OUT type_name VARCHAR(12)[])
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeStatusFrame1'
 LANGUAGE C IMMUTABLE STRICT;
