@@ -22,10 +22,10 @@
 		status = 1;
 
 /* PostgreSQL types */
-#define BIGINT_LEN 10
+#define BIGINT_LEN 20
 #define BOOLEAN_LEN 1
-#define INTEGER_LEN 5
-#define SMALLINT_LEN 3
+#define INTEGER_LEN 10
+#define SMALLINT_LEN 5
 
 /* Domains */
 #define BALANCE_T_LEN 14
@@ -122,5 +122,23 @@
 #define STATUS_LEN 1
 
 #define USE_ISO_DATES 1
+
+/*
+ * FIXME: This escaping function probably isn't comprehensive and what a 
+ * terrible thing to do to define this inline function in a header file!
+ */
+void inline escape_me(char *s, char *t);
+
+void inline escape_me(char *s, char *t) {
+	int length = strlen(s);
+	int i;
+	int k = 0;
+	for (i = 0; i < length; i++) {
+		if (s[i] == '\'')
+			t[k++] = '\\';
+		t[k++] = s[i];
+	}
+	t[k] = '\0';
+}
 
 #endif /* _FRAME_H_ */
