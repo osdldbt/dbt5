@@ -93,8 +93,6 @@ Datum TradeCleanupFrame1(PG_FUNCTION_ARGS)
 	int i;
 	char *tr_t_id;
 
-elog(NOTICE, "fu");
-
 	strcpy(st_canceled_id, DatumGetCString(DirectFunctionCall1(textout,
 			PointerGetDatum(st_canceled_id_p))));
 	strcpy(st_pending_id, DatumGetCString(DirectFunctionCall1(textout,
