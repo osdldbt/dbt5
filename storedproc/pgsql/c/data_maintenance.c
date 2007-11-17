@@ -182,19 +182,19 @@ PG_MODULE_MAGIC;
 		"  AND wi_s_symb = '%s'"
 
 /* Prototypes. */
-void dump_dmf1_inputs(int, int, int, int, char *, char *, char *, int);
+void dump_dmf1_inputs(long, long, long, int, char *, char *, char *, int);
 
 Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(DataMaintenanceFrame1);
 
-void dump_dmf1_inputs(int acct_id, int c_id, int co_id, int day_of_month,
+void dump_dmf1_inputs(long acct_id, long c_id, long co_id, int day_of_month,
 		char *symbol, char *table_name, char *tx_id, int vol_incr)
 {
 	elog(NOTICE, "DMF1: INPUTS START");
-	elog(NOTICE, "DMF1: acct_id %d", acct_id);
-	elog(NOTICE, "DMF1: c_id %d", c_id);
-	elog(NOTICE, "DMF1: co_id %d", co_id);
+	elog(NOTICE, "DMF1: acct_id %ld", acct_id);
+	elog(NOTICE, "DMF1: c_id %ld", c_id);
+	elog(NOTICE, "DMF1: co_id %ld", co_id);
 	elog(NOTICE, "DMF1: day_of_month %d", day_of_month);
 	elog(NOTICE, "DMF1: symbol %s", symbol);
 	elog(NOTICE, "DMF1: table_name %s", table_name);
@@ -258,6 +258,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 
 #ifdef DEBUG
@@ -277,6 +279,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 	} else if (strcmp(table_name, "ADDRESS") == 0) {
 		long ad_id = 0;
@@ -301,9 +305,15 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 
-		if (strcmp(line2, "Apt. 10C") != 0) {
+		/*
+		 * FIXME:
+		 * Verify that line2 can even be NULL from the previoius query.
+		 */
+		if (line2 != NULL && strcmp(line2, "Apt. 10C") != 0) {
 			sprintf(sql, DMF1_4, "Apt. 10C", ad_id);
 		} else {
 			sprintf(sql, DMF1_4, "Apt. 22", ad_id);
@@ -316,6 +326,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 	} else if (strcmp(table_name, "COMPANY") == 0) {
 		char *sprate = NULL;
@@ -334,6 +346,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 
 #ifdef DEBUG
@@ -354,13 +368,15 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 	} else if (strcmp(table_name, "CUSTOMER") == 0) {
 		char *email2 = NULL;
 		int len = 0;
 		int lenMindspring = strlen("@mindspring.com");
 
-		sprintf(sql, DMF1_7, acct_id);
+		sprintf(sql, DMF1_7, c_id);
 #ifdef DEBUG
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
@@ -374,6 +390,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 
 		len = strlen(email2);
@@ -391,6 +409,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 	} else if (strcmp(table_name, "CUSTOMER_TAXRATE") == 0) {
 		char new_tax_rate[TX_ID_LEN + 1];
@@ -410,6 +430,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 
 #ifdef DEBUG
@@ -444,6 +466,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 	} else if (strcmp(table_name, "DAILY_MARKET") == 0) {
 		sprintf(sql, DMF1_11, vol_incr, symbol, day_of_month);
@@ -456,6 +480,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 	} else if (strcmp(table_name, "EXCHANGE") == 0) {
 		int rowcount = 0;
@@ -473,6 +499,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 
 #ifdef DEBUG
@@ -494,6 +522,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 	} else if (strcmp(table_name, "FINANCIAL") == 0) {
 		int rowcount = 0;
@@ -513,6 +543,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 
 #ifdef DEBUG
@@ -532,6 +564,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 	} else if (strcmp(table_name, "NEWS_ITEM") == 0) {
 		sprintf(sql, DMF1_16, co_id);
@@ -543,6 +577,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 	} else if (strcmp(table_name, "SECURITY") == 0) {
 		sprintf(sql, DMF1_17, symbol);
@@ -554,6 +590,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 	} else if (strcmp(table_name, "TAXRATE") == 0) {
 		char tx_name[TX_NAME_LEN + 1];
@@ -574,6 +612,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 
 #ifdef DEBUG
@@ -588,6 +628,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 
 #ifdef DEBUG
@@ -603,6 +645,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 	} else if (strcmp(table_name, "WATCH_ITEM") == 0) {
 		int cnt;
@@ -623,6 +667,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 
 #ifdef DEBUG
@@ -645,6 +691,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 
 #ifdef DEBUG
@@ -665,6 +713,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 
 #ifdef DEBUG
@@ -680,6 +730,8 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME2(status, sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
+			SPI_finish();
+			PG_RETURN_INT32(1);
 		}
 	}
 	SPI_finish();
