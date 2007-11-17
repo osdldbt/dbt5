@@ -17,8 +17,8 @@ namespace TPCE
 class CTradeOrderDB : public CTxnBaseDB, public CTradeOrderDBInterface
 {
 public:
-	CTradeOrderDB(CDBConnection *pDBConn);
-	~CTradeOrderDB();
+	CTradeOrderDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	~CTradeOrderDB() {};
 
 	virtual void DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 			TTradeOrderFrame1Output *pOut);
@@ -34,7 +34,7 @@ public:
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException);
+	void Cleanup(void* pException) {};
 
 };
 

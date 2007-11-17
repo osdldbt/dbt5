@@ -10,17 +10,6 @@
 
 using namespace TPCE;
 
-// Constructor
-CMarketWatchDB::CMarketWatchDB(CDBConnection *pDBConn)
-: CTxnBaseDB(pDBConn)
-{
-}
-
-// Destructor
-CMarketWatchDB::~CMarketWatchDB()
-{
-}
-
 // Call Market Watch Frame 1
 void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
 		TMarketWatchFrame1Output *pOut)
@@ -80,9 +69,4 @@ void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
 	    <<"- pct_change: "<<pOut->pct_change<<endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-}
-
-
-void CMarketWatchDB::Cleanup(void* pException)
-{
 }

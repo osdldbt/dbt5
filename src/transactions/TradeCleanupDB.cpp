@@ -10,17 +10,6 @@
 
 using namespace TPCE;
 
-// Constructor
-CTradeCleanupDB::CTradeCleanupDB(CDBConnection *pDBConn)
-: CTxnBaseDB(pDBConn)
-{
-}
-
-// Destructor
-CTradeCleanupDB::~CTradeCleanupDB()
-{
-}
-
 // Call Trade Cleanup Frame 1
 void CTradeCleanupDB::DoTradeCleanupFrame1(
 		const TTradeCleanupFrame1Input *pIn,
@@ -63,8 +52,4 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
 	    <<"- status: "<<pOut->status<<endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-}
-
-void CTradeCleanupDB::Cleanup(void* pException)
-{
 }

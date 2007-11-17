@@ -17,8 +17,8 @@ namespace TPCE
 class CTradeResultDB : public CTxnBaseDB, public CTradeResultDBInterface
 {
 public:
-	CTradeResultDB(CDBConnection *pDBConn);
-	~CTradeResultDB();
+	CTradeResultDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	~CTradeResultDB() {};
 
 	virtual void DoTradeResultFrame1(const TTradeResultFrame1Input *pIn,
 			TTradeResultFrame1Output *pOut);
@@ -36,8 +36,7 @@ public:
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException);
-
+	void Cleanup(void* pException) {};
 };
 
 }	// namespace TPCE

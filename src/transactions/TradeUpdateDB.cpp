@@ -10,17 +10,6 @@
 
 using namespace TPCE;
 
-// Constructor
-CTradeUpdateDB::CTradeUpdateDB(CDBConnection *pDBConn)
-: CTxnBaseDB(pDBConn)
-{
-}
-
-// Destructor
-CTradeUpdateDB::~CTradeUpdateDB()
-{
-}
-
 // Call Trade Lookup Frame 1
 void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 		TTradeUpdateFrame1Output *pOut)
@@ -862,9 +851,4 @@ cout << __FILE__ << ":" << __LINE__ << " = '" << (*p).c_str() << "'" << endl;
 			endl;
 	m_coutLock.ReleaseLock();
 #endif //DEBUG
-}
-
-// Clean-up
-void CTradeUpdateDB::Cleanup(void* pException)
-{
 }

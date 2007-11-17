@@ -17,8 +17,8 @@ namespace TPCE
 class CSecurityDetailDB : public CTxnBaseDB, public CSecurityDetailDBInterface
 {
 public:
-	CSecurityDetailDB(CDBConnection *pDBConn);
-	~CSecurityDetailDB();
+	CSecurityDetailDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	~CSecurityDetailDB() {};
 
 	virtual void DoSecurityDetailFrame1(const TSecurityDetailFrame1Input *pIn,
 			TSecurityDetailFrame1Output *pOut);
@@ -26,7 +26,7 @@ public:
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException);
+	void Cleanup(void* pException) {};
 };
 
 }	// namespace TPCE

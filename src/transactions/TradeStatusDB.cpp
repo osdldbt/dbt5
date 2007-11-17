@@ -10,17 +10,6 @@
 
 using namespace TPCE;
 
-// Constructor
-CTradeStatusDB::CTradeStatusDB(CDBConnection *pDBConn)
-: CTxnBaseDB(pDBConn)
-{
-}
-
-// Destructor
-CTradeStatusDB::~CTradeStatusDB()
-{
-}
-
 // Call Trade Status Frame 1
 void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 		TTradeStatusFrame1Output *pOut)
@@ -160,8 +149,4 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 			"- type_name[0]: " << pOut->type_name[0] << endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-}
-
-void CTradeStatusDB::Cleanup(void* pException)
-{
 }

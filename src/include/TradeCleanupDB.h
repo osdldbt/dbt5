@@ -17,8 +17,8 @@ namespace TPCE
 class CTradeCleanupDB : public CTxnBaseDB, public CTradeCleanupDBInterface
 {
 public:
-	CTradeCleanupDB(CDBConnection *pDBConn);
-	~CTradeCleanupDB();
+	CTradeCleanupDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	~CTradeCleanupDB() {};
 
 	virtual void DoTradeCleanupFrame1(const TTradeCleanupFrame1Input *pIn,
 			TTradeCleanupFrame1Output *pOut);
@@ -26,7 +26,7 @@ public:
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException);
+	void Cleanup(void* pException) {};
 
 };
 

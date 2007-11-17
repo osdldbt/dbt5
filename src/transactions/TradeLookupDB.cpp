@@ -10,17 +10,6 @@
 
 using namespace TPCE;
 
-// Constructor
-CTradeLookupDB::CTradeLookupDB(CDBConnection *pDBConn)
-: CTxnBaseDB(pDBConn)
-{
-}
-
-// Destructor
-CTradeLookupDB::~CTradeLookupDB()
-{
-}
-
 // Call Trade Lookup Frame 1
 void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 		TTradeLookupFrame1Output *pOut)
@@ -862,10 +851,4 @@ void CTradeLookupDB::DoTradeLookupFrame4(const TTradeLookupFrame4Input *pIn,
 			"- trade_id: " << pOut->trade_id << endl;
 	m_coutLock.ReleaseLock();
 #endif //DEBUG
-}
-
-
-// Clean-up
-void CTradeLookupDB::Cleanup(void* pException)
-{
 }

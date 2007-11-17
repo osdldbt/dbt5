@@ -10,17 +10,6 @@
 
 using namespace TPCE;
 
-// Constructor
-CSecurityDetailDB::CSecurityDetailDB(CDBConnection *pDBConn)
-: CTxnBaseDB(pDBConn)
-{
-}
-
-// Destructor
-CSecurityDetailDB::~CSecurityDetailDB()
-{
-}
-
 // Call Security Detail Frame 1
 void CSecurityDetailDB::DoSecurityDetailFrame1(
 		const TSecurityDetailFrame1Input *pIn,
@@ -627,9 +616,4 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 			"- ex_open: " << pOut->ex_open << endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-}
-
-
-void CSecurityDetailDB::Cleanup(void* pException)
-{
 }

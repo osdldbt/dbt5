@@ -19,8 +19,8 @@ class CMarketFeedDB : public CTxnBaseDB, public CMarketFeedDBInterface
 	// member used to send triggered orders to MEE
 	TTradeRequest		m_TriggeredLimitOrders;
 public:
-	CMarketFeedDB(CDBConnection *pDBConn);
-	~CMarketFeedDB();
+	CMarketFeedDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	~CMarketFeedDB() {};
 
 	virtual void DoMarketFeedFrame1(const TMarketFeedFrame1Input *pIn, 
 			TMarketFeedFrame1Output *pOut,
@@ -29,7 +29,7 @@ public:
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException);
+	void Cleanup(void* pException) {};
 
 };
 

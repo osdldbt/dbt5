@@ -10,17 +10,6 @@
 
 using namespace TPCE;
 
-// Constructor
-CBrokerVolumeDB::CBrokerVolumeDB(CDBConnection *pDBConn)
-: CTxnBaseDB(pDBConn)
-{
-}
-
-// Destructor
-CBrokerVolumeDB::~CBrokerVolumeDB()
-{
-}
-
 // Call Broker Volume Frame 1
 void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 		TBrokerVolumeFrame1Output *pOut)
@@ -86,9 +75,4 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 	    <<"- volume[0]: "<<pOut->volume[0]<<endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-}
-
-
-void CBrokerVolumeDB::Cleanup(void* pException)
-{
 }

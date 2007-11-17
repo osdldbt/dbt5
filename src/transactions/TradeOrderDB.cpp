@@ -10,17 +10,6 @@
 
 using namespace TPCE;
 
-// Constructor
-CTradeOrderDB::CTradeOrderDB(CDBConnection *pDBConn)
-: CTxnBaseDB(pDBConn)
-{
-}
-
-// Destructor
-CTradeOrderDB::~CTradeOrderDB()
-{
-}
-
 // Call Trade Order Frame 1
 void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 		TTradeOrderFrame1Output *pOut)
@@ -280,9 +269,4 @@ void CTradeOrderDB::DoTradeOrderFrame6(TTradeOrderFrame6Output *pOut)
 	// commit the transaction we are inside
 	CommitTxn();
 	pOut->status = CBaseTxnErr::SUCCESS;
-}
-
-// Clean-up
-void CTradeOrderDB::Cleanup(void* pException)
-{
 }

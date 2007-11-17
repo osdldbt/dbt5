@@ -10,17 +10,6 @@
 
 using namespace TPCE;
 
-// Constructor
-CMarketFeedDB::CMarketFeedDB(CDBConnection *pDBConn)
-: CTxnBaseDB(pDBConn)
-{
-}
-
-// Destructor
-CMarketFeedDB::~CMarketFeedDB()
-{
-}
-
 // Call Market Feed Frame 1
 void CMarketFeedDB::DoMarketFeedFrame1(
 		const TMarketFeedFrame1Input *pIn, TMarketFeedFrame1Output *pOut,
@@ -108,9 +97,4 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 	    <<"- send_len: "<<pOut->send_len<<endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-}
-
-
-void CMarketFeedDB::Cleanup(void* pException)
-{
 }

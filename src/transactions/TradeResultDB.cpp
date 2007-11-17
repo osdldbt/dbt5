@@ -10,17 +10,6 @@
 
 using namespace TPCE;
 
-// Constructor
-CTradeResultDB::CTradeResultDB(CDBConnection *pDBConn)
-: CTxnBaseDB(pDBConn)
-{
-}
-
-// Destructor
-CTradeResultDB::~CTradeResultDB()
-{
-}
-
 // Call Trade Result Frame 1
 void CTradeResultDB::DoTradeResultFrame1(
 		const TTradeResultFrame1Input *pIn,
@@ -366,9 +355,4 @@ void CTradeResultDB::DoTradeResultFrame6(
 	    <<"- acct_bal:"<<pOut->acct_bal<<endl;
 	m_coutLock.ReleaseLock();
 #endif //DEBUG
-}
-
-// Clean-up
-void CTradeResultDB::Cleanup(void* pException)
-{
 }

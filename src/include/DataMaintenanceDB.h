@@ -17,8 +17,8 @@ namespace TPCE
 class CDataMaintenanceDB : public CTxnBaseDB, public CDataMaintenanceDBInterface
 {
 public:
-	CDataMaintenanceDB(CDBConnection *pDBConn);
-	~CDataMaintenanceDB();
+	CDataMaintenanceDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	~CDataMaintenanceDB() {};
 
 	void DoDataMaintenanceFrame1(const TDataMaintenanceFrame1Input *pIn,
 			TDataMaintenanceFrame1Output *pOut);
@@ -26,7 +26,7 @@ public:
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException);
+	void Cleanup(void* pException) {};
 
 };
 

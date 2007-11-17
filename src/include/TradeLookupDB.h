@@ -17,8 +17,8 @@ namespace TPCE
 class CTradeLookupDB : public CTxnBaseDB, public CTradeLookupDBInterface
 {
 public:
-	CTradeLookupDB(CDBConnection *pDBConn);
-	~CTradeLookupDB();
+	CTradeLookupDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	~CTradeLookupDB() {};
 
 	virtual void DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 			TTradeLookupFrame1Output *pOut);
@@ -32,8 +32,7 @@ public:
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException);
-
+	void Cleanup(void* pException) {};
 };
 
 }	// namespace TPCE

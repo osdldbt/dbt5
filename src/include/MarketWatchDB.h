@@ -17,8 +17,8 @@ namespace TPCE
 class CMarketWatchDB : public CTxnBaseDB, public CMarketWatchDBInterface
 {
 public:
-	CMarketWatchDB(CDBConnection *pDBConn);
-	~CMarketWatchDB();
+	CMarketWatchDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	~CMarketWatchDB() {};
 
 	virtual void DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
 			TMarketWatchFrame1Output *pOut);
@@ -26,7 +26,7 @@ public:
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException);
+	void Cleanup(void* pException) {};
 };
 
 }	// namespace TPCE

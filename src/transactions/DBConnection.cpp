@@ -47,4 +47,3 @@ void CDBConnection::RollbackTxn()
 {
 	m_Txn->exec("ROLLBACK;");
 }
-

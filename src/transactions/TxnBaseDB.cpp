@@ -17,10 +17,6 @@ CTxnBaseDB::CTxnBaseDB(CDBConnection *pDBConn)
 	m_Txn = m_pDBConnection->m_Txn;
 }
 
-CTxnBaseDB::~CTxnBaseDB()
-{
-}
-
 void CTxnBaseDB::BeginTxn()
 {
 	m_pDBConnection->BeginTxn();

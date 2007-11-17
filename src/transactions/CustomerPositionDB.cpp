@@ -10,17 +10,6 @@
 
 using namespace TPCE;
 
-// Constructor
-CCustomerPositionDB::CCustomerPositionDB(CDBConnection *pDBConn)
-: CTxnBaseDB(pDBConn)
-{
-}
-
-// Destructor
-CCustomerPositionDB::~CCustomerPositionDB()
-{
-}
-
 // Call Customer Position Frame 1
 void CCustomerPositionDB::DoCustomerPositionFrame1(
 		const TCustomerPositionFrame1Input *pIn,
@@ -273,8 +262,4 @@ void CCustomerPositionDB::DoCustomerPositionFrame3(
 	// commit the transaction we are inside
 	CommitTxn();
 	//pFrame3Output->status = CBaseTxnErr::SUCCESS;
-}
-
-void CCustomerPositionDB::Cleanup(void* pException)
-{
 }

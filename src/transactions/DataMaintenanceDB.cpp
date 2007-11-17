@@ -10,17 +10,6 @@
 
 using namespace TPCE;
 
-// Constructor
-CDataMaintenanceDB::CDataMaintenanceDB(CDBConnection *pDBConn)
-: CTxnBaseDB(pDBConn)
-{
-}
-
-// Destructor
-CDataMaintenanceDB::~CDataMaintenanceDB()
-{
-}
-
 // Call Data Maintenance Frame 1
 void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 		const TDataMaintenanceFrame1Input *pIn,
@@ -64,8 +53,4 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 			"- status: " << pOut->status << endl;
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
-}
-
-void CDataMaintenanceDB::Cleanup(void* pException)
-{
 }

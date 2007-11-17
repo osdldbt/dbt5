@@ -18,8 +18,8 @@ class CCustomerPositionDB : public CTxnBaseDB,
 		public CCustomerPositionDBInterface
 {
 public:
-	CCustomerPositionDB(CDBConnection *pDBConn);
-	~CCustomerPositionDB();
+	CCustomerPositionDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	~CCustomerPositionDB() {};
 
 	virtual void DoCustomerPositionFrame1(
 			const TCustomerPositionFrame1Input *pIn,
@@ -32,7 +32,7 @@ public:
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException);
+	void Cleanup(void* pException) {};
 };
 
 }	// namespace TPCE

@@ -24,7 +24,7 @@ protected:
 
 public:
 	CTxnBaseDB(CDBConnection *pDBConn);
-	~CTxnBaseDB();
+	~CTxnBaseDB() {};
 
 	void BeginTxn();
 	void CommitTxn();
