@@ -47,10 +47,6 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 	result R( m_Txn->exec( osCall.str() ) );
 	CommitTxn();
 
-	if (R.empty()) 
-	{
-		throw logic_error("TradeLookupFrame1: empty result set");
-	}
 	result::const_iterator c = R.begin();
  	pOut->status = c[0].as(int());
 
@@ -69,7 +65,6 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 	m_coutLock.ReleaseLock();
 #endif // DEBUG
 }
-
 
 void CDataMaintenanceDB::Cleanup(void* pException)
 {
