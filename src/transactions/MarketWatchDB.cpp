@@ -1,7 +1,7 @@
 /*
  * MarketWatchDB.cpp
  *
- * 2006 Rilson Nascimento
+ * Copyright (C) 2006-2007 Rilson Nascimento
  *
  * 13 July 2006
  */

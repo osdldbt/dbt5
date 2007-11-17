@@ -1,7 +1,7 @@
 /*
  * TradeLookupDB.cpp
  *
- * 2006 Rilson Nascimento
+ * Copyright (C) 2006-2007 Rilson Nascimento
  *
  * 08 July 2006
  */
