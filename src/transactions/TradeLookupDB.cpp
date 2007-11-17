@@ -60,7 +60,9 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 	if (R.empty()) 
 	{
 		//throw logic_error("TradeLookupFrame1: empty result set");
-		cout<<"warning: empty result set at DoTradeLookupFrame1"<<endl;
+		cout << "warning: empty result set at DoTradeLookupFrame1" << endl;
+		pOut->status = 1;
+		return;
 	}
 	result::const_iterator c = R.begin();
 
