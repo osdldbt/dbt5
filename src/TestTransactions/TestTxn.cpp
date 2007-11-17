@@ -15,6 +15,11 @@ CCESUT	*m_pCCESUT = NULL;
 char szBHaddr[1024] = "";
 int iBHlistenPort = BrokerageHousePort;
 
+char port[64] = "5432";
+
+char szInDir[2048] = "egen/flat_in";
+	
+
 eTxnType TxnType = TRADE_STATUS;
 RNGSEED	Seed = 0;
 
@@ -23,24 +28,27 @@ void Usage()
 {
 	cout << "\nUsage: TestTxn [option]" << endl << endl;
 	cout << "  where" << endl;
-	cout << "   Option		Description" << endl;
-	cout << "   =========		========================" << endl;
-	cout << "   -r number		optional random number" << endl;
-	cout << "   -t number		Transaction type" << endl;
-	cout << "\t\t\tA - TRADE_ORDER" << endl;
-	cout << "\t\t\t    TRADE_RESULT" << endl;
-	cout << "\t\t\t    MARKET_FEED" << endl;
-	cout << "\t\t\tC - TRADE_LOOKUP" << endl;
-	cout << "\t\t\tD - TRADE_UPDATE" << endl;
-	cout << "\t\t\tE - TRADE_STATUS (default)" << endl;
-	cout << "\t\t\tF - CUSTOMER_POSITION" << endl;
-	cout << "\t\t\tG - BROKER_VOLUME" << endl;
-	cout << "\t\t\tH - SECURITY_DETAIL"<<endl;
-	cout << "\t\t\tJ - MARKET_WATCH" << endl;
-	cout << "\t\t\tK - DATA_MAINTENANCE" << endl;
-	cout << "\t\t\tL - TRADE_CLEANUP" << endl;
-	cout << "   -b address		Address of BrokerageHouseMain" << endl;
-	cout << "           		Optional if testing BrokerageHouseMain" << endl;
+	cout << "   Option               Description" << endl;
+	cout << "   =========            ========================" << endl;
+	cout << "   -b address           Address of BrokerageHouseMain" << endl;
+	cout << "                        Optional if testing BrokerageHouseMain" <<
+			endl;
+	cout << "   -p number            database listener port" << endl;
+	cout << "   -r number            optional random number" << endl;
+	cout << "   -t path              Security.txt file location" << endl;
+	cout << "   -t letter            Transaction type" << endl;
+	cout << "                        A - TRADE_ORDER" << endl;
+	cout << "                            TRADE_RESULT" << endl;
+	cout << "                            MARKET_FEED" << endl;
+	cout << "                        C - TRADE_LOOKUP" << endl;
+	cout << "                        D - TRADE_UPDATE" << endl;
+	cout << "                        E - TRADE_STATUS (default)" << endl;
+	cout << "                        F - CUSTOMER_POSITION" << endl;
+	cout << "                        G - BROKER_VOLUME" << endl;
+	cout << "                        H - SECURITY_DETAIL"<<endl;
+	cout << "                        J - MARKET_WATCH" << endl;
+	cout << "                        K - DATA_MAINTENANCE" << endl;
+	cout << "                        L - TRADE_CLEANUP" << endl;
 	cout << endl;
 	cout << "Note: Trade Order triggers Trade Result and Market Feed" << endl;
 	cout << "      when the type of trade is Market (type_is_market=1)" << endl;
@@ -95,6 +103,12 @@ bool ParseCommandLine( int argc, char *argv[] )
 			strcpy(szBHaddr, vp);
 			cout << "Will connect to BrokerageHouseMain at '" << szBHaddr <<
 					"'." << endl;
+			break;
+		case 'p':
+			strcpy(port, vp);
+			break;
+		case 's':
+			strcpy(szInDir, vp);
 			break;
 		case 't':
 			switch ( *vp) {
@@ -390,7 +404,6 @@ int main(int argc, char* argv[])
 {
 	const char *server = "localhost";
 	const char *db = "dbt5";
-	const char *port = "5432";
 
 	ofstream m_fLog;
 	ofstream m_fMix;
@@ -419,8 +432,6 @@ int main(int argc, char* argv[])
 		//
 		CLogFormatTab fmt;
 		CEGenLogger log(eDriverEGenLoader, 0, "TxnTest.log", &fmt);
-	
-		char*	szInDir = "EGen_v3.14/flat_in";
 	
 		CInputFiles	inputFiles;
 		inputFiles.Initialize(eDriverEGenLoader, iDefaultLoadUnitSize,
