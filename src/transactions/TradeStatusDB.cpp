@@ -25,63 +25,115 @@ CTradeStatusDB::~CTradeStatusDB()
 void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 		TTradeStatusFrame1Output *pOut)
 {
-#if defined(COMPILE_PLSQL_FUNCTION)
+#ifdef DEBUG
+	cout << "TSF1" << endl;
+#endif
+
+	enum tsf1 {                                                             
+			i_broker_name=0, i_charge, i_cust_f_name, i_cust_l_name,        
+			i_ex_name, i_exec_name, i_s_name, i_status, i_status_name,      
+			i_symbol, i_trade_dts, i_trade_id, i_trade_qty, i_type_name     
+	};
 
 	ostringstream osCall;
-	osCall << "SELECT * from TradeStatusFrame1(" << pIn->acct_id <<
-			") as (lname varchar, fname varchar, broker varchar, "
-			"charge value_t, exec_name varchar, ex_name varchar, s_name "
-			"varchar,status_name char(10), symbol char(15), trade_dts_year "
-			"double precision, trade_dts_month double precision, trade_dts_day "
-			"double precision, trade_dts_hour double precision, "
-			"trade_dts_minute double precision, trade_dts_second double "
-			"precision, trade_id trade_t, trade_qty s_qty_t, type_name "
-			"char(12))";
+	osCall << "SELECT * from TradeStatusFrame1(" << pIn->acct_id << ")";
 
 	BeginTxn();
 	// Isolation level required by Clause 7.4.1.3
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
 	result R( m_Txn->exec( osCall.str() ) );
 	CommitTxn();		
 
 	if (R.empty()) 
 	{
 		//throw logic_error("empty result set!");
-		cout<<"warning: empty result set at DoTradeStatusFrame1"<<endl
-			<<"- acct_id: "<<pIn->acct_id<<endl;
+		cout << "warning: empty result set at DoTradeStatusFrame1" << endl
+				<< "- acct_id: " << pIn->acct_id << endl;
 		pOut->status = CBaseTxnErr::SUCCESS;
 		return;
 	}
 
 	result::const_iterator c = R.begin();
+
+	vector<string> vAux;
+	vector<string>::iterator p;
 	
-	strcpy(pOut->cust_l_name, c[0].c_str());
-	strcpy(pOut->cust_f_name, c[1].c_str());
-	strcpy(pOut->broker_name, c[2].c_str());
+	strcpy(pOut->broker_name, c[i_broker_name].c_str());
 
-	int i = 0;	
-	for ( c; c != R.end(); ++c )
-	{
-		pOut->charge[i] = c[3].as(double());
-		strcpy(pOut->exec_name[i], c[4].c_str());
-		strcpy(pOut->ex_name[i], c[5].c_str());
-		strcpy(pOut->s_name[i], c[6].c_str());
-		strcpy(pOut->status_name[i], c[7].c_str());
-		strcpy(pOut->symbol[i], c[8].c_str() );
-		pOut->trade_dts[i].year = c[9].as(int());
-		pOut->trade_dts[i].month = c[10].as(int());
-		pOut->trade_dts[i].day = c[11].as(int());
-		pOut->trade_dts[i].hour = c[12].as(int());
-		pOut->trade_dts[i].minute = c[13].as(int());
-		pOut->trade_dts[i].second = int(c[14].as(double()));
-		pOut->trade_id[i] = c[15].as(int());
-		pOut->trade_qty[i] = c[16].as(int());
-		strcpy(pOut->type_name[i], c[17].c_str());
-		
-		i++;
+	Tokenize(c[i_broker_name].c_str(), vAux);
+	int i = 0;
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->charge[i] = atof((*p).c_str());
+		++i;
 	}
+	vAux.clear();
 
-	pOut->status = CBaseTxnErr::SUCCESS;
+	strcpy(pOut->cust_f_name, c[i_cust_f_name].c_str());
+	strcpy(pOut->cust_l_name, c[i_cust_l_name].c_str());
+
+	Tokenize(c[i_ex_name].c_str(), vAux);
+	i = 0;
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->ex_name[i], (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_s_name].c_str(), vAux);
+	i = 0;
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->s_name[i], (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_symbol].c_str(), vAux);
+	i = 0;
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->symbol[i], (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_trade_dts].c_str(), vAux);
+	i = 0;
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+				&pOut->trade_dts[i].year,
+				&pOut->trade_dts[i].month,
+				&pOut->trade_dts[i].day,
+				&pOut->trade_dts[i].hour,
+				&pOut->trade_dts[i].minute,
+				&pOut->trade_dts[i].second);
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_trade_id].c_str(), vAux);
+	i = 0;
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_id[i] = atol((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_trade_qty].c_str(), vAux);
+	i = 0;
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_qty[i] = atoi((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_type_name].c_str(), vAux);
+	i = 0;
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->type_name[i], (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();

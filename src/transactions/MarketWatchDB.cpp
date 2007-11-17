@@ -25,10 +25,20 @@ CMarketWatchDB::~CMarketWatchDB()
 void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
 		TMarketWatchFrame1Output *pOut)
 {
+#ifdef DEBUG
+	cout << "MWF1" << endl;
+#endif
+
 	ostringstream osCall;
-	osCall << "select * from MarketWatchFrame1("<<pIn->acct_id<<","<<pIn->c_id<<","<<
-			pIn->ending_co_id<<",'"<<pIn->industry_name<<"', "<<
-			pIn->starting_co_id<<") as (status smallint, pct_change double precision)";
+	osCall << "SELECT * FROM MarketWatchFrame1(" <<
+			pIn->acct_id << "," <<
+			pIn->c_id << "," <<
+			pIn->ending_co_id << ",'" <<
+			pIn->industry_name << "','" <<
+			pIn->start_day.year << "-" <<
+			pIn->start_day.month << "-" <<
+			pIn->start_day.day << "'," <<
+			pIn->starting_co_id << ")";
 
 	BeginTxn();
 	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;"); // Isolation level required by Clause 7.4.1.3
@@ -38,13 +48,14 @@ void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
 	{
 		//throw logic_error("TradeLookupFrame1: empty result set");
 		cout<<"warning: empty result set at DoMarketWatchFrame1"<<endl;
+		pOut->status = 1;
 	}
 	else
 	{
 		result::const_iterator c = R.begin();
 
-		pOut->status = c[0].as(int());
-		pOut->pct_change = c[1].as(double());
+		pOut->pct_change = c[0].as(double());
+		pOut->status = c[1].as(int());
 	}
 
 	if (pOut->status == 0)	// status ok

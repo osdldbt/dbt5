@@ -25,19 +25,24 @@ CBrokerVolumeDB::~CBrokerVolumeDB()
 void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 		TBrokerVolumeFrame1Output *pOut)
 {
+#ifdef DEBUG
+	cout << "BVF1" << endl;
+#endif
+
 	ostringstream osBrokers;
 	int i = 0;
-	osBrokers << pIn->broker_list[i];
 
-	for ( i = 1; 0 != strcmp( pIn->broker_list[i], "") ; i++)
-	{
+	enum bvf1 { i_broker_name=0, i_list_len, i_status, i_volume };
+
+	osBrokers << pIn->broker_list[i];
+	for (i = 1; pIn->broker_list[i][0] != '\0'; i++) {
 		osBrokers << ", " << m_Txn->esc(pIn->broker_list[i]);
 	}
 
 	ostringstream osCall;
-	osCall << "select * from BrokerVolumeFrame1('{" << osBrokers.str() <<
-			"}','" << pIn->sector_name <<
-			"') as (b_name varchar, sum double precision)";
+	osCall << "SELECT * FROM BrokerVolumeFrame1('{" <<
+			osBrokers.str() << "}','" <<
+			pIn->sector_name << "')";
 
 	BeginTxn();
 	// Isolation level required by Clause 7.4.1.3
@@ -48,16 +53,27 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 	// stored procedure can return an empty result set by design
 	result::const_iterator c = R.begin();
 
+	vector<string> vAux;
+	vector<string>::iterator p;
+
+	Tokenize(c[i_broker_name].c_str(), vAux);
 	i = 0;	
-	for ( c; c != R.end(); ++c )
-	{
-		strcpy(pOut->broker_name[i], c[0].c_str());
-		pOut->volume[i] = c[1].as(double());
-		
-		i++;
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->broker_name[i], (*p).c_str());
+		++i;
 	}
- 	pOut->list_len = i;
-	pOut->status = CBaseTxnErr::SUCCESS;
+	vAux.clear();
+
+	Tokenize(c[i_volume].c_str(), vAux);
+	i = 0;	
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->volume[i] = atof((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+ 	pOut->list_len = c[i_list_len].as(int());;
+	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();

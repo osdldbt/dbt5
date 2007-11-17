@@ -25,6 +25,19 @@ CTradeLookupDB::~CTradeLookupDB()
 void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 		TTradeLookupFrame1Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TLF1" << endl;
+#endif
+
+	enum tlf1 {
+			i_bid_price=0, i_cash_transaction_amount,
+			i_cash_transaction_dts, i_cash_transaction_name, i_exec_name,
+			i_is_cash, i_is_market, i_num_found, i_settlement_amount,
+			i_settlement_cash_due_date, i_settlement_cash_type,
+			i_status, i_trade_history_dts, i_trade_history_status_id,
+			i_trade_price
+	};
+
 	ostringstream osTrades;
 	int i = 0;
 	osTrades << pIn->trade_id[i];
@@ -34,28 +47,9 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 	}
 
 	ostringstream osCall;
-	osCall << "select * from tradelookupframe1(" << pIn->max_trades <<
-			",'{" << osTrades.str() << "}') as (BidPrice numeric(8,2), "
-			"ExecName varchar, IsCash smallint, IsMarket smallint, TradePrice "
-			"numeric(8,2), SettlementAmount numeric(10,2), "
-			"SettleCashDueDateYear double precision, SettleCashDueDateMonth "
-			"double precision, SettleCashDueDateDay double precision, "
-			"SettleCashDueDateHour double precision, SettleCashDueDateMinute "
-			"double precision, SettleCashDueDateSec double precision, "
-			"SettlementCashType varchar, CashTransactionAmount numeric(10,2), "
-			"CashTxnDtsYear double precision, CashTxnDtsMonth double "
-			"precision, CashTxnDtsDay double precision, CashTxnDtsHour double "
-			"precision, CashTxnDtsMinute double precision, CashTxnDtsSec "
-			"double precision, CashTransactionName varchar, Dts1Year double "
-			"precision, Dts1Month double precision, Dts1Day double precision, "
-			"Dts1Hour double precision, Dts1Minute double precision, Dts1Sec "
-			"double precision, TradeHistoryStatusID1 char(4), Dts2Year double "
-			"precision, Dts2Month double precision, Dts2Day double precision, "
-			"Dts2Hour double precision, Dts2Minute double precision, Dts2Sec "
-			"double precision, TradeHistoryStatusID2 char(4), Dts3Year double "
-			"precision, Dts3Month double precision, Dts3Day double precision, "
-			"Dts3Hour double precision, Dts3Minute double precision, Dts3Sec "
-			"double precision, TradeHistoryStatusID3 char(4))";
+	osCall << "SELECT * FROM TradeLookupFrame1(" <<
+			pIn->max_trades << ",'{" <<
+			osTrades.str() << "}')";
 
 	BeginTxn();
 	// Isolation level required by Clause 7.4.1.3
@@ -70,88 +64,136 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 	}
 	result::const_iterator c = R.begin();
 
-	i = 0;	
-	for ( c; c != R.end(); ++c )
-	{
-		pOut->trade_info[i].bid_price = c[0].as(double());
-		strcpy(pOut->trade_info[i].exec_name, c[1].c_str());
-		pOut->trade_info[i].is_cash = c[2].as(int());
-		pOut->trade_info[i].is_market = c[3].as(int());
-		pOut->trade_info[i].trade_price = c[4].as(double());
-		pOut->trade_info[i].settlement_amount = c[5].as(double());
-		pOut->trade_info[i].settlement_cash_due_date.year =
-				c[6].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.month =
-				c[7].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.day =
-				c[8].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.hour =
-				c[9].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.minute =
-				c[10].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.second =
-				int(c[11].as(double()));
-		strcpy(pOut->trade_info[i].settlement_cash_type, 
-				c[12].c_str());
-		pOut->trade_info[i].cash_transaction_amount =
-				c[13].as(double());
-		pOut->trade_info[i].cash_transaction_dts.year =
-				c[14].as(int());
-		pOut->trade_info[i].cash_transaction_dts.month =
-				c[15].as(int());
-		pOut->trade_info[i].cash_transaction_dts.day = c[16].as(int());
-		pOut->trade_info[i].cash_transaction_dts.hour =
-				c[17].as(int());
-		pOut->trade_info[i].cash_transaction_dts.minute =
-				c[18].as(int());
-		pOut->trade_info[i].cash_transaction_dts.second =
-				int(c[19].as(double()));
-		strcpy(pOut->trade_info[i].cash_transaction_name,
-				c[20].c_str());
-		pOut->trade_info[i].trade_history_dts[0].year =
-				c[21].as(int());
-		pOut->trade_info[i].trade_history_dts[0].month =
-				c[22].as(int());
-		pOut->trade_info[i].trade_history_dts[0].day = c[23].as(int());
-		pOut->trade_info[i].trade_history_dts[0].hour =
-				c[24].as(int());
-		pOut->trade_info[i].trade_history_dts[0].minute =
-				c[25].as(int());
-		pOut->trade_info[i].trade_history_dts[0].second =
-				int(c[26].as(double()));
-		strcpy(pOut->trade_info[i].trade_history_status_id[0],
-				c[27].c_str());
-		pOut->trade_info[i].trade_history_dts[1].year =
-				c[28].as(int());
-		pOut->trade_info[i].trade_history_dts[1].month =
-				c[29].as(int());
-		pOut->trade_info[i].trade_history_dts[1].day = c[30].as(int());
-		pOut->trade_info[i].trade_history_dts[1].hour =
-				c[31].as(int());
-		pOut->trade_info[i].trade_history_dts[1].minute =
-				c[32].as(int());
-		pOut->trade_info[i].trade_history_dts[1].second =
-				int(c[33].as(double()));
-		strcpy(pOut->trade_info[i].trade_history_status_id[1],
-				c[34].c_str());
-		pOut->trade_info[i].trade_history_dts[2].year =
-				c[35].as(int());
-		pOut->trade_info[i].trade_history_dts[2].month =
-				c[36].as(int());
-		pOut->trade_info[i].trade_history_dts[2].day = c[37].as(int());
-		pOut->trade_info[i].trade_history_dts[2].hour =
-				c[38].as(int());
-		pOut->trade_info[i].trade_history_dts[2].minute =
-				c[39].as(int());
-		pOut->trade_info[i].trade_history_dts[2].second =
-				int(c[40].as(double()));
-		strcpy(pOut->trade_info[i].trade_history_status_id[2],
-				c[41].c_str());
+	vector<string> vAux;
+	vector<string>::iterator p;
 
-		i++;
+	Tokenize(c[i_bid_price].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].bid_price = atof((*p).c_str());
+		++i;
 	}
- 	pOut->num_found = i;
-	pOut->status = CBaseTxnErr::SUCCESS;
+	vAux.clear();
+
+	Tokenize(c[i_cash_transaction_amount].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].cash_transaction_amount = atof((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_cash_transaction_dts].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+				&pOut->trade_info[i].cash_transaction_dts.year,
+				&pOut->trade_info[i].cash_transaction_dts.month,
+				&pOut->trade_info[i].cash_transaction_dts.day,
+				&pOut->trade_info[i].cash_transaction_dts.hour,
+				&pOut->trade_info[i].cash_transaction_dts.minute,
+				&pOut->trade_info[i].cash_transaction_dts.second);
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_cash_transaction_name].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_exec_name].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->trade_info[i].exec_name, (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_is_cash].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].is_cash = atoi((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_is_market].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].is_market = atoi((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_settlement_amount].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].settlement_amount = atof((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_settlement_cash_due_date].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+				&pOut->trade_info[i].settlement_cash_due_date.year,
+				&pOut->trade_info[i].settlement_cash_due_date.month,
+				&pOut->trade_info[i].settlement_cash_due_date.day,
+				&pOut->trade_info[i].settlement_cash_due_date.hour,
+				&pOut->trade_info[i].settlement_cash_due_date.minute,
+				&pOut->trade_info[i].settlement_cash_due_date.second);
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_settlement_cash_type].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	// FIXME: There are supposed to be up to 3 in an array.
+/*
+	Tokenize(c[i_trade_history_dts].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+				&pOut->trade_info[i].trade_history_dts.year,
+				&pOut->trade_info[i].trade_history_dts.month,
+				&pOut->trade_info[i].trade_history_dts.day,
+				&pOut->trade_info[i].trade_history_dts.hour,
+				&pOut->trade_info[i].trade_history_dts.minute,
+				&pOut->trade_info[i].trade_history_dts.second);
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_trade_history_status_id].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->trade_info[i].trade_history_status_id, (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+*/
+
+	Tokenize(c[i_trade_price].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].trade_price = atof((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+ 	pOut->num_found = c[i_num_found].as(int());
+	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -229,36 +271,34 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 		TTradeLookupFrame2Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TLF2" << endl;
+#endif
+
+	enum tlf2 {
+			i_bid_price=0, i_cash_transaction_amount, i_cash_transaction_dts,
+			i_cash_transaction_name, i_exec_name, i_is_cash, i_num_found,
+			i_settlement_amount, i_settlement_cash_due_date,
+			i_settlement_cash_type, i_status, i_trade_history_dts,
+			i_trade_history_status_id, i_trade_list, i_trade_price
+	};
+
 	ostringstream osCall;
-	osCall << "select * from tradelookupframe2(" << pIn->acct_id <<
-			"::IDENT_T," << pIn->max_trades << ",'" <<
+	osCall << "SELECT * FROM TradeLookupFrame2(" <<
+			pIn->acct_id << ",'" <<
 			pIn->end_trade_dts.year << "-" <<
 			pIn->end_trade_dts.month << "-" <<
 			pIn->end_trade_dts.day << " " <<
 			pIn->end_trade_dts.hour << ":" <<
 			pIn->end_trade_dts.minute << ":" <<
-			pIn->end_trade_dts.second <<
-			"'::timestamp) as (BidPrice S_PRICE_T, ExecName varchar, "
-			"IsCash smallint, TradePrice S_PRICE_T, TradeList TRADE_T, "
-			"SettlementAmount VALUE_T, SettleCashDueDateYear double precision, "
-			"SettleCashDueDateMonth double precision, SettleCashDueDateDay "
-			"double precision, SettleCashDueDateHour double precision, "
-			"SettleCashDueDateMinute double precision, SettleCashDueDateSec "
-			"double precision, SettlementCashType varchar, "
-			"CashTransactionAmount VALUE_T, CashTxnDtsYear double precision, "
-			"CashTxnDtsMonth double precision, CashTxnDtsDay double precision, "
-			"CashTxnDtsHour double precision, CashTxnDtsMinute double "
-			"precision, CashTxnDtsSec double precision, CashTransactionName "
-			"varchar, Dts1Year double precision, Dts1Month double precision, "
-			"Dts1Day double precision, Dts1Hour double precision, Dts1Minute "
-			"double precision, Dts1Sec double precision, TradeHistoryStatusID1 "
-			"char(4), Dts2Year double precision, Dts2Month double precision, "
-			"Dts2Day double precision, Dts2Hour double precision, Dts2Minute "
-			"double precision, Dts2Sec double precision, TradeHistoryStatusID2 "
-			"char(4), Dts3Year double precision, Dts3Month double precision, "
-			"Dts3Day double precision, Dts3Hour double precision, Dts3Minute "
-			"double precision, Dts3Sec double precision, TradeHistoryStatusID3 "
-			"char(4))";
+			pIn->end_trade_dts.second << "'," <<
+			pIn->max_trades << ",'" <<
+			pIn->start_trade_dts.year << "-" <<
+			pIn->start_trade_dts.month << "-" <<
+			pIn->start_trade_dts.day << " " <<
+			pIn->start_trade_dts.hour << ":" <<
+			pIn->start_trade_dts.minute << ":" <<
+			pIn->start_trade_dts.second << "')";
 
 	BeginTxn();
 	// Isolation level required by Clause 7.4.1.3
@@ -270,93 +310,111 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 	{
 		//throw logic_error("TradeLookupFrame2: empty result set");
 		cout<<"warning: empty result set at DoTradeLookupFrame2"<<endl;
+		pOut->status = 1;
+		return;
 	}
 	result::const_iterator c = R.begin();
 
-	int i = 0;	
-	for ( c; c != R.end(); ++c )
-	{
-		pOut->trade_info[i].bid_price = c[0].as(double());
-		strcpy(pOut->trade_info[i].exec_name, c[1].c_str());
-		pOut->trade_info[i].is_cash = c[2].as(int());
-		pOut->trade_info[i].trade_price = c[3].as(double());
-		pOut->trade_info[i].trade_id = c[4].as(int());
-		pOut->trade_info[i].settlement_amount = c[5].as(double());
-		pOut->trade_info[i].settlement_cash_due_date.year =
-				c[6].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.month =
-				c[7].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.day =
-				c[8].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.hour =
-				c[9].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.minute =
-				c[10].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.second =
-				int(c[11].as(double()));
-		strcpy(pOut->trade_info[i].settlement_cash_type,
-				c[12].c_str());
-		pOut->trade_info[i].cash_transaction_amount =
-				c[13].as(double());
-		pOut->trade_info[i].cash_transaction_dts.year =
-				c[14].as(int());
-		pOut->trade_info[i].cash_transaction_dts.month =
-				c[15].as(int());
-		pOut->trade_info[i].cash_transaction_dts.day =
-				c[16].as(int());
-		pOut->trade_info[i].cash_transaction_dts.hour =
-				c[17].as(int());
-		pOut->trade_info[i].cash_transaction_dts.minute =
-				c[18].as(int());
-		pOut->trade_info[i].cash_transaction_dts.second =
-				int(c[19].as(double()));
-		strcpy(pOut->trade_info[i].cash_transaction_name,
-				c[20].c_str());
-		pOut->trade_info[i].trade_history_dts[0].year =
-				c[21].as(int());
-		pOut->trade_info[i].trade_history_dts[0].month =
-				c[22].as(int());
-		pOut->trade_info[i].trade_history_dts[0].day = c[23].as(int());
-		pOut->trade_info[i].trade_history_dts[0].hour =
-				c[24].as(int());
-		pOut->trade_info[i].trade_history_dts[0].minute =
-				c[25].as(int());
-		pOut->trade_info[i].trade_history_dts[0].second =
-				int(c[26].as(double()));
-		strcpy(pOut->trade_info[i].trade_history_status_id[0],
-				c[27].c_str());
-		pOut->trade_info[i].trade_history_dts[1].year =
-				c[28].as(int());
-		pOut->trade_info[i].trade_history_dts[1].month =
-				c[29].as(int());
-		pOut->trade_info[i].trade_history_dts[1].day = c[30].as(int());
-		pOut->trade_info[i].trade_history_dts[1].hour =
-				c[31].as(int());
-		pOut->trade_info[i].trade_history_dts[1].minute =
-				c[32].as(int());
-		pOut->trade_info[i].trade_history_dts[1].second =
-				int(c[33].as(double()));
-		strcpy(pOut->trade_info[i].trade_history_status_id[1],
-				c[34].c_str());
-		pOut->trade_info[i].trade_history_dts[2].year =
-				c[35].as(int());
-		pOut->trade_info[i].trade_history_dts[2].month =
-				c[36].as(int());
-		pOut->trade_info[i].trade_history_dts[2].day =
-				c[37].as(int());
-		pOut->trade_info[i].trade_history_dts[2].hour =
-				c[38].as(int());
-		pOut->trade_info[i].trade_history_dts[2].minute =
-				c[39].as(int());
-		pOut->trade_info[i].trade_history_dts[2].second =
-				int(c[40].as(double()));
-		strcpy(pOut->trade_info[i].trade_history_status_id[2],
-				c[41].c_str());
+	vector<string> vAux;
+	vector<string>::iterator p;
 
-		i++;
+	Tokenize(c[i_bid_price].c_str(), vAux);
+	int i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].bid_price = atof((*p).c_str());
+		++i;
 	}
- 	pOut->num_found = i;
-	pOut->status = CBaseTxnErr::SUCCESS;
+	vAux.clear();
+
+	Tokenize(c[i_cash_transaction_amount].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].cash_transaction_amount = atof((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_cash_transaction_dts].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+				&pOut->trade_info[i].cash_transaction_dts.year,
+				&pOut->trade_info[i].cash_transaction_dts.month,
+				&pOut->trade_info[i].cash_transaction_dts.day,
+				&pOut->trade_info[i].cash_transaction_dts.hour,
+				&pOut->trade_info[i].cash_transaction_dts.minute,
+				&pOut->trade_info[i].cash_transaction_dts.second);
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_cash_transaction_name].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_exec_name].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->trade_info[i].exec_name, (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_is_cash].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].is_cash = atoi((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_settlement_amount].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].settlement_amount = atof((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_settlement_cash_due_date].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+				&pOut->trade_info[i].settlement_cash_due_date.year,
+				&pOut->trade_info[i].settlement_cash_due_date.month,
+				&pOut->trade_info[i].settlement_cash_due_date.day,
+				&pOut->trade_info[i].settlement_cash_due_date.hour,
+				&pOut->trade_info[i].settlement_cash_due_date.minute,
+				&pOut->trade_info[i].settlement_cash_due_date.second);
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_settlement_cash_type].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	// FIXME: Add code to handle the trade_history_dts and
+	// trade_history_status_id multi-dimensional array data.
+
+	Tokenize(c[i_trade_price].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].trade_price = atof((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+ 	pOut->num_found = c[i_num_found].as(int());
+	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -439,41 +497,35 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 		TTradeLookupFrame3Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TLF3" << endl;
+#endif
+
+	enum tlf3 {
+            i_acct_id=0, i_cash_transaction_amount, i_cash_transaction_dts,
+            i_cash_transaction_name, i_exec_name, i_is_cash, i_num_found,
+            i_price, i_quantity, i_settlement_amount,
+            i_settlement_cash_due_date, i_settlement_cash_type, i_status,
+            i_trade_dts, i_trade_history_dts, i_trade_list, i_trade_type
+	};
+
 	ostringstream osCall;
-	osCall << "SELECT * from TradeLookupFrame3(" << pIn->max_acct_id <<
-			"::IDENT_T," << pIn->max_trades << "::integer,'" <<
+	osCall << "SELECT * FROM TradeLookupFrame3('" <<
 			pIn->end_trade_dts.year << "-" <<
 			pIn->end_trade_dts.month << "-" <<
 			pIn->end_trade_dts.day << " " <<
 			pIn->end_trade_dts.hour << ":" <<
 			pIn->end_trade_dts.minute << ":" <<
-			pIn->end_trade_dts.second << "'::timestamp,'" <<
-			pIn->symbol <<
-			"'::char(15)) as (acct_id IDENT_T, cash_transaction_amount "
-			"VALUE_T, CashTxnDtsYear double precision, CashTxnDtsMonth double "
-			"precision, CashTxnDtsDay double precision, CashTxnDtsHour double "
-			"precision, CashTxnDtsMinute double precision, CashTxnDtsSec "
-			"double precision, cash_transaction_name varchar, exec_name "
-			"varchar, is_cash smallint, price S_PRICE_T, quantity S_QTY_T, "
-			"settlement_amount VALUE_T, SettleCashDueDateYear double "
-			"precision, SettleCashDueDateMonth double precision, "
-			"SettleCashDueDateDay double precision, SettleCashDueDateHour "
-			"double precision, SettleCashDueDateMinute double precision, "
-			"SettleCashDueDateSec double precision, settlement_cash_type "
-			"varchar, trade_dtsYear double precision, trade_dtsMonth double "
-			"precision, trade_dtsDay double precision, trade_dtsHour double "
-			"precision, trade_dtsMinute double precision, trade_dtsSec double "
-			"precision, Dts1Year double precision, Dts1Month double precision, "
-			"Dts1Day double precision, Dts1Hour double precision, Dts1Minute "
-			"double precision, Dts1Sec double precision, TradeHistoryStatusID1 "
-			"char(4), Dts2Year double precision, Dts2Month double precision, "
-			"Dts2Day double precision, Dts2Hour double precision, "
-			"Dts2Minute double precision, Dts2Sec double precision, "
-			"TradeHistoryStatusID2 char(4), Dts3Year double precision, "
-			"Dts3Month double precision, Dts3Day double precision, Dts3Hour "
-			"double precision, Dts3Minute double precision, Dts3Sec double "
-			"precision, TradeHistoryStatusID3 char(4), trade_list TRADE_T, "
-			"trade_type char(3))";
+			pIn->end_trade_dts.second << "'," <<
+			pIn->max_acct_id << "," <<
+			pIn->max_trades << ",'" <<
+			pIn->start_trade_dts.year << "-" <<
+			pIn->start_trade_dts.month << "-" <<
+			pIn->start_trade_dts.day << " " <<
+			pIn->start_trade_dts.hour << ":" <<
+			pIn->start_trade_dts.minute << ":" <<
+			pIn->start_trade_dts.second << "','" <<
+			pIn->symbol << "')";
 
 	BeginTxn();
 	// Isolation level required by Clause 7.4.1.3
@@ -488,94 +540,136 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 	}
 	result::const_iterator c = R.begin();
 	
-	int i = 0;	
-	for ( c; c != R.end(); ++c )
-	{
-		pOut->trade_info[i].acct_id = c[0].as(int());
-		pOut->trade_info[i].cash_transaction_amount =
-				c[1].as(double());
-		pOut->trade_info[i].cash_transaction_dts.year = c[2].as(int());
-		pOut->trade_info[i].cash_transaction_dts.month =
-				c[3].as(int());
-		pOut->trade_info[i].cash_transaction_dts.day = c[4].as(int());
-		pOut->trade_info[i].cash_transaction_dts.hour = c[5].as(int());
-		pOut->trade_info[i].cash_transaction_dts.minute =
-				c[6].as(int());
-		pOut->trade_info[i].cash_transaction_dts.second =
-				int(c[7].as(double()));
-		strcpy(pOut->trade_info[i].cash_transaction_name,
-				c[8].c_str());
-		strcpy(pOut->trade_info[i].exec_name, c[9].c_str());
-		pOut->trade_info[i].is_cash = c[10].as(int());
-		pOut->trade_info[i].price = c[11].as(double());
-		pOut->trade_info[i].quantity = c[12].as(int());
-		pOut->trade_info[i].settlement_amount = c[13].as(double());
-		pOut->trade_info[i].settlement_cash_due_date.year =
-				c[14].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.month =
-				c[15].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.day =
-				c[16].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.hour =
-				c[17].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.minute =
-				c[18].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.second =
-				int(c[19].as(double()));
-		strcpy(pOut->trade_info[i].settlement_cash_type,
-				c[20].c_str());
-		pOut->trade_info[i].trade_dts.year = c[21].as(int());
-		pOut->trade_info[i].trade_dts.month = c[22].as(int());
-		pOut->trade_info[i].trade_dts.day = c[23].as(int());
-		pOut->trade_info[i].trade_dts.hour = c[24].as(int());
-		pOut->trade_info[i].trade_dts.minute = c[25].as(int());
-		pOut->trade_info[i].trade_dts.second = int(c[26].as(double()));
-		pOut->trade_info[i].trade_history_dts[0].year =
-				c[27].as(int());
-		pOut->trade_info[i].trade_history_dts[0].month =
-				c[28].as(int());
-		pOut->trade_info[i].trade_history_dts[0].day = c[29].as(int());
-		pOut->trade_info[i].trade_history_dts[0].hour =
-				c[30].as(int());
-		pOut->trade_info[i].trade_history_dts[0].minute =
-				c[31].as(int());
-		pOut->trade_info[i].trade_history_dts[0].second =
-				int(c[32].as(double()));
-		strcpy(pOut->trade_info[i].trade_history_status_id[0],
-				c[33].c_str());
-		pOut->trade_info[i].trade_history_dts[1].year =
-				c[34].as(int());
-		pOut->trade_info[i].trade_history_dts[1].month =
-				c[35].as(int());
-		pOut->trade_info[i].trade_history_dts[1].day = c[36].as(int());
-		pOut->trade_info[i].trade_history_dts[1].hour =
-				c[37].as(int());
-		pOut->trade_info[i].trade_history_dts[1].minute =
-				c[38].as(int());
-		pOut->trade_info[i].trade_history_dts[1].second =
-				int(c[39].as(double()));
-		strcpy(pOut->trade_info[i].trade_history_status_id[1],
-				c[40].c_str());
-		pOut->trade_info[i].trade_history_dts[2].year =
-				c[41].as(int());
-		pOut->trade_info[i].trade_history_dts[2].month =
-				c[42].as(int());
-		pOut->trade_info[i].trade_history_dts[2].day = c[43].as(int());
-		pOut->trade_info[i].trade_history_dts[2].hour =
-				c[44].as(int());
-		pOut->trade_info[i].trade_history_dts[2].minute =
-				c[45].as(int());
-		pOut->trade_info[i].trade_history_dts[2].second =
-				int(c[46].as(double()));
-		strcpy(pOut->trade_info[i].trade_history_status_id[2],
-				c[47].c_str());
-		pOut->trade_info[i].trade_id = c[48].as(int());
-		strcpy(pOut->trade_info[i].trade_type, c[49].c_str());
+	vector<string> vAux;
+	vector<string>::iterator p;
 
-		i++;
+	Tokenize(c[i_acct_id].c_str(), vAux);
+	int i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].acct_id = atol((*p).c_str());
+		++i;
 	}
- 	pOut->num_found = i;
-	pOut->status = CBaseTxnErr::SUCCESS;
+	vAux.clear();
+
+	Tokenize(c[i_cash_transaction_amount].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].cash_transaction_amount = atof((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_cash_transaction_dts].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+				&pOut->trade_info[i].cash_transaction_dts.year,
+				&pOut->trade_info[i].cash_transaction_dts.month,
+				&pOut->trade_info[i].cash_transaction_dts.day,
+				&pOut->trade_info[i].cash_transaction_dts.hour,
+				&pOut->trade_info[i].cash_transaction_dts.minute,
+				&pOut->trade_info[i].cash_transaction_dts.second);
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_cash_transaction_name].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_exec_name].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->trade_info[i].exec_name, (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_is_cash].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		// FIXME: Huh, why would an assignment seg fault where sscanf()
+		// doesn't?
+		//pOut->trade_info[i].is_cash = atoi((*p).c_str());
+		sscanf((*p).c_str(), "%d", &pOut->trade_info[i].is_cash);
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_price].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].price = atof((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_quantity].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].quantity = atoi((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_settlement_amount].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].settlement_amount = atof((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_settlement_cash_due_date].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+				&pOut->trade_info[i].settlement_cash_due_date.year,
+				&pOut->trade_info[i].settlement_cash_due_date.month,
+				&pOut->trade_info[i].settlement_cash_due_date.day,
+				&pOut->trade_info[i].settlement_cash_due_date.hour,
+				&pOut->trade_info[i].settlement_cash_due_date.minute,
+				&pOut->trade_info[i].settlement_cash_due_date.second);
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_settlement_cash_type].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	// FIXME: Add code to handle the trade_history_dts and
+	// trade_history_status_id multi-dimensional array data.
+
+	// FIXME: No trade_list variable in TTradeLookupFrame3TradeInfo, where
+	// does this info go???
+/*
+	Tokenize(c[i_trade_list].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].trade_list = atol((*p).c_str());
+		++i;
+	}
+*/
+
+	Tokenize(c[i_trade_type].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->trade_info[i].trade_type, (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+ 	pOut->num_found = c[i_num_found].as(int());
+	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -669,16 +763,24 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 void CTradeLookupDB::DoTradeLookupFrame4(const TTradeLookupFrame4Input *pIn,
 		TTradeLookupFrame4Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TLF4" << endl;
+#endif
+
+	enum tlf4 {                                                                 
+			i_holding_history_id=0, i_holding_history_trade_id, i_num_found,    
+			i_quantity_after, i_quantity_before, i_status, i_trade_id           
+	};
+
 	ostringstream osCall;
-	osCall << "select * from TradeLookupFrame4(" << pIn->acct_id <<
-			"::IDENT_T, '" << pIn->trade_dts.year << "-" <<
+	osCall << "SELECT * FROM TradeLookupFrame4(" <<
+			pIn->acct_id << ",'" <<
+			pIn->trade_dts.year << "-" <<
 			pIn->trade_dts.month << "-" <<
 			pIn->trade_dts.day << " " <<
 			pIn->trade_dts.hour << ":" <<
 			pIn->trade_dts.minute << ":" <<
-			pIn->trade_dts.second <<
-			"'::timestamp) as (hh_h_t_id TRADE_T, hh_t_id TRADE_T, qty_before "
-			"S_QTY_T, qty_after S_QTY_T, trade_id TRADE_T);";
+			pIn->trade_dts.second << "')";
 
 	BeginTxn();
 	// Isolation level required by Clause 7.4.1.3
@@ -696,26 +798,50 @@ void CTradeLookupDB::DoTradeLookupFrame4(const TTradeLookupFrame4Input *pIn,
 	}
 	result::const_iterator c = R.begin();
 
-	pOut->trade_id = c[4].as(int());
+	vector<string> vAux;
+	vector<string>::iterator p;
 
-	int i = 0;	
-	for ( c; c != R.end(); ++c )
-	{
-		pOut->trade_info[i].holding_history_id = c[0].as(int());
-		pOut->trade_info[i].holding_history_trade_id = c[1].as(int());
-		pOut->trade_info[i].quantity_before = c[2].as(int());
-		pOut->trade_info[i].quantity_after = c[3].as(int());
-
-		i++;
+	Tokenize(c[i_holding_history_id].c_str(), vAux);
+	int i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].holding_history_id = atol((*p).c_str());
+		++i;
 	}
- 	pOut->num_found = i;
-	pOut->status = CBaseTxnErr::SUCCESS;
+	vAux.clear();
+
+	Tokenize(c[i_holding_history_trade_id].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].holding_history_trade_id = atol((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_quantity_after].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].quantity_after = atol((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_quantity_before].c_str(), vAux);
+	i = 0;
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_info[i].quantity_before = atol((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	pOut->trade_id = c[i_num_found].as(int());
+	pOut->trade_id = c[i_status].as(int());
+	pOut->trade_id = c[i_trade_id].as(long());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
 	cout<<"Trade Lookup Frame 4 (input)"<<endl
-	    <<"- acct_id: "<<pIn->acct_id<<endl
-	    <<"- trade_dts: "<<pIn->trade_dts.year<<"-"<<
+		<<"- acct_id: "<<pIn->acct_id<<endl
+		<<"- trade_dts: "<<pIn->trade_dts.year<<"-"<<
 		pIn->trade_dts.month<<"-"<<
 		pIn->trade_dts.day<<" "<<
 		pIn->trade_dts.hour<<":"<<

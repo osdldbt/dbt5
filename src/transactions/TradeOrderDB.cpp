@@ -25,11 +25,12 @@ CTradeOrderDB::~CTradeOrderDB()
 void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 		TTradeOrderFrame1Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TOF1" << endl;
+#endif
+
 	ostringstream osCall;
-	osCall << "select * from TradeOrderFrame1(" << pIn->acct_id <<
-			") as (acct_name varchar, broker_name varchar, cust_f_name "
-			"varchar, cust_id IDENT_T, cust_l_name varchar, cust_tier "
-			"smallint, tax_id varchar, tax_status smallint);";
+	osCall << "SELECT * FROM TradeOrderFrame1(" << pIn->acct_id << ")";
 
 	// start transaction but not commit in this frame
 	BeginTxn();
@@ -41,18 +42,21 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 	{
 		//throw logic_error("TradeOrderFrame1: empty result set");
 		cout<<"warning: empty result set at DoTradeOrderFrame1"<<endl;
+		pOut->status = 1;
 		return;
 	}
 	result::const_iterator c = R.begin();
 	
 	strcpy(pOut->acct_name, c[0].c_str());
-	strcpy(pOut->broker_name, c[1].c_str());
-	strcpy(pOut->cust_f_name, c[2].c_str());
-	pOut->cust_id = c[3].as(int());
-	strcpy(pOut->cust_l_name, c[4].c_str());
-	pOut->cust_tier = c[5].as(int());
-	strcpy(pOut->tax_id, c[6].c_str());
-	pOut->tax_status = c[7].as(int());
+	pOut->broker_id = c[1].as(long());
+	strcpy(pOut->broker_name, c[2].c_str());
+	strcpy(pOut->cust_f_name, c[3].c_str());
+	pOut->cust_id = c[4].as(long());
+	strcpy(pOut->cust_l_name, c[5].c_str());
+	pOut->cust_tier = c[6].as(int());
+	pOut->status = c[7].as(int());
+	strcpy(pOut->tax_id, c[8].c_str());
+	pOut->tax_status = c[9].as(int());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -75,11 +79,16 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 void CTradeOrderDB::DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
 		TTradeOrderFrame2Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TOF2" << endl;
+#endif
+
 	ostringstream osCall;
-	osCall << "select TradeOrderFrame2("<< pIn->acct_id << ",'" <<
-			m_Txn->esc(pIn->exec_f_name) << "','"  <<
+	osCall << "SELECT * FROM TradeOrderFrame2(" <<
+			pIn->acct_id << ",'" <<
+			m_Txn->esc(pIn->exec_f_name) << "','" <<
 			m_Txn->esc(pIn->exec_l_name) << "','" <<
-			pIn->exec_tax_id<<"');";
+			pIn->exec_tax_id<<"')";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -90,37 +99,40 @@ void CTradeOrderDB::DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
 		cout<<"warning: empty result set at DoTradeOrderFrame2"<<endl;
 		RollbackTxn();
 		// Should this set to SUCCESS?
-		pOut->status = CBaseTxnErr::SUCCESS;
+		pOut->status = 0;
 		return;
 	}
 	result::const_iterator c = R.begin();
 	
-	pOut->status = CBaseTxnErr::SUCCESS;
+	if (c[0].is_null() == false)
+		strcpy(pOut->ap_acl, c[0].c_str());
+	pOut->status = c[1].as(int());
 }
 
 // Call Trade Order Frame 3
 void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 		TTradeOrderFrame3Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TOF3" << endl;
+#endif
+
 	ostringstream osCall;
-	osCall << "select * from TradeOrderFrame3(" << pIn->acct_id <<
-			"::IDENT_T," << pIn->cust_id << "::IDENT_T," <<
-			pIn->cust_tier << "::smallint," << pIn->is_lifo <<
-			"::smallint,'" << pIn->issue << "'::char(6),'" <<
-			pIn->st_pending_id << "'::char(4),'" <<
-			pIn->st_submitted_id << "'::char(4)," <<
-			pIn->tax_status << "::smallint," <<
-			pIn->trade_qty << "::S_QTY_T,'" <<
-			pIn->trade_type_id << "'::char(3)," <<
-			pIn->type_is_margin << "::smallint,'" <<
-			m_Txn->esc(pIn->co_name) << "'::varchar," <<
-			pIn->requested_price << "::S_PRICE_T,'" <<
-			pIn->symbol << "'::varchar) as (comp_name varchar, "
-			"requested_price S_PRICE_T, symb_name varchar, buy_value "
-			"BALANCE_T, charge_amount VALUE_T, comm_rate S_PRICE_T, "
-			"cust_assets BALANCE_T, market_price S_PRICE_T, sec_name varchar, "
-			"sell_value BALANCE_T, status_id char(4), tax_amount VALUE_T,"
-			"type_is_market smallint, type_is_sell smallint);";
+	osCall << "SELECT * FROM TradeOrderFrame3(" <<
+			pIn->acct_id << "," <<
+			pIn->cust_id << "," <<
+			pIn->cust_tier << "::SMALLINT," <<
+			pIn->is_lifo << "::SMALLINT,'" <<
+			pIn->issue << "','" <<
+			pIn->st_pending_id << "','" <<
+			pIn->st_submitted_id << "'," <<
+			pIn->tax_status << "::SMALLINT," <<
+			pIn->trade_qty << ",'" <<
+			pIn->trade_type_id << "'," <<
+			pIn->type_is_margin << "::SMALLINT,'" <<
+			m_Txn->esc(pIn->co_name) << "'," <<
+			pIn->requested_price << ",'" <<
+			pIn->symbol << "')";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -143,10 +155,11 @@ void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 	pOut->market_price = c[7].as(double());
 	strcpy(pOut->s_name, c[8].c_str());
 	pOut->sell_value = c[9].as(double());
-	strcpy(pOut->status_id, c[10].c_str());
-	pOut->tax_amount = c[11].as(double());
-	pOut->type_is_market = c[12].as(int());
-	pOut->type_is_sell = c[13].as(int());
+	pOut->status = c[10].as(int());
+	strcpy(pOut->status_id, c[11].c_str());
+	pOut->tax_amount = c[12].as(double());
+	pOut->type_is_market = (c[13].c_str()[0] == 't' ? 1 : 0);
+	pOut->type_is_sell = (c[14].c_str()[0] == 't' ? 1 : 0);
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -188,17 +201,25 @@ void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 		TTradeOrderFrame4Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TOF4" << endl;
+#endif
+
 	ostringstream osCall;
-	osCall << "select TradeOrderFrame4(" << pIn->acct_id <<
-			"::ident_t," << pIn->charge_amount << "::value_t," <<
-			pIn->comm_amount << "::value_t,'" <<
-			m_Txn->esc(pIn->exec_name) << "'::char(6)," <<
-			pIn->is_cash << "::smallint," << pIn->is_lifo <<
-			"::smallint," << pIn->requested_price << "::s_price_t,'" <<
-			pIn->status_id << "'::char(4),'" << pIn->symbol <<
-			"'::varchar," << pIn->trade_qty << "::s_qty_t,'" <<
-			pIn->trade_type_id << "'::char(3)," <<
-			pIn->type_is_market << "::smallint)";
+	osCall << "SELECT * FROM TradeOrderFrame4(" <<
+			pIn->acct_id << "," <<
+			pIn->broker_id << "," <<
+			pIn->charge_amount << "," <<
+			pIn->comm_amount << ",'" <<
+			m_Txn->esc(pIn->exec_name) << "'," <<
+			pIn->is_cash << "::SMALLINT," <<
+			pIn->is_lifo << "::SMALLINT," <<
+			pIn->requested_price << ",'" <<
+			pIn->status_id << "','" <<
+			pIn->symbol << "'," <<
+			pIn->trade_qty << ",'" <<
+			pIn->trade_type_id << "'," <<
+			pIn->type_is_market << "::SMALLINT)";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -208,13 +229,13 @@ void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 		//throw logic_error("TradeOrderFrame4: empty result set");
 		cout<<"warning: empty result set at DoTradeOrderFrame4"<<endl;
 		// Should this be set to SUCCESS?
-		pOut->status = CBaseTxnErr::SUCCESS;
+		pOut->status = 1;
 		return;
 	}
 	result::const_iterator c = R.begin();
 
-	pOut->trade_id = c[0].as(int());
-	pOut->status = CBaseTxnErr::SUCCESS;
+	pOut->status = c[0].as(int());
+	pOut->trade_id = c[1].as(long());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -240,6 +261,10 @@ void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 // Call Trade Order Frame 5
 void CTradeOrderDB::DoTradeOrderFrame5(TTradeOrderFrame5Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TOF5" << endl;
+#endif
+
 	// rollback the transaction we are inside
 	RollbackTxn();
 	pOut->status = CBaseTxnErr::ROLLBACK;
@@ -248,6 +273,10 @@ void CTradeOrderDB::DoTradeOrderFrame5(TTradeOrderFrame5Output *pOut)
 // Call Trade Order Frame 6
 void CTradeOrderDB::DoTradeOrderFrame6(TTradeOrderFrame6Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TOF6" << endl;
+#endif
+
 	// commit the transaction we are inside
 	CommitTxn();
 	pOut->status = CBaseTxnErr::SUCCESS;

@@ -26,20 +26,14 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 		const TCustomerPositionFrame1Input *pIn,
 		TCustomerPositionFrame1Output *pOut)
 {
+#ifdef DEBUG
+	cout << "CPF1" << endl;
+#endif
+
 	ostringstream osCall;
-	osCall << "select * from CustomerPositionFrame1(" <<
-			pIn->cust_id << ",'" << pIn->tax_id << "'," <<
-			max_acct_len <<
-			") as (cust_id IDENT_T, acct_id text, acct_len integer, "
-			"acct_bal text, asset_total text, C_ST_ID char(4), C_L_NAME "
-			"varchar, C_F_NAME varchar, C_M_NAME char, C_GNDR char, C_TIER "
-			"smallint, cdobyear double precision, cdobmonth double precision, "
-			"cdobday double precision, cdobhour double precision, cdobminute "
-			"double precision, cdobsec double precision, C_AD_ID IDENT_T, "
-			"C_CTRY_1 char(3), C_AREA_1 char(3), C_LOCAL_1 char(10), C_EXT_1 "
-			"char(5), C_CTRY_2 char(3), C_AREA_2 char(3), C_LOCAL_2 char(10), "
-			"C_EXT_2 char(5), C_CTRY_3 char(3), C_AREA_3 char(3), C_LOCAL_3 "
-			"char(10), C_EXT_3 char(5), C_EMAIL_1 varchar, C_EMAIL_2 varchar);";
+	osCall << "SELECT * FROM CustomerPositionFrame1(" <<
+			pIn->cust_id << ",'" <<
+			pIn->tax_id << "')";
 
 	BeginTxn();
 	// Isolation level required by Clause 7.4.1.3
@@ -54,70 +48,75 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 	}
 	result::const_iterator c = R.begin();
 
+	enum cpf1 {
+			i_cust_id=0, i_acct_id, i_acct_len, i_asset_total, i_c_ad_id,
+			i_c_area_1, i_c_area_2, i_c_area_3, i_c_ctry_1, i_c_ctry_2,
+			i_c_ctry_3, i_c_dob, i_c_email_1, i_c_email_2, i_c_ext_1,
+			i_c_ext_2, i_c_ext_3, i_c_f_name, i_c_gndr, i_c_l_name,
+			i_c_local_1, i_c_local_2, i_c_local_3, i_c_m_name, i_c_st_id,
+			i_c_tier, i_cash_bal, i_status
+	};
+
 	vector<string> vAux;
 	vector<string>::iterator p;
 
 	// Tokenize acct_id
-	Tokenize( c[1].c_str(), vAux);
-
+	Tokenize(c[i_acct_id].c_str(), vAux);
 	int i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p)
 	{
 		pOut->acct_id[i] = atoi( (*p).c_str() );
-		i++;
+		++i;
 	}
+	vAux.clear();
 
 	// Tokenize cash_bal
-	vAux.clear();
-	Tokenize( c[3].c_str(), vAux);
-
+	Tokenize(c[i_cash_bal].c_str(), vAux);
 	i = 0;
-	for  ( p = vAux.begin(); p != vAux.end(); ++p)
+	for  (p = vAux.begin(); p != vAux.end(); ++p)
 	{
 		pOut->cash_bal[i] = atof( (*p).c_str() );
-		i++;
+		++i;
 	}
+	vAux.clear();
 
 	// Tokenize asset_total
-	vAux.clear();
-	Tokenize( c[4].c_str(), vAux);
-
+	Tokenize(c[i_asset_total].c_str(), vAux);
 	i = 0;
-	for  ( p = vAux.begin(); p != vAux.end(); ++p)
+	for  (p = vAux.begin(); p != vAux.end(); ++p)
 	{
 		pOut->asset_total[i] = atof( (*p).c_str() );
-		i++;
+		++i;
 	}
+    vAux.clear();
 
-	pOut->cust_id = c[0].as(int());
-	pOut->acct_len = c[2].as(int());
-	strcpy(pOut->c_st_id, c[5].c_str());	
-	strcpy(pOut->c_l_name, c[6].c_str());
-	strcpy(pOut->c_f_name, c[7].c_str());
-	strcpy(pOut->c_m_name, c[8].c_str());
-	strcpy(pOut->c_gndr, c[9].c_str());
-	strcpy(&pOut->c_tier, c[10].c_str());
-	pOut->c_dob.year = c[11].as(int());
-	pOut->c_dob.month = c[12].as(int());
-	pOut->c_dob.day = c[13].as(int());
-	pOut->c_dob.hour = c[14].as(int());
-	pOut->c_dob.minute = c[15].as(int());
-	pOut->c_dob.second = int(c[16].as(double()));
-	pOut->c_ad_id = c[17].as(int());
-	strcpy(pOut->c_ctry_1, c[18].c_str());
-	strcpy(pOut->c_area_1, c[19].c_str());
-	strcpy(pOut->c_local_1, c[20].c_str());
-	strcpy(pOut->c_ext_1, c[21].c_str());
-	strcpy(pOut->c_ctry_2, c[22].c_str());
-	strcpy(pOut->c_area_2, c[23].c_str());
-	strcpy(pOut->c_local_2, c[24].c_str());
-	strcpy(pOut->c_ext_2, c[25].c_str());
-	strcpy(pOut->c_ctry_3, c[26].c_str());
-	strcpy(pOut->c_area_3, c[27].c_str());
-	strcpy(pOut->c_local_3, c[28].c_str());
-	strcpy(pOut->c_ext_3, c[29].c_str());
-	strcpy(pOut->c_email_1, c[30].c_str());
-	strcpy(pOut->c_email_2, c[31].c_str());
+	pOut->cust_id = c[i_cust_id].as(long());
+	pOut->acct_len = c[i_acct_len].as(int());
+	strcpy(pOut->c_st_id, c[i_c_st_id].c_str());	
+	strcpy(pOut->c_l_name, c[i_c_l_name].c_str());
+	strcpy(pOut->c_f_name, c[i_c_f_name].c_str());
+	strcpy(pOut->c_m_name, c[i_c_m_name].c_str());
+	strcpy(pOut->c_gndr, c[i_c_gndr].c_str());
+	strcpy(&pOut->c_tier, c[i_c_tier].c_str());
+	// FIXME: There must be a smarter way to extract date information.
+	sscanf(c[i_c_dob].c_str(), "%d-%d-%d", &pOut->c_dob.year,
+			&pOut->c_dob.month, &pOut->c_dob.day);
+	pOut->c_ad_id = c[i_c_ad_id].as(long());
+	strcpy(pOut->c_ctry_1, c[i_c_ctry_1].c_str());
+	strcpy(pOut->c_area_1, c[i_c_area_1].c_str());
+	strcpy(pOut->c_local_1, c[i_c_local_1].c_str());
+	strcpy(pOut->c_ext_1, c[i_c_ext_1].c_str());
+	strcpy(pOut->c_ctry_2, c[i_c_ctry_2].c_str());
+	strcpy(pOut->c_area_2, c[i_c_area_2].c_str());
+	strcpy(pOut->c_local_2, c[i_c_local_2].c_str());
+	strcpy(pOut->c_ext_2, c[i_c_ext_2].c_str());
+	strcpy(pOut->c_ctry_3, c[i_c_ctry_3].c_str());
+	strcpy(pOut->c_area_3, c[i_c_area_3].c_str());
+	strcpy(pOut->c_local_3, c[i_c_local_3].c_str());
+	strcpy(pOut->c_ext_3, c[i_c_ext_3].c_str());
+	strcpy(pOut->c_email_1, c[i_c_email_1].c_str());
+	strcpy(pOut->c_email_2, c[i_c_email_2].c_str());
+	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -126,17 +125,19 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 	    <<"- tax_id: "<<pIn->tax_id<<endl;
 	cout << "Customer Position Frame 1 (output)" << endl <<
 			"- cust_id: " << pOut->cust_id << endl <<
-			"- acct_len: " << pOut->acct_len << endl <<
-			"- acct_id[0]: " << pOut->acct_id[0] << endl <<
-			"- cash_bal[0]: " << pOut->cash_bal[0] << endl <<
-			"- asset_total[0]: " << pOut->asset_total[0] << endl <<
-			"- c_st_id: " << pOut->c_st_id << endl <<
+			"- acct_len: " << pOut->acct_len << endl;
+	for (int i = 0; i < pOut->acct_len; i++) {
+		cout << "- acct_id[" << i << "]: " << pOut->acct_id[i] << endl <<
+				"- cash_bal[" << i << "]: " << pOut->cash_bal[i] << endl <<
+				"- asset_total[" << i << "]: " << pOut->asset_total[i] << endl;
+	}
+	cout << "- c_st_id: " << pOut->c_st_id << endl <<
 			"- c_l_name: " << pOut->c_l_name << endl <<
 			"- c_f_name: " << pOut->c_f_name << endl <<
 			"- c_m_name: " << pOut->c_m_name << endl <<
 			"- c_gndr: " << pOut->c_gndr << endl <<
 			"- c_tier: " << pOut->c_tier << endl <<
-			"- c_dob[0]: " << pOut->c_dob.year << "-" <<
+			"- c_dob: " << pOut->c_dob.year << "-" <<
 			pOut->c_dob.month << "-" << pOut->c_dob.day <<
 			" " << pOut->c_dob.hour << ":" <<
 			pOut->c_dob.minute << ":" << pOut->c_dob.second <<
@@ -165,13 +166,17 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 		const TCustomerPositionFrame2Input *pIn,
 		TCustomerPositionFrame2Output *pOut)
 {
+#ifdef DEBUG
+	cout << "CPF2" << endl;
+#endif
+
+	enum cpf2 {
+			i_hist_dts=0, i_hist_len, i_qty, i_status, i_symbol,
+			i_trade_id, i_trade_status
+	};
+
 	ostringstream osCall;
-	osCall << "select * from CustomerPositionFrame2(" <<
-			pIn->acct_id <<
-			") as (t_id trade_t, t_s_symb char(15), t_qty S_QTY_T, st_name "
-			"char(10), dtsyear double precision, dtsmonth double precision, "
-			"dtsday double precision, dtshour double precision, dtsminute "
-			"double precision, dtssec double precision);";
+	osCall << "SELECT * FROM CustomerPositionFrame2(" << pIn->acct_id << ")";
 
 	// we are inside a txn
 	result R( m_Txn->exec( osCall.str() ) );
@@ -179,29 +184,63 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 
 	if (R.empty())
 	{
-		//throw logic_error("empty result set!");
-		cout<<"warning: empty result set at DoCustomerPositionFrame2"<<endl;
+		cout << "warning: empty result set at DoCustomerPositionFrame2" << endl;
+		pOut->status = 0;
+		return;
 	}
 	result::const_iterator c = R.begin();
 
-	int i = 0;	
-	for ( c; c != R.end(); ++c )
-	{
-		pOut->trade_id[i] = c[0].as(int());
-		strcpy(pOut->symbol[i], c[1].c_str());
-		pOut->qty[i] = c[2].as(int());
-		strcpy(pOut->trade_status[i], c[3].c_str());
-		pOut->hist_dts[i].year = c[4].as(int());
-		pOut->hist_dts[i].month = c[5].as(int());
-		pOut->hist_dts[i].day = c[6].as(int());
-		pOut->hist_dts[i].hour = c[7].as(int());
-		pOut->hist_dts[i].minute = c[8].as(int());
-		pOut->hist_dts[i].second = int(c[9].as(double()));
+	vector<string> vAux;
+	vector<string>::iterator p;
 
-		i++;
+	Tokenize(c[i_trade_id].c_str(), vAux);
+	int i = 0;	
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->trade_id[i] = atol((*p).c_str());
+		++i;
 	}
-	pOut->hist_len = i;
-	pOut->status = CBaseTxnErr::SUCCESS;
+	vAux.clear();
+
+	Tokenize(c[i_symbol].c_str(), vAux);
+	i = 0;	
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->symbol[i], (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_trade_status].c_str(), vAux);
+	i = 0;	
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->trade_status[i], (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_qty].c_str(), vAux);
+	i = 0;	
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		pOut->qty[i] = atoi((*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	Tokenize(c[i_hist_dts].c_str(), vAux);
+	i = 0;	
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+				&pOut->hist_dts[i].year,
+				&pOut->hist_dts[i].month,
+				&pOut->hist_dts[i].day,
+				&pOut->hist_dts[i].hour,
+				&pOut->hist_dts[i].minute,
+				&pOut->hist_dts[i].second);
+		++i;
+	}
+	vAux.clear();
+
+	pOut->hist_len = c[i_hist_len].as(int());;
+	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -227,6 +266,10 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 void CCustomerPositionDB::DoCustomerPositionFrame3(
 		TCustomerPositionFrame3Output *pOut)
 {
+#ifdef DEBUG
+	cout << "CPF3" << endl;
+#endif
+
 	// commit the transaction we are inside
 	CommitTxn();
 	//pFrame3Output->status = CBaseTxnErr::SUCCESS;

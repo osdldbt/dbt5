@@ -26,6 +26,10 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 		const TMarketFeedFrame1Input *pIn, TMarketFeedFrame1Output *pOut,
 		CSendToMarketInterface *pSendToMarket)
 {
+#ifdef DEBUG
+	cout << "MFF1" << endl;
+#endif
+
 	ostringstream osSymbol, osPrice, osQty;
 
 	for (int i = 0; i < (sizeof(pIn->Entries)/sizeof(pIn->Entries[0])); ++i)
@@ -46,17 +50,14 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 	osSymbol << "\"";
 
 	ostringstream osCall;
-	osCall << "select * from MarketFeedFrame1(" << max_feed_len <<
-			"::smallint,'{" << osPrice.str() << "}','" <<
-			pIn->StatusAndTradeType.status_submitted <<
-			"'::char(4),'{" << osSymbol.str() << "}', '{" << osQty.str() <<
-			"}','" << pIn->StatusAndTradeType.type_limit_buy <<
-			"'::char(3),'" <<
-			pIn->StatusAndTradeType.type_limit_sell <<
-			"'::char(3),'" <<
-			pIn->StatusAndTradeType.type_stop_loss <<
-			"'::char(3)) as (symbol char(15), trade_id TRADE_T, price "
-			"numeric(8,2), trade_quant integer, trade_type char(3))";
+	osCall << "SELECT * FROM MarketFeedFrame1('{" <<
+			osPrice.str() << "}','" <<
+			pIn->StatusAndTradeType.status_submitted << "','{" <<
+			osSymbol.str() << "}', '{" <<
+			osQty.str() << "}','" <<
+			pIn->StatusAndTradeType.type_limit_buy << "','" <<
+			pIn->StatusAndTradeType.type_limit_sell << "','" <<
+			pIn->StatusAndTradeType.type_stop_loss << "')";
 
 	BeginTxn();
 	// Isolation level required by Clause 7.4.1.3
@@ -74,26 +75,21 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 		bool bSent;	
 		for ( c; c != R.end(); ++c )
 		{
-			strcpy(m_TriggeredLimitOrders.symbol, c[0].c_str());
-			m_TriggeredLimitOrders.trade_id = c[1].as(int());
-			m_TriggeredLimitOrders.price_quote =  c[2].as(double());
-			m_TriggeredLimitOrders.trade_qty = c[3].as(int());
-			strcpy(m_TriggeredLimitOrders.trade_type_id, c[4].c_str());
+			strcpy(m_TriggeredLimitOrders.symbol,  pIn->Entries[i].symbol);
+			m_TriggeredLimitOrders.price_quote = pIn->Entries[i].price_quote;
+			m_TriggeredLimitOrders.trade_qty = pIn->Entries[i].trade_qty;
 
 			bSent = pSendToMarket->SendToMarketFromFrame(
 					m_TriggeredLimitOrders);
-			if (bSent)
-			{
-				++i;
-			}
+			++i;
 		}
-		pOut->send_len = i;	
+		pOut->send_len = c[0].as(int());;
+		pOut->status = c[1].as(int());
 	}
 	else
 	{
 		pOut->send_len = 0;
 	}
-	pOut->status = CBaseTxnErr::SUCCESS;
 	
 #ifdef DEBUG
 	m_coutLock.ClaimLock(); cout << "Market Feed Frame 1 (input)" << endl << "- max_feed_len: " << max_feed_len << endl <<

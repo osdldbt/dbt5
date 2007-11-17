@@ -26,17 +26,17 @@ void CTradeResultDB::DoTradeResultFrame1(
 		const TTradeResultFrame1Input *pIn,
 		TTradeResultFrame1Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TRF1" << endl;
+#endif
+
 	ostringstream osCall;
-	osCall << "select * from TradeResultFrame1(" << pIn->trade_id <<
-			") as (acct_id ident_t, charge value_t, hs_qty s_qty_t, is_lifo "
-			"smallint, symbol char(15), trade_is_cash smallint, "
-			"trade_qty s_qty_t, type_id char(3), type_is_market smallint, "
-			"type_is_sell smallint, type_name char(12))";
+	osCall << "SELECT * FROM TradeResultFrame1(" << pIn->trade_id << ")";
 
 	// start transaction but not commit in this frame
 	BeginTxn();
 	// Isolation level required by Clause 7.4.1.3
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;");
+	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
 	result R( m_Txn->exec( osCall.str() ) );
 
 	if (R.empty()) 
@@ -48,17 +48,18 @@ void CTradeResultDB::DoTradeResultFrame1(
 	}
 	result::const_iterator c = R.begin();
 	
-	pOut->acct_id = c[0].as(int());
+	pOut->acct_id = c[0].as(long());
 	pOut->charge = c[1].as(double());
 	pOut->hs_qty = c[2].as(int());
 	pOut->is_lifo = c[3].as(int());
-	strcpy(pOut->symbol, c[4].c_str());
-	pOut->trade_is_cash = c[5].as(int());
-	pOut->trade_qty = c[6].as(int());
-	strcpy(pOut->type_id, c[7].c_str());
-	pOut->type_is_market = c[8].as(int());
-	pOut->type_is_sell = c[9].as(int());
-	strcpy(pOut->type_name, c[10].c_str());
+	pOut->status = c[4].as(int());
+	strcpy(pOut->symbol, c[5].c_str());
+	pOut->trade_is_cash = c[6].as(int());
+	pOut->trade_qty = c[7].as(int());
+	strcpy(pOut->type_id, c[8].c_str());
+	pOut->type_is_market = c[9].as(int());
+	pOut->type_is_sell = c[10].as(int());
+	strcpy(pOut->type_name, c[11].c_str());
 
 	pOut->status = CBaseTxnErr::SUCCESS;
 
@@ -87,19 +88,20 @@ void CTradeResultDB::DoTradeResultFrame2(
 		const TTradeResultFrame2Input *pIn,
 		TTradeResultFrame2Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TRF2" << endl;
+#endif
+
 	ostringstream osCall;
-	osCall << "select * from TradeResultFrame2(" << pIn->acct_id <<
-			"::IDENT_T," << pIn->hs_qty << "::S_QTY_T," <<
-			pIn->is_lifo << "::smallint,'" << pIn->symbol <<
-			"'::char(15)," << pIn->trade_id << "::TRADE_T," <<
-			pIn->trade_price << "::S_PRICE_T," <<
-			pIn->trade_qty << "::S_QTY_T," <<
-			pIn->type_is_sell << "::smallint) as (broker_id IDENT_T, "
-			"buy_value numeric(12,2), cust_id IDENT_T, sell_value "
-			"numeric(12,2), tax_status smallint, trade_dts_year double "
-			"precision, trade_dts_month double precision, trade_dts_day double "
-			"precision, trade_dts_hour double precision, trade_dts_minute "
-			"double precision, trade_dts_second double precision)";
+	osCall << "SELECT * FROM TradeResultFrame2(" <<
+			pIn->acct_id << "," <<
+			pIn->hs_qty << "," <<
+			pIn->is_lifo << "::SMALLINT,'" <<
+			pIn->symbol << "'," <<
+			pIn->trade_id << "," <<
+			pIn->trade_price << "," <<
+			pIn->trade_qty << "," <<
+			pIn->type_is_sell << "::SMALLINT)";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -112,19 +114,18 @@ void CTradeResultDB::DoTradeResultFrame2(
 	}
 	result::const_iterator c = R.begin();
 
-	pOut->broker_id = c[0].as(int());
+	pOut->broker_id = c[0].as(long());
 	pOut->buy_value = c[1].as(double());
 	pOut->cust_id = c[2].as(int());
 	pOut->sell_value = c[3].as(double());
 	pOut->tax_status = c[4].as(int());
-	pOut->trade_dts.year = c[5].as(int());
-	pOut->trade_dts.month = c[6].as(int());
-	pOut->trade_dts.day = c[7].as(int());
-	pOut->trade_dts.hour = c[8].as(int());
-	pOut->trade_dts.minute = c[9].as(int());
-	pOut->trade_dts.second = int(c[10].as(double()));
-
-	pOut->status = CBaseTxnErr::SUCCESS;
+	sscanf(c[5].c_str(), "%d-%d-%d %d:%d:%d",
+			&pOut->trade_dts.year,
+			&pOut->trade_dts.month,
+			&pOut->trade_dts.day,
+			&pOut->trade_dts.hour,
+			&pOut->trade_dts.minute,
+			&pOut->trade_dts.second);
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -157,11 +158,16 @@ void CTradeResultDB::DoTradeResultFrame3(
 		const TTradeResultFrame3Input *pIn,
 		TTradeResultFrame3Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TRF3" << endl;
+#endif
+
 	ostringstream osCall;
-	osCall << "select * from TradeResultFrame3(" << pIn->buy_value <<
-			"::numeric(12,2)," << pIn->cust_id << "::IDENT_T," <<
-			pIn->sell_value << "::numeric(12,2)," <<
-			pIn->trade_id << "::TRADE_T)" << endl;
+	osCall << "SELECT * FROM TradeResultFrame3(" <<
+			pIn->buy_value << "," <<
+			pIn->cust_id << "," <<
+			pIn->sell_value << "," <<
+			pIn->trade_id << ")";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -195,11 +201,16 @@ void CTradeResultDB::DoTradeResultFrame4(
 		const TTradeResultFrame4Input *pIn,
 		TTradeResultFrame4Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TRF4" << endl;
+#endif
+
 	ostringstream osCall;
-	osCall << "select * from TradeResultFrame4(" << pIn->cust_id <<
-			"::IDENT_T,'" << pIn->symbol << "'::char(15)," <<
-			pIn->trade_qty << "::S_QTY_T,'" << pIn->type_id <<
-			"'::char(3)) as (comm_rate numeric(5,2), s_name varchar)";
+	osCall << "SELECT * FROM TradeResultFrame4(" <<
+			pIn->cust_id << ",'" <<
+			pIn->symbol << "'," <<
+			pIn->trade_qty << ",'" <<
+			pIn->type_id << "')";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -214,7 +225,7 @@ void CTradeResultDB::DoTradeResultFrame4(
 
 	pOut->comm_rate = c[0].as(double());
 	strcpy(pOut->s_name, c[1].c_str());
-	pOut->status = CBaseTxnErr::SUCCESS;
+	pOut->status = c[2].as(int());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -236,6 +247,10 @@ void CTradeResultDB::DoTradeResultFrame5(
 		TTradeResultFrame5Output *pOut)
 {
 #ifdef DEBUG
+	cout << "TRF5" << endl;
+#endif
+
+#ifdef DEBUG
 	m_coutLock.ClaimLock();
 	cout << "Trade Result Frame 5 (input)" << endl <<
 			"- broker_id:" << pIn->broker_id << endl <<
@@ -253,17 +268,18 @@ void CTradeResultDB::DoTradeResultFrame5(
 #endif //DEBUG
 
 	ostringstream osCall;
-	osCall << "select * from TradeResultFrame5(" << pIn->broker_id <<
-			"::IDENT_T," << pIn->comm_amount << "::numeric(5,2),'" <<
-			pIn->st_completed_id << "'::char(4),'" <<
+	osCall << "SELECT * FROM TradeResultFrame5(" <<
+			pIn->broker_id << "," <<
+			pIn->comm_amount << ",'" <<
+			pIn->st_completed_id << "','" <<
 			pIn->trade_dts.year << "-" <<
 			pIn->trade_dts.month << "-" <<
 			pIn->trade_dts.day << " " <<
 			pIn->trade_dts.hour << ":" <<
 			pIn->trade_dts.minute << ":" <<
-			pIn->trade_dts.second << "'::timestamp," <<
-			pIn->trade_id << "::IDENT_T," <<
-			pIn->trade_price << "::S_PRICE_T);";
+			pIn->trade_dts.second << "'," <<
+			pIn->trade_id << "," <<
+			pIn->trade_price << ")";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -273,7 +289,10 @@ void CTradeResultDB::DoTradeResultFrame5(
 		//throw logic_error("TradeResultFrame5: empty result set");
 		cerr<<"warning: empty result set at DoTradeResultFrame5"<<endl;
 	}
-	pOut->status = CBaseTxnErr::SUCCESS;
+
+	result::const_iterator c = R.begin();
+
+	pOut->status = c[0].as(int());
 }
 
 // Call Trade Result Frame 6
@@ -281,25 +300,31 @@ void CTradeResultDB::DoTradeResultFrame6(
 		const TTradeResultFrame6Input *pIn,
 		TTradeResultFrame6Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TRF6" << endl;
+#endif
+
 	ostringstream osCall;
-	osCall << "select * from TradeResultFrame6(" << pIn->acct_id <<
-			"::IDENT_T, '" << pIn->due_date.year << "-"<<
-			pIn->due_date.month << "-" << pIn->due_date.day <<
-			" " << pIn->due_date.hour << ":" <<
+	osCall << "SELECT * FROM TradeResultFrame6(" <<
+			pIn->acct_id << ",'" <<
+			pIn->due_date.year << "-"<<
+			pIn->due_date.month << "-" <<
+			pIn->due_date.day << " " <<
+			pIn->due_date.hour << ":" <<
 			pIn->due_date.minute << ":" <<
-			pIn->due_date.second << "'::timestamp,'" <<
-			m_Txn->esc(pIn->s_name) << "'::varchar, " <<
-			pIn->se_amount << "::VALUE_T,'" <<
+			pIn->due_date.second << "','" <<
+			m_Txn->esc(pIn->s_name) << "', " <<
+			pIn->se_amount << ",'" <<
 			pIn->trade_dts.year << "-" <<
 			pIn->trade_dts.month << "-" <<
 			pIn->trade_dts.day << " " <<
 			pIn->trade_dts.hour << ":" <<
 			pIn->trade_dts.minute << ":" <<
-			pIn->trade_dts.second << "'::timestamp," <<
-			pIn->trade_id << "::IDENT_T," <<
-			pIn->trade_is_cash << "::smallint," <<
-			pIn->trade_qty << "::S_QTY_T,'" <<
-			pIn->type_name << "'::char(12))";
+			pIn->trade_dts.second << "'," <<
+			pIn->trade_id << "," <<
+			pIn->trade_is_cash << "::SMALLINT," <<
+			pIn->trade_qty << ",'" <<
+			pIn->type_name << "')";
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -314,7 +339,7 @@ void CTradeResultDB::DoTradeResultFrame6(
 	result::const_iterator c = R.begin();
 
 	pOut->acct_bal = c[0].as(double());
-	pOut->status = CBaseTxnErr::SUCCESS;
+	pOut->status = c[1].as(int());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();

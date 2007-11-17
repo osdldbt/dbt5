@@ -26,6 +26,10 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 		const TDataMaintenanceFrame1Input *pIn,
 		TDataMaintenanceFrame1Output *pOut)
 {
+#ifdef DEBUG
+	cout << "DMF1" << endl;
+#endif
+
 	ostringstream osCall;
 	osCall << "SELECT * FROM DataMaintenanceFrame1(" <<
 			pIn->acct_id << ", " <<

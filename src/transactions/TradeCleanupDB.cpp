@@ -26,11 +26,15 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
 		const TTradeCleanupFrame1Input *pIn,
 		TTradeCleanupFrame1Output *pOut)
 {
+#ifdef DEBUG
+	cout << "TCF1" << endl;
+#endif
+
 	ostringstream osCall;
-	osCall << "select * from TradeCleanupFrame1('" <<
-			pIn->st_canceled_id << "'::char(4),'" <<
-			pIn->st_pending_id << "'::char(4),'" <<
-			pIn->st_submitted_id << "'::char(4)," <<
+	osCall << "SELECT * FROM TradeCleanupFrame1('" <<
+			pIn->st_canceled_id << "','" <<
+			pIn->st_pending_id << "','" <<
+			pIn->st_submitted_id << "'," <<
 			pIn->start_trade_id << ")";
 
 	BeginTxn();
