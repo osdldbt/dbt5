@@ -25,7 +25,7 @@ PG_MODULE_MAGIC;
 #define CPF1_1 \
 		"SELECT c_id\n" \
 		"FROM   customer\n" \
-		"WHERE  c_tax_id = '%s';"
+		"WHERE  c_tax_id = '%s'"
 
 #define CPF1_2 \
 		"SELECT c_st_id,\n" \
@@ -51,7 +51,7 @@ PG_MODULE_MAGIC;
 		"       c_email_1,\n" \
 		"       c_email_2\n" \
 		"FROM   customer\n" \
-		"WHERE  c_id = %ld;"
+		"WHERE  c_id = %ld"
 
 #define CPF1_3 \
 		"SELECT   ca_id,\n" \
@@ -65,7 +65,7 @@ PG_MODULE_MAGIC;
 		"         AND lt_s_symb = hs_s_symb\n" \
 		"GROUP BY ca_id,ca_bal\n" \
 		"ORDER BY 3 ASC\n" \
-		"LIMIT 10;"
+		"LIMIT 10"
 
 #define CPF2_1 \
 		"SELECT   t_id,\n" \
@@ -85,13 +85,14 @@ PG_MODULE_MAGIC;
 		"         AND th_t_id = t_id\n" \
 		"         AND st_id = th_st_id\n" \
 		"ORDER BY th_dts DESC\n" \
-		"LIMIT 30;"
+		"LIMIT 30"
 
 /* Prototypes to prevent potential gcc warnings. */
 Datum CustomerPositionFrame1(PG_FUNCTION_ARGS);
 Datum CustomerPositionFrame2(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(CustomerPositionFrame1);
+PG_FUNCTION_INFO_V1(CustomerPositionFrame2);
 
 void dump_cpf1_inputs(long, text *);
 void dump_cpf2_inputs(long);
@@ -314,7 +315,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 28; i++) {
-			elog(NOTICE, "%d '%s'", i, values[i]);
+			elog(NOTICE, "CPF1 OUT: %d '%s'", i, values[i]);
 		}
 #endif /* DEBUG */
 
@@ -331,8 +332,6 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 	}
 }
 
-PG_FUNCTION_INFO_V1(CustomerPositionFrame2);
-
 /* Clause 3.3.2.4 */
 Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 {
@@ -347,7 +346,7 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 		SPITupleTable *tuptable = NULL;
 		HeapTuple tuple;
 
-		int64 acct_id;
+		int64 acct_id = PG_GETARG_INT64(0);
 
 		enum cpf2 {
 				i_hist_dts=0, i_hist_len, i_qty, i_status, i_symbol,
@@ -357,7 +356,6 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 		int ret;
 		char sql[1024];
 
-		acct_id = PG_GETARG_INT64(0);
 #ifdef DEBUG
 		dump_cpf2_inputs(acct_id);
 #endif /* DEBUG */
@@ -391,6 +389,7 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 #ifdef DEBUG
 		elog(NOTICE, "%d row(s) returned.", SPI_processed);
 #endif /* DEBUG */
+		/* Should return 1 to rows. */
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			/* Total number of tuples to be returned. */
 			funcctx->max_calls = 1;
@@ -416,13 +415,13 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 			strcpy(values[i_symbol], "{");
 			strcpy(values[i_trade_id], "{");
 			strcpy(values[i_trade_status], "{");
-			if (SPI_processed > 0) {
-				strcat(values[i_hist_dts], SPI_getvalue(tuple, tupdesc, 5));
-				strcat(values[i_qty], SPI_getvalue(tuple, tupdesc, 3));
-				strcat(values[i_symbol], SPI_getvalue(tuple, tupdesc, 2));
-				strcat(values[i_trade_id], SPI_getvalue(tuple, tupdesc, 1));
-				strcat(values[i_trade_status], SPI_getvalue(tuple, tupdesc, 4));
-			}
+
+			strcat(values[i_hist_dts], SPI_getvalue(tuple, tupdesc, 5));
+			strcat(values[i_qty], SPI_getvalue(tuple, tupdesc, 3));
+			strcat(values[i_symbol], SPI_getvalue(tuple, tupdesc, 2));
+			strcat(values[i_trade_id], SPI_getvalue(tuple, tupdesc, 1));
+			strcat(values[i_trade_status], SPI_getvalue(tuple, tupdesc, 4));
+
 			for (i = 1; i < SPI_processed; i++) {
 				tuple = tuptable->vals[i];
 
@@ -447,6 +446,9 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 			strcat(values[i_trade_id], "}");
 			strcat(values[i_trade_status], "}");
 		} else {
+			if (ret == SPI_OK_SELECT && SPI_processed == 0) {
+				elog(WARNING, "Query CPF2_1 should return 1-30 rows.");
+			}
 			dump_cpf2_inputs(acct_id);
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 
@@ -497,7 +499,7 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 7; i++) {
-			elog(NOTICE, "%d '%s'", i, values[i]);
+			elog(NOTICE, "CPF2 OUT: %d '%s'", i, values[i]);
 		}
 #endif /* DEBUG */
 

@@ -341,7 +341,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 
 		/* sprate is a CHAR, space matters. */
-		if (strcmp(sprate, "ABA ") != 0) {
+		if (strcmp(sprate, "ABA") != 0) {
 			sprintf(sql, DMF1_6, "ABA", co_id);
 		} else {
 			sprintf(sql, DMF1_6, "AAA", co_id);

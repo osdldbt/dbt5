@@ -28,7 +28,7 @@
 		"FROM   watch_item,\n" \
 		"       watch_list\n" \
 		"WHERE  wi_wl_id = wl_id\n" \
-		"       AND wl_c_id = %lu;"
+		"       AND wl_c_id = %lu"
 
 #define MWF1_2 \
 		"SELECT s_symb\n" \
@@ -39,28 +39,28 @@
 		"       AND co_in_id = in_id\n" \
 		"       AND co_id BETWEEN %lu\n" \
 		"                         AND %lu\n" \
-		"       AND s_co_id = co_id;"
+		"       AND s_co_id = co_id"
 
 #define MWF1_3 \
 		"SELECT hs_s_symb\n" \
 		"FROM   holding_summary\n" \
-		"WHERE  hs_ca_id = %lu;"
+		"WHERE  hs_ca_id = %lu"
 
 #define MWF1_4 \
 		"SELECT lt_price\n" \
 		"FROM   last_trade\n" \
-		"WHERE  lt_s_symb = '%s';"
+		"WHERE  lt_s_symb = '%s'"
 
 #define MWF1_5 \
 		"SELECT s_num_out\n" \
 		"FROM   security\n" \
-		"WHERE  s_symb = '%s';"
+		"WHERE  s_symb = '%s'"
 
 #define MWF1_6 \
 		"SELECT dm_close\n" \
 		"FROM   daily_market\n" \
 		"WHERE  dm_s_symb = '%s'\n" \
-		"       AND dm_date = '%s';"
+		"       AND dm_date = '%s'"
 
 #ifdef PG_MODULE_MAGIC
 PG_MODULE_MAGIC;
@@ -306,7 +306,7 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG                                                                    
 		for (i = 0; i < 2; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "MWF1 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 

@@ -396,7 +396,7 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG                                                                    
 		for (i = 0; i < 2; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "MFF1 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 

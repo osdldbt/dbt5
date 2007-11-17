@@ -244,38 +244,35 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 		 */
 		values = (char **) palloc(sizeof(char *) * 16);
 		values[i_bid_price] =
-				(char *) palloc((S_PRICE_T_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((S_PRICE_T_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_cash_transaction_amount] =
-				(char *) palloc((VALUE_T_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((VALUE_T_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_cash_transaction_dts] =
-				(char *) palloc((MAXDATELEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((MAXDATELEN + 1) * 20 + 2) * sizeof(char));
 		values[i_cash_transaction_name] =
-				(char *) palloc((CT_NAME_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((CT_NAME_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_exec_name] =
-				(char *) palloc((T_EXEC_NAME_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((T_EXEC_NAME_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_is_cash] =
-				(char *) palloc((SMALLINT_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((SMALLINT_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_is_market] =
-				(char *) palloc((SMALLINT_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((SMALLINT_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_num_found] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
 		values[i_num_updated] =
 				(char *) palloc((INTEGER_LEN + 1) * sizeof(char));
 		values[i_settlement_amount] =
-				(char *) palloc((VALUE_T_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((VALUE_T_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_settlement_cash_due_date] =
-				(char *) palloc((MAXDATELEN + 1) * sizeof(char) * 21 + 2);
-		values[i_settlement_cash_type] =
-				(char *) palloc((SE_CASH_TYPE_LEN + 1) * sizeof(char) * 21 + 2);
-		values[i_status] =
-				(char *) palloc((STATUS_LEN + 1) * sizeof(char));
-		values[i_trade_history_dts] =
-				(char *) palloc((TT_NAME_LEN + 1) * sizeof(char) * 4 +
-				20 * 2 + 4);
-		values[i_trade_history_status_id] =
-				(char *) palloc((TT_NAME_LEN + 1) * sizeof(char) * 4 +
-				20 * 2 + 4);
+				(char *) palloc(((MAXDATELEN + 1) * 20 + 2) * sizeof(char));
+		values[i_settlement_cash_type] = (char *) palloc(((SE_CASH_TYPE_LEN +
+				1) * 20 + 2) * sizeof(char));
+		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
+		values[i_trade_history_dts] = (char *) palloc(((TT_NAME_LEN * 3 + 4) *
+				20 + 22) * sizeof(char));
+		values[i_trade_history_status_id] = (char *) palloc(((TT_NAME_LEN *
+				3 + 4) * 20 + 22) * sizeof(char));
 		values[i_trade_price] =
-				(char *) palloc((TT_NAME_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((TT_NAME_LEN + 1) * 20 + 2) * sizeof(char));
 
 #ifdef DEBUG
 		dump_tuf1_inputs(max_trades, max_updates, trade_id);
@@ -303,7 +300,8 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 		strcpy(values[i_cash_transaction_dts], "{");
 		strcpy(values[i_cash_transaction_name], "{");
 		for (i = 0; i < max_trades; i++) {
-			char *is_cash;
+			char *is_cash_str;
+			char *is_market_str;
 
 			if (num_updated < max_updates) {
 				char *ex_name;
@@ -388,9 +386,11 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				tuple = tuptable->vals[0];
 				strcat(values[i_bid_price], SPI_getvalue(tuple, tupdesc, 1));
 				strcat(values[i_exec_name], SPI_getvalue(tuple, tupdesc, 2));
-				is_cash = SPI_getvalue(tuple, tupdesc, 3);
-				strcat(values[i_is_cash], is_cash);
-				strcat(values[i_is_market], SPI_getvalue(tuple, tupdesc, 4));
+				is_cash_str = SPI_getvalue(tuple, tupdesc, 3);
+				strcat(values[i_is_cash], (is_cash_str[0] == 't' ? "1": "0"));
+				is_market_str = SPI_getvalue(tuple, tupdesc, 4);
+				strcat(values[i_is_market],
+						(is_market_str[0] == 't' ? "0" : "1"));
 				strcat(values[i_trade_price], SPI_getvalue(tuple, tupdesc, 5));
 			} else {
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
@@ -419,7 +419,7 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				continue;
 			}
 
-			if (is_cash[0] == '1') {
+			if (is_cash_str[0] == 't') {
 				if (num_cash > 0) {
 					strcat(values[i_cash_transaction_amount], ",");
 					strcat(values[i_cash_transaction_dts], ",");
@@ -527,7 +527,7 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 16; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "TUF1 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 
@@ -617,36 +617,36 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 		 */
 		values = (char **) palloc(sizeof(char *) * 16);
 		values[i_bid_price] =
-				(char *) palloc((S_PRICE_T_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((S_PRICE_T_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_cash_transaction_amount] =
-				(char *) palloc((VALUE_T_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((VALUE_T_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_cash_transaction_dts] =
-				(char *) palloc((MAXDATELEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((MAXDATELEN + 1) * 20 + 2) * sizeof(char));
 		values[i_cash_transaction_name] =
-				(char *) palloc((CT_NAME_LEN + 1) * sizeof(char) * 21 + 2);
-		values[i_exec_name] =
-				(char *) palloc((T_EXEC_NAME_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((CT_NAME_LEN + 1) * 20 + 2) * sizeof(char));
+		values[i_exec_name] = (char *) palloc(((T_EXEC_NAME_LEN + 1) * 20 +
+				2) * sizeof(char));
 		values[i_is_cash] =
-				(char *) palloc((SMALLINT_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((SMALLINT_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_num_found] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
 		values[i_num_updated] =
 				(char *) palloc((INTEGER_LEN + 1) * sizeof(char));
 		values[i_settlement_amount] =
-				(char *) palloc((VALUE_T_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((VALUE_T_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_settlement_cash_due_date] =
-				(char *) palloc((MAXDATELEN + 1) * sizeof(char) * 21 + 2);
-		values[i_settlement_cash_type] =
-				(char *) palloc((SE_CASH_TYPE_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((MAXDATELEN + 1) * 20 + 2) * sizeof(char));
+		values[i_settlement_cash_type] = (char *) palloc(((SE_CASH_TYPE_LEN +
+				1) * 20 + 2) * sizeof(char));
 		values[i_status] =
 				(char *) palloc((STATUS_LEN + 1) * sizeof(char));
-		values[i_trade_history_dts] =
-				(char *) palloc((TT_NAME_LEN + 1) * sizeof(char) * 61 + 2);
-		values[i_trade_history_status_id] =
-				(char *) palloc((TT_NAME_LEN + 1) * sizeof(char) * 61 + 2);
+		values[i_trade_history_dts] = (char *) palloc((((TT_NAME_LEN + 2) * 3
+				+ 2) * 20 + 5) * sizeof(char));
+		values[i_trade_history_status_id] = (char *) palloc((((TT_NAME_LEN +
+				2) * 3 + 2) * 20 + 5) * sizeof(char));
 		values[i_trade_list] =
-				(char *) palloc((BIGINT_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((BIGINT_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_trade_price] =
-				(char *) palloc((TT_NAME_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc(((TT_NAME_LEN + 1) * 20 + 2) * sizeof(char));
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
@@ -693,7 +693,7 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 			SPITupleTable *l_tuptable = NULL;
 			HeapTuple l_tuple = NULL;
 
-			char *is_cash;
+			char *is_cash_str;
 			char *trade_list;
 			char cash_type[41];
 
@@ -714,8 +714,8 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 
 			strcat(values[i_bid_price], SPI_getvalue(tuple, tupdesc, 1));
 			strcat(values[i_exec_name], SPI_getvalue(tuple, tupdesc, 2));
-			is_cash = SPI_getvalue(tuple, tupdesc, 3);
-			strcat(values[i_is_cash], is_cash);
+			is_cash_str = SPI_getvalue(tuple, tupdesc, 3);
+			strcat(values[i_is_cash], (is_cash_str[0] == 't' ? "0" : "1"));
 			trade_list = SPI_getvalue(tuple, tupdesc, 4);
 			strcat(values[i_trade_list], trade_list);
 			strcat(values[i_trade_price], SPI_getvalue(tuple, tupdesc, 5));
@@ -749,7 +749,7 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				elog(NOTICE, "cash_type = '%s'", old_cash_type);
 #endif /* DEBUG */
 
-				if (is_cash[0] == '1') {
+				if (is_cash_str[0] == 't') {
 					if (strcmp(old_cash_type, "Cash Account") == 0) {
 						strcpy(cash_type, "Cash");
 					} else {
@@ -799,7 +799,7 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				continue;
 			}
 
-			if (is_cash[0] == '1') {
+			if (is_cash_str[0] == 't') {
 				sprintf(sql, TUF2_5, trade_list);
 #ifdef DEBUG
 				elog(NOTICE, "SQL\n%s", sql);
@@ -904,7 +904,7 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 16; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "TUF2 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 
@@ -999,48 +999,46 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 		 */
 		values = (char **) palloc(sizeof(char *) * 21);
 		values[i_acct_id] =
-				(char *) palloc((BIGINT_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc((BIGINT_LEN * 20 + 22) * sizeof(char));
 		values[i_cash_transaction_amount] =
-				(char *) palloc((VALUE_T_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc((VALUE_T_LEN * 20 + 22) * sizeof(char));
 		values[i_cash_transaction_dts] =
-				(char *) palloc((MAXDATELEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc((MAXDATELEN * 20 + 22) * sizeof(char));
 		values[i_cash_transaction_name] =
-				(char *) palloc((CT_NAME_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc((CT_NAME_LEN * 20 + 22) * sizeof(char));
 		values[i_exec_name] =
-				(char *) palloc((T_EXEC_NAME_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc((T_EXEC_NAME_LEN * 20 + 22) * sizeof(char));
 		values[i_is_cash] =
-				(char *) palloc((SMALLINT_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc((SMALLINT_LEN * 20 + 22) * sizeof(char));
 		values[i_num_found] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
 		values[i_num_updated] =
 				(char *) palloc((INTEGER_LEN + 1) * sizeof(char));
 		values[i_price] =
-				(char *) palloc((S_PRICE_T_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc((S_PRICE_T_LEN * 20 + 22) * sizeof(char));
 		values[i_quantity] =
-				(char *) palloc((INTEGER_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc((INTEGER_LEN * 20 + 22) * sizeof(char));
 		values[i_s_name] =
-				(char *) palloc((S_NAME_LEN + 1) * sizeof(char) * 21 + 1);
+				(char *) palloc((S_NAME_LEN * 20 + 22) * sizeof(char));
 		values[i_settlement_amount] =
-				(char *) palloc((VALUE_T_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc((VALUE_T_LEN * 20 + 22) * sizeof(char));
 		values[i_settlement_cash_due_date] =
-				(char *) palloc((MAXDATELEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc((MAXDATELEN * 20 + 22) * sizeof(char));
 		values[i_settlement_cash_type] =
-				(char *) palloc((SE_CASH_TYPE_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc((SE_CASH_TYPE_LEN * 20 + 22) * sizeof(char));
 		values[i_status] =
 				(char *) palloc((STATUS_LEN + 1) * sizeof(char));
-		values[i_trade_dts] =
-				(char *) palloc((TT_NAME_LEN + 1) * sizeof(char) * 21 +
-				20 * 2 + 4);
-		values[i_trade_history_dts] =
-				(char *) palloc((TT_NAME_LEN + 1) * sizeof(char) * 21 +
-				20 * 2 + 4);
-		values[i_trade_history_status_id] =
-				(char *) palloc((TT_NAME_LEN + 1) * sizeof(char) * 61 + 2);
+		values[i_trade_dts] = (char *) palloc(((MAXDATELEN + 1) * 20 + 2) *
+				sizeof(char));
+		values[i_trade_history_dts] = (char *) palloc(((MAXDATELEN * 3 + 4) *
+				20 + 23) * sizeof(char));
+		values[i_trade_history_status_id] = (char *) palloc(((TT_NAME_LEN * 3
+				+ 4) * 20 + 23) * sizeof(char));
 		values[i_trade_list] =
-				(char *) palloc((BIGINT_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc((BIGINT_LEN * 20 + 22) * sizeof(char));
 		values[i_type_name] =
-				(char *) palloc((TT_ID_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc((TT_NAME_LEN * 20 + 2) * sizeof(char));
 		values[i_trade_type] =
-				(char *) palloc((TT_NAME_LEN + 1) * sizeof(char) * 21 + 2);
+				(char *) palloc((TT_NAME_LEN * 20 + 22) * sizeof(char));
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
@@ -1092,7 +1090,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 			SPITupleTable *l_tuptable = NULL;
 			HeapTuple l_tuple = NULL;
 
-			char *is_cash;
+			char *is_cash_str;
 			char *trade_list;
 			char *old_ct_name;
 			char *quantity;
@@ -1116,14 +1114,14 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 				strcat(values[i_settlement_amount], ",");
 				strcat(values[i_settlement_cash_due_date], ",");
 				strcat(values[i_settlement_cash_type], ",");
-			strcat(values[i_trade_history_dts], ",");
-			strcat(values[i_trade_history_status_id], ",");
+				strcat(values[i_trade_history_dts], ",");
+				strcat(values[i_trade_history_status_id], ",");
 			}
 
 			strcat(values[i_acct_id], SPI_getvalue(tuple, tupdesc, 1));
 			strcat(values[i_exec_name], SPI_getvalue(tuple, tupdesc, 2));
-			is_cash = SPI_getvalue(tuple, tupdesc, 3);
-			strcat(values[i_is_cash], is_cash);
+			is_cash_str = SPI_getvalue(tuple, tupdesc, 3);
+			strcat(values[i_is_cash], (is_cash_str[0] == 't' ? "0" : "1"));
 			strcat(values[i_price], SPI_getvalue(tuple, tupdesc, 4));
 			quantity = SPI_getvalue(tuple, tupdesc, 5);
 			strcat(values[i_quantity], quantity);
@@ -1158,7 +1156,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 				continue;
 			}
 
-			if (is_cash[0] == '1') {
+			if (is_cash_str[0] == 't') {
 				if (num_updated < max_updates) {
 					sprintf(sql, TUF3_3, trade_list);
 #ifdef DEBUG
@@ -1243,16 +1241,21 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 			}
 			strcat(values[i_trade_history_dts], "{");
 			strcat(values[i_trade_history_status_id], "{");
-			for (j = 0; j < SPI_processed; j ++) {
+			for (j = 0; j < 3; j ++) {
 				if (j > 0) {
 					strcat(values[i_trade_history_dts], ",");
 					strcat(values[i_trade_history_status_id], ",");
 				}
-				l_tuple = l_tuptable->vals[j];
-				strcat(values[i_trade_history_dts],
-							SPI_getvalue(l_tuple, l_tupdesc, 1));
-				strcat(values[i_trade_history_status_id],
-							SPI_getvalue(l_tuple, l_tupdesc, 2));
+				if (j < SPI_processed) {
+					l_tuple = l_tuptable->vals[j];
+					strcat(values[i_trade_history_dts],
+								SPI_getvalue(l_tuple, l_tupdesc, 1));
+					strcat(values[i_trade_history_status_id],
+								SPI_getvalue(l_tuple, l_tupdesc, 2));
+				} else {
+					strcat(values[i_trade_history_dts], "NULL");
+					strcat(values[i_trade_history_status_id], "NULL");
+				}
 			}
 			strcat(values[i_trade_history_dts], "}");
 			strcat(values[i_trade_history_status_id], "}");
@@ -1312,7 +1315,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 21; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "TUF3 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 

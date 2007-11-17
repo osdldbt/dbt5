@@ -74,7 +74,7 @@
 		"       AND ea.ad_id = ex_ad_id\n" \
 		"       AND ex_id = s_ex_id\n" \
 		"       AND ca.ad_zc_code = zca.zc_code\n" \
-		"       AND ea.ad_zc_code = zea.zc_code;"
+		"       AND ea.ad_zc_code = zea.zc_code"
 
 #define SDF1_2 \
 		"SELECT co_name,\n" \
@@ -85,7 +85,7 @@
 		"WHERE  cp_co_id = %s\n" \
 		"       AND co_id = cp_comp_co_id\n" \
 		"       AND in_id = cp_in_id\n" \
-		"LIMIT %d;"
+		"LIMIT %d"
 
 #define SDF1_3 \
 		"SELECT   fi_year,\n" \
@@ -105,7 +105,7 @@
 		"WHERE    fi_co_id = %s\n" \
 		"ORDER BY fi_year ASC,\n" \
 		"         fi_qtr\n" \
-		"LIMIT %d;"
+		"LIMIT %d"
 
 #define SDF1_4 \
 		"SELECT   dm_date,\n" \
@@ -117,14 +117,14 @@
 		"WHERE    dm_s_symb = '%s'\n" \
 		"         AND dm_date >= '%s'\n" \
 		"ORDER BY dm_date ASC\n" \
-		"LIMIT %d;"
+		"LIMIT %d"
 
 #define SDF1_5 \
 		"SELECT lt_price,\n" \
 		"       lt_open_price,\n" \
 		"       lt_vol\n" \
 		"FROM   last_trade\n" \
-		"WHERE  lt_s_symb = '%s';"
+		"WHERE  lt_s_symb = '%s'"
 
 #define SDF1_6 \
 		"SELECT ni_item,\n" \
@@ -137,7 +137,7 @@
 		"       news_item\n" \
 		"WHERE  ni_id = nx_ni_id\n" \
 		"       AND nx_co_id = %s\n" \
-		"LIMIT %d;"
+		"LIMIT %d"
 
 #define SDF1_7 \
 		"SELECT '',\n" \
@@ -150,7 +150,7 @@
 		"       news_item\n" \
 		"WHERE  ni_id = nx_ni_id\n" \
 		"       AND nx_co_id = %s\n" \
-		"LIMIT %d;"
+		"LIMIT %d"
 
 #ifdef PG_MODULE_MAGIC
 PG_MODULE_MAGIC;
@@ -235,9 +235,9 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		 */
 		values = (char **) palloc(sizeof(char *) * 46);
 		values[i_cp_co_name] = (char *) palloc(sizeof(char) *
-				(MAX_COMP_LEN * CO_NAME_LEN + 3));
+				(MAX_COMP_LEN * (CO_NAME_LEN + 1) + 3));
 		values[i_cp_in_name] = (char *) palloc(sizeof(char) *
-				(MAX_COMP_LEN * IN_NAME_LEN + 3));
+				(MAX_COMP_LEN * (IN_NAME_LEN + 1) + 3));
 		values[i_day] = (char *) palloc(sizeof(char) * ((MAXDATELEN +
 				DM_CLOSE_LEN + DM_HIGH_LEN + DM_LOW_LEN + DM_VOL_LEN + 7) *
 				max_rows_to_return + 3));
@@ -440,18 +440,28 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			 * a date.  What is supposed to be going on here?  Using the
 			 * number 0 as a place holder.
 			 */
-			strcat(values[i_day], "0");
 /*
 			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 1));
 */
+			strcat(values[i_day], "0");
 			strcat(values[i_day], ",");
+/*
 			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 2));
+*/
+			strcat(values[i_day], "0");
 			strcat(values[i_day], ",");
+/*
 			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 3));
+*/
+			strcat(values[i_day], "0");
 			strcat(values[i_day], ",");
+/*
 			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 4));
+*/
+			strcat(values[i_day], "0");
 			strcat(values[i_day], ",");
 			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 5));
+			strcat(values[i_day], "}");
 		}
 		strcat(values[i_day], "}");
 
@@ -515,6 +525,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			strcat(values[i_news], "\",\"");
 			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 5));
 			strcat(values[i_news], "\"");
+			strcat(values[i_news], "}");
 		}
 		strcat(values[i_news], "}");
 
@@ -551,7 +562,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG                                                                    
 		for (i = 0; i < 46; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "SDF1 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 

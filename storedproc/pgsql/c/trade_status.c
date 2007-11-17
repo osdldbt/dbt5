@@ -115,6 +115,10 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 		values[i_type_name] =
 				(char *) palloc((TT_NAME_LEN + 1) * sizeof(char) * 50);
 
+		values[i_cust_l_name] = NULL;
+		values[i_cust_f_name] = NULL;
+		values[i_broker_name] = NULL;
+
 #ifdef DEBUG
 		dump_tsf1_inputs(acct_id);
 #endif
@@ -239,7 +243,7 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 14; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "TSF1 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 

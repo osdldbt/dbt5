@@ -95,8 +95,7 @@ PG_MODULE_MAGIC;
 #define TLF3_3 \
 		"SELECT ct_amt, ct_dts, ct_name\n" \
 		"FROM cash_transaction\n" \
-		"WHERE ct_t_id = %s\n" \
-		"ORDER BY th_dts ASC" \
+		"WHERE ct_t_id = %s"
 
 #define TLF3_4 \
 		"SELECT th_dts, th_st_id\n" \
@@ -319,6 +318,7 @@ Datum TradeLookupFrame1(PG_FUNCTION_ARGS)
 		strcpy(values[i_trade_price], "{");
 		for (i = 0; i < nitems; i++) {
 			char *is_cash_str;
+			char *is_market_str;
 
 			sprintf(sql, TLF1_1,  trade_id[i]);
 #ifdef DEBUG
@@ -353,8 +353,9 @@ Datum TradeLookupFrame1(PG_FUNCTION_ARGS)
 			strcat(values[i_exec_name], SPI_getvalue(tuple, tupdesc, 2));
 			/* Use the is_cash point more easier reference later. */
 			is_cash_str = SPI_getvalue(tuple, tupdesc, 3);
-			strcat(values[i_is_cash], is_cash_str);
-			strcat(values[i_is_market], SPI_getvalue(tuple, tupdesc, 4));
+			strcat(values[i_is_cash], (is_cash_str[0] == 't' ? "0" : "1"));
+			is_market_str = SPI_getvalue(tuple, tupdesc, 4);
+			strcat(values[i_is_market], (is_market_str[0] == 't' ? "0" : "1"));
 			strcat(values[i_trade_price], SPI_getvalue(tuple, tupdesc, 5));
 #ifdef DEBUG
 			elog(NOTICE, "t_is_cash = %s", is_cash_str);
@@ -492,7 +493,7 @@ Datum TradeLookupFrame1(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG                                                                    
 		for (i = 0; i < 15; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "TLF1 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 
@@ -555,6 +556,8 @@ Datum TradeLookupFrame2(PG_FUNCTION_ARGS)
 		int num_settlements = 0;
 		int num_cash_txn = 0;
 		int num_trade_history = 0;
+
+		char *is_cash_str;
 
 		if (timestamp2tm(end_trade_dts_ts, NULL, tm, &fsec, NULL, NULL) == 0) {
 			EncodeDateTime(tm, fsec, NULL, &tzn, USE_ISO_DATES, end_trade_dts);
@@ -665,7 +668,8 @@ Datum TradeLookupFrame2(PG_FUNCTION_ARGS)
 			}
 			strcat(values[i_bid_price], SPI_getvalue(tuple, tupdesc, 1));
 			strcat(values[i_exec_name], SPI_getvalue(tuple, tupdesc, 2));
-			strcat(values[i_is_cash], SPI_getvalue(tuple, tupdesc, 3));
+			is_cash_str = SPI_getvalue(tuple, tupdesc, 3);
+			strcat(values[i_is_cash], (is_cash_str[0] == 't' ? "0" : "1"));
 			trade_list_str = SPI_getvalue(tuple, tupdesc, 4);
 			strcat(values[i_trade_list], trade_list_str);
 			strcat(values[i_trade_price], SPI_getvalue(tuple, tupdesc, 5));
@@ -822,7 +826,7 @@ Datum TradeLookupFrame2(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG                                                                    
 		for (i = 0; i < 15; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "TLF2 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 
@@ -890,6 +894,8 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 		int num_cash_txn = 0;
 		int num_trade_history = 0;
 
+		char *is_cash_str;
+
 		if (timestamp2tm(end_trade_dts_ts, NULL, tm, &fsec, NULL, NULL) == 0) {
 			EncodeDateTime(tm, fsec, NULL, &tzn, USE_ISO_DATES, end_trade_dts);
 		}
@@ -924,7 +930,7 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 				max_trades + 2) * sizeof(char));
 		values[i_is_cash] = (char *) palloc(((BOOLEAN_LEN + 1) * max_trades +
 					2) * sizeof(char));
-		values[i_num_found] = (char *) palloc((BOOLEAN_LEN + 1) * sizeof(char));
+		values[i_num_found] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
 		values[i_price] = (char *) palloc(((S_PRICE_T_LEN + 1) * max_trades +
 				2) * sizeof(char));
 		values[i_quantity] = (char *) palloc(((INTEGER_LEN + 1) * max_trades +
@@ -936,10 +942,10 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 		values[i_settlement_cash_type] = (char *) palloc(((SE_CASH_TYPE_LEN +
 				1) * max_trades + 2) * sizeof(char));
 		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
-		values[i_trade_dts] = (char *) palloc(((MAXDATELEN + 1) * max_trades *
-				3 + 2) * sizeof(char));
-		values[i_trade_history_dts] = (char *) palloc(((MAXDATELEN + 1) *
-				max_trades * 3 + 2) * sizeof(char));
+		values[i_trade_dts] = (char *) palloc(((MAXDATELEN * 3 + 4) *
+				max_trades + max_trades + 2) * sizeof(char));
+		values[i_trade_history_dts] = (char *) palloc(((MAXDATELEN * 3 + 4) *
+				max_trades + max_trades + 2) * sizeof(char));
 		values[i_trade_history_status_id] = (char *) palloc(((ST_ID_LEN + 1) *
 				max_trades * 3 + 2) * sizeof(char));
 		values[i_trade_list] = (char *) palloc(((TRADE_T_LEN + 1) *
@@ -1007,19 +1013,21 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 				strcat(values[i_exec_name], ",");
 				strcat(values[i_is_cash], ",");
 				strcat(values[i_price], ",");
+				strcat(values[i_quantity], ",");
 				strcat(values[i_trade_dts], ",");
 				strcat(values[i_trade_list], ",");
 				strcat(values[i_trade_type], ",");
 			}
 			strcat(values[i_acct_id], SPI_getvalue(tuple, tupdesc, 1));
 			strcat(values[i_exec_name], SPI_getvalue(tuple, tupdesc, 2));
-			strcat(values[i_is_cash], SPI_getvalue(tuple, tupdesc, 3));
+			is_cash_str = SPI_getvalue(tuple, tupdesc, 3);
+			strcat(values[i_is_cash], (is_cash_str[0] == 't' ? "0" : "1"));
 			strcat(values[i_price], SPI_getvalue(tuple, tupdesc, 4));
 			strcat(values[i_quantity], SPI_getvalue(tuple, tupdesc, 5));
 			strcat(values[i_trade_dts], SPI_getvalue(tuple, tupdesc, 6));
-			trade_list_str = SPI_getvalue(tuple, tupdesc, 4);
+			trade_list_str = SPI_getvalue(tuple, tupdesc, 7);
 			strcat(values[i_trade_list], trade_list_str);
-			strcat(values[i_trade_type], SPI_getvalue(tuple, tupdesc, 5));
+			strcat(values[i_trade_type], SPI_getvalue(tuple, tupdesc, 8));
 
 			sprintf(sql, TLF3_2, trade_list_str);
 #ifdef DEBUG
@@ -1032,11 +1040,18 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 					tuptable2 = SPI_tuptable;
 					tuple2 = tuptable2->vals[0];
 					++num_settlements;
-				} else {
-		 			dump_tlf3_inputs(end_trade_dts, max_acct_id, max_trades,
-							start_trade_dts, symbol);
-					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
-					continue;
+
+					if (num_settlements > 1) {
+						strcat(values[i_settlement_amount], ",");
+						strcat(values[i_settlement_cash_due_date], ",");
+						strcat(values[i_settlement_cash_type], ",");
+					}
+					strcat(values[i_settlement_amount],
+							SPI_getvalue(tuple2, tupdesc2, 1));
+					strcat(values[i_settlement_cash_due_date],
+							SPI_getvalue(tuple2, tupdesc2, 2));
+					strcat(values[i_settlement_cash_type],
+							SPI_getvalue(tuple2, tupdesc2, 3));
 				}
 			} else {
 		 		dump_tlf3_inputs(end_trade_dts, max_acct_id, max_trades,
@@ -1044,18 +1059,6 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				continue;
 			}
-
-			if (num_settlements > 1) {
-				strcat(values[i_settlement_amount], ",");
-				strcat(values[i_settlement_cash_due_date], ",");
-				strcat(values[i_settlement_cash_type], ",");
-			}
-			strcat(values[i_settlement_amount],
-					SPI_getvalue(tuple2, tupdesc2, 1));
-			strcat(values[i_settlement_cash_due_date],
-					SPI_getvalue(tuple2, tupdesc2, 2));
-			strcat(values[i_settlement_cash_type],
-					SPI_getvalue(tuple2, tupdesc2, 3));
 
 			sprintf(sql, TLF3_3, trade_list_str);
 #ifdef DEBUG
@@ -1068,11 +1071,18 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 					tuptable2 = SPI_tuptable;
 					tuple2 = tuptable2->vals[0];
 					++num_cash_txn;
-				} else {
-		 			dump_tlf3_inputs(end_trade_dts, max_acct_id, max_trades,
-							start_trade_dts, symbol);
-					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
-					continue;
+
+					if (num_cash_txn > 1) {
+						strcat(values[i_cash_transaction_amount], ",");
+						strcat(values[i_cash_transaction_dts], ",");
+						strcat(values[i_cash_transaction_name], ",");
+					}
+					strcat(values[i_cash_transaction_amount],
+							SPI_getvalue(tuple2, tupdesc2, 1));
+					strcat(values[i_cash_transaction_dts],
+							SPI_getvalue(tuple2, tupdesc2, 2));
+					strcat(values[i_cash_transaction_name],
+							SPI_getvalue(tuple2, tupdesc2, 3));
 				}
 			} else {
 		 		dump_tlf3_inputs(end_trade_dts, max_acct_id, max_trades,
@@ -1080,18 +1090,6 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				continue;
 			}
-
-			if (num_cash_txn > 1) {
-				strcat(values[i_cash_transaction_amount], ",");
-				strcat(values[i_cash_transaction_dts], ",");
-				strcat(values[i_cash_transaction_name], ",");
-			}
-			strcat(values[i_cash_transaction_amount],
-					SPI_getvalue(tuple2, tupdesc2, 1));
-			strcat(values[i_cash_transaction_dts],
-					SPI_getvalue(tuple2, tupdesc2, 2));
-			strcat(values[i_cash_transaction_name],
-					SPI_getvalue(tuple2, tupdesc2, 3));
 
 			sprintf(sql, TLF3_4, trade_list_str);
 #ifdef DEBUG
@@ -1104,11 +1102,15 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 					tuptable2 = SPI_tuptable;
 					tuple2 = tuptable2->vals[0];
 					++num_trade_history;
-				} else {
-		 			dump_tlf3_inputs(end_trade_dts, max_acct_id, max_trades,
-							start_trade_dts, symbol);
-					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
-					continue;
+
+					if (num_trade_history > 1) {
+						strcat(values[i_trade_history_dts], ",");
+						strcat(values[i_trade_history_status_id], ",");
+					}
+					strcat(values[i_trade_history_dts],
+							SPI_getvalue(tuple2, tupdesc2, 1));
+					strcat(values[i_trade_history_status_id],
+							SPI_getvalue(tuple2, tupdesc2, 2));
 				}
 			} else {
 		 		dump_tlf3_inputs(end_trade_dts, max_acct_id, max_trades,
@@ -1116,15 +1118,6 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				continue;
 			}
-
-			if (num_trade_history > 1) {
-				strcat(values[i_trade_history_dts], ",");
-				strcat(values[i_trade_history_status_id], ",");
-			}
-			strcat(values[i_trade_history_dts],
-					SPI_getvalue(tuple2, tupdesc2, 1));
-			strcat(values[i_trade_history_status_id],
-					SPI_getvalue(tuple2, tupdesc2, 2));
 		}
 		strcat(values[i_acct_id], "}");
 		strcat(values[i_cash_transaction_amount], "}");
@@ -1176,7 +1169,7 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG                                                                    
 		for (i = 0; i < 18; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "TLF3 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 
@@ -1362,7 +1355,7 @@ Datum TradeLookupFrame4(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG                                                                    
 		for (i = 0; i < 7; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "TLF4 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 

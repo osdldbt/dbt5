@@ -277,7 +277,9 @@ Datum TradeResultFrame1(PG_FUNCTION_ARGS)
 	int call_cntr;
 	int max_calls;
 
+#ifdef DEBUG
 	int i;
+#endif /* DEBUG */
 
 	char **values = NULL;
 
@@ -417,7 +419,7 @@ Datum TradeResultFrame1(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 7; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "TRF1 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 
@@ -877,7 +879,7 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 7; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "TRF2 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 
@@ -903,7 +905,9 @@ Datum TradeResultFrame3(PG_FUNCTION_ARGS)
 	int call_cntr;
 	int max_calls;
 
+#ifdef DEBUG
 	int i;
+#endif /* DEBUG */
 
 	char **values = NULL;
 
@@ -1020,7 +1024,7 @@ Datum TradeResultFrame3(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 2; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "TRF4 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 
@@ -1046,7 +1050,9 @@ Datum TradeResultFrame4(PG_FUNCTION_ARGS)
 	int call_cntr;
 	int max_calls;
 
+#ifdef DEBUG
 	int i;
+#endif /* DEBUG */
 
 	char **values = NULL;
 
@@ -1181,7 +1187,7 @@ Datum TradeResultFrame4(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 3; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "TRF4 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 
@@ -1296,7 +1302,9 @@ Datum TradeResultFrame6(PG_FUNCTION_ARGS)
 	int call_cntr;
 	int max_calls;
 
+#ifdef DEBUG
 	int i;
+#endif /* DEBUG */
 
 	char **values = NULL;
 
@@ -1467,7 +1475,7 @@ Datum TradeResultFrame6(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 2; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "TRF5 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 

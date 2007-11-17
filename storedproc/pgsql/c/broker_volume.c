@@ -249,7 +249,7 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG                                                                    
 		for (i = 0; i < 4; i++) {
-			elog(NOTICE, "%d %s", i, values[i]);
+			elog(NOTICE, "BVF1 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 
