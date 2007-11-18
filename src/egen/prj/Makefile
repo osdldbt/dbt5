@@ -23,7 +23,7 @@ LDFLAGS=-lpqxx -lpq
 #ARFLAGS=
 
 # Application specific defines
-APPDEFINES=-DCOMPILE_PGSQL_LOAD
+APPDEFINES=-DCOMPILE_PGSQL_LOAD -DCOMPILE_FLAT_FILE_LOAD
 
 # Directory for source files
 SRC = ../src
@@ -126,7 +126,7 @@ EGenValidate_obj =		$(EGenValidate_src:.cpp=.o)
 # Using pattern rules that were defined earlier. 
 # All options are specified through the variables.
 
-all:				EGenDriverLib EGenLoader EGenValidate
+all:				mkinstalldirs EGenDriverLib EGenLoader EGenValidate
 
 EGenLoader:			EGenUtilities \
 				EGenDriverMEELib \
@@ -210,3 +210,6 @@ clean:
 	cd $(EXE); \
 	rm -f			EGenLoader EGenValidate; \
 	cd $(PRJ)
+
+mkinstalldirs:
+	mkdir -p $(OBJ) $(LIB) $(EXE) ../flat_out
