@@ -555,7 +555,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 		char *st_pending_id_p = (char *) PG_GETARG_TEXT_P(5);
 		char *st_submitted_id_p = (char *) PG_GETARG_TEXT_P(6);
 		int tax_status = PG_GETARG_INT16(7);
-		int trade_qty = PG_GETARG_INT32(7);
+		int trade_qty = PG_GETARG_INT32(8);
 		char *trade_type_id_p = (char *) PG_GETARG_TEXT_P(9);
 		int type_is_margin = PG_GETARG_INT16(10);
 		char *co_name_p = (char *) PG_GETARG_TEXT_P(11);
@@ -963,6 +963,8 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 					tuple = tuptable->vals[0];
 					sprintf(values[i_cust_assets], "%8.2f",
 							atof(SPI_getvalue(tuple, tupdesc, 1)) * acct_bal);
+				} else {
+					sprintf(values[i_cust_assets], "%8.2f", acct_bal);
 				}
 			} else {
 				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
@@ -971,12 +973,12 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 						symbol);
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			}
+		}
 
-			if (values[i_type_is_market][0] == '1') {
-				values[i_status_id] = st_submitted_id;
-			} else {
-				values[i_status_id] = st_pending_id;
-			}
+		if (values[i_type_is_market][0] == '1') {
+			values[i_status_id] = st_submitted_id;
+		} else {
+			values[i_status_id] = st_pending_id;
 		}
 
 		/* Build a tuple descriptor for our result type */
@@ -1131,7 +1133,7 @@ Datum TradeOrderFrame4(PG_FUNCTION_ARGS)
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
-		if (ret == SPI_OK_INSERT_RETURNING && SPI_processed > 1) {
+		if (ret == SPI_OK_INSERT_RETURNING && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
