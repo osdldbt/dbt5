@@ -18,7 +18,11 @@ int iBHlistenPort = BrokerageHousePort;
 char port[64] = "5432";
 
 char szInDir[2048] = "egen/flat_in";
-	
+TIdent iConfiguredCustomerCount = iDefaultLoadUnitSize;
+// FIXME: iActiveCustomerCount needs to be configurable.
+TIdent iActiveCustomerCount = iConfiguredCustomerCount;
+int iScaleFactor = 500;
+int iDaysOfInitialTrades = 300;
 
 eTxnType TxnType = TRADE_STATUS;
 RNGSEED	Seed = 0;
@@ -31,11 +35,15 @@ void Usage()
 	cout << "   Option               Description" << endl;
 	cout << "   =========            ========================" << endl;
 	cout << "   -b address           Address of BrokerageHouseMain" << endl;
+	cout << "   -c number            Customer count (default 1000)" << endl;
+	cout << "   -d number            Days of initial trades (default 300)" <<
+			endl;
+	cout << "   -f number            Number of customers for 1 TRTPS (default 500)" << endl;
 	cout << "                        Optional if testing BrokerageHouseMain" <<
 			endl;
 	cout << "   -p number            database listener port" << endl;
 	cout << "   -r number            optional random number" << endl;
-	cout << "   -t path              Security.txt file location" << endl;
+	cout << "   -s path              Security.txt file location" << endl;
 	cout << "   -t letter            Transaction type" << endl;
 	cout << "                        A - TRADE_ORDER" << endl;
 	cout << "                            TRADE_RESULT" << endl;
@@ -103,6 +111,15 @@ bool ParseCommandLine( int argc, char *argv[] )
 			strcpy(szBHaddr, vp);
 			cout << "Will connect to BrokerageHouseMain at '" << szBHaddr <<
 					"'." << endl;
+			break;
+		case 'c':
+			sscanf(vp, "%"PRId64, &iConfiguredCustomerCount);
+			break;
+		case 'd':
+			iDaysOfInitialTrades = atoi(vp);
+			break;
+		case 'f':
+			iScaleFactor = atoi(vp);
 			break;
 		case 'p':
 			strcpy(port, vp);
@@ -434,14 +451,15 @@ int main(int argc, char* argv[])
 		CEGenLogger log(eDriverEGenLoader, 0, "TxnTest.log", &fmt);
 	
 		CInputFiles	inputFiles;
-		inputFiles.Initialize(eDriverEGenLoader, iDefaultLoadUnitSize,
-				iDefaultLoadUnitSize, szInDir);
+		inputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount,
+				iConfiguredCustomerCount, szInDir);
 	
 		TDriverCETxnSettings	m_DriverCETxnSettings;
 	
-		CCETxnInputGenerator	m_TxnInputGenerator(inputFiles,
-				iDefaultLoadUnitSize, iDefaultLoadUnitSize, 500,
-				10 * HoursPerWorkDay, &log, &m_DriverCETxnSettings);
+		CCETxnInputGenerator m_TxnInputGenerator(inputFiles,
+				iConfiguredCustomerCount, iActiveCustomerCount,
+				iScaleFactor, iDaysOfInitialTrades * HoursPerWorkDay, &log,
+				&m_DriverCETxnSettings);
 	
 		if (Seed == 0) 
 		{
@@ -455,8 +473,9 @@ int main(int argc, char* argv[])
 		// DM is used by Data-Maintenance and Trade-Cleanup transactions
 		// Data-Maintenance SUT interface (provided by us)
 		CDMSUTtest	m_CDMSUT( &m_Conn );
-		CDM		m_CDM( &m_CDMSUT, &log, inputFiles, iDefaultLoadUnitSize,
-				iDefaultLoadUnitSize, 10, 500, 1 );	// provided by TPC
+		CDM	m_CDM( &m_CDMSUT, &log, inputFiles, iConfiguredCustomerCount,
+				iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades,
+				1 );
 
 		CDateTime	StartTime, EndTime, TxnTime;	// to time the transaction
 		StartTime.SetToCurrent();
