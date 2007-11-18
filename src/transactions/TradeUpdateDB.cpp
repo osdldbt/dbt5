@@ -49,10 +49,9 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 
 	if (R.empty()) 
 	{
-		//throw logic_error("TradeUpdateFrame1: empty result set");
-		cout<<"warning: empty result set at DoTradeUpdateFrame1"<<endl;
-		// Should this still be set to SUCCESS?
-		pOut->status = CBaseTxnErr::SUCCESS;
+		cout << "warning: empty result set at DoTradeUpdateFrame1" << endl <<
+				osCall.str() << endl;
+		pOut->status = CBaseTxnErr::ROLLBACK;
 		return;
 	}
 	result::const_iterator c = R.begin();
@@ -282,10 +281,10 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 
 	if (R.empty()) 
 	{
-		//throw logic_error("TradeUpdateFrame2: empty result set");
-		cout<<"warning: empty result set at DoTradeUpdateFrame2"<<endl;
+		cout << "warning: empty result set at DoTradeUpdateFrame2" << endl <<
+				osCall.str() << endl;
  		pOut->num_found = 0;
-		pOut->status = CBaseTxnErr::SUCCESS;
+		pOut->status = CBaseTxnErr::ROLLBACK;
 		return;
 	}
 	result::const_iterator c = R.begin();
@@ -602,11 +601,10 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
 
 	if (R.empty()) 
 	{
-		//throw logic_error("TradeUpdateFrame3: empty result set");
-		cout<<"warning: empty result set at DoTradeUpdateFrame3"<<endl;
+		cout << "warning: empty result set at DoTradeUpdateFrame3" << endl <<
+				osCall.str() << endl;
  		pOut->num_found = 0;
-		// Should this be set to SUCCESS?
-		pOut->status = CBaseTxnErr::SUCCESS;
+		pOut->status = CBaseTxnErr::ROLLBACK;
 		return;
 	}
 	result::const_iterator c = R.begin();

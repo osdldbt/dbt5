@@ -31,8 +31,10 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 
 	if (R.empty())
 	{
-		//throw logic_error("empty result set!");
-		cout<<"warning: empty result set at DoCustomerPositionFrame1"<<endl;
+		cout << "warning: empty result set at DoCustomerPositionFrame1" <<
+				endl <<
+				osCall.str() << endl;
+		pOut->status = CBaseTxnErr::ROLLBACK;
 		return;
 	}
 	result::const_iterator c = R.begin();
@@ -173,8 +175,10 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 
 	if (R.empty())
 	{
-		cout << "warning: empty result set at DoCustomerPositionFrame2" << endl;
-		pOut->status = 0;
+		cout << "warning: empty result set at DoCustomerPositionFrame2" <<
+				endl <<
+				osCall.str() << endl;
+		pOut->status = CBaseTxnErr::ROLLBACK;
 		return;
 	}
 	result::const_iterator c = R.begin();

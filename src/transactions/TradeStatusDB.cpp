@@ -35,10 +35,9 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 
 	if (R.empty()) 
 	{
-		//throw logic_error("empty result set!");
-		cout << "warning: empty result set at DoTradeStatusFrame1" << endl
-				<< "- acct_id: " << pIn->acct_id << endl;
-		pOut->status = CBaseTxnErr::SUCCESS;
+		cout << "warning: empty result set at DoTradeStatusFrame1" << endl <<
+				osCall.str() << endl;
+		pOut->status = CBaseTxnErr::ROLLBACK;
 		return;
 	}
 

@@ -30,9 +30,9 @@ void CTradeResultDB::DoTradeResultFrame1(
 
 	if (R.empty()) 
 	{
-		//throw logic_error("TradeResultFrame1: empty result set");
-		cerr<<"warning: empty result set at DoTradeResultFrame1"<<endl;
-		pOut->status = CBaseTxnErr::SUCCESS;
+		cerr << "warning: empty result set at DoTradeResultFrame1" << endl <<
+				osCall.str() << endl;
+		pOut->status = CBaseTxnErr::ROLLBACK;
 		return;
 	}
 	result::const_iterator c = R.begin();
@@ -97,8 +97,9 @@ void CTradeResultDB::DoTradeResultFrame2(
 
 	if (R.empty()) 
 	{
-		//throw logic_error("TradeResultFrame2: empty result set");
-		cerr<<"warning: empty result set at DoTradeResultFrame2"<<endl;
+		cerr << "warning: empty result set at DoTradeResultFrame2" << endl <<
+				osCall.str() << endl;
+		pOut->status = CBaseTxnErr::ROLLBACK;
 		return;
 	}
 	result::const_iterator c = R.begin();
@@ -163,8 +164,9 @@ void CTradeResultDB::DoTradeResultFrame3(
 
 	if (R.empty()) 
 	{
-		//throw logic_error("TradeResultFrame3: empty result set");
-		cerr<<"warning: empty result set at DoTradeResultFrame3"<<endl;
+		cerr << "warning: empty result set at DoTradeResultFrame3" << endl <<
+				osCall.str() << endl;
+		pOut->status = CBaseTxnErr::ROLLBACK;
 		return;
 	}
 	result::const_iterator c = R.begin();
@@ -206,8 +208,9 @@ void CTradeResultDB::DoTradeResultFrame4(
 
 	if (R.empty()) 
 	{
-		//throw logic_error("TradeResultFrame4: empty result set");
-		cerr<<"warning: empty result set at DoTradeResultFrame4"<<endl;
+		cerr << "warning: empty result set at DoTradeResultFrame4" << endl <<
+				osCall.str() << endl;
+		pOut->status = CBaseTxnErr::ROLLBACK;
 		return;
 	}
 	result::const_iterator c = R.begin();
@@ -321,8 +324,9 @@ void CTradeResultDB::DoTradeResultFrame6(
 
 	if (R.empty()) 
 	{
-		//throw logic_error("TradeResultFrame6: empty result set");
-		cerr<<"warning: empty result set at DoTradeResultFrame6"<<endl;
+		cerr << "warning: empty result set at DoTradeResultFrame6" << endl <<
+				osCall.str() << endl;
+		pOut->status = CBaseTxnErr::ROLLBACK;
 		return;
 	}
 	result::const_iterator c = R.begin();

@@ -32,10 +32,9 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
 
 	if (R.empty()) 
 	{
-		//throw logic_error("TradeCleanupFrame1: empty result set");
-		cerr<<"warning: empty result set at DoTradeCleanupFrame1"<<endl;
-		// Should this be set to success?
- 		pOut->status = CBaseTxnErr::SUCCESS;
+		cerr << "warning: empty result set at DoTradeCleanupFrame1" << endl <<
+				osCall.str() << endl;
+ 		pOut->status = CBaseTxnErr::ROLLBACK;
 		return;
 	}
 	result::const_iterator c = R.begin();
