@@ -21,9 +21,8 @@
 #define BVF1_1 \
 		"SELECT b_name, SUM(tr_qty * tr_bid_price)\n" \
 		"FROM trade_request, sector, industry, company, broker,\n" \
-		"     security, customer_account\n" \
-		"WHERE tr_ca_id = ca_id\n" \
-		"  AND ca_b_id = b_id\n" \
+		"     security\n" \
+		"WHERE tr_b_id = b_id\n" \
 		"  AND tr_s_symb = s_symb\n" \
 		"  AND s_co_id = co_id\n" \
 		"  AND co_in_id = in_id\n" \
