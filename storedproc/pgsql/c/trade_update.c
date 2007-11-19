@@ -1097,6 +1097,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 			char *s_name;
 			char *type_name;
 			char ct_name[CT_NAME_LEN + 1];
+			char *price;
 
 			tuple = tuptable->vals[i];
 
@@ -1122,7 +1123,12 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 			strcat(values[i_exec_name], SPI_getvalue(tuple, tupdesc, 2));
 			is_cash_str = SPI_getvalue(tuple, tupdesc, 3);
 			strcat(values[i_is_cash], (is_cash_str[0] == 't' ? "0" : "1"));
-			strcat(values[i_price], SPI_getvalue(tuple, tupdesc, 4));
+			price = SPI_getvalue(tuple, tupdesc, 4);
+			if (price == NULL) {
+				strcat(values[i_price], "NULL");
+			} else {
+				strcat(values[i_price], SPI_getvalue(tuple, tupdesc, 4));
+			}
 			quantity = SPI_getvalue(tuple, tupdesc, 5);
 			strcat(values[i_quantity], quantity);
 			s_name = SPI_getvalue(tuple, tupdesc, 6);
