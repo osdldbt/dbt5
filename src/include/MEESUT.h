@@ -12,8 +12,8 @@
 
 #include "MEESUTInterface.h"
 
-namespace TPCE
-{
+using namespace TPCE;
+
 class CMEESUT : public CMEESUTInterface, public CBaseInterface
 {
 private:
@@ -22,20 +22,21 @@ private:
 	
 public:
 	CMEESUT(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix,
-			CSyncLock* pLogLock, CSyncLock* pMixLock);
-	~CMEESUT();
+			CSyncLock* pLogLock, CSyncLock* pMixLock) :
+			CBaseInterface(addr, iListenPort, pflog, pfmix, pLogLock,
+			pMixLock) {};
+	~CMEESUT() {};
 
 	// return whether it was successful
 	virtual bool TradeResult( PTradeResultTxnInput pTxnInput );
 	// return whether it was successful
 	virtual bool MarketFeed( PMarketFeedTxnInput pTxnInput );
 	
-	friend void* TPCE::TradeResultAsync(void* data);
-	friend bool TPCE::RunTradeResultAsync(void* data);
+	friend void *TradeResultAsync(void* data);
+	friend bool RunTradeResultAsync(void* data);
 
-	friend void* TPCE::MarketFeedAsync(void* data);
-	friend bool TPCE::RunMarketFeedAsync(void* data);
-
+	friend void *MarketFeedAsync(void* data);
+	friend bool RunMarketFeedAsync(void* data);
 };
 
 //parameter structure for the threads
@@ -48,8 +49,5 @@ typedef struct TMEESUTThreadParam
 		TMarketFeedTxnInput	m_MarketFeedTxnInput;
 	} TxnInput;
 } *PMEESUTThreadParam;
-
-
-}	// namespace TPCE
 
 #endif	// MEE_SUT_H

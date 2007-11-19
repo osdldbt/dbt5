@@ -57,7 +57,7 @@ CDriver::CDriver(char* szInDir,
 			iDaysOfInitialTrades, UniqueId);
 }
 
-void* TPCE::CustomerWorkerThread(void* data)
+void *CustomerWorkerThread(void* data)
 {
 	CCustomer *customer;
 	PCustomerThreadParam pThrParam =
@@ -108,7 +108,7 @@ void* TPCE::CustomerWorkerThread(void* data)
 }
 
 // entry point for worker thread
-void TPCE::EntryCustomerWorkerThread(void* data, int iThrNumber)
+void EntryCustomerWorkerThread(void* data, int iThrNumber)
 {
 	PCustomerThreadParam pThrParam =
 			reinterpret_cast<PCustomerThreadParam>(data);
@@ -137,7 +137,7 @@ void TPCE::EntryCustomerWorkerThread(void* data, int iThrNumber)
 		ostringstream osErr;
 		osErr<<"Thread "<<iThrNumber<<" didn't spawn correctly"<<endl
 		     <<endl<<"Error: "<<pErr->ErrorText()
-		     <<" at "<<"TPCE::EntryCustomerWorkerThread"<<endl;
+		     <<" at "<<"EntryCustomerWorkerThread"<<endl;
 		pThrParam->pDriver->LogErrorMessage(osErr.str());
 		delete pErr;
 	}
@@ -239,7 +239,7 @@ void CDriver::RunTest(int iSleep, int iTestDuration)
 
 
 // DM worker thread
-void* TPCE::DMWorkerThread(void* data)
+void *DMWorkerThread(void* data)
 {
 	PCustomerThreadParam pThrParam =
 			reinterpret_cast<PCustomerThreadParam>(data);
@@ -258,7 +258,7 @@ void* TPCE::DMWorkerThread(void* data)
 }
 
 // entry point for worker thread
-void TPCE::EntryDMWorkerThread(CDriver* ptr)
+void EntryDMWorkerThread(CDriver* ptr)
 {
 	PCustomerThreadParam pThrParam = new TCustomerThreadParam;
 	memset(pThrParam, 0, sizeof(TCustomerThreadParam));   // zero the structure

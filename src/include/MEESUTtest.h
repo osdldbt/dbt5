@@ -12,8 +12,8 @@
 
 #include "MEESUTInterface.h"
 
-namespace TPCE
-{
+using namespace TPCE;
+
 class CMEESUTtest : public CMEESUTInterface
 {
 private:
@@ -22,21 +22,19 @@ private:
 	TMarketFeedTxnInput	m_MarketFeedTxnInput;
 
 public:
-	CMEESUTtest(CDBConnection *pDBConn);
-	~CMEESUTtest();
+	CMEESUTtest(CDBConnection *pDBConn) : m_pDBConnection(pDBConn) { };
+	~CMEESUTtest() { };
 
 	// return whether it was successful
 	virtual bool TradeResult( PTradeResultTxnInput pTxnInput );
 	// return whether it was successful
 	virtual bool MarketFeed( PMarketFeedTxnInput pTxnInput );
 	
-	friend void* TPCE::TradeResultAsync(void* data);
-	friend bool TPCE::RunTradeResultAsync( CMEESUTtest* );
+	friend void *TradeResultAsync(void* data);
+	friend bool RunTradeResultAsync( CMEESUTtest* );
 
-	friend void* TPCE::MarketFeedAsync(void* data);
-	friend bool TPCE::RunMarketFeedAsync( CMEESUTtest* );
+	friend void *MarketFeedAsync(void* data);
+	friend bool RunMarketFeedAsync( CMEESUTtest* );
 };
-
-}	// namespace TPCE
 
 #endif	// MEE_SUT_TEST_H

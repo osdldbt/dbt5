@@ -12,8 +12,7 @@
 #include <error.h>
 #include <string>
 
-namespace TPCE
-{
+using namespace TPCE;
 
 #define ERR_TYPE_SOCKET		13		// socket error
 #define ERR_TYPE_THREAD		14		// thread error
@@ -129,7 +128,5 @@ public:
 	};
 	
 };
-
-}	//namespace TPCE
 
 #endif	// CTHREADERR_H

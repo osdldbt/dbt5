@@ -19,8 +19,7 @@
 
 #include <CThreadErr.h>
 
-namespace TPCE
-{
+using namespace TPCE;
 
 class CSocket
 {
@@ -50,7 +49,5 @@ private:
 	int m_listenfd;		// listen socket
 	int m_sockfd;		// accept socket
 };
-
-}	// namespace TPCE
 
 #endif	//SOCKET_H

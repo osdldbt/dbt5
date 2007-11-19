@@ -10,11 +10,11 @@
 #ifndef DRIVER_MARKET_H
 #define DRIVER_MARKET_H
 
-namespace TPCE
-{
+using namespace TPCE;
 
 class CDriverMarket
 {
+private:
 	int			m_iListenPort;
 	CSocket			m_Socket;
 	CLogFormatTab		m_fmt;
@@ -27,13 +27,11 @@ class CDriverMarket
 	ofstream		m_fLog;		// error log file
 	ofstream		m_fMix;		// mix log file
 
-private:
 	void LogErrorMessage(const string sErr);
 
-	friend void* TPCE::MarketWorkerThread(void* data);
+	friend void *MarketWorkerThread(void* data);
 	// entry point for driver worker thread
-	friend void TPCE::EntryMarketWorkerThread(void* data);
-
+	friend void EntryMarketWorkerThread(void* data);
 
 public:
 	CDriverMarket(char* szFileLoc, TIdent iConfiguredCustomerCount,
@@ -42,7 +40,6 @@ public:
 	~CDriverMarket();
 
 	void Listener(void);
-
 };
 
 //parameter structure for the threads
@@ -51,8 +48,5 @@ typedef struct TMarketThreadParam
 	CDriverMarket*		pDriverMarket;
 	int			iSockfd;
 } *PMarketThreadParam;
-
-
-}	// namespace TPCE
 
 #endif	// DRIVER_MARKET_H

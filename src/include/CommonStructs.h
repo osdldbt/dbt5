@@ -8,8 +8,7 @@
 #ifndef COMMON_STRUCTS_H
 #define COMMON_STRUCTS_H
 
-namespace TPCE
-{
+using namespace TPCE;
 
 // Transaction types
 enum eTxnType
@@ -54,7 +53,5 @@ typedef struct TMsgBrokerageDriver
 {
 	int			iStatus;
 } *PMsgBrokerageDriver;
-
-} // namespace TPCE
 
 #endif	//COMMON_STRUCTS_H

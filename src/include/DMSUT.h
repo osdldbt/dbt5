@@ -12,8 +12,7 @@
 
 #include "DMSUTInterface.h"
 
-namespace TPCE
-{
+using namespace TPCE;
 
 class CDMSUT : public CDMSUTInterface, public CBaseInterface
 {
@@ -29,7 +28,5 @@ public:
 	// return whether it was successful
 	virtual bool TradeCleanup( PTradeCleanupTxnInput pTxnInput );
 };
-
-}	// namespace TPCE
 
 #endif	// DM_SUT_H

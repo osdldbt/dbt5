@@ -16,8 +16,7 @@
 #define iMaxPGDBName 32
 #define iMaxPGPort 32
 
-namespace TPCE
-{
+using namespace TPCE;
 
 class CBrokerageHouse
 {
@@ -33,8 +32,8 @@ class CBrokerageHouse
 private:
 	void LogErrorMessage(const string sErr, bool bScreen = true);
 
-	friend void* TPCE::WorkerThread(void* data);
-	friend void TPCE::EntryWorkerThread(void* data);	// entry point for worker thread
+	friend void *WorkerThread(void* data);
+	friend void EntryWorkerThread(void* data);	// entry point for worker thread
 
 	INT32 RunBrokerVolume( PBrokerVolumeTxnInput pTxnInput,
 			CBrokerVolume &BrokerVolume );
@@ -77,8 +76,5 @@ typedef struct TThreadParameter
 	CBrokerageHouse*	pBrokerageHouse;
 	int			iSockfd;
 } *PThreadParameter;
-
-
-}	// namespace TPCE
 
 #endif	// BROKERAGE_HOUSE_H

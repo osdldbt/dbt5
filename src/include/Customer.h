@@ -12,8 +12,7 @@
 
 #include <transactions.h>
 
-namespace TPCE
-{
+using namespace TPCE;
 
 class CCustomer
 {
@@ -31,12 +30,12 @@ class CCustomer
 private:
 	void LogErrorMessage(const string sErr);
 
-	friend void* TPCE::CustomerWorkerThread(void* data);
+	friend void *CustomerWorkerThread(void* data);
 	// entry point for driver worker thread
-	friend void TPCE::EntryCustomerWorkerThread(void* data, int i);
+	friend void EntryCustomerWorkerThread(void* data, int i);
 
-	friend void* TPCE::DMWorkerThread(void* data);
-	friend void TPCE::EntryDMWorkerThread(CCustomer* ptr);
+	friend void *DMWorkerThread(void* data);
+	friend void EntryDMWorkerThread(CCustomer* ptr);
 public:
 	CCustomer(char* szInDir, TIdent iConfiguredCustomerCount,
 			TIdent iActiveCustomerCount, INT32 iScaleFactor,
@@ -48,7 +47,5 @@ public:
 	void DoTxn();
 	void RunTest(int iSleep, int iTestDuration);
 };
-
-}	// namespace TPCE
 
 #endif	// CUSTOMER_H

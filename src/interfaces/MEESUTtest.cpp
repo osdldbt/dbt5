@@ -12,19 +12,10 @@
 
 using namespace TPCE;
 
-CMEESUTtest::CMEESUTtest(CDBConnection *pDBConn)
-: m_pDBConnection(pDBConn)
-{
-}
-
-CMEESUTtest::~CMEESUTtest()
-{
-}
-
 //
 // Trade Result
 //
-void* TPCE::TradeResultAsync(void* data)
+void *TradeResultAsync(void* data)
 {
 	CMEESUTtest* pCMEESUTtest = reinterpret_cast<CMEESUTtest*>(data);
 
@@ -42,19 +33,22 @@ void* TPCE::TradeResultAsync(void* data)
 	// Market-Feed output parameters
 	TTradeResultTxnOutput	m_TradeResultTxnOutput;
 	
-	m_TradeResult.DoTxn( &(pCMEESUTtest->m_TradeResultTxnInput), &m_TradeResultTxnOutput); // Perform Trade Result
+	// Perform Trade Result
+	m_TradeResult.DoTxn(&(pCMEESUTtest->m_TradeResultTxnInput),
+			&m_TradeResultTxnOutput);
 
 	delete m_pConn;
 	return NULL;
 }
 
-bool TPCE::RunTradeResultAsync( CMEESUTtest* pCMEESUTtest )
+bool RunTradeResultAsync( CMEESUTtest* pCMEESUTtest )
 {
 	pthread_t threadID; // thread ID
 	int status; // error code
 	pthread_attr_t threadAttribute; // thread attribute
 
-	status = pthread_attr_init(&threadAttribute); // initialize the attribute object
+	// initialize the attribute object
+	status = pthread_attr_init(&threadAttribute);
 	if (status != 0)
 	{
 		cout<<"pthread_attr_init failed, status = "<<status<<endl;
@@ -62,7 +56,8 @@ bool TPCE::RunTradeResultAsync( CMEESUTtest* pCMEESUTtest )
 	}
 
 	// set the detachstate attribute to detached
-	status = pthread_attr_setdetachstate(&threadAttribute, PTHREAD_CREATE_DETACHED);
+	status = pthread_attr_setdetachstate(&threadAttribute,
+			PTHREAD_CREATE_DETACHED);
 	if (status != 0)
 	{
 		cout<<"pthread_attr_setdetachstate failed, status = "<<status<<endl;
@@ -81,20 +76,18 @@ bool TPCE::RunTradeResultAsync( CMEESUTtest* pCMEESUTtest )
 
 	// return immediatelly
 	return true;	
-
 }
 
 bool CMEESUTtest::TradeResult( PTradeResultTxnInput pTxnInput )
 {
 	memcpy(&m_TradeResultTxnInput, pTxnInput, sizeof(m_TradeResultTxnInput));
-	
 	return ( RunTradeResultAsync( this ) );
 }
 
+//
 // Market Feed
 //
-//
-void* TPCE::MarketFeedAsync(void* data)
+void *MarketFeedAsync(void* data)
 {
 	CMEESUTtest* pCMEESUTtest = reinterpret_cast<CMEESUTtest*>(data);
 	CSendToMarketTest	m_SendToMarket;
@@ -113,20 +106,23 @@ void* TPCE::MarketFeedAsync(void* data)
 	// Market-Feed output parameters
 	TMarketFeedTxnOutput	m_MarketFeedTxnOutput;
 	
-	m_MarketFeed.DoTxn( &(pCMEESUTtest->m_MarketFeedTxnInput), &m_MarketFeedTxnOutput); // Perform Market Feed
+	// Perform Market Feed
+	m_MarketFeed.DoTxn( &(pCMEESUTtest->m_MarketFeedTxnInput),
+			&m_MarketFeedTxnOutput);
 
 	delete m_pConn;
 	return NULL;
 
 }
 
-bool TPCE::RunMarketFeedAsync( CMEESUTtest* pCMEESUTtest )
+bool RunMarketFeedAsync( CMEESUTtest* pCMEESUTtest )
 {
 	pthread_t threadID; // thread ID
 	int status; // error code
 	pthread_attr_t threadAttribute; // thread attribute
 
-	status = pthread_attr_init(&threadAttribute); // initialize the attribute object
+	// initialize the attribute object
+	status = pthread_attr_init(&threadAttribute);
 	if (status != 0)
 	{
 		cout<<"pthread_attr_init failed, status = "<<status<<endl;
@@ -134,7 +130,8 @@ bool TPCE::RunMarketFeedAsync( CMEESUTtest* pCMEESUTtest )
 	}
 
 	// set the detachstate attribute to detached
-	status = pthread_attr_setdetachstate(&threadAttribute, PTHREAD_CREATE_DETACHED);
+	status = pthread_attr_setdetachstate(&threadAttribute,
+			PTHREAD_CREATE_DETACHED);
 	if (status != 0)
 	{
 		cout<<"pthread_attr_setdetachstate failed, status = "<<status<<endl;
@@ -153,12 +150,10 @@ bool TPCE::RunMarketFeedAsync( CMEESUTtest* pCMEESUTtest )
 
 	// return immediatelly
 	return true;	
-
 }
 
 bool CMEESUTtest::MarketFeed( PMarketFeedTxnInput pTxnInput )
 {
 	memcpy(&m_MarketFeedTxnInput, pTxnInput, sizeof(m_MarketFeedTxnInput));
-	
 	return ( RunMarketFeedAsync( this ) );
 }

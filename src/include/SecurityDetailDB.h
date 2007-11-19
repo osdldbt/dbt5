@@ -11,8 +11,7 @@
 
 #include <TxnHarnessDBInterface.h> 
  
-namespace TPCE
-{
+using namespace TPCE;
 
 class CSecurityDetailDB : public CTxnBaseDB, public CSecurityDetailDBInterface
 {
@@ -28,7 +27,5 @@ public:
 	// back into the database class
 	void Cleanup(void* pException) {};
 };
-
-}	// namespace TPCE
 
 #endif	// SECURITY_DETAIL_DB_H

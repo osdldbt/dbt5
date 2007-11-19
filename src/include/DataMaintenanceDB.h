@@ -11,8 +11,7 @@
 
 #include <TxnHarnessDBInterface.h> 
  
-namespace TPCE
-{
+using namespace TPCE;
 
 class CDataMaintenanceDB : public CTxnBaseDB, public CDataMaintenanceDBInterface
 {
@@ -29,7 +28,5 @@ public:
 	void Cleanup(void* pException) {};
 
 };
-
-}	// namespace TPCE
 
 #endif	// DATA_MAINTENANCE_DB_H

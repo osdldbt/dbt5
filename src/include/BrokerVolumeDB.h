@@ -11,8 +11,7 @@
 
 #include <TxnHarnessDBInterface.h> 
  
-namespace TPCE
-{
+using namespace TPCE;
 
 class CBrokerVolumeDB : public CTxnBaseDB, public CBrokerVolumeDBInterface
 {
@@ -28,7 +27,5 @@ public:
 	// back into the database class
 	void Cleanup(void* pException) {};
 };
-
-}	// namespace TPCE
 
 #endif	// BROKER_VOLUME_DB_H

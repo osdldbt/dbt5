@@ -10,19 +10,9 @@
 
 using namespace TPCE;
 
-CMEESUT::CMEESUT(char* addr, const int iListenPort, ofstream* pflog,
-		ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock)
-: CBaseInterface(addr, iListenPort, pflog, pfmix, pLogLock, pMixLock)
-{
-}
-
-CMEESUT::~CMEESUT()
-{
-}
-
 // Trade Result
 //
-void* TPCE::TradeResultAsync(void* data)
+void *TradeResultAsync(void* data)
 {
 	PMEESUTThreadParam pThrParam = reinterpret_cast<PMEESUTThreadParam>(data);
 
@@ -43,7 +33,7 @@ void* TPCE::TradeResultAsync(void* data)
 	return NULL;
 }
 
-bool TPCE::RunTradeResultAsync( void* data )
+bool RunTradeResultAsync( void* data )
 {
 	PMEESUTThreadParam pThrParam = reinterpret_cast<PMEESUTThreadParam>(data);
 
@@ -105,7 +95,7 @@ bool CMEESUT::TradeResult( PTradeResultTxnInput pTxnInput )
 
 // Market Feed
 //
-void* TPCE::MarketFeedAsync(void* data)
+void *MarketFeedAsync(void* data)
 {
 	PMEESUTThreadParam pThrParam = reinterpret_cast<PMEESUTThreadParam>(data);
 
@@ -126,7 +116,7 @@ void* TPCE::MarketFeedAsync(void* data)
 	return NULL;
 }
 
-bool TPCE::RunMarketFeedAsync(void* data)
+bool RunMarketFeedAsync(void* data)
 {
 	PMEESUTThreadParam pThrParam = reinterpret_cast<PMEESUTThreadParam>(data);
 

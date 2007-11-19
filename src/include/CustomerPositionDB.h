@@ -11,8 +11,7 @@
 
 #include <TxnHarnessDBInterface.h> 
  
-namespace TPCE
-{
+using namespace TPCE;
 
 class CCustomerPositionDB : public CTxnBaseDB,
 		public CCustomerPositionDBInterface
@@ -34,7 +33,5 @@ public:
 	// back into the database class
 	void Cleanup(void* pException) {};
 };
-
-}	// namespace TPCE
 
 #endif	// CUSTOMER_POSITION_DB_H

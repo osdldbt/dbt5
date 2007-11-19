@@ -11,8 +11,7 @@
 
 #include <TxnHarnessDBInterface.h> 
  
-namespace TPCE
-{
+using namespace TPCE;
 
 class CTradeCleanupDB : public CTxnBaseDB, public CTradeCleanupDBInterface
 {
@@ -27,9 +26,6 @@ public:
 	// database class frame implementation
 	// back into the database class
 	void Cleanup(void* pException) {};
-
 };
-
-}	// namespace TPCE
 
 #endif	// TRADE_CLEANUP_DB_H

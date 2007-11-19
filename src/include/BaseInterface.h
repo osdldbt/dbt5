@@ -10,8 +10,7 @@
 #ifndef BASE_INTERFACE_H
 #define BASE_INTERFACE_H
 
-namespace TPCE
-{
+using namespace TPCE;
 
 class CBaseInterface
 {
@@ -38,7 +37,5 @@ public:
 	void Connect();
 	void Disconnect();
 };
-
-}	// namespace TPCE
 
 #endif	// BASE_INTERFACE_H

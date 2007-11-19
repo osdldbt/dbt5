@@ -10,8 +10,7 @@
 #ifndef DB_CONNECTION_H
 #define DB_CONNECTION_H
 
-namespace TPCE
-{
+using namespace TPCE;
 
 class CDBConnection
 {
@@ -30,7 +29,5 @@ public:
 	void RollbackTxn();
 	
 };
-
-}	// namespace TPCE
 
 #endif	//DB_CONNECTION_H

@@ -12,8 +12,7 @@
 
 #include "CESUTInterface.h"
 
-namespace TPCE
-{
+using namespace TPCE;
 
 class CCESUT : public CCESUTInterface, public CBaseInterface
 {
@@ -43,7 +42,5 @@ public:
 	virtual bool TradeUpdate( PTradeUpdateTxnInput pTxnInput );
 
 };
-
-}	// namespace TPCE
 
 #endif	// CE_SUT_H

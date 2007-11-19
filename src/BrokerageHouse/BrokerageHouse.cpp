@@ -11,7 +11,7 @@
 using namespace TPCE;
 
 // worker thread
-void* TPCE::WorkerThread(void* data)
+void* WorkerThread(void* data)
 {
 	PThreadParameter pThrParam = reinterpret_cast<PThreadParameter>(data);
 
@@ -283,7 +283,7 @@ void* TPCE::WorkerThread(void* data)
 }
 
 // entry point for worker thread
-void TPCE::EntryWorkerThread(void* data)
+void EntryWorkerThread(void* data)
 {
 	PThreadParameter pThrParam = reinterpret_cast<PThreadParameter>(data);
 
@@ -513,9 +513,7 @@ void CBrokerageHouse::Listener( void )
 			delete pErr;
 			delete pThrParam;
 		}
-			
 	}
-
 }
 
 // LogErrorMessage

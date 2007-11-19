@@ -11,7 +11,7 @@
 using namespace TPCE;
 
 // worker thread
-void* TPCE::MarketWorkerThread(void* data)
+void *MarketWorkerThread(void* data)
 {
 	PMarketThreadParam pThrParam = reinterpret_cast<PMarketThreadParam>(data);
 
@@ -53,7 +53,7 @@ void* TPCE::MarketWorkerThread(void* data)
 }
 
 // entry point for worker thread
-void TPCE::EntryMarketWorkerThread(void* data)
+void EntryMarketWorkerThread(void* data)
 {
 	PMarketThreadParam pThrParam = reinterpret_cast<PMarketThreadParam>(data);
 

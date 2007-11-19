@@ -11,8 +11,7 @@
 
 #include <TxnHarnessDBInterface.h> 
  
-namespace TPCE
-{
+using namespace TPCE;
 
 class CMarketWatchDB : public CTxnBaseDB, public CMarketWatchDBInterface
 {
@@ -28,7 +27,5 @@ public:
 	// back into the database class
 	void Cleanup(void* pException) {};
 };
-
-}	// namespace TPCE
 
 #endif	// MARKET_WATCH_DB_H

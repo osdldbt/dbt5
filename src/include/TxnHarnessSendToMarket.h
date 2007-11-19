@@ -10,8 +10,7 @@
 #ifndef TXN_HARNESS_SENDTOMARKET_H
 #define TXN_HARNESS_SENDTOMARKET_H
 
-namespace TPCE
-{
+using namespace TPCE;
 
 class CSendToMarket : public CSendToMarketInterface
 {
@@ -28,7 +27,5 @@ public:
 
 	virtual bool SendToMarket(TTradeRequest &trade_mes);
 };
-
-}	// namespace TPCE
 
 #endif	// TXN_HARNESS_SENDTOMARKET_H

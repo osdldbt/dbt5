@@ -10,11 +10,11 @@
 #ifndef DRIVER_H
 #define DRIVER_H
 
-namespace TPCE
-{
+using namespace TPCE;
 
 class CDriver
 {
+private:
 	int			m_iUsers;
 	int			m_iPacingDelay;
 	CLogFormatTab		m_fmt;
@@ -25,15 +25,14 @@ class CDriver
 	ofstream		m_fLog;		// error log file
 	ofstream		m_fMix;		// mix log file
 
-private:
 	void LogErrorMessage(const string sErr);
 
-	friend void* TPCE::CustomerWorkerThread(void* data);
+	friend void *CustomerWorkerThread(void* data);
 	// entry point for driver worker thread
-	friend void TPCE::EntryCustomerWorkerThread(void* data, int i);
+	friend void EntryCustomerWorkerThread(void* data, int i);
 
-	friend void* TPCE::DMWorkerThread(void* data);
-	friend void TPCE::EntryDMWorkerThread(CDriver* ptr);
+	friend void *DMWorkerThread(void* data);
+	friend void EntryDMWorkerThread(CDriver* ptr);
 public:
 	char szInDir[iMaxPath];
 	TIdent iConfiguredCustomerCount;
@@ -66,7 +65,5 @@ typedef struct TCustomerThreadParam
 	CDriver*    pDriver;
 } *PCustomerThreadParam;
 
-
-}	// namespace TPCE
 
 #endif	// DRIVER_H

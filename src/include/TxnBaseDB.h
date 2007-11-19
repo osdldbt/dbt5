@@ -10,8 +10,7 @@
 #ifndef TXN_BASE_DB_H
 #define TXN_BASE_DB_H
 
-namespace TPCE
-{
+using namespace TPCE;
 
 class CTxnBaseDB
 {
@@ -58,7 +57,5 @@ void inline Tokenize(const string& str2, vector<string>& tokens,
 		pos = str.find_first_of(delimiters, lastPos);
 	}
 }
-
-}	// namespace TPCE
 
 #endif	//TXN_BASE_DB_H
