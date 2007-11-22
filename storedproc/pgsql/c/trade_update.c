@@ -250,9 +250,9 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 		values[i_cash_transaction_dts] =
 				(char *) palloc(((MAXDATELEN + 1) * 20 + 2) * sizeof(char));
 		values[i_cash_transaction_name] =
-				(char *) palloc(((CT_NAME_LEN + 1) * 20 + 2) * sizeof(char));
-		values[i_exec_name] =
-				(char *) palloc(((T_EXEC_NAME_LEN + 1) * 20 + 2) * sizeof(char));
+				(char *) palloc(((CT_NAME_LEN + 3) * 20 + 2) * sizeof(char));
+		values[i_exec_name] = (char *) palloc(((T_EXEC_NAME_LEN + 3) * 20 +
+				2) * sizeof(char));
 		values[i_is_cash] =
 				(char *) palloc(((SMALLINT_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_is_market] =
@@ -265,14 +265,14 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 		values[i_settlement_cash_due_date] =
 				(char *) palloc(((MAXDATELEN + 1) * 20 + 2) * sizeof(char));
 		values[i_settlement_cash_type] = (char *) palloc(((SE_CASH_TYPE_LEN +
-				1) * 20 + 2) * sizeof(char));
+				3) * 20 + 2) * sizeof(char));
 		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
-		values[i_trade_history_dts] = (char *) palloc(((TT_NAME_LEN * 3 + 4) *
+		values[i_trade_history_dts] = (char *) palloc(((MAXDATELEN * 3 + 4) *
 				20 + 22) * sizeof(char));
-		values[i_trade_history_status_id] = (char *) palloc(((TT_NAME_LEN *
-				3 + 4) * 20 + 22) * sizeof(char));
+		values[i_trade_history_status_id] = (char *) palloc((((ST_ID_LEN +
+				2) * 3 + 4) * 20 + 22) * sizeof(char));
 		values[i_trade_price] =
-				(char *) palloc(((TT_NAME_LEN + 1) * 20 + 2) * sizeof(char));
+				(char *) palloc(((S_PRICE_T_LEN + 1) * 20 + 2) * sizeof(char));
 
 #ifdef DEBUG
 		dump_tuf1_inputs(max_trades, max_updates, trade_id);
@@ -385,7 +385,9 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				tuptable = SPI_tuptable;
 				tuple = tuptable->vals[0];
 				strcat(values[i_bid_price], SPI_getvalue(tuple, tupdesc, 1));
+				strcat(values[i_exec_name], "\"");
 				strcat(values[i_exec_name], SPI_getvalue(tuple, tupdesc, 2));
+				strcat(values[i_exec_name], "\"");
 				is_cash_str = SPI_getvalue(tuple, tupdesc, 3);
 				strcat(values[i_is_cash], (is_cash_str[0] == 't' ? "1": "0"));
 				is_market_str = SPI_getvalue(tuple, tupdesc, 4);
@@ -411,8 +413,10 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 						SPI_getvalue(tuple, tupdesc, 1));
 				strcat(values[i_settlement_cash_due_date],
 						SPI_getvalue(tuple, tupdesc, 2));
+				strcat(values[i_settlement_cash_type], "\"");
 				strcat(values[i_settlement_cash_type],
 						SPI_getvalue(tuple, tupdesc, 3));
+				strcat(values[i_settlement_cash_type], "\"");
 			} else {
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tuf1_inputs(max_trades, max_updates, trade_id);
@@ -439,8 +443,10 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 							SPI_getvalue(tuple, tupdesc, 1));
 					strcat(values[i_cash_transaction_dts],
 							SPI_getvalue(tuple, tupdesc, 2));
+					strcat(values[i_cash_transaction_name], "\"");
 					strcat(values[i_cash_transaction_name],
 							SPI_getvalue(tuple, tupdesc, 3));
+					strcat(values[i_cash_transaction_name], "\"");
 					++num_cash;
 				} else {
 					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
@@ -473,8 +479,10 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				tuple = tuptable->vals[j];
 				strcat(values[i_trade_history_dts],
 							SPI_getvalue(tuple, tupdesc, 1));
+				strcat(values[i_trade_history_status_id], "\"");
 				strcat(values[i_trade_history_status_id],
 							SPI_getvalue(tuple, tupdesc, 2));
+				strcat(values[i_trade_history_status_id], "\"");
 			}
 			strcat(values[i_trade_history_dts], "}");
 			strcat(values[i_trade_history_status_id], "}");
@@ -624,7 +632,7 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				(char *) palloc(((MAXDATELEN + 1) * 20 + 2) * sizeof(char));
 		values[i_cash_transaction_name] =
 				(char *) palloc(((CT_NAME_LEN + 1) * 20 + 2) * sizeof(char));
-		values[i_exec_name] = (char *) palloc(((T_EXEC_NAME_LEN + 1) * 20 +
+		values[i_exec_name] = (char *) palloc(((T_EXEC_NAME_LEN + 3) * 20 +
 				2) * sizeof(char));
 		values[i_is_cash] =
 				(char *) palloc(((SMALLINT_LEN + 1) * 20 + 2) * sizeof(char));
@@ -636,17 +644,17 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 		values[i_settlement_cash_due_date] =
 				(char *) palloc(((MAXDATELEN + 1) * 20 + 2) * sizeof(char));
 		values[i_settlement_cash_type] = (char *) palloc(((SE_CASH_TYPE_LEN +
-				1) * 20 + 2) * sizeof(char));
+				3) * 20 + 2) * sizeof(char));
 		values[i_status] =
 				(char *) palloc((STATUS_LEN + 1) * sizeof(char));
-		values[i_trade_history_dts] = (char *) palloc((((TT_NAME_LEN + 2) * 3
+		values[i_trade_history_dts] = (char *) palloc((((MAXDATELEN + 2) * 3
 				+ 2) * 20 + 5) * sizeof(char));
-		values[i_trade_history_status_id] = (char *) palloc((((TT_NAME_LEN +
+		values[i_trade_history_status_id] = (char *) palloc((((ST_ID_LEN +
 				2) * 3 + 2) * 20 + 5) * sizeof(char));
 		values[i_trade_list] =
 				(char *) palloc(((BIGINT_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_trade_price] =
-				(char *) palloc(((TT_NAME_LEN + 1) * 20 + 2) * sizeof(char));
+				(char *) palloc(((S_PRICE_T_LEN + 1) * 20 + 2) * sizeof(char));
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
@@ -667,10 +675,6 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
-		} else {
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
-			dump_tuf2_inputs(acct_id, end_trade_dts, max_trades, max_updates,
-					start_trade_dts);
 		}
 
 		num_found = SPI_processed;
@@ -713,7 +717,9 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 			}
 
 			strcat(values[i_bid_price], SPI_getvalue(tuple, tupdesc, 1));
+			strcat(values[i_exec_name], "\"");
 			strcat(values[i_exec_name], SPI_getvalue(tuple, tupdesc, 2));
+			strcat(values[i_exec_name], "\"");
 			is_cash_str = SPI_getvalue(tuple, tupdesc, 3);
 			strcat(values[i_is_cash], (is_cash_str[0] == 't' ? "0" : "1"));
 			trade_list = SPI_getvalue(tuple, tupdesc, 4);
@@ -790,8 +796,10 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 						SPI_getvalue(l_tuple, l_tupdesc, 1));
 				strcat(values[i_settlement_cash_due_date],
 						SPI_getvalue(l_tuple, l_tupdesc, 2));
+				strcat(values[i_settlement_cash_type], "\"");
 				strcat(values[i_settlement_cash_type],
 						SPI_getvalue(l_tuple, l_tupdesc, 3));
+				strcat(values[i_settlement_cash_type], "\"");
 			} else {
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
@@ -813,8 +821,10 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 							SPI_getvalue(l_tuple, l_tupdesc, 1));
 					strcat(values[i_cash_transaction_dts],
 							SPI_getvalue(l_tuple, l_tupdesc, 2));
+					strcat(values[i_cash_transaction_name], "\"");
 					strcat(values[i_cash_transaction_name],
 							SPI_getvalue(l_tuple, l_tupdesc, 3));
+					strcat(values[i_cash_transaction_name], "\"");
 					++num_cash;
 				} else {
 					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
@@ -848,8 +858,10 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				l_tuple = l_tuptable->vals[j];
 				strcat(values[i_trade_history_dts],
 							SPI_getvalue(l_tuple, l_tupdesc, 1));
+				strcat(values[i_trade_history_status_id], "\"");
 				strcat(values[i_trade_history_status_id],
 							SPI_getvalue(l_tuple, l_tupdesc, 2));
+				strcat(values[i_trade_history_status_id], "\"");
 			}
 			strcat(values[i_trade_history_dts], "}");
 			strcat(values[i_trade_history_status_id], "}");
@@ -1005,9 +1017,9 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 		values[i_cash_transaction_dts] =
 				(char *) palloc((MAXDATELEN * 20 + 22) * sizeof(char));
 		values[i_cash_transaction_name] =
-				(char *) palloc((CT_NAME_LEN * 20 + 22) * sizeof(char));
-		values[i_exec_name] =
-				(char *) palloc((T_EXEC_NAME_LEN * 20 + 22) * sizeof(char));
+				(char *) palloc(((CT_NAME_LEN + 2) * 20 + 22) * sizeof(char));
+		values[i_exec_name] = (char *) palloc(((T_EXEC_NAME_LEN + 2) * 20 +
+				22) * sizeof(char));
 		values[i_is_cash] =
 				(char *) palloc((SMALLINT_LEN * 20 + 22) * sizeof(char));
 		values[i_num_found] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
@@ -1018,27 +1030,27 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 		values[i_quantity] =
 				(char *) palloc((INTEGER_LEN * 20 + 22) * sizeof(char));
 		values[i_s_name] =
-				(char *) palloc((S_NAME_LEN * 20 + 22) * sizeof(char));
+				(char *) palloc(((S_NAME_LEN + 2) * 20 + 22) * sizeof(char));
 		values[i_settlement_amount] =
 				(char *) palloc((VALUE_T_LEN * 20 + 22) * sizeof(char));
 		values[i_settlement_cash_due_date] =
 				(char *) palloc((MAXDATELEN * 20 + 22) * sizeof(char));
-		values[i_settlement_cash_type] =
-				(char *) palloc((SE_CASH_TYPE_LEN * 20 + 22) * sizeof(char));
+		values[i_settlement_cash_type] = (char *) palloc(((SE_CASH_TYPE_LEN +
+				2) * 20 + 22) * sizeof(char));
 		values[i_status] =
 				(char *) palloc((STATUS_LEN + 1) * sizeof(char));
 		values[i_trade_dts] = (char *) palloc(((MAXDATELEN + 1) * 20 + 2) *
 				sizeof(char));
 		values[i_trade_history_dts] = (char *) palloc(((MAXDATELEN * 3 + 4) *
 				20 + 23) * sizeof(char));
-		values[i_trade_history_status_id] = (char *) palloc(((TT_NAME_LEN * 3
-				+ 4) * 20 + 23) * sizeof(char));
+		values[i_trade_history_status_id] = (char *) palloc((((ST_ID_LEN +
+				2) * 3 + 4) * 20 + 23) * sizeof(char));
 		values[i_trade_list] =
 				(char *) palloc((BIGINT_LEN * 20 + 22) * sizeof(char));
 		values[i_type_name] =
-				(char *) palloc((TT_NAME_LEN * 20 + 2) * sizeof(char));
+				(char *) palloc(((TT_NAME_LEN + 2) * 20 + 2) * sizeof(char));
 		values[i_trade_type] =
-				(char *) palloc((TT_NAME_LEN * 20 + 22) * sizeof(char));
+				(char *) palloc(((TT_ID_LEN + 2) * 20 + 22) * sizeof(char));
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
@@ -1059,10 +1071,6 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
-		} else {
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
-			dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
-					max_updates, start_trade_dts, symbol);
 		}
 
 		num_found = SPI_processed;
@@ -1120,7 +1128,9 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 			}
 
 			strcat(values[i_acct_id], SPI_getvalue(tuple, tupdesc, 1));
+			strcat(values[i_exec_name], "\"");
 			strcat(values[i_exec_name], SPI_getvalue(tuple, tupdesc, 2));
+			strcat(values[i_exec_name], "\"");
 			is_cash_str = SPI_getvalue(tuple, tupdesc, 3);
 			strcat(values[i_is_cash], (is_cash_str[0] == 't' ? "0" : "1"));
 			price = SPI_getvalue(tuple, tupdesc, 4);
@@ -1132,13 +1142,19 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 			quantity = SPI_getvalue(tuple, tupdesc, 5);
 			strcat(values[i_quantity], quantity);
 			s_name = SPI_getvalue(tuple, tupdesc, 6);
+			strcat(values[i_s_name], "\"");
 			strcat(values[i_s_name], s_name);
+			strcat(values[i_s_name], "\"");
 			strcat(values[i_trade_dts], SPI_getvalue(tuple, tupdesc, 7));
 			trade_list = SPI_getvalue(tuple, tupdesc, 8);
 			strcat(values[i_trade_list], trade_list);
+			strcat(values[i_trade_type], "\"");
 			strcat(values[i_trade_type], SPI_getvalue(tuple, tupdesc, 9));
+			strcat(values[i_trade_type], "\"");
 			type_name = SPI_getvalue(tuple, tupdesc, 10);
+			strcat(values[i_type_name], "\"");
 			strcat(values[i_type_name], type_name);
+			strcat(values[i_type_name], "\"");
 
 			sprintf(sql, TUF3_2, trade_list);
 #ifdef DEBUG
@@ -1153,8 +1169,10 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 						SPI_getvalue(l_tuple, l_tupdesc, 1));
 				strcat(values[i_settlement_cash_due_date],
 						SPI_getvalue(l_tuple, l_tupdesc, 2));
+				strcat(values[i_settlement_cash_type], "\"");
 				strcat(values[i_settlement_cash_type],
 						SPI_getvalue(l_tuple, l_tupdesc, 3));
+				strcat(values[i_settlement_cash_type], "\"");
 			} else {
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
@@ -1220,8 +1238,10 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 							SPI_getvalue(l_tuple, l_tupdesc, 1));
 					strcat(values[i_cash_transaction_dts],
 							SPI_getvalue(l_tuple, l_tupdesc, 2));
+					strcat(values[i_cash_transaction_name], "\"");
 					strcat(values[i_cash_transaction_name],
 							SPI_getvalue(l_tuple, l_tupdesc, 3));
+					strcat(values[i_cash_transaction_name], "\"");
 					++num_cash;
 				} else {
 					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
@@ -1256,8 +1276,10 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 					l_tuple = l_tuptable->vals[j];
 					strcat(values[i_trade_history_dts],
 								SPI_getvalue(l_tuple, l_tupdesc, 1));
+					strcat(values[i_trade_history_status_id], "\"");
 					strcat(values[i_trade_history_status_id],
 								SPI_getvalue(l_tuple, l_tupdesc, 2));
+					strcat(values[i_trade_history_status_id], "\"");
 				} else {
 					strcat(values[i_trade_history_dts], "NULL");
 					strcat(values[i_trade_history_status_id], "NULL");

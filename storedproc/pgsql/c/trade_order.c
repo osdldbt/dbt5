@@ -434,7 +434,7 @@ Datum TradeOrderFrame2(PG_FUNCTION_ARGS)
 		 */
 		values = (char **) palloc(sizeof(char *) * 2);
 		values[i_ap_acl] = NULL;
-		values[i_status] = (char *) palloc(2 * sizeof(char));
+		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
 
 		strcpy(exec_f_name, DatumGetCString(DirectFunctionCall1(textout,
 				PointerGetDatum(exec_f_name_p))));

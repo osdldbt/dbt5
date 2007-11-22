@@ -187,7 +187,7 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		}
 
 		sprintf(values[i_list_len], "%d", SPI_processed);
-		values[i_broker_name] = (char *) palloc((B_NAME_LEN *
+		values[i_broker_name] = (char *) palloc(((B_NAME_LEN + 2) *
 				(SPI_processed + 1) + 3) * sizeof(char));
 		values[i_volume] = (char *) palloc((INTEGER_LEN *
 				(SPI_processed + 1) + 3) * sizeof(char));
@@ -200,13 +200,17 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 			strcpy(values[i_volume], "{");
 
 			if (SPI_processed > 0) {
+				strcat(values[i_broker_name], "\"");
 				strcat(values[i_broker_name], SPI_getvalue(tuple, tupdesc, 1));
+				strcat(values[i_broker_name], "\"");
 				strcat(values[i_volume], SPI_getvalue(tuple, tupdesc, 2));
 			}
 			for (i = 1; i < SPI_processed; i++) {
 				tuple = tuptable->vals[i];
 				strcat(values[i_broker_name], ",");
+				strcat(values[i_broker_name], "\"");
 				strcat(values[i_broker_name], SPI_getvalue(tuple, tupdesc, 1));
+				strcat(values[i_broker_name], "\"");
 
 				strcat(values[i_volume], ",");
 				strcat(values[i_volume], SPI_getvalue(tuple, tupdesc, 2));

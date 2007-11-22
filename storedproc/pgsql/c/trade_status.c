@@ -96,16 +96,16 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 		values[i_charge] =
 				(char *) palloc((VALUE_T_LEN + 1) * sizeof(char) * 50);
 		values[i_ex_name] =
-				(char *) palloc((EX_NAME_LEN + 1) * sizeof(char) * 50);
+				(char *) palloc((EX_NAME_LEN + 3) * sizeof(char) * 50);
 		values[i_exec_name] =
-				(char *) palloc((T_EXEC_NAME_LEN + 1) * sizeof(char) * 50);
+				(char *) palloc((T_EXEC_NAME_LEN + 3) * sizeof(char) * 50);
 		values[i_s_name] =
-				(char *) palloc((S_NAME_LEN + 1) * sizeof(char) * 50);
+				(char *) palloc((S_NAME_LEN + 3) * sizeof(char) * 50);
 		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
 		values[i_status_name] =
-				(char *) palloc((ST_NAME_LEN + 1) * sizeof(char) * 50);
+				(char *) palloc((ST_NAME_LEN + 3) * sizeof(char) * 50);
 		values[i_symbol] =
-				(char *) palloc((S_SYMB_LEN + 1) * sizeof(char) * 50);
+				(char *) palloc((S_SYMB_LEN + 3) * sizeof(char) * 50);
 		values[i_trade_dts] =
 				(char *) palloc((MAXDATELEN + 1) * sizeof(char) * 50);
 		values[i_trade_id] =
@@ -113,7 +113,7 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 		values[i_trade_qty] =
 				(char *) palloc((INTEGER_LEN + 1) * sizeof(char) * 50);
 		values[i_type_name] =
-				(char *) palloc((TT_NAME_LEN + 1) * sizeof(char) * 50);
+				(char *) palloc((TT_NAME_LEN + 3) * sizeof(char) * 50);
 
 		values[i_cust_l_name] = NULL;
 		values[i_cust_f_name] = NULL;
@@ -172,14 +172,26 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 			}
 			strcat(values[i_trade_id], SPI_getvalue(tuple, tupdesc, 1));
 			strcat(values[i_trade_dts], SPI_getvalue(tuple, tupdesc, 2));
+			strcat(values[i_status_name], "\"");
 			strcat(values[i_status_name], SPI_getvalue(tuple, tupdesc, 3));
+			strcat(values[i_status_name], "\"");
+			strcat(values[i_type_name], "\"");
 			strcat(values[i_type_name], SPI_getvalue(tuple, tupdesc, 4));
+			strcat(values[i_type_name], "\"");
+			strcat(values[i_symbol], "\"");
 			strcat(values[i_symbol], SPI_getvalue(tuple, tupdesc, 5));
+			strcat(values[i_symbol], "\"");
 			strcat(values[i_trade_qty], SPI_getvalue(tuple, tupdesc, 6));
+			strcat(values[i_exec_name], "\"");
 			strcat(values[i_exec_name], SPI_getvalue(tuple, tupdesc, 7));
+			strcat(values[i_exec_name], "\"");
 			strcat(values[i_charge], SPI_getvalue(tuple, tupdesc, 8));
+			strcat(values[i_s_name], "\"");
 			strcat(values[i_s_name], SPI_getvalue(tuple, tupdesc, 9));
+			strcat(values[i_s_name], "\"");
+			strcat(values[i_ex_name], "\"");
 			strcat(values[i_ex_name], SPI_getvalue(tuple, tupdesc, 10));
+			strcat(values[i_ex_name], "\"");
 		}
 		strcat(values[i_trade_id], "}");
 		strcat(values[i_trade_dts], "}");

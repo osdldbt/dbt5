@@ -242,7 +242,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 	SPI_connect();
 
 	if (strcmp(table_name, "ACCOUNT_PERMISSION") == 0) {
-		char *acl = NULL;;
+		char *acl = NULL;
 
 		sprintf(sql, DMF1_1, acct_id);
 #ifdef DEBUG

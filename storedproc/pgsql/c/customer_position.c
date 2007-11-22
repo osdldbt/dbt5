@@ -258,6 +258,8 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 				strcat(values[i_asset_total], SPI_getvalue(tuple, tupdesc, 3));
 			}
 			for (i = 1; i < SPI_processed; i++) {
+				char *sum;
+
 				tuple = tuptable->vals[i];
 				strcat(values[i_acct_id], ",");
 				strcat(values[i_acct_id], SPI_getvalue(tuple, tupdesc, 1));
@@ -266,7 +268,12 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 				strcat(values[i_cash_bal], SPI_getvalue(tuple, tupdesc, 2));
 
 				strcat(values[i_asset_total], ",");
-				strcat(values[i_asset_total], SPI_getvalue(tuple, tupdesc, 3));
+				sum = SPI_getvalue(tuple, tupdesc, 3);
+				if (sum != NULL) {
+					strcat(values[i_asset_total], sum);
+				} else {
+					strcat(values[i_asset_total], "0.00");
+				}
 			}
 			strcat(values[i_acct_id], "}");
 			strcat(values[i_cash_bal], "}");
@@ -400,14 +407,13 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 
 			values[i_hist_dts] = (char *) palloc(((MAXDATELEN + 1) *
 					SPI_processed + 3) * sizeof(char));
-			values[i_qty] =
-					(char *) palloc(((INTEGER_LEN + 1) * SPI_processed + 3) *
-				sizeof(char));
-			values[i_symbol] = (char *) palloc(((S_SYMB_LEN + 1) *
+			values[i_qty] = (char *) palloc(((INTEGER_LEN + 1) *
+					SPI_processed + 3) * sizeof(char));
+			values[i_symbol] = (char *) palloc(((S_SYMB_LEN + 3) *
 					SPI_processed + 3) * sizeof(char));
 			values[i_trade_id] = (char *) palloc(((IDENT_T_LEN + 1) *
 					SPI_processed + 3) * sizeof(char));
-			values[i_trade_status] = (char *) palloc(((ST_NAME_LEN + 1) *
+			values[i_trade_status] = (char *) palloc(((ST_NAME_LEN + 3) *
 					SPI_processed + 3) * sizeof(char));
 
 			strcpy(values[i_hist_dts], "{");
@@ -418,9 +424,13 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 
 			strcat(values[i_hist_dts], SPI_getvalue(tuple, tupdesc, 5));
 			strcat(values[i_qty], SPI_getvalue(tuple, tupdesc, 3));
+			strcat(values[i_symbol], "\"");
 			strcat(values[i_symbol], SPI_getvalue(tuple, tupdesc, 2));
+			strcat(values[i_symbol], "\"");
 			strcat(values[i_trade_id], SPI_getvalue(tuple, tupdesc, 1));
+			strcat(values[i_trade_status], "\"");
 			strcat(values[i_trade_status], SPI_getvalue(tuple, tupdesc, 4));
+			strcat(values[i_trade_status], "\"");
 
 			for (i = 1; i < SPI_processed; i++) {
 				tuple = tuptable->vals[i];
@@ -432,13 +442,17 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 				strcat(values[i_qty], SPI_getvalue(tuple, tupdesc, 3));
 
 				strcat(values[i_symbol], ",");
+				strcat(values[i_symbol], "\"");
 				strcat(values[i_symbol], SPI_getvalue(tuple, tupdesc, 2));
+				strcat(values[i_symbol], "\"");
 
 				strcat(values[i_trade_id], ",");
 				strcat(values[i_trade_id], SPI_getvalue(tuple, tupdesc, 1));
 
 				strcat(values[i_trade_status], ",");
+				strcat(values[i_trade_status], "\"");
 				strcat(values[i_trade_status], SPI_getvalue(tuple, tupdesc, 4));
+				strcat(values[i_trade_status], "\"");
 			}
 			strcat(values[i_hist_dts], "}");
 			strcat(values[i_qty], "}");

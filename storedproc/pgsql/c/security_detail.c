@@ -235,9 +235,9 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		 */
 		values = (char **) palloc(sizeof(char *) * 46);
 		values[i_cp_co_name] = (char *) palloc(sizeof(char) *
-				(MAX_COMP_LEN * (CO_NAME_LEN + 1) + 3));
+				(MAX_COMP_LEN * (CO_NAME_LEN + 3) + 3));
 		values[i_cp_in_name] = (char *) palloc(sizeof(char) *
-				(MAX_COMP_LEN * (IN_NAME_LEN + 1) + 3));
+				(MAX_COMP_LEN * (IN_NAME_LEN + 3) + 3));
 		values[i_day] = (char *) palloc(sizeof(char) * ((MAXDATELEN +
 				DM_CLOSE_LEN + DM_HIGH_LEN + DM_LOW_LEN + DM_VOL_LEN + 7) *
 				max_rows_to_return + 3));
@@ -474,8 +474,8 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			values[i_last_open] = SPI_getvalue(tuple, tupdesc, 2);
 			values[i_last_price] = SPI_getvalue(tuple, tupdesc, 1);
+			values[i_last_open] = SPI_getvalue(tuple, tupdesc, 2);
 			values[i_last_vol] = SPI_getvalue(tuple, tupdesc, 3);
 		} else {
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
