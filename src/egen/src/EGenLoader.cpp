@@ -242,6 +242,13 @@ char  *vp;
               break;
           }
 #endif
+#ifdef COMPILE_PGSQL_LOAD
+          if ( 0 == strcmp( vp, "PGSQL" ))
+          {
+              LoadType = PGSQL_LOAD;
+              break;
+          }
+#endif
           Usage();
           exit( ERROR_BAD_OPTION );
           break;
