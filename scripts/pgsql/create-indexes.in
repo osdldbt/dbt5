@@ -65,13 +65,14 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	TS_I_CA_C_ID_DIR="${TSDIR}/i_ca_c_id/ts"
 	TS_I_WL_C_ID_DIR="${TSDIR}/i_wl_c_id/ts"
 	TS_I_DM_S_SYMB_DIR="${TSDIR}/i_dm_s_symb/ts"
-	TS_I_TR_S_SYM_DIR="${TSDIR}/i_tr_s_symb/ts"
+	TS_I_TR_S_SYMB_DIR="${TSDIR}/i_tr_s_symb/ts"
 	TS_I_T_ST_ID_DIR="${TSDIR}/i_t_st_id/ts"
 	TS_I_T_ST_ID_DIR="${TSDIR}/i_t_st_id/ts"
 	TS_I_T_CA_ID_DIR="${TSDIR}/i_t_ca_id/ts"
 	TS_I_CO_NAME_DIR="${TSDIR}/i_co_name/ts"
 	TS_I_SECURITY_DIR="${TSDIR}/i_security/ts"
 	TS_I_HOLDING_DIR="${TSDIR}/i_holding/ts"
+	TS_I_CHARGE_DIR="${TSDIR}/i_charge/ts"
 
 	#
 	# Creating 'ts' subdirectories because PostgreSQL doesn't like that
@@ -116,7 +117,7 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	mkdir -p ${TS_I_CA_C_ID_DIR} || exit 1
 	mkdir -p ${TS_I_WL_C_ID_DIR} || exit 1
 	mkdir -p ${TS_I_DM_S_SYMB_DIR} || exit 1
-	mkdir -p ${TS_I_TR_S_SYM_DIR} || exit 1
+	mkdir -p ${TS_I_TR_S_SYMB_DIR} || exit 1
 	mkdir -p ${TS_I_T_ST_ID_DIR} || exit 1
 	mkdir -p ${TS_I_T_CA_ID_DIR} || exit 1
 	mkdir -p ${TS_I_CO_NAME_DIR} || exit 1
@@ -164,9 +165,10 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	TS_I_TR_S_SYMB="TABLESPACE dbt5_i_tr_s_symb"
 	TS_I_T_ST_ID="TABLESPACE dbt5_i_t_st_id"
 	TS_I_T_CA_ID="TABLESPACE dbt5_i_t_ca_id"
-	TS_I_CO_NAME_ID="TABLESPACE dbt5_i_co_name"
+	TS_I_CO_NAME="TABLESPACE dbt5_i_co_name"
 	TS_I_SECURITY="TABLESPACE dbt5_i_security"
 	TS_I_HOLDING="TABLESPACE dbt5_i_holding"
+	TS_I_CHARGE="TABLESPACE dbt5_i_charge"
 
 	#
 	# Don't need to '|| exit 1' in case the tablespaces already exist.
@@ -251,27 +253,27 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 			-c "CREATE ${TS_PK_ZIP_CODE} LOCATION '${TS_PK_ZIP_CODE_DIR}';"
 
 	${PSQL} -p ${PORT} -e -d ${DBNAME} \
-			-c "CREATE ${TS_I_C_TAX_ID} LOCATION '${TS_I_C_TAX_ID}';"
+			-c "CREATE ${TS_I_C_TAX_ID} LOCATION '${TS_I_C_TAX_ID_DIR}';"
 	${PSQL} -p ${PORT} -e -d ${DBNAME} \
-			-c "CREATE ${TS_I_CA_C_ID} LOCATION '${TS_I_CA_C_ID}';"
+			-c "CREATE ${TS_I_CA_C_ID} LOCATION '${TS_I_CA_C_ID_DIR}';"
 	${PSQL} -p ${PORT} -e -d ${DBNAME} \
-			-c "CREATE ${TS_I_WL_C_ID} LOCATION '${TS_I_WL_C_ID}';"
+			-c "CREATE ${TS_I_WL_C_ID} LOCATION '${TS_I_WL_C_ID_DIR}';"
 	${PSQL} -p ${PORT} -e -d ${DBNAME} \
-			-c "CREATE ${TS_I_DM_S_SYMB} LOCATION '${TS_I_DM_S_SYMB}';"
+			-c "CREATE ${TS_I_DM_S_SYMB} LOCATION '${TS_I_DM_S_SYMB_DIR}';"
 	${PSQL} -p ${PORT} -e -d ${DBNAME} \
-			-c "CREATE ${TS_I_TR_S_SYMB} LOCATION '${TS_I_TR_S_SYMB}';"
+			-c "CREATE ${TS_I_TR_S_SYMB} LOCATION '${TS_I_TR_S_SYMB_DIR}';"
 	${PSQL} -p ${PORT} -e -d ${DBNAME} \
-			-c "CREATE ${TS_I_T_ST_ID} LOCATION '${TS_I_T_ST_ID}';"
+			-c "CREATE ${TS_I_T_ST_ID} LOCATION '${TS_I_T_ST_ID_DIR}';"
 	${PSQL} -p ${PORT} -e -d ${DBNAME} \
-			-c "CREATE ${TS_I_T_CA_ID} LOCATION '${TS_I_T_CA_ID}';"
+			-c "CREATE ${TS_I_T_CA_ID} LOCATION '${TS_I_T_CA_ID_DIR}';"
 	${PSQL} -p ${PORT} -e -d ${DBNAME} \
-			-c "CREATE ${TS_I_CO_NAME} LOCATION '${TS_I_CO_NAME}';"
+			-c "CREATE ${TS_I_CO_NAME} LOCATION '${TS_I_CO_NAME_DIR}';"
 	${PSQL} -p ${PORT} -e -d ${DBNAME} \
-			-c "CREATE ${TS_I_SECURITY} LOCATION '${TS_I_SECURITY}';"
+			-c "CREATE ${TS_I_SECURITY} LOCATION '${TS_I_SECURITY_DIR}';"
 	${PSQL} -p ${PORT} -e -d ${DBNAME} \
-			-c "CREATE ${TS_I_HOLDING} LOCATION '${TS_I_HOLDING}';"
+			-c "CREATE ${TS_I_HOLDING} LOCATION '${TS_I_HOLDING_DIR}';"
 	${PSQL} -p ${PORT} -e -d ${DBNAME} \
-			-c "CREATE ${TS_I_CHARGE} LOCATION '${TS_I_CHARGE}';"
+			-c "CREATE ${TS_I_CHARGE} LOCATION '${TS_I_CHARGE_DIR}';"
 
 	#
 	# Rewrite these variables for the actualy index creation.
