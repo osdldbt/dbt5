@@ -98,7 +98,7 @@ ${DIR}/start-db -p "${PARAMETERS}" || exit 1
 
 ${DIR}/create-tables -p ${PORT} ${TABLESPACES_FLAG} || exit 1
 (cd ${EGENDIR} && \
-		bin/EGenLoader -f ${SCALE_FACTOR} -w ${WORKDAYS} \
+		bin/EGenLoader -l PGSQL -f ${SCALE_FACTOR} -w ${WORKDAYS} \
 		-c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} -p ${PORT}) || exit 1
 ${DIR}/create-indexes -p ${PORT} ${TABLESPACES_FLAG} || exit 1
 ${DIR}/load-stored-procs -p ${PORT} || exit 1
