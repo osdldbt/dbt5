@@ -245,7 +245,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 		TTradeUpdateFrame2Output *pOut)
 {
 #ifdef DEBUG
-	cout << "TLF2" << endl;
+	cout << "TUF2" << endl;
 #endif
 
 	enum tuf2 {
@@ -299,8 +299,6 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 		++i;
 	}
 	vAux.clear();
-
-	pOut->num_updated = c[0].as(int());
 
 	Tokenize(c[i_cash_transaction_amount].c_str(), vAux);
 	i = 0;
@@ -394,89 +392,9 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 	}
 	vAux.clear();
 
-	i = 0;	
-	for ( c; c != R.end(); ++c )
-	{
-		pOut->trade_info[i].bid_price = c[1].as(double());
-		strcpy(pOut->trade_info[i].exec_name, c[2].c_str());
-		pOut->trade_info[i].is_cash = c[3].as(int());
-		pOut->trade_info[i].trade_price = c[4].as(double());
-		pOut->trade_info[i].trade_id = c[5].as(int());
-		pOut->trade_info[i].settlement_amount = c[6].as(double());
-		pOut->trade_info[i].settlement_cash_due_date.year =
-				c[7].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.month =
-				c[8].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.day =
-				c[9].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.hour =
-				c[10].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.minute =
-				c[11].as(int());
-		pOut->trade_info[i].settlement_cash_due_date.second =
-				int(c[12].as(double()));
-		strcpy(pOut->trade_info[i].settlement_cash_type,
-				c[13].c_str());
-		pOut->trade_info[i].cash_transaction_amount =
-				c[14].as(double());
-		pOut->trade_info[i].cash_transaction_dts.year =
-				c[15].as(int());
-		pOut->trade_info[i].cash_transaction_dts.month =
-				c[16].as(int());
-		pOut->trade_info[i].cash_transaction_dts.day =
-				c[17].as(int());
-		pOut->trade_info[i].cash_transaction_dts.hour =
-				c[18].as(int());
-		pOut->trade_info[i].cash_transaction_dts.minute =
-				c[19].as(int());
-		pOut->trade_info[i].cash_transaction_dts.second =
-				int(c[20].as(double()));
-		strcpy(pOut->trade_info[i].cash_transaction_name,
-				c[21].c_str());
-		pOut->trade_info[i].trade_history_dts[0].year =
-				c[22].as(int());
-		pOut->trade_info[i].trade_history_dts[0].month =
-				 c[23].as(int());
-		pOut->trade_info[i].trade_history_dts[0].day = c[24].as(int());
-		pOut->trade_info[i].trade_history_dts[0].hour =
-				 c[25].as(int());
-		pOut->trade_info[i].trade_history_dts[0].minute =
-				 c[26].as(int());
-		pOut->trade_info[i].trade_history_dts[0].second =
-				 int(c[27].as(double()));
-		strcpy(pOut->trade_info[i].trade_history_status_id[0],
-				 c[28].c_str());
-		pOut->trade_info[i].trade_history_dts[1].year =
-				 c[29].as(int());
-		pOut->trade_info[i].trade_history_dts[1].month =
-				 c[30].as(int());
-		pOut->trade_info[i].trade_history_dts[1].day = c[31].as(int());
-		pOut->trade_info[i].trade_history_dts[1].hour =
-				 c[32].as(int());
-		pOut->trade_info[i].trade_history_dts[1].minute =
-				 c[33].as(int());
-		pOut->trade_info[i].trade_history_dts[1].second =
-				 int(c[34].as(double()));
-		strcpy(pOut->trade_info[i].trade_history_status_id[1],
-				 c[35].c_str());
-		pOut->trade_info[i].trade_history_dts[2].year =
-				 c[36].as(int());
-		pOut->trade_info[i].trade_history_dts[2].month =
-				 c[37].as(int());
-		pOut->trade_info[i].trade_history_dts[2].day = c[38].as(int());
-		pOut->trade_info[i].trade_history_dts[2].hour =
-				 c[39].as(int());
-		pOut->trade_info[i].trade_history_dts[2].minute =
-				 c[40].as(int());
-		pOut->trade_info[i].trade_history_dts[2].second =
-				 int(c[41].as(double()));
-		strcpy(pOut->trade_info[i].trade_history_status_id[2],
-				 c[42].c_str());
-
-		i++;
-	}
- 	pOut->num_found = i;
-	pOut->status = CBaseTxnErr::SUCCESS;
+ 	pOut->num_found = c[i_num_found].as(int());
+	pOut->num_updated = c[i_num_updated].as(int());
+	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
 	m_coutLock.ClaimLock();
@@ -563,7 +481,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
 		TTradeUpdateFrame3Output *pOut)
 {
 #ifdef DEBUG
-	cout << "TLF3" << endl;
+	cout << "TUF3" << endl;
 #endif
 
 	enum tuf3 {                                                             
