@@ -1,5 +1,5 @@
 /*
- * 2006 Rilson Nascimento
+ * Copyright (C) 2006-2007 Rilson Nascimento
  *
  * Customer Position transaction
  * ------------------------
@@ -18,101 +18,122 @@
  */
 
 CREATE OR REPLACE FUNCTION CustomerPositionFrame1 (
-						IN cust_id	IDENT_T,
-						IN tax_id	char(20),
-						IN max_acct_len integer) RETURNS SETOF record AS $$
+		INOUT cust_id IDENT_T,
+		IN tax_id VARCHAR(20),
+		OUT acct_id BIGINT[],
+		OUT acct_len INTEGER,
+		OUT asset_total NUMERIC(14,2)[],
+		OUT c_ad_id IDENT_T,
+		OUT c_area_1 VARCHAR(3),
+		OUT c_area_2 VARCHAR(3),
+		OUT c_area_3 VARCHAR(3),
+		OUT c_ctry_1 VARCHAR(3),
+		OUT c_ctry_2 VARCHAR(3),
+		OUT c_ctry_3 VARCHAR(3),
+		OUT c_dob DATE,
+		OUT c_email_1 VARCHAR(50),
+		OUT c_email_2 VARCHAR(50),
+		OUT c_ext_1 VARCHAR(5),
+		OUT c_ext_2 VARCHAR(5),
+		OUT c_ext_3 VARCHAR(5),
+		OUT c_f_name VARCHAR(30),
+		OUT c_gndr VARCHAR(1),
+		OUT c_l_name VARCHAR(30),
+		OUT c_local_1 VARCHAR(10),
+		OUT c_local_2 VARCHAR(10),
+		OUT c_local_3 VARCHAR(10),
+		OUT c_m_name VARCHAR(1),
+		OUT c_st_id VARCHAR(4),
+		OUT c_tier SMALLINT,
+		OUT cash_bal NUMERIC(12, 2)[],
+		OUT status INTEGER)
+RETURNS SETOF record AS $$
 DECLARE
-	-- output parameters
-	customer_id	IDENT_T;
-	acct_id		text;
-	acct_bal	text;
-	asset_total	text;
-	acct_len	integer;
-
-	-- variables
-	i		integer;
-	rs		RECORD;
+	r RECORD;
 BEGIN
-	customer_id = cust_id;
-
-	IF customer_id = 0 THEN
+	IF cust_id = 0 THEN
 		SELECT	C_ID
-		INTO	customer_id
+		INTO	cust_id
 		FROM	CUSTOMER
 		WHERE	C_TAX_ID = tax_id;
 	END IF;
 
+	SELECT	C_ST_ID,
+	        C_L_NAME,
+	        C_F_NAME,
+	        C_M_NAME,
+	        C_GNDR,
+	        C_TIER,
+	        C_DOB,
+	        C_AD_ID,
+	        C_CTRY_1,
+	        C_AREA_1,
+	        C_LOCAL_1,
+	        C_EXT_1,
+	        C_CTRY_2,
+	        C_AREA_2,
+	        C_LOCAL_2,
+	        C_EXT_2,
+	        C_CTRY_3,
+	        C_AREA_3,
+	        C_LOCAL_3,
+	        C_EXT_3,
+	        C_EMAIL_1,
+	        C_EMAIL_2
+	INTO	C_ST_ID,
+	        C_L_NAME,
+	        C_F_NAME,
+	        C_M_NAME,
+	        C_GNDR,
+	        C_TIER,
+	        C_DOB,
+	        C_AD_ID,
+	        C_CTRY_1,
+	        C_AREA_1,
+	        C_LOCAL_1,
+	        C_EXT_1,
+	        C_CTRY_2,
+	        C_AREA_2,
+	        C_LOCAL_2,
+	        C_EXT_2,
+	        C_CTRY_3,
+	        C_AREA_3,
+	        C_LOCAL_3,
+	        C_EXT_3,
+	        C_EMAIL_1,
+	        C_EMAIL_2
+	FROM	CUSTOMER
+	WHERE	c_id = cust_id;
+
 	-- Should return 1 to max_acct_len.
-
-	i = 1;
-	acct_id = '';
-	acct_bal = '';
-	asset_total = '';
-
-	FOR rs IN
-		SELECT	CA_ID,
-			CA_BAL,
-			sum(HS_QTY * LT_PRICE) as soma
-		FROM	CUSTOMER_ACCOUNT left outer join
-			HOLDING_SUMMARY on HS_CA_ID = CA_ID,
-			LAST_TRADE
-		WHERE	CA_C_ID = customer_id AND
-			LT_S_SYMB = HS_S_SYMB
-		GROUP BY CA_ID, CA_BAL
-		ORDER BY 3 asc
-		LIMIT max_acct_len
+	acct_len := 0;
+	FOR r IN
+			SELECT CA_ID,
+			       CA_BAL,
+			       sum(HS_QTY * LT_PRICE) as soma
+			FROM CUSTOMER_ACCOUNT left outer join
+			     HOLDING_SUMMARY on HS_CA_ID = CA_ID,
+			     LAST_TRADE
+			WHERE CA_C_ID = cust_id
+			  AND LT_S_SYMB = HS_S_SYMB
+			GROUP BY CA_ID, CA_BAL
+			ORDER BY 3 asc
+			LIMIT 10
 	LOOP
-		acct_id = acct_id || '|' || rs.CA_ID;
-		acct_bal = acct_bal || '|' || rs.CA_BAL;
+		acct_len := acct_len + 1;
+		acct_id[acct_len] := r.CA_ID;
+		cash_bal[acct_len] := r.CA_BAL;
 
-		IF rs.soma is null THEN
-			asset_total = asset_total || '|' || 0;
+		IF r.soma is null THEN
+			asset_total[acct_len] := 0.00;
 		ELSE
-			asset_total = asset_total || '|' || rs.soma;
+			asset_total[acct_len] := r.soma;
 		END IF;
-		i = i + 1;
 	END LOOP;
 
-	acct_len = i - 1;
+	status := 0;
 
-	SELECT	customer_id,
-		acct_id,
-		acct_len,
-		acct_bal,
-		asset_total,
-		C_ST_ID,
-		C_L_NAME,
-		C_F_NAME,
-		C_M_NAME,
-		C_GNDR,
-		C_TIER,
-		extract(year from C_DOB),
-		extract(month from C_DOB),
-		extract(day from C_DOB),
-		extract(hour from C_DOB),
-		extract(minute from C_DOB),
-		extract(second from C_DOB),
-		C_AD_ID,
-		C_CTRY_1,
-		C_AREA_1,
-		C_LOCAL_1,
-		C_EXT_1,
-		C_CTRY_2,
-		C_AREA_2,
-		C_LOCAL_2,
-		C_EXT_2,
-		C_CTRY_3,
-		C_AREA_3,
-		C_LOCAL_3,
-		C_EXT_3,
-		C_EMAIL_1,
-		C_EMAIL_2
-	INTO	rs
-	FROM	CUSTOMER
-	WHERE	C_ID = customer_id;
-
-	RETURN NEXT rs;
-
+	RETURN NEXT;
 END;
 $$ LANGUAGE 'plpgsql';
 
@@ -123,40 +144,48 @@ $$ LANGUAGE 'plpgsql';
  * specified customer account at or after the specified time.
  */
 
-CREATE OR REPLACE FUNCTION CustomerPositionFrame2(IN acct_id IDENT_T) RETURNS SETOF record AS $$
+CREATE OR REPLACE FUNCTION CustomerPositionFrame2(
+		IN acct_id IDENT_T,
+		OUT hist_dts TIMESTAMP[],
+		OUT hist_len INTEGER,
+		OUT qty INTEGER[],
+		OUT status INTEGER,
+		OUT symbol VARCHAR(15)[],
+		OUT trade_id BIGINT[],
+		OUT trade_status VARCHAR(10)[])
+RETURNS SETOF record AS $$
 DECLARE
-	-- variables
-	rs		RECORD;
+	r		RECORD;
 BEGIN
-	-- Should return 1 to 30 rows.
-
-	FOR rs IN
-		SELECT	T_ID,
-			T_S_SYMB,
-			T_QTY,
-			ST_NAME,
-			extract(year from TH_DTS),
-			extract(month from TH_DTS),
-			extract(day from TH_DTS),
-			extract(hour from TH_DTS),
-			extract(minute from TH_DTS),
-			extract(second from TH_DTS)
-		FROM	(SELECT
-			T_ID as ID
-			FROM	TRADE
-			WHERE	T_CA_ID = acct_id
-			ORDER BY T_DTS desc LIMIT 10) as T,
-			TRADE,
-			TRADE_HISTORY,
-			STATUS_TYPE
-		WHERE	T_ID = ID AND
-			TH_T_ID = T_ID AND
-			ST_ID = TH_ST_ID
-		ORDER BY TH_DTS desc
-		LIMIT 30
+	hist_len := 0;
+	FOR r IN
+			SELECT T_ID,
+			       T_S_SYMB,
+			       T_QTY,
+			       ST_NAME,
+			       TH_DTS
+			FROM (SELECT T_ID as ID
+			      FROM TRADE
+			      WHERE T_CA_ID = acct_id
+			      ORDER BY T_DTS desc LIMIT 10) as T,
+			     TRADE,
+			     TRADE_HISTORY,
+			     STATUS_TYPE
+			WHERE T_ID = ID
+			  AND TH_T_ID = T_ID
+			  AND ST_ID = TH_ST_ID
+			ORDER BY TH_DTS desc
+			LIMIT 30
 	LOOP
-		RETURN NEXT rs;
+		trade_id[hist_len] := r.t_id;
+		symbol[hist_len] := r.t_s_symb;
+		qty[hist_len] := r.t_qty;
+		trade_status[hist_len] := r.st_name;
+		hist_dts[hist_len] := r.th_dts;
 	END LOOP;
+
+	status := 0;
+
+	RETURN NEXT;
 END;
 $$ LANGUAGE 'plpgsql';
-
