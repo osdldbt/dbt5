@@ -6,9 +6,9 @@
  */
 
 CREATE OR REPLACE FUNCTION DataMaintenanceFrame1 (
-		IN acct_id BIGINT,
-		IN c_id BIGINT,
-		IN co_id BIGINT,
+		IN acct_id IDENT_T,
+		IN c_id IDENT_T,
+		IN co_id IDENT_T,
 		IN day_of_month INTEGER,
 		IN symbol VARCHAR(15),
 		IN table_name VARCHAR,
