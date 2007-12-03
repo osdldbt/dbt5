@@ -11,8 +11,8 @@
  */
 
 CREATE OR REPLACE FUNCTION BrokerVolumeFrame1 (
-		IN broker_list VARCHAR[],
-		IN sector_name VARCHAR,
+		IN in_broker_list VARCHAR[],
+		IN in_sector_name VARCHAR,
 		OUT broker_name VARCHAR(100)[],
 		OUT list_len INTEGER,
 		OUT status INTEGER,
@@ -30,8 +30,8 @@ BEGIN
 	  		AND s_co_id = co_id
 	  		AND co_in_id = in_id
 	  		AND sc_id = in_sc_id
-	  		AND b_name = ANY (broker_list)
-	  		AND sc_name = sector_name
+	  		AND b_name = ANY (in_broker_list)
+	  		AND sc_name = in_sector_name
 			GROUP BY b_name
 			ORDER BY 2 DESC
 	LOOP
