@@ -11,13 +11,13 @@
  */
 
 CREATE OR REPLACE FUNCTION DataMaintenanceFrame1 (
-		IN acct_id IDENT_T,
-		IN c_id IDENT_T,
-		IN co_id  IDENT_T,
+		IN in_acct_id IDENT_T,
+		IN in_c_id IDENT_T,
+		IN in_co_id IDENT_T,
 		IN day_of_month INTEGER,
 		IN symbol VARCHAR(15),
 		IN table_name VARCHAR(18),
-		IN tx_id VARCHAR(4),
+		IN in_tx_id VARCHAR(4),
 		IN vol_incr INTEGER,
 		OUT status INTEGER)
 RETURNS INTEGER AS $$
@@ -28,7 +28,7 @@ DECLARE
 	acl VARCHAR(4);
 
 	line2		varchar;
-	addr_id		IDENT_T;
+	addr_id IDENT_T;
 
 	sprate		char(4);
 
@@ -50,14 +50,14 @@ BEGIN
 	IF table_name = 'ACCOUNT_PERMISSION' THEN
 		-- ACCOUNT_PERMISSION
 		-- Update the AP_ACL to “1111” or “0011” in rows for
-		-- an account of acct_id.
+		-- an account of in_acct_id.
 
 		acl = NULL;
 
 		SELECT AP_ACL
 		INTO acl
 		FROM ACCOUNT_PERMISSION
-		WHERE AP_CA_ID = acct_id
+		WHERE AP_CA_ID = in_acct_id
 		ORDER BY ap_acl DESC
 		LIMIT 1;
 
@@ -79,25 +79,29 @@ BEGIN
 		line2 = NULL;
 		addr_id = 0;
 
-		SELECT	AD_LINE2,
-			AD_ID
-		INTO	line2,
-			addr_id 
-		FROM	ADDRESS,
-			CUSTOMER
-		WHERE	AD_ID = C_AD_ID AND
-			C_ID = c_id;
-
-		IF line2 != 'Apt. 10C' THEN
-			UPDATE	ADDRESS
-			SET	AD_LINE2 = 'Apt. 10C'
-			WHERE	AD_ID = addr_id;
+		IF in_c_id != 0 THEN
+			SELECT ad_line2, ad_id
+			INTO line2, addr_id 
+			FROM address, customer
+			WHERE ad_id = c_ad_id
+			  AND c_id = in_c_id;
 		ELSE
-			UPDATE	ADDRESS
-			SET	AD_LINE2 = 'Apt. 22'
-			WHERE	AD_ID = addr_id;
+			SELECT ad_line2, ad_id
+			INTO line2, addr_id 
+			FROM address, company
+			WHERE ad_id = co_ad_id
+			  AND co_id = in_co_id;
 		END IF;
 
+		IF line2 != 'Apt. 10C' THEN
+			UPDATE address
+			SET	ad_line2 = 'Apt. 10C'
+			WHERE ad_id = addr_id;
+		ELSE
+			UPDATE address
+			SET ad_line2 = 'Apt. 22'
+			WHERE ad_id = addr_id;
+		END IF;
 	ELSIF table_name = 'COMPANY' THEN
 		-- COMPANY
 		-- Update a row in the COMPANY table identified
@@ -109,16 +113,16 @@ BEGIN
 		SELECT	CO_SP_RATE
 		INTO	sprate
 		FROM	COMPANY
-		WHERE	CO_ID = co_id;
+		WHERE	CO_ID = in_co_id;
 
 		IF sprate != 'ABA' THEN
 			UPDATE	COMPANY
 			SET	CO_SP_RATE = 'ABA'
-			WHERE	CO_ID = co_id;
+			WHERE	CO_ID = in_co_id;
 		ELSE
 			UPDATE	COMPANY
 			SET	CO_SP_RATE = 'AAA'
-			WHERE	CO_ID = co_id;
+			WHERE	CO_ID = in_co_id;
 		END IF;
 
 	ELSIF table_name = 'CUSTOMER' THEN
@@ -135,7 +139,7 @@ BEGIN
 		SELECT	C_EMAIL_2
 		INTO	email2
 		FROM	CUSTOMER
-		WHERE	C_ID = c_id;
+		WHERE	C_ID = in_c_id;
 
 		len = char_length(email2);
 		len = len - lenMindspring;
@@ -145,12 +149,12 @@ BEGIN
 			UPDATE	CUSTOMER
 			SET	C_EMAIL_2 = substring(C_EMAIL_2 from 1 for position('@' in C_EMAIL_2)) || 'earthlink.com'
 			-- SET	C_EMAIL_2 = substring(C_EMAIL_2, 1, charindex(“@”,C_EMAIL_2) ) + 'earthlink.com'
-			WHERE	C_ID = c_id;
+			WHERE	C_ID = in_c_id;
 		ELSE /* set to @mindspring.com */
 			UPDATE	CUSTOMER
 			SET	C_EMAIL_2 = substring(C_EMAIL_2 from 1 for position('@' in C_EMAIL_2) ) || 'mindspring.com'
 			-- SET	C_EMAIL_2 = substring(C_EMAIL_2, 1,charindex(“@”,C_EMAIL_2) ) + 'mindspring.com'
-			WHERE	C_ID = c_id;
+			WHERE	C_ID = in_c_id;
 		END IF;
 
 	ELSIF table_name = 'CUSTOMER_TAXRATE' THEN
@@ -184,20 +188,20 @@ BEGIN
 		SELECT	count(*)
 		INTO	rowcount
 		FROM	CUSTOMER_TAXRATE
-		WHERE	CX_C_ID = c_id AND
+		WHERE	CX_C_ID = in_c_id AND
 			CX_TX_ID = '999';
 
 		IF rowcount = 0 THEN
 			/* No 999 tax rate for customer, */
 			/* add one for them */
 			INSERT INTO	CUSTOMER_TAXRATE (CX_TX_ID, CX_C_ID)
-			VALUES		('999', c_id);
+			VALUES		('999', in_c_id);
 		ELSE
 			-- There was a “999” tax rate for
 			-- this, customer delete it.
 			DELETE FROM	CUSTOMER_TAXRATE
 			WHERE		CX_TX_ID = '999' AND
-					CX_C_ID = c_id;
+					CX_C_ID = in_c_id;
 		END IF;
 
 	ELSIF table_name = 'DAILY_MARKET' THEN
@@ -267,18 +271,18 @@ BEGIN
 		SELECT	count(*)
 		INTO	rowcount
 		FROM	FINANCIAL
-		WHERE	FI_CO_ID = co_id AND
+		WHERE	FI_CO_ID = in_co_id AND
 			substring(FI_QTR_START_DATE from 9 for 2)::smallint = 1;
 			-- substring(convert(char(8),FI_QTR_START_DATE,2),7,2) = “01”;
 
 		IF rowcount > 0 THEN
 			UPDATE	FINANCIAL
 			SET	FI_QTR_START_DATE = FI_QTR_START_DATE + interval '1 day'
-			WHERE	FI_CO_ID = co_id;
+			WHERE	FI_CO_ID = in_co_id;
 		ELSE
 			UPDATE	FINANCIAL
 			SET	FI_QTR_START_DATE = FI_QTR_START_DATE - interval '1 day'
-			WHERE	FI_CO_ID = co_id;
+			WHERE	FI_CO_ID = in_co_id;
 		END IF;
 
 	ELSIF table_name = 'NEWS_ITEM' THEN
@@ -290,7 +294,7 @@ BEGIN
 		SET	NI_DTS = NI_DTS + interval '1 day'
 		WHERE	NI_ID = (SELECT NX_NI_ID
 					FROM	NEWS_XREF
-					WHERE	NX_CO_ID = co_id LIMIT 1);
+					WHERE	NX_CO_ID = in_co_id LIMIT 1);
 
 	ELSIF table_name = 'SECURITY' THEN
 		-- SECURITY
@@ -316,7 +320,7 @@ BEGIN
 		SELECT	TX_NAME
 		INTO	tax_name
 		FROM	TAXRATE
-		WHERE	TX_ID = tx_id;
+		WHERE	TX_ID = in_tx_id;
 
 		IF tax_name IS NOT NULL THEN
 			name_len = char_length(tax_name);
@@ -334,13 +338,13 @@ BEGIN
 				UPDATE	TAXRATE
 				SET	TX_NAME = TX_NAME || ' rate'
 				WHERE	TX_NAME not like '% rate' AND
-					TX_ID = tx_id;
+					TX_ID = in_tx_id;
 			ELSE
 				-- row already has a TX_NAME that ends “ rate”
 				UPDATE	TAXRATE
 				SET	TX_NAME = substring(TX_NAME from 1 for char_length(TX_NAME) - char_length(' rate'))
 				--SET	TX_NAME = substring(TX_NAME,1,len(TX_NAME)-len(“ rate”))
-				WHERE	TX_ID = tx_id;
+				WHERE	TX_ID = in_tx_id;
 			END IF;
 		END IF;
 
@@ -364,7 +368,7 @@ BEGIN
 		SELECT	max(WL_ID)
 		INTO	wlist_id
 		FROM	WATCH_LIST
-		WHERE	WL_C_ID = c_id;
+		WHERE	WL_C_ID = in_c_id;
 
 		IF wlist_id IS NOT NULL THEN
 			-- See if the watch list has items other then
@@ -385,7 +389,7 @@ BEGIN
 				FROM	WATCH_LIST;
 
 				INSERT INTO	WATCH_LIST (WL_ID, WL_C_ID)
-				VALUES		(last_wl_id + 1, c_id);
+				VALUES		(last_wl_id + 1, in_c_id);
 
 				INSERT INTO	WATCH_ITEM (WI_WL_ID, WI_S_SYMB)
 				VALUES		(last_wl_id + 1, 'AA');
@@ -426,7 +430,7 @@ BEGIN
 			FROM	WATCH_LIST;
 
 			INSERT INTO	WATCH_LIST (WL_ID, WL_C_ID)
-			VALUES		(last_wl_id + 1, c_id);
+			VALUES		(last_wl_id + 1, in_c_id);
 
 			INSERT INTO	WATCH_ITEM (WI_WL_ID, WI_S_SYMB)
 			VALUES		(last_wl_id + 1, 'AA');
