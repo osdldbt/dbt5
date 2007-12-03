@@ -145,15 +145,13 @@ BEGIN
 		len = len - lenMindspring;
 
 		IF len > 0 AND substring(email2 from len + 1 for lenMindspring) = '@mindspring.com' THEN
-		-- (strcmp(substr(email2,len-lenMindspring,lenMindspring),'@mindspring.com') == 0) THEN
 			UPDATE	CUSTOMER
 			SET	C_EMAIL_2 = substring(C_EMAIL_2 from 1 for position('@' in C_EMAIL_2)) || 'earthlink.com'
-			-- SET	C_EMAIL_2 = substring(C_EMAIL_2, 1, charindex(“@”,C_EMAIL_2) ) + 'earthlink.com'
 			WHERE	C_ID = in_c_id;
-		ELSE /* set to @mindspring.com */
+		ELSE
+			-- set to @mindspring.com
 			UPDATE	CUSTOMER
 			SET	C_EMAIL_2 = substring(C_EMAIL_2 from 1 for position('@' in C_EMAIL_2) ) || 'mindspring.com'
-			-- SET	C_EMAIL_2 = substring(C_EMAIL_2, 1,charindex(“@”,C_EMAIL_2) ) + 'mindspring.com'
 			WHERE	C_ID = in_c_id;
 		END IF;
 
