@@ -36,7 +36,9 @@ DECLARE
 	len		integer;
 	lenMindspring	integer;
 
-	tax_rate	numeric(6,5);
+	old_tax_rate VARCHAR(3);
+	new_tax_rate VARCHAR(3);
+	tax_num INTEGER;
 
 	tax_name	varchar;
 	name_len	integer;
@@ -165,43 +167,41 @@ BEGIN
 		-- in the TAXRATE table.
 
 		rowcount = 0;
-		tax_rate = 0;
 
-		-- Flip the special tax rate between 11% and 13%
-		SELECT	TX_RATE
-		INTO	tax_rate
-		FROM	TAXRATE
-		WHERE	TX_ID = '999';
+		SELECT cx_tx_id
+		INTO old_tax_rate
+		FROM customer_taxrate
+		WHERE cx_c_id = in_c_id
+		  AND (cx_tx_id LIKE 'US%' OR cx_tx_id LIKE 'CN%');
 
-		IF tax_rate = 0.11 THEN
-			UPDATE	TAXRATE
-			SET	TX_RATE = 0.13
-			WHERE	TX_ID = '999';
+		IF (substring(old_tax_rate FROM 1 FOR 2) = 'US') THEN
+			IF (old_tax_rate = 'US5') THEN
+				new_tax_rate := 'US1';
+			ELSIF (old_tax_rate = 'US4') THEN
+				new_tax_rate := 'US5';
+			ELSIF (old_tax_rate = 'US3') THEN
+				new_tax_rate := 'US4';
+			ELSIF (old_tax_rate = 'US2') THEN
+				new_tax_rate := 'US3';
+			ELSE
+				new_tax_rate := 'US2';
+			END IF;
 		ELSE
-			UPDATE	TAXRATE
-			SET	TX_RATE = 0.11
-			WHERE	TX_ID = '999';
+			IF (old_tax_rate = 'CN4') THEN
+				new_tax_rate := 'CN1';
+			ELSIF (old_tax_rate = 'CN3') THEN
+				new_tax_rate := 'CN4';
+			ELSIF (old_tax_rate = 'CN2') THEN
+				new_tax_rate := 'CN3';
+			ELSE
+				new_tax_rate := 'CN2';
+			END IF;
 		END IF;
 
-		SELECT	count(*)
-		INTO	rowcount
-		FROM	CUSTOMER_TAXRATE
-		WHERE	CX_C_ID = in_c_id AND
-			CX_TX_ID = '999';
-
-		IF rowcount = 0 THEN
-			/* No 999 tax rate for customer, */
-			/* add one for them */
-			INSERT INTO	CUSTOMER_TAXRATE (CX_TX_ID, CX_C_ID)
-			VALUES		('999', in_c_id);
-		ELSE
-			-- There was a “999” tax rate for
-			-- this, customer delete it.
-			DELETE FROM	CUSTOMER_TAXRATE
-			WHERE		CX_TX_ID = '999' AND
-					CX_C_ID = in_c_id;
-		END IF;
-
+		UPDATE customer_taxrate
+		SET cx_tx_id = new_tax_rate
+		WHERE cx_c_id = in_c_id
+		  AND cx_tx_id = old_tax_rate;
 	ELSIF table_name = 'DAILY_MARKET' THEN
 		--- DAILY_MARKET
 		--- A security symbol, a day in the month and a
