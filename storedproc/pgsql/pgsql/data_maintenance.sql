@@ -40,10 +40,8 @@ DECLARE
 	new_tax_rate VARCHAR(3);
 	tax_num INTEGER;
 
-	tax_name	varchar;
-	name_len	integer;
-	rate_len	integer;
-	pos		integer;
+	tax_name VARCHAR(50);
+	pos INTEGER;
 
 	wlist_id	IDENT_T;
 	wi_symbol	char(15);
@@ -287,42 +285,24 @@ BEGIN
 		-- or the word“rate” will be removed from the end of the
 		-- TX_NAME if TX_NAME already ends with the word “rate”.
 
-		tax_name = NULL;
-		name_len = 0;
-		rate_len = 0;
-		pos = 1;	-- [Rilson] changed from 0 to 1
+		tax_name := NULL;
+		pos := 0;	-- [Rilson] changed from 0 to 1
 
 		SELECT	TX_NAME
 		INTO	tax_name
 		FROM	TAXRATE
 		WHERE	TX_ID = in_tx_id;
 
-		IF tax_name IS NOT NULL THEN
-			name_len = char_length(tax_name);
-			rate_len = char_length(' rate');
-			pos = name_len - rate_len + 1; -- [Rilson] added +1
-
-			IF pos < 0 THEN
-				pos = 1; -- [Rilson] changed from 0 to 1
-			END IF;
-
-			-- TX_NAME does not already end with “ rate”
-
-			IF substring(tax_name from pos for rate_len) != ' rate' THEN
-			--IF strcmp(substring(tx_name,pos,rate_len),” rate”) != 0 THEN
-				UPDATE	TAXRATE
-				SET	TX_NAME = TX_NAME || ' rate'
-				WHERE	TX_NAME not like '% rate' AND
-					TX_ID = in_tx_id;
-			ELSE
-				-- row already has a TX_NAME that ends “ rate”
-				UPDATE	TAXRATE
-				SET	TX_NAME = substring(TX_NAME from 1 for char_length(TX_NAME) - char_length(' rate'))
-				--SET	TX_NAME = substring(TX_NAME,1,len(TX_NAME)-len(“ rate”))
-				WHERE	TX_ID = in_tx_id;
-			END IF;
+		pos = POSITION(' Tax ' IN tax_name);
+		IF (pos != 0) THEN
+			tax_name := OVERLAY(' Tax ' PLACING 't' FROM 2 FOR 1); 
+		ELSE
+			tax_name := OVERLAY(' tax ' PLACING 'T' FROM 2 FOR 1); 
 		END IF;
 
+		UPDATE taxrate
+		SET tx_name = tax_name
+		WHERE tx_id = in_tx_id;
 	ELSIF table_name = 'WATCH_ITEM' THEN
 		-- WATCH_ITEM
 		-- A WATCH_LIST containing the WATCH_ITEMs with security
