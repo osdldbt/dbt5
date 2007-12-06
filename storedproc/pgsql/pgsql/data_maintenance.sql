@@ -204,31 +204,10 @@ BEGIN
 		  AND cx_tx_id = old_tax_rate;
 	ELSIF table_name = 'DAILY_MARKET' THEN
 		--- DAILY_MARKET
-		--- A security symbol, a day in the month and a
-		--- random number of zero or one, are passed into
-		--- the Data Maintenance function, when table_name
-		--- is DAILY_MARKET. The DM_VOL column in the DAILY_MARKET
-		--- table will be updated by adding 1 or subtracting 1.
-		--- The rows to be updated are those for the security
-		--- whose symbol was passed in, and forthat day in the
-		--- month that was passed in. If the random number passed
-		--- in was one, 1 is added to DM_VOL otherwise 1 is
-		--- subtracted from DM_VOL.
-
-		IF add_flag = 1 THEN
-			UPDATE	DAILY_MARKET
-			SET	DM_VOL = DM_VOL + 1
-			WHERE	DM_S_SYMB = symbol AND
-				substring (DM_DATE from 6 for 2)::smallint = day_of_month;
-				-- substring ((convert(char(8),DM_DATE,3),1,2) = day_of_month;
-		ELSE
-			UPDATE	DAILY_MARKET
-			SET	DM_VOL = DM_VOL - 1
-			WHERE	DM_S_SYMB = symbol AND
-				substring (DM_DATE from 6 for 2)::smallint = day_of_month;
-				-- substring(convert(char(8),DM_DATE,3),1,2) = day_of_month;
-		END IF;
-
+		UPDATE daily_market
+		SET dm_vol = dm_vol + vol_incr
+		WHERE dm_s_symb = symbol
+		  AND SUBSTRING(DM_DATE FROM 6 FOR 2) = day_of_month;
 	ELSIF table_name = 'EXCHANGE' THEN
 		--- EXCHANGE
 		--- Other than the table_name, no additional
