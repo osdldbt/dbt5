@@ -250,7 +250,6 @@ BEGIN
 		FROM	FINANCIAL
 		WHERE	FI_CO_ID = in_co_id AND
 			substring(FI_QTR_START_DATE from 9 for 2)::smallint = 1;
-			-- substring(convert(char(8),FI_QTR_START_DATE,2),7,2) = “01”;
 
 		IF rowcount > 0 THEN
 			UPDATE	FINANCIAL
@@ -267,12 +266,11 @@ BEGIN
 		-- Update the news items for a specified company.
 		-- Change the NI_DTS by 1 day.
 
-		UPDATE	NEWS_ITEM
-		SET	NI_DTS = NI_DTS + interval '1 day'
-		WHERE	NI_ID = (SELECT NX_NI_ID
-					FROM	NEWS_XREF
-					WHERE	NX_CO_ID = in_co_id LIMIT 1);
-
+		UPDATE news_item
+		SET ni_dts = ni_dts + INTERVAL '1 day'
+		WHERE ni_id = (SELECT nx_ni_id
+		               FROM news_xref
+		               WHERE nx_co_id = in_co_id);
 	ELSIF table_name = 'SECURITY' THEN
 		-- SECURITY
 		-- Update a security identified symbol, increment
