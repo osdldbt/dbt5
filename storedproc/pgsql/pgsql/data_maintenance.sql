@@ -43,9 +43,8 @@ DECLARE
 	tax_name VARCHAR(50);
 	pos INTEGER;
 
-	wlist_id	IDENT_T;
-	wi_symbol	char(15);
-	last_wl_id	IDENT_T;
+	old_symbol VARCHAR(15);
+	new_symbol VARCHAR(15);
 BEGIN
 	IF table_name = 'ACCOUNT_PERMISSION' THEN
 		-- ACCOUNT_PERMISSION
@@ -304,98 +303,40 @@ BEGIN
 		SET tx_name = tax_name
 		WHERE tx_id = in_tx_id;
 	ELSIF table_name = 'WATCH_ITEM' THEN
-		-- WATCH_ITEM
-		-- A WATCH_LIST containing the WATCH_ITEMs with security
-		-- symbols “AA”, “ZAPS” and “ZONS” will be added for the
-		-- customer identified by c_id, if the customer does not
-		-- already have a watch list with those items. If the
-		-- customer already has a watch list with those items,
-		-- the watch list will be deleted.
+		SELECT COUNT(*)
+		INTO rowcount
+		FROM watch_item, watch_list
+		WHERE wl_c_id = in_c_id
+		  AND wi_wl_id = wl_id;
 
-		wlist_id = 0;
-		wi_symbol = NULL;
-		last_wl_id = 0;
+		rowcount := (rowcount + 1) / 2;
 
-		-- If the CUSTOMER identified by c_id has a watch
-		-- list with “AA”, “ZAPS”, “ZONS”, it would have the
-		-- highest WL_ID of that customer’s watch lists.
+		SELECT wi_s_symb
+		INTO old_symbol
+		FROM (SELECT wi_s_symb
+		      FROM watch_item, watch_list
+		      WHERE wl_c_id = in_c_id
+		        AND wi_wl_id = wl_id
+		      ORDER BY wi_s_symb ASC) AS something
+		OFFSET rowcount
+		LIMIT 1;
 
-		SELECT	max(WL_ID)
-		INTO	wlist_id
-		FROM	WATCH_LIST
-		WHERE	WL_C_ID = in_c_id;
+		SELECT s_symb
+		INTO new_symbol
+		FROM security
+		WHERE s_symb > old_symbol
+		  AND s_symb NOT IN (SELECT wl_s_symb
+		                     FROM watch_item, watch_list
+                             WHERE wl_c_id = in_c_id
+		                       AND wi_wl_id = wl_id)
+		ORDER BY s_symb ASC
+		LIMIT 1;
 
-		IF wlist_id IS NOT NULL THEN
-			-- See if the watch list has items other then
-			-- “AA”, “ZAPS”, “ZONS” in it
-			SELECT	max(WI_S_SYMB)
-			INTO	wi_symbol
-			FROM	WATCH_ITEM
-			WHERE	WI_WL_ID = wlist_id AND
-				WI_S_SYMB NOT IN ('AA','ZAPS','ZONS');
-
-			IF wi_symbol IS NOT NULL THEN
-				-- Customer does not have “AA”, “ZAPS”, “ZONS”
-				-- watch list. Find the last watch list
-				-- identifier used.
-	
-				SELECT	max(WL_ID)
-				INTO	last_wl_id
-				FROM	WATCH_LIST;
-
-				INSERT INTO	WATCH_LIST (WL_ID, WL_C_ID)
-				VALUES		(last_wl_id + 1, in_c_id);
-
-				INSERT INTO	WATCH_ITEM (WI_WL_ID, WI_S_SYMB)
-				VALUES		(last_wl_id + 1, 'AA');
-
-				INSERT INTO	WATCH_ITEM (WI_WL_ID, WI_S_SYMB)
-				VALUES		(last_wl_id + 1, 'ZAPS');
-
-				INSERT INTO	WATCH_ITEM (WI_WL_ID, WI_S_SYMB)
-				VALUES		(last_wl_id + 1, 'ZONS');
-			ELSE
-				-- Customer already has the “AA”, “ZAPS”,”ZONS”
-				-- watch list, so delete it, and delete all the
-				-- other customers “AA” “ZAPS”, “ZONS” watch lists,
-				-- so that WL_ID never gets too big.
-
-				SELECT	max(WL_ID)
-				INTO	wlist_id
-				FROM	WATCH_LIST
-				WHERE	WL_ID in (SELECT distinct(WI_WL_ID)
-							FROM	WATCH_ITEM
-							WHERE	WI_S_SYMB != 'AA' AND
-								WI_S_SYMB != 'ZAPS' AND
-								WI_S_SYMB != 'ZONS'
-							GROUP BY WI_WL_ID);
-
-				DELETE FROM	WATCH_ITEM
-				WHERE		WI_WL_ID > wlist_id;
-
-				DELETE FROM	WATCH_LIST
-				WHERE		WL_ID > wlist_id;
-			END IF;
-		ELSE
-			-- Customer has no watch lists, so add the
-			-- “AA”, “ZAPS”, “ZONS” watch list
-
-			SELECT	max(WL_ID)
-			INTO	last_wl_id
-			FROM	WATCH_LIST;
-
-			INSERT INTO	WATCH_LIST (WL_ID, WL_C_ID)
-			VALUES		(last_wl_id + 1, in_c_id);
-
-			INSERT INTO	WATCH_ITEM (WI_WL_ID, WI_S_SYMB)
-			VALUES		(last_wl_id + 1, 'AA');
-
-			INSERT INTO	WATCH_ITEM (WI_WL_ID, WI_S_SYMB)
-			VALUES		(last_wl_id + 1, 'ZAPS');
-
-			INSERT INTO	WATCH_ITEM (WI_WL_ID, WI_S_SYMB)
-			VALUES		(last_wl_id + 1, 'ZONS');
-		END IF;
+		UPDATE watch_item
+		SET wi_s_symb = new_symbol
+		WHERE wl_c_id = in_c_id
+		  AND wi_wl_id = wl_id
+		  AND wi_s_symb = old_symbol;
 	END IF;
 	status := 0;
 	RETURN;
