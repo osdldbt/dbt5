@@ -36,6 +36,8 @@
 
 #include "../inc/EGenUtilities_stdafx.h"    // Windows-specific error file
 
+#include <string.h>
+
 using namespace TPCE;
 
 CSystemErr::CSystemErr(Action eAction, char const * szLocation) 

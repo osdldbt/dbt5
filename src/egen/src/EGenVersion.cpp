@@ -41,6 +41,8 @@
 
 #include "../inc/EGenUtilities_stdafx.h"
 
+#include <string.h>
+
 namespace TPCE
 {
 

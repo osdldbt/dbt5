@@ -47,7 +47,8 @@
 
 #include "../inc/error.h"
 
-using std::strerror;
+#include <string.h>
+
 using std::exit;
 
 namespace TPCE

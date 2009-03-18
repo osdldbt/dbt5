@@ -43,6 +43,7 @@
 #define COMPANY_FILE_H
 
 #include <string>
+#include <string.h>
 #include "EGenStandardTypes.h"
 #include "TableConsts.h"
 #include "InputFlatFilesDeclarations.h"

@@ -48,6 +48,7 @@
 #include <memory>
 #include <sstream>
 #include <stdexcept>
+#include <string.h>
 
 namespace TPCE
 {

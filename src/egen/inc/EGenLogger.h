@@ -44,6 +44,8 @@
 #include <sstream>
 #include <fstream>
 
+#include <string.h>
+
 #include "EGenStandardTypes.h"
 #include "DriverParamSettings.h"
 #include "EGenVersion.h"

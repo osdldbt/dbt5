@@ -43,6 +43,8 @@
 
 #include "FlatFileLoad_stdafx.h"
 
+#include <string.h>
+
 namespace TPCE
 {
 
