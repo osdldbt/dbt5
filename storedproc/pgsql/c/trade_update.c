@@ -17,6 +17,8 @@
 #include <utils/datetime.h>
 #include <utils/lsyscache.h>
 #include <utils/numeric.h>
+#include <utils/array.h>
+#include <utils/builtins.h>
 
 #include "frame.h"
 

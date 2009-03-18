@@ -17,6 +17,7 @@
 #include <funcapi.h> /* for returning set of rows in order_status */
 #include <miscadmin.h>
 #include <utils/date.h>
+#include <utils/builtins.h>
 #include <utils/datetime.h>
 
 #include "frame.h"

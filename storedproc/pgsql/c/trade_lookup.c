@@ -16,6 +16,8 @@
 #include <funcapi.h> /* for returning set of rows in order_status */
 #include <utils/lsyscache.h>
 #include <utils/datetime.h>
+#include <utils/array.h>
+#include <utils/builtins.h>
 
 #include "frame.h"
 

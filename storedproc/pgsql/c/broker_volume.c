@@ -15,6 +15,9 @@
 #include <executor/executor.h>  /* for GetAttributeByName() */
 #include <funcapi.h> /* for returning set of rows in order_status */
 #include <utils/lsyscache.h>
+#include <utils/array.h>
+#include <utils/builtins.h>
+#include <access/tupmacs.h>
 
 #include "frame.h"
 

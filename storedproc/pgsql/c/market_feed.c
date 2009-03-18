@@ -16,8 +16,10 @@
 #include <executor/executor.h>  /* for GetAttributeByName() */
 #include <funcapi.h> /* for returning set of rows in order_status */
 #include <utils/array.h>
+#include <utils/builtins.h>
 #include <utils/lsyscache.h>
 #include <utils/numeric.h>
+#include <catalog/pg_type.h>
 
 #include "frame.h"
 
