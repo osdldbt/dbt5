@@ -222,8 +222,9 @@ DB_PORT=5432
 SCALE_FACTOR=500
 SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
+USE_READPROFILE=0
 
-while getopts "c:d:e:f:h:i:l:op:s:t:u:w:z:" opt; do
+while getopts "c:d:e:f:h:i:l:orp:s:t:u:w:z:" opt; do
 	case $opt in
 	c)
 		# Configured customer count
@@ -259,6 +260,9 @@ while getopts "c:d:e:f:h:i:l:op:s:t:u:w:z:" opt; do
 		;;
 	o)
 		USE_OPROFILE=1
+		;;
+	r)
+		USE_READPROFILE=1
 		;;
 	p)
 		# postmaster port
@@ -440,11 +444,13 @@ echo "Results will be written to: $OUTPUT_DIR"
 do_sleep $SLEEP_RAMPUP
 
 # Clear the readprofile data after the driver ramps up.
-if [ -f /proc/profile ]; then
-	readprofile_clear
-fi
-if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
-	readprofile_clear ${DB_HOSTNAME}
+if [ ${USE_READPROFILE} -eq 1 ]; then
+    if [ -f /proc/profile ]; then
+	    readprofile_clear
+    fi
+    if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	    readprofile_clear ${DB_HOSTNAME}
+    fi
 fi
 
 # Reset the oprofile counters after the driver ramps up.
@@ -464,11 +470,13 @@ do_sleep $DURATION
 #fi
 
 # Collect profile data.
-if [ -f /proc/profile ]; then
-	readprofile_collect ${OUTPUT_DIR}
-fi
-if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
-	readprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
+if [ ${USE_READPROFILE} -eq 1 ]; then
+    if [ -f /proc/profile ]; then
+	    readprofile_collect ${OUTPUT_DIR}
+    fi
+    if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	    readprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
+    fi
 fi
 
 # Collect oprofile data.
