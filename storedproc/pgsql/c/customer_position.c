@@ -9,6 +9,7 @@
 
 #include <sys/types.h>
 #include <unistd.h>
+#include <inttypes.h>
 #include <postgres.h>
 #include <fmgr.h>
 #include <executor/spi.h> /* this should include most necessary APIs */
@@ -52,7 +53,7 @@ PG_MODULE_MAGIC;
 		"       c_email_1,\n" \
 		"       c_email_2\n" \
 		"FROM   customer\n" \
-		"WHERE  c_id = %ld"
+		"WHERE  c_id = %" PRId64
 
 #define CPF1_3 \
 		"SELECT   ca_id,\n" \
@@ -62,7 +63,7 @@ PG_MODULE_MAGIC;
 		"         LEFT OUTER JOIN holding_summary\n" \
 		"                      ON hs_ca_id = ca_id,\n" \
 		"         last_trade\n" \
-		"WHERE    ca_c_id = %ld\n" \
+		"WHERE    ca_c_id = %" PRId64 "\n" \
 		"         AND lt_s_symb = hs_s_symb\n" \
 		"GROUP BY ca_id,ca_bal\n" \
 		"ORDER BY 3 ASC\n" \
@@ -76,7 +77,7 @@ PG_MODULE_MAGIC;
 		"         th_dts\n" \
 		"FROM     (SELECT   t_id AS id\n" \
 		"          FROM     trade\n" \
-		"          WHERE    t_ca_id = %ld\n" \
+		"          WHERE    t_ca_id = %" PRId64 "\n" \
 		"          ORDER BY t_dts DESC\n" \
 		"          LIMIT 10) AS t,\n" \
 		"         trade,\n" \
@@ -291,7 +292,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			strcpy(values[i_asset_total], "{}");
 */
 		}
-		snprintf(values[i_cust_id], 12, "%ld", cust_id);
+		snprintf(values[i_cust_id], 12, "%" PRId64, cust_id);
 
 		/* Build a tuple descriptor for our result type. */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=

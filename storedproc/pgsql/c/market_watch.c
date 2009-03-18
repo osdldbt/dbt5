@@ -8,6 +8,7 @@
  */
 
 #include <sys/types.h>
+#include <inttypes.h>
 #include <time.h>
 #include <unistd.h>
 #include <postgres.h>
@@ -29,7 +30,7 @@
 		"FROM   watch_item,\n" \
 		"       watch_list\n" \
 		"WHERE  wi_wl_id = wl_id\n" \
-		"       AND wl_c_id = %lu"
+		"       AND wl_c_id = %" PRIu64
 
 #define MWF1_2 \
 		"SELECT s_symb\n" \
@@ -38,14 +39,14 @@
 		"       security\n" \
 		"WHERE  in_name = '%s'\n" \
 		"       AND co_in_id = in_id\n" \
-		"       AND co_id BETWEEN %lu\n" \
-		"                         AND %lu\n" \
+		"       AND co_id BETWEEN %" PRIu64 "\n" \
+		"                         AND %" PRIu64 "\n" \
 		"       AND s_co_id = co_id"
 
 #define MWF1_3 \
 		"SELECT hs_s_symb\n" \
 		"FROM   holding_summary\n" \
-		"WHERE  hs_ca_id = %lu"
+		"WHERE  hs_ca_id = %" PRIu64
 
 #define MWF1_4 \
 		"SELECT lt_price\n" \
