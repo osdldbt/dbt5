@@ -50,7 +50,13 @@ private:
 	Action		m_eAction;
 
 public:
-	CSocketErr(Action eAction, char const * szLoc = NULL)
+	CSocketErr(Action eAction)
+	: CBaseErr()
+	{
+		m_eAction = eAction;
+	};
+
+	CSocketErr(Action eAction, char const * szLoc)
 	: CBaseErr(szLoc)
 	{
 		m_eAction = eAction;
