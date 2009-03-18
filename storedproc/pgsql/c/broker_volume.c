@@ -70,9 +70,9 @@ void dump_bvf1_inputs(ArrayType *broker_list_p, text *sector_name_p) {
 		elog(NOTICE, "BVF1: broker_list[%d] %s", i,
 				DatumGetCString(DirectFunctionCall1(textout,
 				PointerGetDatum(broker_list))));
-		broker_list = att_addlength(broker_list, typlen,
-				PointerGetDatum(broker_list));                   
-		broker_list = (char *) att_align(broker_list, typalign);
+		broker_list = att_addlength_pointer(broker_list, typlen,
+				broker_list);
+		broker_list = (char *) att_align_nominal(broker_list, typalign);
 	}
 	elog(NOTICE, "BVF1: sector_name %s",
 			DatumGetCString(DirectFunctionCall1(textout,
@@ -144,9 +144,10 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 			strcat(broker_list_array,
 					DatumGetCString(DirectFunctionCall1(textout,
 					PointerGetDatum(broker_list))));
-			broker_list = att_addlength(broker_list, typlen,
-					PointerGetDatum(broker_list));                   
-			broker_list = (char *) att_align(broker_list, typalign);
+			broker_list = att_addlength_pointer(broker_list, typlen,
+					broker_list);
+			broker_list = (char *) att_align_nominal(broker_list,
+					typalign);
 			strcat(broker_list_array, "\"");
 		}
 		for (i = 1; i < nitems; i++) {
@@ -154,9 +155,10 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 			strcat(broker_list_array,
 					DatumGetCString(DirectFunctionCall1(textout,
 					PointerGetDatum(broker_list))));
-			broker_list = att_addlength(broker_list, typlen,
-					PointerGetDatum(broker_list));                   
-			broker_list = (char *) att_align(broker_list, typalign);
+			broker_list = att_addlength_pointer(broker_list, typlen,
+					broker_list);
+			broker_list = (char *) att_align_nominal(broker_list,
+					typalign);
 			strcat(broker_list_array, "\"");
 		}
 		strcat(broker_list_array, "}'");

@@ -134,8 +134,8 @@ void dump_mff1_inputs(ArrayType *price_quote_p, char *status_submitted_p,
 	for (i = 0; i < nitems_pq; i++) {
 		elog(NOTICE, "MFF1: trade_qty[%d] %d", i, p_tq[i]);
 
-		p_s = att_addlength(p_s, typlen_s, PointerGetDatum(p_s));
-		p_s = (char *) att_align(p_s, typalign_s);
+		p_s = att_addlength_pointer(p_s, typlen_s, p_s);
+		p_s = (char *) att_align_nominal(p_s, typalign_s);
 	}
 
 	elog(NOTICE, "MFF1: type_limit_buy '%s'",
@@ -359,8 +359,8 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 				elog(NOTICE, "ERROR: COMMIT not ok = %d", ret);
 			}
 */
-			p_s = att_addlength(p_s, typlen_s, PointerGetDatum(p_s));
-			p_s = (char *) att_align(p_s, typalign_s);
+			p_s = att_addlength_pointer(p_s, typlen_s, p_s);
+			p_s = (char *) att_align_nominal(p_s, typalign_s);
 		}
 		sprintf(values[i_send_len], "%d", k);
 		funcctx->max_calls = 1;
