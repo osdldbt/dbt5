@@ -101,7 +101,7 @@ ${DIR}/create-tables -p ${PORT} ${TABLESPACES_FLAG} || exit 1
 		bin/EGenLoader -l PGSQL -f ${SCALE_FACTOR} -w ${WORKDAYS} \
 		-c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} -p ${PORT}) || exit 1
 ${DIR}/create-indexes -p ${PORT} ${TABLESPACES_FLAG} || exit 1
-${DIR}/load-stored-procs -p ${PORT} || exit 1
+${DIR}/load-stored-procs -c -p ${PORT} || exit 1
 ${PSQL} -p ${PORT} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1
 #
 # VACUUM FULL ANALYZE: Build optimizer statistics for newly-created
