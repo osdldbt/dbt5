@@ -39,7 +39,7 @@ DIR="${TOPDIR}/scripts/pgsql"
 REBUILD_DB=0
 
 CUSTOMERS_INSTANCE=1000
-CUSTOMER_TOTAL=1000
+CUSTOMERS_TOTAL=1000
 #
 # I don't know what the smallest SCALE_FACTOR is, which is what I would like to
 # set there, but 500 is definitely smaller than 1.
