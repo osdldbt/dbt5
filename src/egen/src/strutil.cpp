@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -45,9 +45,7 @@
 #include "../inc/EGenStandardTypes.h"
 
 #ifdef WIN32
-// Windows apparently doesn't have strtoull
-// so they'll only be able to handle 32bit inputs...
-#define strtoull strtoul
+#define strtoull _strtoui64
 #endif
 
 using std::strtoul;

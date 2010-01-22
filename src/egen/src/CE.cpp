@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -96,7 +96,7 @@ void CCE::AutoSetRNGSeeds( UINT32 UniqueId )
     // The number of days in the 5 year period requires 11 bits.
     // So shift up by that much to make room in the "lower" bits.
     Seed <<= 11;
-    Seed += Now.DayNo() - Base.DayNo();
+    Seed += (RNGSEED)((INT64)Now.DayNo() - (INT64)Base.DayNo());
 
     // So far, we've used up 31 bits.
     // Save the "last" bit of the "upper" 32 for the RNG id.

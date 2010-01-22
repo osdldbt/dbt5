@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -72,7 +72,7 @@ CCustomerTable::CCustomerTable(CInputFiles  inputFiles,
                                TIdent       iStartFromCustomer)
 : TableTemplate<CUSTOMER_ROW>()
 , m_iRowsToGenerate(iCustomerCount)
-, m_person(inputFiles)
+, m_person(inputFiles, iStartFromCustomer, true)
 , m_Phones(inputFiles.AreaCodes)
 , m_StatusTypeFile(inputFiles.StatusType)
 , m_iStartFromCustomer(iStartFromCustomer)
@@ -88,9 +88,12 @@ CCustomerTable::CCustomerTable(CInputFiles  inputFiles,
 void CCustomerTable::InitNextLoadUnit()
 {
     m_rnd.SetSeed(m_rnd.RndNthElement(RNGSeedTableDefault,
-                                      (m_iLastRowNumber + m_iStartFromCustomer - 1) * iRNGSkipOneRowCustomer));
+                                      ((RNGSEED)m_iLastRowNumber + m_iStartFromCustomer - 1) * 
+                                       iRNGSkipOneRowCustomer));
 
     ClearRecord();  // this is needed for EGenTest to work
+
+    m_person.InitNextLoadUnit();
 }
 
 /*
@@ -131,7 +134,7 @@ void CCustomerTable::GetC_TAX_ID(TIdent C_ID, char *szOutput)
 */
 void CCustomerTable::GenerateC_ST_ID()
 {
-    strncpy(m_row.C_ST_ID, m_StatusTypeFile->GetRecord(eActive)->ST_ID, sizeof(m_row.C_ST_ID)-1);
+    strncpy(m_row.C_ST_ID, m_StatusTypeFile->GetRecord(eActive)->ST_ID, sizeof(m_row.C_ST_ID));
 }
 
 /*
@@ -164,7 +167,6 @@ void CCustomerTable::GenerateC_DOB()
     //min and max age brackets limits in years
     static int age_brackets[]={10, 19, 25, 35, 45, 55, 65, 75, 85, 100};
     int age_bracket;
-    INT32 year, month, day; //current date
     int dob_daysno_min, dob_daysno_max; //min and max date of birth in days
     int dob_in_days;    //generated random date of birth in days
 
@@ -203,16 +205,13 @@ void CCustomerTable::GenerateC_DOB()
                                     age_bracket = 8;
     assert(age_bracket < static_cast<int>(sizeof(age_brackets)/sizeof(age_brackets[0])));
 
-    //Get current date
-    m_date_time.GetYMD(&year, &month, &day);
-    //Check for today to be a leap date
-    if (month==2 && day==29)    //February 29 ?
-    {
-        month = 3; day = 1; //Set today to March 1st.
-    }
-
-    dob_daysno_min = CDateTime::YMDtoDayno(year - age_brackets[age_bracket+1], month, day)-1;
-    dob_daysno_max = CDateTime::YMDtoDayno(year - age_brackets[age_bracket], month, day);
+    //Determine the range of valid day numbers for this person's birthday.
+    dob_daysno_min = CDateTime::YMDtoDayno(InitialTradePopulationBaseYear - age_brackets[age_bracket+1],
+                                           InitialTradePopulationBaseMonth,
+                                           InitialTradePopulationBaseDay) + 1;
+    dob_daysno_max = CDateTime::YMDtoDayno(InitialTradePopulationBaseYear - age_brackets[age_bracket],
+                                           InitialTradePopulationBaseMonth,
+                                           InitialTradePopulationBaseDay);
 
     //Generate the random age expressed in days that falls into the particular range.
     dob_in_days = m_rnd.RndIntRange(dob_daysno_min, dob_daysno_max);
@@ -235,8 +234,7 @@ void CCustomerTable::GenerateC_AD_ID()
 */
 void CCustomerTable::GenerateC_CTRY_1()
 {
-    strncpy(m_row.C_CTRY_1, szUSAreaCode, sizeof(m_row.C_CTRY_1)-1);
-    m_row.C_CTRY_1[sizeof(m_row.C_CTRY_1)-1] = '\0';    //null terminate
+    strncpy(m_row.C_CTRY_1, szUSAreaCode, sizeof(m_row.C_CTRY_1));
 }
 
 /*
@@ -244,8 +242,7 @@ void CCustomerTable::GenerateC_CTRY_1()
 */
 void CCustomerTable::GenerateC_CTRY_2()
 {
-    strncpy(m_row.C_CTRY_2, szUSAreaCode, sizeof(m_row.C_CTRY_2)-1);
-    m_row.C_CTRY_2[sizeof(m_row.C_CTRY_2)-1] = '\0';    //null terminate
+    strncpy(m_row.C_CTRY_2, szUSAreaCode, sizeof(m_row.C_CTRY_2));
 }
 
 /*
@@ -253,8 +250,7 @@ void CCustomerTable::GenerateC_CTRY_2()
 */
 void CCustomerTable::GenerateC_CTRY_3()
 {
-    strncpy(m_row.C_CTRY_3, szUSAreaCode, sizeof(m_row.C_CTRY_3)-1);
-    m_row.C_CTRY_3[sizeof(m_row.C_CTRY_3)-1] = '\0';    //null terminate
+    strncpy(m_row.C_CTRY_3, szUSAreaCode, sizeof(m_row.C_CTRY_3));
 }
 
 
@@ -268,14 +264,14 @@ void CCustomerTable::GenerateC_AREA_1()
 
     OldSeed = m_rnd.GetSeed();
 
-    m_rnd.SetSeed( m_rnd.RndNthElement( RNGSeedBaseC_AREA_1, m_row.C_ID ));
+    m_rnd.SetSeed( m_rnd.RndNthElement( RNGSeedBaseC_AREA_1, 
+                   (RNGSEED) m_row.C_ID ));
 
     //generate Threshold up to the value of the last key (first member in a pair)
     iThreshold = m_rnd.RndIntRange(0, m_Phones->GetGreatestKey() - 1);
 
     //copy the area code that corresponds to the Threshold
-    strncpy(m_row.C_AREA_1, (m_Phones->GetRecord(iThreshold))->AREA_CODE, sizeof(m_row.C_AREA_1)-1);
-    m_row.C_AREA_1[sizeof(m_row.C_AREA_1)-1] = '\0';    //null terminate
+    strncpy(m_row.C_AREA_1, (m_Phones->GetRecord(iThreshold))->AREA_CODE, sizeof(m_row.C_AREA_1));
 
     m_rnd.SetSeed( OldSeed );
 }
@@ -290,14 +286,14 @@ void CCustomerTable::GenerateC_AREA_2()
 
     OldSeed = m_rnd.GetSeed();
 
-    m_rnd.SetSeed( m_rnd.RndNthElement( RNGSeedBaseC_AREA_2, m_row.C_ID ));
+    m_rnd.SetSeed( m_rnd.RndNthElement( RNGSeedBaseC_AREA_2, 
+                   (RNGSEED) m_row.C_ID ));
 
     //generate Threshold up to the value of the last key (first member in a pair)
     iThreshold = m_rnd.RndIntRange(0, m_Phones->GetGreatestKey() - 1);
 
     //copy the area code that corresponds to the Threshold
-    strncpy(m_row.C_AREA_2, (m_Phones->GetRecord(iThreshold))->AREA_CODE, sizeof(m_row.C_AREA_2)-1);
-    m_row.C_AREA_2[sizeof(m_row.C_AREA_2)-1] = '\0';    //null terminate
+    strncpy(m_row.C_AREA_2, (m_Phones->GetRecord(iThreshold))->AREA_CODE, sizeof(m_row.C_AREA_2));
 
     m_rnd.SetSeed( OldSeed );
 }
@@ -312,14 +308,14 @@ void CCustomerTable::GenerateC_AREA_3()
 
     OldSeed = m_rnd.GetSeed();
 
-    m_rnd.SetSeed( m_rnd.RndNthElement( RNGSeedBaseC_AREA_3, m_row.C_ID ));
+    m_rnd.SetSeed( m_rnd.RndNthElement( RNGSeedBaseC_AREA_3, 
+                   (RNGSEED) m_row.C_ID ));
 
     //generate Threshold up to the value of the last key (first member in a pair)
     iThreshold = m_rnd.RndIntRange(0, m_Phones->GetGreatestKey() - 1);
 
     //copy the area code that corresponds to the Threshold
-    strncpy(m_row.C_AREA_3, (m_Phones->GetRecord(iThreshold))->AREA_CODE, sizeof(m_row.C_AREA_3)-1);
-    m_row.C_AREA_3[sizeof(m_row.C_AREA_3)-1] = '\0';    //null terminate
+    strncpy(m_row.C_AREA_3, (m_Phones->GetRecord(iThreshold))->AREA_CODE, sizeof(m_row.C_AREA_3));
 
     m_rnd.SetSeed( OldSeed );
 }
@@ -416,17 +412,19 @@ void CCustomerTable::GenerateC_EMAIL_1_and_C_EMAIL_2()
     // Generate EMAIL_1
     iLen = strlen(m_row.C_L_NAME);
     m_row.C_EMAIL_1[0] = m_row.C_F_NAME[0]; //first char of the first name
-    strncpy(&m_row.C_EMAIL_1[1], m_row.C_L_NAME, sizeof(m_row.C_EMAIL_1) - 2); //last name
-    strncpy(&m_row.C_EMAIL_1[1+iLen], EMAIL_DOMAINs[iEmail1Index], //domain name
-            sizeof(m_row.C_EMAIL_1) - iLen - 2);
-    m_row.C_EMAIL_1[sizeof(m_row.C_EMAIL_1)-1] = '\0';  //null terminate in any case
+    strncpy(&m_row.C_EMAIL_1[1], m_row.C_L_NAME,  //last name
+            sizeof(m_row.C_EMAIL_1) - 1);
+    strncpy(&m_row.C_EMAIL_1[1+iLen],
+            EMAIL_DOMAINs[iEmail1Index],          //domain name
+            sizeof(m_row.C_EMAIL_1) - iLen - 1);
 
     // Generate EMAIL_2 that is different from EMAIL_1
     m_row.C_EMAIL_2[0] = m_row.C_F_NAME[0]; //first char of the first name
-    strncpy(&m_row.C_EMAIL_2[1], m_row.C_L_NAME, sizeof(m_row.C_EMAIL_2) - 2); //last name
-    strncpy(&m_row.C_EMAIL_2[1+iLen], EMAIL_DOMAINs[m_rnd.RndIntRangeExclude(0, iNumEMAIL_DOMAINs - 1, iEmail1Index)],  //domain name
-            sizeof(m_row.C_EMAIL_2) - iLen - 2);
-    m_row.C_EMAIL_2[sizeof(m_row.C_EMAIL_2)-1] = '\0';  //null terminate in any case
+    strncpy(&m_row.C_EMAIL_2[1], m_row.C_L_NAME,
+            sizeof(m_row.C_EMAIL_2) - 1);         //last name
+    strncpy(&m_row.C_EMAIL_2[1+iLen],
+            EMAIL_DOMAINs[m_rnd.RndIntRangeExclude(0, iNumEMAIL_DOMAINs - 1, iEmail1Index)], //domain name
+            sizeof(m_row.C_EMAIL_2) - iLen - 1);
 }
 
 /*
@@ -435,10 +433,9 @@ void CCustomerTable::GenerateC_EMAIL_1_and_C_EMAIL_2()
 bool CCustomerTable::GenerateNextRecord()
 {
     GenerateNextC_ID();
-    GetC_TAX_ID(m_row.C_ID, m_row.C_TAX_ID);
     GenerateC_ST_ID();
-    GeneratePersonInfo();   //generate last name, first name, and gender.
-    m_row.C_TIER = GetC_TIER(m_row.C_ID);
+    GeneratePersonInfo();   //generate last name, first name, gender and tax ID.
+    m_row.C_TIER = (char) GetC_TIER(m_row.C_ID);
     GenerateC_DOB();
     GenerateC_AD_ID();
     GenerateC_CTRY_1();

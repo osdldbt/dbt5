@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -94,7 +94,7 @@ void CDM::AutoSetRNGSeeds( UINT32 UniqueId )
     // The number of days in the 5 year period requires 11 bits.
     // So shift up by that much to make room in the "lower" bits.
     Seed <<= 11;
-    Seed += Now.DayNo() - Base.DayNo();
+    Seed += (RNGSEED) ((INT64)Now.DayNo() - (INT64)Base.DayNo());
 
     // So far, we've used up 31 bits.
     // Save the "last" bit of the "upper" 32 for the RNG id. In
@@ -259,10 +259,11 @@ void CDM::DoTxn( void )
         break;
     case 10: // TAXRATE
         const vector<TTaxRateInputRow>  *pRates;
-        INT32                           iThreshold;
+        UINT                            iThreshold;
 
-        pRates = m_pTaxRatesDivision->GetRecord(m_rnd.RndIntRange(0, m_iDivisionTaxCount - 1));
-        iThreshold = m_rnd.RndIntRange(0, (INT32)pRates->size()-1);
+        pRates = m_pTaxRatesDivision->GetRecord((UINT)m_rnd.RndIntRange(0, 
+                                                m_iDivisionTaxCount - 1));
+        iThreshold = (UINT) m_rnd.RndIntRange(0, (UINT)pRates->size()-1);
 
         strncpy(m_TxnInput.tx_id,
                 (*pRates)[iThreshold].TAX_ID,
@@ -286,7 +287,7 @@ void CDM::DoCleanupTxn( void )
     memset( &m_CleanupTxnInput, 0, sizeof( m_CleanupTxnInput ));
 
     // Compute Starting Trade ID (Copied from CETxnInputGenerator.cpp)
-    m_CleanupTxnInput.start_trade_id = (TTrade)(( m_DriverGlobalSettings.cur.iDaysOfInitialTrades * HoursPerWorkDay * SecondsPerHour * ( m_DriverGlobalSettings.cur.iActiveCustomerCount / m_DriverGlobalSettings.cur.iScaleFactor )) * iAbortTrade / 100 ) + 1;  // 1.01 to account for rollbacks, +1 to get first runtime trade
+    m_CleanupTxnInput.start_trade_id = (TTrade)(( m_DriverGlobalSettings.cur.iDaysOfInitialTrades * (TTrade)HoursPerWorkDay * (TTrade)SecondsPerHour * ( m_DriverGlobalSettings.cur.iActiveCustomerCount / m_DriverGlobalSettings.cur.iScaleFactor )) * iAbortTrade / 100 ) + 1 + iTTradeShift;  // 1.01 to account for rollbacks, +1 to get first runtime trade
 
         // Copy the status type id's from the flat file
         strncpy(m_CleanupTxnInput.st_pending_id,

@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -46,15 +46,16 @@ using namespace TPCE;
 TIdent              iStartFromCustomer = iDefaultStartFromCustomer;
 TIdent              iCustomerCount = iDefaultCustomerCount;         // # of customers for this instance
 TIdent              iTotalCustomerCount = iDefaultCustomerCount;    // total number of customers in the database
-int                 iLoadUnitSize = iDefaultLoadUnitSize;           // # of customers in one load unit
-int                 iScaleFactor = 500;                             // # of customers for 1 tpsE
-int                 iDaysOfInitialTrades = 300;
+UINT                iLoadUnitSize = iDefaultLoadUnitSize;           // # of customers in one load unit
+UINT                iScaleFactor = 500;                             // # of customers for 1 tpsE
+UINT                iDaysOfInitialTrades = 300;
 
 // These flags are used to control which tables get generated and loaded.
 bool                bTableGenerationFlagNotSpecified = true;    // assume no flag is specified.
 bool                bGenerateFixedTables = false;
 bool                bGenerateGrowingTables = false;
 bool                bGenerateScalingTables = false;
+bool                bGenerateUsingCache = true;
 
 char                szInDir[iMaxPath];
 #ifdef COMPILE_FLAT_FILE_LOAD
@@ -64,12 +65,6 @@ FlatFileOutputModes     FlatFileOutputMode;
 #ifdef COMPILE_ODBC_LOAD
 char                szServer[iMaxHostname];
 char                szDB[iMaxDBName];
-#endif
-#ifdef COMPILE_PGSQL_LOAD
-char                szHost[iMaxPGHost];
-char                szDBName[iMaxPGDBName];
-char                szServer[iMaxHostname];
-char                szPostmasterPort[iMaxPGPort];
 #endif
 #if defined(COMPILE_ODBC_LOAD) || defined(COMPILE_CUSTOM_LOAD)
 char                szLoaderParms[1024];
@@ -87,7 +82,6 @@ enum eLoadImplementation {
     NULL_LOAD = 0,  // no load - generate data only
     FLAT_FILE_LOAD,
     ODBC_LOAD,
-    PGSQL_LOAD,
     CUSTOM_LOAD     // sponsor-provided load mechanism
 };
 #if defined(DEFAULT_LOAD_TYPE)
@@ -98,8 +92,6 @@ eLoadImplementation LoadType = FLAT_FILE_LOAD;
 eLoadImplementation LoadType = ODBC_LOAD;
 #elif defined(COMPILE_CUSTOM_LOAD)
 eLoadImplementation LoadType = CUSTOM_LOAD;
-#elif defined(COMPILE_PGSQL_LOAD)
-eLoadImplementation LoadType = PGSQL_LOAD;
 #else
 eLoadImplementation LoadType = NULL_LOAD;
 #endif
@@ -129,11 +121,6 @@ void Usage()
   fprintf( stderr, "   -s string                   localhost   Database server\n" );
   fprintf( stderr, "   -d string                   tpce        Database name\n" );
 #endif
-#ifdef COMPILE_PGSQL_LOAD
-  fprintf( stderr, "   -s string                   localhost   Database server\n" );
-  fprintf( stderr, "   -d string                   dbt5        Database name\n" );
-  fprintf( stderr, "   -p number                   5432        Postmaster port\n" );
-#endif
 #if defined(COMPILE_ODBC_LOAD) || defined(COMPILE_CUSTOM_LOAD)
   fprintf( stderr, "   -p string                               Additional parameters to loader\n" );
 #endif
@@ -145,6 +132,7 @@ void Usage()
   fprintf( stderr, "   -xs                                     Generate scaling tables\n");
   fprintf( stderr, "                                           (except BROKER)\n");
   fprintf( stderr, "   -xg                                     Generate growing tables and BROKER\n");
+  fprintf( stderr, "   -g                                      Disable caching when generating growing tables\n" );
 }
 
 void ParseCommandLine( int argc, char *argv[] )
@@ -201,17 +189,17 @@ char  *vp;
         sscanf(vp, "%"PRId64, &iTotalCustomerCount);
         break;
       case 'f':
-        iScaleFactor = atoi( vp );
+        iScaleFactor = (UINT) atoi( vp );
         break;
       case 'w':
-    iDaysOfInitialTrades = atoi( vp );
+    iDaysOfInitialTrades = (UINT) atoi( vp );
         break;
 
       case 'i': // Location of input files.
-          strncpy(szInDir, vp, sizeof(szInDir)-1);
+          strncpy(szInDir, vp, sizeof(szInDir));
           if(( '/' != szInDir[ strlen(szInDir) - 1 ] ) && ( '\\' != szInDir[ strlen(szInDir) - 1 ] ))
           {
-              strcat( szInDir, "/" );
+              strncat( szInDir, "/", sizeof(szInDir) );
           }
           break;
 
@@ -242,13 +230,6 @@ char  *vp;
               break;
           }
 #endif
-#ifdef COMPILE_PGSQL_LOAD
-          if ( 0 == strcmp( vp, "PGSQL" ))
-          {
-              LoadType = PGSQL_LOAD;
-              break;
-          }
-#endif
           Usage();
           exit( ERROR_BAD_OPTION );
           break;
@@ -271,10 +252,10 @@ char  *vp;
           break;
 
       case 'o': // Location for output files.
-          strncpy(szOutDir, vp, sizeof(szOutDir)-1);
+          strncpy(szOutDir, vp, sizeof(szOutDir));
           if(( '/' != szOutDir[ strlen(szOutDir) - 1 ] ) && ( '\\' != szOutDir[ strlen(szOutDir) - 1 ] ))
           {
-              strcat( szOutDir, "/" );
+              strncat( szOutDir, "/", sizeof(szOutDir) );
           }
           break;
 #endif
@@ -287,24 +268,14 @@ char  *vp;
           strncpy(szDB, vp, sizeof(szDB));
           break;
 #endif
-#ifdef COMPILE_PGSQL_LOAD
-      case 's': // Database server name.
-          strncpy(szServer, vp, sizeof(szServer));
-          break;
-
-      case 'd': // Database name.
-          strncpy(szDBName, vp, sizeof(szDBName));
-          break;
-
-      case 'p': // Postmaster port.
-          strncpy(szPostmasterPort, vp, sizeof(szPostmasterPort));
-          break;
-#endif
 #if defined(COMPILE_ODBC_LOAD) || defined(COMPILE_CUSTOM_LOAD)
       case 'p': // Loader Parameters
           strncpy(szLoaderParms, vp, sizeof(szLoaderParms));
           break;
 #endif
+      case 'g': // Disable Cache for Growing Tables (TradeGen)
+          bGenerateUsingCache = false;
+          break;
       case 'x': // Table Generation
           bTableGenerationFlagNotSpecified = false; //A -x flag has been used
 
@@ -419,10 +390,10 @@ bool ValidateParameters()
         bRet = false;
     }
 
-    if (iDaysOfInitialTrades <= 0)
+    if (iDaysOfInitialTrades == 0)
     {
         cout << "The specified number of 8-Hour Workdays (-w "
-            << (iDaysOfInitialTrades) << ") must be non-zero." << endl;
+             << (iDaysOfInitialTrades) << ") must be non-zero." << endl;
 
         bRet = false;
     }
@@ -451,11 +422,6 @@ CBaseLoaderFactory* CreateLoaderFactory(eLoadImplementation eLoadType)
         return new CFlatLoaderFactory(szOutDir, FlatFileOutputMode);
 #endif  //#ifdef COMPILE_FLAT_FILE_LOAD
 
-#ifdef COMPILE_PGSQL_LOAD
-    case PGSQL_LOAD:
-        return new CPGSQLLoaderFactory(szHost, szDBName, szPostmasterPort);
-#endif
-
 #ifdef COMPILE_CUSTOM_LOAD
     case CUSTOM_LOAD:
         return new CCustomLoaderFactory(szLoaderParms);
@@ -481,17 +447,12 @@ int main(int argc, char* argv[])
 
     // Establish defaults for command line options.
 #ifdef COMPILE_ODBC_LOAD
-    strncpy(szServer, "localhost", sizeof(szServer)-1);
-    strncpy(szDB, "tpce", sizeof(szDB)-1);
+    strncpy(szServer, "localhost", sizeof(szServer));
+    strncpy(szDB, "tpce", sizeof(szDB));
 #endif
-#ifdef COMPILE_PGSQL_LOAD
-    strncpy(szHost, "localhost", sizeof(szHost)-1);
-    strncpy(szDBName, "dbt5", sizeof(szDBName)-1);
-    strncpy(szPostmasterPort, "5432", sizeof(szPostmasterPort)-1);
-#endif
-    strncpy(szInDir, FLAT_IN_PATH, sizeof(szInDir)-1);
+    strncpy(szInDir, FLAT_IN_PATH, sizeof(szInDir));
 #ifdef COMPILE_FLAT_FILE_LOAD
-    strncpy(szOutDir, FLAT_OUT_PATH, sizeof(szOutDir)-1);
+    strncpy(szOutDir, FLAT_OUT_PATH, sizeof(szOutDir));
     FlatFileOutputMode = FLAT_FILE_OUTPUT_OVERWRITE;
 #endif
 
@@ -515,14 +476,6 @@ int main(int argc, char* argv[])
         cout<<"\tLoad Type:\t\tODBC"<<endl;
         cout<<"\tServer Name:\t\t"<<szServer<<endl;
         cout<<"\tDatabase:\t\t"<<szDB<<endl;
-        break;
-#endif
-#ifdef COMPILE_PGSQL_LOAD
-    case PGSQL_LOAD:
-        cout<<"\tLoad Type:\t\tPGSQL"<<endl;
-        cout<<"\tServer Name:\t\t"<<szHost<<endl;
-        cout<<"\tDatabase:\t\t"<<szDBName<<endl;
-        cout<<"\tPort:\t\t\t"<<szPostmasterPort<<endl;
         break;
 #endif
 #ifdef COMPILE_FLAT_FILE_LOAD
@@ -557,6 +510,7 @@ int main(int argc, char* argv[])
     cout<<"\tLoad Unit:\t\t"<<iLoadUnitSize<<endl;
     cout<<"\tScale Factor:\t\t"<<iScaleFactor<<endl;
     cout<<"\tInitial Trade Days:\t"<<iDaysOfInitialTrades<<endl;
+    cout<<"\tCaching Enabled:\t"<<(bGenerateUsingCache?"true":"false")<<endl;
     cout<<endl<<endl;
 
     // Know the load type => create the loader factory.
@@ -571,13 +525,14 @@ int main(int argc, char* argv[])
         //
         char szLogFileName[64];
 
-        sprintf(&szLogFileName[0], "EGenLoaderFrom%" PRId64 "To%" PRId64 ".log",
-                iStartFromCustomer, (iStartFromCustomer + iCustomerCount)-1);
+        snprintf(&szLogFileName[0], sizeof(szLogFileName),
+                 "EGenLoaderFrom%" PRId64 "To%" PRId64 ".log",
+                 iStartFromCustomer, (iStartFromCustomer + iCustomerCount)-1);
 
         // Create log formatter and logger instance
         //
         CLogFormatTab fmt;
-        CEGenLogger log(eDriverEGenLoader, 0, szLogFileName, &fmt);
+        CEGenLogger logger(eDriverEGenLoader, 0, szLogFileName, &fmt);
 
         // Load all of the input files into memory.
         inputFiles.Initialize(eDriverEGenLoader, iTotalCustomerCount, iTotalCustomerCount, szInDir);
@@ -586,7 +541,9 @@ int main(int argc, char* argv[])
         pGenerateAndLoad = new CGenerateAndLoad(inputFiles, iCustomerCount, iStartFromCustomer,
                                                 iTotalCustomerCount, iLoadUnitSize,
                                                 iScaleFactor, iDaysOfInitialTrades,
-                                                pLoaderFactory, &log, &Output, szInDir);
+                                                pLoaderFactory, &logger, &Output, szInDir,
+                                                bGenerateUsingCache
+                                               );
 
         //  The generate and load phase starts here.
         //

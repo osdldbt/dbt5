@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -115,7 +115,8 @@ double BucketSimulator::simulate_onerun(INT64 iorders) {
 // the maximum standard deviation
 double BucketSimulator::simulate() {
     double max_stddev = 0;
-    TPCE::RNGSEED seed = m_rnd.RndNthElement(m_baseseed, m_iterstart*m_simorders*RND_STEP_PER_ORDER);
+    TPCE::RNGSEED seed = m_rnd.RndNthElement(m_baseseed, 
+                                             (RNGSEED)(m_iterstart*m_simorders*RND_STEP_PER_ORDER));
     m_rnd.SetSeed(seed);
     for (int i = 0; i < m_itercount; ++i) {
         TPCE::RNGSEED current_seed = m_rnd.GetSeed();

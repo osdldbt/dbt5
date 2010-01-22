@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -38,8 +38,8 @@
 
 using namespace TPCE;
 
-const int iUSACtryCode = 1;     //must be the same as the code in country tax rates file
-const int iCanadaCtryCode = 2;  //must be the same as the code in country tax rates file
+const UINT iUSACtryCode = 1;     //must be the same as the code in country tax rates file
+const UINT iCanadaCtryCode = 2;  //must be the same as the code in country tax rates file
 
 // Minimum and maximum to use when generating address street numbers.
 const int iStreetNumberMin = 100;
@@ -80,9 +80,10 @@ const int iRNGSkipOneRowAddress = 10;   // real number in 3.5: 7
 CAddressTable::CAddressTable(CInputFiles    inputFiles,
                              TIdent         iCustomerCount,
                              TIdent         iStartFromCustomer,
-                             bool           bCustomerAddressesOnly)
+                             bool           bCustomerAddressesOnly,
+                             bool           bCacheEnabled
+                            )
 : TableTemplate<ADDRESS_ROW>()
-, m_person(inputFiles)
 , m_companies(inputFiles.Company)
 , m_Street(inputFiles.Street)
 , m_StreetSuffix(inputFiles.StreetSuffix)
@@ -91,6 +92,7 @@ CAddressTable::CAddressTable(CInputFiles    inputFiles,
 , m_iCustomerCount(iCustomerCount)
 , m_bCustomerAddressesOnly(bCustomerAddressesOnly)
 , m_bCustomerAddress(bCustomerAddressesOnly)
+, m_bCacheEnabled(bCacheEnabled)
 {
     m_iExchangeCount = inputFiles.Exchange->GetSize();          // number of rows in Exchange
     m_iCompanyCount = m_companies->GetConfiguredCompanyCount(); // number of configured companies
@@ -115,6 +117,25 @@ CAddressTable::CAddressTable(CInputFiles    inputFiles,
     }
 
     m_row.AD_ID = m_iLastRowNumber + iTIdentShift;  // extend to 64 bits for address id
+
+    if (m_bCacheEnabled)
+    {
+        m_iCacheSize = (int)iDefaultLoadUnitSize;
+        m_iCacheOffset = iTIdentShift + m_iExchangeCount + m_iCompanyCount + m_iStartFromCustomer;
+        m_CacheZipCode = new const TZipCodeInputRow* [m_iCacheSize];
+        for (int i=0; i<m_iCacheSize; i++)
+        {
+            m_CacheZipCode[i] = NULL;
+        }
+    }
+}
+
+CAddressTable::~CAddressTable()
+{
+    if (m_bCacheEnabled)
+    {
+        delete[] m_CacheZipCode;
+    }
 }
 
 /*
@@ -129,9 +150,19 @@ CAddressTable::CAddressTable(CInputFiles    inputFiles,
 void CAddressTable::InitNextLoadUnit()
 {
     m_rnd.SetSeed(m_rnd.RndNthElement(RNGSeedTableDefault,
-                                     m_iLastRowNumber * iRNGSkipOneRowAddress));
+                                     (RNGSEED)m_iLastRowNumber * 
+                                      iRNGSkipOneRowAddress));
 
     ClearRecord();  // this is needed for EGenTest to work
+
+    if (m_bCacheEnabled)
+    {
+        m_iCacheOffset += iDefaultLoadUnitSize;
+        for (int i=0; i<m_iCacheSize; i++)
+        {
+            m_CacheZipCode[i] = NULL;
+        }
+    }
 }
 
 /*
@@ -200,7 +231,7 @@ void CAddressTable::GenerateAD_LINE_1()
     int iStreetThreshold = m_rnd.RndIntRange(0, m_Street->GetGreatestKey()-2);
     int iStreetSuffixThreshold = m_rnd.RndIntRange(0, m_StreetSuffix->GetGreatestKey()-1);
 
-    sprintf(m_row.AD_LINE1, "%d %s %s",
+    snprintf(m_row.AD_LINE1, sizeof(m_row.AD_LINE1), "%d %s %s",
             iStreetNum,
             (m_Street->GetRecord(iStreetThreshold))->STREET,
             (m_StreetSuffix->GetRecord(iStreetSuffixThreshold))->SUFFIX);
@@ -226,11 +257,13 @@ void CAddressTable::GenerateAD_LINE_2()
     {
         if (m_rnd.RndPercent(iPctCustomersWithAptAD_LINE_2))
         {
-            sprintf(m_row.AD_LINE2, "Apt. %d", m_rnd.RndIntRange(iApartmentNumberMin, iApartmentNumberMax));
+            snprintf(m_row.AD_LINE2, sizeof(m_row.AD_LINE2),
+                     "Apt. %d", m_rnd.RndIntRange(iApartmentNumberMin, iApartmentNumberMax));
         }
         else
         {
-            sprintf(m_row.AD_LINE2, "Suite %d", m_rnd.RndIntRange(iSuiteNumberMin, iSuiteNumberMax));
+            snprintf(m_row.AD_LINE2, sizeof(m_row.AD_LINE2),
+                     "Suite %d", m_rnd.RndIntRange(iSuiteNumberMin, iSuiteNumberMax));
         }
     }
 }
@@ -252,7 +285,7 @@ int CAddressTable::GetTownDivisionZipCodeThreshold(TIdent ADID)
     int     iThreshold;
 
     OldSeed = m_rnd.GetSeed();
-    m_rnd.SetSeed( m_rnd.RndNthElement( RNGSeedBaseTownDivZip, ADID ));
+    m_rnd.SetSeed( m_rnd.RndNthElement( RNGSeedBaseTownDivZip, (RNGSEED)ADID ));
     iThreshold = m_rnd.RndIntRange(0, m_ZipCode->GetGreatestKey()-1);
     m_rnd.SetSeed( OldSeed );
     return( iThreshold );
@@ -267,7 +300,7 @@ int CAddressTable::GetTownDivisionZipCodeThreshold(TIdent ADID)
 *   RETURNS:
 *           country code.
 */
-int CAddressTable::GetCountryCode( const char *szZipCode )
+UINT CAddressTable::GetCountryCode( const char *szZipCode )
 {
     if(( '0' <= szZipCode[0] )&&( szZipCode[0] <= '9' ))
     {
@@ -293,13 +326,33 @@ int CAddressTable::GetCountryCode( const char *szZipCode )
 *   RETURNS:
 *           none.
 */
-void CAddressTable::GetDivisionAndCountryCodesForAddress(TIdent AD_ID, int &iDivCode, int &iCtryCode)
+void CAddressTable::GetDivisionAndCountryCodesForAddress(TIdent AD_ID, UINT &iDivCode, UINT &iCtryCode)
 {
-    int iThreshold = GetTownDivisionZipCodeThreshold(AD_ID);
-    // Select the row in the input file
-    const TZipCodeInputRow* pZipCodeInputRow = m_ZipCode->GetRecord(iThreshold);
-    iDivCode = pZipCodeInputRow->iDivisionTaxKey;   //return division code
-    // Return country code
+    const TZipCodeInputRow* pZipCodeInputRow = NULL;
+
+    // We will sometimes get AD_ID values that are outside the current
+    // load unit (cached range).  We need to check for this case
+    // and avoid the lookup (as we will segfault or get bogus data.)
+    TIdent index = AD_ID - m_iCacheOffset;
+    bool bCheckCache = (index >= 0 && index <= m_iCacheSize);
+    if (m_bCacheEnabled && bCheckCache)
+    {
+        pZipCodeInputRow = m_CacheZipCode[index];
+    }
+
+    if (pZipCodeInputRow == NULL)
+    {
+        int iThreshold = GetTownDivisionZipCodeThreshold(AD_ID);
+        // Select the row in the input file
+        pZipCodeInputRow = m_ZipCode->GetRecord(iThreshold);
+        if (m_bCacheEnabled && bCheckCache)
+        {
+            m_CacheZipCode[index] = pZipCodeInputRow;
+        }
+    }
+
+    // Return division code and country code
+    iDivCode = pZipCodeInputRow->iDivisionTaxKey;
     iCtryCode = GetCountryCode( pZipCodeInputRow->ZC_CODE );
 }
 
@@ -323,15 +376,15 @@ void CAddressTable::GenerateAD_ZC_CODE_CTRY()
 
     pZipCodeInputRow = m_ZipCode->GetRecord(iThreshold);
 
-    strncpy( m_row.AD_ZC_CODE, pZipCodeInputRow->ZC_CODE, sizeof( m_row.AD_ZC_CODE ) - 1 );
+    strncpy( m_row.AD_ZC_CODE, pZipCodeInputRow->ZC_CODE, sizeof( m_row.AD_ZC_CODE ) );
 
     if( iUSACtryCode == GetCountryCode( pZipCodeInputRow->ZC_CODE ))
     {   //US state
-        strncpy(m_row.AD_CTRY, "USA", sizeof(m_row.AD_CTRY)-1);
+        strncpy(m_row.AD_CTRY, "USA", sizeof(m_row.AD_CTRY));
     }
     else
     {   //Canadian province
-        strncpy(m_row.AD_CTRY, "CANADA", sizeof(m_row.AD_CTRY)-1);
+        strncpy(m_row.AD_CTRY, "CANADA", sizeof(m_row.AD_CTRY));
     }
 }
 

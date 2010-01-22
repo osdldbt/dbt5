@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -69,7 +69,7 @@ public:
             || bcp_bind(m_hdbc, (BYTE *) &ODBC_T_DTS, 0, SQL_VARLEN_DATA, NULL, 0, SQLDATETIME, ++i) != SUCCEED
             || bcp_bind(m_hdbc, (BYTE *) &m_row.T_ST_ID, 0, SQL_VARLEN_DATA, (BYTE *)"", 1, SQLCHARACTER, ++i) != SUCCEED
             || bcp_bind(m_hdbc, (BYTE *) &m_row.T_TT_ID, 0, SQL_VARLEN_DATA, (BYTE *)"", 1, SQLCHARACTER, ++i) != SUCCEED
-            || bcp_bind(m_hdbc, (BYTE *) &m_row.T_IS_CASH, 0, SQL_VARLEN_DATA, NULL, 0, SQLINT4, ++i) != SUCCEED
+            || bcp_bind(m_hdbc, (BYTE *) &m_row.T_IS_CASH, 0, SQL_VARLEN_DATA, NULL, 0, SQLINT1, ++i) != SUCCEED
             || bcp_bind(m_hdbc, (BYTE *) &m_row.T_S_SYMB, 0, SQL_VARLEN_DATA, (BYTE *)"", 1, SQLCHARACTER, ++i) != SUCCEED
             || bcp_bind(m_hdbc, (BYTE *) &m_row.T_QTY, 0, SQL_VARLEN_DATA, NULL, 0, SQLINT4, ++i) != SUCCEED
             || bcp_bind(m_hdbc, (BYTE *) &m_row.T_BID_PRICE, 0, SQL_VARLEN_DATA, NULL, 0, SQLFLT8, ++i) != SUCCEED
@@ -79,7 +79,7 @@ public:
             || bcp_bind(m_hdbc, (BYTE *) &m_row.T_CHRG, 0, SQL_VARLEN_DATA, NULL, 0, SQLFLT8, ++i) != SUCCEED
             || bcp_bind(m_hdbc, (BYTE *) &m_row.T_COMM, 0, SQL_VARLEN_DATA, NULL, 0, SQLFLT8, ++i) != SUCCEED
             || bcp_bind(m_hdbc, (BYTE *) &m_row.T_TAX, 0, SQL_VARLEN_DATA, NULL, 0, SQLFLT8, ++i) != SUCCEED
-            || bcp_bind(m_hdbc, (BYTE *) &m_row.T_LIFO, 0, SQL_VARLEN_DATA, NULL, 0, SQLINT4, ++i) != SUCCEED
+            || bcp_bind(m_hdbc, (BYTE *) &m_row.T_LIFO, 0, SQL_VARLEN_DATA, NULL, 0, SQLINT1, ++i) != SUCCEED
             )
             ThrowError(CODBCERR::eBcpBind);
 

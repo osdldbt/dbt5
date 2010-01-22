@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -55,7 +55,7 @@ CCustomerSelection::CCustomerSelection()
 , m_iMyStartFromCustomer( 0 + iTIdentShift)
 , m_iMyCustomerCount( 0 )
 {
-};
+}
 
 /*
 *   Constructor to set the customer range when not partitioining
@@ -71,7 +71,7 @@ CCustomerSelection::CCustomerSelection( CRandom*    pRND,
 , m_iMyStartFromCustomer( 0 + iTIdentShift)
 , m_iMyCustomerCount( 0 )
 {
-};
+}
 
 /*
 *   Constructor to set subrange when partitioning by C_ID.
@@ -132,10 +132,10 @@ TIdent CCustomerSelection::InversePermute(TIdent iLow, TIdent iHigh)
 /*
 *   Return scrambled inverse customer id in range of 0 to 999.
 */
-int CCustomerSelection::GetInverseCID(TIdent C_ID)
+UINT CCustomerSelection::GetInverseCID(TIdent C_ID)
 {
-    int iCHigh      = (int)CHigh(C_ID);
-    int iInverseCID = (int)InversePermute(CLow(C_ID), iCHigh);
+    UINT iCHigh      = (UINT)CHigh(C_ID);
+    UINT iInverseCID = (UINT)InversePermute(CLow(C_ID), iCHigh);
 
     if (iInverseCID < 200)      // Tier 1: value 0 to 199
     {
@@ -190,7 +190,7 @@ void CCustomerSelection::GenerateRandomCustomer(TIdent &C_ID, eCustomerTier &C_T
         return;
     }
 
-    double fCW = m_pRND->RndDoubleRange(0.0001, 2000);
+    double fCW = m_pRND->RndDoubleIncrRange(0.0001, 2000, 0.000000001);
 
     // Uniformly select the higher portion of the C_ID.
     // Use "short-circuit" logic to avoid unnecessary call to RNG.

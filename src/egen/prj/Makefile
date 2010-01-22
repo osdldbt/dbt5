@@ -17,13 +17,13 @@
 
 # Platform specific defines
 #CXX=
-CCFLAGS=-g -ggdb -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS
-LDFLAGS=-lpqxx -lpq
+#CCFLAGS=
+#LDFLAGS=
 #AR=
 #ARFLAGS=
 
 # Application specific defines
-APPDEFINES=-DCOMPILE_PGSQL_LOAD -DCOMPILE_FLAT_FILE_LOAD
+APPDEFINES=-DCOMPILE_FLAT_FILE_LOAD
 
 # Directory for source files
 SRC = ../src
@@ -89,8 +89,9 @@ EGenUtilities_src =		DateTime.cpp \
 				error.cpp \
 				Random.cpp \
 				Money.cpp \
-				EGenVersion.cpp
-
+				EGenVersion.cpp \
+				locking.cpp \
+				threading.cpp
 
 EGenUtilities_obj =		$(EGenUtilities_src:.cpp=.o)
 
@@ -126,7 +127,7 @@ EGenValidate_obj =		$(EGenValidate_src:.cpp=.o)
 # Using pattern rules that were defined earlier. 
 # All options are specified through the variables.
 
-all:				mkinstalldirs EGenDriverLib EGenLoader EGenValidate
+all:				EGenDriverLib EGenLoader EGenValidate
 
 EGenLoader:			EGenUtilities \
 				EGenDriverMEELib \
@@ -210,6 +211,3 @@ clean:
 	cd $(EXE); \
 	rm -f			EGenLoader EGenValidate; \
 	cd $(PRJ)
-
-mkinstalldirs:
-	mkdir -p $(OBJ) $(LIB) $(EXE) ../flat_out

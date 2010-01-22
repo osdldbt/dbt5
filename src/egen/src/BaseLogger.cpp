@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -65,11 +65,12 @@ CBaseLogger::CBaseLogger(eDriverType drvType, INT32 UniqueId, CBaseLogFormatter*
     char m_Version[32];
 
     // Get EGen Version
-    GetEGenVersionString(m_Version, 32);
+    GetEGenVersionString(m_Version, sizeof(m_Version));
 
     // Generate Log Prefix String
-    sprintf(&m_Prefix[0], "%s (%s) %d", szDriverTypeNames[drvType], m_Version, UniqueId);
-};
+    snprintf(&m_Prefix[0], sizeof(m_Prefix), "%s (%s) %d",
+             szDriverTypeNames[drvType], m_Version, UniqueId);
+}
 
 /* Methods */
 bool CBaseLogger::SendToLogger(const char *szPrefix, const char *szMsg)
@@ -92,71 +93,71 @@ bool CBaseLogger::SendToLogger(string str)
 bool CBaseLogger::SendToLogger(CLoaderSettings& parms)
 {
     return SendToLogger(m_pLogFormatter->GetLogOutput(parms));
-};
+}
 bool CBaseLogger::SendToLogger(CDriverGlobalSettings& parms)
 {
     return SendToLogger(m_pLogFormatter->GetLogOutput(parms));
-};
+}
 
 bool CBaseLogger::SendToLogger(CDriverCESettings& parms)
 {
     return SendToLogger(m_pLogFormatter->GetLogOutput(parms));
-};
+}
 
 bool CBaseLogger::SendToLogger(CDriverCEPartitionSettings& parms)
 {
     return SendToLogger(m_pLogFormatter->GetLogOutput(parms));
-};
+}
 
 bool CBaseLogger::SendToLogger(CDriverMEESettings& parms)
 {
     return SendToLogger(m_pLogFormatter->GetLogOutput(parms));
-};
+}
 
 bool CBaseLogger::SendToLogger(CDriverDMSettings& parms)
 {
     return SendToLogger(m_pLogFormatter->GetLogOutput(parms));
-};
+}
 
 bool CBaseLogger::SendToLogger(CBrokerVolumeSettings& parms)
 {
     return SendToLogger(m_pLogFormatter->GetLogOutput(parms));
-};
+}
 
 bool CBaseLogger::SendToLogger(CCustomerPositionSettings& parms)
 {
     return SendToLogger(m_pLogFormatter->GetLogOutput(parms));
-};
+}
 
 bool CBaseLogger::SendToLogger(CMarketWatchSettings& parms)
 {
     return SendToLogger(m_pLogFormatter->GetLogOutput(parms));
-};
+}
 
 bool CBaseLogger::SendToLogger(CSecurityDetailSettings& parms)
 {
     return SendToLogger(m_pLogFormatter->GetLogOutput(parms));
-};
+}
 
 bool CBaseLogger::SendToLogger(CTradeLookupSettings& parms)
 {
     return SendToLogger(m_pLogFormatter->GetLogOutput(parms));
-};
+}
 
 bool CBaseLogger::SendToLogger(CTradeOrderSettings& parms)
 {
     return SendToLogger(m_pLogFormatter->GetLogOutput(parms));
-};
+}
 
 bool CBaseLogger::SendToLogger(CTradeUpdateSettings& parms)
 {
     return SendToLogger(m_pLogFormatter->GetLogOutput(parms));
-};
+}
 
 bool CBaseLogger::SendToLogger(CTxnMixGeneratorSettings& parms)
 {
     return SendToLogger(m_pLogFormatter->GetLogOutput(parms));
-};
+}
 
 bool CBaseLogger::SendToLogger(TDriverCETxnSettings& parms)
 {

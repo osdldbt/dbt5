@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -50,7 +50,7 @@ class CZipCodeTable : public TableTemplate<ZIP_CODE_ROW>
 private:
     TZipCodeFile*       m_ZipCode;
     TZipCodeInputRow*   m_NextRow;
-    INT32               m_NextUniqueRecordID;
+    UINT32              m_NextUniqueRecordID;
 
 public:
     CZipCodeTable( CInputFiles inputFiles )
@@ -69,9 +69,9 @@ public:
     {
         if( m_NextUniqueRecordID < m_ZipCode->RecordCount( ))
         {
-            strncpy( m_row.ZC_CODE, (m_ZipCode->GetRecordByPassKey( m_NextUniqueRecordID ))->ZC_CODE, sizeof( m_row.ZC_CODE ) - 1 );
-            strncpy( m_row.ZC_TOWN, (m_ZipCode->GetRecordByPassKey( m_NextUniqueRecordID ))->ZC_TOWN, sizeof( m_row.ZC_TOWN ) - 1 );
-            strncpy( m_row.ZC_DIV, (m_ZipCode->GetRecordByPassKey( m_NextUniqueRecordID ))->ZC_DIV, sizeof( m_row.ZC_DIV ) - 1 );
+            strncpy( m_row.ZC_CODE, (m_ZipCode->GetRecordByPassKey( m_NextUniqueRecordID ))->ZC_CODE, sizeof( m_row.ZC_CODE ) );
+            strncpy( m_row.ZC_TOWN, (m_ZipCode->GetRecordByPassKey( m_NextUniqueRecordID ))->ZC_TOWN, sizeof( m_row.ZC_TOWN ) );
+            strncpy( m_row.ZC_DIV, (m_ZipCode->GetRecordByPassKey( m_NextUniqueRecordID ))->ZC_DIV, sizeof( m_row.ZC_DIV ) );
             m_NextUniqueRecordID++;
             return( true );
         }

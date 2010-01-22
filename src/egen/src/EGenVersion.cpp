@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -41,20 +41,41 @@
 
 #include "../inc/EGenUtilities_stdafx.h"
 
-#include <string.h>
-
 namespace TPCE
 {
 
 // Modify these constants whenever EGen version changes.
 //
 static INT32    iEGenMajorVersion   = 1;    // major revision number
-static INT32    iEGenMinorVersion   = 3;    // minor revision number
+static INT32    iEGenMinorVersion   = 9;    // minor revision number
 static INT32    iEGenRevisionNumber = 0;    // third-tier revision number
 static INT32    iEGenBetaLevel      = 0;    // beta version (for maintenance only)
 
 extern "C"
 {
+void GetEGenVersion_C(INT32 &iMajorVersion, INT32 &iMinorVersion, INT32 &iRevisionNumber, INT32 &iBetaLevel)
+{
+  GetEGenVersion(iMajorVersion, iMinorVersion, iRevisionNumber, iBetaLevel);
+}
+
+void GetEGenVersionString_C(char* szOutput, size_t iOutputBufferLen)
+{
+  GetEGenVersionString(szOutput, iOutputBufferLen);
+}
+
+void PrintEGenVersion_C()
+{
+  PrintEGenVersion();
+}
+
+void GetEGenVersionUpdateTimestamp_C(char* szOutput, size_t iOutputBufferLen)
+{
+  GetEGenVersionUpdateTimestamp(szOutput, iOutputBufferLen);
+}
+
+} // extern "C"
+
+
 // Retrieve major, minor, revision, and beta level numbers for EGen.
 //
 void GetEGenVersion(INT32 &iMajorVersion, INT32 &iMinorVersion, INT32 &iRevisionNumber, INT32 &iBetaLevel)
@@ -67,24 +88,13 @@ void GetEGenVersion(INT32 &iMajorVersion, INT32 &iMinorVersion, INT32 &iRevision
 
 // Return versioning information formated as a string
 //
-void GetEGenVersionString(char* szOutput, INT32 iOutputBufferLen)
+void GetEGenVersionString(char* szOutput, size_t iOutputBufferLen)
 {
-    int iLen;
-    char buf[64];
-
-    iLen = sprintf(buf, "EGen v%d.%d.%d", iEGenMajorVersion, iEGenMinorVersion, iEGenRevisionNumber);
-
-    if (iEGenBetaLevel != 0)
+    if (iEGenBetaLevel == 0)
     {
-        iLen+= sprintf(&buf[iLen], " beta %d", iEGenBetaLevel);
-    }
-    
-    if (iLen > iOutputBufferLen) {
-        if (iOutputBufferLen > 0) {
-            szOutput[0] = '\0';
-        }
+        snprintf(szOutput, iOutputBufferLen, "EGen v%d.%d.%d", iEGenMajorVersion, iEGenMinorVersion, iEGenRevisionNumber);
     } else {
-        strcpy(szOutput, buf);
+        snprintf(szOutput, iOutputBufferLen, "EGen v%d.%d.%d beta %d", iEGenMajorVersion, iEGenMinorVersion, iEGenRevisionNumber, iEGenBetaLevel);
     }
 }
 
@@ -94,18 +104,16 @@ void PrintEGenVersion()
 {
     char    szVersion[33];
 
-    GetEGenVersionString(szVersion, static_cast<INT32>(sizeof(szVersion)-1));
+    GetEGenVersionString(szVersion, sizeof(szVersion));
 
     printf("%s\n", szVersion);
 }
 
 // Return the date/time when the EGen versioning information was last updated.
 //
-void GetEGenVersionUpdateTimestamp(char* szOutput, INT32 iOutputBufferLen)
+void GetEGenVersionUpdateTimestamp(char* szOutput, size_t iOutputBufferLen)
 {
     strncpy(szOutput, __DATE__" "__TIME__, iOutputBufferLen);
-}
-
 }
 
 }   // namespace TPC-E

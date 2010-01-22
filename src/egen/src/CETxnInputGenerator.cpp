@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -59,7 +59,7 @@ CCETxnInputGenerator::CCETxnInputGenerator( const CInputFiles &inputFiles,
                                             CBaseLogger *pLogger,
                                             const PDriverCETxnSettings pDriverCETxnSettings )
     : m_rnd(RNGSeedBaseTxnInputGenerator)   //initialize with a default seed
-    , m_Person(inputFiles)
+    , m_Person(inputFiles, 0, false)
     , m_CustomerSelection(&m_rnd, iDefaultStartFromCustomer, iActiveCustomerCount)
     , m_AccsAndPerms(inputFiles, iDefaultLoadUnitSize, iActiveCustomerCount, iDefaultStartFromCustomer)
     , m_Holdings(inputFiles, iDefaultLoadUnitSize, iActiveCustomerCount, iDefaultStartFromCustomer)
@@ -109,7 +109,7 @@ CCETxnInputGenerator::CCETxnInputGenerator( const CInputFiles &inputFiles,
                                             CBaseLogger *pLogger,
                                             const PDriverCETxnSettings pDriverCETxnSettings )
     : m_rnd(RNGSeed)    //to be predictable
-    , m_Person(inputFiles)
+    , m_Person(inputFiles, 0, false)
     , m_CustomerSelection(&m_rnd, iDefaultStartFromCustomer, iActiveCustomerCount)
     , m_AccsAndPerms(inputFiles, iDefaultLoadUnitSize, iActiveCustomerCount, iDefaultStartFromCustomer)
     , m_Holdings(inputFiles, iDefaultLoadUnitSize, iActiveCustomerCount, iDefaultStartFromCustomer)
@@ -158,7 +158,7 @@ CCETxnInputGenerator::CCETxnInputGenerator( const CInputFiles &inputFiles,
                                             CBaseLogger *pLogger,
                                             const PDriverCETxnSettings pDriverCETxnSettings )
     : m_rnd(RNGSeedBaseTxnInputGenerator)   //initialize with a default seed
-    , m_Person(inputFiles)
+    , m_Person(inputFiles, 0, false)
     , m_CustomerSelection(&m_rnd, iDefaultStartFromCustomer, iActiveCustomerCount, iPartitionPercent, iMyStartingCustomerId, iMyCustomerCount)
     , m_AccsAndPerms(inputFiles, iDefaultLoadUnitSize, iActiveCustomerCount, iDefaultStartFromCustomer)
     , m_Holdings(inputFiles, iDefaultLoadUnitSize, iActiveCustomerCount, iDefaultStartFromCustomer)
@@ -211,7 +211,7 @@ CCETxnInputGenerator::CCETxnInputGenerator( const CInputFiles &inputFiles,
                                             CBaseLogger *pLogger,
                                             const PDriverCETxnSettings pDriverCETxnSettings )
     : m_rnd(RNGSeed)    //to be predictable
-    , m_Person(inputFiles)
+    , m_Person(inputFiles, 0, false)
     , m_CustomerSelection(&m_rnd, iDefaultStartFromCustomer, iActiveCustomerCount, iPartitionPercent, iMyStartingCustomerId, iMyCustomerCount)
     , m_AccsAndPerms(inputFiles, iDefaultLoadUnitSize, iActiveCustomerCount, iDefaultStartFromCustomer)
     , m_Holdings(inputFiles, iDefaultLoadUnitSize, iActiveCustomerCount, iDefaultStartFromCustomer)
@@ -252,7 +252,8 @@ void CCETxnInputGenerator::Initialize()
     m_iSectorCount = m_pSectors->GetSize();
     m_iStartFromCompany = m_pCompanies->GetCompanyId(0);    // from the first company
 
-    m_iMaxActivePrePopulatedTradeID = (INT64)(( m_iHoursOfInitialTrades * SecondsPerHour * ( m_iActiveCustomerCount / m_iScaleFactor )) * iAbortTrade / 100 );  // 1.01 to account for rollbacks
+    m_iMaxActivePrePopulatedTradeID = 
+        (INT64)(( (INT64)m_iHoursOfInitialTrades * SecondsPerHour * ( m_iActiveCustomerCount / m_iScaleFactor )) * iAbortTrade / INT64_CONST(100) );  // 1.01 to account for rollbacks
 
     //  Set the start time (time 0) to the base time
     m_StartTime.Set(
@@ -308,17 +309,33 @@ void CCETxnInputGenerator::SetRNGSeed( RNGSEED RNGSeed )
 */
 void CCETxnInputGenerator::UpdateTunables( void )
 {
-    m_iTradeLookupFrame2MaxTimeInMilliSeconds = (INT64)(( m_iHoursOfInitialTrades * SecondsPerHour ) - ( m_pDriverCETxnSettings->TL_settings.cur.BackOffFromEndTimeFrame2 )) * MsPerSecond;
-    m_iTradeLookupFrame3MaxTimeInMilliSeconds = (INT64)(( m_iHoursOfInitialTrades * SecondsPerHour ) - ( m_pDriverCETxnSettings->TL_settings.cur.BackOffFromEndTimeFrame3 )) * MsPerSecond;
-    m_iTradeLookupFrame4MaxTimeInMilliSeconds = (INT64)(( m_iHoursOfInitialTrades * SecondsPerHour ) - ( m_pDriverCETxnSettings->TL_settings.cur.BackOffFromEndTimeFrame4 )) * MsPerSecond;
+    INT64 secondsOfInitialTrades = (INT64)m_iHoursOfInitialTrades * SecondsPerHour;
 
-    m_iTradeUpdateFrame2MaxTimeInMilliSeconds = (INT64)(( m_iHoursOfInitialTrades * SecondsPerHour ) - ( m_pDriverCETxnSettings->TU_settings.cur.BackOffFromEndTimeFrame2 )) * MsPerSecond;
-    m_iTradeUpdateFrame3MaxTimeInMilliSeconds = (INT64)(( m_iHoursOfInitialTrades * SecondsPerHour ) - ( m_pDriverCETxnSettings->TU_settings.cur.BackOffFromEndTimeFrame3 )) * MsPerSecond;
+    m_iTradeLookupFrame2MaxTimeInMilliSeconds = 
+        (INT64)(secondsOfInitialTrades - 
+                ((INT64)m_pDriverCETxnSettings->TL_settings.cur.BackOffFromEndTimeFrame2 )) * MsPerSecond;
+
+    m_iTradeLookupFrame3MaxTimeInMilliSeconds = 
+        (INT64)(secondsOfInitialTrades - 
+                ((INT64)m_pDriverCETxnSettings->TL_settings.cur.BackOffFromEndTimeFrame3 )) * MsPerSecond;
+
+    m_iTradeLookupFrame4MaxTimeInMilliSeconds = 
+        (INT64)(secondsOfInitialTrades - 
+                ((INT64)m_pDriverCETxnSettings->TL_settings.cur.BackOffFromEndTimeFrame4 )) * MsPerSecond;
+
+    m_iTradeUpdateFrame2MaxTimeInMilliSeconds = 
+        (INT64)(secondsOfInitialTrades - 
+                ((INT64)m_pDriverCETxnSettings->TU_settings.cur.BackOffFromEndTimeFrame2 )) * MsPerSecond;
+
+    m_iTradeUpdateFrame3MaxTimeInMilliSeconds = 
+        (INT64)(secondsOfInitialTrades - 
+                ((INT64)m_pDriverCETxnSettings->TU_settings.cur.BackOffFromEndTimeFrame3 )) * MsPerSecond;
 
     // Set the completion time of the last initial trade.
     // 15 minutes are added at the end of hours of initial trades for pending trades.
     m_EndTime = m_StartTime;
-    m_EndTime.AddWorkMs( (INT64)(m_iHoursOfInitialTrades * SecondsPerHour + 15 * SecondsPerMinute) * MsPerSecond );
+    m_EndTime.AddWorkMs( (INT64)(secondsOfInitialTrades + 
+                          15 * SecondsPerMinute) * MsPerSecond );
 
     // Based on 10 * Trade-Order transaction mix percentage.
     // This is currently how the mix levels are set, so use that.
@@ -823,7 +840,7 @@ void CCETxnInputGenerator::GenerateTradeOrderInput(TTradeOrderTxnInput &TxnReq, 
     TIdent          CID_1, CID_2;
     bool            bMarket;
     INT32           iAdditionalPerms;
-    int             iSymbIndex;
+    UINT            iSymbIndex;
     TIdent          iFlatFileSymbIndex;
     eTradeTypeID    eTradeType;
 

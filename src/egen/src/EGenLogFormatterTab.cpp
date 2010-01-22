@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -44,6 +44,8 @@
 
 using namespace TPCE;
 
+string emptyString("");
+
 ////////////////////////////////////////////////////////////////
 // CE Transaction Settings
 ////////////////////////////////////////////////////////////////
@@ -55,7 +57,7 @@ string CLogFormatTab::GetLogOutput(CBrokerVolumeSettings& parms)
     parms.CheckDefaults();
 
     // Construct Log String
-    logmsg.str("");
+    logmsg.str(emptyString);
     logmsg << "Broker Volume Parameters:  NONE" << endl;
 
     // Send String to Logger
@@ -68,7 +70,7 @@ string CLogFormatTab::GetLogOutput(CCustomerPositionSettings& parms)
     parms.CheckDefaults();
 
     // Construct Log String
-    logmsg.str("");
+    logmsg.str(emptyString);
     logmsg << "Customer Position Parameters:" << endl;
     logmsg << left << setw(40) << "Parameter" << "Default" << "\t" << "Current" << "\t" << "Default?" << endl;
     logmsg << left << setw(40) << "By Cust ID: " << parms.dft.by_cust_id << "\t" << parms.cur.by_cust_id << "\t" << (parms.state.by_cust_id ? "YES" : "NO") << endl;
@@ -85,7 +87,7 @@ string CLogFormatTab::GetLogOutput(CMarketWatchSettings& parms)
     parms.CheckDefaults();
 
     // Construct Log String
-    logmsg.str("");
+    logmsg.str(emptyString);
     logmsg << "Market Watch Parameters:" << endl;
     logmsg << left << setw(40) << "Parameter" << "Default" << "\t" << "Current" << "\t" << "Default?" << endl;
     logmsg << left << setw(40) << "By Account ID: " << parms.dft.by_acct_id << "\t" << parms.cur.by_acct_id << "\t" << (parms.state.by_acct_id ? "YES" : "NO") << endl;
@@ -102,7 +104,7 @@ string CLogFormatTab::GetLogOutput(CSecurityDetailSettings& parms)
     parms.CheckDefaults();
 
     // Construct Log String
-    logmsg.str("");
+    logmsg.str(emptyString);
     logmsg << "Security Detail Parameters:" << endl;
     logmsg << left << setw(40) << "Parameter" << "Default" << "\t" << "Current" << "\t" << "Default?" << endl;
     logmsg << left << setw(40) << "LOB Access Pct: " << parms.dft.LOBAccessPercentage << "\t" << parms.cur.LOBAccessPercentage << "\t" << (parms.state.LOBAccessPercentage ? "YES" : "NO") << endl;
@@ -117,7 +119,7 @@ string CLogFormatTab::GetLogOutput(CTradeLookupSettings& parms)
     parms.CheckDefaults();
 
     // Construct Log String
-    logmsg.str("");
+    logmsg.str(emptyString);
     logmsg << "Trade Lookup Parameters:" << endl;
     logmsg << left << setw(40) << "Parameter" << "Default" << "\t" << "Current" << "\t" << "Default?" << endl;
     logmsg << left << setw(40) << "Frame 1 Pct:" << parms.dft.do_frame1 << "\t" << parms.cur.do_frame1 << "\t" << (parms.state.do_frame1 ? "YES" : "NO") << endl;
@@ -142,7 +144,7 @@ string CLogFormatTab::GetLogOutput(CTradeOrderSettings& parms)
     parms.CheckDefaults();
 
     // Construct Log String
-    logmsg.str("");
+    logmsg.str(emptyString);
     logmsg << "Trade Order Parameters:" << endl;
     logmsg << left << setw(40) << "Parameter" << "Default" << "\t" << "Current" << "\t" << "Default?" << endl;
     logmsg << left << setw(40) << "Market Trade Pct:" << parms.dft.market << "\t" << parms.cur.market << "\t" << (parms.state.market ? "YES" : "NO") << endl;
@@ -167,7 +169,7 @@ string CLogFormatTab::GetLogOutput(CTradeUpdateSettings& parms)
     parms.CheckDefaults();
 
     // Construct Log String
-    logmsg.str("");
+    logmsg.str(emptyString);
     logmsg << "Trade Update Parameters:" << endl;
     logmsg << left << setw(40) << "Parameter" << "Default" << "\t" << "Current" << "\t" << "Default?" << endl;
     logmsg << left << setw(40) << "Frame 1 Pct:" << parms.dft.do_frame1 << "\t" << parms.cur.do_frame1 << "\t" << (parms.state.do_frame1 ? "YES" : "NO") << endl;
@@ -196,7 +198,7 @@ string CLogFormatTab::GetLogOutput(CTxnMixGeneratorSettings& parms)
     parms.CheckDefaults();
 
     // Construct Log String
-    logmsg.str("");
+    logmsg.str(emptyString);
     logmsg << "Transaction Mixes:" << endl;
     logmsg << left << setw(40) << "Parameter" << "Default" << "\t" << "Current" << "\t" << "Default?" << endl;
     logmsg << left << setw(40) << "Broker Volume: " << parms.dft.BrokerVolumeMixLevel << "\t" << parms.cur.BrokerVolumeMixLevel << "\t" << (parms.state.BrokerVolumeMixLevel ? "YES" : "NO") << endl;
@@ -222,7 +224,7 @@ string CLogFormatTab::GetLogOutput(CLoaderSettings& parms)
     parms.CheckDefaults();
 
     // Construct Log String
-    logmsg.str("");
+    logmsg.str(emptyString);
     logmsg << "Loader Settings:" << endl;
     logmsg << left << setw(40) << "Parameter" << "Default" << "\t" << "Current" << "\t" << "Default?" << endl;
     logmsg << left << setw(40) << "Configured Customers:" << parms.dft.iConfiguredCustomerCount << "\t" << parms.cur.iConfiguredCustomerCount << endl;
@@ -248,7 +250,7 @@ string CLogFormatTab::GetLogOutput(CDriverGlobalSettings& parms)
     parms.CheckDefaults();
 
     // Construct Log String
-    logmsg.str("");
+    logmsg.str(emptyString);
     logmsg << "Driver Global Settings:" << endl;
     logmsg << left << setw(40) << "Parameter" << "Default" << "\t" << "Current" << "\t" << "Default?" << endl;
     logmsg << left << setw(40) << "Configured Customers:" << parms.dft.iConfiguredCustomerCount << "\t" << parms.cur.iConfiguredCustomerCount << endl;
@@ -262,7 +264,7 @@ string CLogFormatTab::GetLogOutput(CDriverGlobalSettings& parms)
 string CLogFormatTab::GetLogOutput(CDriverCESettings& parms)
 {
     // Construct Log String
-    logmsg.str("");
+    logmsg.str(emptyString);
     logmsg << "Driver CE Settings:" << endl;
     logmsg << left << setw(40) << "Parameter" << "Value" << endl;
     logmsg << left << setw(40) << "Unique ID:" << parms.cur.UniqueId << endl;
@@ -279,7 +281,7 @@ string CLogFormatTab::GetLogOutput(CDriverCEPartitionSettings& parms)
     parms.CheckDefaults();
 
     // Construct Log String
-    logmsg.str("");
+    logmsg.str(emptyString);
     logmsg << "Driver CE Partition Settings:" << endl;
     logmsg << left << setw(40) << "Parameter" << "Default" << "\t" << "Current" << "\t" << "Default?" << endl;
     logmsg << left << setw(40) << "Partition Starting Customer ID:" << parms.dft.iMyStartingCustomerId << "\t" << parms.cur.iMyStartingCustomerId << endl;
@@ -293,7 +295,7 @@ string CLogFormatTab::GetLogOutput(CDriverCEPartitionSettings& parms)
 string CLogFormatTab::GetLogOutput(CDriverMEESettings& parms)
 {
     // Construct Log String
-    logmsg.str("");
+    logmsg.str(emptyString);
     logmsg << "Driver MEE Settings:" << endl;
     logmsg << left << setw(40) << "Parameter" << "Value" << endl;
     logmsg << left << setw(40) << "Unique ID:" << parms.cur.UniqueId << endl;
@@ -307,7 +309,7 @@ string CLogFormatTab::GetLogOutput(CDriverMEESettings& parms)
 string CLogFormatTab::GetLogOutput(CDriverDMSettings& parms)
 {
     // Construct Log String
-    logmsg.str("");
+    logmsg.str(emptyString);
     logmsg << "Driver DM Settings:" << endl;
     logmsg << left << setw(40) << "Parameter" << "Value" << endl;
     logmsg << left << setw(40) << "Unique ID:" << parms.cur.UniqueId << endl;

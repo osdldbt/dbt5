@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -43,15 +43,19 @@
 
 #include "FlatFileLoad_stdafx.h"
 
-#include <string.h>
-
 namespace TPCE
 {
 
 class CFlatLoaderFactory : public CBaseLoaderFactory
 {
     char                    m_szOutDir[iMaxPath];
+    char                    m_szFullFileName[iMaxPath];
     FlatFileOutputModes     m_eOutputMode;  // overwrite/append
+
+    void SetFileName(char *szFileName)
+    {
+        snprintf(m_szFullFileName, sizeof(m_szFullFileName), "%s%s", m_szOutDir, szFileName);
+    }
 
 public:
     // Constructor
@@ -67,373 +71,208 @@ public:
 
     virtual CBaseLoader<ACCOUNT_PERMISSION_ROW>*    CreateAccountPermissionLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("AccountPermission.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "AccountPermission.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatAccountPermissionLoad(szFileName, m_eOutputMode);
+        return new CFlatAccountPermissionLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<ADDRESS_ROW>*               CreateAddressLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("Address.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "Address.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatAddressLoad(szFileName, m_eOutputMode);
+        return new CFlatAddressLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<BROKER_ROW>*                CreateBrokerLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("Broker.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "Broker.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatBrokerLoad(szFileName, m_eOutputMode);
+        return new CFlatBrokerLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<CASH_TRANSACTION_ROW>*      CreateCashTransactionLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("CashTransaction.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "CashTransaction.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatCashTransactionLoad(szFileName, m_eOutputMode);
+        return new CFlatCashTransactionLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<CHARGE_ROW>*                CreateChargeLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("Charge.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "Charge.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatChargeLoad(szFileName, m_eOutputMode);
+        return new CFlatChargeLoad(m_szFullFileName, m_eOutputMode);
     };
 
     virtual CBaseLoader<COMMISSION_RATE_ROW>*       CreateCommissionRateLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("CommissionRate.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "CommissionRate.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatCommissionRateLoad(szFileName, m_eOutputMode);
+        return new CFlatCommissionRateLoad(m_szFullFileName, m_eOutputMode);
     };
 
     virtual CBaseLoader<COMPANY_COMPETITOR_ROW>*    CreateCompanyCompetitorLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("CompanyCompetitor.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "CompanyCompetitor.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatCompanyCompetitorLoad(szFileName, m_eOutputMode);
+        return new CFlatCompanyCompetitorLoad(m_szFullFileName, m_eOutputMode);
     };
 
     virtual CBaseLoader<COMPANY_ROW>*               CreateCompanyLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("Company.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "Company.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatCompanyLoad(szFileName, m_eOutputMode);
+        return new CFlatCompanyLoad(m_szFullFileName, m_eOutputMode);
     };
 
     virtual CBaseLoader<CUSTOMER_ACCOUNT_ROW>*      CreateCustomerAccountLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("CustomerAccount.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "CustomerAccount.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatCustomerAccountLoad(szFileName, m_eOutputMode);
+        return new CFlatCustomerAccountLoad(m_szFullFileName, m_eOutputMode);
     };
 
     virtual CBaseLoader<CUSTOMER_ROW>*              CreateCustomerLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("Customer.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "Customer.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatCustomerLoad(szFileName, m_eOutputMode);
+        return new CFlatCustomerLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<CUSTOMER_TAXRATE_ROW>*      CreateCustomerTaxrateLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("CustomerTaxrate.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "CustomerTaxrate.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatCustomerTaxrateLoad(szFileName, m_eOutputMode);
+        return new CFlatCustomerTaxrateLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<DAILY_MARKET_ROW>*          CreateDailyMarketLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("DailyMarket.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "DailyMarket.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatDailyMarketLoad(szFileName, m_eOutputMode);
+        return new CFlatDailyMarketLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<EXCHANGE_ROW>*              CreateExchangeLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("Exchange.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "Exchange.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatExchangeLoad(szFileName, m_eOutputMode);
+        return new CFlatExchangeLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<FINANCIAL_ROW>*             CreateFinancialLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("Financial.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "Financial.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatFinancialLoad(szFileName, m_eOutputMode);
+        return new CFlatFinancialLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<HOLDING_ROW>*               CreateHoldingLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("Holding.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "Holding.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatHoldingLoad(szFileName, m_eOutputMode);
+        return new CFlatHoldingLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<HOLDING_HISTORY_ROW>*       CreateHoldingHistoryLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("HoldingHistory.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "HoldingHistory.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatHoldingHistoryLoad(szFileName, m_eOutputMode);
+        return new CFlatHoldingHistoryLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<HOLDING_SUMMARY_ROW>*           CreateHoldingSummaryLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("HoldingSummary.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "HoldingSummary.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatHoldingSummaryLoad(szFileName, m_eOutputMode);
+        return new CFlatHoldingSummaryLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<INDUSTRY_ROW>*              CreateIndustryLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("Industry.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "Industry.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatIndustryLoad(szFileName, m_eOutputMode);
+        return new CFlatIndustryLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<LAST_TRADE_ROW>*            CreateLastTradeLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("LastTrade.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "LastTrade.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatLastTradeLoad(szFileName, m_eOutputMode);
+        return new CFlatLastTradeLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<NEWS_ITEM_ROW>*             CreateNewsItemLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("NewsItem.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "NewsItem.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatNewsItemLoad(szFileName, m_eOutputMode);
+        return new CFlatNewsItemLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<NEWS_XREF_ROW>*             CreateNewsXRefLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("NewsXRef.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "NewsXRef.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatNewsXRefLoad(szFileName, m_eOutputMode);
+        return new CFlatNewsXRefLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<SECTOR_ROW>*                CreateSectorLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("Sector.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "Sector.txt", sizeof(szFileName) - strlen(m_szOutDir) - 11 );
-
-        return new CFlatSectorLoad(szFileName, m_eOutputMode);
+        return new CFlatSectorLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<SECURITY_ROW>*              CreateSecurityLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("Security.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "Security.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatSecurityLoad(szFileName, m_eOutputMode);
+        return new CFlatSecurityLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<SETTLEMENT_ROW>*            CreateSettlementLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("Settlement.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "Settlement.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatSettlementLoad(szFileName, m_eOutputMode);
+        return new CFlatSettlementLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<STATUS_TYPE_ROW>*           CreateStatusTypeLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("StatusType.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "StatusType.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatStatusTypeLoad(szFileName, m_eOutputMode);
+        return new CFlatStatusTypeLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<TAXRATE_ROW>*               CreateTaxrateLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("Taxrate.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "Taxrate.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatTaxrateLoad(szFileName, m_eOutputMode);
+        return new CFlatTaxrateLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<TRADE_HISTORY_ROW>*         CreateTradeHistoryLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("TradeHistory.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "TradeHistory.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatTradeHistoryLoad(szFileName, m_eOutputMode);
+        return new CFlatTradeHistoryLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<TRADE_ROW>*                 CreateTradeLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("Trade.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "Trade.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatTradeLoad(szFileName, m_eOutputMode);
+        return new CFlatTradeLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<TRADE_REQUEST_ROW>*         CreateTradeRequestLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("TradeRequest.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "TradeRequest.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatTradeRequestLoad(szFileName, m_eOutputMode);
+        return new CFlatTradeRequestLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<TRADE_TYPE_ROW>*            CreateTradeTypeLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("TradeType.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "TradeType.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatTradeTypeLoad(szFileName, m_eOutputMode);
+        return new CFlatTradeTypeLoad(m_szFullFileName, m_eOutputMode);
     };
     virtual CBaseLoader<WATCH_ITEM_ROW>*            CreateWatchItemLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("WatchItem.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "WatchItem.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatWatchItemLoad(szFileName, m_eOutputMode);
+        return new CFlatWatchItemLoad(m_szFullFileName, m_eOutputMode);
     };
 
     virtual CBaseLoader<WATCH_LIST_ROW>*            CreateWatchListLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("WatchList.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "WatchList.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatWatchListLoad(szFileName, m_eOutputMode);
+        return new CFlatWatchListLoad(m_szFullFileName, m_eOutputMode);
     };
 
     virtual CBaseLoader<ZIP_CODE_ROW>*          CreateZipCodeLoader()
     {
-        char    szFileName[iMaxPath];
+        SetFileName("ZipCode.txt");
 
-        // snprintf doesn't exist on every platform, so do two string
-        // manipulations if we want to check the buffer length
-        strncpy( szFileName, m_szOutDir, sizeof(szFileName)-1 );
-        strncat( szFileName, "ZipCode.txt", sizeof(szFileName) - strlen(m_szOutDir) - 1 );
-
-        return new CFlatZipCodeLoad(szFileName, m_eOutputMode);
+        return new CFlatZipCodeLoad(m_szFullFileName, m_eOutputMode);
     };
 };
 

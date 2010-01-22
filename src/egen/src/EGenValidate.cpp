@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -116,7 +116,8 @@ class BucketSimOptions {
 };
 
 // Usage message
-void usage(const char *progname, BucketSimOptions& options, bool error=true) {
+void usage(const char *progname, BucketSimOptions& options, 
+           bool usage_error=true) {
     cout << "Usage: " << progname << " [options] stddev custcount [TPS-E] [runtime]" << endl
          << "    -h          This help message (-hh for more options)"   << endl
          << "    -v          Increase verbosity"                         << endl
@@ -124,9 +125,7 @@ void usage(const char *progname, BucketSimOptions& options, bool error=true) {
          << "    -r runtime  Runtime to simulate ("                      << options.run_length  << ")" << endl
          << "    -e tpsE     tpsE to simulate ("                         << options.tpse        << ")" << endl
          << "    -s stddev   Standard Deviation to check against (none)" << endl
-#ifndef NO_THREADS
          << "    -t threads  Number of threads to use ("                 << options.num_threads << ")" << endl
-#endif
         ;
     if (options.helplevel > 1) {
         cout << "    -S seed     Base Seed for random number generation ("  << options.base_seed     << ")" << endl
@@ -135,7 +134,7 @@ void usage(const char *progname, BucketSimOptions& options, bool error=true) {
              << "    -u num      Progress report interval ("                << options.interval_time << ")" << endl
              ;
     }
-    exit (error?ERROR_BAD_OPTION:0);
+    exit (usage_error?ERROR_BAD_OPTION:0);
 }
 
 // Parse command line, put discovered values into the options parameter
@@ -179,7 +178,7 @@ void parseCommandLine(int argc, const char *argv[], BucketSimOptions& options) {
                         options.helplevel += 1;
                         break;
                     case 'S':
-                        options.base_seed = strtoint64(arg);
+                        options.base_seed = (RNGSEED)strtoint64(arg);
                         break;
                     case 'c':
                         options.cust_count = strtoint64(arg);

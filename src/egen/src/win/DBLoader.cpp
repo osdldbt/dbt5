@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -144,7 +144,7 @@ void CDBLoader<T>::Connect()
 
         if (m_szLoaderParams[0] == '\0')
         {
-            sprintf( szConnectStr, "DRIVER=SQL Server;SERVER=%s;DATABASE=%s",
+            snprintf( szConnectStr, sizeof(szConnectStr), "DRIVER=SQL Server;SERVER=%s;DATABASE=%s",
                 m_szServer, m_szDatabase );
 
             rc = SQLDriverConnect(m_hdbc, NULL, (SQLCHAR*)szConnectStr, sizeof(szConnectStr),
@@ -326,9 +326,9 @@ void CDBLoader<T>::ThrowError( CODBCERR::ACTION eAction, SQLSMALLINT HandleType 
 
         // include line break after first error msg
         if (szTmp[0] != 0)
-            strcat( szTmp, "\n");
+            strncat(szTmp, "\n", sizeof(szTmp));
         //sprintf(szTmp, "%sSQLState=%s %s", szTmp, szState, szMsg );
-        strcat(szTmp, szMsg);
+        strncat(szTmp, szMsg, sizeof(szTmp));
     }
 
     if (pODBCErr->m_odbcerrstr != NULL)
@@ -339,8 +339,9 @@ void CDBLoader<T>::ThrowError( CODBCERR::ACTION eAction, SQLSMALLINT HandleType 
 
     if (szTmp[0] != 0)
     {
-        pODBCErr->m_odbcerrstr = new char[ strlen(szTmp)+1 ];
-        strcpy( pODBCErr->m_odbcerrstr, szTmp );
+        size_t len = strlen(szTmp) + 1;
+        pODBCErr->m_odbcerrstr = new char[ len ];
+        strncpy( pODBCErr->m_odbcerrstr, szTmp, len );
     }
 
     SQLFreeStmt(m_hstmt, SQL_CLOSE);

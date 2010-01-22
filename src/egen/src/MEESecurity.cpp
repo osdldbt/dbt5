@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -137,7 +137,11 @@ void CMEESecurity::Init(
 */
 inline double CMEESecurity::InitialTime( TIdent SecurityIndex )
 {
-    return( (((m_TradingTimeSoFar * MsPerSecond) + (SecurityIndex * 556237 + 253791)) % (iSecPricePeriod * MsPerSecond)) / MsPerSecondDivisor );
+    INT32   MsPerPeriod    = iSecPricePeriod * MsPerSecond;
+    TIdent  SecurityFactor = SecurityIndex * 556237 + 253791;
+    TIdent  TradingFactor  = (TIdent)m_TradingTimeSoFar * MsPerSecond; // Cast to avoid truncation
+
+    return ( ((TradingFactor + SecurityFactor) % MsPerPeriod) / MsPerSecondDivisor );
 }
 
 /*
@@ -152,9 +156,7 @@ inline double CMEESecurity::InitialTime( TIdent SecurityIndex )
 */
 inline double CMEESecurity::NegExp(double fMean)
 {
-    double fResult = (-1.0 * log(m_rnd.RndDouble())) * fMean;
-
-    return fResult;
+    return RoundToNearestNsec(m_rnd.RndDoubleNegExp(fMean));
 }
 
 /*
@@ -324,8 +326,9 @@ double CMEESecurity::GetSubmissionTime( TIdent          SecurityIndex,
     {
         //  Order is in-the-money. Trigger immediatelly.
         //
-        fSubmissionTimeFromPending = m_rnd.RndDoubleRange(0.5 * m_fMeanInTheMoneySubmissionDelay,
-                                                          1.5 * m_fMeanInTheMoneySubmissionDelay);
+        fSubmissionTimeFromPending = m_rnd.RndDoubleIncrRange(0.5 * m_fMeanInTheMoneySubmissionDelay,
+                                                              1.5 * m_fMeanInTheMoneySubmissionDelay,
+                                                              0.001);
     }
     else
     {

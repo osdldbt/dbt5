@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -160,79 +160,85 @@ char* CDateTime::ToStr( INT32 style = 11 )
 
     if (m_szText == NULL)
         m_szText = new char[iMaxStrLen];
-    m_szText[0] = 0;
+    m_szText[0] = '\0';
 
     GetYMDHMS(&year, &month, &day, &hour, &minute, &second, &msec);
+
+    size_t lengthTotal = iMaxStrLen;
+    char *pszText = m_szText;
 
     // DATE portion
     switch (style/10)
     {
     case 1:
         // YYYY-MM-DD
-        p = sprintf( m_szText, "%04d-%02d-%02d ", year, month, day );
+        p = snprintf( pszText, lengthTotal, "%04d-%02d-%02d ", year, month, day );
         break;
     case 2:
         // MM/DD/YY
-        p = sprintf( m_szText, "%02d/%02d/%02d ", month, day, year%100 );
+        p = snprintf( pszText, lengthTotal, "%02d/%02d/%02d ", month, day, year%100 );
         break;
     case 3:
         // MM/DD/YYYY
-        p = sprintf( m_szText, "%02d/%02d/%04d ", month, day, year );
+        p = snprintf( pszText, lengthTotal, "%02d/%02d/%04d ", month, day, year );
         break;
     case 4:
         // DD-MON-YYYY
-        p = sprintf( m_szText, "%02d-%s-%04d ", day, szMonthsShort[month-1], year );
+        p = snprintf( pszText, lengthTotal, "%02d-%s-%04d ", day, szMonthsShort[month-1], year );
         break;
     case 5:
         // DD-MON-YY
-        p = sprintf( m_szText, "%02d-%s-%02d ", day, szMonthsShort[month-1], year%100 );
+        p = snprintf( pszText, lengthTotal, "%02d-%s-%02d ", day, szMonthsShort[month-1], year%100 );
         break;
     case 6:
         // MM-DD-YY
-        p = sprintf( m_szText, "%02d-%02d-%02d ", month, day, year%100 );
+        p = snprintf( pszText, lengthTotal, "%02d-%02d-%02d ", month, day, year%100 );
         break;
     case 7:
         // MON DD YYYY
-        p = sprintf( m_szText, "%s %02d %04d ", szMonthsShort[month-1], day, year );
+        p = snprintf( pszText, lengthTotal, "%s %02d %04d ", szMonthsShort[month-1], day, year );
         break;
     case 8:
         // Month DD, YYYY
-        p = sprintf( m_szText, "%s %02d, %04d ", szMonthsFull[month-1], day, year );
+        p = snprintf( pszText, lengthTotal, "%s %02d, %04d ", szMonthsFull[month-1], day, year );
         break;
     }
+
+    size_t lengthRemaining = lengthTotal - p;
+    pszText = m_szText + (char)p;
 
     // TIME portion
     switch (style%10)
     {
     case 1:
         // HH:MM:SS     (24hr)
-        p += sprintf( m_szText+p, "%02d:%02d:%02d", hour, minute, second );
+        p += snprintf( pszText, lengthRemaining, "%02d:%02d:%02d", hour, minute, second );
         break;
     case 2:
         // HH:MM:SS.mmm (24hr)
-        p += sprintf( m_szText+p, "%02d:%02d:%02d.%03d", hour, minute, second, msec );
+        p += snprintf( pszText, lengthRemaining, "%02d:%02d:%02d.%03d", hour, minute, second, msec );
         break;
     case 3:
         // HH:MM        (24hr)
-        p += sprintf( m_szText+p, "%02d:%02d", hour, minute );
+        p += snprintf( pszText, lengthRemaining, "%02d:%02d", hour, minute );
         break;
     case 4:
         // HH:MM:SS [AM|PM]
-        p += sprintf( m_szText+p, "%02d:%02d:%02d %s", iHr12[hour], minute, second, szAmPm[hour/12] );
+        p += snprintf( pszText, lengthRemaining, "%02d:%02d:%02d %s", iHr12[hour], minute, second, szAmPm[hour/12] );
         break;
     case 5:
         // HHH:MM:SS.mmm [AM|PM]
-        p += sprintf( m_szText+p, "%02d:%02d:%02d.%03d %s", iHr12[hour], minute, second, msec, szAmPm[hour/12] );
+        p += snprintf( pszText, lengthRemaining, "%02d:%02d:%02d.%03d %s", iHr12[hour], minute, second, msec, szAmPm[hour/12] );
         break;
     case 6:
         // HH:MM [AM|PM]
-        p += sprintf( m_szText+p, "%02d:%02d %s", iHr12[hour], minute, szAmPm[hour/12] );
+        p += snprintf( pszText, lengthRemaining, "%02d:%02d %s", iHr12[hour], minute, szAmPm[hour/12] );
         break;
     }
 
     // trim trailing blank, if there is one.
     if (p>0 && m_szText[p-1] == ' ')
-        m_szText[p-1] = 0;
+        m_szText[p-1] = '\0';
 
     return m_szText;
 }
@@ -306,12 +312,16 @@ void CDateTime::SetToCurrent(void)
 //UNIX-specific code to get the current time with 1ms resolution
     struct timeval tv;
     struct tm ltr;
+    int secs;
     gettimeofday(&tv, NULL);
     struct tm* lt = localtime_r(&tv.tv_sec, &ltr);  //expand into year/month/day/...
     // NOTE: 1 is added to tm_mon because it is 0 based, but YMDtoDayno expects it to
     // be 1 based.
     m_dayno = YMDtoDayno(lt->tm_year+1900, lt->tm_mon+1, lt->tm_mday);  // tm_year is based on 1900, not 0.
-    m_msec = static_cast<INT32>(((lt->tm_hour * MinutesPerHour + lt->tm_min) * SecondsPerMinute + lt->tm_sec) * MsPerSecond + tv.tv_usec / 1000);
+
+    secs = (lt->tm_hour * MinutesPerHour + lt->tm_min)*SecondsPerMinute +
+            lt->tm_sec;
+    m_msec = static_cast<INT32>((long)secs * MsPerSecond + tv.tv_usec / 1000);
 #else
 #error No system routine to get time.
 #endif

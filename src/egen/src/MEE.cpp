@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -79,7 +79,7 @@ void CMEE::AutoSetRNGSeeds( UINT32 UniqueId )
     // The number of days in the 5 year period requires 11 bits.
     // So shift up by that much to make room in the "lower" bits.
     Seed <<= 11;
-    Seed += Now.DayNo() - Base.DayNo();
+    Seed += (RNGSEED)((INT64)Now.DayNo() - (INT64)Base.DayNo());
 
     // So far, we've used up 31 bits.
     // Save the "last" bit of the "upper" 32 for the RNG id.
@@ -102,12 +102,12 @@ void CMEE::AutoSetRNGSeeds( UINT32 UniqueId )
 }
 
 // Constructor - automatic RNG seed generation
-CMEE::CMEE( INT32 TradingTimeSoFar, CMEESUTInterface *pSUT, CBaseLogger *pLogger, CSecurityFile *pSecurityFile, UINT32 UniqueId )
+CMEE::CMEE( INT32 TradingTimeSoFar, CMEESUTInterface *pSUT, CBaseLogger *pLogger, const CInputFiles& inputFiles, UINT32 UniqueId )
     : m_DriverMEESettings ( UniqueId, 0, 0, 0 )
     , m_pSUT( pSUT )
     , m_pLogger( pLogger )
-    , m_PriceBoard( TradingTimeSoFar, &m_BaseTime, &m_CurrentTime, pSecurityFile )
-    , m_TickerTape( pSUT, &m_PriceBoard, &m_BaseTime, &m_CurrentTime )
+    , m_PriceBoard( TradingTimeSoFar, &m_BaseTime, &m_CurrentTime, inputFiles )
+    , m_TickerTape( pSUT, &m_PriceBoard, &m_BaseTime, &m_CurrentTime, inputFiles )
     , m_TradingFloor( pSUT, &m_PriceBoard, &m_TickerTape, &m_BaseTime, &m_CurrentTime )
     , m_MEELock()
 {
@@ -119,12 +119,12 @@ CMEE::CMEE( INT32 TradingTimeSoFar, CMEESUTInterface *pSUT, CBaseLogger *pLogger
 }
 
 // Constructor - RNG seed provided
-CMEE::CMEE( INT32 TradingTimeSoFar, CMEESUTInterface *pSUT, CBaseLogger *pLogger, CSecurityFile *pSecurityFile, UINT32 UniqueId, RNGSEED TickerTapeRNGSeed, RNGSEED TradingFloorRNGSeed )
+CMEE::CMEE( INT32 TradingTimeSoFar, CMEESUTInterface *pSUT, CBaseLogger *pLogger, const CInputFiles& inputFiles, UINT32 UniqueId, RNGSEED TickerTapeRNGSeed, RNGSEED TradingFloorRNGSeed )
     : m_DriverMEESettings ( UniqueId, 0, TickerTapeRNGSeed, TradingFloorRNGSeed )
     , m_pSUT( pSUT )
     , m_pLogger( pLogger )
-    , m_PriceBoard( TradingTimeSoFar, &m_BaseTime, &m_CurrentTime, pSecurityFile )
-    , m_TickerTape( pSUT, &m_PriceBoard, &m_BaseTime, &m_CurrentTime, TickerTapeRNGSeed )
+    , m_PriceBoard( TradingTimeSoFar, &m_BaseTime, &m_CurrentTime, inputFiles )
+    , m_TickerTape( pSUT, &m_PriceBoard, &m_BaseTime, &m_CurrentTime, TickerTapeRNGSeed, inputFiles )
     , m_TradingFloor( pSUT, &m_PriceBoard, &m_TickerTape, &m_BaseTime, &m_CurrentTime, TradingFloorRNGSeed )
     , m_MEELock()
 {
@@ -149,26 +149,26 @@ RNGSEED CMEE::GetTradingFloorRNGSeed( void )
 
 void CMEE::SetBaseTime( void )
 {
-    m_MEELock.ClaimLock();
+    m_MEELock.lock();
     m_BaseTime.SetToCurrent( );
-    m_MEELock.ReleaseLock();
+    m_MEELock.unlock();
 }
 
 bool CMEE::DisableTickerTape( void )
 {
     bool    Result;
-    m_MEELock.ClaimLock();
+    m_MEELock.lock();
     Result = m_TickerTape.DisableTicker();
-    m_MEELock.ReleaseLock();
+    m_MEELock.unlock();
     return( Result );
 }
 
 bool CMEE::EnableTickerTape( void )
 {
     bool    Result;
-    m_MEELock.ClaimLock();
+    m_MEELock.lock();
     Result = m_TickerTape.EnableTicker();
-    m_MEELock.ReleaseLock();
+    m_MEELock.unlock();
     return( Result );
 }
 
@@ -176,10 +176,10 @@ INT32 CMEE::GenerateTradeResult( void )
 {
     INT32   NextTime;
 
-    m_MEELock.ClaimLock();
+    m_MEELock.lock();
     m_CurrentTime.SetToCurrent( );
     NextTime = m_TradingFloor.GenerateTradeResult( );
-    m_MEELock.ReleaseLock();
+    m_MEELock.unlock();
     return( NextTime );
 }
 
@@ -187,9 +187,9 @@ INT32 CMEE::SubmitTradeRequest( PTradeRequest pTradeRequest )
 {
     INT32 NextTime;
 
-    m_MEELock.ClaimLock();
+    m_MEELock.lock();
     m_CurrentTime.SetToCurrent( );
     NextTime = m_TradingFloor.SubmitTradeRequest( pTradeRequest );
-    m_MEELock.ReleaseLock();
+    m_MEELock.unlock();
     return( NextTime );
 }

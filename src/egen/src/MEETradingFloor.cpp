@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -83,7 +83,7 @@ CMEETradingFloor::~CMEETradingFloor( void )
 
 inline double CMEETradingFloor::GenProcessingDelay( double Mean )
 {
-    double Result = ( -1.0 * log( m_rnd.RndDouble() )) * Mean;
+    double Result = RoundToNearestNsec(m_rnd.RndDoubleNegExp(Mean));
 
     if( Result > m_MaxOrderProcessingDelay )
     {

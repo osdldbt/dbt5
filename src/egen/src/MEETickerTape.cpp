@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -63,24 +63,24 @@ void CMEETickerTape::Initialize( void )
     //
     // Submitted
     strncpy(m_TxnInput.StatusAndTradeType.status_submitted,
-            "SBMT",
+            (m_pStatusType->GetRecord(eSubmitted))->ST_ID,
             sizeof(m_TxnInput.StatusAndTradeType.status_submitted));
     // Limit-Buy
     strncpy(m_TxnInput.StatusAndTradeType.type_limit_buy,
-            "TLB",
+            (m_pTradeType->GetRecord(eLimitBuy))->TT_ID,
             sizeof(m_TxnInput.StatusAndTradeType.type_limit_buy));
     // Limit-Sell
     strncpy(m_TxnInput.StatusAndTradeType.type_limit_sell,
-            "TLS",
+            (m_pTradeType->GetRecord(eLimitSell))->TT_ID,
             sizeof(m_TxnInput.StatusAndTradeType.type_limit_sell));
     // Stop-Loss
     strncpy(m_TxnInput.StatusAndTradeType.type_stop_loss,
-            "TSL",
+            (m_pTradeType->GetRecord(eStopLoss))->TT_ID,
             sizeof(m_TxnInput.StatusAndTradeType.type_stop_loss));
 }
 
 // Constructor - use default RNG seed
-CMEETickerTape::CMEETickerTape( CMEESUTInterface* pSUT, CMEEPriceBoard* pPriceBoard, CDateTime* pBaseTime, CDateTime* pCurrentTime )
+CMEETickerTape::CMEETickerTape( CMEESUTInterface* pSUT, CMEEPriceBoard* pPriceBoard, CDateTime* pBaseTime, CDateTime* pCurrentTime, const CInputFiles &inputFiles )
     : m_pSUT( pSUT )
     , m_pPriceBoard( pPriceBoard )
     , m_BatchIndex( 0 )
@@ -88,12 +88,14 @@ CMEETickerTape::CMEETickerTape( CMEESUTInterface* pSUT, CMEEPriceBoard* pPriceBo
     , m_Enabled( true )
     , m_pBaseTime( pBaseTime )
     , m_pCurrentTime( pCurrentTime )
+    , m_pStatusType( inputFiles.StatusType )
+    , m_pTradeType( inputFiles.TradeType )
 {
     Initialize();
 }
 
 // Constructor - RNG seed provided
-CMEETickerTape::CMEETickerTape( CMEESUTInterface* pSUT, CMEEPriceBoard* pPriceBoard, CDateTime* pBaseTime, CDateTime* pCurrentTime, RNGSEED RNGSeed )
+CMEETickerTape::CMEETickerTape( CMEESUTInterface* pSUT, CMEEPriceBoard* pPriceBoard, CDateTime* pBaseTime, CDateTime* pCurrentTime, RNGSEED RNGSeed, const CInputFiles &inputFiles )
     : m_pSUT( pSUT )
     , m_pPriceBoard( pPriceBoard )
     , m_BatchIndex( 0 )
@@ -101,6 +103,8 @@ CMEETickerTape::CMEETickerTape( CMEESUTInterface* pSUT, CMEEPriceBoard* pPriceBo
     , m_Enabled( true )
     , m_pBaseTime( pBaseTime )
     , m_pCurrentTime( pCurrentTime )
+    , m_pStatusType( inputFiles.StatusType )
+    , m_pTradeType( inputFiles.TradeType )
 {
     Initialize();
 }

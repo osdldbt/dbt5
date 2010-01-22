@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -68,13 +68,15 @@ CGenerateAndLoad::CGenerateAndLoad(CInputFiles                  inputFiles,
                                   TIdent                        iCustomerCount,
                                   TIdent                        iStartFromCustomer,
                                   TIdent                        iTotalCustomers,
-                                  int                           iLoadUnitSize,
-                                  int                           iScaleFactor,
-                                  int                           iDaysOfInitialTrades,
+                                  UINT                          iLoadUnitSize,
+                                  UINT                          iScaleFactor,
+                                  UINT                          iDaysOfInitialTrades,
                                   CBaseLoaderFactory*           pLoaderFactory,
                                   CBaseLogger*                  pLogger,
                                   CGenerateAndLoadBaseOutput*   pOutput,
-                                  char*                         szInDir)
+                                  char*                         szInDir,
+                                  bool                          bCacheEnabled
+                                 )
 : m_inputFiles(inputFiles)
 , m_iStartFromCustomer(iStartFromCustomer)
 , m_iCustomerCount(iCustomerCount)
@@ -86,13 +88,14 @@ CGenerateAndLoad::CGenerateAndLoad(CInputFiles                  inputFiles,
 , m_pOutput(pOutput)
 , m_pLogger(pLogger)
 , m_LoaderSettings(iTotalCustomers, iTotalCustomers, iStartFromCustomer, iCustomerCount, iScaleFactor, iDaysOfInitialTrades )
+, m_bCacheEnabled(bCacheEnabled)
 {
     // Copy input flat file directory needed for tables loaded from flat files.
-    strncpy( m_szInDir, szInDir, sizeof(m_szInDir)-1);
+    strncpy( m_szInDir, szInDir, sizeof(m_szInDir));
 
     // Log Parameters
     m_pLogger->SendToLogger(m_LoaderSettings);
-};
+}
 
 /*
 *   Generate and load ADDRESS table.
@@ -334,7 +337,7 @@ void CGenerateAndLoad::GenerateAndLoadCustomerAccountAndAccountPermission()
     CBaseLoader<CUSTOMER_ACCOUNT_ROW>*      pCALoad = m_pLoaderFactory->CreateCustomerAccountLoader();
     CBaseLoader<ACCOUNT_PERMISSION_ROW>*    pAPLoad = m_pLoaderFactory->CreateAccountPermissionLoader();
     INT64                                   iCnt=0;
-    int                                     i;
+    UINT                                    i;
 
     m_pOutput->OutputStart("Generating CUSTOMER_ACCOUNT table and ACCOUNT_PERMISSION table...");
 
@@ -392,7 +395,7 @@ void CGenerateAndLoad::GenerateAndLoadCustomerTaxrate()
     CCustomerTaxratesTable              Table(m_inputFiles, m_iCustomerCount, m_iStartFromCustomer);
     CBaseLoader<CUSTOMER_TAXRATE_ROW>*  pLoad = m_pLoaderFactory->CreateCustomerTaxrateLoader();
     INT64                               iCnt=0;
-    int                                 i;
+    UINT                                 i;
 
     m_pOutput->OutputStart("Generating CUSTOMER_TAX_RATE table...");
 
@@ -594,7 +597,9 @@ void CGenerateAndLoad::GenerateAndLoadHoldingAndTrade()
 
     pTradeGen = new CTradeGen(m_inputFiles, m_iCustomerCount, m_iStartFromCustomer,
                               m_iTotalCustomers, m_iLoadUnitSize,
-                              m_iScaleFactor, m_iHoursOfInitialTrades);
+                              m_iScaleFactor, m_iHoursOfInitialTrades,
+                              m_bCacheEnabled
+                             );
 
     // Generate and load one load unit at a time.
     //
@@ -732,7 +737,7 @@ void CGenerateAndLoad::GenerateAndLoadHoldingAndTrade()
         //pRequestsLoad->FinishLoad();      //commit
 
         // Output unit number for information
-        sprintf(szCurrentLoadUnit, "%d", iCurrentLoadUnit++);
+        snprintf(szCurrentLoadUnit, sizeof(szCurrentLoadUnit), "%d", iCurrentLoadUnit++);
 
         m_pOutput->OutputProgress(szCurrentLoadUnit);
 
@@ -1072,7 +1077,7 @@ void CGenerateAndLoad::GenerateAndLoadWatchListAndWatchItem()
     CBaseLoader<WATCH_LIST_ROW>*    pWatchListsLoad = m_pLoaderFactory->CreateWatchListLoader();
     CBaseLoader<WATCH_ITEM_ROW>*    pWatchItemsLoad = m_pLoaderFactory->CreateWatchItemLoader();
     INT64                           iCnt=0;
-    int                             i;
+    UINT                            i;
 
     m_pOutput->OutputStart("Generating WATCH_LIST table and WATCH_ITEM table...");
 

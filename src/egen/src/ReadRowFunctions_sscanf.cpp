@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -278,7 +278,7 @@ void TStreetNameInputRow::Load(istream &file)
     }
 #if 0
     file>>ws;
-    file.get(STREET, sizeof(STREET)-1, '\n');   //read up to the delimiter
+    file.get(STREET, sizeof(STREET), '\n');   //read up to the delimiter
 #endif
 }
 
@@ -301,7 +301,7 @@ void TStreetSuffixInputRow::Load(istream &file)
     }
 #if 0
     file>>ws;
-    file.get(SUFFIX, sizeof(SUFFIX)-1, '\n');   //read up to the delimiter
+    file.get(SUFFIX, sizeof(SUFFIX), '\n');   //read up to the delimiter
 #endif
 }
 
@@ -529,12 +529,19 @@ void STATUS_TYPE_ROW::Load(istream &file)
 void TRADE_TYPE_ROW::Load(istream &file)
 {
     char buf[1024];
+    UINT is_market;
+    UINT is_sell;
     file.getline(buf, sizeof(buf));
     if (file.eof()) {
         return;
     }
     int rc = sscanf(buf, "%[^\t]\t%[^\t]\t%d\t%d",
-            TT_ID, TT_NAME, &TT_IS_SELL, &TT_IS_MRKT);
+            TT_ID, TT_NAME, &is_sell, &is_market);
+    /* handle integer to boolean conversion.  We can't use TT_* directly */
+    /* in the sscanf above since sscanf doesn't know how to deal with    */
+    /* boolean variables for storage.                                    */
+    TT_IS_SELL = (is_sell == 1 ? true : false);
+    TT_IS_MRKT = (is_market == 1 ? true : false);
     if (rc != 4) {
         std::ostringstream strm;
         strm << "TRADE_TYPE_ROW::Load only loaded " << rc << " values from line";
@@ -567,7 +574,7 @@ void ZIP_CODE_ROW::Load(istream &file)
         throw std::runtime_error(strm.str());
     }
 #if 0
-    file.get(ZC_TOWN, sizeof(ZC_TOWN)-1, '\t'); //read up to the delimiter
+    file.get(ZC_TOWN, sizeof(ZC_TOWN), '\t'); //read up to the delimiter
     file>>ZC_DIV;
     file>>ZC_CODE;
     file>>ws;

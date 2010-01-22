@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -52,8 +52,8 @@ bool CInputFiles::Initialize(eDriverType eType, TIdent iConfiguredCustomerCount,
     eOutputVerbosity eOutput = (eType == eDriverEGenLoader) ? eOutputVerbose : eOutputQuiet;
     char    szFileName[iMaxPath];
     char    *pStartInFileName;  // start of the filename part in the szFileName buffer
-    int iDirLen;
-    int iFileNameMaxLen;
+    size_t iDirLen;
+    size_t iFileNameMaxLen;
 
     // Load the input file directory into the input file name array
     // and set a pointer to the location in the input file name array
@@ -63,10 +63,10 @@ bool CInputFiles::Initialize(eDriverType eType, TIdent iConfiguredCustomerCount,
     // directory.
 
     strncpy(szFileName, szPathName, iMaxPath);
-    iDirLen = (int) strlen( szFileName );
+    iDirLen = strlen( szFileName );
     pStartInFileName = (char *)&szFileName[iDirLen];
     if (*pStartInFileName != '/' && *pStartInFileName != '\\') {
-        strcat(szFileName, "/");
+        strncat(szFileName, "/", sizeof(szFileName));
         pStartInFileName++;
         iDirLen++;
     }
@@ -84,6 +84,23 @@ bool CInputFiles::Initialize(eDriverType eType, TIdent iConfiguredCustomerCount,
     Securities = new CSecurityFile(szFileName, iConfiguredCustomerCount, iActiveCustomerCount);
     if (eOutput == eOutputVerbose) { cout<<".............loaded."<<endl<<flush; }
 
+    if (eOutput == eOutputVerbose) { cout<<"\tStatusType..."; }
+    strncpy(pStartInFileName, "StatusType.txt", iFileNameMaxLen);
+    StatusType = new TStatusTypeFile(szFileName);
+    if (eOutput == eOutputVerbose) { cout<<"...........loaded."<<endl<<flush; }
+
+    //
+    // Input files required by EGen, CE, MEE
+    //
+
+    if (eType != eDriverDM)
+    {
+        if (eOutput == eOutputVerbose) { cout<<"\tTradeType..."; }
+        strncpy(pStartInFileName, "TradeType.txt", iFileNameMaxLen);
+        TradeType = new TTradeTypeFile(szFileName);
+        if (eOutput == eOutputVerbose) { cout<<"............loaded."<<endl<<flush; }
+    }
+
     //
     // Input files required by EGen, CE, DM
     //
@@ -99,11 +116,6 @@ bool CInputFiles::Initialize(eDriverType eType, TIdent iConfiguredCustomerCount,
         strncpy(pStartInFileName, "Exchange.txt", iFileNameMaxLen);
         Exchange = new TExchangeFile(szFileName);
         if (eOutput == eOutputVerbose) { cout<<".............loaded."<<endl<<flush; }
-
-        if (eOutput == eOutputVerbose) { cout<<"\tStatusType..."; }
-        strncpy(pStartInFileName, "StatusType.txt", iFileNameMaxLen);
-        StatusType = new TStatusTypeFile(szFileName);
-        if (eOutput == eOutputVerbose) { cout<<"...........loaded."<<endl<<flush; }
 
         if (eOutput == eOutputVerbose) { cout<<"\tTaxRatesDivision..."; }
         strncpy(pStartInFileName, "TaxRatesDivision.txt", iFileNameMaxLen);
@@ -141,11 +153,6 @@ bool CInputFiles::Initialize(eDriverType eType, TIdent iConfiguredCustomerCount,
         strncpy(pStartInFileName, "Sector.txt", iFileNameMaxLen);
         Sectors = new TSectorFile(szFileName);
         if (eOutput == eOutputVerbose) { cout<<"...............loaded."<<endl<<flush; }
-
-        if (eOutput == eOutputVerbose) { cout<<"\tTradeType..."; }
-        strncpy(pStartInFileName, "TradeType.txt", iFileNameMaxLen);
-        TradeType = new TTradeTypeFile(szFileName);
-        if (eOutput == eOutputVerbose) { cout<<"............loaded."<<endl<<flush; }
     }
 
     //
@@ -221,6 +228,6 @@ bool CInputFiles::Initialize(eDriverType eType, TIdent iConfiguredCustomerCount,
     szFileName[iDirLen] = '\0';
 
     return true;
-};
+}
 
 }   // namespace TPCE

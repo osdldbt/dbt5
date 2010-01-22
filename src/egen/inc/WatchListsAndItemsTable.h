@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a preliminary
- * version of a benchmark specification being developed by the TPC. The
- * Work is being made available to the public for review and comment only.
+ * This document and associated source code (the "Work") is a part of a
+ * benchmark specification maintained by the TPC.
+ *
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -48,24 +48,24 @@ namespace TPCE
 {
 
 //Range of security ids indexes
-const int iMinSecIdx = 0;   //this should always be 0
+const UINT iMinSecIdx = 0;   //this should always be 0
 
 //Min number of items in one watch list
-const int iMinItemsInWL = 50;
+const UINT iMinItemsInWL = 50;
 
 //Max number of items in one watch list
-const int iMaxItemsInWL = 150;
+const UINT iMaxItemsInWL = 150;
 
 // Percentage of customers that have watch lists
-const int iPercentWatchList = 100;
+const UINT iPercentWatchList = 100;
 
 // Note: these parameters are dependent on the load unit size
-static const int iWatchListIdPrime = 631;
-static const int iWatchListIdOffset = 97;
+static const UINT iWatchListIdPrime = 631;
+static const UINT iWatchListIdOffset = 97;
 
 // Number of RNG calls to skip for one row in order
 // to not use any of the random values from the previous row.
-const int iRNGSkipOneRowWatchListAndWatchItem = 15; // real max count in v3.5: 13
+const UINT iRNGSkipOneRowWatchListAndWatchItem = 15; // real max count in v3.5: 13
 
 //Structure combining watch list row and watch items rows.
 typedef struct WATCH_LIST_AND_ITEM_ROW
@@ -107,7 +107,7 @@ class CWatchListsAndItemsTable : public TableTemplate<WATCH_LIST_AND_ITEM_ROW>
     void InitNextLoadUnit()
     {
         m_rnd.SetSeed(m_rnd.RndNthElement(RNGSeedTableDefault,
-                                          m_cust.GetCurrentC_ID()
+                                          (RNGSEED)m_cust.GetCurrentC_ID()
                                           * iRNGSkipOneRowWatchListAndWatchItem));
 
         ClearRecord();  // this is needed for EGenTest to work
@@ -168,11 +168,13 @@ public:
         m_row.m_watch_list.WL_C_ID = iCustomerId;
 
         //Now generate Watch Items for this Watch List
-        m_iWICount = m_rnd.RndIntRange(iMinItemsInWL, iMaxItemsInWL);   //number of items in the watch list
+        m_iWICount = (UINT) m_rnd.RndIntRange(iMinItemsInWL, 
+                                              iMaxItemsInWL);   //number of items in the watch list
         for (m_set.clear(); m_set.size() < m_iWICount; )
         {
             //Generate random security id and insert into the set
-            m_set.insert(m_rnd.RndInt64Range(m_iMinSecIdx, m_iMaxSecIdx));
+            TIdent iSecurityIndex = m_rnd.RndInt64Range(m_iMinSecIdx, m_iMaxSecIdx);
+            m_set.insert(iSecurityIndex);
         }
 
         int i;
@@ -223,7 +225,7 @@ public:
         else
             return(NULL);
     }
-    int GetWICount() {return m_iWICount;}
+    UINT GetWICount() {return m_iWICount;}
 };
 
 }   // namespace TPCE
