@@ -1,9 +1,10 @@
-#!/bin/bash
+#!/bin/sh
+
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2006 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2002-2010 Mark Wong & Open Source Development Labs, Inc.
 #
 
 usage()
@@ -12,11 +13,15 @@ usage()
 	echo "usage: create-db [-p port]"
 }
 
-TOPDIR="@abs_top_srcdir@"
-source ${TOPDIR}/scripts/dbt5_profile || exit 1
+if [ -z ${PGDATA} ]; then
+	echo "PGDATA not defined."
+	exit 1
+fi
 
-DIR=`dirname $0`
-. ${DIR}/pgsql_profile || exit 1
+if [ -z ${DBNAME} ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
 
 while getopts "hp:" OPT; do
 	case ${OPT} in
@@ -30,6 +35,10 @@ while getopts "hp:" OPT; do
 	esac
 done
 
+if [ ! "x${PORT}" = "x" ]; then
+	PORTOPT="-p ${PORT}"
+fi
+
 # Create database
 echo "Creating database..."
 if [ -d ${PGDATA} ]; then
@@ -38,16 +47,19 @@ if [ -d ${PGDATA} ]; then
 	echo "Skipping initdb"
 	echo "======================================="
 else
-	${INITDB} -D ${PGDATA} --locale=C || exit 1
-	cp -p ${DIR}/pg_hba.conf ${PGDATA}/ || exit 1
+	initdb -D ${PGDATA} --locale=C || exit 1
 fi
 
-${DIR}/start-db -p "-c port=${PORT}"
+if [ ! "x${PORT}" = "x" ]; then
+	dbt5-pgsql-start-db -p "-c port=${PORT}"
+else
+	dbt5-pgsql-start-db
+fi
 
 # Give the database a few seconds to get going
 sleep 4
 
-${CREATEDB} -p ${PORT} -E SQL_ASCII ${DBNAME} || exit 1
-${CREATELANG} -p ${PORT} plpgsql ${DBNAME} || exit 1
+createdb ${PORTOPT} -E SQL_ASCII ${DBNAME} || exit 1
+createlang ${PORTOPT} plpgsql ${DBNAME} || exit 1
 
 exit 0

@@ -1,0 +1,61 @@
+#!/bin/sh
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2002-2010 Mark Wong & Open Source Development Lab, Inc.
+#               2006 Rilson Nascimento
+#
+
+# Drop tables, domains and sequence
+
+if [ -z ${DBNAME} ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
+
+psql -d ${DBNAME} -c "DROP TABLE ACCOUNT_PERMISSION CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE CUSTOMER CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE CUSTOMER_ACCOUNT CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE CUSTOMER_TAXRATE CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE HOLDING CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE HOLDING_HISTORY CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE HOLDING_SUMMARY CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE WATCH_ITEM CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE WATCH_LIST CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE BROKER CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE CASH_TRANSACTION CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE CHARGE CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE COMMISSION_RATE CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE SETTLEMENT CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE TRADE CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE TRADE_HISTORY CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE TRADE_REQUEST CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE TRADE_TYPE CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE COMPANY CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE COMPANY_COMPETITOR CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE DAILY_MARKET CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE EXCHANGE CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE FINANCIAL CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE INDUSTRY CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE LAST_TRADE CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE NEWS_ITEM CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE NEWS_XREF CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE SECTOR CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE SECURITY CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE ADDRESS CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE STATUS_TYPE CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE TAXRATE CASCADE;"
+psql -d ${DBNAME} -c "DROP TABLE ZIP_CODE CASCADE;"
+
+psql -d ${DBNAME} -c "DROP DOMAIN S_COUNT_T;"
+psql -d ${DBNAME} -c "DROP DOMAIN IDENT_T;"
+psql -d ${DBNAME} -c "DROP DOMAIN TRADE_T;"
+psql -d ${DBNAME} -c "DROP DOMAIN BALANCE_T;"
+psql -d ${DBNAME} -c "DROP DOMAIN S_PRICE_T"
+psql -d ${DBNAME} -c "DROP DOMAIN S_QTY_T;"
+psql -d ${DBNAME} -c "DROP DOMAIN VALUE_T;"
+psql -d ${DBNAME} -c "DROP DOMAIN FIN_AGG_T;"
+
+psql -d ${DBNAME} -c "DROP SEQUENCE seq_trade_id;"

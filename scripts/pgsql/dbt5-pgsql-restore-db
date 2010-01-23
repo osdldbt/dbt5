@@ -4,26 +4,28 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002 Mark Wong & Open Source Development Lab, Inc.
+# Copyright (C) 200-2010 Mark Wong & Open Source Development Lab, Inc.
 #
 
-DIR=`dirname $0`
-. ${DIR}/pgsql_profile || exit 1
+if [ "x${DBNAME}" = "x" ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
 
 while getopts "o:" opt; do
-	case $opt in
+	case ${opt} in
 	o)
-		OUTPUT=$OPTARG
+		OUTPUT=${OPTARG}
 		;;
 	esac
 done
 
-if [ "$OUTPUT" == "" ]; then
+if [ "x${OUTPUT}" == "x" ]; then
 	echo "use -o and specify the backup file"
 	exit 1;
 fi
 
-_test=`$PGRESTORE -v Fc -a -d $DBNAME $OUTPUT | grep OK`
+_test=`pg_restore -v Fc -a -d ${DBNAME} ${OUTPUT} | grep OK`
 if [ "$_test" != "" ]; then
 	echo "restore failed: $_test"
 	exit 1

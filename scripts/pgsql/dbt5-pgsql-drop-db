@@ -1,0 +1,27 @@
+#!/bin/sh
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2002-2010 Mark Wong & Open Source Development Labs, Inc.
+#
+
+if [ -z "${DBNAME}" ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
+
+while getopts "p:" OPT; do
+	case ${OPT} in
+	p)
+		PORT=${OPTARG}
+		;;
+	esac
+done
+
+if [ ! "x${PORT}" = "x" ]; then
+	PORTOPT="-p ${PORT}"
+fi
+
+dropdb ${PORTOPT} ${DBNAME} || exit 1

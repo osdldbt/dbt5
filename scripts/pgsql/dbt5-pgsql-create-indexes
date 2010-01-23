@@ -1,18 +1,17 @@
-#!/bin/bash
+#!/bin/sh
+
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2007 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2002-2010 Mark Wong & Open Source Development Labs, Inc.
+#               2006 Rilson Nascimento
 #
-# 2006 Rilson Nascimento
-# Based on TPC Benchmark (TM) E Specification, Revision 1.3.0.
 
-TOPDIR="@abs_top_srcdir@"
-source ${TOPDIR}/scripts/dbt5_profile || exit 1
-
-DIR=`dirname $0`
-. ${DIR}/pgsql_profile || exit 1
+if [ "x${DBNAME}" = "x" ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
 
 USE_TABLESPACES=0
 while getopts "p:t" OPT; do
@@ -26,7 +25,15 @@ while getopts "p:t" OPT; do
 	esac
 done
 
+if [ ! "x${PORT}" = "x" ]; then
+	PORTARG="-p ${PORT}"
+fi
+
 if [ ${USE_TABLESPACES} -eq 1 ]; then
+	if [ -z ${TSDIR} ]; then
+		echo "TSDIR not defined for tablespace path."
+		exit 1
+	fi
 	TS_PK_ACCOUNT_PERMISSION_DIR="${TSDIR}/pk_account_permission/ts"
 	TS_PK_CUSTOMER_DIR="${TSDIR}/pk_customer/ts"
 	TS_PK_CUSTOMER_ACCOUNT_DIR="${TSDIR}/pk_customer_account/ts"
@@ -173,106 +180,106 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	#
 	# Don't need to '|| exit 1' in case the tablespaces already exist.
 	#
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_ACCOUNT_PERMISSION}
 			    LOCATION '${TS_PK_ACCOUNT_PERMISSION_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_CUSTOMER} LOCATION '${TS_PK_CUSTOMER_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_CUSTOMER_ACCOUNT}
 			    LOCATION '${TS_PK_CUSTOMER_ACCOUNT_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_CUSTOMER_TAXRATE}
 			    LOCATION '${TS_PK_CUSTOMER_TAXRATE_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_HOLDING} LOCATION '${TS_PK_HOLDING_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_HOLDING_HISTORY}
 			    LOCATION '${TS_PK_HOLDING_HISTORY_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_HOLDING_SUMMARY}
 			    LOCATION '${TS_PK_HOLDING_SUMMARY_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_WATCH_ITEM} LOCATION '${TS_PK_WATCH_ITEM_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_WATCH_LIST} LOCATION '${TS_PK_WATCH_LIST_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_BROKER} LOCATION '${TS_PK_BROKER_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_CASH_TRANSACTION}
 			    LOCATION '${TS_PK_CASH_TRANSACTION_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_CHARGE} LOCATION '${TS_PK_CHARGE_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_COMMISSION_RATE}
 			    LOCATION '${TS_PK_COMMISSION_RATE_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_SETTLEMENT} LOCATION '${TS_PK_SETTLEMENT_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_TRADE} LOCATION '${TS_PK_TRADE_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_TRADE_HISTORY}
 			    LOCATION '${TS_PK_TRADE_HISTORY_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_TRADE_REQUEST}
 			    LOCATION '${TS_PK_TRADE_REQUEST_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_TRADE_TYPE} LOCATION '${TS_PK_TRADE_TYPE_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_COMPANY} LOCATION '${TS_PK_COMPANY_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_COMPANY_COMPETITOR}
 			    LOCATION '${TS_PK_COMPANY_COMPETITOR_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_DAILY_MARKET}
 			    LOCATION '${TS_PK_DAILY_MARKET_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_EXCHANGE} LOCATION '${TS_PK_EXCHANGE_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_FINANCIAL} LOCATION '${TS_PK_FINANCIAL_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_INDUSTRY} LOCATION '${TS_PK_INDUSTRY_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_LAST_TRADE} LOCATION '${TS_PK_LAST_TRADE_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_NEWS_ITEM} LOCATION '${TS_PK_NEWS_ITEM_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_NEWS_XREF} LOCATION '${TS_PK_NEWS_XREF_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_SECTOR} LOCATION '${TS_PK_SECTOR_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_SECURITY} LOCATION '${TS_PK_SECURITY_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_ADDRESS} LOCATION '${TS_PK_ADDRESS_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_STATUS_TYPE}
 			    LOCATION '${TS_PK_STATUS_TYPE_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_TAXRATE} LOCATION '${TS_PK_TAXRATE_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_PK_ZIP_CODE} LOCATION '${TS_PK_ZIP_CODE_DIR}';"
 
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_I_C_TAX_ID} LOCATION '${TS_I_C_TAX_ID_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_I_CA_C_ID} LOCATION '${TS_I_CA_C_ID_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_I_WL_C_ID} LOCATION '${TS_I_WL_C_ID_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_I_DM_S_SYMB} LOCATION '${TS_I_DM_S_SYMB_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_I_TR_S_SYMB} LOCATION '${TS_I_TR_S_SYMB_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_I_T_ST_ID} LOCATION '${TS_I_T_ST_ID_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_I_T_CA_ID} LOCATION '${TS_I_T_CA_ID_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_I_CO_NAME} LOCATION '${TS_I_CO_NAME_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_I_SECURITY} LOCATION '${TS_I_SECURITY_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_I_HOLDING} LOCATION '${TS_I_HOLDING_DIR}';"
-	${PSQL} -p ${PORT} -e -d ${DBNAME} \
+	psql ${PORTARG} -e -d ${DBNAME} \
 			-c "CREATE ${TS_I_CHARGE} LOCATION '${TS_I_CHARGE_DIR}';"
 
 	#
@@ -330,7 +337,7 @@ pids=""
 # PKs
 
 # Clause 2.2.5.1
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE account_permission
 ADD CONSTRAINT pk_account_permission
 PRIMARY KEY (ap_ca_id, ap_tax_id)
@@ -338,7 +345,7 @@ ${TS_PK_ACCOUNT_PERMISSION};
 " & pids="$pids $!"
 
 # Clause 2.2.5.2
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE customer
 ADD CONSTRAINT pk_customer
 PRIMARY KEY (c_id)
@@ -346,7 +353,7 @@ ${TS_PK_CUSTOMER};
 " & pids="$pids $!"
 
 # Clause 2.2.5.3
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE customer_account
 ADD CONSTRAINT pk_customer_account
 PRIMARY KEY (ca_id)
@@ -354,7 +361,7 @@ ${TS_PK_CUSTOMER_ACCOUNT};
 " & pids="$pids $!"
 
 # Clause 2.2.5.4
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE customer_taxrate
 ADD CONSTRAINT pk_customer_taxrate
 PRIMARY KEY (cx_tx_id, cx_c_id)
@@ -362,7 +369,7 @@ ${TS_PK_CUSTOMER_TAXRATE};
 " & pids="$pids $!"
 
 # Clause 2.2.5.5
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE holding
 ADD CONSTRAINT pk_holding
 PRIMARY KEY (h_t_id)
@@ -370,7 +377,7 @@ ${TS_PK_HOLDING};
 " & pids="$pids $!"
 
 # Clause 2.2.5.6
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE holding_history
 ADD CONSTRAINT pk_holding_history
 PRIMARY KEY (hh_h_t_id, hh_t_id)
@@ -378,7 +385,7 @@ ${TS_PK_HOLDING_HISTORY};
 " & pids="$pids $!"
 
 # Clause 2.2.5.7
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE holding_summary
 ADD CONSTRAINT pk_holding_summary
 PRIMARY KEY (hs_ca_id, hs_s_symb)
@@ -386,7 +393,7 @@ ${TS_PK_HOLDING_SUMMARY};
 " & pids="$pids $!"
 
 # Clause 2.2.5.8
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE watch_item
 ADD CONSTRAINT pk_watch_item 
 PRIMARY KEY (wi_wl_id, wi_s_symb)
@@ -394,7 +401,7 @@ ${TS_PK_WATCH_ITEM};
 " & pids="$pids $!"
 
 # Clause 2.2.5.9
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE watch_list
 ADD CONSTRAINT pk_watch_list
 PRIMARY KEY (wl_id)
@@ -402,7 +409,7 @@ ${TS_PK_WATCH_LIST};
 " & pids="$pids $!"
 
 # Clause 2.2.6.1
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE broker
 ADD CONSTRAINT pk_broker
 PRIMARY KEY (b_id)
@@ -410,7 +417,7 @@ ${TS_PK_BROKER};
 " & pids="$pids $!"
 
 # Clause 2.2.6.2
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE cash_transaction
 ADD CONSTRAINT pk_cash_transaction
 PRIMARY KEY (ct_t_id)
@@ -418,7 +425,7 @@ ${TS_PK_CASH_TRANSACTION};
 " & pids="$pids $!"
 
 # Clause 2.2.6.3
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE charge
 ADD CONSTRAINT pk_charge 
 PRIMARY KEY (ch_tt_id, ch_c_tier)
@@ -426,7 +433,7 @@ ${TS_PK_CHARGE};
 " & pids="$pids $!"
 
 # Clause 2.2.6.4
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE commission_rate
 ADD CONSTRAINT pk_commission_rate 
 PRIMARY KEY (cr_c_tier, cr_tt_id, cr_ex_id, cr_from_qty)
@@ -434,21 +441,21 @@ ${TS_PK_COMMISSION_RATE};
 " & pids="$pids $!"
 
 # Clause 2.2.6.5
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE settlement
 ADD CONSTRAINT pk_settlement PRIMARY KEY (se_t_id)
 ${TS_PK_SETTLEMENT};
 " & pids="$pids $!"
 
 # Clause 2.2.6.6
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE trade
 ADD CONSTRAINT pk_trade PRIMARY KEY (t_id)
 ${TS_PK_TRADE};
 " & pids="$pids $!"
 
 # Clause 2.2.6.7
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE trade_history
 ADD CONSTRAINT pk_trade_history
 PRIMARY KEY (th_t_id, th_st_id)
@@ -456,7 +463,7 @@ ${TS_PK_TRADE_HISTORY};
 " & pids="$pids $!"
 
 # Clause 2.2.6.8
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE trade_request
 ADD CONSTRAINT pk_trade_request
 PRIMARY KEY (tr_t_id)
@@ -464,7 +471,7 @@ ${TS_PK_TRADE_REQUEST};
 " & pids="$pids $!"
 
 # Clause 2.2.6.9
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE trade_type
 ADD CONSTRAINT pk_trade_type
 PRIMARY KEY (tt_id)
@@ -472,7 +479,7 @@ ${TS_PK_TRADE_TYPE};
 " & pids="$pids $!"
 
 # Clause 2.2.7.1
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE company
 ADD CONSTRAINT pk_company
 PRIMARY KEY (co_id)
@@ -480,7 +487,7 @@ ${TS_PK_COMPANY};
 " & pids="$pids $!"
 
 # Clause 2.2.7.2
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE company_competitor
 ADD CONSTRAINT pk_company_competitor 
 PRIMARY KEY (cp_co_id, cp_comp_co_id, cp_in_id)
@@ -488,7 +495,7 @@ ${TS_PK_COMPANY_COMPETITOR};
 " & pids="$pids $!"
 
 # Clause 2.2.7.3
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE daily_market
 ADD CONSTRAINT pk_daily_market
 PRIMARY KEY (dm_date, dm_s_symb)
@@ -496,7 +503,7 @@ ${TS_PK_DAILY_MARKET};
 " & pids="$pids $!"
 
 # Clause 2.2.7.4
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE exchange
 ADD CONSTRAINT pk_exchange
 PRIMARY KEY (ex_id)
@@ -504,7 +511,7 @@ ${TS_PK_EXCHANGE};
 " & pids="$pids $!"
 
 # Clause 2.2.7.5
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE financial
 ADD CONSTRAINT pk_financial
 PRIMARY KEY (fi_co_id, fi_year, fi_qtr)
@@ -512,7 +519,7 @@ ${TS_PK_FINANCIAL};
 " & pids="$pids $!"
 
 # Clause 2.2.7.6
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE industry
 ADD CONSTRAINT pk_industry
 PRIMARY KEY (in_id)
@@ -520,7 +527,7 @@ ${TS_PK_INDUSTRY};
 " & pids="$pids $!"
 
 # Clause 2.2.7.7
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE last_trade
 ADD CONSTRAINT pk_last_trade
 PRIMARY KEY (lt_s_symb)
@@ -528,7 +535,7 @@ ${TS_PK_LAST_TRADE};
 " & pids="$pids $!"
 
 # Clause 2.2.7.8
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE news_item
 ADD CONSTRAINT pk_news_item
 PRIMARY KEY (ni_id)
@@ -536,7 +543,7 @@ ${TS_PK_NEWS_ITEM};
 " & pids="$pids $!"
 
 # Clause 2.2.7.9
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE news_xref
 ADD CONSTRAINT pk_news_xref
 PRIMARY KEY (nx_ni_id, nx_co_id)
@@ -544,7 +551,7 @@ ${TS_PK_NEWS_XREF};
 " & pids="$pids $!"
 
 # Clause 2.2.7.10
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE sector
 ADD CONSTRAINT pk_sector
 PRIMARY KEY (sc_id)
@@ -552,7 +559,7 @@ ${TS_PK_SECTOR};
 " & pids="$pids $!"
 
 # Clause 2.2.7.11
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE security
 ADD CONSTRAINT pk_security
 PRIMARY KEY (s_symb)
@@ -560,14 +567,14 @@ ${TS_PK_SECURITY};
 " & pids="$pids $!"
 
 # Clause 2.2.8.1
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE address
 ADD CONSTRAINT pk_address
 PRIMARY KEY (ad_id) ${TS_PK_ADDRESS};
 " & pids="$pids $!"
 
 # Clause 2.2.8.2
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE status_type
 ADD CONSTRAINT pk_status_type
 PRIMARY KEY (st_id)
@@ -575,7 +582,7 @@ ${TS_PK_STATUS_TYPE};
 " & pids="$pids $!"
 
 # Clause 2.2.8.3
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE taxrate
 ADD CONSTRAINT pk_taxrate
 PRIMARY KEY (tx_id)
@@ -583,7 +590,7 @@ ${TS_PK_TAXRATE};
 " & pids="$pids $!"
 
 # Clause 2.2.8.4
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE zip_code
 ADD CONSTRAINT pk_zip_code
 PRIMARY KEY (zc_code)
@@ -596,59 +603,59 @@ sleep 1
 # The FKs of each table are stored in the same tablespace
 
 # Clause 2.2.5.1
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE account_permission
 ADD CONSTRAINT fk_account_permission_ca FOREIGN KEY (ap_ca_id) 
 REFERENCES customer_account (ca_id);
 " & pids="$pids $!"
 
 # Clause 2.2.5.2
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE customer
 ADD CONSTRAINT fk_customer_st FOREIGN KEY (c_st_id) 
 REFERENCES status_type (st_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE customer
 ADD CONSTRAINT fk_customer_ad FOREIGN KEY (c_ad_id) 
 REFERENCES address (ad_id);
 " & pids="$pids $!"
 
 # Clause 2.2.5.3
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE customer_account
 ADD CONSTRAINT fk_customer_account_b FOREIGN KEY (ca_b_id) 
 REFERENCES broker (b_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE customer_account
 ADD CONSTRAINT fk_customer_account_c FOREIGN KEY (ca_c_id) 
 REFERENCES customer (c_id);
 " & pids="$pids $!"
 
 # Clause 2.2.5.4
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE customer_taxrate
 ADD CONSTRAINT fk_customer_taxrate_tx FOREIGN KEY (cx_tx_id) 
 REFERENCES taxrate (tx_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE customer_taxrate
 ADD CONSTRAINT fk_customer_taxrate_c FOREIGN KEY (cx_c_id) 
 REFERENCES customer (c_id);
 " & pids="$pids $!"
 
 # Clause 2.2.5.5
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE holding
 ADD CONSTRAINT fk_holding_t FOREIGN KEY (h_t_id) 
 REFERENCES trade (t_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE holding
 ADD CONSTRAINT fk_holding_hs FOREIGN KEY (h_ca_id, h_s_symb) 
 REFERENCES holding_summary (hs_ca_id, hs_s_symb);
@@ -656,262 +663,262 @@ REFERENCES holding_summary (hs_ca_id, hs_s_symb);
 
 # Clause 2.2.5.6
 # FIXME: Should the next two foreign keys be a single definition?
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE holding_history
 ADD CONSTRAINT fk_holding_history_t1 FOREIGN KEY (hh_h_t_id) 
 REFERENCES trade (t_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE holding_history
 ADD CONSTRAINT fk_holding_history_t2 FOREIGN KEY (hh_t_id) 
 REFERENCES trade (t_id);
 " & pids="$pids $!"
 
 # Clause 2.2.5.7
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE holding_summary
 ADD CONSTRAINT fk_holding_summary_ca FOREIGN KEY (hs_ca_id) 
 REFERENCES customer_account (ca_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE holding_summary
 ADD CONSTRAINT fk_holding_summary_s FOREIGN KEY (hs_s_symb) 
 REFERENCES security (s_symb);
 " & pids="$pids $!"
 
 # Clause 2.2.5.8
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE watch_item
 ADD CONSTRAINT fk_watch_item_wl FOREIGN KEY (wi_wl_id) 
 REFERENCES watch_list (wl_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE watch_item
 ADD CONSTRAINT fk_watch_item_s FOREIGN KEY (wi_s_symb) 
 REFERENCES security (s_symb);
 " & pids="$pids $!"
 
 # Clause 2.2.5.9
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE watch_list
 ADD CONSTRAINT fk_watch_list FOREIGN KEY (wl_c_id) 
 REFERENCES customer (c_id);
 " & pids="$pids $!"
 
 # Clause 2.2.6.1
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE broker
 ADD CONSTRAINT fk_broker FOREIGN KEY (b_st_id) 
 REFERENCES status_type (st_id);
 " & pids="$pids $!"
 
 # Clause 2.2.6.2
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE cash_transaction
 ADD CONSTRAINT fk_cash_transaction FOREIGN KEY (ct_t_id) 
 REFERENCES trade (t_id);
 " & pids="$pids $!"
 
 # Clause 2.2.6.3
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE charge
 ADD CONSTRAINT fk_charge FOREIGN KEY (ch_tt_id) 
 REFERENCES trade_type (tt_id);
 " & pids="$pids $!"
 
 # Clause 2.2.6.4
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE commission_rate
 ADD CONSTRAINT fk_commission_rate_tt FOREIGN KEY (cr_tt_id) 
 REFERENCES trade_type (tt_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE commission_rate
 ADD CONSTRAINT fk_commission_rate_ex FOREIGN KEY (cr_ex_id) 
 REFERENCES exchange (ex_id);
 " & pids="$pids $!"
 
 # Clause 2.2.6.5
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE settlement
 ADD CONSTRAINT fk_settlement FOREIGN KEY (se_t_id) 
 REFERENCES trade (t_id);
 " & pids="$pids $!"
 
 # Clause 2.2.6.6
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE trade
 ADD CONSTRAINT fk_trade_st FOREIGN KEY (t_st_id) 
 REFERENCES status_type (st_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE trade
 ADD CONSTRAINT fk_trade_tt FOREIGN KEY (t_tt_id) 
 REFERENCES trade_type (tt_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE trade
 ADD CONSTRAINT fk_trade_s FOREIGN KEY (t_s_symb) 
 REFERENCES security (s_symb);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE trade
 ADD CONSTRAINT fk_trade_ca FOREIGN KEY (t_ca_id) 
 REFERENCES customer_account (ca_id);
 " & pids="$pids $!"
 
 # Clause 2.2.6.7
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE trade_history
 ADD CONSTRAINT fk_trade_history_t FOREIGN KEY (th_t_id) 
 REFERENCES trade (t_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE trade_history
 ADD CONSTRAINT fk_trade_history_st FOREIGN KEY (th_st_id) 
 REFERENCES status_type (st_id);
 " & pids="$pids $!"
 
 # Clause 2.2.6.8
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE trade_request
 ADD CONSTRAINT fk_trade_request_t FOREIGN KEY (tr_t_id) 
 REFERENCES trade (t_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE trade_request
 ADD CONSTRAINT fk_trade_request_tt FOREIGN KEY (tr_tt_id) 
 REFERENCES trade_type (tt_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE trade_request
 ADD CONSTRAINT fk_trade_request_s FOREIGN KEY (tr_s_symb) 
 REFERENCES security (s_symb);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE trade_request
 ADD CONSTRAINT fk_trade_request_b FOREIGN KEY (tr_b_id) 
 REFERENCES broker (b_id);
 " & pids="$pids $!"
 
 # Clause 2.2.7.1
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE company
 ADD CONSTRAINT fk_company_st FOREIGN KEY (co_st_id) 
 REFERENCES status_type (st_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE company
 ADD CONSTRAINT fk_company_in FOREIGN KEY (co_in_id) 
 REFERENCES industry (in_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE company
 ADD CONSTRAINT fk_company_ad FOREIGN KEY (co_ad_id) 
 REFERENCES address (ad_id);
 " & pids="$pids $!"
 
 # Clause 2.2.7.2
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE company_competitor
 ADD CONSTRAINT fk_company_competitor_co FOREIGN KEY (cp_co_id) 
 REFERENCES company (co_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE company_competitor
 ADD CONSTRAINT fk_company_competitor_co2 FOREIGN KEY (cp_comp_co_id) 
 REFERENCES company (co_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE company_competitor
 ADD CONSTRAINT fk_company_competitor_in FOREIGN KEY (cp_in_id) 
 REFERENCES industry (in_id);
 " & pids="$pids $!"
 
 # Clause 2.2.7.3
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE daily_market
 ADD CONSTRAINT fk_daily_market FOREIGN KEY (dm_s_symb) 
 REFERENCES security (s_symb);
 " & pids="$pids $!"
 
 # Clause 2.2.7.4
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE exchange
 ADD CONSTRAINT fk_exchange FOREIGN KEY (ex_ad_id) 
 REFERENCES address (ad_id);
 " & pids="$pids $!"
 
 # Clause 2.2.7.5
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE financial
 ADD CONSTRAINT fk_financial FOREIGN KEY (fi_co_id) 
 REFERENCES company (co_id);
 " & pids="$pids $!"
 
 # Clause 2.2.7.6
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE industry
 ADD CONSTRAINT fk_industry FOREIGN KEY (in_sc_id) 
 REFERENCES sector (sc_id);
 " & pids="$pids $!"
 
 # Clause 2.2.7.7
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE last_trade
 ADD CONSTRAINT fk_last_trade FOREIGN KEY (lt_s_symb) 
 REFERENCES security (s_symb);
 " & pids="$pids $!"
 
 # Clause 2.2.7.9
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE news_xref
 ADD CONSTRAINT fk_news_xref_ni FOREIGN KEY (nx_ni_id) 
 REFERENCES news_item (ni_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE news_xref
 ADD CONSTRAINT fk_news_xref_co FOREIGN KEY (nx_co_id) 
 REFERENCES company (co_id);
 " & pids="$pids $!"
 
 # Clause 2.2.7.11
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE security
 ADD CONSTRAINT fk_security_st FOREIGN KEY (s_st_id) 
 REFERENCES status_type (st_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE security
 ADD CONSTRAINT fk_security_ex FOREIGN KEY (s_ex_id) 
 REFERENCES exchange (ex_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE security
 ADD CONSTRAINT fk_security_co FOREIGN KEY (s_co_id) 
 REFERENCES company (co_id);
 " & pids="$pids $!"
 
 # Clause 2.2.8.1
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 ALTER TABLE address
 ADD CONSTRAINT fk_address FOREIGN KEY (ad_zc_code) 
 REFERENCES zip_code (zc_code);
@@ -919,66 +926,54 @@ REFERENCES zip_code (zc_code);
 
 # Additional indexes
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 CREATE INDEX i_c_tax_id
 ON customer (c_tax_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 CREATE INDEX i_ca_c_id
 ON customer_account (ca_c_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 CREATE INDEX i_wl_c_id
 ON watch_list (wl_c_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 CREATE INDEX i_dm_s_symb
 ON daily_market (dm_s_symb);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 CREATE INDEX i_tr_s_symb
 ON trade_request (tr_s_symb);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 CREATE INDEX i_t_st_id
 ON trade (t_st_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 CREATE INDEX i_t_ca_id
 ON trade (t_ca_id);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 CREATE INDEX i_co_name
 ON company (co_name);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 CREATE INDEX i_security
 ON security (s_co_id, s_issue);
 " & pids="$pids $!"
 
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "
+psql ${PORTARG} -e -d ${DBNAME} -c "
 CREATE INDEX i_holding
 ON holding (h_ca_id, h_s_symb);
 " & pids="$pids $!"
 
-rc=0
-
-for pid in $pids
-do
-	wait $pid || rc=1
-done
-
-if [ $rc -ne 0 ]
-then
-	echo "Failed to create indexes" >&2
-fi
-
-exit $rc
+wait ${pids}

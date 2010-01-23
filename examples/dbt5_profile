@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# This file is released under the terms of the Artistic License.
+# Please see # the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2006 Mark Wong & Open Source Development Labs, Inc.
+#
+
+TOPDIR="@abs_top_srcdir@"
+
+DATABASE=@database_to_use@
+
+# Database instance name.
+DBNAME="dbt5"
+
+# Path to EGen.
+EGENDIR="${TOPDIR}/src/@egen_path@"
+
+if [ -f "@abs_top_srcdir@/scripts/${DATABASE}/${DATABASE}_profile" ]; then
+	source ${TOPDIR}/scripts/${DATABASE}/${DATABASE}_profile
+fi

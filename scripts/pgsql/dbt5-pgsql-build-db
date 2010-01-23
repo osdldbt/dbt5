@@ -1,10 +1,21 @@
-#!/bin/bash
+#!/bin/sh
+
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2005-2006 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2005-2010 Mark Wong & Open Source Development Labs, Inc.
 #
+
+if [ "x${EGENDIR}" = "x" ]; then
+	echo "EGENDIR not defined, specify EGen's directory."
+	exit 1
+fi
+
+if [ "x${DBNAME}" = "x" ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
 
 usage()
 {
@@ -28,13 +39,8 @@ usage()
 	echo "        Use tablespaces"
 	echo "    -w <days>"
 	echo -n "        Number of Workdays (8-hour days) of " 
-        echo "initial trades to populate"
+	echo "initial trades to populate"
 }
-
-TOPDIR="@abs_top_srcdir@"
-source ${TOPDIR}/scripts/dbt5_profile || exit 1
-
-DIR="${TOPDIR}/scripts/pgsql"
 
 REBUILD_DB=0
 
@@ -80,33 +86,39 @@ while getopts "c:hi:l:p:rs:tw:" OPT; do
 	esac
 done
 
-if [ ${REBUILD_DB} -eq 1 ]; then
-	echo "Restarting the database to reset database parameters..."
-	${DIR}/stop-db
-	${DIR}/start-db -p "${PARAMETERS}" || exit 1
-	${DIR}/drop-db -p ${PORT}
+if [ ! "x${PORT}" = "x" ]; then
+	PORTARG="-p ${PORT}"
+	EGENPORT="port=${PORT}"
 fi
 
-${DIR}/create-db -p ${PORT} || exit 1
+if [ ${REBUILD_DB} -eq 1 ]; then
+	echo "Restarting the database to reset database parameters..."
+	dbt5-pgsql-stop-db
+	dbt5-pgsql-start-db -p "${PARAMETERS}" || exit 1
+	dbt5-pgsql-drop-db ${PORTARG}
+fi
+
+dbt5-pgsql-create-db ${PORTARG} || exit 1
 
 #
 # Stop and restart the database so we get the parameters we want when we start
 # loading the database.
 #
-${DIR}/stop-db
-${DIR}/start-db -p "${PARAMETERS}" || exit 1
+dbt5-pgsql-stop-db
+dbt5-pgsql-start-db -p "${PARAMETERS}" || exit 1
 
-${DIR}/create-tables -p ${PORT} ${TABLESPACES_FLAG} || exit 1
+dbt5-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG} || exit 1
 (cd ${EGENDIR} && \
-		bin/EGenLoader -l PGSQL -f ${SCALE_FACTOR} -w ${WORKDAYS} \
-		-c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} -p ${PORT}) || exit 1
-${DIR}/create-indexes -p ${PORT} ${TABLESPACES_FLAG} || exit 1
-${DIR}/load-stored-procs -c -p ${PORT} || exit 1
-${PSQL} -p ${PORT} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1
+		bin/EGenLoader -l CUSTOM -f ${SCALE_FACTOR} -w ${WORKDAYS} \
+		-c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} \
+		-p "dbname=${DBNAME} ${EGENPORT}") || exit 1
+dbt5-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG} || exit 1
+dbt5-pgsql-load-stored-procs -c ${PORTARG} || exit 1
+psql ${PORTARG} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1
 #
 # VACUUM FULL ANALYZE: Build optimizer statistics for newly-created
 # tables. The VACUUM FULL is probably unnecessary; we want to scan the
 # heap and update the commit-hint bits on each new tuple, but a regular
 # VACUUM ought to suffice for that.
 #
-${VACUUMDB} -p ${PORT} -z -f -d ${DBNAME} || exit 1
+vacuumdb ${PORTARG} -z -f -d ${DBNAME} || exit 1
