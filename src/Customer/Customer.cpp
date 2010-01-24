@@ -16,7 +16,7 @@ CCustomer::CCustomer(char* szInDir,
 		TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
 		INT32 iScaleFactor, INT32 iDaysOfInitialTrades, UINT32 UniqueId,
 		char* szBHaddr, int iBHlistenPort, int iUsers, int iPacingDelay,
-		char* outputDirectory, ofstream *m_fMix, CSyncLock *m_MixLock)
+		char* outputDirectory, ofstream *m_fMix, CMutex *m_MixLock)
 : m_iUsers(iUsers), m_iPacingDelay(iPacingDelay)
 {
 	char filename[1024];
@@ -60,9 +60,9 @@ void CCustomer::DoTxn()
 // LogErrorMessage
 void CCustomer::LogErrorMessage( const string sErr )
 {
-	m_LogLock.ClaimLock();
+	m_LogLock.lock();
 	cout<<sErr;
 	m_fLog<<sErr;
 	m_fLog.flush();
-	m_LogLock.ReleaseLock();
+	m_LogLock.unlock();
 }

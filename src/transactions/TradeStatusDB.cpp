@@ -124,7 +124,7 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout << "Trade Status Frame 1 (input)" << endl <<
 			"- acct_id: " << pIn->acct_id << endl;
 	cout << "Trade Status Frame 1 (output)" << endl <<
@@ -146,6 +146,6 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 			"- trade_id[0]: " << pOut->trade_id[0] << endl <<
 			"- trade_qty[0]: " << pOut->trade_qty[0] << endl <<
 			"- type_name[0]: " << pOut->type_name[0] << endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }

@@ -10,6 +10,8 @@
 #ifndef DRIVER_H
 #define DRIVER_H
 
+#include "locking.h"
+
 using namespace TPCE;
 
 class CDriver
@@ -21,7 +23,7 @@ private:
 	CEGenLogger*		m_pLog;
 	CInputFiles		m_InputFiles;
 	PDriverCETxnSettings	m_pDriverCETxnSettings;
-	CSyncLock		m_LogLock;
+	CMutex		m_LogLock;
 	ofstream		m_fLog;		// error log file
 	ofstream		m_fMix;		// mix log file
 
@@ -45,7 +47,7 @@ public:
 	int iUsers;
 	int iPacingDelay;
 	char outputDirectory[iMaxPath];
-	CSyncLock m_MixLock;
+	CMutex m_MixLock;
 	CDMSUT *m_pCDMSUT;
 	CDM *m_pCDM;
 

@@ -57,7 +57,7 @@ void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
 	}
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Market Watch Frame 1 (input)"<<endl
 	    <<"- acct_id: "<<pIn->acct_id<<endl
 	    <<"- cust_id: "<<pIn->c_id<<endl
@@ -67,6 +67,6 @@ void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
 	cout<<"Market Watch Frame 1 (output)"<<endl
 	    <<"- status: "<<pOut->status<<endl
 	    <<"- pct_change: "<<pOut->pct_change<<endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }

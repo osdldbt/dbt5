@@ -10,6 +10,8 @@
 #ifndef TXN_BASE_DB_H
 #define TXN_BASE_DB_H
 
+#include "locking.h"
+
 using namespace TPCE;
 
 class CTxnBaseDB
@@ -19,7 +21,7 @@ protected:
 	CDBConnection*		m_pDBConnection;
 	connection*		m_Conn;		// libpqxx Connection
 	nontransaction*		m_Txn;		// libpqxx dummy Transaction
-	CSyncLock		m_coutLock;
+	CMutex		m_coutLock;
 
 public:
 	CTxnBaseDB(CDBConnection *pDBConn);

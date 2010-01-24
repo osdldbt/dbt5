@@ -33,11 +33,14 @@ bool CSendToMarketTest::SendToMarket(TTradeRequest &trade_mes)
 	// Initialize MEE - Market Exchange Emulator class
 	// I am creating connections on the fly inside the thread
 	CMEESUTtest		m_CMEESUT( NULL /*&m_Conn*/ );
+	// FIXME: The path need to be configurable.
 	char*	szFileName = "EGen_v3.14/flat_in/Security.txt";
-	CSecurityFile	*Securities = new CSecurityFile(szFileName,
-			iDefaultLoadUnitSize, iDefaultLoadUnitSize);
+	CInputFiles inputFiles;
+	// FIXME: Where do we get the customer counts?
+	//inputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount,
+	//		iActiveCustomerCount, szFileName);
 
-	CMEE		m_CMEE( 0, &m_CMEESUT, &log, Securities, 1 );
+	CMEE		m_CMEE( 0, &m_CMEESUT, &log, inputFiles, 1 );
 	m_CMEE.SetBaseTime();
 	
 	cout<<endl<<"Sending to Market a ";

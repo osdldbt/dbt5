@@ -110,7 +110,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Customer Position Frame 1 (input)"<<endl
 	    <<"- cust_id: "<<pIn->cust_id<<endl
 	    <<"- tax_id: "<<pIn->tax_id<<endl;
@@ -148,7 +148,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 			"- c_ext_3: " << pOut->c_ext_3 << endl <<
 			"- c_email_1: " << pOut->c_email_1 << endl <<
 			"- c_email_2: " << pOut->c_email_2 << endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }
 
@@ -236,7 +236,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Customer Position Frame 2 (input)"<<endl
 	    <<"- cust_id: "<<pIn->acct_id<<endl;
 	cout<<"Customer Position Frame 2 (output)"<<endl
@@ -251,7 +251,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 		pOut->hist_dts[0].hour<<":"<<
 		pOut->hist_dts[0].minute<<":"<<
 		pOut->hist_dts[0].second<<endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }
 

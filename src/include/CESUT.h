@@ -11,6 +11,7 @@
 #define CE_SUT_H
 
 #include "CESUTInterface.h"
+#include "locking.h"
 
 using namespace TPCE;
 
@@ -20,7 +21,7 @@ class CCESUT : public CCESUTInterface, public CBaseInterface
 public:
 
 	CCESUT(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix, 
-			CSyncLock* pLogLock, CSyncLock* pMixLock);
+			CMutex* pLogLock, CMutex* pMixLock);
 	~CCESUT(void);
 
 	// return whether it was successful

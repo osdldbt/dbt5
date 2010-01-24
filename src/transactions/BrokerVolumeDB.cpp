@@ -65,7 +65,7 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Broker Volume Frame 1 (input)"<<endl
 	    <<"- broker_list: "<<osBrokers.str()<<endl
 	    <<"- sector name: "<<pIn->sector_name<<endl;
@@ -73,6 +73,6 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 	    <<"- list_len: "<<pOut->list_len<<endl
 	    <<"- broker_name[0]: "<<pOut->broker_name[0]<<endl
 	    <<"- volume[0]: "<<pOut->volume[0]<<endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }

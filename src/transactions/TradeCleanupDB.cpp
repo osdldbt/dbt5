@@ -41,7 +41,7 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
  	pOut->status = c[0].as(int());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Trade Cleanup Frame 1 (input)"<<endl
 	    <<"- st_canceled_id: "<<pIn->st_canceled_id<<endl
 	    <<"- st_pending_id: "<<pIn->st_pending_id<<endl
@@ -49,6 +49,6 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
 	    <<"- trade_id: "<<pIn->start_trade_id<<endl;
 	cout<<"Trade Cleanup Frame 1 (output)"<<endl
 	    <<"- status: "<<pOut->status<<endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }

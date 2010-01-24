@@ -14,9 +14,9 @@ using namespace TPCE;
 // Establish defaults for command line option
 int		iListenPort = BrokerageHousePort;
 
-char		szHost[iMaxPGHost];
-char		szDBName[iMaxPGDBName];
-char 		szPostmasterPort[iMaxPGPort];
+char		szHost[iMaxPGHost] = "";
+char		szDBName[iMaxPGDBName] = "";
+char 		szPostmasterPort[iMaxPGPort] = "";
 char 		outputDirectory[iMaxPath] = ".";
 
 // shows program usage
@@ -100,11 +100,6 @@ void ParseCommandLine( int argc, char *argv[] )
 // main
 int main(int argc, char* argv[])
 {
-	// Establish defaults for command line options.
-	strncpy(szHost, "localhost", sizeof(szHost)-1);
-	strncpy(szDBName, "dbt5", sizeof(szDBName)-1);
-	strncpy(szPostmasterPort, "5432", sizeof(szPostmasterPort)-1);
-
 	cout<<endl<<"dbt5 - Brokerage House Main"<<endl;
 
 	// Parse command line

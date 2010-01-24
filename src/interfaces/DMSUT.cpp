@@ -12,7 +12,7 @@ using namespace TPCE;
 
 // constructor
 CDMSUT::CDMSUT(char* addr, const int iListenPort, ofstream* pflog,
-		ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock)
+		ofstream* pfmix, CMutex* pLogLock, CMutex* pMixLock)
 : CBaseInterface(addr, iListenPort, pflog, pfmix, pLogLock, pMixLock)
 {
 }

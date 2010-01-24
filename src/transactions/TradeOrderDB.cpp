@@ -48,7 +48,7 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 	pOut->tax_status = c[9].as(int());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Trade Order Frame 1 (input)"<<endl
 	    <<"- acct_id: "<<pIn->acct_id<<endl;
 	cout<<"Trade Order Frame 1 (output)"<<endl
@@ -60,7 +60,7 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 	    <<"- cust_tier: "<<pOut->cust_tier<<endl
 	    <<"- tax_id: "<<pOut->tax_id<<endl
 	    <<"- tax_status: "<<pOut->tax_status<<endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }
 
@@ -151,7 +151,7 @@ void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 	pOut->type_is_sell = (c[14].c_str()[0] == 't' ? 1 : 0);
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Trade Order Frame 3 (input)"<<endl
 	    <<"- acct_id: "<<pIn->acct_id<<endl
 	    <<"- cust_id: "<<pIn->cust_id<<endl
@@ -182,7 +182,7 @@ void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 	    <<"- tax_amount: "<<pOut->tax_amount<<endl
 	    <<"- type_is_market: "<<pOut->type_is_market<<endl
 	    <<"- type_is_sell: "<<pOut->type_is_sell<<endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif //DEBUG
 }
 
@@ -226,7 +226,7 @@ void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 	pOut->trade_id = c[1].as(long());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Trade Order Frame 4 (input)"<<endl
 	    <<"- acct_id: "<<pIn->acct_id<<endl
 	    <<"- charge_amount: "<<pIn->charge_amount<<endl
@@ -242,7 +242,7 @@ void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 	    <<"- type_is_market: "<<pIn->type_is_market<<endl;
 	cout<<"Trade Order Frame 4 (output)"<<endl
 	    <<"- trade_id: "<<pOut->trade_id<<endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif //DEBUG
 }
 

@@ -10,6 +10,8 @@
 #ifndef DRIVER_MARKET_H
 #define DRIVER_MARKET_H
 
+#include "locking.h"
+
 using namespace TPCE;
 
 class CDriverMarket
@@ -22,8 +24,8 @@ private:
 	CMEESUT*		m_pCMEESUT;
 	CSecurityFile*		m_pSecurities;
 	CMEE*			m_pCMEE;
-	CSyncLock		m_LogLock;
-	CSyncLock		m_MixLock;
+	CMutex		m_LogLock;
+	CMutex		m_MixLock;
 	ofstream		m_fLog;		// error log file
 	ofstream		m_fMix;		// mix log file
 

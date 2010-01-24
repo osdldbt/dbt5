@@ -7,6 +7,7 @@
 #include <TxnHarnessSendToMarketTest.h>
 #include <DMSUTtest.h>
 #include <CESUT.h>
+#include "locking.h"
 
 using namespace TPCE;
 
@@ -424,8 +425,8 @@ int main(int argc, char* argv[])
 
 	ofstream m_fLog;
 	ofstream m_fMix;
-	CSyncLock m_LogLock;
-	CSyncLock m_MixLock;
+	CMutex m_LogLock;
+	CMutex m_MixLock;
 
 	if (!ParseCommandLine(argc, argv))
 	{

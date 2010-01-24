@@ -10,6 +10,8 @@
 #ifndef BROKERAGE_HOUSE_H
 #define BROKERAGE_HOUSE_H
 
+#include "locking.h"
+
 // FIXME: I didn't have to define these before, must be something difference
 // since the v1.3.0 versino of egen that I didn't up-port correctly.
 #define iMaxPGHost 128
@@ -22,7 +24,7 @@ class CBrokerageHouse
 {
 	int		m_iListenPort;
 	CSocket		m_Socket;
-	CSyncLock	m_LogLock;
+	CMutex	m_LogLock;
 	ofstream	m_fLog;
 
 	char		m_szHost[iMaxPGHost];		// host name

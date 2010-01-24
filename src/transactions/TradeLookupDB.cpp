@@ -187,7 +187,7 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Trade Lookup Frame 1 (input)"<<endl
 	    <<"- max_trades: "<<pIn->max_trades<<endl
 	    <<"- Trades: {"<<osTrades.str()<<"}"<<endl;
@@ -254,7 +254,7 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 			pOut->trade_info[0].trade_history_dts[2].second << endl <<
 			"- trade_history_status_id[0][2]: " <<
 			pOut->trade_info[0].trade_history_status_id[2] << endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }
 
@@ -408,7 +408,7 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Trade Lookup Frame 2 (input)"<<endl
 	    <<"- acct_id: "<<pIn->acct_id<<endl
 	    <<"- max_trades: "<<pIn->max_trades<<endl
@@ -480,7 +480,7 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 			pOut->trade_info[0].trade_history_dts[2].second << endl <<
 			"- trade_history_status_id[0][2]: " <<
 			pOut->trade_info[0].trade_history_status_id[2] << endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }
 
@@ -663,7 +663,7 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Trade Lookup Frame 3 (input)"<<endl
 	    <<"- max_acct_id: "<<pIn->max_acct_id<<endl
 	    <<"- max_trades: "<<pIn->max_trades<<endl
@@ -746,7 +746,7 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 			endl <<
 			"- trade_type[0]: " << pOut->trade_info[0].trade_type <<
 			endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif //DEBUG
 }
 
@@ -829,7 +829,7 @@ void CTradeLookupDB::DoTradeLookupFrame4(const TTradeLookupFrame4Input *pIn,
 	pOut->trade_id = c[i_trade_id].as(long());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Trade Lookup Frame 4 (input)"<<endl
 		<<"- acct_id: "<<pIn->acct_id<<endl
 		<<"- trade_dts: "<<pIn->trade_dts.year<<"-"<<
@@ -849,6 +849,6 @@ void CTradeLookupDB::DoTradeLookupFrame4(const TTradeLookupFrame4Input *pIn,
 			pOut->trade_info[0].quantity_after << endl <<
 			"- num_found: " << pOut->num_found << endl <<
 			"- trade_id: " << pOut->trade_id << endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif //DEBUG
 }

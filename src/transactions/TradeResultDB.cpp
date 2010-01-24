@@ -53,7 +53,7 @@ void CTradeResultDB::DoTradeResultFrame1(
 	pOut->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Trade Result Frame 1 (input)"<<endl
 	    <<"- trade_id: "<<pIn->trade_id<<endl;
 	cout<<"Trade Result Frame 1 (output)"<<endl
@@ -68,7 +68,7 @@ void CTradeResultDB::DoTradeResultFrame1(
 	    <<"- type_is_market: "<<pOut->type_is_market<<endl
 	    <<"- type_is_sell: "<<pOut->type_is_sell<<endl
 	    <<"- type_name: "<<pOut->type_name<<endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }
 
@@ -118,7 +118,7 @@ void CTradeResultDB::DoTradeResultFrame2(
 			&pOut->trade_dts.second);
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Trade Result Frame 2 (input)"<<endl
 	    <<"- acct_id:"<<pIn->acct_id<<endl
 	    <<"- hs_qty:"<<pIn->hs_qty<<endl
@@ -139,7 +139,7 @@ void CTradeResultDB::DoTradeResultFrame2(
 		" " << pOut->trade_dts.hour << ":" <<
 		pOut->trade_dts.minute << ":" <<
 		pOut->trade_dts.second << endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }
 
@@ -175,7 +175,7 @@ void CTradeResultDB::DoTradeResultFrame3(
 	pOut->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Trade Result Frame 3 (input)"<<endl
 	    <<"- buy_value:"<<pIn->buy_value<<endl
 	    <<"- cust_id:"<<pIn->cust_id<<endl
@@ -183,7 +183,7 @@ void CTradeResultDB::DoTradeResultFrame3(
 	    <<"- trade_id:"<<pIn->trade_id<<endl;
 	cout<<"Trade Result Frame 3 (output)"<<endl
 	    <<"- tax_amount:"<<pOut->tax_amount<<endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif //DEBUG
 }
 
@@ -220,7 +220,7 @@ void CTradeResultDB::DoTradeResultFrame4(
 	pOut->status = c[2].as(int());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Trade Result Frame 4 (input)"<<endl
 	    <<"- cust_id:"<<pIn->cust_id<<endl
 	    <<"- symbol:"<<pIn->symbol<<endl
@@ -229,7 +229,7 @@ void CTradeResultDB::DoTradeResultFrame4(
 	cout<<"Trade Result Frame 4 (output)"<<endl
 	    <<"- comm_rate:"<<pOut->comm_rate<<endl
 	    <<"- s_name:"<<pOut->s_name<<endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif //DEBUG
 }
 
@@ -243,7 +243,7 @@ void CTradeResultDB::DoTradeResultFrame5(
 #endif
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout << "Trade Result Frame 5 (input)" << endl <<
 			"- broker_id:" << pIn->broker_id << endl <<
 			"- comm_amount:" << pIn->comm_amount << endl <<
@@ -256,7 +256,7 @@ void CTradeResultDB::DoTradeResultFrame5(
 			pIn->trade_dts.second << endl <<
 			"- trade_id:" << pIn->trade_id << endl <<
 			"- trade_price:" << pIn->trade_price << endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif //DEBUG
 
 	ostringstream osCall;
@@ -335,7 +335,7 @@ void CTradeResultDB::DoTradeResultFrame6(
 	pOut->status = c[1].as(int());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout << "Trade Result Frame 6 (input)" << endl <<
 			"- acct_id:" << pIn->acct_id << endl <<
 			"- due_date: " << pIn->due_date.year << "-" <<
@@ -357,6 +357,6 @@ void CTradeResultDB::DoTradeResultFrame6(
 			"- type_name:" << pIn->type_name << endl;
 	cout<<"Trade Result Frame 6 (output)"<<endl
 	    <<"- acct_bal:"<<pOut->acct_bal<<endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif //DEBUG
 }

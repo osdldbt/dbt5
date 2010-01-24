@@ -81,7 +81,7 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 	}
 	
 #ifdef DEBUG
-	m_coutLock.ClaimLock(); cout << "Market Feed Frame 1 (input)" << endl << "- max_feed_len: " << max_feed_len << endl <<
+	m_coutLock.lock(); cout << "Market Feed Frame 1 (input)" << endl << "- max_feed_len: " << max_feed_len << endl <<
 			"- price_quote: " << "{" << osPrice.str() << "}"<< endl <<
 			"- status_submitted: " <<
 			pIn->StatusAndTradeType.status_submitted << endl <<
@@ -95,6 +95,6 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 			pIn->StatusAndTradeType.type_stop_loss << endl;
 	cout<<"Market Feed Frame 1 (output)"<<endl
 	    <<"- send_len: "<<pOut->send_len<<endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }

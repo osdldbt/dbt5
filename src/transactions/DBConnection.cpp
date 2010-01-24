@@ -14,9 +14,23 @@ using namespace TPCE;
 CDBConnection::CDBConnection(const char *szHost, const char *szDBName,
 		const char *szPostmasterPort)
 {
-	char	szConnectStr[256];
-	sprintf( szConnectStr, "host=%s dbname=%s port=%s", 
- 			szHost, szDBName, szPostmasterPort );
+	char	szConnectStr[256] = "";
+
+	// Just pad everything with spaces so we don't have to figure out if it's
+	// needed or not.
+	// FIXME: Use strncpy to prevent buffer overflow.
+	if (strlen(szHost) > 0) {
+		strcat(szConnectStr, " host=");
+		strcat(szConnectStr, szHost);
+	}
+	if (strlen(szDBName) > 0) {
+		strcat(szConnectStr, " dbname=");
+		strcat(szConnectStr, szDBName);
+	}
+	if (strlen(szPostmasterPort) > 0) {
+		strcat(szConnectStr, " port=");
+		strcat(szConnectStr, szPostmasterPort);
+	}
 
 	m_Conn = new connection( szConnectStr );
 	m_Txn = new nontransaction( *m_Conn, "txn" );

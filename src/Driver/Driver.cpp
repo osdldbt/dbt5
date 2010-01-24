@@ -219,9 +219,9 @@ void CDriver::RunTest(int iSleep, int iTestDuration)
 	}
 
 	// mark end of ramp-up
-	m_MixLock.ClaimLock();
+	m_MixLock.lock();
 	m_fMix<<(int)time(NULL)<<",START"<<endl;
-	m_MixLock.ReleaseLock();
+	m_MixLock.unlock();
 
 	LogErrorMessage(">> End of ramp-up.\n\n");
 
@@ -297,9 +297,9 @@ void EntryDMWorkerThread(CDriver* ptr)
 // LogErrorMessage
 void CDriver::LogErrorMessage( const string sErr )
 {
-	m_LogLock.ClaimLock();
+	m_LogLock.lock();
 	cout<<sErr;
 	m_fLog<<sErr;
 	m_fLog.flush();
-	m_LogLock.ReleaseLock();
+	m_LogLock.unlock();
 }

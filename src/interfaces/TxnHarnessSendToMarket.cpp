@@ -52,9 +52,9 @@ bool CSendToMarket::SendToMarket(TTradeRequest &trade_mes)
 // LogErrorMessage
 void CSendToMarket::LogErrorMessage( const string sErr )
 {
-	m_LogLock.ClaimLock();
+	m_LogLock.lock();
 	cout<<sErr;
 	*(m_pfLog)<<sErr;
 	m_pfLog->flush();
-	m_LogLock.ReleaseLock();
+	m_LogLock.unlock();
 }

@@ -11,6 +11,7 @@
 #define CUSTOMER_H
 
 #include <transactions.h>
+#include "locking.h"
 
 using namespace TPCE;
 
@@ -24,7 +25,7 @@ class CCustomer
 	CCESUT*			m_pCCESUT;
 	CCE*			m_pCCE;
 	PDriverCETxnSettings	m_pDriverCETxnSettings;
-	CSyncLock		m_LogLock;
+	CMutex		m_LogLock;
 	ofstream		m_fLog;		// error log file
 
 private:
@@ -41,7 +42,7 @@ public:
 			TIdent iActiveCustomerCount, INT32 iScaleFactor,
 			INT32 iDaysOfInitialTrades, UINT32 UniqueId, char* szBHaddr,
 			int iBHlistenPort, int iUsers, int iPacingDelay,
-			char* outputDirectory, ofstream *m_fMix, CSyncLock *m_MixLock);
+			char* outputDirectory, ofstream *m_fMix, CMutex *m_MixLock);
 	~CCustomer();
 
 	void DoTxn();

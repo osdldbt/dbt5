@@ -11,6 +11,7 @@
 #define MEE_SUT_H
 
 #include "MEESUTInterface.h"
+#include "locking.h"
 
 using namespace TPCE;
 
@@ -22,7 +23,7 @@ private:
 	
 public:
 	CMEESUT(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix,
-			CSyncLock* pLogLock, CSyncLock* pMixLock) :
+			CMutex* pLogLock, CMutex* pMixLock) :
 			CBaseInterface(addr, iListenPort, pflog, pfmix, pLogLock,
 			pMixLock) {};
 	~CMEESUT() {};

@@ -497,7 +497,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Security Detail Frame 1 (input)"<<endl
 	    <<"- access_lob_flag: "<<pIn->access_lob_flag<<endl
 	    <<"- start_day: "<<pIn->start_day.year<<"-"<<
@@ -614,6 +614,6 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 			"- ex_name: " << pOut->ex_name << endl <<
 			"- ex_num_symb: " << pOut->ex_num_symb << endl <<
 			"- ex_open: " << pOut->ex_open << endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }

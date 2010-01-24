@@ -519,9 +519,9 @@ void CBrokerageHouse::Listener( void )
 // LogErrorMessage
 void CBrokerageHouse::LogErrorMessage( const string sErr, bool bScreen )
 {
-	m_LogLock.ClaimLock();
+	m_LogLock.lock();
 	if (bScreen) cout<<sErr;
 	m_fLog<<sErr;
 	m_fLog.flush();
-	m_LogLock.ReleaseLock();
+	m_LogLock.unlock();
 }

@@ -4,7 +4,6 @@
 AUTOMAKE_OPTIONS = no-dependencies
 
 DEFS=-D@STORED_PROC_TYPE@
-INCLUDES=-I@egen_path@/inc -Iinclude @DB_CFLAGS@
 
 TXN=transactions
 INTF=interfaces
@@ -12,6 +11,8 @@ EGEN=@egen_path@/src
 
 bin_PROGRAMS = BrokerageHouseMain DriverMain DriverMarketMain TestTxn
 
+TestTxn_CPPFLAGS=-I@egen_path@/inc -Iinclude @DB_CFLAGS@
+TestTxn_LDFLAGS=$(DB_LDFLAGS)
 TestTxn_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                   $(EGEN)/BaseLogger.cpp \
                   $(EGEN)/EGenLogFormatterTab.cpp \
@@ -32,6 +33,7 @@ TestTxn_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                   $(EGEN)/MEETickerTape.cpp \
                   $(EGEN)/MEETradingFloor.cpp \
                   $(EGEN)/MEE.cpp \
+                  $(EGEN)/locking.cpp \
                   $(TXN)/DBConnection.cpp \
                   $(TXN)/TxnBaseDB.cpp \
                   $(INTF)/MEESUTtest.cpp \
@@ -53,9 +55,11 @@ TestTxn_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                   $(INTF)/CSocket.cpp \
                   $(INTF)/TxnHarnessSendToMarketTest.cpp \
                   TestTransactions/TestTxn.cpp
-TestTxn_LDADD = $(DB_LDFLAGS)
 
+BrokerageHouseMain_CPPFLAGS=-I@egen_path@/inc -Iinclude @DB_CFLAGS@
+BrokerageHouseMain_LDFLAGS=$(DB_LDFLAGS)
 BrokerageHouseMain_SOURCES = $(EGEN)/DateTime.cpp \
+                             $(EGEN)/locking.cpp \
                              $(INTF)/CSocket.cpp \
                              $(INTF)/TxnHarnessSendToMarket.cpp \
                              BrokerageHouse/BrokerageHouseMain.cpp \
@@ -74,8 +78,9 @@ BrokerageHouseMain_SOURCES = $(EGEN)/DateTime.cpp \
                              $(TXN)/TradeOrderDB.cpp \
                              $(TXN)/TradeStatusDB.cpp \
                              BrokerageHouse/BrokerageHouse.cpp
-BrokerageHouseMain_LDADD = $(DB_LDFLAGS)
 
+DriverMain_CPPFLAGS=-I@egen_path@/inc -Iinclude @DB_CFLAGS@
+DriverMain_LDFLAGS=$(DB_LDFLAGS)
 DriverMain_SOURCES = Driver/Driver.cpp \
                              Driver/DriverMain.cpp \
                              Customer/Customer.cpp \
@@ -94,13 +99,22 @@ DriverMain_SOURCES = Driver/Driver.cpp \
                              $(EGEN)/Person.cpp \
                              $(EGEN)/DateTime.cpp \
                              $(EGEN)/CE.cpp \
+                             $(EGEN)/DM.cpp \
+                             $(EGEN)/locking.cpp \
+                             $(EGEN)/MEE.cpp \
+                             $(EGEN)/MEETradingFloor.cpp \
+                             $(EGEN)/MEETickerTape.cpp \
+                             $(EGEN)/MEEPriceBoard.cpp \
+                             $(EGEN)/WheelTime.cpp \
+                             $(EGEN)/MEESecurity.cpp \
                              $(INTF)/CESUT.cpp \
                              $(INTF)/CSocket.cpp \
                              $(INTF)/DMSUT.cpp \
-                             $(EGEN)/DM.cpp \
                              $(INTF)/BaseInterface.cpp
-DriverMain_LDFLAGS = $(DB_LDFLAGS)
 
+DriverMarketMain_CPPFLAGS=-I@egen_path@/inc \
+	-I@egen_path@/TestHarness/Reference/inc -Iinclude @DB_CFLAGS@
+DriverMarketMain_LDFLAGS=$(DB_LDFLAGS)
 DriverMarketMain_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                            $(EGEN)/BaseLogger.cpp \
                            $(EGEN)/EGenLogFormatterTab.cpp \
@@ -117,6 +131,7 @@ DriverMarketMain_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                            $(EGEN)/MEETickerTape.cpp \
                            $(EGEN)/MEETradingFloor.cpp \
                            $(EGEN)/MEE.cpp \
+                           $(EGEN)/locking.cpp \
+                           $(EGEN)/InputFlatFilesStructure.cpp \
                            $(INTF)/MEESUT.cpp \
                            $(INTF)/BaseInterface.cpp
-DriverMarketMain_LDADD = $(DB_LDFLAGS)

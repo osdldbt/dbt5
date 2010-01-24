@@ -12,8 +12,8 @@ using namespace TPCE;
 
 // constructor
 CBaseInterface::CBaseInterface(char* addr, const int iListenPort,
-		ofstream* pflog, ofstream* pfmix, CSyncLock* pLogLock,
-		CSyncLock* pMixLock)
+		ofstream* pflog, ofstream* pfmix, CMutex* pLogLock,
+		CMutex* pMixLock)
 : m_szBHAddress(addr),
   m_iBHlistenPort(iListenPort),
   m_pLogLock(pLogLock),
@@ -119,7 +119,7 @@ void CBaseInterface::LogResponseTime(int iStatus, int iTxnType, double dRT)
 	// ERR_TYPE_WRONGTXN
 
 	// logging
-	m_pMixLock->ClaimLock();
+	m_pMixLock->lock();
 	if (iStatus == CBaseTxnErr::SUCCESS)
 	{
 		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "," << dRT <<
@@ -136,15 +136,15 @@ void CBaseInterface::LogResponseTime(int iStatus, int iTxnType, double dRT)
 				(int) pthread_self() << endl;
 	}
 	m_pfMix->flush();
-	m_pMixLock->ReleaseLock();
+	m_pMixLock->lock();
 }
 
 // LogErrorMessage
 void CBaseInterface::LogErrorMessage( const string sErr )
 {
-	m_pLogLock->ClaimLock();
+	m_pLogLock->lock();
 	cout<<sErr;
 	*(m_pfLog)<<sErr;
 	m_pfLog->flush();
-	m_pLogLock->ReleaseLock();
+	m_pLogLock->unlock();
 }

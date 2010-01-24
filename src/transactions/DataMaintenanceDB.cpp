@@ -40,7 +40,7 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
  	pOut->status = c[0].as(int());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout << "Data Maintenance Frame 1 (input)" << endl <<
 			"- c_id: " << pIn->c_id << endl <<
 			"- co_id: " << pIn->co_id << endl <<
@@ -51,6 +51,6 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 			"- vol_incr: " << pIn->vol_incr << endl;
 	cout << "Data Maintenance Frame 1 (output)" << endl <<
 			"- status: " << pOut->status << endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }

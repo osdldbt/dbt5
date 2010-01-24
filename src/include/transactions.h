@@ -23,7 +23,6 @@ using namespace pqxx;
 #include <MiscConsts.h>
 #include <TxnHarnessStructs.h>
 #include <CommonStructs.h>
-#include <SyncLockInterface.h>
 #include <TxnHarnessSendToMarketInterface.h>
 #include <TxnHarnessSendToMarket.h>
 

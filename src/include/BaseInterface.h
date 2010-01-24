@@ -10,6 +10,8 @@
 #ifndef BASE_INTERFACE_H
 #define BASE_INTERFACE_H
 
+#include "locking.h"
+
 using namespace TPCE;
 
 class CBaseInterface
@@ -18,12 +20,12 @@ protected:
 	void TalkToSUT(PMsgDriverBrokerage pRequest);
 	void LogErrorMessage(const string sErr);
 
-	char*			m_szBHAddress;
+	char*		m_szBHAddress;
 	int			m_iBHlistenPort;
-	CSyncLock*		m_pLogLock;
-	CSyncLock*		m_pMixLock;
-	ofstream*		m_pfLog;	// error log file
-	ofstream*		m_pfMix;	// mix log file
+	CMutex*		m_pLogLock;
+	CMutex*		m_pMixLock;
+	ofstream*	m_pfLog;	// error log file
+	ofstream*	m_pfMix;	// mix log file
 
 private:
 	CSocket	*sock;
@@ -32,7 +34,7 @@ private:
 public:
 
 	CBaseInterface(char* addr, const int iListenPort, ofstream* pflog,
-			ofstream* pfmix, CSyncLock* pLogLock, CSyncLock* pMixLock);
+			ofstream* pfmix, CMutex* pLogLock, CMutex* pMixLock);
 	~CBaseInterface(void);
 	void Connect();
 	void Disconnect();

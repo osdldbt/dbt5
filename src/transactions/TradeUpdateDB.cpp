@@ -167,7 +167,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 	vAux.clear();
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout<<"Trade Update Frame 1 (input)"<<endl
 	    <<"- max_trades: "<<pIn->max_trades<<endl
 	    <<"- max_updates: "<<pIn->max_updates<<endl
@@ -236,7 +236,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 			pOut->trade_info[0].trade_history_dts[2].second << endl <<
 			"- trade_history_status_id[0][2]: " <<
 			pOut->trade_info[0].trade_history_status_id[2] << endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }
 
@@ -397,7 +397,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout <<"Trade Update Frame 2 (input)" << endl <<
 			"- acct_id: " << pIn->acct_id << endl <<
 			"- max_trades: " << pIn->max_trades << endl <<
@@ -472,7 +472,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 			pOut->trade_info[0].trade_history_dts[2].second << endl <<
 			"- trade_history_status_id[0][2]: " <<
 			pOut->trade_info[0].trade_history_status_id[2] << endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif // DEBUG
 }
 
@@ -680,7 +680,7 @@ cout << __FILE__ << ":" << __LINE__ << " = '" << (*p).c_str() << "'" << endl;
 	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
-	m_coutLock.ClaimLock();
+	m_coutLock.lock();
 	cout << "Trade Update Frame 3 (input)" << endl <<
 			"- max_acct_id: " << pIn->max_acct_id << endl <<
 			"- max_trades: " << pIn->max_trades << endl <<
@@ -765,6 +765,6 @@ cout << __FILE__ << ":" << __LINE__ << " = '" << (*p).c_str() << "'" << endl;
 			endl <<
 			"- trade_type[0]: " << pOut->trade_info[0].trade_type <<
 			endl;
-	m_coutLock.ReleaseLock();
+	m_coutLock.unlock();
 #endif //DEBUG
 }

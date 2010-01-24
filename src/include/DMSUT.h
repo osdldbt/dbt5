@@ -11,6 +11,7 @@
 #define DM_SUT_H
 
 #include "DMSUTInterface.h"
+#include "locking.h"
 
 using namespace TPCE;
 
@@ -20,7 +21,7 @@ class CDMSUT : public CDMSUTInterface, public CBaseInterface
 public:
 
 	CDMSUT(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix,
-			CSyncLock* pLogLock, CSyncLock* pMixLock);
+			CMutex* pLogLock, CMutex* pMixLock);
 	~CDMSUT(void);
 
 	// return whether it was successful

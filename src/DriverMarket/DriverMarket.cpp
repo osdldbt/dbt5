@@ -119,12 +119,11 @@ CDriverMarket::CDriverMarket(char* szFileLoc, TIdent iConfiguredCustomerCount, T
 	m_pCMEESUT = new CMEESUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix,
 			&m_LogLock, &m_MixLock);
 	
-	// Initialize SecurityFile
-	m_pSecurities = new CSecurityFile(szFileLoc, iConfiguredCustomerCount,
-			iActiveCustomerCount);
-
 	// Initialize MEE
-	m_pCMEE = new CMEE( 0, m_pCMEESUT, m_pLog, m_pSecurities, 1 );
+	CInputFiles inputFiles;
+	inputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount,
+			iActiveCustomerCount, szFileLoc);
+	m_pCMEE = new CMEE( 0, m_pCMEESUT, m_pLog, inputFiles, 1 );
 	m_pCMEE->SetBaseTime();
 }
 
@@ -184,9 +183,9 @@ void CDriverMarket::Listener( void )
 // LogErrorMessage
 void CDriverMarket::LogErrorMessage( const string sErr )
 {
-	m_LogLock.ClaimLock();
+	m_LogLock.lock();
 	cout<<sErr;
 	m_fLog<<sErr;
 	m_fLog.flush();
-	m_LogLock.ReleaseLock();
+	m_LogLock.unlock();
 }
