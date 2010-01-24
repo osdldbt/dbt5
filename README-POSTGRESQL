@@ -1,3 +1,38 @@
+These PostgreSQL and PostgreSQL specific testing environment variables need to
+be set:
+
+# Our database will be named dbt5
+DBNAME=dbt5; export DBNAME
+PORT=5432
+
+# Data instance path.  Storage location for this instance of the database
+# should be within the working directory.  If you're going to mount a device,
+# do it at /mnt/postgresql.
+export PGDATA=/mnt/test/dbt5
+
+# Path of database data
+export DBDATA=/mnt/test/data
+
+# Directory with tablespace mount points, only if using tablespaces.
+export TSDIR=/mnt/test/dbt5
+
+# Build EGen, separate build system from the rest of the kit.
+    (cd src/egen/prj && make)
+
+# configure
+    ./configure --with-<database>
+
+# Build the rest of the kit.
+    make
+    make install
+
+# Run a quick 60 second test.
+    dbt5-run-workload -a <dbms> -n <dbname> -c 1000 -t 60 -u 1 -e 1 -f 500 -i 1 -s 100
+
+-----
+
+Software Requirements:
+
 libpqxx-2.6 or newer is required.
 
 -----
@@ -9,23 +44,16 @@ variable.  The PGXS stuff uses your $PATH over the path set with the
 
 -----
 
-The EGen Makefile needs to be edited to include the database libraries in order
-to load the database.  Here is an example:
-
-LDFLAGS=-lpqxx -lpq
-
-If you are using non-standard (i.e. not in your path) locations, the following
-adds include paths for CFLAGS and paths to the runtime library path to LDFLAGS:
-
-LIBPG=path_to_postgresql_dir
-LIBPQXX=path_to_libpqxx_dir
-CCFLAGS=-ggdb -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -I$(LIBPQXX)/include -I$(LIBPG)/include
-LDFLAGS=-L$(LIBPQXX)/lib -lpqxx -L$(LIBPG)/lib -lpq -Wl,-R$(LIBPQXX)/lib -Wl,-R$(LIBPG)/lib
+To build a small database somewhat manually:
+	dbt5-pgsql-build-db -c 1000 -i 1000 -s 500 -w 1
 
 -----
 
-To build a small database possible:
-	scripts/pgsql/build-db -c 1000 -i 1000 -s 500 -w 1
+Using EGen directly to load into PostgreSQL (assuming you built the tables by
+hand):
+
+	cd src/egen
+	bin/EGenLoader -c 1000 -t 1000 -w 1 -l CUSTOM -p 'host=testdb port=5432 dbname=dbt5'
 
 -----
 

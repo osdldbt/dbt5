@@ -199,25 +199,6 @@ if test "$database_to_use" = "pgsql"; then
     AC_MSG_ERROR([*** vacuumdb is required])
   fi
 
-  AC_CONFIG_FILES([scripts/pgsql/build-db],
-	[chmod +x scripts/pgsql/build-db])
-  AC_CONFIG_FILES([scripts/pgsql/create-db],
-	[chmod +x scripts/pgsql/create-db])
-  AC_CONFIG_FILES([scripts/pgsql/create-indexes],
-	[chmod +x scripts/pgsql/create-indexes])
-  AC_CONFIG_FILES([scripts/pgsql/create-tables],
-	[chmod +x scripts/pgsql/create-tables])
-  AC_CONFIG_FILES([scripts/pgsql/db-plans],
-	[chmod +x scripts/pgsql/db-plans])
-  AC_CONFIG_FILES([scripts/pgsql/db-stat],
-	[chmod +x scripts/pgsql/db-stat])
-  AC_CONFIG_FILES([scripts/pgsql/drop-db],
-	[chmod +x scripts/pgsql/drop-db])
-  AC_CONFIG_FILES([scripts/pgsql/load-stored-procs],
-	[chmod +x scripts/pgsql/load-stored-procs])
-  AC_CONFIG_FILES([scripts/pgsql/pgsql_profile])
-  AC_CONFIG_FILES([storedproc/pgsql/c/Makefile])
-
   if test "$PG_CONFIG" != "no"; then
     AC_MSG_CHECKING([for PostgreSQL libraries])
 
@@ -263,16 +244,7 @@ AC_SUBST(database_to_use)
 AC_SUBST(DBC_CORE)
 AC_SUBST(DBC_FUNCTIONS)
 
-AC_CONFIG_FILES([scripts/run-workload],
-	[chmod +x scripts/run-workload])
-AC_CONFIG_FILES([scripts/transform_sar.sh],
-	[chmod +x scripts/transform_sar.sh])
-AC_CONFIG_FILES([scripts/sysstats.sh],
- 	[chmod +x scripts/sysstats.sh])
-AC_CONFIG_FILES([scripts/Linux/get_os_info.sh],
-	[chmod +x scripts/Linux/get_os_info.sh])
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([scripts/dbt5_profile])
 AC_CONFIG_FILES([src/Makefile])
 
 AC_OUTPUT

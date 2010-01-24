@@ -11,38 +11,38 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = . src
 
+bin_SCRIPTS = \
+	scripts/dbt5-generate-report \
+	scripts/dbt5-post-process \
+	scripts/dbt5-sysstats \
+	scripts/dbt5-get-os-info \
+	scripts/dbt5-run-workload \
+	scripts/pgsql/dbt5-pgsql-backup-db \
+	scripts/pgsql/dbt5-pgsql-build-db \
+	scripts/pgsql/dbt5-pgsql-check-db \
+	scripts/pgsql/dbt5-pgsql-create-db \
+	scripts/pgsql/dbt5-pgsql-create-indexes \
+	scripts/pgsql/dbt5-pgsql-create-tables \
+	scripts/pgsql/dbt5-pgsql-db-plans \
+	scripts/pgsql/dbt5-pgsql-db-stat \
+	scripts/pgsql/dbt5-pgsql-drop-db \
+	scripts/pgsql/dbt5-pgsql-drop-tables \
+	scripts/pgsql/dbt5-pgsql-load-stored-procs \
+	scripts/pgsql/dbt5-pgsql-restore-db \
+	scripts/pgsql/dbt5-pgsql-start-db \
+	scripts/pgsql/dbt5-pgsql-stop-db
+
 EXTRA_DIST = \
-storedproc/pgsql/pgsql/BrokerVolume.sql \
-storedproc/pgsql/pgsql/CustomerPosition.sql \
-storedproc/pgsql/pgsql/DataMaintenance.sql \
-storedproc/pgsql/pgsql/MarketFeed.sql \
-storedproc/pgsql/pgsql/MarketWatch.sql \
-storedproc/pgsql/pgsql/SecurityDetail.sql \
-storedproc/pgsql/pgsql/TradeCleanup.sql \
-storedproc/pgsql/pgsql/TradeLookup.sql \
-storedproc/pgsql/pgsql/TradeOrder.sql \
-storedproc/pgsql/pgsql/TradeResult.sql \
-storedproc/pgsql/pgsql/TradeStatus.sql \
-storedproc/pgsql/pgsql/TradeUpdate.sql \
-scripts/gen_html.sh \
-scripts/mix_analyzer.pl \
-scripts/run_workload.sh.in \
-scripts/sysstats.sh.in \
-scripts/transform_iostat.pl \
-scripts/transform_sar.sh.in \
-scripts/trtps.input \
-scripts/vmplot.sh \
-scripts/pgsql/analyze_stats.pl \
-scripts/pgsql/backup.sh \
-scripts/pgsql/check_db.sh \
-scripts/pgsql/create_db.sh \
-scripts/pgsql/create_indexes.sh \
-scripts/pgsql/create_tables.sh \
-scripts/pgsql/db_stat.sh.in \
-scripts/pgsql/drop_db.sh \
-scripts/pgsql/drop_tables.sh \
-scripts/pgsql/load_stored_procs.sh \
-scripts/pgsql/pgsql_profile.in \
-scripts/pgsql/restore.sh \
-scripts/pgsql/start_db.sh \
-scripts/pgsql/stop_db.sh
+	README-POSTGRESQL \
+	examples \
+	scripts \
+	src/egen/ChangeLog.txt \
+	src/egen/EULA.htm \
+	src/egen/EULA.txt \
+	src/egen/TestHarness \
+	src/egen/flat_in \
+	src/egen/inc \
+	src/egen/prj \
+	src/egen/src \
+	src/include \
+	storedproc
