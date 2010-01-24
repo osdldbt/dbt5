@@ -1,24 +1,21 @@
-#!/bin/bash
+#!/bin/sh
+
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2006 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2006-2010 Mark Wong & Open Source Development Labs, Inc.
+#               2006 Rilson Nascimento
 #
-# 2006 Rilson Nascimento
-
-abs_top_srcdir=@abs_top_srcdir@
-DBDIR=@database_to_use@
-source ${abs_top_srcdir}/scripts/dbt5_profile || exit 1
 
 trap 'echo "Test was interrupted by Control-C."; \
 	killall BrokerageHouseMain; killall DriverMarketMain; killall DriverMain; \
 	killall sar; killall sadc; killall vmstat; killall iostat; \
-        ${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop-db' INT
+        ${DB_COMMAND} dbt5-${DBMS}-stop-db' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
 	killall BrokerageHouseMain; killall DriverMarketMain; killall DriverMain; \
 	killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat; \
-	${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop-db' TERM
+	${DB_COMMAND} ${DBMS}-stop-db' TERM
 
 do_sleep()
 {
@@ -152,7 +149,7 @@ oprofile_init()
 	sleep 1
 	START_ARGS=""
 	MACHINE=`${COMMAND} uname -m`
-	if [ "${MACHINE}" == "ppc64" ]; then
+	if [ "x${MACHINE}" = "xppc64" ]; then
 		#
 		# Oprofile fails to work on ppc64 because the defaults settings
 		# are invalid on this platform.  Why isn't it smart enough to
@@ -216,16 +213,17 @@ validate_parameter()
 	fi
 }
 
-DB_HOSTNAME="localhost"
-DB_NAME="dbt5"
-DB_PORT=5432
 SCALE_FACTOR=500
 SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
 USE_READPROFILE=0
 
-while getopts "c:d:e:f:h:i:l:orp:s:t:u:w:z:" opt; do
+while getopts "a:c:d:e:f:h:i:l:n:o:rp:qs:t:u:w:z:" opt; do
 	case $opt in
+	a)
+		DBMS=${OPTARG}
+		export DATABASE=${DBMS}
+		;;
 	c)
 		# Configured customer count
 		CUSTOMERS=`echo $OPTARG | egrep "^[0-9]+$"`
@@ -259,15 +257,18 @@ while getopts "c:d:e:f:h:i:l:orp:s:t:u:w:z:" opt; do
 		DB_NAME=$OPTARG
 		;;
 	o)
-		USE_OPROFILE=1
-		;;
-	r)
-		USE_READPROFILE=1
+		OUTPUT_DIR=${OPTARG}
 		;;
 	p)
 		# postmaster port
 		DB_PORT=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $DB_PORT
+		;;
+	q)
+		USE_OPROFILE=1
+		;;
+	r)
+		USE_READPROFILE=1
 		;;
 	s)
 		SLEEPY=`echo $OPTARG | egrep "^[0-9]+$"`
@@ -290,24 +291,53 @@ done
 
 # Check parameters.
 
-if [ "$CUSTOMERS" == "" ]; then
+if [ "x${DBMS}" = "x" ]; then
+	echo "specify which dbms system to test using -a <pgsql>"
+	exit 1
+fi
+
+if [ "x${DB_NAME}" = "x" ]; then
+	echo "specify the database name to test using -n <dbt5>"
+	exit 1
+fi
+
+if [ "x${CUSTOMERS}" = "x" ]; then
 	usage "specify the number of configured customers -c #"
 	exit 1
 fi
 
-if [ "$DURATION" == "" ]; then
+if [ "x${DURATION}" = "x" ]; then
 	usage "specify the duration of the test in seconds using -t #"
 	exit 1
 fi
 
-if [ "$USERS" == "" ]; then
+if [ "x${USERS}" = "x" ]; then
 	usage "specify the number of users using -u #"
 	exit 1
 fi
 
-if [ "$SEED" == "" ]; then
+if [ "x${SEED}" = "x" ]; then
 	usage "specify the seed using -e #"
 	exit 1
+fi
+
+if [ "x${OUTPUT_DIR}" = "x" ]; then
+	echo "specify the location for results, directory must not exist, using -o <path>"
+	exit 1
+fi
+
+if [ -d "${OUTPUT_DIR}" ]; then
+	echo "directory '${OUTPUT_DIR}' exists, stopping to prevent possible"
+	echo "clobbering of data, please specify another -o location"
+	exit 1
+fi
+
+if [ ! "x${DB_HOSTNAME}" = "x" ]; then
+    DB_HOSTNAME_ARG="-h ${DB_HOSTNAME}"
+fi
+
+if [ ! "x${DB_PORT}" = "x" ]; then
+    DB_PORT_ARG="-p ${DB_PORT}"
 fi
 
 #ULIMIT_N=`ulimit -n`
@@ -317,63 +347,45 @@ fi
 #  exit 1
 #fi
 
-# Determine the output directory for storing data.
-RUN_NUMBER=-1
-RUN_FILE="${abs_top_srcdir}/scripts/run_number"
-if test -f ${RUN_FILE}; then
-  read RUN_NUMBER < ${RUN_FILE}
-fi
-if [ $RUN_NUMBER -eq -1 ]; then
-	RUN_NUMBER=0
-fi
-OUTPUT_DIR=${abs_top_srcdir}/scripts/output/${RUN_NUMBER}
-BH_OUTPUT_DIR=$OUTPUT_DIR/bh
-DRIVER_OUTPUT_DIR=$OUTPUT_DIR/driver
-DB_OUTPUT_DIR=$OUTPUT_DIR/db
+# Determine the output directories for storing data.
+BH_OUTPUT_DIR=${OUTPUT_DIR}/bh
+DRIVER_OUTPUT_DIR=${OUTPUT_DIR}/driver
+DB_OUTPUT_DIR=${OUTPUT_DIR}/db
 
 # Create the directories we will need.
 make_directories
-if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+if [ ! "x${DB_HOSTNAME}" = x ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	make_directories ${DB_HOSTNAME}
-	@RSYNC@ -a -e "ssh" --delete ${DB_OUTPUT_DIR}/ \
+	rsync -a -e "ssh" --delete ${DB_OUTPUT_DIR}/ \
 		${DB_HOSTNAME}:${DB_OUTPUT_DIR}/
 fi
 
-# Update log.html
-echo "<a href='$RUN_NUMBER/'>$RUN_NUMBER</a>: $COMMENT<br />" >> ${abs_top_srcdir}/scripts/output/log.html
-
-# Update the run number for the next test.
-RUN_NUMBER=`expr $RUN_NUMBER + 1`
-echo ${RUN_NUMBER} > ${RUN_FILE}
-
 # Create a readme file in the output directory and date it.
-date >> $OUTPUT_DIR/readme.txt
-echo "$COMMENT" >> $OUTPUT_DIR/readme.txt
-uname -a >> $OUTPUT_DIR/readme.txt
-echo "Command line: $0 $@" >> $OUTPUT_DIR/readme.txt
+date >> ${OUTPUT_DIR}/readme.txt
+echo "${COMMENT}" >> ${OUTPUT_DIR}/readme.txt
+uname -a >> ${OUTPUT_DIR}/readme.txt
+echo "Command line: $0 $@" >> ${OUTPUT_DIR}/readme.txt
 
 # Get any OS specific information.
 OS_DIR=`uname`
-$abs_top_srcdir/scripts/$OS_DIR/get_os_info.sh -o $OUTPUT_DIR
+dbt5-get-os-info -o ${OUTPUT_DIR}
 
 # Output run information into the readme.txt.
-echo "Database Scale Factor: $CUSTOMERS customers" >> $OUTPUT_DIR/readme.txt
-echo "Test Duration: $DURATION seconds" >> $OUTPUT_DIR/readme.txt
+echo "Database Scale Factor: ${CUSTOMERS} customers" >> ${OUTPUT_DIR}/readme.txt
+echo "Test Duration: ${DURATION} seconds" >> ${OUTPUT_DIR}/readme.txt
 
 # Restart PostgreSQL
-${DB_COMMAND} $abs_top_srcdir/scripts/${DBDIR}/stop-db
+${DB_COMMAND} dbt5-${DBMS}-stop-db
 if [ -n "${DB_COMMAND}" ]; then
-	${DB_COMMAND} "${abs_top_srcdir}/scripts/${DBDIR}/start-db -p \"${DB_PARAMS}\" -o ${DB_OUTPUT_DIR}" || exit 1
+	${DB_COMMAND} "dbt5-${DBMS}-start-db -p \"${DB_PARAMS}\" -o ${DB_OUTPUT_DIR}" || exit 1
 else
-	${abs_top_srcdir}/scripts/${DBDIR}/start-db -p "${DB_PARAMS}" \
-			-o ${DB_OUTPUT_DIR} || exit 1
+	dbt5-${DBMS}-start-db -p "${DB_PARAMS}" -o ${DB_OUTPUT_DIR} || exit 1
 fi
 
 echo ""
 echo "************************************************************************"
-echo "*                  DBT-5 test for PostgreSQL started                   *"
+echo "*                  DBT-5 test started                                  *"
 echo "*                                                                      *"
-echo "*            Results can be found in output/$(( $RUN_NUMBER-1 )) directory               *"
 echo "************************************************************************"
 echo "*                                                                      *"
 echo "*  Test consists of 4 stages:                                          *"
@@ -384,14 +396,14 @@ echo "*  3. Test (Start of the Customer Emulator)                            *"
 echo "*  4. Processing of results                                            *"
 echo "*                                                                      *"
 echo "************************************************************************"
+echo "Results can be found in: ${OUTPUT_DIR}"
 
 #
 # Start the Brokerage House server.
 #
 echo
 echo "1. Starting Brokerage House server"
-${abs_top_srcdir}/src/BrokerageHouseMain -s ${DB_HOSTNAME} -d ${DB_NAME} \
-		-p ${DB_PORT} \
+BrokerageHouseMain ${DB_HOSTNAME_ARG} -d ${DB_NAME} ${DB_PORT_ARG} \
 		-o ${DRIVER_OUTPUT_DIR} > ${OUTPUT_DIR}/bh.out 2>&1 &
 
 do_sleep 1
@@ -401,8 +413,7 @@ do_sleep 1
 #
 echo
 echo "2. Starting Market Exchange server"
-${abs_top_srcdir}/src/DriverMarketMain -c ${CUSTOMERS} -a ${CUSTOMERS} \
-		-s ${EGENDIR}/flat_in/Security.txt \
+DriverMarketMain -c ${CUSTOMERS} && ${CUSTOMERS} -s ${EGENDIR}/flat_in \
 		-o ${DRIVER_OUTPUT_DIR} > ${OUTPUT_DIR}/market.out 2>&1 &
 
 # Start collecting data before we start the test.
@@ -410,19 +421,19 @@ SLEEP_RAMPUP=$(( (($USERS+1)*$SLEEPY/1000) ))
 SLEEPYTIME=$(( $SLEEP_RAMPUP+$DURATION ))
 SAMPLE_LENGTH=60
 ITERNATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
-${abs_top_srcdir}/scripts/sysstats.sh --iter ${ITERNATIONS} \
+dbt5-sysstats --iter ${ITERNATIONS} \
 		--sample ${SAMPLE_LENGTH} \
 		--outdir ${OUTPUT_DIR} > ${OUTPUT_DIR}/stats.out 2>&1 &
-${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/db-stat \
+${DB_COMMAND} dbt5-${DBMS}-db-stat \
 		-o ${DB_OUTPUT_DIR} \
 		-i ${ITERNATIONS} \
-		-p ${DB_PORT} \
+		${DB_PORT_ARG} \
 		-s ${SAMPLE_LENGTH} > ${OUTPUT_DIR}/dbstats.out 2>&1 &
 
 # Initialize oprofile before we start the driver.
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_init
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		oprofile_init ${DB_HOSTNAME}
 	fi
 fi
@@ -433,7 +444,7 @@ fi
 
 echo
 echo "3. Starting Customer driver: $USERS user(s), 1 user starting every $SLEEPY milliseconds..."
-${abs_top_srcdir}/src/DriverMain -c ${CUSTOMERS} -a ${CUSTOMERS} \
+DriverMain -c ${CUSTOMERS} -a ${CUSTOMERS} \
 		-f ${SCALE_FACTOR} -d ${ITD} -t ${DURATION} -s ${SLEEPY} \
 		-u ${USERS} -p ${PACING_DELAY} -g ${SEED} \
 		-e ${EGENDIR}/flat_in \
@@ -448,7 +459,7 @@ if [ ${USE_READPROFILE} -eq 1 ]; then
     if [ -f /proc/profile ]; then
 	    readprofile_clear
     fi
-    if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+    if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "${DB_HOSTNAME}" = "xlocalhost" ]; then
 	    readprofile_clear ${DB_HOSTNAME}
     fi
 fi
@@ -456,7 +467,7 @@ fi
 # Reset the oprofile counters after the driver ramps up.
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_reset
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		oprofile_reset ${DB_HOSTNAME}
 	fi
 fi
@@ -474,7 +485,7 @@ if [ ${USE_READPROFILE} -eq 1 ]; then
     if [ -f /proc/profile ]; then
 	    readprofile_collect ${OUTPUT_DIR}
     fi
-    if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+    if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	    readprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
     fi
 fi
@@ -482,32 +493,30 @@ fi
 # Collect oprofile data.
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_collect ${OUTPUT_DIR}
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		oprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
 	fi
 fi
 
 # sort and merge emulators mix files into mix.log
 sort -t "," -k 1 ${DRIVER_OUTPUT_DIR}/ce_mix.log \
-		${DRIVER_OUTPUT_DIR}/mee_mix.log \
-		-o $DRIVER_OUTPUT_DIR/mix.log
+		${DRIVER_OUTPUT_DIR}/mee_mix.log -o $DRIVER_OUTPUT_DIR/mix.log
 
 # Run some post processing analysese.
 echo
 echo "4. Run Post processing analyses"
 
-${abs_top_srcdir}/scripts/post-process --dir ${OUTPUT_DIR} \
-		--xml > ${DRIVER_OUTPUT_DIR}/results.out
+dbt5-post-process --dir ${OUTPUT_DIR} --xml > ${DRIVER_OUTPUT_DIR}/results.out
 
 # Servers don't go away by themselves like the driver does, so kill it.
 echo "Killing Servers..."
 killall BrokerageHouseMain DriverMarketMain DriverMain 2> /dev/null
 
-${DB_COMMAND} ${abs_top_srcdir}/scripts/${DBDIR}/stop-db
+${DB_COMMAND} dbt5-${DBMS}-stop-db
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_annotate ${OUTPUT_DIR} &
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		oprofile_annotate ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
 	fi
 	wait
@@ -515,26 +524,32 @@ fi
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_stop
-	if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
+	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		oprofile_stop ${DB_HOSTNAME}
 	fi
 fi
 
 
-if [ -n ${DB_HOSTNAME} -a ! "${DB_HOSTNAME}" == "localhost" ]; then
-	@RSYNC@ -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
+if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+	rsync -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
 			${DB_OUTPUT_DIR}/
 fi
 
 # Move the database log.  (No, not the transaction log.)
 chmod 644 ${DB_OUTPUT_DIR}/log
 
+which sar > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	SAR=sar
+else
+	SAR=true
+fi
+${SAR} -f ${OUTPUT_DIR}/sar_raw.out -A > ${OUTPUT_DIR}/sar.out
+
 # Postprocessing of Database Statistics
-@SAR@ -f ${OUTPUT_DIR}/sar_raw.out -A > ${OUTPUT_DIR}/sar.out
-perl $abs_top_srcdir/scripts/${DBDIR}/analyze_stats.pl --dir $DB_OUTPUT_DIR
 
 echo ">> Test completed."
 echo "Results are in: $OUTPUT_DIR"
 echo
 
-cat $DRIVER_OUTPUT_DIR/results.out
+cat ${DRIVER_OUTPUT_DIR}/results.out
