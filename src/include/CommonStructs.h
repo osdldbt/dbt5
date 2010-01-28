@@ -13,7 +13,8 @@ using namespace TPCE;
 // Transaction types
 enum eTxnType
 {
-	TRADE_ORDER = 0,
+	NULL_TXN = -1,
+	TRADE_ORDER,
 	TRADE_RESULT,
 	TRADE_LOOKUP,
 	TRADE_UPDATE,

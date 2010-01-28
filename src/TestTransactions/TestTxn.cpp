@@ -16,16 +16,25 @@ CCESUT	*m_pCCESUT = NULL;
 char szBHaddr[1024] = "";
 int iBHlistenPort = BrokerageHousePort;
 
-char port[64] = "5432";
+const int iPortLen = 7;
+char szPort[iPortLen + 1] = "";
 
-char szInDir[2048] = "egen/flat_in";
+const int iDBHostLen = 63;
+char szDBHost[iDBHostLen + 1] = "";
+
+const int iDBNameLen = 31;
+char szDBName[iDBNameLen + 1] = "";
+
+const int iInDirLen = 256;
+char szInDir[iInDirLen + 1] = "";
+
 TIdent iConfiguredCustomerCount = iDefaultLoadUnitSize;
 // FIXME: iActiveCustomerCount needs to be configurable.
 TIdent iActiveCustomerCount = iConfiguredCustomerCount;
 int iScaleFactor = 500;
 int iDaysOfInitialTrades = 300;
 
-eTxnType TxnType = TRADE_STATUS;
+eTxnType TxnType = NULL_TXN;
 RNGSEED	Seed = 0;
 
 // shows program usage
@@ -40,11 +49,14 @@ void Usage()
 	cout << "   -d number            Days of initial trades (default 300)" <<
 			endl;
 	cout << "   -f number            Number of customers for 1 TRTPS (default 500)" << endl;
+	cout << "   -h host              Hostname of database server" << endl;
+	cout << "   -g dbname            Database name" << endl;
 	cout << "                        Optional if testing BrokerageHouseMain" <<
 			endl;
 	cout << "   -p number            database listener port" << endl;
 	cout << "   -r number            optional random number" << endl;
-	cout << "   -s path              Security.txt file location" << endl;
+	cout << "   -s path              full path to EGen flat_in directory" <<
+			endl;
 	cout << "   -t letter            Transaction type" << endl;
 	cout << "                        A - TRADE_ORDER" << endl;
 	cout << "                            TRADE_RESULT" << endl;
@@ -122,11 +134,17 @@ bool ParseCommandLine( int argc, char *argv[] )
 		case 'f':
 			iScaleFactor = atoi(vp);
 			break;
+		case 'h':
+			strncpy(szDBHost, vp, iDBHostLen);
+			break;
+		case 'g':
+			strncpy(szDBName, vp, iDBNameLen);
+			break;
 		case 'p':
-			strcpy(port, vp);
+			strncpy(szPort, vp, iPortLen);
 			break;
 		case 's':
-			strcpy(szInDir, vp);
+			strncpy(szInDir, vp, iInDirLen);
 			break;
 		case 't':
 			switch ( *vp) {
@@ -420,9 +438,6 @@ unsigned int AutoRng()
 // main
 int main(int argc, char* argv[])
 {
-	const char *server = "localhost";
-	const char *db = "dbt5";
-
 	ofstream m_fLog;
 	ofstream m_fMix;
 	CMutex m_LogLock;
@@ -432,6 +447,17 @@ int main(int argc, char* argv[])
 	{
 		Usage();
 		return(-1);
+	}
+
+	if (strlen(szInDir) == 0) {
+		cout << "Use -s to specify full path to EGen flat_in directory." <<
+				endl;
+		exit(1);
+	}
+
+	if (TxnType == NULL_TXN) {
+		cout << "Use -t to specify which transaction to test." << endl;
+		exit(1);
 	}
 
 	if (strlen(szBHaddr) != 0) {
@@ -444,7 +470,7 @@ int main(int argc, char* argv[])
 	try
 	{
 		// database connection
-		CDBConnection		m_Conn( server, db, port );
+		CDBConnection m_Conn(szDBHost, szDBName, szPort);
 	
 		// initialize Input Generator
 		//
