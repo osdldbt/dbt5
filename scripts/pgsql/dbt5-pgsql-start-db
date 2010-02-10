@@ -8,11 +8,6 @@
 #               2010 Mark Wong
 #
 
-if [ -z ${PGDATA} ]; then
-	echo "PGDATA not defined."
-	exit 1
-fi
-
 LOGFILE="log"
 OUTDIR="."
 while getopts "fo:p:" OPT; do
@@ -29,6 +24,11 @@ while getopts "fo:p:" OPT; do
 	esac
 done
 
+if [ -z ${PGDATA} ]; then
+	echo "PGDATA not defined."
+	exit 1
+fi
+
 if [ -f ${PGDATA}/postmaster.pid ]; then
 	echo "Database is already started."
 	exit 0
@@ -39,7 +39,7 @@ fi
 
 sleep 1
 
-if [ "${PARAMETERS}" = "" ]; then
+if [ "x${PARAMETERS}" = "x" ]; then
 	pg_ctl -D ${PGDATA} -l ${OUTDIR}/${LOGFILE} start
 else
 	pg_ctl -D ${PGDATA} -o "${PARAMETERS}" -l ${OUTDIR}/${LOGFILE} start

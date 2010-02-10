@@ -8,11 +8,6 @@
 #               2006 Rilson Nascimento
 #
 
-if [ "x${DBNAME}" = "x" ]; then
-	echo "DBNAME not defined."
-	exit 1
-fi
-
 USE_TABLESPACES=0
 while getopts "p:t" OPT; do
 	case ${OPT} in
@@ -24,6 +19,11 @@ while getopts "p:t" OPT; do
 		;;
 	esac
 done
+
+if [ "x${DBNAME}" = "x" ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
 
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"

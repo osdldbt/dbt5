@@ -7,11 +7,6 @@
 # Copyright (C) 2002-2010 Mark Wong & Open Source Development Labs, Inc.
 #
 
-if [ "x${DBNAME}" = "x" ]; then
-	echo "DBNAME not defined."
-	exit 1
-fi
-
 while getopts "i:p:o:s:" opt; do
 	case ${opt} in
 	i)
@@ -29,6 +24,11 @@ while getopts "i:p:o:s:" opt; do
 	esac
 done
 
+if [ "x${DBNAME}" = "x" ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
+
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
 fi
@@ -41,7 +41,7 @@ PQXX_VERSION=`pkg-config --modversion libpqxx`
 echo "libpqxx ${PQXX_VERSION}" >> ${OUTPUT_DIR}/readme.txt
 
 # Get database parameters.
-${PSQL} -c "show all"  > ${OUTPUT_DIR}/param.out
+${PSQL} -c "show all" > ${OUTPUT_DIR}/param.out
 
 # Get indexes.
 ${PSQL} -c "select * from pg_stat_user_indexes;" -o ${OUTPUT_DIR}/indexes.out
@@ -61,8 +61,8 @@ while [ $COUNTER -lt $ITERATIONS ]; do
 	${PSQL} -c "SELECT * FROM pg_stat_user_tables;" >> $OUTPUT_DIR/table_scan.out
 	${PSQL} -c "SELECT * FROM pg_stat_user_indexes;" >> $OUTPUT_DIR/indexes_scan.out
 
-	COUNTER=$(( $COUNTER+1 ))
-	sleep $SAMPLE_LENGTH
+	COUNTER=`expr ${COUNTER} + 1`
+	sleep ${SAMPLE_LENGTH}
 done
 
 # Get the plans after the test.

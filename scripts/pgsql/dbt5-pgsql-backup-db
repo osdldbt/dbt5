@@ -20,7 +20,7 @@ while getopts "o:" opt; do
 	esac
 done
 
-if [ "x${OUTPUT}" == "x" ]; then
+if [ "x${OUTPUT}" = "x" ]; then
 	echo "use -o and specify the backup file"
 	exit 1;
 fi

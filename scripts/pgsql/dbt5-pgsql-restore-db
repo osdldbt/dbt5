@@ -7,11 +7,6 @@
 # Copyright (C) 200-2010 Mark Wong & Open Source Development Lab, Inc.
 #
 
-if [ "x${DBNAME}" = "x" ]; then
-	echo "DBNAME not defined."
-	exit 1
-fi
-
 while getopts "o:" opt; do
 	case ${opt} in
 	o)
@@ -20,7 +15,12 @@ while getopts "o:" opt; do
 	esac
 done
 
-if [ "x${OUTPUT}" == "x" ]; then
+if [ "x${DBNAME}" = "x" ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
+
+if [ "x${OUTPUT}" = "x" ]; then
 	echo "use -o and specify the backup file"
 	exit 1;
 fi

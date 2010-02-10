@@ -7,16 +7,6 @@
 # Copyright (C) 2005-2010 Mark Wong & Open Source Development Labs, Inc.
 #
 
-if [ "x${EGENDIR}" = "x" ]; then
-	echo "EGENDIR not defined, specify EGen's directory."
-	exit 1
-fi
-
-if [ "x${DBNAME}" = "x" ]; then
-	echo "DBNAME not defined."
-	exit 1
-fi
-
 usage()
 {
 	echo "Usage:"
@@ -86,6 +76,16 @@ while getopts "c:hi:l:p:rs:tw:" OPT; do
 	esac
 done
 
+if [ "x${EGENDIR}" = "x" ]; then
+	echo "EGENDIR not defined, specify EGen's directory."
+	exit 1
+fi
+
+if [ "x${DBNAME}" = "x" ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
+
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
 	EGENPORT="port=${PORT}"
@@ -109,7 +109,7 @@ dbt5-pgsql-start-db -p "${PARAMETERS}" || exit 1
 
 dbt5-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG} || exit 1
 (cd ${EGENDIR} && \
-		bin/EGenLoader -l CUSTOM -f ${SCALE_FACTOR} -w ${WORKDAYS} \
+		${EGENDIR}/bin/EGenLoader -l CUSTOM -f ${SCALE_FACTOR} -w ${WORKDAYS} \
 		-c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} \
 		-p "dbname=${DBNAME} ${EGENPORT}") || exit 1
 dbt5-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG} || exit 1

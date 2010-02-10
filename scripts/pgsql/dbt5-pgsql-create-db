@@ -13,16 +13,6 @@ usage()
 	echo "usage: create-db [-p port]"
 }
 
-if [ -z ${PGDATA} ]; then
-	echo "PGDATA not defined."
-	exit 1
-fi
-
-if [ -z ${DBNAME} ]; then
-	echo "DBNAME not defined."
-	exit 1
-fi
-
 while getopts "hp:" OPT; do
 	case ${OPT} in
 	h)
@@ -34,6 +24,16 @@ while getopts "hp:" OPT; do
 		;;
 	esac
 done
+
+if [ -z ${PGDATA} ]; then
+	echo "PGDATA not defined."
+	exit 1
+fi
+
+if [ -z ${DBNAME} ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
 
 if [ ! "x${PORT}" = "x" ]; then
 	PORTOPT="-p ${PORT}"

@@ -8,11 +8,6 @@
 #               2006 Rilson Nascimento
 #
 
-if [ "x${DBNAME}" = "x" ]; then
-	echo "DBNAME not defined."
-	exit 1
-fi
-
 # FIXME: Currently assumes we are loading in the C stored functions.  More
 # logic needed to also handle plpgsql if so desired.
 
@@ -26,6 +21,11 @@ while getopts "cp:q" OPT; do
 		;;
 	esac
 done
+
+if [ "x${DBNAME}" = "x" ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
 
 PSQL="psql ${PORTARG} -e -d ${DBNAME}"
 SHAREDIR=`pg_config --sharedir`

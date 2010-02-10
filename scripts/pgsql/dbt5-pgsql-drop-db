@@ -7,11 +7,6 @@
 # Copyright (C) 2002-2010 Mark Wong & Open Source Development Labs, Inc.
 #
 
-if [ -z "${DBNAME}" ]; then
-	echo "DBNAME not defined."
-	exit 1
-fi
-
 while getopts "p:" OPT; do
 	case ${OPT} in
 	p)
@@ -19,6 +14,11 @@ while getopts "p:" OPT; do
 		;;
 	esac
 done
+
+if [ -z "${DBNAME}" ]; then
+	echo "DBNAME not defined."
+	exit 1
+fi
 
 if [ ! "x${PORT}" = "x" ]; then
 	PORTOPT="-p ${PORT}"
