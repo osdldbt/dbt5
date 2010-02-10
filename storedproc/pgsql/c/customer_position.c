@@ -58,14 +58,14 @@ PG_MODULE_MAGIC;
 #define CPF1_3 \
 		"SELECT   ca_id,\n" \
 		"         ca_bal,\n" \
-		"         SUM(hs_qty * lt_price) AS soma\n" \
+		"         COALESCE(SUM(hs_qty * lt_price), 0) AS soma\n" \
 		"FROM     customer_account\n" \
 		"         LEFT OUTER JOIN holding_summary\n" \
 		"                      ON hs_ca_id = ca_id,\n" \
 		"         last_trade\n" \
 		"WHERE    ca_c_id = %" PRId64 "\n" \
 		"         AND lt_s_symb = hs_s_symb\n" \
-		"GROUP BY ca_id,ca_bal\n" \
+		"GROUP BY ca_id, ca_bal\n" \
 		"ORDER BY 3 ASC\n" \
 		"LIMIT 10"
 
@@ -243,7 +243,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 
-			values[i_acct_id] = (char *) palloc(((IDENT_T_LEN + 1) *
+			values[i_acct_id] = (char *) palloc(((BIGINT_LEN + 1) *
 					(SPI_processed + 1) + 2) * sizeof(char));
 			values[i_cash_bal] = (char *) palloc(((BALANCE_T_LEN + 1) *
 					(SPI_processed + 1) +2) * sizeof(char));
@@ -280,17 +280,9 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			strcat(values[i_acct_id], "}");
 			strcat(values[i_cash_bal], "}");
 			strcat(values[i_asset_total], "}");
-
 		} else {
 			dump_cpf1_inputs(cust_id, tax_id_p);
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
-/*
-			values[i_acct_id] = (char *) palloc(3 * sizeof(char));
-			values[i_asset_total] = (char *) palloc(3 * sizeof(char));
-			strcpy(values[i_acct_id], "{}");
-			strcpy(values[i_bash_bal], "{}");
-			strcpy(values[i_asset_total], "{}");
-*/
 		}
 		snprintf(values[i_cust_id], 12, "%" PRId64, cust_id);
 
@@ -463,7 +455,7 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 			strcat(values[i_trade_status], "}");
 		} else {
 			if (ret == SPI_OK_SELECT && SPI_processed == 0) {
-				elog(WARNING, "Query CPF2_1 should return 1-30 rows.");
+				elog(WARNING, "Query CPF2_1 should return 10-30 rows.");
 			}
 			dump_cpf2_inputs(acct_id);
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);

@@ -107,7 +107,7 @@ PG_MODULE_MAGIC;
 		"UPDATE exchange\n" \
 		"SET ex_desc = SUBSTRING(ex_desc || ' LAST UPDATED ' || NOW()\n" \
 		"                        FROM 1 FOR (CHAR_LENGTH(ex_desc) -\n" \
-		"                                    CHAR_LENGTH(NOW()))) || NOW()"
+		"                                    CHAR_LENGTH(NOW()::TEXT))) || NOW()"
 
 #define DMF1_14 \
 		"SELECT COUNT(*)\n" \

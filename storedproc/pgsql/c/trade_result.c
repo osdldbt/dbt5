@@ -25,13 +25,24 @@ PG_MODULE_MAGIC;
 #endif
 
 #define TRF1_1 \
-		"SELECT t_ca_id, t_tt_id, t_s_symb, t_qty, t_chrg, t_lifo,\n" \
-		"       t_is_cash\n" \
+		"SELECT t_ca_id, t_tt_id, t_s_symb, t_qty, t_chrg,\n" \
+		"       CASE WHEN t_lifo = true\n" \
+		"            THEN 1\n" \
+		"            ELSE 0 END,\n" \
+		"       CASE WHEN t_is_cash = true\n" \
+		"            THEN 1\n" \
+		"            ELSE 0 END\n" \
 		"FROM trade\n" \
-		"WHERE t_id = %d"
+		"WHERE t_id = %ld"
 
 #define TRF1_2 \
-		"SELECT tt_name, tt_is_sell, tt_is_mrkt\n" \
+		"SELECT tt_name,\n" \
+		"       CASE WHEN tt_is_sell = true\n" \
+		"            THEN 1\n" \
+		"            ELSE 0 END,\n" \
+		"       CASE WHEN tt_is_mrkt = true\n" \
+		"            THEN 1\n" \
+		"            ELSE 0 END\n" \
 		"FROM trade_type\n" \
 		"WHERE tt_id = '%s'"
 
@@ -44,65 +55,64 @@ PG_MODULE_MAGIC;
 #define TRF2_1 \
 		"SELECT ca_b_id, ca_c_id, ca_tax_st\n" \
 		"FROM customer_account\n" \
-		"WHERE ca_id = %d"
+		"WHERE ca_id = %ld"
 
 #define TRF2_2a \
 		"INSERT INTO holding_summary(hs_ca_id, hs_s_symb, hs_qty)\n" \
-		"VALUES(%d, '%s', %d)"
+		"VALUES(%ld, '%s', %d)"
 
 #define TRF2_2b \
 		"UPDATE holding_summary\n" \
 		"SET hs_qty = %d\n" \
-		"WHERE hs_ca_id = %d\n " \
+		"WHERE hs_ca_id = %ld\n " \
 		"  AND hs_s_symb = '%s'"
 
 #define TRF2_3a \
 		"SELECT h_t_id, h_qty, h_price\n" \
 		"FROM holding\n" \
-		"WHERE h_ca_id = %d\n" \
+		"WHERE h_ca_id = %ld\n" \
 		"  AND h_s_symb = '%s'\n" \
 		"ORDER BY h_dts DESC"
 
 #define TRF2_3b \
 		"SELECT h_t_id, h_qty, h_price\n" \
 		"FROM holding\n" \
-		"WHERE h_ca_id = %d\n" \
+		"WHERE h_ca_id = %ld\n" \
 		"  AND h_s_symb = '%s'\n" \
 		"ORDER BY h_dts ASC"
 
 #define TRF2_4a \
 		"INSERT INTO holding_history(hh_h_t_id, hh_t_id, hh_before_qty,\n" \
 		"                            hh_after_qty)\n" \
-		"VALUES(%d, %d, %d, %d)"
+		"VALUES(%ld, %ld, %d, %d)"
 
 #define TRF2_5a \
 		"UPDATE holding\n" \
 		"SET h_qty = %d\n" \
-		"WHERE h_t_id = %d"
+		"WHERE h_t_id = %ld"
 
 #define TRF2_5b \
 		"DELETE FROM holding\n" \
-		"WHERE h_t_id = %d"
+		"WHERE h_t_id = %ld"
 
 #define TRF2_7a \
 		"INSERT INTO holding(h_t_id, h_ca_id, h_s_symb, h_dts, h_price,\n" \
-		"                    h_qty\n" \
-		"VALUES (%d, %d, '%s', '%s', %f, %d)\n" \
-		"RETURNING t_dts"
+		"                    h_qty)\n" \
+		"VALUES (%ld, %ld, '%s', '%s', %f, %d)"
 
 #define TRF2_7b \
 		"DELETE FROM holding_summary\n" \
-		"WHERE hs_ca_id = %d\n" \
+		"WHERE hs_ca_id = %ld\n" \
 		"  AND hs_s_symb = '%s'"
 
 #define TRF2_8a \
 		"INSERT INTO holding_summary(hs_ca_id, hs_s_symb, hs_qty)\n" \
-		"VALUES (%d, '%s', %d)"
+		"VALUES (%ld, '%s', %d)"
 
 #define TRF2_8b \
 		"UPDATE holding_summary\n" \
 		"SET hs_qty = %d\n" \
-		"WHERE hs_ca_id = %d\n" \
+		"WHERE hs_ca_id = %ld\n" \
 		"  AND hs_s_symb = '%s'"
 
 #define TRF3_1 \
@@ -115,7 +125,7 @@ PG_MODULE_MAGIC;
 #define TRF3_2 \
 		"UPDATE trade\n" \
 		"SET t_tax = %s\n" \
-		"WHERE t_id = %d"
+		"WHERE t_id = %ld"
 
 #define TRF4_1 \
 		"SELECT s_ex_id, s_name\n" \
@@ -143,11 +153,11 @@ PG_MODULE_MAGIC;
 		"    t_dts = '%s',\n" \
 		"    t_st_id = '%s',\n" \
 		"    t_trade_price = %f\n" \
-		"WHERE t_id = %d"
+		"WHERE t_id = %ld"
 
 #define TRF5_2 \
 		"INSERT INTO trade_history(th_t_id, th_dts, th_st_id)\n" \
-		"VALUES (%d, '%s', '%s')"
+		"VALUES (%ld, '%s', '%s')"
 
 #define TRF5_3 \
 		"UPDATE broker\n" \
@@ -158,29 +168,29 @@ PG_MODULE_MAGIC;
 #define TRF6_1 \
 		"INSERT INTO settlement(se_t_id, se_cash_type, se_cash_due_date,\n " \
 		"                       se_amt)\n" \
-		"VALUES (%d, '%s', '%s', %f)"
+		"VALUES (%ld, '%s', '%s', %f)"
 
 #define TRF6_2 \
 		"UPDATE customer_account\n" \
 		"SET ca_bal = ca_bal + %f\n" \
-		"WHERE ca_id = %d"
+		"WHERE ca_id = %ld"
 
 #define TRF6_3 \
 		"INSERT INTO cash_transaction(ct_dts, ct_t_id, ct_amt, ct_name)\n" \
-		"VALUES ('%s', %d, %f, '%s %d shared of %s')"
+		"VALUES ('%s', %ld, %f, '%s %d shared of %s')"
 
 #define TRF6_4 \
 		"SELECT ca_bal\n" \
 		"FROM customer_account\n" \
-		"WHERE ca_id = %d"
+		"WHERE ca_id = %ld"
 
 /* Prototypes. */
-void dump_trf1_inputs(int);
-void dump_trf2_inputs(int, int, int, char *, int, double, int, int);
-void dump_trf3_inputs(double, int, double, int);
+void dump_trf1_inputs(long);
+void dump_trf2_inputs(long, int, int, char *, long, double, int, int);
+void dump_trf3_inputs(double, int, double, long);
 void dump_trf4_inputs(int, char *, int, char *);
-void dump_trf5_inputs(int, double, char *, char *, int, double);
-void dump_trf6_inputs(int, char *, char *, double, char *, int, int, int,
+void dump_trf5_inputs(int, double, char *, char *, long, double);
+void dump_trf6_inputs(long, char *, char *, double, char *, long, int, int,
 		char *);
 
 Datum TradeResultFrame1(PG_FUNCTION_ARGS);
@@ -197,22 +207,22 @@ PG_FUNCTION_INFO_V1(TradeResultFrame4);
 PG_FUNCTION_INFO_V1(TradeResultFrame5);
 PG_FUNCTION_INFO_V1(TradeResultFrame6);
 
-void dump_trf1_inputs(int trade_id)
+void dump_trf1_inputs(long trade_id)
 {
 	elog(NOTICE, "TRF1: INPUTS START");
-	elog(NOTICE, "TRF1: trade_id %d", trade_id);
+	elog(NOTICE, "TRF1: trade_id %ld", trade_id);
 	elog(NOTICE, "TRF1: INPUTS END");
 }
 
-void dump_trf2_inputs(int acct_id, int hs_qty, int is_lifo, char *symbol,
-		int trade_id, double trade_price, int trade_qty, int type_is_sell)
+void dump_trf2_inputs(long acct_id, int hs_qty, int is_lifo, char *symbol,
+		long trade_id, double trade_price, int trade_qty, int type_is_sell)
 {
 	elog(NOTICE, "TRF2: INPUTS START");
-	elog(NOTICE, "TRF2: acct_id %d", acct_id);
+	elog(NOTICE, "TRF2: acct_id %ld", acct_id);
 	elog(NOTICE, "TRF2: hs_qty %d", hs_qty);
 	elog(NOTICE, "TRF2: is_lifo %d", is_lifo);
 	elog(NOTICE, "TRF2: symbol %s", symbol);
-	elog(NOTICE, "TRF2: trade_id %d", trade_id);
+	elog(NOTICE, "TRF2: trade_id %ld", trade_id);
 	elog(NOTICE, "TRF2: trade_price %f", trade_price);
 	elog(NOTICE, "TRF2: trade_qty %d", trade_qty);
 	elog(NOTICE, "TRF2: type_is_sell %d", type_is_sell);
@@ -220,13 +230,13 @@ void dump_trf2_inputs(int acct_id, int hs_qty, int is_lifo, char *symbol,
 }
 
 void dump_trf3_inputs(double buy_value, int cust_id, double sell_value,
-		int trade_id)
+		long trade_id)
 {
 	elog(NOTICE, "TRF3: INPUTS START");
 	elog(NOTICE, "TRF3: buy_value %f", buy_value);
 	elog(NOTICE, "TRF3: cust_id %d", cust_id);
 	elog(NOTICE, "TRF3: sell_value %f", sell_value);
-	elog(NOTICE, "TRF3: trade_id %d", trade_id);
+	elog(NOTICE, "TRF3: trade_id %ld", trade_id);
 	elog(NOTICE, "TRF3: INPUTS END");
 }
 
@@ -241,29 +251,29 @@ void dump_trf4_inputs(int cust_id, char *symbol, int trade_qty, char *type_id)
 }
 
 void dump_trf5_inputs(int broker_id, double comm_amount, char *st_completed_id,
-		char *trade_dts, int trade_id, double trade_price)
+		char *trade_dts, long trade_id, double trade_price)
 {
 	elog(NOTICE, "TRF5: INPUTS START");
 	elog(NOTICE, "TRF5: broker_id %d", broker_id);
 	elog(NOTICE, "TRF5: comm_amount %f", comm_amount);
 	elog(NOTICE, "TRF5: st_completed_id %s", st_completed_id);
 	elog(NOTICE, "TRF5: trade_dts %s", trade_dts);
-	elog(NOTICE, "TRF5: trade_id %d", trade_id);
+	elog(NOTICE, "TRF5: trade_id %ld", trade_id);
 	elog(NOTICE, "TRF5: trade_price %f", trade_price);
 	elog(NOTICE, "TRF5: INPUTS END");
 }
 
-void dump_trf6_inputs(int acct_id, char *due_date, char *s_name,
-		double se_amount, char *trade_dts, int trade_id, int trade_is_cash,
+void dump_trf6_inputs(long acct_id, char *due_date, char *s_name,
+		double se_amount, char *trade_dts, long trade_id, int trade_is_cash,
 		int trade_qty, char *type_name)
 {
 	elog(NOTICE, "TRF6: INPUTS START");
-	elog(NOTICE, "TRF6: acct_id %d", acct_id);
+	elog(NOTICE, "TRF6: acct_id %ld", acct_id);
 	elog(NOTICE, "TRF6: due_date %s", due_date);
 	elog(NOTICE, "TRF6: s_name %s", s_name);
 	elog(NOTICE, "TRF6: se_amount %f", se_amount);
 	elog(NOTICE, "TRF6: trade_dts %s", trade_dts);
-	elog(NOTICE, "TRF6: trade_id %d", trade_id);
+	elog(NOTICE, "TRF6: trade_id %ld", trade_id);
 	elog(NOTICE, "TRF6: trade_is_cash %d", trade_is_cash);
 	elog(NOTICE, "TRF6: trade_qty %d", trade_qty);
 	elog(NOTICE, "TRF6: type_name %s", type_name);
@@ -294,7 +304,7 @@ Datum TradeResultFrame1(PG_FUNCTION_ARGS)
 				i_type_is_market, i_type_is_sell, i_type_name
 		};
 
-		int trade_id = PG_GETARG_INT64(0);
+		long trade_id = PG_GETARG_INT64(0);
 
 		int ret;
 		TupleDesc tupdesc;
@@ -308,7 +318,7 @@ Datum TradeResultFrame1(PG_FUNCTION_ARGS)
 		 * This should be an array of C strings, which will
 		 * be processed later by the type input functions.
 		 */
-		values = (char **) palloc(sizeof(char *) * 7);
+		values = (char **) palloc(sizeof(char *) * 12);
 		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
 
 #ifdef DEBUG
@@ -317,7 +327,7 @@ Datum TradeResultFrame1(PG_FUNCTION_ARGS)
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
-		strcpy(values[i_status], "0");
+		strncpy(values[i_status], "0", STATUS_LEN);
 		funcctx->max_calls = 1;
 
 		/* switch to memory context appropriate for multiple function calls */
@@ -342,6 +352,8 @@ Datum TradeResultFrame1(PG_FUNCTION_ARGS)
 				values[i_charge] = SPI_getvalue(tuple, tupdesc, 5);
 				values[i_is_lifo] = SPI_getvalue(tuple, tupdesc, 6);
 				values[i_trade_is_cash] = SPI_getvalue(tuple, tupdesc, 7);
+			} else if (SPI_processed == 0) {
+				FAIL_FRAME3(&funcctx->max_calls, values[i_status], sql, "-811");
 			}
 		} else {
 			dump_trf1_inputs(trade_id);
@@ -419,7 +431,7 @@ Datum TradeResultFrame1(PG_FUNCTION_ARGS)
 		Datum result;
 
 #ifdef DEBUG
-		for (i = 0; i < 7; i++) {
+		for (i = 0; i < 12; i++) {
 			elog(NOTICE, "TRF1 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
@@ -459,11 +471,11 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 				i_tax_status, i_trade_dts
 		};
 
-		int acct_id = PG_GETARG_INT64(0);
+		long acct_id = PG_GETARG_INT64(0);
 		int hs_qty = PG_GETARG_INT32(1);
 		int is_lifo = PG_GETARG_INT16(2);
 		char *symbol_p = (char *) PG_GETARG_TEXT_P(3);
-		int trade_id = PG_GETARG_INT64(4);
+		long trade_id = PG_GETARG_INT64(4);
 		Numeric trade_price_num = PG_GETARG_NUMERIC(5);
 		int trade_qty = PG_GETARG_INT32(6);
 		int type_is_sell = PG_GETARG_INT16(7);
@@ -514,6 +526,20 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 
 		SPI_connect();
 
+		strncpy(sql, "SELECT now()", 2047);
+#ifdef DEBUG
+		elog(NOTICE, "SQL\n%s", sql);
+#endif /* DEBUG */
+		ret = SPI_exec(sql, 0);
+		if (ret == SPI_OK_SELECT && SPI_processed == 1) {
+			tupdesc = SPI_tuptable->tupdesc;
+			tuptable = SPI_tuptable;
+			tuple = tuptable->vals[0];
+			values[i_trade_dts] = SPI_getvalue(tuple, tupdesc, 1);
+		} else {
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+		}
+
 		sprintf(sql, TRF2_1, acct_id);
 #ifdef DEBUG
 		elog(NOTICE, "SQL\n%s", sql);
@@ -534,8 +560,10 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 		}
 
+		/* Determine if sell or buy order */
 		if (type_is_sell == 1) {
 			if (hs_qty == 0) {
+				/* no prior holdings exist, but one will be inserted */
 				sprintf(sql, TRF2_2a, acct_id, symbol, trade_qty);
 #ifdef DEBUG
 				elog(NOTICE, "SQL\n%s", sql);
@@ -559,7 +587,11 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 				}
 			}
 
+			/* Sell Trade: */
+
+			/* First look for existing holdings */
 			if (hs_qty > 0) {
+				/* Could return 0, 1 or many rows */
 				if (is_lifo == 1) {
 					sprintf(sql, TRF2_3a, acct_id, symbol);
 				} else {
@@ -574,21 +606,29 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
 							trade_id, trade_price, trade_qty, type_is_sell);
 				}
+
+				/*
+				 * Liquidate existing holdings.  Note that more than
+				 * 1 HOLDING record acn be deleted here since customer
+				 * may have the same security with differeing prices.
+				 */
+
 				i = 0;
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
-				while (needed_qty > 0 && i < SPI_processed) {
-					int hold_id;
+				while (needed_qty == 0 && i < SPI_processed) {
+					long hold_id;
 					int hold_qty;
 					double hold_price;
 
 					tuple = tuptable->vals[i++];
-					hold_id = atoi(SPI_getvalue(tuple, tupdesc, 1));
+					hold_id = atol(SPI_getvalue(tuple, tupdesc, 1));
 					hold_qty = atoi(SPI_getvalue(tuple, tupdesc, 2));
 					hold_price = atof(SPI_getvalue(tuple, tupdesc, 3));
 
 					if (hold_qty > needed_qty ) {
-						sprintf(sql, TRF2_4a, trade_id, hold_id, hold_qty,
+						/* Selling some of the holdings */
+						sprintf(sql, TRF2_4a, hold_id, trade_id, hold_qty,
 								hold_qty - needed_qty);
 #ifdef DEBUG
 						elog(NOTICE, "SQL\n%s", sql);
@@ -619,7 +659,8 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 						sell_value += (double) needed_qty * trade_price;
 						needed_qty = 0;
 					} else {
-						sprintf(sql, TRF2_4a, trade_id, hold_id, hold_qty, 0);
+						/* Selling all holdings */
+						sprintf(sql, TRF2_4a, hold_id, trade_id, hold_qty, 0);
 #ifdef DEBUG
 						elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
@@ -648,6 +689,14 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 				}
 			}
 
+			/*
+			 * Sell short:
+			 * If needed_qty > = then customer has sold all existing
+			 * holdings and customer is selling short.  A new HOLDING
+			 * record will be created with H_QTY set to the negative
+			 * number of needed shares.
+			 */
+
 			if (needed_qty > 0) {
 				sprintf(sql, TRF2_4a, trade_id, trade_id, 0, -1 * needed_qty);
 #ifdef DEBUG
@@ -660,18 +709,13 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				}
 
-				sprintf(sql, TRF2_7a, trade_id, acct_id, symbol, "now()",
-						trade_price, -1 * needed_qty);
+				sprintf(sql, TRF2_7a, trade_id, acct_id, symbol,
+						values[i_trade_dts], trade_price, -1 * needed_qty);
 #ifdef DEBUG
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 				ret = SPI_exec(sql, 0);
-				if (ret == SPI_OK_INSERT_RETURNING && SPI_processed > 0) {
-					tupdesc = SPI_tuptable->tupdesc;
-					tuptable = SPI_tuptable;
-					tuple = tuptable->vals[0];
-					values[i_trade_dts] = SPI_getvalue(tuple, tupdesc, 1);
-				} else {
+				if (ret != SPI_OK_INSERT) {
 					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
 							trade_id, trade_price, trade_qty, type_is_sell);
 					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
@@ -689,7 +733,9 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 				}
 			}
 		} else {
+			/* The trade is a BUY */
 			if (hs_qty == 0) {
+				/* no prior holdings exists, but one will be inserted */
 				sprintf(sql, TRF2_8a, acct_id, symbol, trade_qty);
 #ifdef DEBUG
 				elog(NOTICE, "SQL\n%s", sql);
@@ -713,7 +759,15 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 				}
 			}
 
+			/*
+			 * Short Cover:
+			 * First look for existing negative holdings, H_QTY < 0,
+			 * which indicates a previous short sell.  The buy trade
+			 * will cover the short sell.
+			 */
+
 			if (hs_qty < 0) {
+				/* Could return 0, 1 or many rows */
 				if (is_lifo == 1) {
 					sprintf(sql, TRF2_3a, acct_id, symbol);
 				} else {
@@ -726,22 +780,26 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 				if (ret != SPI_OK_SELECT) {
 					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-						trade_id, trade_price, trade_qty, type_is_sell);
+							trade_id, trade_price, trade_qty, type_is_sell);
 				}
+
+				/* Buy back securities to cover a short position. */
+
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
 				i = 0;
-				while (needed_qty > 0 && i < SPI_processed) {
-					int hold_id;
+				while (needed_qty == 0 && i < SPI_processed) {
+					long hold_id;
 					int hold_qty;
 					double hold_price;
 
 					tuple = tuptable->vals[i++];
-					hold_id = atoi(SPI_getvalue(tuple, tupdesc, 1));
+					hold_id = atol(SPI_getvalue(tuple, tupdesc, 1));
 					hold_qty = atoi(SPI_getvalue(tuple, tupdesc, 2));
 					hold_price = atof(SPI_getvalue(tuple, tupdesc, 3));
 
 					if (hold_qty + needed_qty < 0) {
+						/* Buying back some of the Short Sell */
 						sprintf(sql, TRF2_4a, hold_id, trade_id, hold_qty,
 								hold_qty + needed_qty);
 #ifdef DEBUG
@@ -773,7 +831,8 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 						sell_value += (double) needed_qty * trade_price;
 						needed_qty = 0;
 					} else {
-						sprintf(sql, TRF2_4a, trade_id, hold_id, hold_qty, 0);
+						/* Buying back all of the Short Sell */
+						sprintf(sql, TRF2_4a, hold_id, trade_id, hold_qty, 0);
 #ifdef DEBUG
 						elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
@@ -801,6 +860,14 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 					}
 				}
 
+				/*
+				 * Buy Trade:
+				 * If needed_qty > 0, then the customer has covered all
+				 * previous Short Sells and the customer is buying new
+				 * holdings.  A new HOLDING record will be created with
+				 * H_QTY set to the number of needed shares.
+				 */
+
 				if (needed_qty > 0) {
 					sprintf(sql, TRF2_4a, trade_id, trade_id, 0, needed_qty);
 #ifdef DEBUG
@@ -813,23 +880,18 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 								trade_id, trade_price, trade_qty, type_is_sell);
 					}
 
-					sprintf(sql, TRF2_7a, trade_id, acct_id, symbol, "now()",
-							trade_price, needed_qty);
+					sprintf(sql, TRF2_7a, trade_id, acct_id, symbol,
+							values[i_trade_dts], trade_price, needed_qty);
 #ifdef DEBUG
 					elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 					ret = SPI_exec(sql, 0);
-					if (ret == SPI_OK_INSERT_RETURNING && SPI_processed > 0) {
-						tupdesc = SPI_tuptable->tupdesc;
-						tuptable = SPI_tuptable;
-						tuple = tuptable->vals[0];
-						values[i_trade_dts] = SPI_getvalue(tuple, tupdesc, 1);
-					} else {
+					if (ret != SPI_OK_INSERT) {
 						dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
 								trade_id, trade_price, trade_qty, type_is_sell);
 						FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 					}
-				} else {
+				} else if (hs_qty == trade_qty) {
 					sprintf(sql, TRF2_7b, acct_id, symbol);
 #ifdef DEBUG
 					elog(NOTICE, "SQL\n%s", sql);
@@ -921,7 +983,7 @@ Datum TradeResultFrame3(PG_FUNCTION_ARGS)
 		Numeric buy_value_num = PG_GETARG_NUMERIC(0);
 		int cust_id = PG_GETARG_INT64(1);
 		Numeric sell_value_num = PG_GETARG_NUMERIC(2);
-		int trade_id = PG_GETARG_INT64(3);
+		long trade_id = PG_GETARG_INT64(3);
 
 		int ret;
 		TupleDesc tupdesc;
@@ -954,7 +1016,7 @@ Datum TradeResultFrame3(PG_FUNCTION_ARGS)
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
-		strcpy(values[i_status], "0");
+		strncpy(values[i_status], "0", STATUS_LEN);
 		funcctx->max_calls = 1;
 
 		/* switch to memory context appropriate for multiple function calls */
@@ -1101,7 +1163,7 @@ Datum TradeResultFrame4(PG_FUNCTION_ARGS)
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
-		strcpy(values[i_status], "0");
+		strncpy(values[i_status], "0", STATUS_LEN);
 		funcctx->max_calls = 1;
 
 		/* switch to memory context appropriate for multiple function calls */
@@ -1215,7 +1277,7 @@ Datum TradeResultFrame5(PG_FUNCTION_ARGS)
 	Numeric comm_amount_num = PG_GETARG_NUMERIC(1);
 	char *st_completed_id_p = (char *) PG_GETARG_TEXT_P(2);
 	Timestamp trade_dts_ts = PG_GETARG_TIMESTAMP(3);
-	int trade_id = PG_GETARG_INT64(4);
+	long trade_id = PG_GETARG_INT64(4);
 	Numeric trade_price_num = PG_GETARG_NUMERIC(5);
 
 	int ret;
@@ -1315,12 +1377,12 @@ Datum TradeResultFrame6(PG_FUNCTION_ARGS)
 
 		enum trf6 { i_acct_bal=0, i_status };
 
-		int acct_id = PG_GETARG_INT64(0);
+		long acct_id = PG_GETARG_INT64(0);
 		Timestamp due_date_ts = PG_GETARG_TIMESTAMP(1);
 		char *s_name_p = (char *) PG_GETARG_TEXT_P(2);
 		Numeric se_amount_num = PG_GETARG_NUMERIC(3);
 		Timestamp trade_dts_ts = PG_GETARG_TIMESTAMP(4);
-		int trade_id = PG_GETARG_INT64(5);
+		long trade_id = PG_GETARG_INT64(5);
 		int trade_is_cash = PG_GETARG_INT16(6);
 		int trade_qty = PG_GETARG_INT32(7);
 		char *type_name_p = (char *) PG_GETARG_TEXT_P(8);
@@ -1375,7 +1437,7 @@ Datum TradeResultFrame6(PG_FUNCTION_ARGS)
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
-		strcpy(values[i_status], "0");
+		strncpy(values[i_status], "0", STATUS_LEN);
 		funcctx->max_calls = 1;
 
 		/* switch to memory context appropriate for multiple function calls */

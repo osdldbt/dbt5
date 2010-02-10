@@ -13,13 +13,19 @@
 #define FAIL_FRAME(rows, status, sql) \
 		elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", \
 				__FILE__, __LINE__, sql); \
-		strcpy(status, "1"); \
+		strncpy(status, "1", STATUS_LEN); \
 		*rows = 0;
 
 #define FAIL_FRAME2(status, sql) \
 		elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", \
 				__FILE__, __LINE__, sql); \
 		status = 1;
+
+#define FAIL_FRAME3(rows, status, sql, codestr) \
+		elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", \
+				__FILE__, __LINE__, sql); \
+		strncpy(status, codestr, STATUS_LEN); \
+		*rows = 0;
 
 /* PostgreSQL types */
 #define BIGINT_LEN 20
@@ -119,7 +125,7 @@
 #define TX_ID_LEN 4
 #define TX_NAME_LEN 50
 
-#define STATUS_LEN 1
+#define STATUS_LEN 4
 
 #define USE_ISO_DATES 1
 

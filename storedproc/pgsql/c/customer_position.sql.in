@@ -1,14 +1,14 @@
 /*
  * 2006-2007 Rilson Nascimento
- * 2006-2007 Mark Wong
+ * 2006-2010 Mark Wong
  *
  * Customer Position transaction
  * ------------------------
  * This transaction takes a customer tax ID or customer ID as input and is 
  * responsible for calculating the current market value of each one of that
- * customer’s accounts.
+ * customer's accounts.
  *
- * Based on TPC-E Standard Specification Draft Revision 1.0.0 Clause 3.3.6.
+ * Based on TPC-E Standard Specification Revision 1.9.0 Clause 3.3.2.1.
  */
 
 /*

@@ -4,7 +4,7 @@
  *
  * Copyright (C) 2007 Mark Wong
  *
- * Based on TPC-E Standard Specification Revision 1.3.0.
+ * Based on TPC-E Standard Specification Revision 1.9.0.
  */
 
 #include <sys/types.h>
@@ -30,7 +30,7 @@
 		"  AND s_co_id = co_id\n" \
 		"  AND co_in_id = in_id\n" \
 		"  AND sc_id = in_sc_id\n" \
-		"  AND b_name = ANY (%s)\n" \
+		"  AND b_name IN (%s)\n" \
 		"  AND sc_name = '%s'\n" \
 		"GROUP BY b_name\n" \
 		"ORDER BY 2 DESC"
