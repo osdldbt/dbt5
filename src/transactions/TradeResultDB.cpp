@@ -106,10 +106,11 @@ void CTradeResultDB::DoTradeResultFrame2(
 
 	pOut->broker_id = c[0].as(long());
 	pOut->buy_value = c[1].as(double());
-	pOut->cust_id = c[2].as(int());
+	pOut->cust_id = c[2].as(long());
 	pOut->sell_value = c[3].as(double());
-	pOut->tax_status = c[4].as(int());
-	sscanf(c[5].c_str(), "%d-%d-%d %d:%d:%d",
+	pOut->status = c[4].as(int());
+	pOut->tax_status = c[5].as(int());
+	sscanf(c[6].c_str(), "%d-%d-%d %d:%d:%d.%*d",
 			&pOut->trade_dts.year,
 			&pOut->trade_dts.month,
 			&pOut->trade_dts.day,
@@ -133,10 +134,11 @@ void CTradeResultDB::DoTradeResultFrame2(
 		"- buy_value: " << pOut->buy_value << endl <<
 		"- cust_id: " << pOut->cust_id << endl <<
 		"- sell_value: " << pOut->sell_value << endl <<
+		"- status: " << pOut->status << endl <<
 		"- tax_status: " << pOut->tax_status << endl <<
-		"- trade_dts: " << pOut->trade_dts.year << "-" <<
-		pOut->trade_dts.month << "-" << pOut->trade_dts.day <<
-		" " << pOut->trade_dts.hour << ":" <<
+		"- trade_dts: (" << c[6].c_str() << ") " <<
+		pOut->trade_dts.year << "-" << pOut->trade_dts.month << "-" <<
+		pOut->trade_dts.day << " " << pOut->trade_dts.hour << ":" <<
 		pOut->trade_dts.minute << ":" <<
 		pOut->trade_dts.second << endl;
 	m_coutLock.unlock();

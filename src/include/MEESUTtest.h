@@ -22,7 +22,13 @@ private:
 	TMarketFeedTxnInput	m_MarketFeedTxnInput;
 
 public:
-	CMEESUTtest(CDBConnection *pDBConn) : m_pDBConnection(pDBConn) { };
+	CMEESUTtest(CDBConnection *pDBConn, TIdent iConfiguredCustomerCountIn,
+			TIdent iActiveCustomerCountIn,
+			char *szInDirIn) : m_pDBConnection(pDBConn) {
+		iConfiguredCustomerCount = iConfiguredCustomerCountIn;
+		iActiveCustomerCount = iActiveCustomerCountIn;
+		strncpy(szInDir, szInDirIn, 256);
+	};
 	~CMEESUTtest() { };
 
 	// return whether it was successful
@@ -35,6 +41,10 @@ public:
 
 	friend void *MarketFeedAsync(void* data);
 	friend bool RunMarketFeedAsync( CMEESUTtest* );
+
+	TIdent iConfiguredCustomerCount;
+	TIdent iActiveCustomerCount;
+	char szInDir[256];
 };
 
 #endif	// MEE_SUT_TEST_H

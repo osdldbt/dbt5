@@ -56,7 +56,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 	int i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p)
 	{
-		pOut->acct_id[i] = atoi( (*p).c_str() );
+		pOut->acct_id[i] = atol( (*p).c_str() );
 		++i;
 	}
 	vAux.clear();

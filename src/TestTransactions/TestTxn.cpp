@@ -63,7 +63,7 @@ void Usage()
 	cout << "                            MARKET_FEED" << endl;
 	cout << "                        C - TRADE_LOOKUP" << endl;
 	cout << "                        D - TRADE_UPDATE" << endl;
-	cout << "                        E - TRADE_STATUS (default)" << endl;
+	cout << "                        E - TRADE_STATUS" << endl;
 	cout << "                        F - CUSTOMER_POSITION" << endl;
 	cout << "                        G - BROKER_VOLUME" << endl;
 	cout << "                        H - SECURITY_DETAIL"<<endl;
@@ -151,9 +151,6 @@ bool ParseCommandLine( int argc, char *argv[] )
 			case 'A':
 				TxnType = TRADE_ORDER;
 				break;
-			case 'B':
-				TxnType = TRADE_RESULT;
-				break;
 			case 'C':
 				TxnType = TRADE_LOOKUP;
 				break;
@@ -171,9 +168,6 @@ bool ParseCommandLine( int argc, char *argv[] )
 				break;
 			case 'H':
 				TxnType = SECURITY_DETAIL;
-				break;
-			case 'I':
-				TxnType = MARKET_FEED;
 				break;
 			case 'J':
 				TxnType = MARKET_WATCH;
@@ -204,7 +198,8 @@ void TradeOrder(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	// SendToMarket test class that can call Trade-Result and Market-Feed 
 	// via the MEE - Market Exchange Emulator when type_is_market = 1. 
 	// These two txns run async.
-	CSendToMarketTest	m_pSendToMarket;
+	CSendToMarketTest m_pSendToMarket(iConfiguredCustomerCount,
+			iConfiguredCustomerCount, szInDir);
 
 	// trade order harness code (TPC provided)
 	// this class uses our implementation of CTradeOrderDB class
@@ -511,8 +506,6 @@ int main(int argc, char* argv[])
 		switch ( TxnType ) 
 		{
 		case TRADE_ORDER:
-		case TRADE_RESULT:
-		case MARKET_FEED:
 			cout << "=== Testing Trade Order, Trade Result and Market Feed ==="
 					<< endl << endl;
 			TradeOrder( &m_Conn, &m_TxnInputGenerator );

@@ -2,6 +2,7 @@
  * TxnHarnessSendToMarketTest.cpp
  *
  * 2006 Rilson Nascimento
+ * 2010 Mark Wong
  *
  * 22 July 2006
  */
@@ -12,8 +13,12 @@
 
 using namespace TPCE;
 
-CSendToMarketTest::CSendToMarketTest()
+CSendToMarketTest::CSendToMarketTest(TIdent iConfiguredCustomerCountIn,
+		TIdent iActiveCustomerCountIn, char *szInDirIn)
 {
+	iConfiguredCustomerCount = iConfiguredCustomerCountIn;
+	iActiveCustomerCount = iActiveCustomerCountIn;
+	strncpy(szInDir, szInDirIn, iInDirLen2);
 }
 
 CSendToMarketTest::~CSendToMarketTest()
@@ -22,23 +27,15 @@ CSendToMarketTest::~CSendToMarketTest()
 
 bool CSendToMarketTest::SendToMarket(TTradeRequest &trade_mes)
 {
-	const char *server = "localhost";
-	const char *db = "dbt5";
-	const char *port = "5432";
-	//CDBConnection		m_Conn( server, db, port );
-
 	CLogFormatTab fmt;
 	CEGenLogger log(eDriverEGenLoader, 0, "temp.log", &fmt);
 
 	// Initialize MEE - Market Exchange Emulator class
-	// I am creating connections on the fly inside the thread
-	CMEESUTtest		m_CMEESUT( NULL /*&m_Conn*/ );
-	// FIXME: The path need to be configurable.
-	char*	szFileName = "EGen_v3.14/flat_in/Security.txt";
+	CMEESUTtest m_CMEESUT(NULL, iConfiguredCustomerCount, iActiveCustomerCount,
+			szInDir);
 	CInputFiles inputFiles;
-	// FIXME: Where do we get the customer counts?
-	//inputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount,
-	//		iActiveCustomerCount, szFileName);
+	inputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount,
+			iActiveCustomerCount, szInDir);
 
 	CMEE		m_CMEE( 0, &m_CMEESUT, &log, inputFiles, 1 );
 	m_CMEE.SetBaseTime();

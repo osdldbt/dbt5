@@ -89,8 +89,9 @@ bool CMEESUTtest::TradeResult( PTradeResultTxnInput pTxnInput )
 //
 void *MarketFeedAsync(void* data)
 {
-	CMEESUTtest* pCMEESUTtest = reinterpret_cast<CMEESUTtest*>(data);
-	CSendToMarketTest	m_SendToMarket;
+	CMEESUTtest *pCMEESUTtest = reinterpret_cast<CMEESUTtest*>(data);
+	CSendToMarketTest m_SendToMarket(pCMEESUTtest->iConfiguredCustomerCount,
+			pCMEESUTtest->iActiveCustomerCount, pCMEESUTtest->szInDir);
 
 	// creating separated connection for Market Feed (just for testing)
 	const char *server = "localhost";
