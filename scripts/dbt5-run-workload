@@ -15,7 +15,7 @@ trap 'echo "Test was interrupted by Control-C."; \
 trap 'echo "Test was interrupted. Got TERM signal."; \
 	killall BrokerageHouseMain; killall DriverMarketMain; killall DriverMain; \
 	killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat; \
-	${DB_COMMAND} ${DBMS}-stop-db' TERM
+	${DB_COMMAND} dbt5-${DBMS}-stop-db' TERM
 
 do_sleep()
 {
@@ -189,6 +189,8 @@ usage()
 	echo ''
 	echo 'usage: run_workload.sh -c <number of customers> -t <duration of test> -u <number of users> -e <seed>'
 	echo 'other options:'
+	echo '       -a <pgsql>'
+	echo '       -b <egen_path>'
 	echo '       -d <database parameters>'
 	echo '       -f <scale factor. (default 500)>'
 	echo '       -h <database host name. (default localhost)>'
@@ -218,11 +220,14 @@ SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
 USE_READPROFILE=0
 
-while getopts "a:c:d:e:f:h:i:l:n:o:rp:qs:t:u:w:z:" opt; do
+while getopts "a:b:c:d:e:f:h:i:l:n:o:rp:qs:t:u:w:z:" opt; do
 	case $opt in
 	a)
 		DBMS=${OPTARG}
 		export DATABASE=${DBMS}
+		;;
+	b)
+		EGENDIR=${OPTARG}
 		;;
 	c)
 		# Configured customer count
@@ -290,6 +295,11 @@ while getopts "a:c:d:e:f:h:i:l:n:o:rp:qs:t:u:w:z:" opt; do
 done
 
 # Check parameters.
+
+if [ "x${EGENDIR}}" = "x" ]; then
+	echo "specify path to EGen using -b <path>"
+	exit 1
+fi
 
 if [ "x${DBMS}" = "x" ]; then
 	echo "specify which dbms system to test using -a <pgsql>"
@@ -413,20 +423,23 @@ do_sleep 1
 #
 echo
 echo "2. Starting Market Exchange server"
-DriverMarketMain -c ${CUSTOMERS} && ${CUSTOMERS} -s ${EGENDIR}/flat_in \
+DriverMarketMain -c ${CUSTOMERS} -a ${CUSTOMERS} -s ${EGENDIR}/flat_in \
 		-o ${DRIVER_OUTPUT_DIR} > ${OUTPUT_DIR}/market.out 2>&1 &
 
 # Start collecting data before we start the test.
-SLEEP_RAMPUP=$(( (($USERS+1)*$SLEEPY/1000) ))
-SLEEPYTIME=$(( $SLEEP_RAMPUP+$DURATION ))
+SLEEP_RAMPUP=`expr ${USERS} + 1`
+SLEEP_RAMPUP=`expr ${SLEEP_RAMPUP} \* ${SLEEPY}`
+SLEEP_RAMPUP=`expr ${SLEEP_RAMPUP} / 1000`
+SLEEPYTIME=`expr ${SLEEP_RAMPUP} + ${DURATION}`
 SAMPLE_LENGTH=60
-ITERNATIONS=$(( ($SLEEPYTIME/$SAMPLE_LENGTH)+1 ))
-dbt5-sysstats --iter ${ITERNATIONS} \
+ITERATIONS=`expr ${SLEEPYTIME} / ${SAMPLE_LENGTH}`
+ITERATIONS=`expr ${ITERATIONS} + 1`
+dbt5-sysstats --iter ${ITERATIONS} \
 		--sample ${SAMPLE_LENGTH} \
 		--outdir ${OUTPUT_DIR} > ${OUTPUT_DIR}/stats.out 2>&1 &
 ${DB_COMMAND} dbt5-${DBMS}-db-stat \
 		-o ${DB_OUTPUT_DIR} \
-		-i ${ITERNATIONS} \
+		-i ${ITERATIONS} \
 		${DB_PORT_ARG} \
 		-s ${SAMPLE_LENGTH} > ${OUTPUT_DIR}/dbstats.out 2>&1 &
 
