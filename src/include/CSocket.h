@@ -30,8 +30,8 @@ public:
 
 	int Accept(void);
 	void Connect();
-	void Receive(void* data, int length);
-	void Send(void *data, int length);
+	int Receive(void* data, int length);
+	int Send(void *data, int length);
 	void Listen(const int port);
 
 	void SetSocketfd(int sockfd) { m_sockfd = sockfd; }

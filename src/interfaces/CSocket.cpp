@@ -102,7 +102,7 @@ void CSocket::Connect()
 }
 
 // Receive
-void CSocket::Receive(void* data, int length)
+int CSocket::Receive(void* data, int length)
 {
 	int received, total, remaining;
 	remaining = length;
@@ -124,7 +124,6 @@ void CSocket::Receive(void* data, int length)
 		szData = reinterpret_cast<char*>(data);
 
 		szData += received;
-		//data += received; // C++ doesn't like arithmetic with void*
 		data = reinterpret_cast<void*>(szData);
 		remaining -= received;
 	}
@@ -135,11 +134,11 @@ void CSocket::Receive(void* data, int length)
 		ThrowError(CSocketErr::ERR_SOCKET_RECVPARTIAL);
 	}
 
-	//return total;
+	return total;
 }
 
 // Send
-void CSocket::Send(void* data, int length)
+int CSocket::Send(void* data, int length)
 {
 	int sent = 0;
 	int remaining = length;
@@ -160,7 +159,6 @@ void CSocket::Send(void* data, int length)
 		szData = reinterpret_cast<char*>(data);
 		szData += sent;
 		data = reinterpret_cast<void*>(szData);
-		//data += sent; // C++ doesn't like arithmetic with void*
 		remaining -= sent;
 	} while (sent != length);
 
@@ -169,7 +167,7 @@ void CSocket::Send(void* data, int length)
 		ThrowError(CSocketErr::ERR_SOCKET_SENDPARTIAL);
 	}
 
-	//return sent;
+	return sent;
 }
 
 // Listen

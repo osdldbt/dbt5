@@ -43,7 +43,8 @@ void CBaseInterface::Connect()
 	{
 		ostringstream osErr;
 		osErr << "Error: " << pErr->ErrorText() << " at " <<
-				"CBaseInterface::TalkToSUT" << endl;
+				"CBaseInterface::TalkToSUT " << __FILE__ << ":" << __LINE__ <<
+				endl;
 		LogErrorMessage(osErr.str());
 	}
 }
@@ -59,7 +60,8 @@ void CBaseInterface::Disconnect()
 	{
 		ostringstream osErr;
 		osErr << "Error: " << pErr->ErrorText() << " at " <<
-				"CBaseInterface::TalkToSUT" << endl;
+				"CBaseInterface::TalkToSUT " << __FILE__ << ":" << __LINE__ <<
+				endl;
 		LogErrorMessage(osErr.str());
 	}
 }
@@ -67,32 +69,21 @@ void CBaseInterface::Disconnect()
 // Connect to BrokerageHouse, send request, receive reply, and calculate RT
 void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 {
+	int length;
 	TMsgBrokerageDriver Reply;	// reply message from BrokerageHouse
 	memset(&Reply, 0, sizeof(Reply)); 
 
 	CDateTime	StartTime, EndTime, TxnTime;	// to time the transaction
 
+	// record txn start time -- please, see TPC-E specification clause
+	// 6.2.1.3
+	StartTime.SetToCurrent();
+
+	// send and wait for response
 	try
 	{
-		// record txn start time -- please, see TPC-E specification clause
-		// 6.2.1.3
-		StartTime.SetToCurrent();
-	
-		// send and wait for response
-		sock->Send(reinterpret_cast<void*>(pRequest), sizeof(*pRequest));
-		sock->Receive( reinterpret_cast<void*>(&Reply), sizeof(Reply));
-	
-		// record txn end time
-		EndTime.SetToCurrent();
-
-		// calculate txn response time
-		TxnTime.Set(0);	// clear time
-		TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
-	
-		//log response time
-		LogResponseTime(Reply.iStatus, pRequest->TxnType,
-				(TxnTime.MSec()/1000.0));
-		delete pRequest;
+		length = sock->Send(reinterpret_cast<void*>(pRequest),
+				sizeof(*pRequest));
 	}
 	catch(CSocketErr *pErr)
 	{
@@ -100,12 +91,41 @@ void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 		LogResponseTime(-1, 0, 0);
 
 		ostringstream osErr;
-		osErr<<endl<<"Error: "<<pErr->ErrorText()
-		     <<" at "<<"CBaseInterface::TalkToSUT"<<endl;
+		osErr << "Error sending ("<< length << ") txn " <<
+				pRequest->TxnType << ": " << pErr->ErrorText() << " at " <<
+				"CBaseInterface::TalkToSUT " << __FILE__ << ":" << __LINE__ <<
+				endl;
 		LogErrorMessage(osErr.str());
 		delete pErr;
-		delete pRequest;
 	}
+	try
+	{
+		length = sock->Receive(reinterpret_cast<void*>(&Reply), sizeof(Reply));
+	}
+	catch(CSocketErr *pErr)
+	{
+		sock->CloseAccSocket(); // close connection
+		LogResponseTime(-1, 0, 0);
+
+		ostringstream osErr;
+		osErr << "Error sending ("<< length << ") txn " <<
+				pRequest->TxnType << ": " << pErr->ErrorText() << " at " <<
+				"CBaseInterface::TalkToSUT " << __FILE__ << ":" << __LINE__ <<
+				endl;
+		LogErrorMessage(osErr.str());
+		delete pErr;
+	}
+
+	// record txn end time
+	EndTime.SetToCurrent();
+
+	// calculate txn response time
+	TxnTime.Set(0);	// clear time
+	TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
+
+	//log response time
+	LogResponseTime(Reply.iStatus, pRequest->TxnType, (TxnTime.MSec()/1000.0));
+	delete pRequest;
 }
 
 // Log Response Time
