@@ -136,7 +136,7 @@ void CBaseInterface::LogResponseTime(int iStatus, int iTxnType, double dRT)
 				(int) pthread_self() << endl;
 	}
 	m_pfMix->flush();
-	m_pMixLock->lock();
+	m_pMixLock->unlock();
 }
 
 // LogErrorMessage
