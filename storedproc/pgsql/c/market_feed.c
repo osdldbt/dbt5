@@ -68,13 +68,8 @@ typedef int16 NumericDigit;
 		"WHERE  tr_t_id = %s;"
 
 #define MFF1_5 \
-		"INSERT INTO trade_history\n" \
-		"           (th_t_id,\n" \
-		"            th_dts,\n" \
-		"            th_st_id)\n" \
-		"VALUES     (th_t_id = %s,\n" \
-		"            th_dts = now(),\n" \
-		"            th_st_id = '%s');"
+		"INSERT INTO trade_history(th_t_id, th_dts, th_st_id)\n" \
+		"VALUES (%s, now(), '%s');"
 
 #ifdef PG_MODULE_MAGIC
 PG_MODULE_MAGIC;
