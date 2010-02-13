@@ -15,10 +15,6 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 		const TSecurityDetailFrame1Input *pIn,
 		TSecurityDetailFrame1Output *pOut)
 {
-#ifdef DEBUG
-	cout << "SDF1" << endl;
-#endif
-
 	enum sdf1 {
 	    i_s52_wk_high=0, i_s52_wk_high_date, i_s52_wk_low,
 	    i_s52_wk_low_date, i_ceo_name, i_co_ad_cty, i_co_ad_div,
@@ -498,122 +494,122 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout<<"Security Detail Frame 1 (input)"<<endl
-	    <<"- access_lob_flag: "<<pIn->access_lob_flag<<endl
-	    <<"- start_day: "<<pIn->start_day.year<<"-"<<
-		pIn->start_day.month<<"-"<<
-		pIn->start_day.day<<" "<<
-		pIn->start_day.hour<<":"<<
-		pIn->start_day.minute<<":"<<
-		pIn->start_day.second<<endl
-	    <<"- max_rows_to_return: "<<pIn->max_rows_to_return<<endl
-	    <<"- symbol: "<<pIn->symbol<<endl;
-	cout << "Security Detail Frame 1 (output)" << endl <<
-			"- fin_len: " << pOut->fin_len << endl <<
-			"- day_len: " << pOut->day_len << endl <<
-			"- news_len: " << pOut->news_len << endl <<
-			"- cp_co_name[0]: " << pOut->cp_co_name[0] << endl <<
-			"- cp_in_name[0]: " << pOut->cp_in_name[0] << endl <<
-			"- fin[0].year: " << pOut->fin[0].year << endl <<
-			"- fin[0].qtr: " << pOut->fin[0].qtr << endl <<
-			"- fin[0].start_date: " << pOut->fin[0].start_date.year <<
-			"-" << pOut->fin[0].start_date.month << "-" <<
-			pOut->fin[0].start_date.day << " " <<
-			pOut->fin[0].start_date.hour << ":" <<
-			pOut->fin[0].start_date.minute << ":" <<
-			pOut->fin[0].start_date.second << endl <<
-			"- fin[0].rev: "<<pOut->fin[0].rev << endl <<
-			"- fin[0].net_earn: " << pOut->fin[0].net_earn << endl <<
-			"- fin[0].basic_eps: " << pOut->fin[0].basic_eps << endl <<
-			"- fin[0].dilut_eps: " << pOut->fin[0].dilut_eps << endl <<
-			"- fin[0].margin: " << pOut->fin[0].margin << endl <<
-			"- fin[0].invent: " << pOut->fin[0].invent << endl <<
-			"- fin[0].assets: " << pOut->fin[0].assets << endl <<
-			"- fin[0].liab: " << pOut->fin[0].liab << endl <<
-			"- fin[0].out_basic: " << pOut->fin[0].out_basic << endl <<
-			"- fin[0].out_dilut: " << pOut->fin[0].out_dilut << endl <<
-			"- day[0].date: " << pOut->day[0].date.year << "-" <<
-			pOut->day[0].date.month << "-" <<
-			pOut->day[0].date.day << " " <<
-			pOut->day[0].date.hour << ":" <<
-			pOut->day[0].date.minute << ":" <<
-			pOut->day[0].date.second << endl <<
-			"- day[0].close: " << pOut->day[0].close << endl <<
-			"- day[0].high: " << pOut->day[0].high << endl <<
-			"- day[0].low: " << pOut->day[0].low << endl <<
-			"- day[0].vol: " << pOut->day[0].vol << endl <<
-			"- news[0].item: " << pOut->news[0].item << endl <<
-			"- news[0].dts: " << pOut->news[0].dts.year << "-" <<
-			pOut->news[0].dts.month << "-" <<
-			pOut->news[0].dts.day << " " <<
-			pOut->news[0].dts.hour << ":" <<
-			pOut->news[0].dts.minute << ":" <<
-			pOut->news[0].dts.second << endl <<
-			"- news[0].src: " << pOut->news[0].src << endl <<
-			"- news[0].auth: " << pOut->news[0].auth << endl <<
-			"- news[0].headline: " << pOut->news[0].headline << endl <<
-			"- news[0].summary: " << pOut->news[0].summary << endl <<
-			"- last_price: " << pOut->last_price << endl <<
-			"- last_open: " << pOut->last_open << endl <<
-			"- last_vol: " << pOut->last_vol << endl <<
-			"- s_name: " << pOut->s_name << endl <<
-			"- co_name: " << pOut->co_name << endl <<
-			"- sp_rate: " << pOut->sp_rate << endl <<
-			"- ceo_name: " << pOut->ceo_name << endl <<
-			"- co_desc: " << pOut->co_desc << endl <<
-			"- open_date: " << pOut->open_date.year << "-" <<
-			pOut->open_date.month << "-" <<
-			pOut->open_date.day << " " <<
-			pOut->open_date.hour << ":" <<
-			pOut->open_date.minute << ":" <<
-			pOut->open_date.second << endl << "- co_st_id: " <<
-			pOut->co_st_id << endl << "- co_ad_line1: " <<
-			pOut->co_ad_line1 << endl <<
-			"- co_ad_line2: " << pOut->co_ad_line2 << endl <<
-			"- co_ad_town: " << pOut->co_ad_town << endl <<
-			"- co_ad_div: " << pOut->co_ad_div << endl <<
-			"- co_ad_zip: " << pOut->co_ad_zip << endl <<
-			"- co_ad_cty: " << pOut->co_ad_cty << endl <<
-			"- num_out: " << pOut->num_out << endl <<
-			"- start_date: " << pOut->start_date.year << "-" <<
-			pOut->start_date.month << "-" <<
-			pOut->start_date.day << " " <<
-			pOut->start_date.hour << ":" <<
-			pOut->start_date.minute << ":" <<
-			pOut->start_date.second << endl <<
-			"- ex_date: " << pOut->ex_date.year << "-" <<
-			pOut->ex_date.month << "-" <<
-			pOut->ex_date.day << " " << pOut->ex_date.hour <<
-			":" << pOut->ex_date.minute << ":" <<
-			pOut->ex_date.second << endl <<
-			"- pe_ratio: " << pOut->pe_ratio << endl <<
-			"- s52_wk_high: " << pOut->s52_wk_high << endl <<
-			"- s52_wk_high_date: " << pOut->s52_wk_high_date.year <<
-			"-" << pOut->s52_wk_high_date.month << "-" <<
-			pOut->s52_wk_high_date.day << " " <<
-			pOut->s52_wk_high_date.hour << ":" <<
-			pOut->s52_wk_high_date.minute << ":" <<
-			pOut->s52_wk_high_date.second << endl <<
-			"- s52_wk_low: " << pOut->s52_wk_low << endl <<
-			"- s52_wk_low_date: " << pOut->s52_wk_low_date.year <<
-			"-" << pOut->s52_wk_low_date.month << "-" <<
-			pOut->s52_wk_low_date.day << " " <<
-			pOut->s52_wk_low_date.hour << ":" <<
-			pOut->s52_wk_low_date.minute << ":" <<
-			pOut->s52_wk_low_date.second << endl <<
-			"- divid: " << pOut->divid << endl <<
-			"- yield: " << pOut->yield << endl <<
-			"- ex_ad_div: " << pOut->ex_ad_div << endl <<
-			"- ex_ad_cty: " << pOut->ex_ad_cty << endl <<
-			"- ex_ad_line1: " << pOut->ex_ad_line1 << endl <<
-			"- ex_ad_line2: " << pOut->ex_ad_line2 << endl <<
-			"- ex_ad_town: " << pOut->ex_ad_town << endl <<
-			"- ex_ad_zip: " << pOut->ex_ad_zip << endl <<
-			"- ex_close: " << pOut->ex_close << endl <<
-			"- ex_desc: " << pOut->ex_desc << endl <<
-			"- ex_name: " << pOut->ex_name << endl <<
-			"- ex_num_symb: " << pOut->ex_num_symb << endl <<
-			"- ex_open: " << pOut->ex_open << endl;
+	cout << ">>> SDF1" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Security Detail Frame 1 (input)" << endl <<
+			"-- access_lob_flag: " << pIn->access_lob_flag << endl <<
+			"-- start_day: " << pIn->start_day.year << "-" <<
+					pIn->start_day.month << "-" << pIn->start_day.day << " " <<
+					pIn->start_day.hour << ":" << pIn->start_day.minute <<
+					":" << pIn->start_day.second << endl <<
+			"-- max_rows_to_return: " << pIn->max_rows_to_return << endl <<
+			"-- symbol: "<<pIn->symbol<<endl;
+	cout << "- Security Detail Frame 1 (output)" << endl <<
+			"-- fin_len: " << pOut->fin_len << endl <<
+			"-- day_len: " << pOut->day_len << endl <<
+			"-- news_len: " << pOut->news_len << endl <<
+			"-- cp_co_name[0]: " << pOut->cp_co_name[0] << endl <<
+			"-- cp_in_name[0]: " << pOut->cp_in_name[0] << endl <<
+			"-- fin[0].year: " << pOut->fin[0].year << endl <<
+			"-- fin[0].qtr: " << pOut->fin[0].qtr << endl <<
+			"-- fin[0].start_date: " << pOut->fin[0].start_date.year <<
+					"-" << pOut->fin[0].start_date.month << "-" <<
+					pOut->fin[0].start_date.day << " " <<
+					pOut->fin[0].start_date.hour << ":" <<
+					pOut->fin[0].start_date.minute << ":" <<
+					pOut->fin[0].start_date.second << endl <<
+			"-- fin[0].rev: "<<pOut->fin[0].rev << endl <<
+			"-- fin[0].net_earn: " << pOut->fin[0].net_earn << endl <<
+			"-- fin[0].basic_eps: " << pOut->fin[0].basic_eps << endl <<
+			"-- fin[0].dilut_eps: " << pOut->fin[0].dilut_eps << endl <<
+			"-- fin[0].margin: " << pOut->fin[0].margin << endl <<
+			"-- fin[0].invent: " << pOut->fin[0].invent << endl <<
+			"-- fin[0].assets: " << pOut->fin[0].assets << endl <<
+			"-- fin[0].liab: " << pOut->fin[0].liab << endl <<
+			"-- fin[0].out_basic: " << pOut->fin[0].out_basic << endl <<
+			"-- fin[0].out_dilut: " << pOut->fin[0].out_dilut << endl <<
+			"-- day[0].date: " << pOut->day[0].date.year << "-" <<
+					pOut->day[0].date.month << "-" <<
+					pOut->day[0].date.day << " " <<
+					pOut->day[0].date.hour << ":" <<
+					pOut->day[0].date.minute << ":" <<
+					pOut->day[0].date.second << endl <<
+			"-- day[0].close: " << pOut->day[0].close << endl <<
+			"-- day[0].high: " << pOut->day[0].high << endl <<
+			"-- day[0].low: " << pOut->day[0].low << endl <<
+			"-- day[0].vol: " << pOut->day[0].vol << endl <<
+			"-- news[0].item: " << pOut->news[0].item << endl <<
+			"-- news[0].dts: " << pOut->news[0].dts.year << "-" <<
+					pOut->news[0].dts.month << "-" <<
+					pOut->news[0].dts.day << " " <<
+					pOut->news[0].dts.hour << ":" <<
+					pOut->news[0].dts.minute << ":" <<
+					pOut->news[0].dts.second << endl <<
+			"-- news[0].src: " << pOut->news[0].src << endl <<
+			"-- news[0].auth: " << pOut->news[0].auth << endl <<
+			"-- news[0].headline: " << pOut->news[0].headline << endl <<
+			"-- news[0].summary: " << pOut->news[0].summary << endl <<
+			"-- last_price: " << pOut->last_price << endl <<
+			"-- last_open: " << pOut->last_open << endl <<
+			"-- last_vol: " << pOut->last_vol << endl <<
+			"-- s_name: " << pOut->s_name << endl <<
+			"-- co_name: " << pOut->co_name << endl <<
+			"-- sp_rate: " << pOut->sp_rate << endl <<
+			"-- ceo_name: " << pOut->ceo_name << endl <<
+			"-- co_desc: " << pOut->co_desc << endl <<
+			"-- open_date: " << pOut->open_date.year << "-" <<
+					pOut->open_date.month << "-" <<
+					pOut->open_date.day << " " <<
+					pOut->open_date.hour << ":" <<
+					pOut->open_date.minute << ":" <<
+					pOut->open_date.second << endl <<
+			"-- co_st_id: " << pOut->co_st_id << endl <<
+			"-- co_ad_line1: " << pOut->co_ad_line1 << endl <<
+			"-- co_ad_line2: " << pOut->co_ad_line2 << endl <<
+			"-- co_ad_town: " << pOut->co_ad_town << endl <<
+			"-- co_ad_div: " << pOut->co_ad_div << endl <<
+			"-- co_ad_zip: " << pOut->co_ad_zip << endl <<
+			"-- co_ad_cty: " << pOut->co_ad_cty << endl <<
+			"-- num_out: " << pOut->num_out << endl <<
+			"-- start_date: " << pOut->start_date.year << "-" <<
+					pOut->start_date.month << "-" <<
+					pOut->start_date.day << " " <<
+					pOut->start_date.hour << ":" <<
+					pOut->start_date.minute << ":" <<
+					pOut->start_date.second << endl <<
+			"-- ex_date: " << pOut->ex_date.year << "-" <<
+					pOut->ex_date.month << "-" <<
+					pOut->ex_date.day << " " << pOut->ex_date.hour <<
+					":" << pOut->ex_date.minute << ":" <<
+					pOut->ex_date.second << endl <<
+			"-- pe_ratio: " << pOut->pe_ratio << endl <<
+			"-- s52_wk_high: " << pOut->s52_wk_high << endl <<
+			"-- s52_wk_high_date: " << pOut->s52_wk_high_date.year <<
+					"-" << pOut->s52_wk_high_date.month << "-" <<
+					pOut->s52_wk_high_date.day << " " <<
+					pOut->s52_wk_high_date.hour << ":" <<
+					pOut->s52_wk_high_date.minute << ":" <<
+					pOut->s52_wk_high_date.second << endl <<
+			"-- s52_wk_low: " << pOut->s52_wk_low << endl <<
+			"-- s52_wk_low_date: " << pOut->s52_wk_low_date.year <<
+					"-" << pOut->s52_wk_low_date.month << "-" <<
+					pOut->s52_wk_low_date.day << " " <<
+					pOut->s52_wk_low_date.hour << ":" <<
+					pOut->s52_wk_low_date.minute << ":" <<
+					pOut->s52_wk_low_date.second << endl <<
+			"-- divid: " << pOut->divid << endl <<
+			"-- yield: " << pOut->yield << endl <<
+			"-- ex_ad_div: " << pOut->ex_ad_div << endl <<
+			"-- ex_ad_cty: " << pOut->ex_ad_cty << endl <<
+			"-- ex_ad_line1: " << pOut->ex_ad_line1 << endl <<
+			"-- ex_ad_line2: " << pOut->ex_ad_line2 << endl <<
+			"-- ex_ad_town: " << pOut->ex_ad_town << endl <<
+			"-- ex_ad_zip: " << pOut->ex_ad_zip << endl <<
+			"-- ex_close: " << pOut->ex_close << endl <<
+			"-- ex_desc: " << pOut->ex_desc << endl <<
+			"-- ex_name: " << pOut->ex_name << endl <<
+			"-- ex_num_symb: " << pOut->ex_num_symb << endl <<
+			"-- ex_open: " << pOut->ex_open << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }

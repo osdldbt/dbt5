@@ -15,10 +15,6 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 		const TDataMaintenanceFrame1Input *pIn,
 		TDataMaintenanceFrame1Output *pOut)
 {
-#ifdef DEBUG
-	cout << "DMF1" << endl;
-#endif
-
 	ostringstream osCall;
 	osCall << "SELECT * FROM DataMaintenanceFrame1(" <<
 			pIn->acct_id << ", " <<
@@ -41,16 +37,18 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout << "Data Maintenance Frame 1 (input)" << endl <<
-			"- c_id: " << pIn->c_id << endl <<
-			"- co_id: " << pIn->co_id << endl <<
-			"- day_of_month: " << pIn->day_of_month << endl <<
-			"- symbol: " << pIn->symbol << endl <<
-			"- table_name: " << pIn->table_name << endl <<
-			"- tx_id name: " << pIn->tx_id << endl <<
-			"- vol_incr: " << pIn->vol_incr << endl;
-	cout << "Data Maintenance Frame 1 (output)" << endl <<
-			"- status: " << pOut->status << endl;
+	cout << ">>> DMF1" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Data Maintenance Frame 1 (input)" << endl <<
+			"-- c_id: " << pIn->c_id << endl <<
+			"-- co_id: " << pIn->co_id << endl <<
+			"-- day_of_month: " << pIn->day_of_month << endl <<
+			"-- symbol: " << pIn->symbol << endl <<
+			"-- table_name: " << pIn->table_name << endl <<
+			"-- tx_id name: " << pIn->tx_id << endl <<
+			"-- vol_incr: " << pIn->vol_incr << endl;
+	cout << "- Data Maintenance Frame 1 (output)" << endl <<
+			"-- status: " << pOut->status << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }

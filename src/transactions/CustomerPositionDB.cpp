@@ -15,10 +15,6 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 		const TCustomerPositionFrame1Input *pIn,
 		TCustomerPositionFrame1Output *pOut)
 {
-#ifdef DEBUG
-	cout << "CPF1" << endl;
-#endif
-
 	ostringstream osCall;
 	osCall << "SELECT * FROM CustomerPositionFrame1(" <<
 			pIn->cust_id << ",'" <<
@@ -111,43 +107,44 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout<<"Customer Position Frame 1 (input)"<<endl
-	    <<"- cust_id: "<<pIn->cust_id<<endl
-	    <<"- tax_id: "<<pIn->tax_id<<endl;
-	cout << "Customer Position Frame 1 (output)" << endl <<
-			"- cust_id: " << pOut->cust_id << endl <<
-			"- acct_len: " << pOut->acct_len << endl;
+	cout << ">>> CPF1" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Customer Position Frame 1 (input)" << endl <<
+			"-- cust_id: " << pIn->cust_id << endl <<
+			"-- tax_id: " << pIn->tax_id << endl;
+	cout << "- Customer Position Frame 1 (output)" << endl <<
+			"-- cust_id: " << pOut->cust_id << endl <<
+			"-- acct_len: " << pOut->acct_len << endl;
 	for (int i = 0; i < pOut->acct_len; i++) {
-		cout << "- acct_id[" << i << "]: " << pOut->acct_id[i] << endl <<
-				"- cash_bal[" << i << "]: " << pOut->cash_bal[i] << endl <<
-				"- asset_total[" << i << "]: " << pOut->asset_total[i] << endl;
+		cout << "-- acct_id[" << i << "]: " << pOut->acct_id[i] << endl <<
+				"-- cash_bal[" << i << "]: " << pOut->cash_bal[i] << endl <<
+				"-- asset_total[" << i << "]: " << pOut->asset_total[i] << endl;
 	}
-	cout << "- c_st_id: " << pOut->c_st_id << endl <<
-			"- c_l_name: " << pOut->c_l_name << endl <<
-			"- c_f_name: " << pOut->c_f_name << endl <<
-			"- c_m_name: " << pOut->c_m_name << endl <<
-			"- c_gndr: " << pOut->c_gndr << endl <<
-			"- c_tier: " << pOut->c_tier << endl <<
-			"- c_dob: " << pOut->c_dob.year << "-" <<
-			pOut->c_dob.month << "-" << pOut->c_dob.day <<
-			" " << pOut->c_dob.hour << ":" <<
-			pOut->c_dob.minute << ":" << pOut->c_dob.second <<
-			endl <<
-			"- c_ad_id: " << pOut->c_ad_id << endl <<
-			"- c_ctry_1: " << pOut->c_ctry_1 << endl <<
-			"- c_area_1: " << pOut->c_area_1 << endl <<
-			"- c_local_1: " << pOut->c_local_1 << endl <<
-			"- c_ext_1: " << pOut->c_ext_1 << endl <<
-			"- c_ctry_2: " << pOut->c_ctry_2 << endl <<
-			"- c_area_2: " << pOut->c_area_2 << endl <<
-			"- c_local_2: " << pOut->c_local_2 << endl <<
-			"- c_ext_2: " << pOut->c_ext_2 << endl <<
-			"- c_ctry_3: " << pOut->c_ctry_3 << endl <<
-			"- c_area_3: " << pOut->c_area_3 << endl <<
-			"- c_local_3: " << pOut->c_local_3 << endl <<
-			"- c_ext_3: " << pOut->c_ext_3 << endl <<
-			"- c_email_1: " << pOut->c_email_1 << endl <<
-			"- c_email_2: " << pOut->c_email_2 << endl;
+	cout << "-- c_st_id: " << pOut->c_st_id << endl <<
+			"-- c_l_name: " << pOut->c_l_name << endl <<
+			"-- c_f_name: " << pOut->c_f_name << endl <<
+			"-- c_m_name: " << pOut->c_m_name << endl <<
+			"-- c_gndr: " << pOut->c_gndr << endl <<
+			"-- c_tier: " << pOut->c_tier << endl <<
+			"-- c_dob: " << pOut->c_dob.year << "-" << pOut->c_dob.month <<
+					"-" << pOut->c_dob.day << " " << pOut->c_dob.hour <<
+					":" << pOut->c_dob.minute << ":" << pOut->c_dob.second <<
+					endl <<
+			"-- c_ad_id: " << pOut->c_ad_id << endl <<
+			"-- c_ctry_1: " << pOut->c_ctry_1 << endl <<
+			"-- c_area_1: " << pOut->c_area_1 << endl <<
+			"-- c_local_1: " << pOut->c_local_1 << endl <<
+			"-- c_ext_1: " << pOut->c_ext_1 << endl <<
+			"-- c_ctry_2: " << pOut->c_ctry_2 << endl <<
+			"-- c_area_2: " << pOut->c_area_2 << endl <<
+			"-- c_local_2: " << pOut->c_local_2 << endl <<
+			"-- c_ext_2: " << pOut->c_ext_2 << endl <<
+			"-- c_ctry_3: " << pOut->c_ctry_3 << endl <<
+			"-- c_area_3: " << pOut->c_area_3 << endl <<
+			"-- c_local_3: " << pOut->c_local_3 << endl <<
+			"-- c_ext_3: " << pOut->c_ext_3 << endl <<
+			"-- c_email_1: " << pOut->c_email_1 << endl <<
+			"-- c_email_2: " << pOut->c_email_2 << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }
@@ -157,10 +154,6 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 		const TCustomerPositionFrame2Input *pIn,
 		TCustomerPositionFrame2Output *pOut)
 {
-#ifdef DEBUG
-	cout << "CPF2" << endl;
-#endif
-
 	enum cpf2 {
 			i_hist_dts=0, i_hist_len, i_qty, i_status, i_symbol,
 			i_trade_id, i_trade_status
@@ -237,20 +230,21 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout<<"Customer Position Frame 2 (input)"<<endl
-	    <<"- cust_id: "<<pIn->acct_id<<endl;
-	cout<<"Customer Position Frame 2 (output)"<<endl
-	    <<"- hist_len: "<<pOut->hist_len<<endl
-	    <<"- trade_id[0]: "<<pOut->trade_id[0]<<endl
-	    <<"- symbol[0]: "<<pOut->symbol[0]<<endl
-	    <<"- qty[0]: "<<pOut->qty[0]<<endl
-	    <<"- trade_status[0]: "<<pOut->trade_status[0]<<endl
-	    <<"- hist_dts[0]: "<<pOut->hist_dts[0].year<<"-"<<
-		pOut->hist_dts[0].month<<"-"<<
-		pOut->hist_dts[0].day<<" "<<
-		pOut->hist_dts[0].hour<<":"<<
-		pOut->hist_dts[0].minute<<":"<<
-		pOut->hist_dts[0].second<<endl;
+	cout << ">>> CPF2" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Customer Position Frame 2 (input)" << endl <<
+			"-- cust_id: " << pIn->acct_id << endl;
+	cout << "- Customer Position Frame 2 (output)" << endl <<
+			"-- hist_len: " << pOut->hist_len << endl <<
+			"-- trade_id[0]: " << pOut->trade_id[0] << endl <<
+			"-- symbol[0]: " << pOut->symbol[0] << endl <<
+			"-- qty[0]: " << pOut->qty[0] << endl <<
+			"-- trade_status[0]: " << pOut->trade_status[0] << endl <<
+			"-- hist_dts[0]: " << pOut->hist_dts[0].year << "-" <<
+					pOut->hist_dts[0].month << "-" << pOut->hist_dts[0].day <<
+					" " << pOut->hist_dts[0].hour << ":" <<
+					pOut->hist_dts[0].minute << ":" <<
+					pOut->hist_dts[0].second << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }
@@ -260,10 +254,9 @@ void CCustomerPositionDB::DoCustomerPositionFrame3(
 		TCustomerPositionFrame3Output *pOut)
 {
 #ifdef DEBUG
-	cout << "CPF3" << endl;
+	cout << ">>> CPF3" << endl;
 #endif
 
 	// commit the transaction we are inside
 	CommitTxn();
-	//pFrame3Output->status = CBaseTxnErr::SUCCESS;
 }

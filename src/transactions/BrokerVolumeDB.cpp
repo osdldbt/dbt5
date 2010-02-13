@@ -14,10 +14,6 @@ using namespace TPCE;
 void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 		TBrokerVolumeFrame1Output *pOut)
 {
-#ifdef DEBUG
-	cout << "BVF1" << endl;
-#endif
-
 	ostringstream osBrokers;
 	int i = 0;
 
@@ -66,13 +62,15 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout<<"Broker Volume Frame 1 (input)"<<endl
-	    <<"- broker_list: "<<osBrokers.str()<<endl
-	    <<"- sector name: "<<pIn->sector_name<<endl;
-	cout<<"Broker Volume Frame 1 (output)"<<endl
-	    <<"- list_len: "<<pOut->list_len<<endl
-	    <<"- broker_name[0]: "<<pOut->broker_name[0]<<endl
-	    <<"- volume[0]: "<<pOut->volume[0]<<endl;
+	cout << ">>> BVF1" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Broker Volume Frame 1 (input)" << endl <<
+		"-- broker_list: " << osBrokers.str() << endl <<
+		"-- sector name: " << pIn->sector_name << endl;
+	cout << "- Broker Volume Frame 1 (output)" << endl <<
+		"-- list_len: " << pOut->list_len << endl <<
+		"-- broker_name[0]: " << pOut->broker_name[0] << endl <<
+		"-- volume[0]: " << pOut->volume[0] << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }

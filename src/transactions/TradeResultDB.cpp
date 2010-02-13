@@ -15,10 +15,6 @@ void CTradeResultDB::DoTradeResultFrame1(
 		const TTradeResultFrame1Input *pIn,
 		TTradeResultFrame1Output *pOut)
 {
-#ifdef DEBUG
-	cout << "TRF1" << endl;
-#endif
-
 	ostringstream osCall;
 	osCall << "SELECT * FROM TradeResultFrame1(" << pIn->trade_id << ")";
 
@@ -54,20 +50,22 @@ void CTradeResultDB::DoTradeResultFrame1(
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout<<"Trade Result Frame 1 (input)"<<endl
-	    <<"- trade_id: "<<pIn->trade_id<<endl;
-	cout<<"Trade Result Frame 1 (output)"<<endl
-	    <<"- acct_id: "<<pOut->acct_id <<endl
-	    <<"- charge: "<<pOut->charge<<endl
-	    <<"- hs_qty: "<<pOut->hs_qty<<endl
-	    <<"- is_lifo: "<<pOut->is_lifo<<endl
-	    <<"- symbol: "<<pOut->symbol<<endl
-	    <<"- trade_is_cash: "<<pOut->trade_is_cash<<endl
-	    <<"- trade_qty: "<<pOut->trade_qty<<endl
-	    <<"- type_id: "<<pOut->type_id<<endl
-	    <<"- type_is_market: "<<pOut->type_is_market<<endl
-	    <<"- type_is_sell: "<<pOut->type_is_sell<<endl
-	    <<"- type_name: "<<pOut->type_name<<endl;
+	cout << ">>> TRF1" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Trade Result Frame 1 (input)" << endl <<
+			"-- trade_id: " << pIn->trade_id << endl;
+	cout << "- Trade Result Frame 1 (output)" << endl <<
+			"-- acct_id: " << pOut->acct_id << endl <<
+			"-- charge: " << pOut->charge << endl <<
+			"-- hs_qty: " << pOut->hs_qty << endl <<
+			"-- is_lifo: " << pOut->is_lifo << endl <<
+			"-- symbol: " << pOut->symbol << endl <<
+			"-- trade_is_cash: " << pOut->trade_is_cash << endl <<
+			"-- trade_qty: " << pOut->trade_qty << endl <<
+			"-- type_id: " << pOut->type_id << endl <<
+			"-- type_is_market: " << pOut->type_is_market << endl <<
+			"-- type_is_sell: " << pOut->type_is_sell << endl <<
+			"-- type_name: " << pOut->type_name << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }
@@ -77,10 +75,6 @@ void CTradeResultDB::DoTradeResultFrame2(
 		const TTradeResultFrame2Input *pIn,
 		TTradeResultFrame2Output *pOut)
 {
-#ifdef DEBUG
-	cout << "TRF2" << endl;
-#endif
-
 	ostringstream osCall;
 	osCall << "SELECT * FROM TradeResultFrame2(" <<
 			pIn->acct_id << "," <<
@@ -120,27 +114,29 @@ void CTradeResultDB::DoTradeResultFrame2(
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout<<"Trade Result Frame 2 (input)"<<endl
-	    <<"- acct_id:"<<pIn->acct_id<<endl
-	    <<"- hs_qty:"<<pIn->hs_qty<<endl
-	    <<"- is_lifo:"<<pIn->is_lifo<<endl
-	    <<"- symbol:"<<pIn->symbol<<endl
-	    <<"- trade_id:"<<pIn->trade_id<<endl
-	    <<"- trade_price:"<<pIn->trade_price<<endl
-	    <<"- trade_qty:"<<pIn->trade_qty<<endl
-	    <<"- type_is_sell:"<<pIn->type_is_sell<<endl;
-	cout << "Trade Result Frame 2 (output)" << endl <<
-		"- broker_id: " << pOut->broker_id << endl <<
-		"- buy_value: " << pOut->buy_value << endl <<
-		"- cust_id: " << pOut->cust_id << endl <<
-		"- sell_value: " << pOut->sell_value << endl <<
-		"- status: " << pOut->status << endl <<
-		"- tax_status: " << pOut->tax_status << endl <<
-		"- trade_dts: (" << c[6].c_str() << ") " <<
-		pOut->trade_dts.year << "-" << pOut->trade_dts.month << "-" <<
-		pOut->trade_dts.day << " " << pOut->trade_dts.hour << ":" <<
-		pOut->trade_dts.minute << ":" <<
-		pOut->trade_dts.second << endl;
+	cout << ">>> TRF2" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Trade Result Frame 2 (input)" << endl <<
+			"-- acct_id:" << pIn->acct_id << endl <<
+			"-- hs_qty:" << pIn->hs_qty << endl <<
+			"-- is_lifo:" << pIn->is_lifo << endl <<
+			"-- symbol:" << pIn->symbol << endl <<
+			"-- trade_id:" << pIn->trade_id << endl <<
+			"-- trade_price:" << pIn->trade_price << endl <<
+			"-- trade_qty:" << pIn->trade_qty << endl <<
+			"-- type_is_sell:" << pIn->type_is_sell << endl;
+	cout << "- Trade Result Frame 2 (output)" << endl <<
+			"-- broker_id: " << pOut->broker_id << endl <<
+			"-- buy_value: " << pOut->buy_value << endl <<
+			"-- cust_id: " << pOut->cust_id << endl <<
+			"-- sell_value: " << pOut->sell_value << endl <<
+			"-- status: " << pOut->status << endl <<
+			"-- tax_status: " << pOut->tax_status << endl <<
+			"-- trade_dts: (" << c[6].c_str() << ") " <<
+					pOut->trade_dts.year << "-" << pOut->trade_dts.month <<
+					"-" << pOut->trade_dts.day << " " <<
+					pOut->trade_dts.hour << ":" << pOut->trade_dts.minute <<
+					":" << pOut->trade_dts.second << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }
@@ -150,10 +146,6 @@ void CTradeResultDB::DoTradeResultFrame3(
 		const TTradeResultFrame3Input *pIn,
 		TTradeResultFrame3Output *pOut)
 {
-#ifdef DEBUG
-	cout << "TRF3" << endl;
-#endif
-
 	ostringstream osCall;
 	osCall << "SELECT * FROM TradeResultFrame3(" <<
 			pIn->buy_value << "," <<
@@ -178,13 +170,15 @@ void CTradeResultDB::DoTradeResultFrame3(
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout<<"Trade Result Frame 3 (input)"<<endl
-	    <<"- buy_value:"<<pIn->buy_value<<endl
-	    <<"- cust_id:"<<pIn->cust_id<<endl
-	    <<"- sell_value:"<<pIn->sell_value<<endl
-	    <<"- trade_id:"<<pIn->trade_id<<endl;
-	cout<<"Trade Result Frame 3 (output)"<<endl
-	    <<"- tax_amount:"<<pOut->tax_amount<<endl;
+	cout << ">>> TRF3" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "--Trade Result Frame 3 (input)" << endl <<
+			"-- buy_value:" << pIn->buy_value << endl <<
+			"-- cust_id:" << pIn->cust_id << endl <<
+			"-- sell_value:" << pIn->sell_value << endl <<
+			"-- trade_id:" << pIn->trade_id << endl;
+	cout << "- Trade Result Frame 3 (output)" << endl <<
+			"-- tax_amount:" << pOut->tax_amount << endl;
 	m_coutLock.unlock();
 #endif //DEBUG
 }
@@ -194,10 +188,6 @@ void CTradeResultDB::DoTradeResultFrame4(
 		const TTradeResultFrame4Input *pIn,
 		TTradeResultFrame4Output *pOut)
 {
-#ifdef DEBUG
-	cout << "TRF4" << endl;
-#endif
-
 	ostringstream osCall;
 	osCall << "SELECT * FROM TradeResultFrame4(" <<
 			pIn->cust_id << ",'" <<
@@ -223,14 +213,16 @@ void CTradeResultDB::DoTradeResultFrame4(
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout<<"Trade Result Frame 4 (input)"<<endl
-	    <<"- cust_id:"<<pIn->cust_id<<endl
-	    <<"- symbol:"<<pIn->symbol<<endl
-	    <<"- trade_qty:"<<pIn->trade_qty<<endl
-	    <<"- type_id:"<<pIn->type_id<<endl;
-	cout<<"Trade Result Frame 4 (output)"<<endl
-	    <<"- comm_rate:"<<pOut->comm_rate<<endl
-	    <<"- s_name:"<<pOut->s_name<<endl;
+	cout << ">>> TRF4" << endl;
+	cout << "***" << osCall.str() << endl;
+	cout << "- Trade Result Frame 4 (input)" << endl <<
+			"-- cust_id:" << pIn->cust_id << endl <<
+			"-- symbol:" << pIn->symbol << endl <<
+			"-- trade_qty:" << pIn->trade_qty << endl <<
+			"-- type_id:" << pIn->type_id << endl;
+	cout << "- Trade Result Frame 4 (output)" << endl <<
+			"-- comm_rate:" << pOut->comm_rate << endl <<
+			"-- s_name:" << pOut->s_name << endl;
 	m_coutLock.unlock();
 #endif //DEBUG
 }
@@ -240,27 +232,6 @@ void CTradeResultDB::DoTradeResultFrame5(
 		const TTradeResultFrame5Input *pIn,
 		TTradeResultFrame5Output *pOut)
 {
-#ifdef DEBUG
-	cout << "TRF5" << endl;
-#endif
-
-#ifdef DEBUG
-	m_coutLock.lock();
-	cout << "Trade Result Frame 5 (input)" << endl <<
-			"- broker_id:" << pIn->broker_id << endl <<
-			"- comm_amount:" << pIn->comm_amount << endl <<
-			"- st_completed_id:" << pIn->st_completed_id << endl <<
-			"- trade_dts: " << pIn->trade_dts.year << "-" <<
-			pIn->trade_dts.month << "-" <<
-			pIn->trade_dts.day << " " <<
-			pIn->trade_dts.hour << ":" <<
-			pIn->trade_dts.minute << ":" <<
-			pIn->trade_dts.second << endl <<
-			"- trade_id:" << pIn->trade_id << endl <<
-			"- trade_price:" << pIn->trade_price << endl;
-	m_coutLock.unlock();
-#endif //DEBUG
-
 	ostringstream osCall;
 	osCall << "SELECT * FROM TradeResultFrame5(" <<
 			pIn->broker_id << "," <<
@@ -287,6 +258,27 @@ void CTradeResultDB::DoTradeResultFrame5(
 	result::const_iterator c = R.begin();
 
 	pOut->status = c[0].as(int());
+
+#ifdef DEBUG
+	m_coutLock.lock();
+	cout << ">>> TRF5" << endl;
+	cout << "*** " << osCall.str() <<endl;
+	cout << "- Trade Result Frame 5 (input)" << endl <<
+			"-- broker_id:" << pIn->broker_id << endl <<
+			"-- comm_amount:" << pIn->comm_amount << endl <<
+			"-- st_completed_id:" << pIn->st_completed_id << endl <<
+			"-- trade_dts: " << pIn->trade_dts.year << "-" <<
+					pIn->trade_dts.month << "-" <<
+					pIn->trade_dts.day << " " <<
+					pIn->trade_dts.hour << ":" <<
+					pIn->trade_dts.minute << ":" <<
+					pIn->trade_dts.second << endl <<
+			"-- trade_id:" << pIn->trade_id << endl <<
+			"-- trade_price:" << pIn->trade_price << endl;
+	cout << "- Trade Result Frame 5 (output)" << endl <<
+			"-- stats:" << pOut->status << endl;
+	m_coutLock.unlock();
+#endif //DEBUG
 }
 
 // Call Trade Result Frame 6
@@ -294,10 +286,6 @@ void CTradeResultDB::DoTradeResultFrame6(
 		const TTradeResultFrame6Input *pIn,
 		TTradeResultFrame6Output *pOut)
 {
-#ifdef DEBUG
-	cout << "TRF6" << endl;
-#endif
-
 	ostringstream osCall;
 	osCall << "SELECT * FROM TradeResultFrame6(" <<
 			pIn->acct_id << ",'" <<
@@ -338,27 +326,29 @@ void CTradeResultDB::DoTradeResultFrame6(
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout << "Trade Result Frame 6 (input)" << endl <<
-			"- acct_id:" << pIn->acct_id << endl <<
-			"- due_date: " << pIn->due_date.year << "-" <<
-			pIn->due_date.month << "-" << pIn->due_date.day <<
-			" " << pIn->due_date.hour << ":" <<
-			pIn->due_date.minute << ":" <<
-			pIn->due_date.second << endl <<
-			"- s_name:" << pIn->s_name << endl <<
-			"- se_amount:" << pIn->se_amount << endl <<
-			"- trade_dts: " << pIn->trade_dts.year << "-" <<
-			pIn->trade_dts.month << "-" <<
-			pIn->trade_dts.day << " " <<
-			pIn->trade_dts.hour << ":" <<
-			pIn->trade_dts.minute << ":" <<
-			pIn->trade_dts.second << endl <<
-			"- trade_id:" << pIn->trade_id << endl <<
-			"- trade_is_cash:" << pIn->trade_is_cash << endl <<
-			"- trade_qty:" << pIn->trade_qty << endl <<
-			"- type_name:" << pIn->type_name << endl;
-	cout<<"Trade Result Frame 6 (output)"<<endl
-	    <<"- acct_bal:"<<pOut->acct_bal<<endl;
+	cout << ">>> TRF6" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Trade Result Frame 6 (input)" << endl <<
+			"-- acct_id:" << pIn->acct_id << endl <<
+			"-- due_date: " << pIn->due_date.year << "-" <<
+					pIn->due_date.month << "-" << pIn->due_date.day <<
+					" " << pIn->due_date.hour << ":" <<
+					pIn->due_date.minute << ":" <<
+					pIn->due_date.second << endl <<
+			"-- s_name:" << pIn->s_name << endl <<
+			"-- se_amount:" << pIn->se_amount << endl <<
+			"-- trade_dts: " << pIn->trade_dts.year << "-" <<
+					pIn->trade_dts.month << "-" <<
+					pIn->trade_dts.day << " " <<
+					pIn->trade_dts.hour << ":" <<
+					pIn->trade_dts.minute << ":" <<
+					pIn->trade_dts.second << endl <<
+			"-- trade_id:" << pIn->trade_id << endl <<
+			"-- trade_is_cash:" << pIn->trade_is_cash << endl <<
+			"-- trade_qty:" << pIn->trade_qty << endl <<
+			"-- type_name:" << pIn->type_name << endl;
+	cout << "Trade Result Frame 6 (output)" << endl <<
+			"- acct_bal:" << pOut->acct_bal << endl;
 	m_coutLock.unlock();
 #endif //DEBUG
 }

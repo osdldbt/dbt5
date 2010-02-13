@@ -14,10 +14,6 @@ using namespace TPCE;
 void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 		TTradeStatusFrame1Output *pOut)
 {
-#ifdef DEBUG
-	cout << "TSF1" << endl;
-#endif
-
 	enum tsf1 {                                                             
 			i_broker_name=0, i_charge, i_cust_f_name, i_cust_l_name,        
 			i_ex_name, i_exec_name, i_s_name, i_status, i_status_name,      
@@ -125,27 +121,29 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout << "Trade Status Frame 1 (input)" << endl <<
-			"- acct_id: " << pIn->acct_id << endl;
-	cout << "Trade Status Frame 1 (output)" << endl <<
-			"- cust_l_name: " << pOut->cust_l_name << endl <<
-			"- cust_f_name: " << pOut->cust_f_name << endl <<
-			"- broker_name: " << pOut->broker_name << endl <<
-			"- charge[0]: " << pOut->charge[0] << endl <<
-			"- exec_name[0]: " << pOut->exec_name[0] << endl <<
-			"- ex_name[0]: " << pOut->ex_name[0] << endl <<
-			"- s_name[0]: " << pOut->s_name[0] << endl <<
-			"- status_name[0]: " << pOut->status_name[0] << endl <<
-			"- symbol[0]: " << pOut->symbol[0] << endl <<
-			"- trade_dts[0]: " << pOut->trade_dts[0].year << "-" <<
-			pOut->trade_dts[0].month << "-" <<
-			pOut->trade_dts[0].day << " " <<
-			pOut->trade_dts[0].hour << ":" <<
-			pOut->trade_dts[0].minute << ":" <<
-			pOut->trade_dts[0].second << endl <<
-			"- trade_id[0]: " << pOut->trade_id[0] << endl <<
-			"- trade_qty[0]: " << pOut->trade_qty[0] << endl <<
-			"- type_name[0]: " << pOut->type_name[0] << endl;
+	cout << ">>> TSF1" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Trade Status Frame 1 (input)" << endl <<
+			"-- acct_id: " << pIn->acct_id << endl;
+	cout << "- Trade Status Frame 1 (output)" << endl <<
+			"-- cust_l_name: " << pOut->cust_l_name << endl <<
+			"-- cust_f_name: " << pOut->cust_f_name << endl <<
+			"-- broker_name: " << pOut->broker_name << endl <<
+			"-- charge[0]: " << pOut->charge[0] << endl <<
+			"-- exec_name[0]: " << pOut->exec_name[0] << endl <<
+			"-- ex_name[0]: " << pOut->ex_name[0] << endl <<
+			"-- s_name[0]: " << pOut->s_name[0] << endl <<
+			"-- status_name[0]: " << pOut->status_name[0] << endl <<
+			"-- symbol[0]: " << pOut->symbol[0] << endl <<
+			"-- trade_dts[0]: " << pOut->trade_dts[0].year << "-" <<
+					pOut->trade_dts[0].month << "-" <<
+					pOut->trade_dts[0].day << " " <<
+					pOut->trade_dts[0].hour << ":" <<
+					pOut->trade_dts[0].minute << ":" <<
+					pOut->trade_dts[0].second << endl <<
+			"-- trade_id[0]: " << pOut->trade_id[0] << endl <<
+			"-- trade_qty[0]: " << pOut->trade_qty[0] << endl <<
+			"-- type_name[0]: " << pOut->type_name[0] << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }

@@ -14,10 +14,6 @@ using namespace TPCE;
 void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 		TTradeUpdateFrame1Output *pOut)
 {
-#ifdef DEBUG
-	cout << "TUF1" << endl;
-#endif
-
 	enum tuf1 {
 			i_bid_price=0, i_cash_transaction_amount,
 			i_cash_transaction_dts, i_cash_transaction_name, i_exec_name,
@@ -168,74 +164,72 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout<<"Trade Update Frame 1 (input)"<<endl
-	    <<"- max_trades: "<<pIn->max_trades<<endl
-	    <<"- max_updates: "<<pIn->max_updates<<endl
-	    <<"- Trades: {"<<osTrades.str()<<"}"<<endl;
-	cout << "Trade Update Frame 1 (output)" << endl <<
-			"- num_found: " << pOut->num_found << endl <<
-			"- num_updated: " << pOut->num_updated << endl <<
-			"- bid_price[0]: " << pOut->trade_info[0].bid_price <<
-			endl <<
-			"- exec_name[0]: " << pOut->trade_info[0].exec_name <<
-			endl <<
-			"- is_cash[0]: " << pOut->trade_info[0].is_cash << endl <<
-			"- is_market[0]: " << pOut->trade_info[0].is_market <<
-			endl <<
-			"- trade_price[0]: " << pOut->trade_info[0].trade_price <<
-			endl <<
-			"- settlement_amount[0]: "<<
-			pOut->trade_info[0].settlement_amount << endl <<
-			"- settlement_cash_due_date[0]: " <<
-			pOut->trade_info[0].settlement_cash_due_date.year << "-" <<
-			pOut->trade_info[0].settlement_cash_due_date.month <<
-			"-" << pOut->trade_info[0].settlement_cash_due_date.day <<
-			" " << pOut->trade_info[0].settlement_cash_due_date.hour <<
-			":"<<
-			pOut->trade_info[0].settlement_cash_due_date.minute <<
-			":" <<
-			pOut->trade_info[0].settlement_cash_due_date.second <<
-			endl <<
-			"- settlement_cash_type[0]: " <<
-			pOut->trade_info[0].settlement_cash_type << endl <<	
-			"- cash_transaction_amount[0]: " <<
-			pOut->trade_info[0].cash_transaction_amount << endl <<
-			"- cash_transaction_dts[0]: " <<
-			pOut->trade_info[0].cash_transaction_dts.year << "-" <<
-			pOut->trade_info[0].cash_transaction_dts.month << "-" <<
-			pOut->trade_info[0].cash_transaction_dts.day << " " <<
-			pOut->trade_info[0].cash_transaction_dts.hour << ":" <<
-			pOut->trade_info[0].cash_transaction_dts.minute << ":" <<
-			pOut->trade_info[0].cash_transaction_dts.second << endl <<
-			"- cash_transaction_name[0]: " <<
-			pOut->trade_info[0].cash_transaction_name << endl <<
-			"- trade_history_dts[0][0]: " <<
-			pOut->trade_info[0].trade_history_dts[0].year << "-" <<
-			pOut->trade_info[0].trade_history_dts[0].month << "-" <<
-			pOut->trade_info[0].trade_history_dts[0].day << " " <<
-			pOut->trade_info[0].trade_history_dts[0].hour << ":" <<
-			pOut->trade_info[0].trade_history_dts[0].minute << ":" <<
-			pOut->trade_info[0].trade_history_dts[0].second << endl <<
-			"- trade_history_status_id[0][0]: " <<
-			pOut->trade_info[0].trade_history_status_id[0] << endl <<
-			"- trade_history_dts[0][1]: " <<
-			pOut->trade_info[0].trade_history_dts[1].year << "-" <<
-			pOut->trade_info[0].trade_history_dts[1].month << "-" <<
-			pOut->trade_info[0].trade_history_dts[1].day << " " <<
-			pOut->trade_info[0].trade_history_dts[1].hour << ":" <<
-			pOut->trade_info[0].trade_history_dts[1].minute << ":" <<
-			pOut->trade_info[0].trade_history_dts[1].second << endl <<
-			"- trade_history_status_id[0][1]: " <<
-			pOut->trade_info[0].trade_history_status_id[1] << endl <<
-			"- trade_history_dts[0][2]: " <<
-			pOut->trade_info[0].trade_history_dts[2].year << "-" <<
-			pOut->trade_info[0].trade_history_dts[2].month << "-" <<
-			pOut->trade_info[0].trade_history_dts[2].day << " " <<
-			pOut->trade_info[0].trade_history_dts[2].hour << ":" <<
-			pOut->trade_info[0].trade_history_dts[2].minute << ":" <<
-			pOut->trade_info[0].trade_history_dts[2].second << endl <<
-			"- trade_history_status_id[0][2]: " <<
-			pOut->trade_info[0].trade_history_status_id[2] << endl;
+	cout << ">>> TUF1" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Trade Update Frame 1 (input)" << endl <<
+			"-- max_trades: " << pIn->max_trades << endl <<
+			"-- max_updates: " << pIn->max_updates << endl <<
+			"-- Trades: {" << osTrades.str() << "}" << endl;
+	cout << "- Trade Update Frame 1 (output)" << endl <<
+			"-- num_found: " << pOut->num_found << endl <<
+			"-- num_updated: " << pOut->num_updated << endl <<
+			"-- bid_price[0]: " << pOut->trade_info[0].bid_price << endl <<
+			"-- exec_name[0]: " << pOut->trade_info[0].exec_name << endl <<
+			"-- is_cash[0]: " << pOut->trade_info[0].is_cash << endl <<
+			"-- is_market[0]: " << pOut->trade_info[0].is_market << endl <<
+			"-- trade_price[0]: " << pOut->trade_info[0].trade_price << endl <<
+			"-- settlement_amount[0]: "<<
+					pOut->trade_info[0].settlement_amount << endl <<
+			"-- settlement_cash_due_date[0]: " <<
+					pOut->trade_info[0].settlement_cash_due_date.year << "-" <<
+					pOut->trade_info[0].settlement_cash_due_date.month <<
+					"-" << pOut->trade_info[0].settlement_cash_due_date.day <<
+					" " << pOut->trade_info[0].settlement_cash_due_date.hour <<
+					":"<<
+					pOut->trade_info[0].settlement_cash_due_date.minute <<
+					":" <<
+					pOut->trade_info[0].settlement_cash_due_date.second <<
+					endl <<
+			"-- settlement_cash_type[0]: " <<
+					pOut->trade_info[0].settlement_cash_type << endl <<	
+			"-- cash_transaction_amount[0]: " <<
+					pOut->trade_info[0].cash_transaction_amount << endl <<
+			"-- cash_transaction_dts[0]: " <<
+					pOut->trade_info[0].cash_transaction_dts.year << "-" <<
+					pOut->trade_info[0].cash_transaction_dts.month << "-" <<
+					pOut->trade_info[0].cash_transaction_dts.day << " " <<
+					pOut->trade_info[0].cash_transaction_dts.hour << ":" <<
+					pOut->trade_info[0].cash_transaction_dts.minute << ":" <<
+					pOut->trade_info[0].cash_transaction_dts.second << endl <<
+			"-- cash_transaction_name[0]: " <<
+					pOut->trade_info[0].cash_transaction_name << endl <<
+			"-- trade_history_dts[0][0]: " <<
+					pOut->trade_info[0].trade_history_dts[0].year << "-" <<
+					pOut->trade_info[0].trade_history_dts[0].month << "-" <<
+					pOut->trade_info[0].trade_history_dts[0].day << " " <<
+					pOut->trade_info[0].trade_history_dts[0].hour << ":" <<
+					pOut->trade_info[0].trade_history_dts[0].minute << ":" <<
+					pOut->trade_info[0].trade_history_dts[0].second << endl <<
+			"-- trade_history_status_id[0][0]: " <<
+					pOut->trade_info[0].trade_history_status_id[0] << endl <<
+			"-- trade_history_dts[0][1]: " <<
+					pOut->trade_info[0].trade_history_dts[1].year << "-" <<
+					pOut->trade_info[0].trade_history_dts[1].month << "-" <<
+					pOut->trade_info[0].trade_history_dts[1].day << " " <<
+					pOut->trade_info[0].trade_history_dts[1].hour << ":" <<
+					pOut->trade_info[0].trade_history_dts[1].minute << ":" <<
+					pOut->trade_info[0].trade_history_dts[1].second << endl <<
+			"-- trade_history_status_id[0][1]: " <<
+					pOut->trade_info[0].trade_history_status_id[1] << endl <<
+			"-- trade_history_dts[0][2]: " <<
+					pOut->trade_info[0].trade_history_dts[2].year << "-" <<
+					pOut->trade_info[0].trade_history_dts[2].month << "-" <<
+					pOut->trade_info[0].trade_history_dts[2].day << " " <<
+					pOut->trade_info[0].trade_history_dts[2].hour << ":" <<
+					pOut->trade_info[0].trade_history_dts[2].minute << ":" <<
+					pOut->trade_info[0].trade_history_dts[2].second << endl <<
+			"-- trade_history_status_id[0][2]: " <<
+					pOut->trade_info[0].trade_history_status_id[2] << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }
@@ -244,10 +238,6 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 		TTradeUpdateFrame2Output *pOut)
 {
-#ifdef DEBUG
-	cout << "TUF2" << endl;
-#endif
-
 	enum tuf2 {
 			i_bid_price=0, i_cash_transaction_amount,
 			i_cash_transaction_dts, i_cash_transaction_name, i_exec_name,
@@ -398,80 +388,78 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout <<"Trade Update Frame 2 (input)" << endl <<
-			"- acct_id: " << pIn->acct_id << endl <<
-			"- max_trades: " << pIn->max_trades << endl <<
-			"- max_updates: " << pIn->max_updates << endl <<
-			"- trade_dts: " << pIn->end_trade_dts.year << "-" <<
-			pIn->end_trade_dts.month << "-" <<
-			pIn->end_trade_dts.day << " " <<
-			pIn->end_trade_dts.hour << ":" <<
-			pIn->end_trade_dts.minute << ":" <<
-			pIn->end_trade_dts.second << endl;
-	cout << "Trade Update Frame 2 (output)" << endl <<
-			"- num_found: " << pOut->num_found << endl <<
-			"- num_updated: " << pOut->num_updated << endl <<
-			"- bid_price[0]: " << pOut->trade_info[0].bid_price <<
-			endl <<
-			"- exec_name[0]: " << pOut->trade_info[0].exec_name <<
-			endl <<
-			"- is_cash[0]: " << pOut->trade_info[0].is_cash << endl <<
-			"- trade_price[0]: " << pOut->trade_info[0].trade_price <<
-			endl <<
-			"- trade_id[0]: " << pOut->trade_info[0].trade_id <<
-			endl <<
-			"- settlement_amount[0]: " <<
-			pOut->trade_info[0].settlement_amount << endl <<
-			"- settlement_cash_due_date[0]: " <<
-			pOut->trade_info[0].settlement_cash_due_date.year << "-" <<
-			pOut->trade_info[0].settlement_cash_due_date.month <<
-			"-" << pOut->trade_info[0].settlement_cash_due_date.day <<
-			" " << pOut->trade_info[0].settlement_cash_due_date.hour <<
-			":" <<
-			pOut->trade_info[0].settlement_cash_due_date.minute <<
-			":" <<
-			pOut->trade_info[0].settlement_cash_due_date.second <<
-			endl <<
-			"- settlement_cash_type[0]: " <<
-			pOut->trade_info[0].settlement_cash_type << endl <<
-			"- cash_transaction_amount[0]: " <<
-			pOut->trade_info[0].cash_transaction_amount << endl <<
-			"- cash_transaction_dts[0]: " <<
-			pOut->trade_info[0].cash_transaction_dts.year << "-" <<
-			pOut->trade_info[0].cash_transaction_dts.month << "-" <<
-			pOut->trade_info[0].cash_transaction_dts.day << " " <<
-			pOut->trade_info[0].cash_transaction_dts.hour << ":" <<
-			pOut->trade_info[0].cash_transaction_dts.minute <<":" <<
-			pOut->trade_info[0].cash_transaction_dts.second << endl <<
-			"- cash_transaction_name[0]: " <<
-			pOut->trade_info[0].cash_transaction_name << endl <<
-			"- trade_history_dts[0][0]: " <<
-			pOut->trade_info[0].trade_history_dts[0].year << "-" <<
-			pOut->trade_info[0].trade_history_dts[0].month << "-" <<
-			pOut->trade_info[0].trade_history_dts[0].day << " " <<
-			pOut->trade_info[0].trade_history_dts[0].hour << ":" <<
-			pOut->trade_info[0].trade_history_dts[0].minute << ":" <<
-			pOut->trade_info[0].trade_history_dts[0].second << endl <<
-			"- trade_history_status_id[0][0]: " <<
-			pOut->trade_info[0].trade_history_status_id[0] << endl <<
-			"- trade_history_dts[0][1]: " <<
-			pOut->trade_info[0].trade_history_dts[1].year << "-" <<
-			pOut->trade_info[0].trade_history_dts[1].month << "-" <<
-			pOut->trade_info[0].trade_history_dts[1].day << " " <<
-			pOut->trade_info[0].trade_history_dts[1].hour << ":" <<
-			pOut->trade_info[0].trade_history_dts[1].minute << ":" <<
-			pOut->trade_info[0].trade_history_dts[1].second << endl <<
-			"- trade_history_status_id[0][1]: " <<
-			pOut->trade_info[0].trade_history_status_id[1] << endl <<
-			"- trade_history_dts[0][2]: " <<
-			pOut->trade_info[0].trade_history_dts[2].year << "-" <<
-			pOut->trade_info[0].trade_history_dts[2].month << "-" <<
-			pOut->trade_info[0].trade_history_dts[2].day << " " <<
-			pOut->trade_info[0].trade_history_dts[2].hour << ":" <<
-			pOut->trade_info[0].trade_history_dts[2].minute << ":" <<
-			pOut->trade_info[0].trade_history_dts[2].second << endl <<
-			"- trade_history_status_id[0][2]: " <<
-			pOut->trade_info[0].trade_history_status_id[2] << endl;
+	cout << ">>> TUF2" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Trade Update Frame 2 (input)" << endl <<
+			"-- acct_id: " << pIn->acct_id << endl <<
+			"-- max_trades: " << pIn->max_trades << endl <<
+			"-- max_updates: " << pIn->max_updates << endl <<
+			"-- trade_dts: " << pIn->end_trade_dts.year << "-" <<
+					pIn->end_trade_dts.month << "-" <<
+					pIn->end_trade_dts.day << " " <<
+					pIn->end_trade_dts.hour << ":" <<
+					pIn->end_trade_dts.minute << ":" <<
+					pIn->end_trade_dts.second << endl;
+	cout << "-- Trade Update Frame 2 (output)" << endl <<
+			"-- num_found: " << pOut->num_found << endl <<
+			"-- num_updated: " << pOut->num_updated << endl <<
+			"-- bid_price[0]: " << pOut->trade_info[0].bid_price << endl <<
+			"-- exec_name[0]: " << pOut->trade_info[0].exec_name << endl <<
+			"-- is_cash[0]: " << pOut->trade_info[0].is_cash << endl <<
+			"-- trade_price[0]: " << pOut->trade_info[0].trade_price << endl <<
+			"-- trade_id[0]: " << pOut->trade_info[0].trade_id << endl <<
+			"-- settlement_amount[0]: " <<
+					pOut->trade_info[0].settlement_amount << endl <<
+			"-- settlement_cash_due_date[0]: " <<
+					pOut->trade_info[0].settlement_cash_due_date.year << "-" <<
+					pOut->trade_info[0].settlement_cash_due_date.month <<
+					"-" << pOut->trade_info[0].settlement_cash_due_date.day <<
+					" " << pOut->trade_info[0].settlement_cash_due_date.hour <<
+					":" <<
+					pOut->trade_info[0].settlement_cash_due_date.minute <<
+					":" <<
+					pOut->trade_info[0].settlement_cash_due_date.second <<
+					endl <<
+			"-- settlement_cash_type[0]: " <<
+					pOut->trade_info[0].settlement_cash_type << endl <<
+			"-- cash_transaction_amount[0]: " <<
+					pOut->trade_info[0].cash_transaction_amount << endl <<
+			"-- cash_transaction_dts[0]: " <<
+					pOut->trade_info[0].cash_transaction_dts.year << "-" <<
+					pOut->trade_info[0].cash_transaction_dts.month << "-" <<
+					pOut->trade_info[0].cash_transaction_dts.day << " " <<
+					pOut->trade_info[0].cash_transaction_dts.hour << ":" <<
+					pOut->trade_info[0].cash_transaction_dts.minute <<":" <<
+					pOut->trade_info[0].cash_transaction_dts.second << endl <<
+			"-- cash_transaction_name[0]: " <<
+					pOut->trade_info[0].cash_transaction_name << endl <<
+			"-- trade_history_dts[0][0]: " <<
+					pOut->trade_info[0].trade_history_dts[0].year << "-" <<
+					pOut->trade_info[0].trade_history_dts[0].month << "-" <<
+					pOut->trade_info[0].trade_history_dts[0].day << " " <<
+					pOut->trade_info[0].trade_history_dts[0].hour << ":" <<
+					pOut->trade_info[0].trade_history_dts[0].minute << ":" <<
+					pOut->trade_info[0].trade_history_dts[0].second << endl <<
+			"-- trade_history_status_id[0][0]: " <<
+					pOut->trade_info[0].trade_history_status_id[0] << endl <<
+			"-- trade_history_dts[0][1]: " <<
+					pOut->trade_info[0].trade_history_dts[1].year << "-" <<
+					pOut->trade_info[0].trade_history_dts[1].month << "-" <<
+					pOut->trade_info[0].trade_history_dts[1].day << " " <<
+					pOut->trade_info[0].trade_history_dts[1].hour << ":" <<
+					pOut->trade_info[0].trade_history_dts[1].minute << ":" <<
+					pOut->trade_info[0].trade_history_dts[1].second << endl <<
+			"-- trade_history_status_id[0][1]: " <<
+					pOut->trade_info[0].trade_history_status_id[1] << endl <<
+			"-- trade_history_dts[0][2]: " <<
+					pOut->trade_info[0].trade_history_dts[2].year << "-" <<
+					pOut->trade_info[0].trade_history_dts[2].month << "-" <<
+					pOut->trade_info[0].trade_history_dts[2].day << " " <<
+					pOut->trade_info[0].trade_history_dts[2].hour << ":" <<
+					pOut->trade_info[0].trade_history_dts[2].minute << ":" <<
+					pOut->trade_info[0].trade_history_dts[2].second << endl <<
+			"-- trade_history_status_id[0][2]: " <<
+					pOut->trade_info[0].trade_history_status_id[2] << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }
@@ -480,10 +468,6 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 void CTradeUpdateDB::DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
 		TTradeUpdateFrame3Output *pOut)
 {
-#ifdef DEBUG
-	cout << "TUF3" << endl;
-#endif
-
 	enum tuf3 {                                                             
 			i_acct_id=0, i_cash_transaction_amount,
 			i_cash_transaction_dts, i_cash_transaction_name, i_exec_name,
@@ -681,90 +665,88 @@ cout << __FILE__ << ":" << __LINE__ << " = '" << (*p).c_str() << "'" << endl;
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout << "Trade Update Frame 3 (input)" << endl <<
-			"- max_acct_id: " << pIn->max_acct_id << endl <<
-			"- max_trades: " << pIn->max_trades << endl <<
-			"- max_updates: " << pIn->max_updates << endl <<
-			"- trade_dts: " << pIn->start_trade_dts.year << "-" <<
-			pIn->start_trade_dts.month << "-" <<
-			pIn->start_trade_dts.day << " " <<
-			pIn->start_trade_dts.hour << ":" <<
-			pIn->start_trade_dts.minute << ":" <<
-			pIn->start_trade_dts.second << endl <<
-			"- symbol: " << pIn->symbol << endl;
-	cout << "Trade Update Frame 3 (output)" << endl <<
-			"- num_found: " << pOut->num_found << endl <<
-			"- num_updated: " << pOut->num_updated << endl <<
-			"- acct_id: " << pOut->trade_info[0].acct_id << endl <<
-			"- cash_transaction_amount[0]: " <<
-			pOut->trade_info[0].cash_transaction_amount << endl <<
-			"- cash_transaction_dts[0]: " <<
-			pOut->trade_info[0].cash_transaction_dts.year << "-" <<
-			pOut->trade_info[0].cash_transaction_dts.month << "-" <<
-			pOut->trade_info[0].cash_transaction_dts.day << " " <<
-			pOut->trade_info[0].cash_transaction_dts.hour << ":" <<
-			pOut->trade_info[0].cash_transaction_dts.minute << ":" <<
-			pOut->trade_info[0].cash_transaction_dts.second << endl <<
-			"- cash_transaction_name[0]: " <<
-			pOut->trade_info[0].cash_transaction_name << endl <<
-			"- exec_name[0]: " << pOut->trade_info[0].exec_name <<
-			endl <<
-			"- is_cash[0]: " << pOut->trade_info[0].is_cash << endl <<
-			"- price[0]: " << pOut->trade_info[0].price << endl <<
-			"- quantity[0]: " << pOut->trade_info[0].quantity <<
-			endl <<
-			"- settlement_amount[0]: " <<
-			pOut->trade_info[0].settlement_amount << endl <<
-			"- settlement_cash_due_date[0]: " <<
-			pOut->trade_info[0].settlement_cash_due_date.year << "-" <<
-			pOut->trade_info[0].settlement_cash_due_date.month <<
-			"-" << pOut->trade_info[0].settlement_cash_due_date.day <<
-			" " << pOut->trade_info[0].settlement_cash_due_date.hour <<
-			":" <<
-			pOut->trade_info[0].settlement_cash_due_date.minute <<
-			":" <<
-			pOut->trade_info[0].settlement_cash_due_date.second <<
-			endl <<
-			"- settlement_cash_type[0]: " <<
-			pOut->trade_info[0].settlement_cash_type << endl <<
-			"- cash_transaction_dts[0]: " <<
-			pOut->trade_info[0].trade_dts.year << "-" <<
-			pOut->trade_info[0].trade_dts.month << "-" <<
-			pOut->trade_info[0].trade_dts.day << " " <<
-			pOut->trade_info[0].trade_dts.hour << ":" <<
-			pOut->trade_info[0].trade_dts.minute << ":" <<
-			pOut->trade_info[0].trade_dts.second << endl <<
-			"- trade_history_dts[0][0]: " <<
-			pOut->trade_info[0].trade_history_dts[0].year << "-" <<
-			pOut->trade_info[0].trade_history_dts[0].month << "-" <<
-			pOut->trade_info[0].trade_history_dts[0].day << " " <<
-			pOut->trade_info[0].trade_history_dts[0].hour << ":" <<
-			pOut->trade_info[0].trade_history_dts[0].minute << ":" <<
-			pOut->trade_info[0].trade_history_dts[0].second << endl <<
-			"- trade_history_status_id[0][0]: " <<
-			pOut->trade_info[0].trade_history_status_id[0] << endl <<
-			"- trade_history_dts[0][1]: " <<
-			pOut->trade_info[0].trade_history_dts[1].year << "-" <<
-			pOut->trade_info[0].trade_history_dts[1].month << "-" <<
-			pOut->trade_info[0].trade_history_dts[1].day << " " <<
-			pOut->trade_info[0].trade_history_dts[1].hour << ":" <<
-			pOut->trade_info[0].trade_history_dts[1].minute << ":" <<
-			pOut->trade_info[0].trade_history_dts[1].second << endl <<
-			"- trade_history_status_id[0][1]: " <<
-			pOut->trade_info[0].trade_history_status_id[1] << endl <<
-			"- trade_history_dts[0][2]: " <<
-			pOut->trade_info[0].trade_history_dts[2].year << "-" <<
-			pOut->trade_info[0].trade_history_dts[2].month << "-" <<
-			pOut->trade_info[0].trade_history_dts[2].day << " " <<
-			pOut->trade_info[0].trade_history_dts[2].hour << ":" <<
-			pOut->trade_info[0].trade_history_dts[2].minute << ":" <<
-			pOut->trade_info[0].trade_history_dts[2].second << endl <<
-			"- trade_history_status_id[0][2]: " <<
-			pOut->trade_info[0].trade_history_status_id[2] << endl <<
-			"- trade_id[0]: " << pOut->trade_info[0].trade_id <<
-			endl <<
-			"- trade_type[0]: " << pOut->trade_info[0].trade_type <<
-			endl;
+	cout << ">>> TUF3" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Trade Update Frame 3 (input)" << endl <<
+			"-- max_acct_id: " << pIn->max_acct_id << endl <<
+			"-- max_trades: " << pIn->max_trades << endl <<
+			"-- max_updates: " << pIn->max_updates << endl <<
+			"-- trade_dts: " << pIn->start_trade_dts.year << "-" <<
+					pIn->start_trade_dts.month << "-" <<
+					pIn->start_trade_dts.day << " " <<
+					pIn->start_trade_dts.hour << ":" <<
+					pIn->start_trade_dts.minute << ":" <<
+					pIn->start_trade_dts.second << endl <<
+			"-- symbol: " << pIn->symbol << endl;
+	cout << "- Trade Update Frame 3 (output)" << endl <<
+			"-- num_found: " << pOut->num_found << endl <<
+			"-- num_updated: " << pOut->num_updated << endl <<
+			"-- acct_id: " << pOut->trade_info[0].acct_id << endl <<
+			"-- cash_transaction_amount[0]: " <<
+					pOut->trade_info[0].cash_transaction_amount << endl <<
+			"-- cash_transaction_dts[0]: " <<
+					pOut->trade_info[0].cash_transaction_dts.year << "-" <<
+					pOut->trade_info[0].cash_transaction_dts.month << "-" <<
+					pOut->trade_info[0].cash_transaction_dts.day << " " <<
+					pOut->trade_info[0].cash_transaction_dts.hour << ":" <<
+					pOut->trade_info[0].cash_transaction_dts.minute << ":" <<
+					pOut->trade_info[0].cash_transaction_dts.second << endl <<
+			"-- cash_transaction_name[0]: " <<
+					pOut->trade_info[0].cash_transaction_name << endl <<
+			"-- exec_name[0]: " << pOut->trade_info[0].exec_name << endl <<
+			"-- is_cash[0]: " << pOut->trade_info[0].is_cash << endl <<
+			"-- price[0]: " << pOut->trade_info[0].price << endl <<
+			"-- quantity[0]: " << pOut->trade_info[0].quantity << endl <<
+			"-- settlement_amount[0]: " <<
+					pOut->trade_info[0].settlement_amount << endl <<
+			"-- settlement_cash_due_date[0]: " <<
+					pOut->trade_info[0].settlement_cash_due_date.year << "-" <<
+					pOut->trade_info[0].settlement_cash_due_date.month <<
+					"-" << pOut->trade_info[0].settlement_cash_due_date.day <<
+					" " << pOut->trade_info[0].settlement_cash_due_date.hour <<
+					":" <<
+					pOut->trade_info[0].settlement_cash_due_date.minute <<
+					":" <<
+					pOut->trade_info[0].settlement_cash_due_date.second <<
+					endl <<
+			"-- settlement_cash_type[0]: " <<
+					pOut->trade_info[0].settlement_cash_type << endl <<
+			"-- cash_transaction_dts[0]: " <<
+					pOut->trade_info[0].trade_dts.year << "-" <<
+					pOut->trade_info[0].trade_dts.month << "-" <<
+					pOut->trade_info[0].trade_dts.day << " " <<
+					pOut->trade_info[0].trade_dts.hour << ":" <<
+					pOut->trade_info[0].trade_dts.minute << ":" <<
+					pOut->trade_info[0].trade_dts.second << endl <<
+			"-- trade_history_dts[0][0]: " <<
+					pOut->trade_info[0].trade_history_dts[0].year << "-" <<
+					pOut->trade_info[0].trade_history_dts[0].month << "-" <<
+					pOut->trade_info[0].trade_history_dts[0].day << " " <<
+					pOut->trade_info[0].trade_history_dts[0].hour << ":" <<
+					pOut->trade_info[0].trade_history_dts[0].minute << ":" <<
+					pOut->trade_info[0].trade_history_dts[0].second << endl <<
+			"-- trade_history_status_id[0][0]: " <<
+					pOut->trade_info[0].trade_history_status_id[0] << endl <<
+			"-- trade_history_dts[0][1]: " <<
+					pOut->trade_info[0].trade_history_dts[1].year << "-" <<
+					pOut->trade_info[0].trade_history_dts[1].month << "-" <<
+					pOut->trade_info[0].trade_history_dts[1].day << " " <<
+					pOut->trade_info[0].trade_history_dts[1].hour << ":" <<
+					pOut->trade_info[0].trade_history_dts[1].minute << ":" <<
+					pOut->trade_info[0].trade_history_dts[1].second << endl <<
+			"-- trade_history_status_id[0][1]: " <<
+					pOut->trade_info[0].trade_history_status_id[1] << endl <<
+			"-- trade_history_dts[0][2]: " <<
+					pOut->trade_info[0].trade_history_dts[2].year << "-" <<
+					pOut->trade_info[0].trade_history_dts[2].month << "-" <<
+					pOut->trade_info[0].trade_history_dts[2].day << " " <<
+					pOut->trade_info[0].trade_history_dts[2].hour << ":" <<
+					pOut->trade_info[0].trade_history_dts[2].minute << ":" <<
+					pOut->trade_info[0].trade_history_dts[2].second << endl <<
+			"-- trade_history_status_id[0][2]: " <<
+					pOut->trade_info[0].trade_history_status_id[2] << endl <<
+			"-- trade_id[0]: " << pOut->trade_info[0].trade_id << endl <<
+			"-- trade_type[0]: " << pOut->trade_info[0].trade_type << endl;
 	m_coutLock.unlock();
 #endif //DEBUG
 }

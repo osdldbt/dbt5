@@ -15,10 +15,6 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
 		const TTradeCleanupFrame1Input *pIn,
 		TTradeCleanupFrame1Output *pOut)
 {
-#ifdef DEBUG
-	cout << "TCF1" << endl;
-#endif
-
 	ostringstream osCall;
 	osCall << "SELECT * FROM TradeCleanupFrame1('" <<
 			pIn->st_canceled_id << "','" <<
@@ -42,13 +38,15 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout<<"Trade Cleanup Frame 1 (input)"<<endl
-	    <<"- st_canceled_id: "<<pIn->st_canceled_id<<endl
-	    <<"- st_pending_id: "<<pIn->st_pending_id<<endl
-	    <<"- st_submitted_id: "<<pIn->st_submitted_id<<endl
-	    <<"- trade_id: "<<pIn->start_trade_id<<endl;
-	cout<<"Trade Cleanup Frame 1 (output)"<<endl
-	    <<"- status: "<<pOut->status<<endl;
+	cout << ">>> TCF1" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Trade Cleanup Frame 1 (input)" << endl <<
+			"-- st_canceled_id: " << pIn->st_canceled_id << endl <<
+			"-- st_pending_id: " << pIn->st_pending_id << endl <<
+			"-- st_submitted_id: " << pIn->st_submitted_id << endl <<
+			"-- trade_id: " << pIn->start_trade_id << endl;
+	cout << "- Trade Cleanup Frame 1 (output)" << endl <<
+			"-- status: " << pOut->status << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }
