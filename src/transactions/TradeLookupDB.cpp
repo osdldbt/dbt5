@@ -70,7 +70,7 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_cash_transaction_dts].c_str(), vAux);
+	TokenizeString(c[i_cash_transaction_dts].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
@@ -84,7 +84,7 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_cash_transaction_name].c_str(), vAux);
+	TokenizeString(c[i_cash_transaction_name].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str());
@@ -92,7 +92,7 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_exec_name].c_str(), vAux);
+	TokenizeString(c[i_exec_name].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].exec_name, (*p).c_str());
@@ -138,7 +138,7 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_settlement_cash_type].c_str(), vAux);
+	TokenizeString(c[i_settlement_cash_type].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str());
@@ -315,7 +315,7 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_cash_transaction_dts].c_str(), vAux);
+	TokenizeString(c[i_cash_transaction_dts].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
@@ -329,7 +329,7 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_cash_transaction_name].c_str(), vAux);
+	TokenizeString(c[i_cash_transaction_name].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str());
@@ -337,7 +337,7 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_exec_name].c_str(), vAux);
+	TokenizeString(c[i_exec_name].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].exec_name, (*p).c_str());
@@ -361,7 +361,7 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_settlement_cash_due_date].c_str(), vAux);
+	TokenizeString(c[i_settlement_cash_due_date].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
@@ -375,7 +375,7 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_settlement_cash_type].c_str(), vAux);
+	TokenizeString(c[i_settlement_cash_type].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str());
@@ -482,7 +482,8 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
             i_cash_transaction_name, i_exec_name, i_is_cash, i_num_found,
             i_price, i_quantity, i_settlement_amount,
             i_settlement_cash_due_date, i_settlement_cash_type, i_status,
-            i_trade_dts, i_trade_history_dts, i_trade_list, i_trade_type
+            i_trade_dts, i_trade_history_dts, i_trade_history_status_id,
+			i_trade_list, i_trade_type
 	};
 
 	ostringstream osCall;
@@ -535,7 +536,7 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_cash_transaction_dts].c_str(), vAux);
+	TokenizeString(c[i_cash_transaction_dts].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
@@ -549,7 +550,7 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_cash_transaction_name].c_str(), vAux);
+	TokenizeString(c[i_cash_transaction_name].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str());
@@ -557,7 +558,7 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_exec_name].c_str(), vAux);
+	TokenizeString(c[i_exec_name].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].exec_name, (*p).c_str());
@@ -568,10 +569,7 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 	Tokenize(c[i_is_cash].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		// FIXME: Huh, why would an assignment seg fault where sscanf()
-		// doesn't?
-		//pOut->trade_info[i].is_cash = atoi((*p).c_str());
-		sscanf((*p).c_str(), "%d", &pOut->trade_info[i].is_cash);
+		pOut->trade_info[i].is_cash = atoi((*p).c_str());
 		++i;
 	}
 	vAux.clear();
@@ -614,7 +612,7 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_settlement_cash_type].c_str(), vAux);
+	TokenizeString(c[i_settlement_cash_type].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str());

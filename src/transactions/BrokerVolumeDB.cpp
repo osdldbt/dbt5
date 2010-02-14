@@ -41,7 +41,7 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 	vector<string> vAux;
 	vector<string>::iterator p;
 
-	Tokenize(c[i_broker_name].c_str(), vAux);
+	TokenizeString(c[i_broker_name].c_str(), vAux);
 	i = 0;	
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->broker_name[i], (*p).c_str());
@@ -68,9 +68,12 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 		"-- broker_list: " << osBrokers.str() << endl <<
 		"-- sector name: " << pIn->sector_name << endl;
 	cout << "- Broker Volume Frame 1 (output)" << endl <<
-		"-- list_len: " << pOut->list_len << endl <<
-		"-- broker_name[0]: " << pOut->broker_name[0] << endl <<
-		"-- volume[0]: " << pOut->volume[0] << endl;
+		"-- list_len: " << pOut->list_len << endl;
+	for (i = 0; i < pOut->list_len; i ++) {
+		cout << "-- broker_name[" << i << "]: " << pOut->broker_name[i] <<
+				endl <<
+				"-- volume[" << i << "]: " << pOut->volume[i] << endl;
+	}
 	m_coutLock.unlock();
 #endif // DEBUG
 }

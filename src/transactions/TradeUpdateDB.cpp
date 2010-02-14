@@ -85,7 +85,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_cash_transaction_name].c_str(), vAux);
+	TokenizeString(c[i_cash_transaction_name].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str());
@@ -93,7 +93,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_exec_name].c_str(), vAux);
+	TokenizeString(c[i_exec_name].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].exec_name, (*p).c_str());
@@ -139,7 +139,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_settlement_cash_type].c_str(), vAux);
+	TokenizeString(c[i_settlement_cash_type].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str());
@@ -298,7 +298,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_cash_transaction_dts].c_str(), vAux);
+	TokenizeString(c[i_cash_transaction_dts].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
@@ -312,7 +312,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_cash_transaction_name].c_str(), vAux);
+	TokenizeString(c[i_cash_transaction_name].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str());
@@ -320,7 +320,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_exec_name].c_str(), vAux);
+	TokenizeString(c[i_exec_name].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].exec_name, (*p).c_str());
@@ -358,7 +358,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_settlement_cash_type].c_str(), vAux);
+	TokenizeString(c[i_settlement_cash_type].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str());
@@ -366,7 +366,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_trade_list].c_str(), vAux);
+	TokenizeString(c[i_trade_list].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].trade_id = atol((*p).c_str());
@@ -532,7 +532,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_cash_transaction_dts].c_str(), vAux);
+	TokenizeString(c[i_cash_transaction_dts].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
@@ -560,7 +560,7 @@ cout << __FILE__ << ":" << __LINE__ << " = '" << (*p).c_str() << "'" << endl;
 	vAux.clear();
 */
 
-	Tokenize(c[i_exec_name].c_str(), vAux);
+	TokenizeString(c[i_exec_name].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].exec_name, (*p).c_str());
@@ -613,7 +613,7 @@ cout << __FILE__ << ":" << __LINE__ << " = '" << (*p).c_str() << "'" << endl;
 	}
 	vAux.clear();
 
-	Tokenize(c[i_settlement_cash_due_date].c_str(), vAux);
+	TokenizeString(c[i_settlement_cash_due_date].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
@@ -627,7 +627,7 @@ cout << __FILE__ << ":" << __LINE__ << " = '" << (*p).c_str() << "'" << endl;
 	}
 	vAux.clear();
 
-	Tokenize(c[i_settlement_cash_type].c_str(), vAux);
+	TokenizeString(c[i_settlement_cash_type].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str());
@@ -635,7 +635,7 @@ cout << __FILE__ << ":" << __LINE__ << " = '" << (*p).c_str() << "'" << endl;
 	}
 	vAux.clear();
 
-	Tokenize(c[i_trade_list].c_str(), vAux);
+	TokenizeString(c[i_trade_list].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].trade_id = atol((*p).c_str());
@@ -643,7 +643,7 @@ cout << __FILE__ << ":" << __LINE__ << " = '" << (*p).c_str() << "'" << endl;
 	}
 	vAux.clear();
 
-	Tokenize(c[i_type_name].c_str(), vAux);
+	TokenizeString(c[i_type_name].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].type_name, (*p).c_str());
@@ -651,7 +651,7 @@ cout << __FILE__ << ":" << __LINE__ << " = '" << (*p).c_str() << "'" << endl;
 	}
 	vAux.clear();
 
-	Tokenize(c[i_trade_type].c_str(), vAux);
+	TokenizeString(c[i_trade_type].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->trade_info[i].trade_type, (*p).c_str());

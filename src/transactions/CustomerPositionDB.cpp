@@ -211,7 +211,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 	}
 	vAux.clear();
 
-	Tokenize(c[i_hist_dts].c_str(), vAux);
+	TokenizeString(c[i_hist_dts].c_str(), vAux);
 	i = 0;	
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
@@ -235,16 +235,20 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 	cout << "- Customer Position Frame 2 (input)" << endl <<
 			"-- cust_id: " << pIn->acct_id << endl;
 	cout << "- Customer Position Frame 2 (output)" << endl <<
-			"-- hist_len: " << pOut->hist_len << endl <<
-			"-- trade_id[0]: " << pOut->trade_id[0] << endl <<
-			"-- symbol[0]: " << pOut->symbol[0] << endl <<
-			"-- qty[0]: " << pOut->qty[0] << endl <<
-			"-- trade_status[0]: " << pOut->trade_status[0] << endl <<
-			"-- hist_dts[0]: " << pOut->hist_dts[0].year << "-" <<
-					pOut->hist_dts[0].month << "-" << pOut->hist_dts[0].day <<
-					" " << pOut->hist_dts[0].hour << ":" <<
-					pOut->hist_dts[0].minute << ":" <<
-					pOut->hist_dts[0].second << endl;
+			"-- hist_len: " << pOut->hist_len << endl;
+	for (i = 0; i < pOut->hist_len; i++) {
+		cout << "-- trade_id[" << i << "]: " << pOut->trade_id[i] << endl <<
+				"-- symbol[" << i << "]: " << pOut->symbol[i] << endl <<
+				"-- qty[" << i << "]: " << pOut->qty[i] << endl <<
+				"-- trade_status[" << i << "]: " << pOut->trade_status[i] <<
+						endl <<
+				"-- hist_dts[" << i << "]: " << pOut->hist_dts[i].year << "-" <<
+						pOut->hist_dts[i].month << "-" <<
+						pOut->hist_dts[i].day << " " <<
+						pOut->hist_dts[i].hour << ":" <<
+						pOut->hist_dts[i].minute << ":" <<
+						pOut->hist_dts[i].second << endl;
+	}
 	m_coutLock.unlock();
 #endif // DEBUG
 }

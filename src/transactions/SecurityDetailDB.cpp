@@ -57,7 +57,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	vector<string>::iterator p;
 
 	// Tokenize cp_co_name
-	Tokenize(c[i_cp_co_name].c_str(), vAux);
+	TokenizeString(c[i_cp_co_name].c_str(), vAux);
 	int i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p)
 	{
@@ -67,7 +67,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	vAux.clear();
 
 	// Tokenize cp_in_name
-	Tokenize(c[i_cp_in_name].c_str(), vAux);
+	TokenizeString(c[i_cp_in_name].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p)
 	{

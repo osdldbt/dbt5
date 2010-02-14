@@ -43,8 +43,11 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 	vector<string>::iterator p;
 	
 	strcpy(pOut->broker_name, c[i_broker_name].c_str());
+	strcpy(pOut->cust_f_name, c[i_cust_f_name].c_str());
+	strcpy(pOut->cust_l_name, c[i_cust_l_name].c_str());
+	pOut->status = c[i_status].as(int());
 
-	Tokenize(c[i_broker_name].c_str(), vAux);
+	Tokenize(c[i_charge].c_str(), vAux);
 	int i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->charge[i] = atof((*p).c_str());
@@ -52,10 +55,16 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 	}
 	vAux.clear();
 
-	strcpy(pOut->cust_f_name, c[i_cust_f_name].c_str());
-	strcpy(pOut->cust_l_name, c[i_cust_l_name].c_str());
+#ifdef DEBUG
+	// This only matter for the DEBUG output, I think...
+	// Hope that the transaction executed correctly and the number of items
+	// found in the "charge" column array really is the same in the other
+	// columns returning arrays, since this transation doesn't return the
+	// number of items that will be in each column array.
+	int len = i;
+#endif
 
-	Tokenize(c[i_ex_name].c_str(), vAux);
+	TokenizeString(c[i_ex_name].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->ex_name[i], (*p).c_str());
@@ -63,7 +72,15 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_s_name].c_str(), vAux);
+	TokenizeString(c[i_exec_name].c_str(), vAux);
+	i = 0;
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->exec_name[i], (*p).c_str());
+		++i;
+	}
+	vAux.clear();
+
+	TokenizeString(c[i_s_name].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strcpy(pOut->s_name[i], (*p).c_str());
@@ -79,7 +96,7 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 	}
 	vAux.clear();
 
-	Tokenize(c[i_trade_dts].c_str(), vAux);
+	TokenizeString(c[i_trade_dts].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
@@ -117,7 +134,13 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 	}
 	vAux.clear();
 
-	pOut->status = c[i_status].as(int());
+	Tokenize(c[i_status_name].c_str(), vAux);
+	i = 0;
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		strcpy(pOut->status_name[i], (*p).c_str());
+		++i;
+	}
+	vAux.clear();
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -128,22 +151,25 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 	cout << "- Trade Status Frame 1 (output)" << endl <<
 			"-- cust_l_name: " << pOut->cust_l_name << endl <<
 			"-- cust_f_name: " << pOut->cust_f_name << endl <<
-			"-- broker_name: " << pOut->broker_name << endl <<
-			"-- charge[0]: " << pOut->charge[0] << endl <<
-			"-- exec_name[0]: " << pOut->exec_name[0] << endl <<
-			"-- ex_name[0]: " << pOut->ex_name[0] << endl <<
-			"-- s_name[0]: " << pOut->s_name[0] << endl <<
-			"-- status_name[0]: " << pOut->status_name[0] << endl <<
-			"-- symbol[0]: " << pOut->symbol[0] << endl <<
-			"-- trade_dts[0]: " << pOut->trade_dts[0].year << "-" <<
-					pOut->trade_dts[0].month << "-" <<
-					pOut->trade_dts[0].day << " " <<
-					pOut->trade_dts[0].hour << ":" <<
-					pOut->trade_dts[0].minute << ":" <<
-					pOut->trade_dts[0].second << endl <<
-			"-- trade_id[0]: " << pOut->trade_id[0] << endl <<
-			"-- trade_qty[0]: " << pOut->trade_qty[0] << endl <<
-			"-- type_name[0]: " << pOut->type_name[0] << endl;
+			"-- broker_name: " << pOut->broker_name << endl;
+	for (i = 0; i < len; i++) {
+		cout << "-- charge[" << i << "]: " << pOut->charge[i] << endl <<
+				"-- exec_name[" << i << "]: " << pOut->exec_name[i] << endl <<
+				"-- ex_name[" << i << "]: " << pOut->ex_name[i] << endl <<
+				"-- s_name[" << i << "]: " << pOut->s_name[i] << endl <<
+				"-- status_name[" << i << "]: " << pOut->status_name[i] <<
+						endl <<
+				"-- symbol[" << i << "]: " << pOut->symbol[i] << endl <<
+				"-- trade_dts[" << i << "]: " << pOut->trade_dts[i].year <<
+						"-" << pOut->trade_dts[i].month << "-" <<
+						pOut->trade_dts[i].day << " " <<
+						pOut->trade_dts[i].hour << ":" <<
+						pOut->trade_dts[i].minute << ":" <<
+						pOut->trade_dts[i].second << endl <<
+				"-- trade_id[" << i << "]: " << pOut->trade_id[i] << endl <<
+				"-- trade_qty[" << i << "]: " << pOut->trade_qty[i] << endl <<
+				"-- type_name[" << i << "]: " << pOut->type_name[i] << endl;
+	}
 	m_coutLock.unlock();
 #endif // DEBUG
 }
