@@ -24,245 +24,199 @@ void* WorkerThread(void* data)
 	TMsgBrokerageDriver	Reply;		// return message
 	INT32 iRet = 0;				// return error
 	CDBConnection* pDBConnection = NULL;
-	CTradeResult* pTradeResult = NULL;
+
+	int iNumRetry;
 
 	// new connection
 	pDBConnection = new CDBConnection(
 			pThrParam->pBrokerageHouse->m_szHost,
 			pThrParam->pBrokerageHouse->m_szDBName,
 			pThrParam->pBrokerageHouse->m_szPostmasterPort);
-	CSendToMarket* pSendToMarket = new CSendToMarket(
+	CSendToMarket sendToMarket = CSendToMarket(
 			&(pThrParam->pBrokerageHouse->m_fLog));
-	CMarketFeedDB m_MarketFeedDB(pDBConnection);
-	CMarketFeed* pMarketFeed = new CMarketFeed(&m_MarketFeedDB, pSendToMarket);
-	CTradeOrderDB TradeOrderDB(pDBConnection);
-	CTradeOrder *pTradeOrder = new CTradeOrder(&TradeOrderDB, pSendToMarket);
-	do
-	{
-		try
-		{
+	CMarketFeedDB marketFeedDB(pDBConnection);
+	CMarketFeed marketFeed = CMarketFeed(&marketFeedDB, &sendToMarket);
+	CTradeOrderDB tradeOrderDB(pDBConnection);
+	CTradeOrder tradeOrder = CTradeOrder(&tradeOrderDB, &sendToMarket);
+
+	// Initialize all classes that will be used to execute transactions.
+	CBrokerVolumeDB brokerVolumeDB(pDBConnection);
+	CBrokerVolume brokerVolume = CBrokerVolume(&brokerVolumeDB);
+	CCustomerPositionDB customerPositionDB(pDBConnection);
+	CCustomerPosition customerPosition = CCustomerPosition(&customerPositionDB);
+	CMarketWatchDB marketWatchDB(pDBConnection);
+	CMarketWatch marketWatch = CMarketWatch(&marketWatchDB);
+	CSecurityDetailDB securityDetailDB = CSecurityDetailDB(pDBConnection);
+	CSecurityDetail securityDetail = CSecurityDetail(&securityDetailDB);
+	CTradeLookupDB tradeLookupDB(pDBConnection);
+	CTradeLookup tradeLookup = CTradeLookup(&tradeLookupDB);
+	CTradeStatusDB tradeStatusDB(pDBConnection);
+	CTradeStatus tradeStatus = CTradeStatus(&tradeStatusDB);
+	CTradeUpdateDB tradeUpdateDB(pDBConnection);
+	CTradeUpdate tradeUpdate = CTradeUpdate(&tradeUpdateDB);
+	CDataMaintenanceDB dataMaintenanceDB(pDBConnection);
+	CDataMaintenance dataMaintenance = CDataMaintenance(&dataMaintenanceDB);
+	CTradeCleanupDB tradeCleanupDB(pDBConnection);
+	CTradeCleanup tradeCleanup = CTradeCleanup(&tradeCleanupDB);
+	CTradeResultDB tradeResultDB(pDBConnection);
+	CTradeResult tradeResult = CTradeResult(&tradeResultDB);
+
+	do {
+		try {
 			sockDrv.Receive(reinterpret_cast<void*>(pMessage),
 					sizeof(TMsgDriverBrokerage));
-
-			try
-			{
-
-				//  Parse Txn type
-				switch ( pMessage->TxnType )
-				{
-				case BROKER_VOLUME:
-				{
-					CBrokerVolumeDB BrokerVolumeDB(pDBConnection);
-					CBrokerVolume *pBrokerVolume = new CBrokerVolume(
-							&BrokerVolumeDB);
-					iRet = pThrParam->pBrokerageHouse->RunBrokerVolume(
-							&(pMessage->TxnInput.BrokerVolumeTxnInput),
-							*pBrokerVolume );
-					delete pBrokerVolume;
-					break;
-				}
-				case CUSTOMER_POSITION:
-				{
-					CCustomerPositionDB CustomerPositionDB(pDBConnection);
-					CCustomerPosition *pCustomerPosition =
-							new CCustomerPosition(&CustomerPositionDB);
-					iRet = pThrParam->pBrokerageHouse->RunCustomerPosition(
-							&(pMessage->TxnInput.CustomerPositionTxnInput),
-							*pCustomerPosition );
-					delete pCustomerPosition;
-					break;
-				}
-		
-				case MARKET_FEED:
-				{
-					iRet = pThrParam->pBrokerageHouse->RunMarketFeed(
-							&(pMessage->TxnInput.MarketFeedTxnInput),
-							*pMarketFeed );
-					break;
-				}
-				case MARKET_WATCH:
-				{
-					CMarketWatchDB MarketWatchDB(pDBConnection);
-					CMarketWatch *pMarketWatch =
-							new CMarketWatch(&MarketWatchDB);
-					iRet = pThrParam->pBrokerageHouse->RunMarketWatch(
-							&(pMessage->TxnInput.MarketWatchTxnInput),
-							*pMarketWatch );
-					delete pMarketWatch;
-					break;
-				}
-				case SECURITY_DETAIL:
-				{
-					CSecurityDetailDB SecurityDetailDB = CSecurityDetailDB(
-							pDBConnection);
-					CSecurityDetail *pSecurityDetail = new CSecurityDetail(
-							&SecurityDetailDB);
-					iRet = pThrParam->pBrokerageHouse->RunSecurityDetail(
-							&(pMessage->TxnInput.SecurityDetailTxnInput),
-							*pSecurityDetail );
-					delete pSecurityDetail;
-					break;
-				}
-				case TRADE_LOOKUP:
-				{
-					CTradeLookupDB TradeLookupDB(pDBConnection);
-					CTradeLookup *pTradeLookup =
-							new CTradeLookup(&TradeLookupDB);
-					iRet = pThrParam->pBrokerageHouse->RunTradeLookup(
-							&(pMessage->TxnInput.TradeLookupTxnInput),
-							*pTradeLookup );
-					delete pTradeLookup;
-					break;
-				}
-				case TRADE_ORDER:
-				{
-					iRet = pThrParam->pBrokerageHouse->RunTradeOrder(
-							&(pMessage->TxnInput.TradeOrderTxnInput),
-							*pTradeOrder );
-					break;
-				}
-				case TRADE_RESULT:
-				{
-					int iNumRetry = 1;
-					while(true)
-					{
-						try
-						{
-							CTradeResultDB TradeResultDB(pDBConnection);
-							pTradeResult = new CTradeResult(&TradeResultDB);
-							iRet = pThrParam->pBrokerageHouse->RunTradeResult(
-									&(pMessage->TxnInput.TradeResultTxnInput),
-									*pTradeResult );
-							delete pTradeResult;
-							break;
-						}
-						// catch only serialization failure errors
-						catch (const pqxx::sql_error &e)
-						{
-							if ( PGSQL_SERIALIZE_ERROR.compare(e.what()) )
-							{
-								ostringstream osErr;
-								osErr << endl <<
-										"**serialization failure : thread = " <<
-										pthread_self() << " Retry #"
-										<< iNumRetry << endl <<
-										"** query = " << e.query() << endl;
-								pThrParam->pBrokerageHouse->LogErrorMessage(
-										osErr.str(), false);
-
-								if (iNumRetry <= 3)
-								{
-									iNumRetry++;
-									// rollback the current trade result
-									pDBConnection->RollbackTxn();
-									delete pTradeResult;
-								}
-								// it couldn't resubmit successfully,
-								else throw;
-								// error should be caught by the next pqxx
-								// catch in this function
-							}
-							// other pqxx errors should be caught by the next
-							// pqxx catch in this function
-							else throw;
-						}
-					}
-
-					if (iNumRetry > 1)
-					{
-						ostringstream osErr;
-						osErr << "** txn re-submission ok : thread = " <<
-								pthread_self() << " #Retries = " <<
-								iNumRetry << endl;
-						pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str(),
-								false);
-					}
-					break;
-				}
-				case TRADE_STATUS:
-				{
-					CTradeStatusDB TradeStatusDB(pDBConnection);
-					CTradeStatus *pTradeStatus =
-							new CTradeStatus(&TradeStatusDB);
-					iRet = pThrParam->pBrokerageHouse->RunTradeStatus(
-							&(pMessage->TxnInput.TradeStatusTxnInput),
-							*pTradeStatus );
-					delete pTradeStatus;
-					break;
-				}
-				case TRADE_UPDATE:
-				{
-					CTradeUpdateDB TradeUpdateDB(pDBConnection);
-					CTradeUpdate *pTradeUpdate =
-							new CTradeUpdate(&TradeUpdateDB);
-					iRet = pThrParam->pBrokerageHouse->RunTradeUpdate(
-							&(pMessage->TxnInput.TradeUpdateTxnInput),
-							*pTradeUpdate );
-					delete pTradeUpdate;
-					break;
-				}
-				case DATA_MAINTENANCE:
-				{
-					CDataMaintenanceDB DataMaintenanceDB(pDBConnection);
-					CDataMaintenance *pDataMaintenance =
-							new CDataMaintenance(&DataMaintenanceDB);
-					iRet = pThrParam->pBrokerageHouse->RunDataMaintenance(
-							&(pMessage->TxnInput.DataMaintenanceTxnInput),
-							*pDataMaintenance );
-					delete pDataMaintenance;
-					break;
-				}
-				case TRADE_CLEANUP:
-				{
-					CTradeCleanupDB TradeCleanupDB(pDBConnection);
-					CTradeCleanup *pTradeCleanup = new CTradeCleanup(
-							&TradeCleanupDB);
-					iRet = pThrParam->pBrokerageHouse->RunTradeCleanup(
-							&(pMessage->TxnInput.TradeCleanupTxnInput),
-							*pTradeCleanup );
-					delete pTradeCleanup;
-					break;
-				}
-				default:
-				{
-					cout << "wrong txn type" << endl;
-					iRet = ERR_TYPE_WRONGTXN;
-				}
-					
-				}
-			}
-			// exceptions thrown by pqxx
-			catch (const pqxx::broken_connection &e)
-			{
-				ostringstream osErr;
-				osErr << "pqxx broken connection: " << e.what() << endl <<
-						" at " << "BrokerageHouse::WorkerThread" << endl;
-				pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
-				iRet = ERR_TYPE_PQXX;
-			}
-			catch (const pqxx::sql_error &e)
-			{
-				ostringstream osErr;
-				osErr << "pqxx SQL error: " << e.what() << endl <<
-						"Query was: '" << e.query() << "'" << endl << " at " <<
-						"BrokerageHouse::WorkerThread" << endl;
-				pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
-				iRet = ERR_TYPE_PQXX;
-				// Rollback any transaction in place.
-				pDBConnection->RollbackTxn();
-			}
-	
-			// send status to driver
-			Reply.iStatus = iRet;
-			sockDrv.Send( reinterpret_cast<void*>(&Reply), sizeof(Reply) );
-		}
-		catch(CSocketErr *pErr)
-		{
+		} catch(CSocketErr *pErr) {
 			sockDrv.CloseAccSocket();
 
 			ostringstream osErr;
-			osErr << endl << "Error: " << pErr->ErrorText() << " at " <<
+			osErr << "Error on Receive: " << pErr->ErrorText() <<
+					" at BrokerageHouse::WorkerThread" << endl;
+			pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
+			delete pErr;
+
+			// The socket has been closed, break and let this thread die.
+			break;
+		}
+
+		try {
+			//  Parse Txn type
+			switch ( pMessage->TxnType ) {
+			case BROKER_VOLUME:
+				iRet = pThrParam->pBrokerageHouse->RunBrokerVolume(
+						&(pMessage->TxnInput.BrokerVolumeTxnInput),
+						brokerVolume);
+				break;
+			case CUSTOMER_POSITION:
+				iRet = pThrParam->pBrokerageHouse->RunCustomerPosition(
+						&(pMessage->TxnInput.CustomerPositionTxnInput),
+						customerPosition );
+				break;
+			case MARKET_FEED:
+				iRet = pThrParam->pBrokerageHouse->RunMarketFeed(
+						&(pMessage->TxnInput.MarketFeedTxnInput),
+						marketFeed );
+				break;
+			case MARKET_WATCH:
+				iRet = pThrParam->pBrokerageHouse->RunMarketWatch(
+						&(pMessage->TxnInput.MarketWatchTxnInput),
+						marketWatch );
+				break;
+			case SECURITY_DETAIL:
+				iRet = pThrParam->pBrokerageHouse->RunSecurityDetail(
+						&(pMessage->TxnInput.SecurityDetailTxnInput),
+						securityDetail );
+				break;
+			case TRADE_LOOKUP:
+				iRet = pThrParam->pBrokerageHouse->RunTradeLookup(
+						&(pMessage->TxnInput.TradeLookupTxnInput),
+						tradeLookup );
+				break;
+			case TRADE_ORDER:
+				iRet = pThrParam->pBrokerageHouse->RunTradeOrder(
+						&(pMessage->TxnInput.TradeOrderTxnInput),
+						tradeOrder );
+				break;
+			case TRADE_RESULT:
+				iNumRetry = 1;
+				while (true) {
+					try {
+						iRet = pThrParam->pBrokerageHouse->RunTradeResult(
+								&(pMessage->TxnInput.TradeResultTxnInput),
+								tradeResult );
+						break;
+					} catch (const pqxx::sql_error &e) {
+						// catch only serialization failure errors
+						if ( PGSQL_SERIALIZE_ERROR.compare(e.what()) ) {
+							ostringstream osErr;
+							osErr << "*** TRADE RESULT serialization failure : thread = " <<
+									pthread_self() << " Retry #"
+									<< iNumRetry << endl <<
+									"*** query = " << e.query() << endl;
+							pThrParam->pBrokerageHouse->LogErrorMessage(
+									osErr.str(), false);
+
+							if (iNumRetry <= 3) {
+								iNumRetry++;
+								// rollback the current trade result
+								pDBConnection->RollbackTxn();
+							} else {
+								// it couldn't resubmit successfully,
+								osErr << "*** TRADE RESULT could not resubmit transaction successfully : thread = " <<
+										pthread_self() << " Retry #"
+										<< iNumRetry << endl <<
+										"*** query = " << e.query() << endl;
+								throw;
+							}
+							// error should be caught by the next pqxx
+							// catch in this function
+						}
+						// other pqxx errors should be caught by the next
+						// pqxx catch in this function
+						else throw;
+					}
+				}
+
+				if (iNumRetry > 1) {
+					ostringstream osErr;
+					osErr << "*** TRADE RESULT re-submission ok : thread = " <<
+							pthread_self() << " #Retries = " <<
+							iNumRetry << endl;
+					pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str(),
+							false);
+				}
+				break;
+			case TRADE_STATUS:
+				iRet = pThrParam->pBrokerageHouse->RunTradeStatus(
+						&(pMessage->TxnInput.TradeStatusTxnInput),
+						tradeStatus );
+				break;
+			case TRADE_UPDATE:
+				iRet = pThrParam->pBrokerageHouse->RunTradeUpdate(
+						&(pMessage->TxnInput.TradeUpdateTxnInput),
+						tradeUpdate );
+				break;
+			case DATA_MAINTENANCE:
+				iRet = pThrParam->pBrokerageHouse->RunDataMaintenance(
+						&(pMessage->TxnInput.DataMaintenanceTxnInput),
+						dataMaintenance );
+				break;
+			case TRADE_CLEANUP:
+				iRet = pThrParam->pBrokerageHouse->RunTradeCleanup(
+						&(pMessage->TxnInput.TradeCleanupTxnInput),
+						tradeCleanup );
+				break;
+			default:
+				cout << "wrong txn type" << endl;
+				iRet = ERR_TYPE_WRONGTXN;
+			}
+		} catch (const pqxx::broken_connection &e) {
+			// exceptions thrown by pqxx
+			ostringstream osErr;
+			osErr << "pqxx broken connection: " << e.what() << endl <<
+					" at " << "BrokerageHouse::WorkerThread" << endl;
+			pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
+			iRet = ERR_TYPE_PQXX;
+		} catch (const pqxx::sql_error &e) {
+			ostringstream osErr;
+			osErr << "pqxx SQL error: " << e.what() << endl <<
+					"Query was: '" << e.query() << "'" << endl << " at " <<
 					"BrokerageHouse::WorkerThread" << endl;
+			pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
+			iRet = ERR_TYPE_PQXX;
+			// Rollback any transaction in place.
+			pDBConnection->RollbackTxn();
+		}
+
+		// send status to driver
+		Reply.iStatus = iRet;
+		try {
+			sockDrv.Send( reinterpret_cast<void*>(&Reply), sizeof(Reply) );
+		} catch(CSocketErr *pErr) {
+			sockDrv.CloseAccSocket();
+
+			ostringstream osErr;
+			osErr << "Error on Send: " << pErr->ErrorText() <<
+					" at BrokerageHouse::WorkerThread" << endl;
 			pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
 			delete pErr;
 
@@ -271,9 +225,6 @@ void* WorkerThread(void* data)
 		}
 	} while (true);
 
-	delete pMarketFeed;
-	delete pTradeOrder;
-	delete pSendToMarket;
 	delete pDBConnection;		// close connection with the database
 	close(pThrParam->iSockfd);	// close socket connection with the driver
 	delete pThrParam;
@@ -298,7 +249,7 @@ void EntryWorkerThread(void* data)
 		{
 			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_INIT );
 		}
-	
+
 		// set the detachstate attribute to detached
 		status = pthread_attr_setdetachstate(&threadAttribute,
 				PTHREAD_CREATE_DETACHED);
@@ -306,11 +257,11 @@ void EntryWorkerThread(void* data)
 		{
 			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_DETACH );
 		}
-	
+
 		// create the thread in the detached state
 		status = pthread_create(&threadID, &threadAttribute, &WorkerThread,
 				data);
-	
+
 		if (status != 0)
 		{
 			throw new CThreadErr( CThreadErr::ERR_THREAD_CREATE );
@@ -328,11 +279,11 @@ void EntryWorkerThread(void* data)
 		pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
 		delete pThrParam;
 		delete pErr;
-	}	
+	}
 }
 
 // Constructor
-CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName, 
+CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName,
 		const char *szPostmasterPort, const int iListenPort,
 		char *outputDirectory)
 : m_iListenPort(iListenPort)
@@ -360,120 +311,120 @@ CBrokerageHouse::~CBrokerageHouse()
 
 // Run Broker Volume transaction
 INT32 CBrokerageHouse::RunBrokerVolume( PBrokerVolumeTxnInput pTxnInput,
-		CBrokerVolume &BrokerVolume )
+		CBrokerVolume &brokerVolume )
 {
 	TBrokerVolumeTxnOutput	TxnOutput;
-	BrokerVolume.DoTxn( pTxnInput, &TxnOutput );
+	brokerVolume.DoTxn( pTxnInput, &TxnOutput );
 
 	return( TxnOutput.status );
 }
 
 // Run Customer Position transaction
 INT32 CBrokerageHouse::RunCustomerPosition( PCustomerPositionTxnInput pTxnInput,
-		CCustomerPosition &CustomerPosition )
+		CCustomerPosition &customerPosition )
 {
 	TCustomerPositionTxnOutput	TxnOutput;
-	CustomerPosition.DoTxn( pTxnInput, &TxnOutput );
+	customerPosition.DoTxn( pTxnInput, &TxnOutput );
 
 	return( TxnOutput.status );
 }
 
 // Run Data Maintenance transaction
 INT32 CBrokerageHouse::RunDataMaintenance( PDataMaintenanceTxnInput pTxnInput,
-		CDataMaintenance &DataMaintenance )
+		CDataMaintenance &dataMaintenance )
 {
 	TDataMaintenanceTxnOutput	TxnOutput;
-	DataMaintenance.DoTxn( pTxnInput, &TxnOutput );
+	dataMaintenance.DoTxn( pTxnInput, &TxnOutput );
 
 	return( TxnOutput.status );
 }
 
 // Run Trade Cleanup transaction
 INT32 CBrokerageHouse::RunTradeCleanup( PTradeCleanupTxnInput pTxnInput,
-		CTradeCleanup &TradeCleanup )
+		CTradeCleanup &tradeCleanup )
 {
 	TTradeCleanupTxnOutput	TxnOutput;
-	TradeCleanup.DoTxn( pTxnInput, &TxnOutput );
+	tradeCleanup.DoTxn( pTxnInput, &TxnOutput );
 
 	return( TxnOutput.status );
 }
 
 // Run Market Feed transaction
 INT32 CBrokerageHouse::RunMarketFeed( PMarketFeedTxnInput pTxnInput,
-		CMarketFeed &MarketFeed )
+		CMarketFeed &marketFeed )
 {
 	TMarketFeedTxnOutput	TxnOutput;
-	MarketFeed.DoTxn( pTxnInput, &TxnOutput );
+	marketFeed.DoTxn( pTxnInput, &TxnOutput );
 
 	return( TxnOutput.status );
 }
 
 // Run Market Watch transaction
 INT32 CBrokerageHouse::RunMarketWatch( PMarketWatchTxnInput pTxnInput,
-		CMarketWatch &MarketWatch )
+		CMarketWatch &marketWatch )
 {
 	TMarketWatchTxnOutput	TxnOutput;
-	MarketWatch.DoTxn( pTxnInput, &TxnOutput );
+	marketWatch.DoTxn( pTxnInput, &TxnOutput );
 
 	return( TxnOutput.status );
 }
 
 // Run Security Detail transaction
 INT32 CBrokerageHouse::RunSecurityDetail( PSecurityDetailTxnInput pTxnInput,
-		CSecurityDetail &SecurityDetail )
+		CSecurityDetail &securityDetail )
 {
 	TSecurityDetailTxnOutput	TxnOutput;
-	SecurityDetail.DoTxn( pTxnInput, &TxnOutput );
+	securityDetail.DoTxn( pTxnInput, &TxnOutput );
 
 	return( TxnOutput.status );
 }
 
 // Run Trade Lookup transaction
 INT32 CBrokerageHouse::RunTradeLookup( PTradeLookupTxnInput pTxnInput,
-		CTradeLookup &TradeLookup )
+		CTradeLookup &tradeLookup )
 {
 	TTradeLookupTxnOutput	TxnOutput;
-	TradeLookup.DoTxn( pTxnInput, &TxnOutput );
+	tradeLookup.DoTxn( pTxnInput, &TxnOutput );
 
 	return( TxnOutput.status );
 }
 
 // Run Trade Order transaction
 INT32 CBrokerageHouse::RunTradeOrder( PTradeOrderTxnInput pTxnInput,
-		CTradeOrder &TradeOrder )
+		CTradeOrder &tradeOrder )
 {
 	TTradeOrderTxnOutput	TxnOutput;
-	TradeOrder.DoTxn( pTxnInput, &TxnOutput );
+	tradeOrder.DoTxn( pTxnInput, &TxnOutput );
 
 	return( TxnOutput.status );
 }
 
 // Run Trade Result transaction
 INT32 CBrokerageHouse::RunTradeResult( PTradeResultTxnInput pTxnInput,
-		CTradeResult &TradeResult )
+		CTradeResult &tradeResult )
 {
 	TTradeResultTxnOutput	TxnOutput;
-	TradeResult.DoTxn( pTxnInput, &TxnOutput );
+	tradeResult.DoTxn( pTxnInput, &TxnOutput );
 
 	return( TxnOutput.status );
 }
 
 // Run Trade Status transaction
 INT32 CBrokerageHouse::RunTradeStatus( PTradeStatusTxnInput pTxnInput,
-		CTradeStatus &TradeStatus )
+		CTradeStatus &tradeStatus )
 {
 	TTradeStatusTxnOutput	TxnOutput;
-	TradeStatus.DoTxn( pTxnInput, &TxnOutput );
+	tradeStatus.DoTxn( pTxnInput, &TxnOutput );
 
 	return( TxnOutput.status );
 }
 
 // Run Trade Update transaction
 INT32 CBrokerageHouse::RunTradeUpdate( PTradeUpdateTxnInput pTxnInput,
-		CTradeUpdate &TradeUpdate )
+		CTradeUpdate &tradeUpdate )
 {
 	TTradeUpdateTxnOutput	TxnOutput;
-	TradeUpdate.DoTxn( pTxnInput, &TxnOutput );
+	tradeUpdate.DoTxn( pTxnInput, &TxnOutput );
 
 	return( TxnOutput.status );
 }
@@ -483,7 +434,7 @@ void CBrokerageHouse::Listener( void )
 {
 	int acc_socket;
 	PThreadParameter pThrParam = NULL;
-	
+
 	m_Socket.Listen( m_iListenPort );
 
 	while(true)
@@ -492,23 +443,23 @@ void CBrokerageHouse::Listener( void )
 		try
 		{
 			acc_socket = m_Socket.Accept();
-	
+
 			pThrParam = new TThreadParameter;
 			// zero the structure
 			memset(pThrParam, 0, sizeof(TThreadParameter));
-	
+
 			pThrParam->iSockfd = acc_socket;
 			pThrParam->pBrokerageHouse = this;
-	
+
 			// call entry point
 			EntryWorkerThread( reinterpret_cast<void*>(pThrParam) );
 		}
 		catch(CSocketErr *pErr)
 		{
 			ostringstream osErr;
-			osErr<<endl<<"Problem to accept socket connection"
-			     <<endl<<"Error: "<<pErr->ErrorText()
-			     <<" at "<<"BrokerageHouse::Listener"<<endl;
+			osErr << "Problem accepting socket connection" << endl <<
+					"Error: " << pErr->ErrorText() << " at " <<
+					"BrokerageHouse::Listener" << endl;
 			LogErrorMessage(osErr.str());
 			delete pErr;
 			delete pThrParam;
