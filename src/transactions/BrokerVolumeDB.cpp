@@ -28,6 +28,15 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 	osCall << "SELECT * FROM BrokerVolumeFrame1('{" <<
 			osBrokers.str() << "}','" <<
 			pIn->sector_name << "')";
+#ifdef DEBUG
+	m_coutLock.lock();
+	cout << "<<< BVF1" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Broker Volume Frame 1 (input)" << endl <<
+		"-- broker_list: " << osBrokers.str() << endl <<
+		"-- sector name: " << pIn->sector_name << endl;
+	m_coutLock.unlock();
+#endif // DEBUG
 
 	BeginTxn();
 	// Isolation level required by Clause 7.4.1.3
@@ -38,42 +47,42 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 	// stored procedure can return an empty result set by design
 	result::const_iterator c = R.begin();
 
+	pOut->list_len = c[i_list_len].as(int());;
+
 	vector<string> vAux;
 	vector<string>::iterator p;
 
-	TokenizeString(c[i_broker_name].c_str(), vAux);
+	TokenizeSmart(c[i_broker_name].c_str(), vAux);
 	i = 0;	
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		strcpy(pOut->broker_name[i], (*p).c_str());
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
+		strncpy(pOut->broker_name[i], (*p).c_str(), cB_NAME_len);
 		++i;
 	}
+	check_count(pOut->list_len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	Tokenize(c[i_volume].c_str(), vAux);
+	TokenizeSmart(c[i_volume].c_str(), vAux);
 	i = 0;	
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->volume[i] = atof((*p).c_str());
 		++i;
 	}
+	check_count(pOut->list_len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
- 	pOut->list_len = c[i_list_len].as(int());;
 	pOut->status = c[i_status].as(int());
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout << ">>> BVF1" << endl;
-	cout << "*** " << osCall.str() << endl;
-	cout << "- Broker Volume Frame 1 (input)" << endl <<
-		"-- broker_list: " << osBrokers.str() << endl <<
-		"-- sector name: " << pIn->sector_name << endl;
 	cout << "- Broker Volume Frame 1 (output)" << endl <<
-		"-- list_len: " << pOut->list_len << endl;
+			"-- status: " << pOut->status << endl <<
+			"-- list_len: " << pOut->list_len << endl;
 	for (i = 0; i < pOut->list_len; i ++) {
 		cout << "-- broker_name[" << i << "]: " << pOut->broker_name[i] <<
 				endl <<
 				"-- volume[" << i << "]: " << pOut->volume[i] << endl;
 	}
+	cout << ">>> BVF1" << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }

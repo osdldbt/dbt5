@@ -21,6 +21,17 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
 			pIn->st_pending_id << "','" <<
 			pIn->st_submitted_id << "'," <<
 			pIn->start_trade_id << ")";
+#ifdef DEBUG
+	m_coutLock.lock();
+	cout << "<<< TCF1" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Trade Cleanup Frame 1 (input)" << endl <<
+			"-- st_canceled_id: " << pIn->st_canceled_id << endl <<
+			"-- st_pending_id: " << pIn->st_pending_id << endl <<
+			"-- st_submitted_id: " << pIn->st_submitted_id << endl <<
+			"-- trade_id: " << pIn->start_trade_id << endl;
+	m_coutLock.unlock();
+#endif // DEBUG
 
 	BeginTxn();
 	result R( m_Txn->exec( osCall.str() ) );
@@ -38,15 +49,9 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout << ">>> TCF1" << endl;
-	cout << "*** " << osCall.str() << endl;
-	cout << "- Trade Cleanup Frame 1 (input)" << endl <<
-			"-- st_canceled_id: " << pIn->st_canceled_id << endl <<
-			"-- st_pending_id: " << pIn->st_pending_id << endl <<
-			"-- st_submitted_id: " << pIn->st_submitted_id << endl <<
-			"-- trade_id: " << pIn->start_trade_id << endl;
 	cout << "- Trade Cleanup Frame 1 (output)" << endl <<
 			"-- status: " << pOut->status << endl;
+	cout << ">>> TCF1" << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }

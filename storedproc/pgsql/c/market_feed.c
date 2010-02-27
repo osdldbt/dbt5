@@ -36,12 +36,17 @@ typedef int16 NumericDigit;
  * transaction.
  */
 
+/*
+ * The only reason we have the RETUNING clause here is so we can count how
+ * many rows were updated.
+ */
 #define MFF1_1 \
-		"UPDATE LAST_TRADE\n" \
+		"UPDATE last_trade\n" \
 		"SET    lt_price = %s,\n" \
 		"       lt_vol = lt_vol + %d,\n" \
 		"       lt_dts = now()\n" \
-		"WHERE  lt_s_symb = '%s'"
+		"WHERE  lt_s_symb = '%s'\n" \
+		"RETURNING lt_s_symb"
 
 #define MFF1_2 \
 		"SELECT tr_t_id,\n" \
@@ -154,6 +159,10 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 	int max_calls;
 
 	int i, j, k;
+	int rows_updated = 0;
+	int rows_sent;
+	int send_len = 0;
+	int count = 0;
 
 	int nitems_pq;
 	int *p_tq;
@@ -173,7 +182,8 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		char *type_limit_sell_p = (char *) PG_GETARG_TEXT_P(5);
 		char *type_stop_loss_p = (char *) PG_GETARG_TEXT_P(6);
 
-		enum mff1 { i_send_len=0, i_status };
+		enum mff1 {i_send_len=0, i_status, i_rows_updated, i_symbol,
+				i_trade_id, i_price_quote, i_trade_qty, i_trade_type};
 
 		Datum *transdatums_pq;
 
@@ -198,15 +208,34 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		char type_limit_sell[TT_ID_LEN + 1];
 		char type_stop_loss[TT_ID_LEN + 1];
 		char *trade_id;
+		char *req_price_quote;
+		char *req_trade_type;
+		char *req_trade_qty;
 
 		/*
 		 * Prepare a values array for building the returned tuple.
 		 * This should be an array of C strings, which will
 		 * be processed later by the type input functions.
 		 */
-		values = (char **) palloc(sizeof(char *) * 2);
+		values = (char **) palloc(sizeof(char *) * 8);
 		values[i_send_len] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
 		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
+		values[i_rows_updated] =
+				(char *) palloc((STATUS_LEN + 1) * sizeof(char));
+		/*
+		 * FIXME: We don't know how many rows could be returned.  The average
+		 * is supposed to be 4.  Let's be prepared for 100, just to be safe.
+		 */
+		values[i_symbol] = (char *) palloc(((S_SYMB_LEN + 3) * 100 + 3) *
+				sizeof(char));
+		values[i_trade_id] = (char *) palloc(((IDENT_T_LEN + 1) * 100 + 2) *
+				sizeof(char));
+		values[i_price_quote] = (char *) palloc(((S_PRICE_T_LEN + 1) * 100 +
+				2) * sizeof(char));
+		values[i_trade_qty] = (char *) palloc(((INTEGER_LEN + 1) * 100 + 2) *
+				sizeof(char));
+		values[i_trade_type] = (char *) palloc(((TT_ID_LEN + 3) * 100 + 3) *
+				sizeof(char));
 
 		sprintf(values[i_status], "%d", 0);
 
@@ -252,13 +281,20 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		SPI_connect();
 
 		k = 0;
+		strcpy(values[i_symbol], "{");
+		strcpy(values[i_trade_id], "{");
+		strcpy(values[i_price_quote], "{");
+		strcpy(values[i_trade_type], "{");
+		strcpy(values[i_trade_qty], "{");
 		for (i = 0; i < nitems_pq; i++) {
+			rows_sent = 0;
+
 			strcpy(price_quote,
 					DatumGetCString(DirectFunctionCall1(numeric_out,
 							transdatums_pq[i])));
 			strcpy(symbol, DatumGetCString(DirectFunctionCall1(textout,
 					PointerGetDatum(p_s))));
-			/* BEGIN/COMMIT statements not supported with SPI. */
+			/* FIXME: BEGIN/COMMIT statements not supported with SPI. */
 /*
 			ret = SPI_exec("BEGIN;", 0);
 			if (ret == SPI_OK_SELECT) {
@@ -276,12 +312,16 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 			ret = SPI_exec(sql, 0);
-			if (ret != SPI_OK_UPDATE) {
+			if (ret != SPI_OK_UPDATE_RETURNING) {
 				dump_mff1_inputs(price_quote_p, status_submitted_p, symbol_p,
 						trade_qty, type_limit_buy_p, type_limit_sell_p,
 						type_stop_loss_p);
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			}
+			rows_updated += SPI_processed;
+#ifdef DEBUG
+			elog(NOTICE, "%d row(s) updated", rows_updated);
+#endif /* DEBUG */
 
 			sprintf(sql, MFF1_2, symbol, type_stop_loss, price_quote,
 					type_limit_sell, price_quote, type_limit_buy, price_quote);
@@ -305,6 +345,9 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 			for (j = 0; j < SPI_processed; j++, k++) {
 				tuple = tuptable->vals[j];
 				trade_id = SPI_getvalue(tuple, tupdesc, 1);
+				req_price_quote = SPI_getvalue(tuple, tupdesc, 2);
+				req_trade_type = SPI_getvalue(tuple, tupdesc, 3);
+				req_trade_qty = SPI_getvalue(tuple, tupdesc, 4);
 #ifdef DEBUG
 				elog(NOTICE, "trade_id = %s", trade_id);
 #endif /* DEBUG */
@@ -344,9 +387,27 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 							type_limit_sell_p, type_stop_loss_p);
 					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				}
+				++rows_sent;
+#ifdef DEBUG
+				elog(NOTICE, "%d row(s) sent", rows_sent);
+#endif /* DEBUG */
+
+				if (count > 0) {
+					strcat(values[i_symbol], ",");
+					strcat(values[i_trade_id], ",");
+					strcat(values[i_price_quote], ",");
+					strcat(values[i_trade_type], ",");
+					strcat(values[i_trade_qty], ",");
+				}
+				strcat(values[i_symbol], symbol);
+				strcat(values[i_trade_id], trade_id);
+				strcat(values[i_price_quote], req_price_quote);
+				strcat(values[i_trade_type], req_trade_type);
+				strcat(values[i_trade_qty], req_trade_qty);
+				++count;
 			}
 
-			/* BEGIN/COMMIT statements not supported with SPI. */
+			/* FIXME: BEGIN/COMMIT statements not supported with SPI. */
 /*
 			ret = SPI_exec("COMMIT;", 0);
 			if (ret == SPI_OK_SELECT) {
@@ -354,10 +415,20 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 				elog(NOTICE, "ERROR: COMMIT not ok = %d", ret);
 			}
 */
+
+			send_len += rows_sent;
+
 			p_s = att_addlength_pointer(p_s, typlen_s, p_s);
 			p_s = (char *) att_align_nominal(p_s, typalign_s);
 		}
-		sprintf(values[i_send_len], "%d", k);
+		strcat(values[i_symbol], "}");
+		strcat(values[i_trade_id], "}");
+		strcat(values[i_price_quote], "}");
+		strcat(values[i_trade_qty], "}");
+		strcat(values[i_trade_type], "}");
+
+		sprintf(values[i_rows_updated], "%d", rows_updated);
+		sprintf(values[i_send_len], "%d", send_len);
 		funcctx->max_calls = 1;
 
 		/* Build a tuple descriptor for our result type */
@@ -392,7 +463,7 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		Datum result;
 
 #ifdef DEBUG                                                                    
-		for (i = 0; i < 2; i++) {
+		for (i = 0; i < 8; i++) {
 			elog(NOTICE, "MFF1 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */

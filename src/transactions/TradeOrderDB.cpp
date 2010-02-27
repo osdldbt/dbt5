@@ -16,6 +16,14 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 {
 	ostringstream osCall;
 	osCall << "SELECT * FROM TradeOrderFrame1(" << pIn->acct_id << ")";
+#ifdef DEBUG
+	m_coutLock.lock();
+	cout << "<<< TOF1" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Trade Order Frame 1 (input)" << endl <<
+			"-- acct_id: " << pIn->acct_id << endl;
+	m_coutLock.unlock();
+#endif // DEBUG
 
 	// start transaction but not commit in this frame
 	BeginTxn();
@@ -32,23 +40,19 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 	}
 	result::const_iterator c = R.begin();
 	
-	strcpy(pOut->acct_name, c[0].c_str());
+	strncpy(pOut->acct_name, c[0].c_str(), cCA_NAME_len);
 	pOut->broker_id = c[1].as(long());
-	strcpy(pOut->broker_name, c[2].c_str());
-	strcpy(pOut->cust_f_name, c[3].c_str());
+	strncpy(pOut->broker_name, c[2].c_str(), cB_NAME_len);
+	strncpy(pOut->cust_f_name, c[3].c_str(), cF_NAME_len);
 	pOut->cust_id = c[4].as(long());
-	strcpy(pOut->cust_l_name, c[5].c_str());
+	strncpy(pOut->cust_l_name, c[5].c_str(), cL_NAME_len);
 	pOut->cust_tier = c[6].as(int());
 	pOut->status = c[7].as(int());
-	strcpy(pOut->tax_id, c[8].c_str());
+	strncpy(pOut->tax_id, c[8].c_str(), cTAX_ID_len);
 	pOut->tax_status = c[9].as(int());
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout << ">>> TOF1" << endl;
-	cout << "*** " << osCall.str() << endl;
-	cout << "- Trade Order Frame 1 (input)" << endl <<
-			"-- acct_id: " << pIn->acct_id << endl;
 	cout << "- Trade Order Frame 1 (output)" << endl <<
 			"-- acct_name: " << pOut->acct_name << endl <<
 			"-- broker_name: " << pOut->broker_name << endl <<
@@ -58,6 +62,7 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 			"-- cust_tier: " << pOut->cust_tier << endl <<
 			"-- tax_id: " << pOut->tax_id << endl <<
 			"-- tax_status: " << pOut->tax_status << endl;
+	cout << ">>> TOF1" << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }
@@ -72,6 +77,17 @@ void CTradeOrderDB::DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
 			m_Txn->esc(pIn->exec_f_name) << "','" <<
 			m_Txn->esc(pIn->exec_l_name) << "','" <<
 			pIn->exec_tax_id<<"')";
+#ifdef DEBUG
+	m_coutLock.lock();
+	cout << "<<< TOF2" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Trade Order Frame 2 (input)" << endl <<
+			"-- acct_id: " << pIn->acct_id << endl <<
+			"-- exec_f_name: " << m_Txn->esc(pIn->exec_f_name) << endl <<
+			"-- exec_l_name: " << m_Txn->esc(pIn->exec_l_name) << endl <<
+			"-- exec_tax_id: " << pIn->exec_tax_id << endl;
+	m_coutLock.unlock();
+#endif // DEBUG
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -87,20 +103,17 @@ void CTradeOrderDB::DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
 	result::const_iterator c = R.begin();
 	
 	if (c[0].is_null() == false)
-		strcpy(pOut->ap_acl, c[0].c_str());
+		strncpy(pOut->ap_acl, c[0].c_str(), cACL_len);
+	else
+		pOut->ap_acl[0] = '\0';
 	pOut->status = c[1].as(int());
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout << ">>> TOF2" << endl;
-	cout << "*** " << osCall.str() << endl;
-	cout << "- Trade Order Frame 2 (input)" << endl <<
-			"-- acct_id: " << pIn->acct_id << endl <<
-			"-- exec_f_name: " << m_Txn->esc(pIn->exec_f_name) << endl <<
-			"-- exec_l_name: " << m_Txn->esc(pIn->exec_l_name) << endl <<
-			"-- exec_tax_id: " << pIn->exec_tax_id << endl;
 	cout << "- Trade Order Frame 2 (output)" << endl <<
+			"-- ap_acl: " << pOut->ap_acl << endl <<
 			"-- status: " << pOut->status << endl;
+	cout << ">>> TOF2" << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }
@@ -125,38 +138,9 @@ void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 			m_Txn->esc(pIn->co_name) << "'," <<
 			pIn->requested_price << ",'" <<
 			pIn->symbol << "')";
-
-	// we are inside a transaction
-	result R( m_Txn->exec( osCall.str() ) );
-
-	if (R.empty()) 
-	{
-		cout << "warning: empty result set at DoTradeOrderFrame3" << endl <<
-				osCall.str() << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
-	result::const_iterator c = R.begin();
-	
-	strcpy(pOut->co_name, c[0].c_str());
-	pOut->requested_price = c[1].as(double());
-	strcpy(pOut->symbol, c[2].c_str());
-	pOut->buy_value = c[3].as(double());
-	pOut->charge_amount = c[4].as(double());
-	pOut->comm_rate = c[5].as(double());
-	pOut->cust_assets = c[6].as(double());
-	pOut->market_price = c[7].as(double());
-	strcpy(pOut->s_name, c[8].c_str());
-	pOut->sell_value = c[9].as(double());
-	pOut->status = c[10].as(int());
-	strcpy(pOut->status_id, c[11].c_str());
-	pOut->tax_amount = c[12].as(double());
-	pOut->type_is_market = (c[13].c_str()[0] == 't' ? 1 : 0);
-	pOut->type_is_sell = (c[14].c_str()[0] == 't' ? 1 : 0);
-
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout << ">>> TOF3" << endl;
+	cout << "<<< TOF3" << endl;
 	cout << "*** " << osCall.str() << endl;
 	cout << "- Trade Order Frame 3 (input)" << endl <<
 			"-- acct_id: " << pIn->acct_id << endl <<
@@ -173,6 +157,39 @@ void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 			"-- co_name: " << pIn->co_name << endl <<
 			"-- requested_price: " << pIn->requested_price << endl <<
 			"-- symbol: " << pIn->symbol << endl;
+	m_coutLock.unlock();
+#endif //DEBUG
+
+	// we are inside a transaction
+	result R( m_Txn->exec( osCall.str() ) );
+
+	if (R.empty()) 
+	{
+		cout << "warning: empty result set at DoTradeOrderFrame3" << endl <<
+				osCall.str() << endl;
+		pOut->status = CBaseTxnErr::ROLLBACK;
+		return;
+	}
+	result::const_iterator c = R.begin();
+	
+	strncpy(pOut->co_name, c[0].c_str(), cCO_NAME_len);
+	pOut->requested_price = c[1].as(double());
+	strncpy(pOut->symbol, c[2].c_str(), cSYMBOL_len);
+	pOut->buy_value = c[3].as(double());
+	pOut->charge_amount = c[4].as(double());
+	pOut->comm_rate = c[5].as(double());
+	pOut->cust_assets = c[6].as(double());
+	pOut->market_price = c[7].as(double());
+	strncpy(pOut->s_name, c[8].c_str(), cS_NAME_len);
+	pOut->sell_value = c[9].as(double());
+	pOut->status = c[10].as(int());
+	strncpy(pOut->status_id, c[11].c_str(), cTH_ST_ID_len);
+	pOut->tax_amount = c[12].as(double());
+	pOut->type_is_market = (c[13].c_str()[0] == 't' ? 1 : 0);
+	pOut->type_is_sell = (c[14].c_str()[0] == 't' ? 1 : 0);
+
+#ifdef DEBUG
+	m_coutLock.lock();
 	cout << "- Trade Order Frame 3 (output)" << endl <<
 			"-- co_name: " << pOut->co_name << endl <<
 			"-- requested_price: " << pOut->requested_price << endl <<
@@ -188,6 +205,7 @@ void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 			"-- tax_amount: " << pOut->tax_amount << endl <<
 			"-- type_is_market: " << pOut->type_is_market << endl <<
 			"-- type_is_sell: " << pOut->type_is_sell << endl;
+	cout << ">>> TOF3" << endl;
 	m_coutLock.unlock();
 #endif //DEBUG
 }
@@ -211,6 +229,26 @@ void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 			pIn->trade_qty << ",'" <<
 			pIn->trade_type_id << "'," <<
 			pIn->type_is_market << "::SMALLINT)";
+#ifdef DEBUG
+	m_coutLock.lock();
+	cout << "<<< TOF4" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "-Trade Order Frame 4 (input)" << endl <<
+			"-- acct_id: " << pIn->acct_id << endl <<
+			"-- broker_id: " << pIn->broker_id << endl <<
+			"-- charge_amount: " << pIn->charge_amount << endl <<
+			"-- comm_amount: " << pIn->comm_amount << endl <<
+			"-- exec_name: " << pIn->exec_name << endl <<
+			"-- is_cash: " << pIn->is_cash << endl <<
+			"-- is_lifo: " << pIn->is_lifo << endl <<
+			"-- requested_price: " << pIn->requested_price << endl <<
+			"-- status_id: " << pIn->status_id << endl <<
+			"-- symbol: " << pIn->symbol << endl <<
+			"-- trade_qty: " << pIn->trade_qty << endl <<
+			"-- trade_type_id: " << pIn->trade_type_id << endl <<
+			"-- type_is_market: " << pIn->type_is_market << endl;
+	m_coutLock.unlock();
+#endif //DEBUG
 
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
@@ -229,23 +267,10 @@ void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout << ">>> TOF4" << endl;
-	cout << "*** " << osCall.str() << endl;
-	cout << "-Trade Order Frame 4 (input)" << endl <<
-			"-- acct_id: " << pIn->acct_id << endl <<
-			"-- charge_amount: " << pIn->charge_amount << endl <<
-			"-- comm_amount: " << pIn->comm_amount << endl <<
-			"-- exec_name: " << pIn->exec_name << endl <<
-			"-- is_cash: " << pIn->is_cash << endl <<
-			"-- is_lifo: " << pIn->is_lifo << endl <<
-			"-- requested_price: " << pIn->requested_price << endl <<
-			"-- status_id: " << pIn->status_id << endl <<
-			"-- symbol: " << pIn->symbol << endl <<
-			"-- trade_qty: " << pIn->trade_qty << endl <<
-			"-- trade_type_id: " << pIn->trade_type_id << endl <<
-			"-- type_is_market: " << pIn->type_is_market << endl;
 	cout << "- Trade Order Frame 4 (output)" << endl <<
+			"-- status: " << pOut->status << endl <<
 			"-- trade_id: " << pOut->trade_id << endl;
+	cout << ">>> TOF4" << endl;
 	m_coutLock.unlock();
 #endif //DEBUG
 }
@@ -254,22 +279,34 @@ void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 void CTradeOrderDB::DoTradeOrderFrame5(TTradeOrderFrame5Output *pOut)
 {
 #ifdef DEBUG
-	cout << ">>> TOF5" << endl;
+	cout << "<<< TOF5" << endl;
 #endif
 
 	// rollback the transaction we are inside
 	RollbackTxn();
 	pOut->status = CBaseTxnErr::ROLLBACK;
+
+#ifdef DEBUG
+	cout << "- Trade Order Frame 5 (output)" << endl <<
+			"-- status: " << pOut->status << endl;
+	cout << ">>> TOF5" << endl;
+#endif
 }
 
 // Call Trade Order Frame 6
 void CTradeOrderDB::DoTradeOrderFrame6(TTradeOrderFrame6Output *pOut)
 {
 #ifdef DEBUG
-	cout << ">>> TOF6" << endl;
+	cout << "<<< TOF6" << endl;
 #endif
 
 	// commit the transaction we are inside
 	CommitTxn();
 	pOut->status = CBaseTxnErr::SUCCESS;
+
+#ifdef DEBUG
+	cout << "- Trade Order Frame 6 (output)" << endl <<
+			"-- status: " << pOut->status << endl;
+	cout << ">>> TOF6" << endl;
+#endif
 }

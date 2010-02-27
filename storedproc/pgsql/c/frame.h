@@ -107,6 +107,8 @@
 #define NI_AUTHOR_LEN 30
 #define NI_ITEM_LEN 100000
 #define NI_SOURCE_LEN 30
+#define NI_HEADLINE_LEN 80
+#define NI_SUMMARY_LEN 255
 
 #define S_EX_ID_LEN 6
 #define S_NAME_LEN 70

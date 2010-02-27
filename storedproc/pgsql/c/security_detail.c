@@ -250,8 +250,8 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 				FI_OUT_DILUT_LEN + 14) * MAX_FIN_LEN + 3) * sizeof(char));
 		values[i_fin_len] = (char *) palloc(sizeof(char) * (INTEGER_LEN + 1));
 		values[i_news] = (char *) palloc(sizeof(char) * ((NI_ITEM_LEN +
-				MAXDATELEN + NI_SOURCE_LEN + NI_AUTHOR_LEN + 19) *
-				MAX_NEWS_LEN + 3));
+				MAXDATELEN + NI_SOURCE_LEN + NI_AUTHOR_LEN + NI_SUMMARY_LEN +
+				NI_HEADLINE_LEN + 19) * MAX_NEWS_LEN + 3));
 		values[i_news_len] = (char *) palloc(sizeof(char) * (INTEGER_LEN + 1));
 		values[i_status] = (char *) palloc(sizeof(char) * (STATUS_LEN + 1));
 		strcpy(values[i_status], "0");
@@ -382,16 +382,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			strcat(values[i_fin], ",");
 			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 2));
 			strcat(values[i_fin], ",");
-
-			/*
-			 * FIXME: This is supposed to be an array of number but this is
-			 * a date.  What is supposed to be going on here?  Using the
-			 * number 0 as a place holder.
-			 */
-/*
 			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 3));
-*/
-			strcat(values[i_fin], "0");
 			strcat(values[i_fin], ",");
 			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 4));
 			strcat(values[i_fin], ",");
@@ -436,30 +427,13 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 				strcat(values[i_day], ",");
 			}
 			strcat(values[i_day], "{");
-			/*
-			 * FIXME: This is supposed to be an array of number but this is
-			 * a date.  What is supposed to be going on here?  Using the
-			 * number 0 as a place holder.
-			 */
-/*
 			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 1));
-*/
-			strcat(values[i_day], "0");
 			strcat(values[i_day], ",");
-/*
 			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 2));
-*/
-			strcat(values[i_day], "0");
 			strcat(values[i_day], ",");
-/*
 			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 3));
-*/
-			strcat(values[i_day], "0");
 			strcat(values[i_day], ",");
-/*
 			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 4));
-*/
-			strcat(values[i_day], "0");
 			strcat(values[i_day], ",");
 			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 5));
 			strcat(values[i_day], "}");
@@ -510,11 +484,6 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 				strcat(values[i_news], ",");
 			}
 			strcat(values[i_news], "{");
-			/*
-			 * FIXME: This is supposed to be an array of number but this is
-			 * a date.  What is supposed to be going on here?  Using the
-			 * number 0 as a place holder.
-			 */
 			strcat(values[i_news], "\"");
 			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 1));
 			strcat(values[i_news], "\",\"");
@@ -525,6 +494,8 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 4));
 			strcat(values[i_news], "\",\"");
 			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 5));
+			strcat(values[i_news], "\",\"");
+			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 6));
 			strcat(values[i_news], "\"");
 			strcat(values[i_news], "}");
 		}

@@ -332,7 +332,7 @@ Datum TradeLookupFrame1(PG_FUNCTION_ARGS)
 					tupdesc = SPI_tuptable->tupdesc;
 					tuptable = SPI_tuptable;
 					tuple = tuptable->vals[0];
-					++num_found_count;
+					num_found_count += SPI_processed;
 				} else {
 					dump_tlf1_inputs(max_trades, trade_id_p);
 					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
@@ -355,7 +355,7 @@ Datum TradeLookupFrame1(PG_FUNCTION_ARGS)
 			strcat(values[i_exec_name], "\"");
 			strcat(values[i_exec_name], SPI_getvalue(tuple, tupdesc, 2));
 			strcat(values[i_exec_name], "\"");
-			/* Use the is_cash point more easier reference later. */
+			/* Use the is_cash pointer, easier to reference later. */
 			is_cash_str = SPI_getvalue(tuple, tupdesc, 3);
 			strcat(values[i_is_cash], (is_cash_str[0] == 't' ? "0" : "1"));
 			is_market_str = SPI_getvalue(tuple, tupdesc, 4);
@@ -393,7 +393,7 @@ Datum TradeLookupFrame1(PG_FUNCTION_ARGS)
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			}
 
-			if (is_cash_str[0] == '1') {
+			if (is_cash_str[0] == 't') {
 				sprintf(sql, TLF1_3, trade_id[i]);
 #ifdef DEBUG
 				elog(NOTICE, "SQL\n%s", sql);
@@ -407,7 +407,6 @@ Datum TradeLookupFrame1(PG_FUNCTION_ARGS)
 						if (num_cash_txn > 0) {
 							strcat(values[i_cash_transaction_amount], ",");
 							strcat(values[i_cash_transaction_dts], ",");
-							strcat(values[i_cash_transaction_name], ",");
 							strcat(values[i_cash_transaction_name], ",");
 						}
 						strcat(values[i_cash_transaction_amount],
@@ -433,6 +432,7 @@ Datum TradeLookupFrame1(PG_FUNCTION_ARGS)
 			ret = SPI_exec(sql, 0);
 			if (ret == SPI_OK_SELECT) {
 				if (SPI_processed > 0) {
+					int j;
 					tupdesc = SPI_tuptable->tupdesc;
 					tuptable = SPI_tuptable;
 					tuple = tuptable->vals[0];
@@ -440,12 +440,37 @@ Datum TradeLookupFrame1(PG_FUNCTION_ARGS)
 						strcat(values[i_trade_history_dts], ",");
 						strcat(values[i_trade_history_status_id], ",");
 					}
-					strcat(values[i_trade_history_dts],
-							SPI_getvalue(tuple, tupdesc, 1));
-					strcat(values[i_trade_history_status_id], "\"");
-					strcat(values[i_trade_history_status_id],
-							 SPI_getvalue(tuple, tupdesc, 2));
-					strcat(values[i_trade_history_status_id], "\"");
+					strcat(values[i_trade_history_dts], "{");
+					strcat(values[i_trade_history_status_id], "{");
+					/*
+					 * FIXME: Can't have varying size multi-dimensial array.
+					 * Since the spec says no more than three items here,
+					 * pad the array up to 3 all the time.
+					 */
+					for (j = 0; j < SPI_processed; j++) {
+						if (j > 0) {
+							strcat(values[i_trade_history_dts], ",");
+							strcat(values[i_trade_history_status_id], ",");
+						}
+						strcat(values[i_trade_history_dts], "\"");
+						strcat(values[i_trade_history_dts],
+								SPI_getvalue(tuple, tupdesc, 1));
+						strcat(values[i_trade_history_dts], "\"");
+						strcat(values[i_trade_history_status_id], "\"");
+						strcat(values[i_trade_history_status_id],
+								SPI_getvalue(tuple, tupdesc, 2));
+						strcat(values[i_trade_history_status_id], "\"");
+					}
+					for (j = SPI_processed; j < 3; j++) {
+						if (j > 0) {
+							strcat(values[i_trade_history_dts], ",");
+							strcat(values[i_trade_history_status_id], ",");
+						}
+						strcat(values[i_trade_history_dts], "NULL");
+						strcat(values[i_trade_history_status_id], "\"\"");
+					}
+					strcat(values[i_trade_history_dts], "}");
+					strcat(values[i_trade_history_status_id], "}");
 					++num_history;
 				}
 			} else {
@@ -732,11 +757,20 @@ Datum TradeLookupFrame2(PG_FUNCTION_ARGS)
 					tuptable2 = SPI_tuptable;
 					tuple2 = tuptable2->vals[0];
 					++num_cash_txn;
-				} else {
-					dump_tlf2_inputs(acct_id, end_trade_dts, max_trades,
-							start_trade_dts);
-					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
-					continue;
+
+					if (num_cash_txn > 1) {
+						strcat(values[i_cash_transaction_amount], ",");
+						strcat(values[i_cash_transaction_dts], ",");
+						strcat(values[i_cash_transaction_name], ",");
+					}
+					strcat(values[i_cash_transaction_amount],
+							SPI_getvalue(tuple2, tupdesc2, 1));
+					strcat(values[i_cash_transaction_dts],
+							SPI_getvalue(tuple2, tupdesc2, 2));
+					strcat(values[i_cash_transaction_name], "\"");
+					strcat(values[i_cash_transaction_name],
+							SPI_getvalue(tuple2, tupdesc2, 3));
+					strcat(values[i_cash_transaction_name], "\"");
 				}
 			} else {
 				dump_tlf2_inputs(acct_id, end_trade_dts, max_trades,
@@ -744,20 +778,6 @@ Datum TradeLookupFrame2(PG_FUNCTION_ARGS)
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				continue;
 			}
-
-			if (num_cash_txn > 1) {
-				strcat(values[i_cash_transaction_amount], ",");
-				strcat(values[i_cash_transaction_dts], ",");
-				strcat(values[i_cash_transaction_name], ",");
-			}
-			strcat(values[i_cash_transaction_amount],
-					SPI_getvalue(tuple2, tupdesc2, 1));
-			strcat(values[i_cash_transaction_dts],
-					SPI_getvalue(tuple2, tupdesc2, 2));
-			strcat(values[i_cash_transaction_name], "\"");
-			strcat(values[i_cash_transaction_name],
-					SPI_getvalue(tuple2, tupdesc2, 3));
-			strcat(values[i_cash_transaction_name], "\"");
 
 			sprintf(sql, TLF2_4, trade_list_str);
 #ifdef DEBUG
@@ -991,7 +1011,7 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 			num_found_count = SPI_processed;
 			sprintf(values[i_num_found], "%d", num_found_count);
 		} else {
-		 	dump_tlf3_inputs(end_trade_dts, max_acct_id, max_trades,
+			dump_tlf3_inputs(end_trade_dts, max_acct_id, max_trades,
 					start_trade_dts, symbol);
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 		}
@@ -1075,7 +1095,7 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 					strcat(values[i_settlement_cash_type], "\"");
 				}
 			} else {
-		 		dump_tlf3_inputs(end_trade_dts, max_acct_id, max_trades,
+				dump_tlf3_inputs(end_trade_dts, max_acct_id, max_trades,
 						start_trade_dts, symbol);
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				continue;
@@ -1091,9 +1111,8 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 					tupdesc2 = SPI_tuptable->tupdesc;
 					tuptable2 = SPI_tuptable;
 					tuple2 = tuptable2->vals[0];
-					++num_cash_txn;
 
-					if (num_cash_txn > 1) {
+					if (num_cash_txn > 0) {
 						strcat(values[i_cash_transaction_amount], ",");
 						strcat(values[i_cash_transaction_dts], ",");
 						strcat(values[i_cash_transaction_name], ",");
@@ -1106,9 +1125,10 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 					strcat(values[i_cash_transaction_name],
 							SPI_getvalue(tuple2, tupdesc2, 3));
 					strcat(values[i_cash_transaction_name], "\"");
+					++num_cash_txn;
 				}
 			} else {
-		 		dump_tlf3_inputs(end_trade_dts, max_acct_id, max_trades,
+				dump_tlf3_inputs(end_trade_dts, max_acct_id, max_trades,
 						start_trade_dts, symbol);
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				continue;
@@ -1138,7 +1158,7 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 					strcat(values[i_trade_history_status_id], "\"");
 				}
 			} else {
-		 		dump_tlf3_inputs(end_trade_dts, max_acct_id, max_trades,
+				dump_tlf3_inputs(end_trade_dts, max_acct_id, max_trades,
 						start_trade_dts, symbol);
 				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 				continue;
@@ -1300,7 +1320,7 @@ Datum TradeLookupFrame4(PG_FUNCTION_ARGS)
 				values[i_trade_id] = SPI_getvalue(tuple, tupdesc, 1);
 			}
 		} else {
-		 	dump_tlf4_inputs(acct_id, start_trade_dts);
+			dump_tlf4_inputs(acct_id, start_trade_dts);
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 		}
 
@@ -1313,7 +1333,7 @@ Datum TradeLookupFrame4(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 		} else {
-		 	dump_tlf4_inputs(acct_id, start_trade_dts);
+			dump_tlf4_inputs(acct_id, start_trade_dts);
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 		}
 

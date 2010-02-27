@@ -22,6 +22,14 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 
 	ostringstream osCall;
 	osCall << "SELECT * from TradeStatusFrame1(" << pIn->acct_id << ")";
+#ifdef DEBUG
+	m_coutLock.lock();
+	cout << "<<< TSF1" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Trade Status Frame 1 (input)" << endl <<
+			"-- acct_id: " << pIn->acct_id << endl;
+	m_coutLock.unlock();
+#endif // DEBUG
 
 	BeginTxn();
 	// Isolation level required by Clause 7.4.1.3
@@ -42,12 +50,9 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 	vector<string> vAux;
 	vector<string>::iterator p;
 	
-	strcpy(pOut->broker_name, c[i_broker_name].c_str());
-	strcpy(pOut->cust_f_name, c[i_cust_f_name].c_str());
-	strcpy(pOut->cust_l_name, c[i_cust_l_name].c_str());
-	pOut->status = c[i_status].as(int());
+	strncpy(pOut->broker_name, c[i_broker_name].c_str(), cB_NAME_len);
 
-	Tokenize(c[i_charge].c_str(), vAux);
+	TokenizeSmart(c[i_charge].c_str(), vAux);
 	int i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->charge[i] = atof((*p).c_str());
@@ -55,48 +60,59 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 	}
 	vAux.clear();
 
-#ifdef DEBUG
-	// This only matter for the DEBUG output, I think...
-	// Hope that the transaction executed correctly and the number of items
-	// found in the "charge" column array really is the same in the other
-	// columns returning arrays, since this transation doesn't return the
-	// number of items that will be in each column array.
+	strncpy(pOut->cust_f_name, c[i_cust_f_name].c_str(), cF_NAME_len);
+	strncpy(pOut->cust_l_name, c[i_cust_l_name].c_str(), cL_NAME_len);
+
 	int len = i;
-#endif
 
-	TokenizeString(c[i_ex_name].c_str(), vAux);
+	TokenizeSmart(c[i_ex_name].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		strcpy(pOut->ex_name[i], (*p).c_str());
+		strncpy(pOut->ex_name[i], (*p).c_str(), cEX_NAME_len);
 		++i;
 	}
+	check_count(len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	TokenizeString(c[i_exec_name].c_str(), vAux);
+	TokenizeSmart(c[i_exec_name].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		strcpy(pOut->exec_name[i], (*p).c_str());
+		strncpy(pOut->exec_name[i], (*p).c_str(), cEXEC_NAME_len);
 		++i;
 	}
+	check_count(len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	TokenizeString(c[i_s_name].c_str(), vAux);
+	TokenizeSmart(c[i_s_name].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		strcpy(pOut->s_name[i], (*p).c_str());
+		strncpy(pOut->s_name[i], (*p).c_str(), cS_NAME_len);
 		++i;
 	}
+	check_count(len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	Tokenize(c[i_symbol].c_str(), vAux);
+	pOut->status = c[i_status].as(int());
+
+	TokenizeSmart(c[i_status_name].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		strcpy(pOut->symbol[i], (*p).c_str());
+		strncpy(pOut->status_name[i], (*p).c_str(), cST_NAME_len);
 		++i;
 	}
+	check_count(len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	TokenizeString(c[i_trade_dts].c_str(), vAux);
+	TokenizeSmart(c[i_symbol].c_str(), vAux);
+	i = 0;
+	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+		strncpy(pOut->symbol[i], (*p).c_str(), cSYMBOL_len);
+		++i;
+	}
+	check_count(len, vAux.size(), __FILE__, __LINE__);
+	vAux.clear();
+
+	TokenizeSmart(c[i_trade_dts].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
@@ -108,46 +124,38 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 				&pOut->trade_dts[i].second);
 		++i;
 	}
+	check_count(len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	Tokenize(c[i_trade_id].c_str(), vAux);
+	TokenizeSmart(c[i_trade_id].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_id[i] = atol((*p).c_str());
 		++i;
 	}
+	check_count(len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	Tokenize(c[i_trade_qty].c_str(), vAux);
+	TokenizeSmart(c[i_trade_qty].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_qty[i] = atoi((*p).c_str());
 		++i;
 	}
+	check_count(len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	Tokenize(c[i_type_name].c_str(), vAux);
+	TokenizeSmart(c[i_type_name].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		strcpy(pOut->type_name[i], (*p).c_str());
+		strncpy(pOut->type_name[i], (*p).c_str(), cTT_NAME_len);
 		++i;
 	}
-	vAux.clear();
-
-	Tokenize(c[i_status_name].c_str(), vAux);
-	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		strcpy(pOut->status_name[i], (*p).c_str());
-		++i;
-	}
+	check_count(len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout << ">>> TSF1" << endl;
-	cout << "*** " << osCall.str() << endl;
-	cout << "- Trade Status Frame 1 (input)" << endl <<
-			"-- acct_id: " << pIn->acct_id << endl;
 	cout << "- Trade Status Frame 1 (output)" << endl <<
 			"-- cust_l_name: " << pOut->cust_l_name << endl <<
 			"-- cust_f_name: " << pOut->cust_f_name << endl <<
@@ -170,6 +178,7 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 				"-- trade_qty[" << i << "]: " << pOut->trade_qty[i] << endl <<
 				"-- type_name[" << i << "]: " << pOut->type_name[i] << endl;
 	}
+	cout << ">>> TSF1" << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }

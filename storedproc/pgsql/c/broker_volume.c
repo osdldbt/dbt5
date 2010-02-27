@@ -30,7 +30,7 @@
 		"  AND s_co_id = co_id\n" \
 		"  AND co_in_id = in_id\n" \
 		"  AND sc_id = in_sc_id\n" \
-		"  AND b_name IN (%s)\n" \
+		"  AND b_name = ANY (%s)\n" \
 		"  AND sc_name = '%s'\n" \
 		"GROUP BY b_name\n" \
 		"ORDER BY 2 DESC"

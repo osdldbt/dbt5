@@ -25,6 +25,20 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 			pIn->table_name << "', '" <<
 			pIn->tx_id << "', " <<
 			pIn->vol_incr << ")";
+#ifdef DEBUG
+	m_coutLock.lock();
+	cout << "<<< DMF1" << endl;
+	cout << "*** " << osCall.str() << endl;
+	cout << "- Data Maintenance Frame 1 (input)" << endl <<
+			"-- c_id: " << pIn->c_id << endl <<
+			"-- co_id: " << pIn->co_id << endl <<
+			"-- day_of_month: " << pIn->day_of_month << endl <<
+			"-- symbol: " << pIn->symbol << endl <<
+			"-- table_name: " << pIn->table_name << endl <<
+			"-- tx_id name: " << pIn->tx_id << endl <<
+			"-- vol_incr: " << pIn->vol_incr << endl;
+	m_coutLock.unlock();
+#endif // DEBUG
 
 	BeginTxn();
 	// Isolation level required by Clause 7.4.1.3
@@ -37,18 +51,9 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout << ">>> DMF1" << endl;
-	cout << "*** " << osCall.str() << endl;
-	cout << "- Data Maintenance Frame 1 (input)" << endl <<
-			"-- c_id: " << pIn->c_id << endl <<
-			"-- co_id: " << pIn->co_id << endl <<
-			"-- day_of_month: " << pIn->day_of_month << endl <<
-			"-- symbol: " << pIn->symbol << endl <<
-			"-- table_name: " << pIn->table_name << endl <<
-			"-- tx_id name: " << pIn->tx_id << endl <<
-			"-- vol_incr: " << pIn->vol_incr << endl;
 	cout << "- Data Maintenance Frame 1 (output)" << endl <<
 			"-- status: " << pOut->status << endl;
+	cout << ">>> DMF1" << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 }

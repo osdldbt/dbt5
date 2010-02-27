@@ -37,7 +37,7 @@
 #define TOF2_1 \
 		"SELECT ap_acl\n" \
 		"FROM account_permission\n" \
-		"WHERE ap_ca_id = %d\n" \
+		"WHERE ap_ca_id = %ld\n" \
 		"  AND ap_f_name = '%s'\n" \
 		"  AND ap_l_name = '%s'\n" \
 		"  AND ap_tax_id = '%s'"
@@ -151,11 +151,11 @@ PG_MODULE_MAGIC;
 #endif
 
 /* Prototypes. */
-void dump_tof1_inputs(int);
-void dump_tof2_inputs(int, char *, char *, char *);
-void dump_tof3_inputs(int, int, int, int, char *, char *, char *, int, int,
+void dump_tof1_inputs(long);
+void dump_tof2_inputs(long, char *, char *, char *);
+void dump_tof3_inputs(long, long, int, int, char *, char *, char *, int, int,
 		char *, int, char *, double, char *);
-void dump_tof4_inputs(int, int, double, char *, int, int, double, char *,
+void dump_tof4_inputs(long, long, double, char *, int, int, double, char *,
 		char *, int, char *, int);
 
 Datum TradeOrderFrame1(PG_FUNCTION_ARGS);
@@ -168,32 +168,32 @@ PG_FUNCTION_INFO_V1(TradeOrderFrame2);
 PG_FUNCTION_INFO_V1(TradeOrderFrame3);
 PG_FUNCTION_INFO_V1(TradeOrderFrame4);
 
-void dump_tof1_inputs(int acct_id)
+void dump_tof1_inputs(long acct_id)
 {
 	elog(NOTICE, "TOF1: INPUTS START");
-	elog(NOTICE, "TOF1: acct_id %d", acct_id);
+	elog(NOTICE, "TOF1: acct_id %ld", acct_id);
 	elog(NOTICE, "TOF1: INPUTS END");
 }
 
-void dump_tof2_inputs(int acct_id, char *exec_f_name, char *exec_l_name,
+void dump_tof2_inputs(long acct_id, char *exec_f_name, char *exec_l_name,
 		char *exec_tax_id)
 {
 	elog(NOTICE, "TOF2: INPUTS START");
-	elog(NOTICE, "TOF2: acct_id %d", acct_id);
+	elog(NOTICE, "TOF2: acct_id %ld", acct_id);
 	elog(NOTICE, "TOF2: exec_f_name %s", exec_f_name);
 	elog(NOTICE, "TOF2: exec_l_name %s", exec_l_name);
 	elog(NOTICE, "TOF2: exec_tax_id %s", exec_tax_id);
 	elog(NOTICE, "TOF2: INPUTS END");
 }
 
-void dump_tof3_inputs(int acct_id, int cust_id, int cust_tier, int is_lifo,
+void dump_tof3_inputs(long acct_id, long cust_id, int cust_tier, int is_lifo,
 		char *issue, char *st_pending_id, char *st_submitted_id,
 		int tax_status, int trade_qty, char *trade_type_id, int type_is_margin,
 		char *co_name, double requested_price, char *symbol)
 {
 	elog(NOTICE, "TOF3: INPUTS START");
-	elog(NOTICE, "TOF3: acct_id %d", acct_id);
-	elog(NOTICE, "TOF3: cust_id %d", cust_id);
+	elog(NOTICE, "TOF3: acct_id %ld", acct_id);
+	elog(NOTICE, "TOF3: cust_id %ld", cust_id);
 	elog(NOTICE, "TOF3: cust_tier %d", cust_tier);
 	elog(NOTICE, "TOF3: is_lifo %d", is_lifo);
 	elog(NOTICE, "TOF3: issue %s", issue);
@@ -209,13 +209,13 @@ void dump_tof3_inputs(int acct_id, int cust_id, int cust_tier, int is_lifo,
 	elog(NOTICE, "TOF3: INPUTS END");
 }
 
-void dump_tof4_inputs(int acct_id, int broker_id, double charge_amount,
+void dump_tof4_inputs(long acct_id, long broker_id, double charge_amount,
 		char *exec_name, int is_cash, int is_lifo, double requested_price,
 		char *status_id, char *symbol, int trade_qty, char *trade_type_id,
 		int type_is_market) {
 	elog(NOTICE, "TOF4: INPUTS START");
-	elog(NOTICE, "TOF4: acct_id %d", acct_id);
-	elog(NOTICE, "TOF4: broker_id %d", broker_id);
+	elog(NOTICE, "TOF4: acct_id %ld", acct_id);
+	elog(NOTICE, "TOF4: broker_id %ld", broker_id);
 	elog(NOTICE, "TOF4: charge_amount %8.2f", charge_amount);
 	elog(NOTICE, "TOF4: exec_name %s", exec_name);
 	elog(NOTICE, "TOF4: is_cash %d", is_cash);
@@ -412,7 +412,7 @@ Datum TradeOrderFrame2(PG_FUNCTION_ARGS)
 
 		enum tof2 { i_ap_acl=0, i_status };
 
-		int acct_id = PG_GETARG_INT64(0);
+		long acct_id = PG_GETARG_INT64(0);
 		char *exec_f_name_p = (char *) PG_GETARG_TEXT_P(1);
 		char *exec_l_name_p = (char *) PG_GETARG_TEXT_P(2);
 		char *exec_tax_id_p = (char *) PG_GETARG_TEXT_P(3);

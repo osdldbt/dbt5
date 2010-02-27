@@ -734,6 +734,13 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
+	} else {
+		elog(ERROR, "unknown table for data maintenance: %s", table_name);
+		FAIL_FRAME2(status, sql);
+		dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
+				table_name, tx_id, vol_incr);
+		SPI_finish();
+		PG_RETURN_INT32(1);
 	}
 	SPI_finish();
 	PG_RETURN_INT32(status);

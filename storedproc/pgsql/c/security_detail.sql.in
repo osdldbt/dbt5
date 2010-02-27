@@ -5,6 +5,8 @@
  * Copyright (C) 2007 Mark Wong
  */
 
+-- FIXEME: fin and day are supposed to be an array of multiple data types.
+-- Took the easy way out and may VARCHAR for now.
 CREATE OR REPLACE FUNCTION SecurityDetailFrame1 (
 		IN access_lob_flag BOOL,
 		IN max_rows_to_return INTEGER,
@@ -26,7 +28,7 @@ CREATE OR REPLACE FUNCTION SecurityDetailFrame1 (
 		OUT co_st_id VARCHAR,
 		OUT cp_co_name VARCHAR[],
 		OUT cp_in_name VARCHAR[],
-		OUT day INTEGER[],
+		OUT day VARCHAR[],
 		OUT day_len INTEGER,
 		OUT divid NUMERIC,
 		OUT ex_ad_ctry VARCHAR,
@@ -41,7 +43,7 @@ CREATE OR REPLACE FUNCTION SecurityDetailFrame1 (
 		OUT ex_name VARCHAR,
 		OUT ex_num_symb INTEGER,
 		OUT ex_open INTEGER,
-		OUT fin NUMERIC[],
+		OUT fin VARCHAR[],
 		OUT fin_len INTEGER,
 		OUT last_open NUMERIC,
 		OUT last_price NUMERIC,

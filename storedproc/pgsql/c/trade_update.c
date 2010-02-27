@@ -123,7 +123,7 @@ PG_MODULE_MAGIC;
 
 #define TUF3_4 \
 		"UPDATE cash_transaction\n" \
-		"SET ct_name = '%s'\n" \
+		"SET ct_name = e'%s'\n" \
 		"WHERE ct_t_id = %s"
 
 #define TUF3_5 TUF2_5
@@ -301,6 +301,8 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 		strcpy(values[i_cash_transaction_amount], "{");
 		strcpy(values[i_cash_transaction_dts], "{");
 		strcpy(values[i_cash_transaction_name], "{");
+		strcpy(values[i_trade_history_dts], "{");
+		strcpy(values[i_trade_history_status_id], "{");
 		for (i = 0; i < max_trades; i++) {
 			char *is_cash_str;
 			char *is_market_str;
@@ -375,6 +377,8 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				strcat(values[i_settlement_amount], ",");
 				strcat(values[i_settlement_cash_due_date], ",");
 				strcat(values[i_settlement_cash_type], ",");
+				strcat(values[i_trade_history_dts], ",");
+				strcat(values[i_trade_history_status_id], ",");
 			}
 
 			sprintf(sql, TUF1_4, trade_id[i]);
@@ -471,9 +475,9 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				continue;
 			}
 
-			strcpy(values[i_trade_history_dts], "{");
-			strcpy(values[i_trade_history_status_id], "{");
-			for (j = 0; j < SPI_processed; j ++) {
+			strcat(values[i_trade_history_dts], "{");
+			strcat(values[i_trade_history_status_id], "{");
+			for (j = 0; j < SPI_processed; j++) {
 				if (j > 0) {
 					strcat(values[i_trade_history_dts], ",");
 					strcat(values[i_trade_history_status_id], ",");
@@ -485,6 +489,14 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				strcat(values[i_trade_history_status_id],
 							SPI_getvalue(tuple, tupdesc, 2));
 				strcat(values[i_trade_history_status_id], "\"");
+			}
+			for (j = SPI_processed; j < 3; j++) {
+				if (j > 0) {
+					strcat(values[i_trade_history_dts], ",");
+					strcat(values[i_trade_history_status_id], ",");
+				}
+				strcat(values[i_trade_history_dts], "NULL");
+				strcat(values[i_trade_history_status_id], "\"\"");
 			}
 			strcat(values[i_trade_history_dts], "}");
 			strcat(values[i_trade_history_status_id], "}");
@@ -500,6 +512,8 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 		strcat(values[i_cash_transaction_amount], "}");
 		strcat(values[i_cash_transaction_dts], "}");
 		strcat(values[i_cash_transaction_name], "}");
+		strcat(values[i_trade_history_dts], "}");
+		strcat(values[i_trade_history_status_id], "}");
 
 		sprintf(values[i_num_found], "%d", num_found);
 		sprintf(values[i_num_updated], "%d", num_updated);
@@ -1107,6 +1121,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 			char *s_name;
 			char *type_name;
 			char ct_name[CT_NAME_LEN + 1];
+			char ct_name_esc[2 * CT_NAME_LEN + 1];
 			char *price;
 
 			tuple = tuptable->vals[i];
@@ -1208,8 +1223,9 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 						sprintf(ct_name, "%s %s shares of %s", type_name,
 								quantity, s_name);
 					}
+					escape_me(ct_name, ct_name_esc);
 
-					sprintf(sql, TUF3_4, ct_name, trade_list);
+					sprintf(sql, TUF3_4, ct_name_esc, trade_list);
 #ifdef DEBUG
 					elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */

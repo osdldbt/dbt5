@@ -27,7 +27,7 @@ PG_MODULE_MAGIC;
 		"SELECT t_id, t_dts, st_name, tt_name, t_s_symb, t_qty, \n" \
 		"       t_exec_name, t_chrg, s_name, ex_name\n" \
 		"FROM trade, status_type, trade_type, security, exchange\n" \
-		"WHERE t_ca_id = %d\n" \
+		"WHERE t_ca_id = %ld\n" \
 		"  AND st_id = t_st_id\n" \
 		"  AND tt_id = t_tt_id\n" \
 		"  AND s_symb = t_s_symb\n" \
@@ -38,21 +38,21 @@ PG_MODULE_MAGIC;
 #define TSF1_2 \
 		"SELECT c_l_name, c_f_name, b_name\n" \
 		"FROM customer_account, customer, broker\n" \
-		"WHERE ca_id = %d\n" \
+		"WHERE ca_id = %ld\n" \
 		"  AND c_id = ca_c_id\n" \
 		"  AND b_id = ca_b_id"
 
 /* Prototypes. */
-void dump_tsf1_inputs(int);
+void dump_tsf1_inputs(long);
 
 Datum TradeStatusFrame1(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(TradeStatusFrame1);
 
-void dump_tsf1_inputs(int acct_id)
+void dump_tsf1_inputs(long acct_id)
 {
 	elog(NOTICE, "TSF1: INPUTS START");
-	elog(NOTICE, "TSF1: acct_id %d", acct_id);
+	elog(NOTICE, "TSF1: acct_id %ld", acct_id);
 	elog(NOTICE, "TSF1: INPUTS END");
 }
 
@@ -78,7 +78,7 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 				i_symbol, i_trade_dts, i_trade_id, i_trade_qty, i_type_name
 		};
 
-		int acct_id = PG_GETARG_INT64(0);
+		long acct_id = PG_GETARG_INT64(0);
 
 		int ret;
 		TupleDesc tupdesc;

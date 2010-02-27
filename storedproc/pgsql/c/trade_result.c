@@ -2,9 +2,9 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2007 Mark Wong
+ * Copyright (C) 200-2010 Mark Wong
  *
- * Based on TPC-E Standard Specification Revision 1.3.0.
+ * Based on TPC-E Standard Specification Revision 1.10.0.
  */
 
 #include <sys/types.h>
@@ -120,7 +120,7 @@ PG_MODULE_MAGIC;
 		"FROM taxrate\n" \
 		"WHERE tx_id in (SELECT cx_tx_id\n" \
 		"                FROM customer_taxrate\n" \
-		"                WHERE cx_c_id = %d)\n"
+		"                WHERE cx_c_id = %ld)\n"
 
 #define TRF3_2 \
 		"UPDATE trade\n" \
@@ -135,7 +135,7 @@ PG_MODULE_MAGIC;
 #define TRF4_2 \
 		"SELECT c_tier\n" \
 		"FROM customer\n" \
-		"WHERE c_id = %d"
+		"WHERE c_id = %ld"
 
 #define TRF4_3 \
 		"SELECT cr_rate\n" \
@@ -163,7 +163,7 @@ PG_MODULE_MAGIC;
 		"UPDATE broker\n" \
 		"SET b_comm_total = b_comm_total + %f,\n" \
 		"    b_num_trades = b_num_trades + 1\n" \
-		"WHERE b_id = %d"
+		"WHERE b_id = %ld"
 
 #define TRF6_1 \
 		"INSERT INTO settlement(se_t_id, se_cash_type, se_cash_due_date,\n " \
@@ -177,7 +177,7 @@ PG_MODULE_MAGIC;
 
 #define TRF6_3 \
 		"INSERT INTO cash_transaction(ct_dts, ct_t_id, ct_amt, ct_name)\n" \
-		"VALUES ('%s', %ld, %f, '%s %d shared of %s')"
+		"VALUES ('%s', %ld, %f, e'%s %d shared of %s')"
 
 #define TRF6_4 \
 		"SELECT ca_bal\n" \
@@ -187,9 +187,9 @@ PG_MODULE_MAGIC;
 /* Prototypes. */
 void dump_trf1_inputs(long);
 void dump_trf2_inputs(long, int, int, char *, long, double, int, int);
-void dump_trf3_inputs(double, int, double, long);
-void dump_trf4_inputs(int, char *, int, char *);
-void dump_trf5_inputs(int, double, char *, char *, long, double);
+void dump_trf3_inputs(double, long, double, long);
+void dump_trf4_inputs(long, char *, int, char *);
+void dump_trf5_inputs(long, double, char *, char *, long, double);
 void dump_trf6_inputs(long, char *, char *, double, char *, long, int, int,
 		char *);
 
@@ -229,32 +229,32 @@ void dump_trf2_inputs(long acct_id, int hs_qty, int is_lifo, char *symbol,
 	elog(NOTICE, "TRF2: INPUTS END");
 }
 
-void dump_trf3_inputs(double buy_value, int cust_id, double sell_value,
+void dump_trf3_inputs(double buy_value, long cust_id, double sell_value,
 		long trade_id)
 {
 	elog(NOTICE, "TRF3: INPUTS START");
 	elog(NOTICE, "TRF3: buy_value %f", buy_value);
-	elog(NOTICE, "TRF3: cust_id %d", cust_id);
+	elog(NOTICE, "TRF3: cust_id %ld", cust_id);
 	elog(NOTICE, "TRF3: sell_value %f", sell_value);
 	elog(NOTICE, "TRF3: trade_id %ld", trade_id);
 	elog(NOTICE, "TRF3: INPUTS END");
 }
 
-void dump_trf4_inputs(int cust_id, char *symbol, int trade_qty, char *type_id)
+void dump_trf4_inputs(long cust_id, char *symbol, int trade_qty, char *type_id)
 {
 	elog(NOTICE, "TRF4: INPUTS START");
-	elog(NOTICE, "TRF4: cust_id %d", cust_id);
+	elog(NOTICE, "TRF4: cust_id %ld", cust_id);
 	elog(NOTICE, "TRF4: symbol %s", symbol);
 	elog(NOTICE, "TRF4: trade_qty %d", trade_qty);
 	elog(NOTICE, "TRF4: type_id %s", type_id);
 	elog(NOTICE, "TRF4: INPUTS END");
 }
 
-void dump_trf5_inputs(int broker_id, double comm_amount, char *st_completed_id,
+void dump_trf5_inputs(long broker_id, double comm_amount, char *st_completed_id,
 		char *trade_dts, long trade_id, double trade_price)
 {
 	elog(NOTICE, "TRF5: INPUTS START");
-	elog(NOTICE, "TRF5: broker_id %d", broker_id);
+	elog(NOTICE, "TRF5: broker_id %ld", broker_id);
 	elog(NOTICE, "TRF5: comm_amount %f", comm_amount);
 	elog(NOTICE, "TRF5: st_completed_id %s", st_completed_id);
 	elog(NOTICE, "TRF5: trade_dts %s", trade_dts);
@@ -494,8 +494,8 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 		double buy_value = 0;
 		double sell_value = 0;
 
-		strcpy(symbol, DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(symbol_p))));
+		strncpy(symbol, DatumGetCString(DirectFunctionCall1(textout,
+				PointerGetDatum(symbol_p))), S_SYMB_LEN);
 		trade_price = DatumGetFloat8(DirectFunctionCall1(
 				numeric_float8_no_overflow, PointerGetDatum(trade_price_num)));
 
@@ -564,13 +564,15 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 		if (type_is_sell == 1) {
 			if (hs_qty == 0) {
 				/* no prior holdings exist, but one will be inserted */
-				sprintf(sql, TRF2_2a, acct_id, symbol, trade_qty);
+				sprintf(sql, TRF2_2a, acct_id, symbol, -1 * trade_qty);
 #ifdef DEBUG
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 				ret = SPI_exec(sql, 0);
 				if (ret != SPI_OK_INSERT) {
+/*
 					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+*/
 					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
 							trade_id, trade_price, trade_qty, type_is_sell);
 				}
@@ -616,7 +618,7 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 				i = 0;
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
-				while (needed_qty == 0 && i < SPI_processed) {
+				while (needed_qty > 0 && i < SPI_processed) {
 					long hold_id;
 					int hold_qty;
 					double hold_price;
@@ -685,6 +687,9 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 									trade_id, trade_price, trade_qty,
 									type_is_sell);
 						}
+						sell_value += (double) hold_qty * hold_price;
+						buy_value += (double) hold_qty * trade_price;
+						needed_qty -= hold_qty;
 					}
 				}
 			}
@@ -746,7 +751,7 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
 							trade_id, trade_price, trade_qty, type_is_sell);
 				}
-			} else if (hs_qty != trade_qty) {
+			} else if ((-1 * hs_qty) != trade_qty) {
 				sprintf(sql, TRF2_8b, hs_qty + trade_qty, acct_id, symbol);
 #ifdef DEBUG
 				elog(NOTICE, "SQL\n%s", sql);
@@ -788,7 +793,7 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
 				i = 0;
-				while (needed_qty == 0 && i < SPI_processed) {
+				while (needed_qty > 0 && i < SPI_processed) {
 					long hold_id;
 					int hold_qty;
 					double hold_price;
@@ -857,6 +862,10 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 									trade_id, trade_price, trade_qty,
 									type_is_sell);
 						}
+						hold_qty *= -1;
+						sell_value += (double) hold_qty * hold_price;
+						buy_value += (double) hold_qty * trade_price;
+						needed_qty = needed_qty - hold_qty;
 					}
 				}
 
@@ -891,7 +900,7 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 								trade_id, trade_price, trade_qty, type_is_sell);
 						FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 					}
-				} else if (hs_qty == trade_qty) {
+				} else if ((-1 * hs_qty) == trade_qty) {
 					sprintf(sql, TRF2_7b, acct_id, symbol);
 #ifdef DEBUG
 					elog(NOTICE, "SQL\n%s", sql);
@@ -981,7 +990,7 @@ Datum TradeResultFrame3(PG_FUNCTION_ARGS)
 		enum trf3 { i_status=0, i_tax_amount };
 
 		Numeric buy_value_num = PG_GETARG_NUMERIC(0);
-		int cust_id = PG_GETARG_INT64(1);
+		long cust_id = PG_GETARG_INT64(1);
 		Numeric sell_value_num = PG_GETARG_NUMERIC(2);
 		long trade_id = PG_GETARG_INT64(3);
 
@@ -1125,7 +1134,7 @@ Datum TradeResultFrame4(PG_FUNCTION_ARGS)
 
 		enum trf4 { i_comm_rate=0, i_s_name, i_status };
 
-		int cust_id = PG_GETARG_INT64(0);
+		long cust_id = PG_GETARG_INT64(0);
 		char *symbol_p = (char *) PG_GETARG_TEXT_P(1);
 		int trade_qty = PG_GETARG_INT32(2);
 		char *type_id_p = (char *) PG_GETARG_TEXT_P(3);
@@ -1143,10 +1152,10 @@ Datum TradeResultFrame4(PG_FUNCTION_ARGS)
 		char *s_ex_id = NULL;
 		char *c_tier = NULL;
 
-		strcpy(symbol, DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(symbol_p))));
-		strcpy(type_id, DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(type_id_p))));
+		strncpy(symbol, DatumGetCString(DirectFunctionCall1(textout,
+				PointerGetDatum(symbol_p))), S_SYMB_LEN);
+		strncpy(type_id, DatumGetCString(DirectFunctionCall1(textout,
+				PointerGetDatum(type_id_p))), TT_ID_LEN);
 
 		/*
 		 * Prepare a values array for building the returned tuple.
@@ -1273,7 +1282,7 @@ Datum TradeResultFrame5(PG_FUNCTION_ARGS)
 {
 	int status = 0;
 
-	int broker_id = PG_GETARG_INT64(0);
+	long broker_id = PG_GETARG_INT64(0);
 	Numeric comm_amount_num = PG_GETARG_NUMERIC(1);
 	char *st_completed_id_p = (char *) PG_GETARG_TEXT_P(2);
 	Timestamp trade_dts_ts = PG_GETARG_TIMESTAMP(3);
@@ -1294,8 +1303,8 @@ Datum TradeResultFrame5(PG_FUNCTION_ARGS)
 	char trade_dts[MAXDATELEN + 1];
 	char st_completed_id[ST_ID_LEN + 1];
 
-	strcpy(st_completed_id, DatumGetCString(DirectFunctionCall1(textout,
-			PointerGetDatum(st_completed_id_p))));
+	strncpy(st_completed_id, DatumGetCString(DirectFunctionCall1(textout,
+			PointerGetDatum(st_completed_id_p))), ST_ID_LEN);
 
 	comm_amount = DatumGetFloat8(DirectFunctionCall1(
 			numeric_float8_no_overflow, PointerGetDatum(comm_amount_num)));
@@ -1398,7 +1407,7 @@ Datum TradeResultFrame6(PG_FUNCTION_ARGS)
 
 		char sql[2048];
 
-		char s_name[S_NAME_LEN + 1];
+		char s_name[2 * S_NAME_LEN + 1];
 		char type_name[TT_NAME_LEN + 1];
 		double se_amount;
 
@@ -1410,10 +1419,10 @@ Datum TradeResultFrame6(PG_FUNCTION_ARGS)
 		se_amount = DatumGetFloat8(DirectFunctionCall1(
 				numeric_float8_no_overflow, PointerGetDatum(se_amount_num)));
 
-		strcpy(s_name, DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(s_name_p))));
-		strcpy(type_name, DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(type_name_p))));
+		escape_me(s_name, DatumGetCString(DirectFunctionCall1(textout,
+                PointerGetDatum(s_name_p))));
+		strncpy(type_name, DatumGetCString(DirectFunctionCall1(textout,
+				PointerGetDatum(type_name_p))), TT_NAME_LEN);
 
 		if (timestamp2tm(due_date_ts, NULL, tm, &fsec, NULL, NULL) == 0) {
 			EncodeDateTime(tm, fsec, NULL, &tzn, USE_ISO_DATES, due_date);
