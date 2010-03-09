@@ -4,8 +4,8 @@
 # Please see the file LICENSE, included in this package, for details.
 #
 # Copyright (C) 2006 Mark Wong & Open Source Development Labs, Inc.
+#               2006 Rilson Nascimento
 #
-# 2006 Rilson Nascimento
 
 use strict;
 use warnings;

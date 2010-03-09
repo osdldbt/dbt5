@@ -1,9 +1,10 @@
 /*
- * Customer.h
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
+ *
+ * Copyright (C) 2006 Rilson Nascimento
+ *
  * This class represents the workload driver
- *
- * 2006 Rilson Nascimento
- *
  * 03 August 2006
  */
 

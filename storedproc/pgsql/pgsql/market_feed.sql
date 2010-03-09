@@ -1,12 +1,15 @@
 /*
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
+ *
+ * Copyright (C) 2006 Rilson Nascimento
+ *
  * Market Feed transaction
  * ------------------------
  * The Market-Feed transaction receives the latest prices for securities
  * that come in on the market feed ticker.
  *
  * Based on TPC-E Standard Specification Draft Revision 0.32.2e Clause 3.3.9.
- *
- * 2006 Rilson Nascimento
  */
 
 /*

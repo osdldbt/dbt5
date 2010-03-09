@@ -1,9 +1,10 @@
 /*
- * SocketPorts.h
- * Default Socket Ports
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
  *
  * 2006 Rilson Nascimento
  *
+ * Default Socket Ports
  * 29 July 2006
  */
 

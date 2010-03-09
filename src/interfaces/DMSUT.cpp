@@ -1,7 +1,8 @@
 /*
- * DMSUT.cpp
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
  *
- * 2006 Rilson Nascimento
+ * Copyright (C) 2006 Rilson Nascimento
  *
  * 12 August 2006
  */
@@ -41,8 +42,6 @@ bool CDMSUT::DataMaintenance( PDataMaintenanceTxnInput pTxnInput )
 // Trade Cleanup
 bool CDMSUT::TradeCleanup( PTradeCleanupTxnInput pTxnInput )
 {
-	cout<<"Trade Cleanup requested"<<endl;
-
 	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
 	memset(pRequest, 0, sizeof(TMsgDriverBrokerage));
 

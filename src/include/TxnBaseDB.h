@@ -1,9 +1,10 @@
 /*
- * TxnBaseDB.h
- * Base class for transacation classes
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
  *
  * 2006 Rilson Nascimento
  *
+ * Base class for transacation classes
  * 13 June 2006
  */
 

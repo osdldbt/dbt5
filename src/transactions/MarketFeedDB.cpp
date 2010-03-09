@@ -1,5 +1,6 @@
 /*
- * MarketFeedDB.cpp
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2006-2007 Rilson Nascimento
  *               2010      Mark Wong

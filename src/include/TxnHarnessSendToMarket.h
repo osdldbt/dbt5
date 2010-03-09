@@ -1,8 +1,8 @@
 /*
- * TxnHarnessSendToMarket.h
- * SendToMarket class
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
  *
- * 2006 Rilson Nascimento
+ * Copyright (C) 2006 Rilson Nascimento
  *
  * 06 July 2006
  */

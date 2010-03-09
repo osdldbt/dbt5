@@ -1,9 +1,12 @@
 /*
- * 2006 Rilson Nascimento
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
+ *
+ * Copyright (C) 2006 Rilson Nascimento
  *
  * Trade Update transaction
  * ------------------------
- * The Trade-Update transaction is designed to emulate information retrieval and 
+ * The Trade-Update transaction is designed to emulate information retrieval and
  * possibly modification by either a customer or a broker to satisfy questions
  * regarding a particular account, a group of trade transaction identifiers or
  * a particular security.

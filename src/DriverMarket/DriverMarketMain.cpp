@@ -1,9 +1,10 @@
 /*
- * DriverMarketMain.cpp
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
+ *
+ * Copyright (C) 2006 Rilson Nascimento
+ *
  * executable that opens the Market Exchange to business
- *
- * 2006 Rilson Nascimento
- *
  * 30 July 2006
  */
 

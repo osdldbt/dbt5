@@ -1,9 +1,10 @@
 /*
- * Driver.h
- * This class represents the workload driver
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
  *
  * 2006 Rilson Nascimento
  *
+ * This class represents the workload driver
  * 03 August 2006
  */
 

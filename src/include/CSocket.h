@@ -1,9 +1,10 @@
 /*
- * CSocket.h
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
+ *
+ * Copyright (C) 2006 Rilson Nascimento
+ *
  * Socket class for C++ (based on dbt2 _socket)
- *
- * 2006 Rilson Nascimento
- *
  * 25 June 2006
  */
 

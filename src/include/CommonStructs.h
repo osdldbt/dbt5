@@ -1,6 +1,8 @@
 /*
- *  Shared structs and containers
- *  2006 Rilson Nascimento
+ * This file is released under the terms of the Artistic License.  Please see
+ * the file LICENSE, included in this package, for details.
+ *
+ * Copyright (C) 2006 Rilson Nascimento
  *
  * 29 July 2006
  */
