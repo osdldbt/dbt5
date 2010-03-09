@@ -16,19 +16,19 @@ using namespace TPCE;
 void *TradeResultAsync(void* data)
 {
 	PMEESUTThreadParam pThrParam = reinterpret_cast<PMEESUTThreadParam>(data);
+	struct TMsgDriverBrokerage request;
 
 	cout<<"Trade Result requested"<<endl;
 
-	PMsgDriverBrokerage pRequest =  new TMsgDriverBrokerage;
-	memset(pRequest, 0, sizeof(TMsgDriverBrokerage));
+	memset(&request, 0, sizeof(TMsgDriverBrokerage));
 
-	pRequest->TxnType = TRADE_RESULT;
-	memcpy( &(pRequest->TxnInput.TradeResultTxnInput),
+	request.TxnType = TRADE_RESULT;
+	memcpy(&(request.TxnInput.TradeResultTxnInput),
 			&(pThrParam->TxnInput.m_TradeResultTxnInput),
-			sizeof( pRequest->TxnInput.TradeResultTxnInput ));
+			sizeof(request.TxnInput.TradeResultTxnInput));
 
 	// communicate with the SUT and log response time
-	pThrParam->pCMEESUT->TalkToSUT(pRequest);
+	pThrParam->pCMEESUT->TalkToSUT(&request);
 
 	delete pThrParam;
 	return NULL;
@@ -99,19 +99,19 @@ bool CMEESUT::TradeResult( PTradeResultTxnInput pTxnInput )
 void *MarketFeedAsync(void* data)
 {
 	PMEESUTThreadParam pThrParam = reinterpret_cast<PMEESUTThreadParam>(data);
+	struct TMsgDriverBrokerage request;
 
 	cout<<"Market Feed requested"<<endl;
 
-	PMsgDriverBrokerage pRequest =  new TMsgDriverBrokerage;
-	memset(pRequest, 0, sizeof(TMsgDriverBrokerage));
+	memset(&request, 0, sizeof(TMsgDriverBrokerage));
 
-	pRequest->TxnType = MARKET_FEED;
-	memcpy( &(pRequest->TxnInput.MarketFeedTxnInput),
+	request.TxnType = MARKET_FEED;
+	memcpy(&(request.TxnInput.MarketFeedTxnInput),
 			&(pThrParam->TxnInput.m_MarketFeedTxnInput),
-			sizeof( pRequest->TxnInput.MarketFeedTxnInput ));
+			sizeof(request.TxnInput.MarketFeedTxnInput));
 
 	// communicate with the SUT and log response time
-	pThrParam->pCMEESUT->TalkToSUT(pRequest);
+	pThrParam->pCMEESUT->TalkToSUT(&request);
 
 	delete pThrParam;
 	return NULL;

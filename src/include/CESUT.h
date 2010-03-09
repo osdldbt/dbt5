@@ -43,6 +43,9 @@ public:
 	// return whether it was successful
 	virtual bool TradeUpdate( PTradeUpdateTxnInput pTxnInput );
 
+private:
+
+	struct TMsgDriverBrokerage request;
 };
 
 #endif	// CE_SUT_H

@@ -126,7 +126,6 @@ void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 
 	//log response time
 	LogResponseTime(Reply.iStatus, pRequest->TxnType, (TxnTime.MSec()/1000.0));
-	delete pRequest;
 }
 
 // Log Response Time
