@@ -9,10 +9,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
-// Trade Result
-//
 void *TradeResultAsync(void* data)
 {
 	PMEESUTThreadParam pThrParam = reinterpret_cast<PMEESUTThreadParam>(data);

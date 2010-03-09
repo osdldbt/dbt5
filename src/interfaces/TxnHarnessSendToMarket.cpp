@@ -9,8 +9,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 char* addr = "localhost";
 
 CSendToMarket::CSendToMarket(ofstream* pfile, int MEport)

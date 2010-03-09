@@ -10,8 +10,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 // Call Trade Result Frame 1
 void CTradeResultDB::DoTradeResultFrame1(
 		const TTradeResultFrame1Input *pIn,

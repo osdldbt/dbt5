@@ -10,8 +10,6 @@
 #ifndef COMMON_STRUCTS_H
 #define COMMON_STRUCTS_H
 
-using namespace TPCE;
-
 // Transaction types
 enum eTxnType
 {

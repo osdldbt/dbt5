@@ -10,8 +10,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 // Call Security Detail Frame 1
 void CSecurityDetailDB::DoSecurityDetailFrame1(
 		const TSecurityDetailFrame1Input *pIn,

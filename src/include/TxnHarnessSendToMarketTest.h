@@ -11,8 +11,6 @@
 #ifndef TXN_HARNESS_SENDTOMARKET_TEST_H
 #define TXN_HARNESS_SENDTOMARKET_TEST_H
 
-using namespace TPCE;
-
 const int iInDirLen2 = 255;
 
 class CSendToMarketTest : public CSendToMarketInterface

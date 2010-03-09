@@ -12,8 +12,6 @@
 
 #include <TxnHarnessDBInterface.h> 
 
-using namespace TPCE;
-
 class CMarketFeedDB : public CTxnBaseDB, public CMarketFeedDBInterface
 {
 	// member used to send triggered orders to MEE

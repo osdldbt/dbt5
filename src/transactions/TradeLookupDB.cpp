@@ -10,8 +10,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 // Call Trade Lookup Frame 1
 void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 		TTradeLookupFrame1Output *pOut)

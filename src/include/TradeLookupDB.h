@@ -12,8 +12,6 @@
 
 #include <TxnHarnessDBInterface.h> 
  
-using namespace TPCE;
-
 class CTradeLookupDB : public CTxnBaseDB, public CTradeLookupDBInterface
 {
 public:

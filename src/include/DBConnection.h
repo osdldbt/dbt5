@@ -11,8 +11,6 @@
 #ifndef DB_CONNECTION_H
 #define DB_CONNECTION_H
 
-using namespace TPCE;
-
 class CDBConnection
 {
 

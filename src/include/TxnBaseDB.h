@@ -13,8 +13,6 @@
 
 #include "locking.h"
 
-using namespace TPCE;
-
 class CTxnBaseDB
 {
 

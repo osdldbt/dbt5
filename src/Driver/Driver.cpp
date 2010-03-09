@@ -10,8 +10,6 @@
 #include <transactions.h>
 #include <Customer.h>
 
-using namespace TPCE;
-
 // global variables
 pthread_t* g_tid = NULL;
 int stop_time = 0;

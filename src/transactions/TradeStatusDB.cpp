@@ -10,8 +10,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 // Call Trade Status Frame 1
 void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 		TTradeStatusFrame1Output *pOut)

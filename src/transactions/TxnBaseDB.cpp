@@ -10,8 +10,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 CTxnBaseDB::CTxnBaseDB(CDBConnection *pDBConn)
 : m_pDBConnection(pDBConn)
 {

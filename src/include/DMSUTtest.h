@@ -13,8 +13,6 @@
 
 #include "DMSUTInterface.h"
 
-using namespace TPCE;
-
 class CDMSUTtest : public CDMSUTInterface
 {
 protected:

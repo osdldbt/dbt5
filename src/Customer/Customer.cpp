@@ -10,8 +10,6 @@
 #include <Customer.h>
 #include <transactions.h>
 
-using namespace TPCE;
-
 // Constructor
 CCustomer::CCustomer(char* szInDir,
 		TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,

@@ -12,8 +12,6 @@
 
 #include <TxnHarnessDBInterface.h> 
  
-using namespace TPCE;
-
 class CDataMaintenanceDB : public CTxnBaseDB, public CDataMaintenanceDBInterface
 {
 public:

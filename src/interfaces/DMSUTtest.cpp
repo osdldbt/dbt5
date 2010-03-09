@@ -10,8 +10,6 @@
 #include <transactions.h>
 #include <DMSUTtest.h>
 
-using namespace TPCE;
-
 CDMSUTtest::CDMSUTtest(CDBConnection *pDBConn)
 : m_pDBConnection(pDBConn)
 {

@@ -14,8 +14,6 @@
 #include "CESUTInterface.h"
 #include "locking.h"
 
-using namespace TPCE;
-
 class CCESUT : public CCESUTInterface, public CBaseInterface
 {
 	

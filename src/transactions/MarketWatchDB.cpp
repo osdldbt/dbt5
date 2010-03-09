@@ -10,8 +10,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 // Call Market Watch Frame 1
 void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
 		TMarketWatchFrame1Output *pOut)

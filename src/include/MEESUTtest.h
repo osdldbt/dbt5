@@ -13,8 +13,6 @@
 
 #include "MEESUTInterface.h"
 
-using namespace TPCE;
-
 class CMEESUTtest : public CMEESUTInterface
 {
 private:

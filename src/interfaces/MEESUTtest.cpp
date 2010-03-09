@@ -11,11 +11,6 @@
 #include <MEESUTtest.h>
 #include <TxnHarnessSendToMarketTest.h>
 
-using namespace TPCE;
-
-//
-// Trade Result
-//
 void *TradeResultAsync(void* data)
 {
 	CMEESUTtest* pCMEESUTtest = reinterpret_cast<CMEESUTtest*>(data);

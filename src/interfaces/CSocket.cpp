@@ -15,8 +15,6 @@
 
 #define LISTENQ     1024
 
-using namespace TPCE;
-
 //Constructor
 CSocket::CSocket(void)
 : m_listenfd(0),

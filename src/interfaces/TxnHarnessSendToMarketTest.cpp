@@ -12,8 +12,6 @@
 #include <MEESUTtest.h>
 #include <TxnHarnessSendToMarketTest.h>
 
-using namespace TPCE;
-
 CSendToMarketTest::CSendToMarketTest(TIdent iConfiguredCustomerCountIn,
 		TIdent iActiveCustomerCountIn, char *szInDirIn)
 {

@@ -11,8 +11,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 // Establish defaults for command line option
 int		iListenPort = BrokerageHousePort;
 

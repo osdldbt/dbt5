@@ -13,8 +13,6 @@
 #include <CESUT.h>
 #include "locking.h"
 
-using namespace TPCE;
-
 // BrokerageHouseMain variables;
 CCESUT	*m_pCCESUT = NULL;
 char szBHaddr[1024] = "";

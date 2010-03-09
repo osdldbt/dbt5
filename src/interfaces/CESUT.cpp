@@ -9,8 +9,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 // Constructor
 CCESUT::CCESUT(char* addr, const int iListenPort, ofstream* pflog,
 		ofstream* pfmix, CMutex* pLogLock, CMutex* pMixLock)

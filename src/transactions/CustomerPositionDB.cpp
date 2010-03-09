@@ -10,8 +10,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 // Call Customer Position Frame 1
 void CCustomerPositionDB::DoCustomerPositionFrame1(
 		const TCustomerPositionFrame1Input *pIn,

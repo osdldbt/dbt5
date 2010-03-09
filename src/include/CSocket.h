@@ -20,8 +20,6 @@
 
 #include <CThreadErr.h>
 
-using namespace TPCE;
-
 class CSocket
 {
 public:

@@ -10,8 +10,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 // worker thread
 void* WorkerThread(void* data)
 {

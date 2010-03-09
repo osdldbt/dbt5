@@ -12,8 +12,6 @@
 
 #include <TxnHarnessDBInterface.h> 
  
-using namespace TPCE;
-
 class CTradeCleanupDB : public CTxnBaseDB, public CTradeCleanupDBInterface
 {
 public:

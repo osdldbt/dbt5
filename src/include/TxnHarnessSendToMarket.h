@@ -12,8 +12,6 @@
 
 #include "locking.h"
 
-using namespace TPCE;
-
 class CSendToMarket : public CSendToMarketInterface
 {
 	ofstream*	m_pfLog;

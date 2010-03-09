@@ -10,8 +10,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 // Call Data Maintenance Frame 1
 void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 		const TDataMaintenanceFrame1Input *pIn,

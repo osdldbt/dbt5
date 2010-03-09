@@ -14,8 +14,6 @@
 #include <transactions.h>
 #include "locking.h"
 
-using namespace TPCE;
-
 class CCustomer
 {
 	int			m_iUsers;

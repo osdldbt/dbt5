@@ -10,8 +10,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 // Call Trade Cleanup Frame 1
 void CTradeCleanupDB::DoTradeCleanupFrame1(
 		const TTradeCleanupFrame1Input *pIn,

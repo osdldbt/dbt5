@@ -10,8 +10,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 // Call Market Feed Frame 1
 void CMarketFeedDB::DoMarketFeedFrame1(
 		const TMarketFeedFrame1Input *pIn, TMarketFeedFrame1Output *pOut,

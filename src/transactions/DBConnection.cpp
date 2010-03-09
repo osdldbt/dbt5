@@ -10,8 +10,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 // Constructor: Creates PgSQL connection
 CDBConnection::CDBConnection(const char *szHost, const char *szDBName,
 		const char *szPostmasterPort)

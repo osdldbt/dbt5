@@ -14,8 +14,6 @@
 #include "MEESUTInterface.h"
 #include "locking.h"
 
-using namespace TPCE;
-
 class CMEESUT : public CMEESUTInterface, public CBaseInterface
 {
 private:

@@ -12,8 +12,6 @@
 
 #include <TxnHarnessDBInterface.h> 
  
-using namespace TPCE;
-
 class CMarketWatchDB : public CTxnBaseDB, public CMarketWatchDBInterface
 {
 public:

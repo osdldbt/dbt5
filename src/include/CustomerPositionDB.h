@@ -12,8 +12,6 @@
 
 #include <TxnHarnessDBInterface.h> 
  
-using namespace TPCE;
-
 class CCustomerPositionDB : public CTxnBaseDB,
 		public CCustomerPositionDBInterface
 {

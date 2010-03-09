@@ -12,8 +12,6 @@
 
 #include <TxnHarnessDBInterface.h> 
  
-using namespace TPCE;
-
 class CSecurityDetailDB : public CTxnBaseDB, public CSecurityDetailDBInterface
 {
 public:

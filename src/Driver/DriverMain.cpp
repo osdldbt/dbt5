@@ -12,8 +12,6 @@
 
 #include <transactions.h>
 
-using namespace TPCE;
-
 // Establish defaults for command line options
 char	szBHaddr[1024] = "localhost";					// Brokerage House address
 int		iBHlistenPort = BrokerageHousePort;

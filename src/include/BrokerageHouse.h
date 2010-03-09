@@ -19,8 +19,6 @@
 #define iMaxPGDBName 32
 #define iMaxPGPort 32
 
-using namespace TPCE;
-
 class CBrokerageHouse
 {
 	int		m_iListenPort;

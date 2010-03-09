@@ -14,8 +14,6 @@
 #include "DMSUTInterface.h"
 #include "locking.h"
 
-using namespace TPCE;
-
 class CDMSUT : public CDMSUTInterface, public CBaseInterface
 {
 

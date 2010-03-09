@@ -12,8 +12,6 @@
 
 #include <TxnHarnessDBInterface.h> 
  
-using namespace TPCE;
-
 class CBrokerVolumeDB : public CTxnBaseDB, public CBrokerVolumeDBInterface
 {
 public:
