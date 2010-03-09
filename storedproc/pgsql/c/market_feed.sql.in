@@ -10,7 +10,7 @@
  * The Market-Feed transaction receives the latest prices for securities
  * that come in on the market feed ticker.
  *
- * Based on TPC-E Standard Specification Draft Revision 1.9.0 Clause 3.3.3.3.
+ * Based on TPC-E Standard Specification Draft Revision 1.10.0 Clause 3.3.3.3.
  */
 
 /*

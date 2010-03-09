@@ -1,6 +1,37 @@
+Change 1.10.0b4 => 1.10.0 by M.E.
+* Thu Feb 11, 2010
+  Revert to v1.9.0 codebase and bump version.
+
+Change 1.10.0b3 => 1.10.0b4 by M.E.
+* Wed Feb 3, 2010
+  Redesign Market-Feed unique symbol computation. (TPCE-70)
+  Correct Trade-Lookup status checks. (TPCE-74)
+  Correct some syntax errors in status checks. (TPCE-220)
+  Remove status frame outputs.  (TPCE-228)
+  
+Change 1.10.0b2 => 1.10.0b3 by M.E.
+* Sun Jan 17, 2010
+  Correct Trade-Lookup status checks. (TPCE-74)
+  Improve error descriptions. (TPCE-74)
+  Improve status checks. (TPCE-220)
+
+Change 1.9.1b1 => 1.10.0b2 by M.E.
+* Thu Dec 3, 2009
+  Rename some status check output variables. (TPCE-70, TPCE-74)
+  Update status check warning/error codes. (TPCE-70, TPCE-74)
+  Fix code comment in HoldingsAndTradesTable.h (TPCE-208)
+  Fix use of incorrect variable in CustomerAccountsAndPermissionsTable.h (TPCE-209)
+  
+Change 1.9.0 => 1.9.1b1 by M.E.
+* Wed Sep 30, 2009
+  Move status checks for Market-Feed to harness code. (TPCE-70)
+  Move remaining checks to harness code. (TPCE-74)
+  Rename cust_assets to acct_assets. (TPCE-77)
+  Add new constructor to CThread that takes a stack size argument. (TPCE-78)
+
 Change 1.8.0 => 1.9.0 by M.E.
 * Wed Sep 16, 2009
-  Update legal text. (199)
+  Update legal text. (TPCE-199)
 
 Change 1.8.0b1 => 1.8.0 by M.E.
 * Thu Jun 11, 2009

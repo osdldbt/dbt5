@@ -47,7 +47,7 @@ namespace TPCE
 // Modify these constants whenever EGen version changes.
 //
 static INT32    iEGenMajorVersion   = 1;    // major revision number
-static INT32    iEGenMinorVersion   = 9;    // minor revision number
+static INT32    iEGenMinorVersion   = 10;   // minor revision number
 static INT32    iEGenRevisionNumber = 0;    // third-tier revision number
 static INT32    iEGenBetaLevel      = 0;    // beta version (for maintenance only)
 

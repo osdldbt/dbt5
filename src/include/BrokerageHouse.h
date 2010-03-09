@@ -13,8 +13,6 @@
 
 #include "locking.h"
 
-// FIXME: I didn't have to define these before, must be something difference
-// since the v1.3.0 versino of egen that I didn't up-port correctly.
 #define iMaxPGHost 128
 #define iMaxPGDBName 32
 #define iMaxPGPort 32
