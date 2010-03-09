@@ -22,9 +22,9 @@ TIdent		iConfiguredCustomerCount = iDefaultLoadUnitSize;
 TIdent		iActiveCustomerCount = iDefaultLoadUnitSize;
 
 // Security.txt file location
-char		szFileLoc[iMaxPath];
+char		szFileLoc[iMaxPath + 1];
 // path to output files
-char		outputDirectory[iMaxPath] = ".";
+char		outputDirectory[iMaxPath + 1] = ".";
 
 // shows program usage
 void Usage()
@@ -87,10 +87,10 @@ void ParseCommandLine( int argc, char *argv[] )
 		switch ( *sp )
 		{
 			case 's':	// Security file location
-				strncpy(szFileLoc, vp, sizeof(szFileLoc));
+				strncpy(szFileLoc, vp, iMaxPath);
 				break;
-			case 'h':	// Security file location
-				strncpy(szBHaddr, vp, sizeof(szBHaddr));
+			case 'h':
+				strncpy(szBHaddr, vp, iMaxPath);
 				break;
 			case 'c':
 				sscanf(vp, "%"PRId64, &iConfiguredCustomerCount);
@@ -105,7 +105,7 @@ void ParseCommandLine( int argc, char *argv[] )
 				sscanf(vp, "%d", &iBHlistenPort);
 				break;
 			case 'o':
-				strncpy(outputDirectory, vp, sizeof(outputDirectory));
+				strncpy(outputDirectory, vp, iMaxPath);
 				break;
 			default:
 				Usage();
@@ -120,7 +120,7 @@ void ParseCommandLine( int argc, char *argv[] )
 int main(int argc, char* argv[])
 {
 	// Establish defaults for command line options
-	strncpy(szFileLoc, "EGen_v3.14/flat_in/Security.txt", sizeof(szFileLoc)-1);
+	strncpy(szFileLoc, "flat_in", sizeof(szFileLoc));
 
 	cout<<endl<<"dbt5 - Driver Market Main"<<endl;
 

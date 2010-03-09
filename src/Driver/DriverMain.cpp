@@ -28,8 +28,8 @@ int		iSleep = 1000;						// msec between thread creation
 int		iUsers = 0;						// # users
 int		iPacingDelay = 0;
 
-char		szInDir[iMaxPath];		// path to EGen input files
-char		outputDirectory[iMaxPath] = ".";			// path to output files
+char szInDir[iMaxPath + 1]; // path to EGen input files
+char outputDirectory[iMaxPath + 1] = "."; // path to output files
 // automatic RNG seed generation requires unique input
 UINT32 		UniqueId = 0;
 
@@ -38,18 +38,17 @@ void Usage()
 {
 	cerr <<
 			"\nUsage: DriverCustomerMain {options}" << endl << endl <<
-			"  where" << endl <<
 			"   Option	Default		      Description" << endl <<
-			"   =========	==================    =============================================" <<
+			"   =========	==================    ==========================================" <<
 					endl <<
-			"   -e string	" << szInDir << "    Path to EGen input files" <<
-					endl <<
+			"   -e string	" << szInDir <<
+					"\t\t    Path to EGen input files" << endl <<
 			"   -c number	" << iConfiguredCustomerCount <<
 					"\t\t      Configured customer count" << endl <<
 			"   -a number	" << iActiveCustomerCount <<
 					"\t\t      Active customer count" << endl <<
 			"   -h string	" << szBHaddr <<
-					"\t\t      Brokerage House address" << endl <<
+					"\t      Brokerage House address" << endl <<
 			"   -b number	" << iBHlistenPort <<
 					"\t\t      Brokerage House listen port" << endl <<
 			"   -f number	" << iScaleFactor <<
@@ -66,9 +65,9 @@ void Usage()
 			"   -o string	" << outputDirectory <<
 					"\t\t      # directory for output files" << endl <<
 			"   -p number	" << iPacingDelay <<
-					"\t\t      # of msec to wait after the current txn and" <<
+					"\t\t      # of msec to wait after the current txn" <<
 					endl <<
-			"\t\t\t\t      before the next txn" << endl <<
+			"\t\t\t\t      and before the next txn" << endl <<
 			"   -g number			      Unique input for automatic seed generation" <<
 					endl;
 }
@@ -109,7 +108,7 @@ void ParseCommandLine( int argc, char *argv[] )
 		switch ( *sp )
 		{
 			case 'e':	// input files path
-				strncpy(szInDir, vp, sizeof(szInDir));
+				strncpy(szInDir, vp, iMaxPath);
 				break;
 			case 'h':
 				strncpy(szBHaddr, vp, sizeof(szBHaddr));
@@ -142,8 +141,7 @@ void ParseCommandLine( int argc, char *argv[] )
 				sscanf(vp, "%d", &iUsers);
 				break;
 			case 'o':
-				strncpy(outputDirectory, vp,
-						sizeof(outputDirectory));
+				strncpy(outputDirectory, vp, iMaxPath);
 				break;
 			case 'p':
 				sscanf(vp, "%d", &iPacingDelay);
@@ -240,7 +238,7 @@ bool ValidateParameters()
 int main(int argc, char* argv[])
 {
 	// Establish defaults for command line options
-	strncpy(szInDir, "EGen_v3.14/flat_in", sizeof(szInDir)-1);
+	strncpy(szInDir, "flat_in", iMaxPath);
 
 	cout<<endl<<"dbt5 - Driver Customer Emulator Main"<<endl;
 
