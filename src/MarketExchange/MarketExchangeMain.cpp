@@ -14,7 +14,7 @@ using namespace TPCE;
 
 // Establish defaults for command line options
 char*		szBHaddr = "localhost";	// Brokerage House address
-int		iListenPort = DriverMarketPort;				// socket port to listen
+int		iListenPort = MarketExchangePort;				// socket port to listen
 int		iBHlistenPort = BrokerageHousePort;
 // # of customers for this instance
 TIdent		iConfiguredCustomerCount = iDefaultLoadUnitSize;
@@ -29,7 +29,7 @@ char		outputDirectory[iMaxPath + 1] = ".";
 // shows program usage
 void Usage()
 {
-	cerr << "\nUsage: DriverMarketMain [options]" << endl << endl;
+	cerr << "\nUsage: MarketExchangeMain [options]" << endl << endl;
 	cerr << "  where" << endl;
 	cerr << "   Option	Default				   Description" << endl;
 	cerr << "   =========	===============================    =============================" <<
@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
 	// Establish defaults for command line options
 	strncpy(szFileLoc, "flat_in", sizeof(szFileLoc));
 
-	cout<<endl<<"dbt5 - Driver Market Main"<<endl;
+	cout<<endl<<"dbt5 - Market Exchange Main"<<endl;
 
 	// Parse command line
 	ParseCommandLine(argc, argv);
@@ -138,14 +138,13 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		CDriverMarket	DriverMarket(szFileLoc, iConfiguredCustomerCount,
+		CMarketExchange	MarketExchange(szFileLoc, iConfiguredCustomerCount,
 				iActiveCustomerCount, iListenPort, szBHaddr, iBHlistenPort,
 				outputDirectory);
-		cout << endl <<
-				"Market Exchange opened to business, waiting trade requests..." <<
+		cout << "Market Exchange started, waiting for trade requests..." <<
 				endl;
 	
-		DriverMarket.Listener();
+		MarketExchange.Listener();
 	}
 	catch (CBaseErr *pErr)
 	{

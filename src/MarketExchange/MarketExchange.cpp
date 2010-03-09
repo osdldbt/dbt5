@@ -30,7 +30,7 @@ void *MarketWorkerThread(void* data)
 					sizeof(TTradeRequest));
 	
 			// submit trade request
-			pThrParam->pDriverMarket->m_pCMEE->SubmitTradeRequest( pMessage );
+			pThrParam->pMarketExchange->m_pCMEE->SubmitTradeRequest( pMessage );
 		}
 		catch(CSocketErr *pErr)
 		{
@@ -38,9 +38,9 @@ void *MarketWorkerThread(void* data)
 
 			ostringstream osErr;
 			osErr<<endl<<"Trade Request not submitted to Market Exchange"
-		     	<<endl<<"Error: "<<pErr->ErrorText()
-		     	<<" at "<<"DriverMarket::MarketWorkerThread"<<endl;
-			pThrParam->pDriverMarket->LogErrorMessage(osErr.str());
+				<<endl<<"Error: "<<pErr->ErrorText()
+				<<" at "<<"MarketExchange::MarketWorkerThread"<<endl;
+			pThrParam->pMarketExchange->LogErrorMessage(osErr.str());
 			delete pErr;
 
 			// The socket is closed, break and let this thread die.
@@ -94,24 +94,24 @@ void EntryMarketWorkerThread(void* data)
 
 		ostringstream osErr;
 		osErr<<endl<<"Error: "<<pErr->ErrorText()
-		    <<" at "<<"DriverMarket::EntryMarketWorkerThread"<<endl
+		    <<" at "<<"MarketExchange::EntryMarketWorkerThread"<<endl
 		    <<"accepted socket connection closed"<<endl;
-		pThrParam->pDriverMarket->LogErrorMessage(osErr.str());
+		pThrParam->pMarketExchange->LogErrorMessage(osErr.str());
 		delete pErr;
 	}
 }
 
 // Constructor
-CDriverMarket::CDriverMarket(char* szFileLoc, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
+CMarketExchange::CMarketExchange(char* szFileLoc, TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
 					int iListenPort, char* szBHaddr, int iBHlistenPort,
 					char* outputDirectory)
 : m_iListenPort(iListenPort)
 {
 	char filename[1024];
-	sprintf(filename, "%s/Market.log", outputDirectory);
+	sprintf(filename, "%s/MarketExchange.log", outputDirectory);
 	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
 
-	sprintf(filename, "%s/DriverMarket_Error.log", outputDirectory);
+	sprintf(filename, "%s/MarketExchange_Error.log", outputDirectory);
 	m_fLog.open(filename, ios::out);
 	sprintf(filename, "%s/%s", outputDirectory, MEE_MIX_LOG_NAME);
 	m_fMix.open(filename, ios::out);
@@ -129,7 +129,7 @@ CDriverMarket::CDriverMarket(char* szFileLoc, TIdent iConfiguredCustomerCount, T
 }
 
 // Destructor
-CDriverMarket::~CDriverMarket()
+CMarketExchange::~CMarketExchange()
 {
 	delete m_pCMEE;
 	delete m_pSecurities;
@@ -142,7 +142,7 @@ CDriverMarket::~CDriverMarket()
 }
 
 // Listener
-void CDriverMarket::Listener( void )
+void CMarketExchange::Listener( void )
 {
 	int acc_socket;
 	PMarketThreadParam pThrParam;
@@ -162,7 +162,7 @@ void CDriverMarket::Listener( void )
 			memset(pThrParam, 0, sizeof(TMarketThreadParam));
 	
 			pThrParam->iSockfd = acc_socket;
-			pThrParam->pDriverMarket = this;
+			pThrParam->pMarketExchange = this;
 	
 			// call entry point
 			EntryMarketWorkerThread( reinterpret_cast<void*>(pThrParam) );
@@ -172,7 +172,7 @@ void CDriverMarket::Listener( void )
 			ostringstream osErr;
 			osErr<<endl<<"Problem to accept socket connection"
 			     <<endl<<"Error: "<<pErr->ErrorText()
-			     <<" at "<<"DriverMarket::Listener"<<endl;
+			     <<" at "<<"MarketExchange::Listener"<<endl;
 			LogErrorMessage(osErr.str());
 			delete pErr;
 		}
@@ -182,7 +182,7 @@ void CDriverMarket::Listener( void )
 
 
 // LogErrorMessage
-void CDriverMarket::LogErrorMessage( const string sErr )
+void CMarketExchange::LogErrorMessage( const string sErr )
 {
 	m_LogLock.lock();
 	cout<<sErr;
