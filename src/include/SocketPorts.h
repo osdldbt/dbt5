@@ -12,6 +12,6 @@
 #define SOCKET_PORTS_H
 
 #define BrokerageHousePort 30000
-#define DriverMarketPort   30010
+#define MarketExchangePort   30010
 
 #endif	//SOCKET_PORTS_H

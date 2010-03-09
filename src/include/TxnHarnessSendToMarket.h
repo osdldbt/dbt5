@@ -24,7 +24,7 @@ class CSendToMarket : public CSendToMarketInterface
 public:
 	void LogErrorMessage(const string sErr);
 
-	CSendToMarket(ofstream* pfile, int MEport = DriverMarketPort);
+	CSendToMarket(ofstream* pfile, int MEport = MarketExchangePort);
 	~CSendToMarket();
 
 	virtual bool SendToMarket(TTradeRequest &trade_mes);

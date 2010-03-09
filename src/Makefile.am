@@ -9,7 +9,7 @@ TXN=transactions
 INTF=interfaces
 EGEN=@egen_path@/src
 
-bin_PROGRAMS = BrokerageHouseMain DriverMain DriverMarketMain TestTxn
+bin_PROGRAMS = BrokerageHouseMain DriverMain MarketExchangeMain TestTxn
 
 TestTxn_CPPFLAGS=-I@egen_path@/inc -Iinclude @DB_CFLAGS@
 TestTxn_LDFLAGS=$(DB_LDFLAGS)
@@ -112,10 +112,10 @@ DriverMain_SOURCES = Driver/Driver.cpp \
                              $(INTF)/DMSUT.cpp \
                              $(INTF)/BaseInterface.cpp
 
-DriverMarketMain_CPPFLAGS=-I@egen_path@/inc \
+MarketExchangeMain_CPPFLAGS=-I@egen_path@/inc \
 	-I@egen_path@/TestHarness/Reference/inc -Iinclude @DB_CFLAGS@
-DriverMarketMain_LDFLAGS=$(DB_LDFLAGS)
-DriverMarketMain_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
+MarketExchangeMain_LDFLAGS=$(DB_LDFLAGS)
+MarketExchangeMain_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                            $(EGEN)/BaseLogger.cpp \
                            $(EGEN)/EGenLogFormatterTab.cpp \
                            $(EGEN)/EGenVersion.cpp \
@@ -123,8 +123,8 @@ DriverMarketMain_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                            $(INTF)/CSocket.cpp \
                            $(EGEN)/Random.cpp \
                            $(EGEN)/DateTime.cpp \
-                           DriverMarket/DriverMarket.cpp \
-                           DriverMarket/DriverMarketMain.cpp \
+                           MarketExchange/MarketExchange.cpp \
+                           MarketExchange/MarketExchangeMain.cpp \
                            $(EGEN)/WheelTime.cpp \
                            $(EGEN)/MEESecurity.cpp \
                            $(EGEN)/MEEPriceBoard.cpp \

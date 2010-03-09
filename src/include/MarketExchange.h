@@ -8,14 +8,14 @@
  * 30 July 2006
  */
 
-#ifndef DRIVER_MARKET_H
-#define DRIVER_MARKET_H
+#ifndef MARKET_EXCHANGE_H
+#define MARKET_EXCHANGE_H
 
 #include "locking.h"
 
 using namespace TPCE;
 
-class CDriverMarket
+class CMarketExchange
 {
 private:
 	int			m_iListenPort;
@@ -37,10 +37,10 @@ private:
 	friend void EntryMarketWorkerThread(void* data);
 
 public:
-	CDriverMarket(char* szFileLoc, TIdent iConfiguredCustomerCount,
+	CMarketExchange(char* szFileLoc, TIdent iConfiguredCustomerCount,
 			TIdent iActiveCustomerCount, int iListenPort, char* szBHaddr,
 			int iBHlistenPort, char *outputDirectory);
-	~CDriverMarket();
+	~CMarketExchange();
 
 	void Listener(void);
 };
@@ -48,8 +48,8 @@ public:
 //parameter structure for the threads
 typedef struct TMarketThreadParam
 {
-	CDriverMarket*		pDriverMarket;
+	CMarketExchange*		pMarketExchange;
 	int			iSockfd;
 } *PMarketThreadParam;
 
-#endif	// DRIVER_MARKET_H
+#endif	// MARKET_EXCHANGE_H

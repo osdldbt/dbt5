@@ -9,12 +9,13 @@
 #
 
 trap 'echo "Test was interrupted by Control-C."; \
-	killall BrokerageHouseMain; killall DriverMarketMain; killall DriverMain; \
-	killall sar; killall sadc; killall vmstat; killall iostat; \
-        ${DB_COMMAND} dbt5-${DBMS}-stop-db' INT
+	killall BrokerageHouseMain; killall MarketExchangeMain; \
+	killall DriverMain;  killall sar; killall sadc; killall vmstat; \
+	killall iostat; ${DB_COMMAND} dbt5-${DBMS}-stop-db' INT
 trap 'echo "Test was interrupted. Got TERM signal."; \
-	killall BrokerageHouseMain; killall DriverMarketMain; killall DriverMain; \
-	killall client; killall driver;  killall sar; killall sadc; killall vmstat; killall iostat; \
+	killall BrokerageHouseMain; killall MarketExchangeMain; \
+	killall DriverMain; killall client; killall driver;  killall sar; \
+	killall sadc; killall vmstat; killall iostat; \
 	${DB_COMMAND} dbt5-${DBMS}-stop-db' TERM
 
 do_sleep()
@@ -32,6 +33,7 @@ make_directories()
 	fi
 	${COMMAND} mkdir -p ${OUTPUT_DIR}
 	${COMMAND} mkdir -p ${BH_OUTPUT_DIR}
+	${COMMAND} mkdir -p ${MEE_OUTPUT_DIR}
 	${COMMAND} mkdir -p ${DRIVER_OUTPUT_DIR}
 	${COMMAND} mkdir -p ${DB_OUTPUT_DIR}
 }
@@ -197,8 +199,10 @@ usage()
 	echo '       -i <initial trade days. (default 300)>'
 	echo '       -l <pacing delay. (default 0)>'
 	echo '       -n <database name. (default dbt5)>'
-	echo '       -o # enable oprofile profiler'
+	echo '       -o <result output dir>'
 	echo '       -p <database port number. (default 5432)>'
+	echo '       -q (oprofile)'
+	echo '       -r (readprofile)'
 	echo '       -s <delay of starting of new thread in milliseconds (default 1000)>'
 	echo '       -z <comment describing this test run>'
 	echo ''
@@ -219,6 +223,7 @@ SCALE_FACTOR=500
 SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
 USE_READPROFILE=0
+PACING_DELAY=0
 
 while getopts "a:b:c:d:e:f:h:i:l:n:o:rp:qs:t:u:w:z:" opt; do
 	case $opt in
@@ -297,17 +302,17 @@ done
 # Check parameters.
 
 if [ "x${EGENDIR}}" = "x" ]; then
-	echo "specify path to EGen using -b <path>"
+	usage "specify path to EGen using -b <path>"
 	exit 1
 fi
 
 if [ "x${DBMS}" = "x" ]; then
-	echo "specify which dbms system to test using -a <pgsql>"
+	usage "specify which dbms system to test using -a <pgsql>"
 	exit 1
 fi
 
 if [ "x${DB_NAME}" = "x" ]; then
-	echo "specify the database name to test using -n <dbt5>"
+	usage "specify the database name to test using -n <dbt5>"
 	exit 1
 fi
 
@@ -332,7 +337,7 @@ if [ "x${SEED}" = "x" ]; then
 fi
 
 if [ "x${OUTPUT_DIR}" = "x" ]; then
-	echo "specify the location for results, directory must not exist, using -o <path>"
+	usage "specify the location for results, directory must not exist, using -o <path>"
 	exit 1
 fi
 
@@ -359,6 +364,7 @@ fi
 
 # Determine the output directories for storing data.
 BH_OUTPUT_DIR=${OUTPUT_DIR}/bh
+MEE_OUTPUT_DIR=${OUTPUT_DIR}/mee
 DRIVER_OUTPUT_DIR=${OUTPUT_DIR}/driver
 DB_OUTPUT_DIR=${OUTPUT_DIR}/db
 
@@ -414,7 +420,7 @@ echo "Results can be found in: ${OUTPUT_DIR}"
 echo
 echo "1. Starting Brokerage House server"
 BrokerageHouseMain ${DB_HOSTNAME_ARG} -d ${DB_NAME} ${DB_PORT_ARG} \
-		-o ${DRIVER_OUTPUT_DIR} > ${OUTPUT_DIR}/bh.out 2>&1 &
+		-o ${BH_OUTPUT_DIR} > ${BH_OUTPUT_DIR}/bh.out 2>&1 &
 
 do_sleep 1
 
@@ -423,8 +429,8 @@ do_sleep 1
 #
 echo
 echo "2. Starting Market Exchange server"
-DriverMarketMain -c ${CUSTOMERS} -a ${CUSTOMERS} -s ${EGENDIR}/flat_in \
-		-o ${DRIVER_OUTPUT_DIR} > ${OUTPUT_DIR}/market.out 2>&1 &
+MarketExchangeMain -c ${CUSTOMERS} -a ${CUSTOMERS} -s ${EGENDIR}/flat_in \
+		-o ${MEE_OUTPUT_DIR} > ${MEE_OUTPUT_DIR}/mee.out 2>&1 &
 
 # Start collecting data before we start the test.
 SLEEP_RAMPUP=`expr ${USERS} + 1`
@@ -513,7 +519,7 @@ fi
 
 # sort and merge emulators mix files into mix.log
 sort -t "," -k 1 ${DRIVER_OUTPUT_DIR}/ce_mix.log \
-		${DRIVER_OUTPUT_DIR}/mee_mix.log -o $DRIVER_OUTPUT_DIR/mix.log
+		${MEE_OUTPUT_DIR}/mee_mix.log -o $DRIVER_OUTPUT_DIR/mix.log
 
 # Run some post processing analysese.
 echo
@@ -523,7 +529,7 @@ dbt5-post-process --dir ${OUTPUT_DIR} --xml > ${DRIVER_OUTPUT_DIR}/results.out
 
 # Servers don't go away by themselves like the driver does, so kill it.
 echo "Killing Servers..."
-killall BrokerageHouseMain DriverMarketMain DriverMain 2> /dev/null
+killall BrokerageHouseMain MarketExchangeMain DriverMain 2> /dev/null
 
 ${DB_COMMAND} dbt5-${DBMS}-stop-db
 
