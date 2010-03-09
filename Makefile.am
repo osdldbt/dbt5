@@ -34,15 +34,15 @@ bin_SCRIPTS = \
 
 EXTRA_DIST = \
 	README-POSTGRESQL \
+	egen/ChangeLog.txt \
+	egen/EULA.htm \
+	egen/EULA.txt \
+	egen/TestHarness \
+	egen/flat_in \
+	egen/inc \
+	egen/prj \
+	egen/src \
 	examples \
 	scripts \
-	src/egen/ChangeLog.txt \
-	src/egen/EULA.htm \
-	src/egen/EULA.txt \
-	src/egen/TestHarness \
-	src/egen/flat_in \
-	src/egen/inc \
-	src/egen/prj \
-	src/egen/src \
 	src/include \
 	storedproc

@@ -17,7 +17,7 @@ export DBDATA=/mnt/test/data
 export TSDIR=/mnt/test/dbt5
 
 # Build EGen, separate build system from the rest of the kit.
-    (cd src/egen/prj && make)
+    (cd egen/prj && make)
 
 # configure
     ./configure --with-<database>
@@ -52,8 +52,9 @@ To build a small database somewhat manually:
 Using EGen directly to load into PostgreSQL (assuming you built the tables by
 hand):
 
-	cd src/egen
-	bin/EGenLoader -c 1000 -t 1000 -w 1 -l CUSTOM -p 'host=testdb port=5432 dbname=dbt5'
+	cd egen
+	bin/EGenLoader -c 1000 -t 1000 -w 1 -l CUSTOM \
+			-p 'host=testdb port=5432 dbname=dbt5'
 
 -----
 

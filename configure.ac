@@ -122,13 +122,14 @@ AC_ARG_WITH(pqxx,
   [pqxx_path=$withval]
 )
 
+TOPDIR=`pwd`
+AC_SUBST(TOPDIR)
 AC_ARG_WITH(egen,
   [AC_HELP_STRING([--with-egen=DIR],
       [Default is to use EGen distributed with his kit.])],
   [egen_path=$withval],
-  [egen_path="egen"]
+  [egen_path="${TOPDIR}/egen"]
 )
-
 AC_SUBST(egen_path)
 
 dnl Set up rules depending on what database is selected.
