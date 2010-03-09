@@ -32,41 +32,37 @@ CBaseInterface::~CBaseInterface()
 }
 
 // connect to BrokerageHouse
-void CBaseInterface::Connect()
+bool CBaseInterface::Connect()
 {
-	try
-	{
+	try {
 		sock->Connect();
-	}
-	catch(CSocketErr *pErr)
-	{
+		return true;
+	} catch(CSocketErr *pErr) {
 		ostringstream osErr;
 		osErr << "Error: " << pErr->ErrorText() << " at " <<
-				"CBaseInterface::TalkToSUT " << __FILE__ << ":" << __LINE__ <<
-				endl;
+				"CBaseInterface::TalkToSUT " << endl;
 		LogErrorMessage(osErr.str());
+		return false;
 	}
 }
 
 // close connection to BrokerageHouse
-void CBaseInterface::Disconnect()
+bool CBaseInterface::Disconnect()
 {
-	try
-	{
+	try {
 		sock->CloseAccSocket();
-	}
-	catch(CSocketErr *pErr)
-	{
+		return true;
+	} catch(CSocketErr *pErr) {
 		ostringstream osErr;
 		osErr << "Error: " << pErr->ErrorText() << " at " <<
-				"CBaseInterface::TalkToSUT " << __FILE__ << ":" << __LINE__ <<
-				endl;
+				"CBaseInterface::TalkToSUT " << endl;
 		LogErrorMessage(osErr.str());
+		return false;
 	}
 }
 
 // Connect to BrokerageHouse, send request, receive reply, and calculate RT
-void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
+int CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 {
 	int length;
 	TMsgBrokerageDriver Reply;	// reply message from BrokerageHouse
@@ -79,39 +75,33 @@ void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 	StartTime.SetToCurrent();
 
 	// send and wait for response
-	try
-	{
+	try {
 		length = sock->Send(reinterpret_cast<void*>(pRequest),
 				sizeof(*pRequest));
-	}
-	catch(CSocketErr *pErr)
-	{
+	} catch(CSocketErr *pErr) {
 		sock->CloseAccSocket(); // close connection
 		LogResponseTime(-1, 0, 0);
 
 		ostringstream osErr;
 		osErr << "Error sending ("<< length << ") txn " <<
 				pRequest->TxnType << ": " << pErr->ErrorText() << " at " <<
-				"CBaseInterface::TalkToSUT " << __FILE__ << ":" << __LINE__ <<
-				endl;
+				"CBaseInterface::TalkToSUT " << endl;
 		LogErrorMessage(osErr.str());
+		length = -1;
 		delete pErr;
 	}
-	try
-	{
+	try {
 		length = sock->Receive(reinterpret_cast<void*>(&Reply), sizeof(Reply));
-	}
-	catch(CSocketErr *pErr)
-	{
+	} catch(CSocketErr *pErr) {
 		sock->CloseAccSocket(); // close connection
 		LogResponseTime(-1, 0, 0);
 
 		ostringstream osErr;
 		osErr << "Error sending ("<< length << ") txn " <<
 				pRequest->TxnType << ": " << pErr->ErrorText() << " at " <<
-				"CBaseInterface::TalkToSUT " << __FILE__ << ":" << __LINE__ <<
-				endl;
+				"CBaseInterface::TalkToSUT " << endl;
 		LogErrorMessage(osErr.str());
+		length = -1;
 		delete pErr;
 	}
 
@@ -124,6 +114,8 @@ void CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 
 	//log response time
 	LogResponseTime(Reply.iStatus, pRequest->TxnType, (TxnTime.MSec()/1000.0));
+
+	return length;
 }
 
 // Log Response Time

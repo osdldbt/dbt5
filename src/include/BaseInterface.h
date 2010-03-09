@@ -16,7 +16,7 @@
 class CBaseInterface
 {
 protected:
-	void TalkToSUT(PMsgDriverBrokerage pRequest);
+	int TalkToSUT(PMsgDriverBrokerage pRequest);
 	void LogErrorMessage(const string sErr);
 
 	char*		m_szBHAddress;
@@ -35,8 +35,8 @@ public:
 	CBaseInterface(char* addr, const int iListenPort, ofstream* pflog,
 			ofstream* pfmix, CMutex* pLogLock, CMutex* pMixLock);
 	~CBaseInterface(void);
-	void Connect();
-	void Disconnect();
+	bool Connect();
+	bool Disconnect();
 };
 
 #endif	// BASE_INTERFACE_H
