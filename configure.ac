@@ -247,5 +247,9 @@ AC_SUBST(DBC_FUNCTIONS)
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([src/Makefile])
+AC_CONFIG_FILES([src/BrokerageHouse/Makefile])
+AC_CONFIG_FILES([src/Driver/Makefile])
+AC_CONFIG_FILES([src/MarketExchange/Makefile])
+AC_CONFIG_FILES([src/TestTransactions/Makefile])
 
 AC_OUTPUT
