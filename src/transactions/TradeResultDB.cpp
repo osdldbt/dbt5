@@ -32,7 +32,7 @@ void CTradeResultDB::DoTradeResultFrame1(
 	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
 	result R( m_Txn->exec( osCall.str() ) );
 
-	if (R.empty()) 
+	if (R.empty())
 	{
 		cerr << "warning: empty result set at DoTradeResultFrame1" << endl <<
 				osCall.str() << endl;
@@ -105,36 +105,29 @@ void CTradeResultDB::DoTradeResultFrame2(
 #endif // DEBUG
 
 	// we are inside a transaction
-	try {
-		result R(m_Txn->exec(osCall.str()));
-
-		if (R.empty()) {
-			cerr << "warning: empty result set at DoTradeResultFrame2" <<
-					endl << osCall.str() << endl;
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
-		}
-		result::const_iterator c = R.begin();
-
-		pOut->broker_id = c[0].as(long());
-		pOut->buy_value = c[1].as(double());
-		pOut->cust_id = c[2].as(long());
-		pOut->sell_value = c[3].as(double());
-		pOut->status = c[4].as(int());
-		pOut->tax_status = c[5].as(int());
-		sscanf(c[6].c_str(), "%d-%d-%d %d:%d:%d.%*d",
-				&pOut->trade_dts.year,
-				&pOut->trade_dts.month,
-				&pOut->trade_dts.day,
-				&pOut->trade_dts.hour,
-				&pOut->trade_dts.minute,
-				&pOut->trade_dts.second);
-	} catch (const pqxx::sql_error &e) {
-        cout << "SQL Error: " << e.what() << endl <<
-				"Query: '" << e.query() << "'" << endl;
+	result R;
+	R = m_Txn->exec(osCall.str());
+	if (R.empty()) {
+		cerr << "warning: empty result set at DoTradeResultFrame2" <<
+				endl << osCall.str() << endl;
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		return;
 	}
+	result::const_iterator c = R.begin();
+
+	pOut->broker_id = c[0].as(long());
+	pOut->buy_value = c[1].as(double());
+	pOut->cust_id = c[2].as(long());
+	pOut->sell_value = c[3].as(double());
+	pOut->status = c[4].as(int());
+	pOut->tax_status = c[5].as(int());
+	sscanf(c[6].c_str(), "%d-%d-%d %d:%d:%d.%*d",
+			&pOut->trade_dts.year,
+			&pOut->trade_dts.month,
+			&pOut->trade_dts.day,
+			&pOut->trade_dts.hour,
+			&pOut->trade_dts.minute,
+			&pOut->trade_dts.second);
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -182,7 +175,7 @@ void CTradeResultDB::DoTradeResultFrame3(
 	// we are inside a transaction
 	result R( m_Txn->exec( osCall.str() ) );
 
-	if (R.empty()) 
+	if (R.empty())
 	{
 		cerr << "warning: empty result set at DoTradeResultFrame3" << endl <<
 				osCall.str() << endl;
@@ -228,26 +221,20 @@ void CTradeResultDB::DoTradeResultFrame4(
 #endif //DEBUG
 
 	// we are inside a transaction
-	try {
-		result R(m_Txn->exec(osCall.str()));
-
-		if (R.empty()) {
-			cerr << "warning: empty result set at DoTradeResultFrame4" <<
-					endl << osCall.str() << endl;
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
-		}
-		result::const_iterator c = R.begin();
-
-		pOut->comm_rate = c[0].as(double());
-		strncpy(pOut->s_name, c[1].c_str(), cS_NAME_len);
-		pOut->status = c[2].as(int());
-	} catch (const pqxx::sql_error &e) {
-        cout << "SQL Error: " << e.what() << endl <<
-				"Query: '" << e.query() << "'" << endl;
+	result R;
+	R = m_Txn->exec(osCall.str());
+	if (R.empty()) {
+		cerr << "warning: empty result set at DoTradeResultFrame4" <<
+				endl << osCall.str() << endl;
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		return;
 	}
+
+	result::const_iterator c = R.begin();
+
+	pOut->comm_rate = c[0].as(double());
+	strncpy(pOut->s_name, c[1].c_str(), cS_NAME_len);
+	pOut->status = c[2].as(int());
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -298,22 +285,14 @@ void CTradeResultDB::DoTradeResultFrame5(
 #endif //DEBUG
 
 	// we are inside a transaction
-	try {
-		result R( m_Txn->exec(osCall.str()));
-		if (R.empty()) {
-			//throw logic_error("TradeResultFrame5: empty result set");
-			cerr << "warning: empty result set at DoTradeResultFrame5" << endl;
-		}
-
-		result::const_iterator c = R.begin();
-
-		pOut->status = c[0].as(int());
-	} catch (const pqxx::sql_error &e) {
-        cout << "SQL Error: " << e.what() << endl <<
-				"Query: '" << e.query() << "'" << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
+	result R( m_Txn->exec(osCall.str()));
+	if (R.empty()) {
+		//throw logic_error("TradeResultFrame5: empty result set");
+		cerr << "warning: empty result set at DoTradeResultFrame5" << endl;
 	}
+
+	result::const_iterator c = R.begin();
+	pOut->status = c[0].as(int());
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -377,25 +356,18 @@ void CTradeResultDB::DoTradeResultFrame6(
 #endif //DEBUG
 
 	// we are inside a transaction
-	try {
-		result R(m_Txn->exec(osCall.str()));
-		CommitTxn();
-		if (R.empty()) {
-			cerr << "warning: empty result set at DoTradeResultFrame6" <<
-					endl << osCall.str() << endl;
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
-		}
-		result::const_iterator c = R.begin();
-
-		pOut->acct_bal = c[0].as(double());
-		pOut->status = c[1].as(int());
-	} catch (const pqxx::sql_error &e) {
-        cout << "SQL Error: " << e.what() << endl <<
-				"Query: '" << e.query() << "'" << endl;
+	result R(m_Txn->exec(osCall.str()));
+	CommitTxn();
+	if (R.empty()) {
+		cerr << "warning: empty result set at DoTradeResultFrame6" <<
+				endl << osCall.str() << endl;
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		return;
 	}
+	result::const_iterator c = R.begin();
+
+	pOut->acct_bal = c[0].as(double());
+	pOut->status = c[1].as(int());
 
 #ifdef DEBUG
 	m_coutLock.lock();
