@@ -14,10 +14,10 @@
 // Establish defaults for command line option
 int iListenPort = BrokerageHousePort;
 
-char szHost[iMaxPGHost] = "";
-char szDBName[iMaxPGDBName] = "";
-char szPostmasterPort[iMaxPGPort] = "";
-char outputDirectory[iMaxPath] = ".";
+char szHost[iMaxHostname + 1] = "";
+char szDBName[iMaxDBName + 1] = "";
+char szPostmasterPort[iMaxPort + 1] = "";
+char outputDirectory[iMaxPath + 1] = ".";
 
 // shows program usage
 void Usage()
@@ -68,16 +68,16 @@ void ParseCommandLine(int argc, char *argv[])
 		// Parse the switch
 		switch (*sp) {
 		case 's': // Database host name.
-			strncpy(szHost, vp, sizeof(szHost));
+			strncpy(szHost, vp, iMaxHostname);
 			break;
 		case 'd': // Database name.
-			strncpy(szDBName, vp, sizeof(szDBName));
+			strncpy(szDBName, vp, iMaxDBName);
 			break;
 		case 'o': // output directory
-			strncpy(outputDirectory, vp, sizeof(outputDirectory));
+			strncpy(outputDirectory, vp, iMaxPath);
 			break;
 		case 'p': // Postmaster port
-			strncpy(szPostmasterPort, vp, sizeof(szPostmasterPort));
+			strncpy(szPostmasterPort, vp, iMaxPort);
 			break;
 		case 'l':
 			sscanf(vp, "%"PRId64, &iListenPort);

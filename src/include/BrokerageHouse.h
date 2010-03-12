@@ -12,11 +12,8 @@
 #ifndef BROKERAGE_HOUSE_H
 #define BROKERAGE_HOUSE_H
 
+#include "DBT5Consts.h"
 #include "locking.h"
-
-#define iMaxPGHost 128
-#define iMaxPGDBName 32
-#define iMaxPGPort 32
 
 class CBrokerageHouse
 {
@@ -25,9 +22,9 @@ class CBrokerageHouse
 	CMutex m_LogLock;
 	ofstream m_fLog;
 
-	char m_szHost[iMaxPGHost]; // host name
-	char m_szDBName[iMaxPGDBName]; // database name
-	char m_szPostmasterPort[iMaxPGPort]; // PostgreSQL postmaster port
+	char m_szHost[iMaxHostname + 1]; // host name
+	char m_szDBName[iMaxDBName + 1]; // database name
+	char m_szPostmasterPort[iMaxPort + 1]; // PostgreSQL postmaster port
 
 private:
 	void LogErrorMessage(const string sErr, bool bScreen = true);

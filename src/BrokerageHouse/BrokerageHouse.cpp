@@ -281,18 +281,13 @@ CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName,
 		char *outputDirectory)
 : m_iListenPort(iListenPort)
 {
-	memset(m_szHost, 0, sizeof(m_szHost));
-	strncpy(m_szHost, szHost, sizeof(m_szHost) - 1);
+	strncpy(m_szHost, szHost, iMaxHostname);
+	strncpy(m_szDBName, szDBName, iMaxDBName);
+	strncpy(m_szPostmasterPort, szPostmasterPort, iMaxPort);
 
-	memset(m_szDBName, 0, sizeof(m_szDBName));
-	strncpy(m_szDBName, szDBName, sizeof(m_szDBName) - 1);
-
-	memset(m_szPostmasterPort, 0, sizeof(m_szPostmasterPort));
-	strncpy(m_szPostmasterPort, szPostmasterPort,
-			sizeof(m_szPostmasterPort) - 1);
-
-	char filename[1024];
-	sprintf(filename, "%s/BrokerageHouse_Error.log", outputDirectory);
+	char filename[iMaxPath + 1];
+	snprintf(filename, iMaxPath, "%s/BrokerageHouse_Error.log",
+			outputDirectory);
 	m_fLog.open(filename, ios::out);
 }
 
