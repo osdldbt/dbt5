@@ -20,7 +20,7 @@ TIdent iConfiguredCustomerCount = iDefaultLoadUnitSize;
 // total number of customers in the database
 TIdent iActiveCustomerCount = iDefaultLoadUnitSize;
 
-// Security.txt file location
+// EGen flat_ing directory location
 char szFileLoc[iMaxPath + 1];
 // path to output files
 char outputDirectory[iMaxPath + 1] = ".";
@@ -28,26 +28,21 @@ char outputDirectory[iMaxPath + 1] = ".";
 // shows program usage
 void Usage()
 {
-	cerr << "\nUsage: MarketExchangeMain [options]" << endl << endl;
-	cerr << "  where" << endl;
-	cerr << "   Option	Default				   Description" << endl;
-	cerr << "   =========	===============================    =============================" <<
+	cout << "Usage: MarketExchangeMain [options]" << endl << endl;
+	cout << "   Option      Default     Description" << endl;
+	cout << "   ==========  ==========  =============================" << endl;
+	printf("   -a integer  %-10d  Active customer count\n",
+			iActiveCustomerCount);
+	printf("   -c integer  %-10d  Configured customer count\n",
+			iConfiguredCustomerCount);
+	cout << "   -e string               Location of EGen flat_in directory" <<
 			endl;
-	cerr << "   -s string	" << szFileLoc <<
-			"    Location of Security.txt file" << endl;
-	cerr << "   -c number	" << iConfiguredCustomerCount <<
-			"\t\t\t\t   Configured customer count" << endl;
-	cerr << "   -a number	" << iActiveCustomerCount <<
-			"\t\t\t\t   Active customer count" << endl;
-	cerr << "   -l number	" << iListenPort <<
-			"\t\t\t\t   Socket listen port" << endl;
-	cerr << "   -h string	" << szBHaddr << "\t     Brokerage House address" <<
-			endl;
-	cerr << "   -b number	" << iBHlistenPort <<
-			"\t\t\t\t   Brokerage House listen port" << endl;
-	cerr << "   -o string	" << outputDirectory <<
-			"\t\t\t\t   directory for output files" << endl;
-	cerr << endl;
+	printf("   -l integer  %-10d  Socket listen port\n", iListenPort);
+	printf("   -h string   %-10s  Brokerage House address\n", szBHaddr);
+	printf("   -o string   %-10s  directory for output files\n",
+			outputDirectory);
+	printf("   -p integer  %-10d  Brokerage House listen port\n",
+			iBHlistenPort);
 }
 
 // Parse command line
@@ -82,26 +77,26 @@ void ParseCommandLine(int argc, char *argv[])
 
 		// Parse the switch
 		switch (*sp) {
-		case 's': // Security file location
+		case 'a':
+			sscanf(vp, "%"PRId64, &iActiveCustomerCount);
+			break;
+		case 'c':
+			sscanf(vp, "%"PRId64, &iConfiguredCustomerCount);
+			break;
+		case 'e':
 			strncpy(szFileLoc, vp, iMaxPath);
 			break;
 		case 'h':
 			strncpy(szBHaddr, vp, iMaxHostname);
 			break;
-		case 'c':
-			sscanf(vp, "%"PRId64, &iConfiguredCustomerCount);
-			break;
-		case 'a':
-			sscanf(vp, "%"PRId64, &iActiveCustomerCount);
-			break;
 		case 'l':
 			sscanf(vp, "%d", &iListenPort);
 			break;
-		case 'b':
-			sscanf(vp, "%d", &iBHlistenPort);
-			break;
 		case 'o':
 			strncpy(outputDirectory, vp, iMaxPath);
+			break;
+		case 'p':
+			sscanf(vp, "%d", &iBHlistenPort);
 			break;
 		default:
 			Usage();
