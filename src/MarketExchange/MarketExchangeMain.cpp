@@ -12,7 +12,7 @@
 #include "transactions.h"
 
 // Establish defaults for command line options
-char *szBHaddr = "localhost"; // Brokerage House address
+char szBHaddr[iMaxHostname + 1] = "localhost"; // Brokerage House address
 int iListenPort = MarketExchangePort; // socket port to listen
 int iBHlistenPort = BrokerageHousePort;
 // # of customers for this instance
@@ -53,9 +53,9 @@ void Usage()
 // Parse command line
 void ParseCommandLine(int argc, char *argv[])
 {
-	int   arg;
-	char  *sp;
-	char  *vp;
+	int arg;
+	char *sp;
+	char *vp;
 
 	// Scan the command line arguments
 	for (arg = 1; arg < argc; ++arg) {
@@ -66,7 +66,7 @@ void ParseCommandLine(int argc, char *argv[])
 			++sp;
 		}
 		*sp = (char)tolower(*sp);
-		
+
 		/*
 		 *  Find the switch's argument.  It is either immediately after the
 		 *  switch or in the next argv
@@ -79,14 +79,14 @@ void ParseCommandLine(int argc, char *argv[])
 		if ((*vp == 0) && ((arg + 1) < argc) && (argv[arg + 1][0] != '-')) {
 			vp = argv[++arg];
 		}
-		
+
 		// Parse the switch
 		switch (*sp) {
 		case 's': // Security file location
 			strncpy(szFileLoc, vp, iMaxPath);
 			break;
 		case 'h':
-			strncpy(szBHaddr, vp, iMaxPath);
+			strncpy(szBHaddr, vp, iMaxHostname);
 			break;
 		case 'c':
 			sscanf(vp, "%"PRId64, &iConfiguredCustomerCount);
@@ -114,7 +114,7 @@ void ParseCommandLine(int argc, char *argv[])
 int main(int argc, char* argv[])
 {
 	// Establish defaults for command line options
-	strncpy(szFileLoc, "flat_in", sizeof(szFileLoc));
+	strncpy(szFileLoc, "flat_in", iMaxPath);
 
 	cout << endl << "dbt5 - Market Exchange Main" << endl;
 
@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
 				outputDirectory);
 		cout << "Market Exchange started, waiting for trade requests..." <<
 				endl;
-	
+
 		MarketExchange.Listener();
 	} catch (CBaseErr *pErr) {
 		cout << endl << "Error " << pErr->ErrorNum() << ": " <<

@@ -82,7 +82,7 @@ void EntryMarketWorkerThread(void* data)
 		close(pThrParam->iSockfd);
 
 		ostringstream osErr;
-		osErr << endl << "Error: " << pErr->ErrorText() <<
+		osErr << "Error: " << pErr->ErrorText() <<
 			" at MarketExchange::EntryMarketWorkerThread" << endl <<
 			"accepted socket connection closed" << endl;
 		pThrParam->pMarketExchange->LogErrorMessage(osErr.str());
@@ -97,13 +97,14 @@ CMarketExchange::CMarketExchange(char* szFileLoc,
 		char* outputDirectory)
 : m_iListenPort(iListenPort)
 {
-	char filename[1024];
-	sprintf(filename, "%s/MarketExchange.log", outputDirectory);
+	char filename[iMaxPath + 1];
+	snprintf(filename, iMaxPath, "%s/MarketExchange.log", outputDirectory);
 	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
 
-	sprintf(filename, "%s/MarketExchange_Error.log", outputDirectory);
+	snprintf(filename, iMaxPath, "%s/MarketExchange_Error.log",
+			outputDirectory);
 	m_fLog.open(filename, ios::out);
-	sprintf(filename, "%s/%s", outputDirectory, MEE_MIX_LOG_NAME);
+	snprintf(filename, iMaxPath, "%s/%s", outputDirectory, MEE_MIX_LOG_NAME);
 	m_fMix.open(filename, ios::out);
 
 	// Initialize MEESUT
@@ -156,7 +157,7 @@ void CMarketExchange::Listener(void)
 			EntryMarketWorkerThread(reinterpret_cast<void*>(pThrParam));
 		} catch(CSocketErr *pErr) {
 			ostringstream osErr;
-			osErr << endl << "Problem to accept socket connection" << endl <<
+			osErr << "Problem to accept socket connection" << endl <<
 					"Error: " << pErr->ErrorText() << " at " <<
 					"MarketExchange::Listener" << endl;
 			LogErrorMessage(osErr.str());
