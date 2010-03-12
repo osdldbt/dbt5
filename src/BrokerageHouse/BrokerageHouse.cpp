@@ -300,120 +300,96 @@ CBrokerageHouse::~CBrokerageHouse()
 INT32 CBrokerageHouse::RunBrokerVolume(PBrokerVolumeTxnInput pTxnInput,
 		CBrokerVolume &brokerVolume)
 {
-	TBrokerVolumeTxnOutput	TxnOutput;
-	brokerVolume.DoTxn(pTxnInput, &TxnOutput);
-
-	return TxnOutput.status;
+	brokerVolume.DoTxn(pTxnInput, &bvOutput);
+	return bvOutput.status;
 }
 
 // Run Customer Position transaction
 INT32 CBrokerageHouse::RunCustomerPosition(PCustomerPositionTxnInput pTxnInput,
 		CCustomerPosition &customerPosition)
 {
-	TCustomerPositionTxnOutput	TxnOutput;
-	customerPosition.DoTxn(pTxnInput, &TxnOutput);
-
-	return TxnOutput.status;
+	customerPosition.DoTxn(pTxnInput, &cpOutput);
+	return cpOutput.status;
 }
 
 // Run Data Maintenance transaction
 INT32 CBrokerageHouse::RunDataMaintenance(PDataMaintenanceTxnInput pTxnInput,
 		CDataMaintenance &dataMaintenance)
 {
-	TDataMaintenanceTxnOutput TxnOutput;
-	dataMaintenance.DoTxn(pTxnInput, &TxnOutput);
-
-	return TxnOutput.status;
+	dataMaintenance.DoTxn(pTxnInput, &dmOutput);
+	return dmOutput.status;
 }
 
 // Run Trade Cleanup transaction
 INT32 CBrokerageHouse::RunTradeCleanup(PTradeCleanupTxnInput pTxnInput,
 		CTradeCleanup &tradeCleanup)
 {
-	TTradeCleanupTxnOutput TxnOutput;
-	tradeCleanup.DoTxn(pTxnInput, &TxnOutput);
-
-	return TxnOutput.status;
+	tradeCleanup.DoTxn(pTxnInput, &tcOutput);
+	return tcOutput.status;
 }
 
 // Run Market Feed transaction
 INT32 CBrokerageHouse::RunMarketFeed(PMarketFeedTxnInput pTxnInput,
 		CMarketFeed &marketFeed)
 {
-	TMarketFeedTxnOutput TxnOutput;
-	marketFeed.DoTxn(pTxnInput, &TxnOutput);
-
-	return TxnOutput.status;
+	marketFeed.DoTxn(pTxnInput, &mfOutput);
+	return mfOutput.status;
 }
 
 // Run Market Watch transaction
 INT32 CBrokerageHouse::RunMarketWatch(PMarketWatchTxnInput pTxnInput,
 		CMarketWatch &marketWatch)
 {
-	TMarketWatchTxnOutput TxnOutput;
-	marketWatch.DoTxn(pTxnInput, &TxnOutput);
-
-	return TxnOutput.status;
+	marketWatch.DoTxn(pTxnInput, &mwOutput);
+	return mwOutput.status;
 }
 
 // Run Security Detail transaction
 INT32 CBrokerageHouse::RunSecurityDetail(PSecurityDetailTxnInput pTxnInput,
 		CSecurityDetail &securityDetail)
 {
-	TSecurityDetailTxnOutput TxnOutput;
-	securityDetail.DoTxn(pTxnInput, &TxnOutput);
-
-	return TxnOutput.status;
+	securityDetail.DoTxn(pTxnInput, &sdOutput);
+	return sdOutput.status;
 }
 
 // Run Trade Lookup transaction
 INT32 CBrokerageHouse::RunTradeLookup(PTradeLookupTxnInput pTxnInput,
 		CTradeLookup &tradeLookup)
 {
-	TTradeLookupTxnOutput TxnOutput;
-	tradeLookup.DoTxn(pTxnInput, &TxnOutput);
-
-	return TxnOutput.status;
+	tradeLookup.DoTxn(pTxnInput, &tlOutput);
+	return tlOutput.status;
 }
 
 // Run Trade Order transaction
 INT32 CBrokerageHouse::RunTradeOrder(PTradeOrderTxnInput pTxnInput,
 		CTradeOrder &tradeOrder)
 {
-	TTradeOrderTxnOutput TxnOutput;
-	tradeOrder.DoTxn(pTxnInput, &TxnOutput);
-
-	return TxnOutput.status;
+	tradeOrder.DoTxn(pTxnInput, &toOutput);
+	return toOutput.status;
 }
 
 // Run Trade Result transaction
 INT32 CBrokerageHouse::RunTradeResult(PTradeResultTxnInput pTxnInput,
 		CTradeResult &tradeResult)
 {
-	TTradeResultTxnOutput TxnOutput;
-	tradeResult.DoTxn(pTxnInput, &TxnOutput);
-
-	return TxnOutput.status;
+	tradeResult.DoTxn(pTxnInput, &trOutput);
+	return trOutput.status;
 }
 
 // Run Trade Status transaction
 INT32 CBrokerageHouse::RunTradeStatus(PTradeStatusTxnInput pTxnInput,
 		CTradeStatus &tradeStatus)
 {
-	TTradeStatusTxnOutput TxnOutput;
-	tradeStatus.DoTxn(pTxnInput, &TxnOutput);
-
-	return TxnOutput.status;
+	tradeStatus.DoTxn(pTxnInput, &tsOutput);
+	return tsOutput.status;
 }
 
 // Run Trade Update transaction
 INT32 CBrokerageHouse::RunTradeUpdate(PTradeUpdateTxnInput pTxnInput,
 		CTradeUpdate &tradeUpdate)
 {
-	TTradeUpdateTxnOutput TxnOutput;
-	tradeUpdate.DoTxn(pTxnInput, &TxnOutput);
-
-	return TxnOutput.status;
+	tradeUpdate.DoTxn(pTxnInput, &tuOutput);
+	return tuOutput.status;
 }
 
 // Listener

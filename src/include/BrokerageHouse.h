@@ -32,6 +32,19 @@ private:
 	friend void *WorkerThread(void *);
 	friend void EntryWorkerThread(void *); // entry point for worker thread
 
+	TBrokerVolumeTxnOutput bvOutput;
+	TCustomerPositionTxnOutput cpOutput;
+	TDataMaintenanceTxnOutput dmOutput;
+	TTradeCleanupTxnOutput tcOutput;
+	TMarketFeedTxnOutput mfOutput;
+	TMarketWatchTxnOutput mwOutput;
+	TSecurityDetailTxnOutput sdOutput;
+	TTradeLookupTxnOutput tlOutput;
+	TTradeOrderTxnOutput toOutput;
+	TTradeResultTxnOutput trOutput;
+	TTradeStatusTxnOutput tsOutput;
+	TTradeUpdateTxnOutput tuOutput;
+
 	INT32 RunBrokerVolume(PBrokerVolumeTxnInput pTxnInput,
 			CBrokerVolume &BrokerVolume);
 	INT32 RunCustomerPosition(PCustomerPositionTxnInput pTxnInput,
