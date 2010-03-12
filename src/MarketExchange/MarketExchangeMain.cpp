@@ -26,7 +26,7 @@ char szFileLoc[iMaxPath + 1];
 char outputDirectory[iMaxPath + 1] = ".";
 
 // shows program usage
-void Usage()
+void usage()
 {
 	cout << "Usage: MarketExchangeMain [options]" << endl << endl;
 	cout << "   Option      Default     Description" << endl;
@@ -46,7 +46,7 @@ void Usage()
 }
 
 // Parse command line
-void ParseCommandLine(int argc, char *argv[])
+void parse_command_line(int argc, char *argv[])
 {
 	int arg;
 	char *sp;
@@ -99,7 +99,7 @@ void ParseCommandLine(int argc, char *argv[])
 			sscanf(vp, "%d", &iBHlistenPort);
 			break;
 		default:
-			Usage();
+			usage();
 			cout << endl << "Error: Unrecognized option: " << sp << endl;
 			exit(ERROR_BAD_OPTION);
 		}
@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
 	cout << "Listener port: " << iListenPort << endl << endl;
 
 	// Parse command line
-	ParseCommandLine(argc, argv);
+	parse_command_line(argc, argv);
 
 	// Let the user know what settings will be used.
 	cout << "Using the following settings:" << endl << endl;
@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
 		cout << "Market Exchange started, waiting for trade requests..." <<
 				endl;
 
-		MarketExchange.Listener();
+		MarketExchange.startListener();
 	} catch (CBaseErr *pErr) {
 		cout << "Error " << pErr->ErrorNum() << ": " <<
 				pErr->ErrorText();

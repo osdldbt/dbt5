@@ -23,23 +23,23 @@ private:
 	CEGenLogger *m_pLog;
 	CMEESUT *m_pCMEESUT;
 	CSecurityFile *m_pSecurities;
-	CMEE *m_pCMEE;
 	CMutex m_LogLock;
 	CMutex m_MixLock;
 	ofstream m_fLog; // error log file
 	ofstream m_fMix; // mix log file
 
-	void LogErrorMessage(const string sErr);
-
-	friend void *MarketWorkerThread(void* data);
+	friend void *marketWorkerThread(void *);
 	// entry point for driver worker thread
-	friend void EntryMarketWorkerThread(void* data);
+	friend void entryMarketWorkerThread(void *);
 
 public:
+	CMEE *m_pCMEE;
+
 	CMarketExchange(char *, TIdent, TIdent, int, char *, int, char *);
 	~CMarketExchange();
 
-	void Listener(void);
+	void logErrorMessage(const string);
+	void startListener(void);
 };
 
 //parameter structure for the threads

@@ -8,7 +8,7 @@
  * 30 July 2006
  */
 
-#include <transactions.h>
+#include "transactions.h"
 
 // worker thread
 void *MarketWorkerThread(void* data)
@@ -35,7 +35,7 @@ void *MarketWorkerThread(void* data)
 			osErr << time(NULL) <<
 					" Trade Request not submitted to Market Exchange" << endl <<
 					"Error: "<<pErr->ErrorText() << endl;
-			pThrParam->pMarketExchange->LogErrorMessage(osErr.str());
+			pThrParam->pMarketExchange->logErrorMessage(osErr.str());
 			delete pErr;
 
 			// The socket is closed, break and let this thread die.
@@ -83,9 +83,9 @@ void EntryMarketWorkerThread(void* data)
 
 		ostringstream osErr;
 		osErr << "Error: " << pErr->ErrorText() <<
-			" at MarketExchange::EntryMarketWorkerThread" << endl <<
+			" at MarketExchange::entryMarketWorkerThread" << endl <<
 			"accepted socket connection closed" << endl;
-		pThrParam->pMarketExchange->LogErrorMessage(osErr.str());
+		pThrParam->pMarketExchange->logErrorMessage(osErr.str());
 		delete pErr;
 	}
 }
@@ -132,15 +132,14 @@ CMarketExchange::~CMarketExchange()
 	delete m_pLog;
 }
 
-// Listener
-void CMarketExchange::Listener(void)
+void CMarketExchange::startListener(void)
 {
 	int acc_socket;
 	PMarketThreadParam pThrParam;
 
 	m_Socket.Listen(m_iListenPort);
 
-	while(true) {
+	while (true) {
 		acc_socket = 0;
 		try {
 			acc_socket = m_Socket.Accept();
@@ -159,16 +158,14 @@ void CMarketExchange::Listener(void)
 			ostringstream osErr;
 			osErr << "Problem to accept socket connection" << endl <<
 					"Error: " << pErr->ErrorText() << " at " <<
-					"MarketExchange::Listener" << endl;
-			LogErrorMessage(osErr.str());
+					"MarketExchange::startListener" << endl;
+			logErrorMessage(osErr.str());
 			delete pErr;
 		}
 	}
 }
 
-
-// LogErrorMessage
-void CMarketExchange::LogErrorMessage(const string sErr)
+void CMarketExchange::logErrorMessage(const string sErr)
 {
 	m_LogLock.lock();
 	cout << sErr;
