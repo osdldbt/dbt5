@@ -16,22 +16,21 @@ int iListenPort = BrokerageHousePort;
 
 char szHost[iMaxHostname + 1] = "";
 char szDBName[iMaxDBName + 1] = "";
-char szPostmasterPort[iMaxPort + 1] = "";
+char szDBPort[iMaxPort + 1] = "";
 char outputDirectory[iMaxPath + 1] = ".";
 
 // shows program usage
 void Usage()
 {
 	cout << "Usage: BrokerageHouseMain [options]" << endl << endl;
-	cout << "  where" << endl;
-	cout << "   Option		Default    Description" << endl;
-	cout << "   =========		=========  ===============" << endl;
-	cout << "   -s string		localhost  Database server" << endl;
-	cout << "   -d string		dbt5       Database name" << endl;
-	cout << "   -o string		.          Output directory" << endl;
-	cout << "   -p string		5432       Postmaster port" << endl;
-	cout << "   -l number\t\t" << iListenPort << "\t   Socket listen port" <<
-			endl;
+ 	cout << endl;
+ 	cout << "   Option      Default    Description" << endl;
+ 	cout << "   =========   =========  ===============" << endl;
+ 	cout << "   -d string   dbt5       Database name" << endl;
+ 	cout << "   -h string   localhost  Database server" << endl;
+ 	printf("   -l integer  %-9d  Socket listen port\n", iListenPort);
+ 	cout << "   -o string   .          Output directory" << endl;
+ 	cout << "   -p integer             Database port" << endl;
 	cout << endl;
 }
 
@@ -67,17 +66,17 @@ void ParseCommandLine(int argc, char *argv[])
 		
 		// Parse the switch
 		switch (*sp) {
-		case 's': // Database host name.
-			strncpy(szHost, vp, iMaxHostname);
-			break;
 		case 'd': // Database name.
 			strncpy(szDBName, vp, iMaxDBName);
+			break;
+		case 'h': // Database host name.
+			strncpy(szHost, vp, iMaxHostname);
 			break;
 		case 'o': // output directory
 			strncpy(outputDirectory, vp, iMaxPath);
 			break;
 		case 'p': // Postmaster port
-			strncpy(szPostmasterPort, vp, iMaxPort);
+			strncpy(szDBPort, vp, iMaxPort);
 			break;
 		case 'l':
 			sscanf(vp, "%"PRId64, &iListenPort);
@@ -103,11 +102,11 @@ int main(int argc, char *argv[])
 	cout << endl << "Using the following settings:" << endl << endl;
 	cout << "\tHost:\t\t\t" << szHost << endl;
 	cout << "\tDatabase:\t\t" << szDBName << endl;
-	cout << "\tPostmaster port:\t " << szPostmasterPort << endl;
+	cout << "\tPostmaster port:\t " << szDBPort << endl;
 	cout << "\tListen port:\t\t" << iListenPort << endl;
 
 	try {
-		CBrokerageHouse	BrokerageHouse(szHost, szDBName, szPostmasterPort,
+		CBrokerageHouse	BrokerageHouse(szHost, szDBName, szDBPort,
 				iListenPort, outputDirectory);
 		cout << endl <<
 				"Brokerage House opened to business, waiting traders..." <<

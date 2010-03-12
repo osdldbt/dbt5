@@ -30,7 +30,7 @@ void *WorkerThread(void *data)
 	pDBConnection = new CDBConnection(
 			pThrParam->pBrokerageHouse->m_szHost,
 			pThrParam->pBrokerageHouse->m_szDBName,
-			pThrParam->pBrokerageHouse->m_szPostmasterPort);
+			pThrParam->pBrokerageHouse->m_szDBPort);
 	CSendToMarket sendToMarket = CSendToMarket(
 			&(pThrParam->pBrokerageHouse->m_fLog));
 	CMarketFeedDB marketFeedDB(pDBConnection);
@@ -277,13 +277,12 @@ void EntryWorkerThread(void *data)
 
 // Constructor
 CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName,
-		const char *szPostmasterPort, const int iListenPort,
-		char *outputDirectory)
+		const char *szDBPort, const int iListenPort, char *outputDirectory)
 : m_iListenPort(iListenPort)
 {
 	strncpy(m_szHost, szHost, iMaxHostname);
 	strncpy(m_szDBName, szDBName, iMaxDBName);
-	strncpy(m_szPostmasterPort, szPostmasterPort, iMaxPort);
+	strncpy(m_szDBPort, szDBPort, iMaxPort);
 
 	char filename[iMaxPath + 1];
 	snprintf(filename, iMaxPath, "%s/BrokerageHouse_Error.log",

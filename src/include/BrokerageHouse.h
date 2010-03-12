@@ -24,7 +24,7 @@ class CBrokerageHouse
 
 	char m_szHost[iMaxHostname + 1]; // host name
 	char m_szDBName[iMaxDBName + 1]; // database name
-	char m_szPostmasterPort[iMaxPort + 1]; // PostgreSQL postmaster port
+	char m_szDBPort[iMaxPort + 1]; // PostgreSQL postmaster port
 
 private:
 	void LogErrorMessage(const string sErr, bool bScreen = true);
@@ -58,9 +58,8 @@ private:
 			CTradeUpdate &TradeUpdate);
 
 public:
-	CBrokerageHouse(const char *szHost, const char *szDBName,
-				const char *szPostmasterPort, const int iListenPort,
-				char *outputDirectory);
+	CBrokerageHouse(const char *, const char *, const char *, const int,
+				char *);
 	~CBrokerageHouse();
 
 	void Listener(void);
