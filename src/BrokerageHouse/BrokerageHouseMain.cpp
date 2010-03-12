@@ -23,7 +23,6 @@ char outputDirectory[iMaxPath + 1] = ".";
 void Usage()
 {
 	cout << "Usage: BrokerageHouseMain [options]" << endl << endl;
- 	cout << endl;
  	cout << "   Option      Default    Description" << endl;
  	cout << "   =========   =========  ===============" << endl;
  	cout << "   -d string   dbt5       Database name" << endl;
@@ -93,39 +92,36 @@ void ParseCommandLine(int argc, char *argv[])
 // main
 int main(int argc, char *argv[])
 {
-	cout << endl << "dbt5 - Brokerage House Main" << endl;
+	cout << "dbt5 - Brokerage House" << endl;
+	cout << "Listening on port: " << iListenPort << endl << endl;
 
 	// Parse command line
 	ParseCommandLine(argc, argv);
 
 	// Let the user know what settings will be used.
-	cout << endl << "Using the following settings:" << endl << endl;
-	cout << "\tHost:\t\t\t" << szHost << endl;
-	cout << "\tDatabase:\t\t" << szDBName << endl;
-	cout << "\tPostmaster port:\t " << szDBPort << endl;
-	cout << "\tListen port:\t\t" << iListenPort << endl;
+	cout << "Using the following database settings:" << endl;
+	cout << "Host: " << szHost << endl;
+	cout << "Database port: " << szDBPort << endl;
+	cout << "Database name: " << szDBName << endl;
 
 	try {
 		CBrokerageHouse	BrokerageHouse(szHost, szDBName, szDBPort,
 				iListenPort, outputDirectory);
-		cout << endl <<
-				"Brokerage House opened to business, waiting traders..." <<
+		cout << "Brokerage House opened for business, waiting traders..." <<
 				endl;
 
 		BrokerageHouse.Listener();
 	} catch (CBaseErr *pErr) {
-		cout << endl << "Error " << pErr->ErrorNum() << ": " <<
-				pErr->ErrorText();
+		cout << "Error " << pErr->ErrorNum() << ": " << pErr->ErrorText();
 		if (pErr->ErrorLoc()) {
-			cout << " at " << pErr->ErrorLoc() << endl;
-		} else {
-			cout << endl;
+			cout << " at " << pErr->ErrorLoc();
 		}
+		cout << endl;
 		return 1;
 	} catch (std::bad_alloc err) {
 		// operator new will throw std::bad_alloc exception if there is no
 		// sufficient memory for the request.
-		cout << endl << endl << "*** Out of memory ***" << endl;
+		cout << "*** Out of memory ***" << endl;
 		return 2;
 	} catch (const exception &e) {
 		cout << e.what() << endl;
@@ -134,6 +130,6 @@ int main(int argc, char *argv[])
 
 	pthread_exit(NULL);
 
-	cout << "Brokerage House closed to business" << endl;
+	cout << "Brokerage House closed for business" << endl;
 	return(0);
 }

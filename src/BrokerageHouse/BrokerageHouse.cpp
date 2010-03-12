@@ -266,7 +266,7 @@ void EntryWorkerThread(void *data)
 		close(pThrParam->iSockfd);
 
 		ostringstream osErr;
-		osErr << endl << "Error: " << pErr->ErrorText() << " at " <<
+		osErr << "Error: " << pErr->ErrorText() << " at " <<
 				"BrokerageHouse::EntryWorkerThread" << endl <<
 				"accepted socket connection closed" << endl;
 		pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
