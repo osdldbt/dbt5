@@ -10,7 +10,7 @@
 
 #include "transactions.h"
 
-void *WorkerThread(void *data)
+void *workerThread(void *data)
 {
 	PThreadParameter pThrParam = reinterpret_cast<PThreadParameter>(data);
 
@@ -69,8 +69,8 @@ void *WorkerThread(void *data)
 
 			ostringstream osErr;
 			osErr << "Error on Receive: " << pErr->ErrorText() <<
-					" at BrokerageHouse::WorkerThread" << endl;
-			pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
+					" at BrokerageHouse::workerThread" << endl;
+			pThrParam->pBrokerageHouse->logErrorMessage(osErr.str());
 			delete pErr;
 
 			// The socket has been closed, break and let this thread die.
@@ -131,7 +131,7 @@ void *WorkerThread(void *data)
 									pthread_self() << " Retry #"
 									<< iNumRetry << endl <<
 									"*** query = " << e.query() << endl;
-							pThrParam->pBrokerageHouse->LogErrorMessage(
+							pThrParam->pBrokerageHouse->logErrorMessage(
 									osErr.str(), false);
 
 							if (iNumRetry <= 3) {
@@ -160,7 +160,7 @@ void *WorkerThread(void *data)
 					osErr << "*** TRADE RESULT re-submission ok : thread = " <<
 							pthread_self() << " #Retries = " <<
 							iNumRetry << endl;
-					pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str(),
+					pThrParam->pBrokerageHouse->logErrorMessage(osErr.str(),
 							false);
 				}
 				break;
@@ -192,15 +192,15 @@ void *WorkerThread(void *data)
 			// exceptions thrown by pqxx
 			ostringstream osErr;
 			osErr << "pqxx broken connection: " << e.what() << endl <<
-					" at " << "BrokerageHouse::WorkerThread" << endl;
-			pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
+					" at " << "BrokerageHouse::workerThread" << endl;
+			pThrParam->pBrokerageHouse->logErrorMessage(osErr.str());
 			iRet = ERR_TYPE_PQXX;
 		} catch (const pqxx::sql_error &e) {
 			ostringstream osErr;
 			osErr << "pqxx SQL error: " << e.what() << endl <<
 					"Query was: '" << e.query() << "'" << endl << " at " <<
-					"BrokerageHouse::WorkerThread" << endl;
-			pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
+					"BrokerageHouse::workerThread" << endl;
+			pThrParam->pBrokerageHouse->logErrorMessage(osErr.str());
 			iRet = ERR_TYPE_PQXX;
 			// Rollback any transaction in place.
 			pDBConnection->RollbackTxn();
@@ -215,8 +215,8 @@ void *WorkerThread(void *data)
 
 			ostringstream osErr;
 			osErr << "Error on Send: " << pErr->ErrorText() <<
-					" at BrokerageHouse::WorkerThread" << endl;
-			pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
+					" at BrokerageHouse::workerThread" << endl;
+			pThrParam->pBrokerageHouse->logErrorMessage(osErr.str());
 			delete pErr;
 
 			// The socket has been closed, break and let this thread die.
@@ -233,7 +233,7 @@ void *WorkerThread(void *data)
 }
 
 // entry point for worker thread
-void EntryWorkerThread(void *data)
+void entryWorkerThread(void *data)
 {
 	PThreadParameter pThrParam = reinterpret_cast<PThreadParameter>(data);
 
@@ -255,7 +255,7 @@ void EntryWorkerThread(void *data)
 		}
 
 		// create the thread in the detached state
-		status = pthread_create(&threadID, &threadAttribute, &WorkerThread,
+		status = pthread_create(&threadID, &threadAttribute, &workerThread,
 				data);
 
 		if (status != 0) {
@@ -267,9 +267,9 @@ void EntryWorkerThread(void *data)
 
 		ostringstream osErr;
 		osErr << "Error: " << pErr->ErrorText() << " at " <<
-				"BrokerageHouse::EntryWorkerThread" << endl <<
+				"BrokerageHouse::entryWorkerThread" << endl <<
 				"accepted socket connection closed" << endl;
-		pThrParam->pBrokerageHouse->LogErrorMessage(osErr.str());
+		pThrParam->pBrokerageHouse->logErrorMessage(osErr.str());
 		delete pThrParam;
 		delete pErr;
 	}
@@ -393,7 +393,7 @@ INT32 CBrokerageHouse::RunTradeUpdate(PTradeUpdateTxnInput pTxnInput,
 }
 
 // Listener
-void CBrokerageHouse::Listener(void)
+void CBrokerageHouse::startListener(void)
 {
 	int acc_socket;
 	PThreadParameter pThrParam = NULL;
@@ -413,21 +413,21 @@ void CBrokerageHouse::Listener(void)
 			pThrParam->pBrokerageHouse = this;
 
 			// call entry point
-			EntryWorkerThread(reinterpret_cast<void *>(pThrParam));
+			entryWorkerThread(reinterpret_cast<void *>(pThrParam));
 		} catch (CSocketErr *pErr) {
 			ostringstream osErr;
 			osErr << "Problem accepting socket connection" << endl <<
 					"Error: " << pErr->ErrorText() << " at " <<
 					"BrokerageHouse::Listener" << endl;
-			LogErrorMessage(osErr.str());
+			logErrorMessage(osErr.str());
 			delete pErr;
 			delete pThrParam;
 		}
 	}
 }
 
-// LogErrorMessage
-void CBrokerageHouse::LogErrorMessage(const string sErr, bool bScreen)
+// logErrorMessage
+void CBrokerageHouse::logErrorMessage(const string sErr, bool bScreen)
 {
 	m_LogLock.lock();
 	if (bScreen) cout << sErr;

@@ -27,10 +27,10 @@ class CBrokerageHouse
 	char m_szDBPort[iMaxPort + 1]; // PostgreSQL postmaster port
 
 private:
-	void LogErrorMessage(const string sErr, bool bScreen = true);
+	void logErrorMessage(const string sErr, bool bScreen = true);
 
-	friend void *WorkerThread(void *);
-	friend void EntryWorkerThread(void *); // entry point for worker thread
+	friend void *workerThread(void *);
+	friend void entryWorkerThread(void *); // entry point for worker thread
 
 	TBrokerVolumeTxnOutput bvOutput;
 	TCustomerPositionTxnOutput cpOutput;
@@ -75,7 +75,7 @@ public:
 				char *);
 	~CBrokerageHouse();
 
-	void Listener(void);
+	void startListener(void);
 
 };
 
