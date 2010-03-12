@@ -100,7 +100,7 @@ void ParseCommandLine(int argc, char *argv[])
 			break;
 		default:
 			Usage();
-			cout << "Error: Unrecognized option: " << sp << endl;
+			cout << endl << "Error: Unrecognized option: " << sp << endl;
 			exit(ERROR_BAD_OPTION);
 		}
 	}
@@ -111,20 +111,19 @@ int main(int argc, char* argv[])
 	// Establish defaults for command line options
 	strncpy(szFileLoc, "flat_in", iMaxPath);
 
-	cout << endl << "dbt5 - Market Exchange Main" << endl;
+	cout << "dbt5 - Market Exchange Main" << endl;
+	cout << "Listener port: " << iListenPort << endl << endl;
 
 	// Parse command line
 	ParseCommandLine(argc, argv);
 
 	// Let the user know what settings will be used.
-	cout << endl << "Using the following settings:" << endl << endl;
-	cout << "\tSecurity.txt file location:\t" << szFileLoc << endl;
-	cout << "\tConfigured customer count:\t" <<
-			iConfiguredCustomerCount << endl;
-	cout << "\tActive customer count:\t\t" << iActiveCustomerCount << endl;
-	cout << "\tListen port:\t\t\t" << iListenPort << endl;
-	cout << "\tBrokerage House address:\t\t" << szBHaddr << endl;
-	cout << "\tBrokerage House port:\t\t" << iBHlistenPort << endl;
+	cout << "Using the following settings:" << endl << endl;
+	cout << "EGen flat_in directory location: " << szFileLoc << endl;
+	cout << "Configured customer count: " << iConfiguredCustomerCount << endl;
+	cout << "Active customer count: " << iActiveCustomerCount << endl;
+	cout << "Brokerage House address: " << szBHaddr << endl;
+	cout << "Brokerage House port: " << iBHlistenPort << endl;
 
 	try {
 		CMarketExchange	MarketExchange(szFileLoc, iConfiguredCustomerCount,
@@ -135,22 +134,22 @@ int main(int argc, char* argv[])
 
 		MarketExchange.Listener();
 	} catch (CBaseErr *pErr) {
-		cout << endl << "Error " << pErr->ErrorNum() << ": " <<
-				pErr->ErrorText(); if (pErr->ErrorLoc()) {
-			cout << " at " << pErr->ErrorLoc() << endl;
-		} else {
-			cout << endl;
+		cout << "Error " << pErr->ErrorNum() << ": " <<
+				pErr->ErrorText();
+		if (pErr->ErrorLoc()) {
+			cout << " at " << pErr->ErrorLoc();
 		}
+		cout << endl;
 		return 1;
 	} catch (std::bad_alloc err) {
 		// operator new will throw std::bad_alloc exception if there is no
 		// sufficient memory for the request.
-		cout << endl << endl << "*** Out of memory ***" << endl;
+		cout << "*** Out of memory ***" << endl;
 		return 2;
 	}
 
 	pthread_exit(NULL);
 
-	cout << "Market Exchange closed to business" << endl;
+	cout << "Market Exchange closed for business." << endl;
 	return(0);
 }
