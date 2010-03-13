@@ -16,7 +16,7 @@
 class CBaseInterface
 {
 protected:
-	int TalkToSUT(PMsgDriverBrokerage pRequest);
+	bool TalkToSUT(PMsgDriverBrokerage pRequest);
 	void LogErrorMessage(const string sErr);
 
 	char*		m_szBHAddress;

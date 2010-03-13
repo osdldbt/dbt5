@@ -30,11 +30,7 @@ bool CCESUT::BrokerVolume(PBrokerVolumeTxnInput pTxnInput)
 	memcpy(&(request.TxnInput.BrokerVolumeTxnInput), pTxnInput,
 			sizeof(request.TxnInput.BrokerVolumeTxnInput));
 	
-	int rc = TalkToSUT(&request);
-	if (rc == -1) {
-		return false;
-	}
-	return true;
+	return TalkToSUT(&request);
 }
 
 // Customer Position
@@ -46,11 +42,7 @@ bool CCESUT::CustomerPosition(PCustomerPositionTxnInput pTxnInput)
 	memcpy(&(request.TxnInput.CustomerPositionTxnInput), pTxnInput,
 			sizeof(request.TxnInput.CustomerPositionTxnInput));
 	
-	int rc = TalkToSUT(&request);
-	if (rc == -1) {
-		return false;
-	}
-	return true;	
+	return TalkToSUT(&request);
 }
 
 // Market Watch
@@ -62,11 +54,7 @@ bool CCESUT::MarketWatch(PMarketWatchTxnInput pTxnInput)
 	memcpy(&(request.TxnInput.MarketWatchTxnInput), pTxnInput,
 			sizeof(request.TxnInput.MarketWatchTxnInput));
 	
-	int rc = TalkToSUT(&request);
-	if (rc == -1) {
-		return false;
-	}
-	return true;
+	return TalkToSUT(&request);
 }
 
 // Security Detail
@@ -78,11 +66,7 @@ bool CCESUT::SecurityDetail(PSecurityDetailTxnInput pTxnInput)
 	memcpy(&(request.TxnInput.SecurityDetailTxnInput), pTxnInput,
 			sizeof(request.TxnInput.SecurityDetailTxnInput));
 	
-	int rc = TalkToSUT(&request);
-	if (rc == -1) {
-		return false;
-	}
-	return true;
+	return TalkToSUT(&request);
 }
 
 // Trade Lookup
@@ -94,11 +78,7 @@ bool CCESUT::TradeLookup(PTradeLookupTxnInput pTxnInput)
 	memcpy(&(request.TxnInput.TradeLookupTxnInput), pTxnInput,
 			sizeof(request.TxnInput.TradeLookupTxnInput));
 	
-	int rc = TalkToSUT(&request);
-	if (rc == -1) {
-		return false;
-	}
-	return true;
+	return TalkToSUT(&request);
 }
 
 // Trade Status
@@ -110,11 +90,7 @@ bool CCESUT::TradeStatus(PTradeStatusTxnInput pTxnInput)
 	memcpy(&(request.TxnInput.TradeStatusTxnInput), pTxnInput,
 			sizeof(request.TxnInput.TradeStatusTxnInput));
 	
-	int rc = TalkToSUT(&request);
-	if (rc == -1) {
-		return false;
-	}
-	return true;
+	return TalkToSUT(&request);
 }
 
 // Trade Order
@@ -127,11 +103,7 @@ bool CCESUT::TradeOrder(PTradeOrderTxnInput pTxnInput, INT32 iTradeType,
 	memcpy(&(request.TxnInput.TradeOrderTxnInput), pTxnInput,
 			sizeof(request.TxnInput.TradeOrderTxnInput));
 	
-	int rc = TalkToSUT(&request);
-	if (rc == -1) {
-		return false;
-	}
-	return true;
+	return TalkToSUT(&request);
 }
 
 // Trade Update
@@ -143,9 +115,5 @@ bool CCESUT::TradeUpdate(PTradeUpdateTxnInput pTxnInput)
 	memcpy(&(request.TxnInput.TradeUpdateTxnInput), pTxnInput,
 			sizeof(request.TxnInput.TradeUpdateTxnInput));
 	
-	int rc = TalkToSUT(&request);
-	if (rc == -1) {
-		return false;
-	}
-	return true;
+	return TalkToSUT(&request);
 }

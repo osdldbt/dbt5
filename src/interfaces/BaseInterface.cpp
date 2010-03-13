@@ -62,7 +62,7 @@ bool CBaseInterface::Disconnect()
 }
 
 // Connect to BrokerageHouse, send request, receive reply, and calculate RT
-int CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
+bool CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 {
 	int length;
 	TMsgBrokerageDriver Reply;	// reply message from BrokerageHouse
@@ -102,6 +102,12 @@ int CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 				"CBaseInterface::TalkToSUT " << endl;
 		LogErrorMessage(osErr.str());
 		length = -1;
+		if (pErr->getAction() == CSocketErr::ERR_SOCKET_CLOSED)
+			// FIXME: If the socket is closed, it's most likely because the
+			// BrokerageHouse program went down so there is no point in
+			// continuing.  Yet there must be a more robust way of going about
+			// this.
+			exit(1);
 		delete pErr;
 	}
 
@@ -115,7 +121,9 @@ int CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 	//log response time
 	LogResponseTime(Reply.iStatus, pRequest->TxnType, (TxnTime.MSec()/1000.0));
 
-	return length;
+	if (Reply.iStatus == 0)
+		return true;
+	return false;
 }
 
 // Log Response Time
