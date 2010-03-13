@@ -16,24 +16,25 @@
 class CDriver
 {
 private:
-	int			m_iUsers;
-	int			m_iPacingDelay;
-	CLogFormatTab		m_fmt;
-	CEGenLogger*		m_pLog;
-	CInputFiles		m_InputFiles;
-	PDriverCETxnSettings	m_pDriverCETxnSettings;
-	CMutex		m_LogLock;
-	ofstream		m_fLog;		// error log file
-	ofstream		m_fMix;		// mix log file
+	int m_iUsers;
+	int m_iPacingDelay;
+	CLogFormatTab m_fmt;
+	CEGenLogger *m_pLog;
+	CInputFiles m_InputFiles;
+	PDriverCETxnSettings m_pDriverCETxnSettings;
+	CMutex m_LogLock;
+	ofstream m_fLog; // error log file
+	ofstream m_fMix; // mix log file
 
-	void LogErrorMessage(const string sErr);
+	void LogErrorMessage(const string);
 
-	friend void *CustomerWorkerThread(void* data);
+	friend void *CustomerWorkerThread(void *);
 	// entry point for driver worker thread
-	friend void EntryCustomerWorkerThread(void* data, int i);
+	friend void EntryCustomerWorkerThread(void *, int);
 
-	friend void *DMWorkerThread(void* data);
-	friend void EntryDMWorkerThread(CDriver* ptr);
+	friend void *DMWorkerThread(void *);
+	friend void EntryDMWorkerThread(CDriver *);
+
 public:
 	char szInDir[iMaxPath];
 	TIdent iConfiguredCustomerCount;
@@ -50,21 +51,18 @@ public:
 	CDMSUT *m_pCDMSUT;
 	CDM *m_pCDM;
 
-	CDriver(char* szInDir, TIdent iConfiguredCustomerCount,
-			TIdent iActiveCustomerCount, INT32 iScaleFactor,
-			INT32 iDaysOfInitialTrades, UINT32 UniqueId, char* szBHaddr,
-			int iBHlistenPort, int iUsers, int iPacingDelay,
-			char* outputDirectory);
+	CDriver(char *, TIdent, TIdent, INT32, INT32, UINT32, char *, int, int,
+			int, char *);
 	~CDriver();
 
-	void RunTest(int iSleep, int iTestDuration);
+	void RunTest(int, int);
 };
 
 //parameter structure for the threads
 typedef struct TCustomerThreadParam
 {
-	CDriver*    pDriver;
+	CDriver *pDriver;
 } *PCustomerThreadParam;
 
 
-#endif	// DRIVER_H
+#endif // DRIVER_H
