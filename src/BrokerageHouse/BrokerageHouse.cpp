@@ -389,22 +389,29 @@ void *workerThread(void *data)
 				iRet = ERR_TYPE_WRONGTXN;
 			}
 		} catch (const pqxx::broken_connection &e) {
-			// exceptions thrown by pqxx
-			ostringstream osErr;
-			osErr << "pqxx broken connection: " << e.what() << endl <<
-					" at " << "BrokerageHouse::workerThread" << endl;
-			pThrParam->pBrokerageHouse->logErrorMessage(osErr.str());
-			iRet = ERR_TYPE_PQXX;
+			ostringstream msg;
+			msg << time(NULL) << " " << pthread_self() << " " <<
+					pMessage->TxnType << endl;
+			msg << "what: " << e.what() << endl;
+			pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
+
+			if (PGSQL_RECOVERY_ERROR.compare(e.what())) {
+				// The database has crashed, just quit.
+				exit(1);
+			}
+
+			iRet = CBaseTxnErr::ROLLBACK;
 		} catch (const pqxx::sql_error &e) {
+			pDBConnection->RollbackTxn();
+
 			ostringstream msg;
 			msg << time(NULL) << " " << pthread_self() << " " <<
 					pMessage->TxnType << endl;
 			msg << "what: " << e.what();
 			msg << "query: " << e.query() << endl;
 			pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
-			iRet = ERR_TYPE_PQXX;
+			iRet = CBaseTxnErr::ROLLBACK;
 			// Rollback any transaction in place.
-			pDBConnection->RollbackTxn();
 		}
 
 		// send status to driver

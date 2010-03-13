@@ -23,7 +23,10 @@ using namespace TPCE;
 #define CE_MIX_LOG_NAME		"ce_mix.log"
 #define MEE_MIX_LOG_NAME	"mee_mix.log"
 
-static std::string PGSQL_SERIALIZE_ERROR = "ERROR:  could not serialize access due to concurrent update";
+static std::string PGSQL_SERIALIZE_ERROR =
+		"ERROR:  could not serialize access due to concurrent update";
+static std::string PGSQL_RECOVERY_ERROR =
+		"FATAL:  the database system is in recovery mode";
 
 class CSocketErr : public CBaseErr
 {
@@ -67,7 +70,7 @@ public:
 	{
 	};
 	
-	Action GetAction() { return m_eAction; };
+	Action getAction() { return m_eAction; };
 	int ErrorType() { return ERR_TYPE_SOCKET; };
 
 	virtual const char *ErrorText() const
