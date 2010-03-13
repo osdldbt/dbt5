@@ -15,7 +15,7 @@
 
 // Establish defaults for command line options
 char szBHaddr[iMaxHostname + 1] = "localhost"; // Brokerage House address
-int iBHlistenPort = BrokerageHousePort;
+int iBHListenerPort = BrokerageHousePort;
 // # of customers in one load unit
 int iLoadUnitSize = iDefaultLoadUnitSize;
 // # of customers for this instance
@@ -32,45 +32,37 @@ int iPacingDelay = 0;
 char szInDir[iMaxPath + 1]; // path to EGen input files
 char outputDirectory[iMaxPath + 1] = "."; // path to output files
 // automatic RNG seed generation requires unique input
-UINT32  UniqueId = 0;
+UINT32 iUniqueId = 0;
 
 // shows program usage
 void usage()
 {
-	cerr <<
-			"\nUsage: DriverCustomerMain {options}" << endl << endl <<
-			"   Option	Default		      Description" << endl <<
-			"   =========	==================    ==========================================" <<
-					endl <<
-			"   -e string	" << szInDir <<
-					"\t\t    Path to EGen input files" << endl <<
-			"   -c number	" << iConfiguredCustomerCount <<
-					"\t\t      Configured customer count" << endl <<
-			"   -a number	" << iActiveCustomerCount <<
-					"\t\t      Active customer count" << endl <<
-			"   -h string	" << szBHaddr <<
-					"\t      Brokerage House address" << endl <<
-			"   -b number	" << iBHlistenPort <<
-					"\t\t      Brokerage House listen port" << endl <<
-			"   -f number	" << iScaleFactor <<
-					"\t\t      # of customers for 1 TRTPS" << endl <<
-			"   -d number	" << iDaysOfInitialTrades <<
-					"\t\t      # of Days of Initial Trades" << endl <<
-			"   -l number	" << iLoadUnitSize <<
-					"\t\t      # of customers in one load unit" << endl <<
-			"   -t number	                      Duration of the test (seconds)" <<
-					endl <<
-			"   -s number	" << iSleep <<
-					"\t\t      # of msec between thread creation" << endl <<
-			"   -u number	                      # of Users" << endl <<
-			"   -o string	" << outputDirectory <<
-					"\t\t      # directory for output files" << endl <<
-			"   -p number	" << iPacingDelay <<
-					"\t\t      # of msec to wait after the current txn" <<
-					endl <<
-			"\t\t\t\t      and before the next txn" << endl <<
-			"   -g number			      Unique input for automatic seed generation" <<
-					endl;
+	cout << "Usage: DriverMain {options}" << endl << endl <<
+			"   Option      Default    Description" << endl <<
+			"   ==========  =========  ===============================" << endl;
+	printf("   -a integer  %-9d  Active customer count\n",
+			iActiveCustomerCount);
+	printf("   -c integer  %-9d  Configured customer count\n",
+			iConfiguredCustomerCount);
+	printf("   -e string   %-9s  Path to EGen flat_in directory\n", szInDir);
+	printf("   -f integer  %-9d  # of customers per 1 TRTPS\n",
+			iScaleFactor);
+	printf("   -h string   %-9s  Brokerage House address\n", szBHaddr);
+	printf("   -i integer  %-9d  # of Days of Initial Trades\n",
+			iDaysOfInitialTrades);
+	printf("   -l integer  %-9d  # of customers in one load unit\n",
+		iLoadUnitSize);
+	printf("   -n integer  %-9d  millisecond delay between transactions\n",
+			iPacingDelay);
+	printf("   -o string   %-9s  # directory for output files\n",
+			outputDirectory);
+	printf("   -p integer  %-9d  Brokerage House listener port\n",
+			iBHListenerPort);
+	printf("   -s integer             Seed\n");
+	printf("   -t integer             Duration of the test (seconds)\n");
+	printf("   -u integer             # of Users\n");
+	printf("   -y integer  %-9d  millisecond delay between thread creation\n",
+			iSleep);
 }
 
 // Parse command line
@@ -105,51 +97,51 @@ void parse_command_line(int argc, char *argv[])
 
 		// Parse the switch
 		switch (*sp) {
+		case 'a':
+			iActiveCustomerCount = atol(vp);
+			break;
+		case 'c':
+			iConfiguredCustomerCount = atol(vp);
+			break;
 		case 'e':	// input files path
 			strncpy(szInDir, vp, iMaxPath);
+			break;
+		case 'f':
+			iScaleFactor = atoi(vp);
 			break;
 		case 'h':
 			strncpy(szBHaddr, vp, iMaxHostname);
 			break;
-		case 'c':
-			sscanf(vp, "%"PRId64, &iConfiguredCustomerCount);
-			break;
-		case 'a':
-			sscanf(vp, "%"PRId64, &iActiveCustomerCount);
-			break;
-		case 'b':
-			sscanf(vp, "%d", &iBHlistenPort);
-			break;
-		case 'f':
-			sscanf(vp, "%d", &iScaleFactor);
-			break;
-		case 'd':
-			sscanf(vp, "%d", &iDaysOfInitialTrades);
+		case 'i':
+			iDaysOfInitialTrades = atoi(vp);
 			break;
 		case 'l':
-			sscanf(vp, "%d", &iLoadUnitSize);
+			iLoadUnitSize = atoi(vp);
 			break;
-		case 'g':
-			sscanf(vp, "%d", &UniqueId);
-			break;
-		case 's':
-			sscanf(vp, "%d", &iSleep);
-			break;
-		case 'u':
-			sscanf(vp, "%d", &iUsers);
+		case 'n':
+			iPacingDelay = atoi(vp);
 			break;
 		case 'o':
 			strncpy(outputDirectory, vp, iMaxPath);
 			break;
 		case 'p':
-			sscanf(vp, "%d", &iPacingDelay);
+			iBHListenerPort = atoi(vp);
+			break;
+		case 's':
+			iUniqueId = atoi(vp);
 			break;
 		case 't':
-			sscanf(vp, "%d", &iTestDuration);
-		break;
+			iTestDuration = atoi(vp);
+			break;
+		case 'u':
+			iUsers = atoi(vp);
+			break;
+		case 'y':
+			iSleep = atoi(vp);
+			break;
 		default:
 			usage();
-			cout << "Error: Unrecognized option: " << sp << endl;
+			cout << endl << "Error: Unrecognized option: " << sp << endl;
 			exit (ERROR_BAD_OPTION);
 		}
 	}
@@ -177,7 +169,7 @@ bool ValidateParameters()
 	// size.
 	if ((iLoadUnitSize > iActiveCustomerCount) ||
 			(0 != iActiveCustomerCount % iLoadUnitSize)) {
-		cerr << "The total customer count (-t " << iActiveCustomerCount <<
+		cerr << "The total customer count (-a " << iActiveCustomerCount <<
 				") must be a non-zero integral multiple of the load unit size (" <<
 				iLoadUnitSize << ")." << endl;
 
@@ -187,7 +179,7 @@ bool ValidateParameters()
 	// Completed trades in 8 hours must be a non-zero integral multiple of 100
 	// so that exactly 1% extra trade ids can be assigned to simulate aborts.
 	//
-	if ((INT64)(HoursPerWorkDay * SecondsPerHour * iLoadUnitSize /
+	if ((INT64) (HoursPerWorkDay * SecondsPerHour * iLoadUnitSize /
 			iScaleFactor) % 100 != 0) {
 		cerr << "Incompatible value for Scale Factor (-f) specified." << endl;
 		cerr << HoursPerWorkDay << " * " << SecondsPerHour <<
@@ -199,27 +191,27 @@ bool ValidateParameters()
 	}
 
 	if (iDaysOfInitialTrades <= 0) {
-		cerr << "The specified number of 8-Hour Workdays (-w " <<
+		cerr << "The specified number of 8-Hour Workdays (-i " <<
 				(iDaysOfInitialTrades) << ") must be non-zero." << endl;
 
 		bRet = false;
 	}
 
-	// UniqueId must be assigned
-	if (UniqueId == 0) {
-		cerr << "non-zero unique id number must be specified." << endl;
+	// iUniqueId must be assigned
+	if (iUniqueId == 0) {
+		cerr << "A non-zero unique id number must be specified." << endl;
 		bRet = false;
 	}
 
 	// iUsers must be assigned
 	if (iUsers == 0) {
-		cerr << "number of users must be specified." << endl;
+		cerr << "The number of users threads must be specified." << endl;
 		bRet = false;
 	}
 
 	// iTestDuration must be assigned
 	if (iTestDuration == 0) {
-		cerr << "the duration of the test must be specified." << endl;
+		cerr << "The duration of the test must be specified." << endl;
 		bRet = false;
 	}
 
@@ -231,7 +223,7 @@ int main(int argc, char *argv[])
 	// Establish defaults for command line options
 	strncpy(szInDir, "flat_in", iMaxPath);
 
-	cout << endl << "dbt5 - Driver Customer Emulator Main" << endl;
+	cout << "dbt5 - Driver Customer Emulator Main" << endl;
 
 	// Parse command line
 	parse_command_line(argc, argv);
@@ -242,26 +234,30 @@ int main(int argc, char *argv[])
 	}
 
 	// Let the user know what settings will be used.
-	cout << endl << "Using the following settings:" << endl << endl;
-	cout << "\tInput files location:\t\t" << szInDir << endl;
-	cout << "\tConfigured customer count:\t" << iConfiguredCustomerCount <<
-			endl;
-	cout << "\tActive customer count:\t\t" << iActiveCustomerCount << endl;
-	cout << "\tBrokerage House address:\t\t" << szBHaddr << endl;
-	cout << "\tBrokerage House port:\t\t" << iBHlistenPort << endl;
-	cout << "\tScale Factor:\t\t\t" << iScaleFactor << endl;
-	cout << "\t#Days of initial trades:\t" << iDaysOfInitialTrades << endl;
-	cout << "\tLoad unit size:\t\t\t" << iLoadUnitSize << endl;
-	cout << "\tSleep between Users:\t\t" << iSleep << endl;
-	cout << "\tTest duration (sec):\t\t" << iTestDuration << endl;
-	cout << "\tUnique ID:\t\t\t" << UniqueId << endl;
-	cout << "\t# of Users:\t\t\t" << iUsers << endl;
-	cout << "\tPacing Delay (msec):\t\t" << iPacingDelay << endl << endl;
+	cout << "Using the following settings:" << endl << endl;
+
+	cout << "Input files location: " << szInDir << endl << endl;
+
+	cout << "Brokerage House address: " << szBHaddr << endl;
+	cout << "Brokerage House port: " << iBHListenerPort << endl << endl;;
+
+	cout << "Configured customer count: " << iConfiguredCustomerCount << endl;
+	cout << "Active customer count: " << iActiveCustomerCount << endl;
+	cout << "Load unit size: " << iLoadUnitSize << endl;
+	cout << "Days of initial trades: " << iDaysOfInitialTrades << endl;
+	cout << "Scale Factor: " << iScaleFactor << endl << endl;
+
+	cout << "User Threads: " << iUsers << endl;
+	cout << "Sleep between creating users: " << iSleep << endl << endl;
+
+	cout << "Test duration (sec): " << iTestDuration << endl;
+	cout << "Pacing Delay (msec): " << iPacingDelay << endl << endl;
+	cout << "Unique ID (seed): " << iUniqueId << endl;
 
 	try {
 		CDriver Driver(szInDir, iConfiguredCustomerCount,
 				iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades,
-				UniqueId, szBHaddr, iBHlistenPort, iUsers, iPacingDelay,
+				iUniqueId, szBHaddr, iBHListenerPort, iUsers, iPacingDelay,
 				outputDirectory);
 		Driver.runTest(iSleep, iTestDuration);
 
