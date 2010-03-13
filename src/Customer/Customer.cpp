@@ -13,7 +13,7 @@
 // Constructor
 CCustomer::CCustomer(char* szInDir,
 		TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
-		INT32 iScaleFactor, INT32 iDaysOfInitialTrades, UINT32 UniqueId,
+		INT32 iScaleFactor, INT32 iDaysOfInitialTrades, UINT32 iSeed,
 		char* szBHaddr, int iBHlistenPort, int iUsers, int iPacingDelay,
 		char* outputDirectory, ofstream *m_fMix, CMutex *m_MixLock)
 : m_iUsers(iUsers), m_iPacingDelay(iPacingDelay)
@@ -34,9 +34,19 @@ CCustomer::CCustomer(char* szInDir,
 			&m_LogLock, m_MixLock);
 
 	// initialize CE - Customer Emulator
-	m_pCCE = new CCE(m_pCCESUT, m_pLog, m_InputFiles,
-			iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
-			iDaysOfInitialTrades, UniqueId, m_pDriverCETxnSettings);
+	if (iSeed == -1) {
+		m_pCCE = new CCE(m_pCCESUT, m_pLog, m_InputFiles,
+				iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
+				iDaysOfInitialTrades, pthread_self(), m_pDriverCETxnSettings);
+	} else {
+		// Specifying the random number generator seed is considered an
+		// invalid run.
+		// FIXME: Allow the TxnMixRNGSeed and TxnInputRGNSeed to be set.
+		m_pCCE = new CCE(m_pCCESUT, m_pLog, m_InputFiles,
+				iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
+				iDaysOfInitialTrades, pthread_self(), iSeed, iSeed,
+				m_pDriverCETxnSettings);
+	}
 }
 
 // Destructor

@@ -32,7 +32,7 @@ int iPacingDelay = 0;
 char szInDir[iMaxPath + 1]; // path to EGen input files
 char outputDirectory[iMaxPath + 1] = "."; // path to output files
 // automatic RNG seed generation requires unique input
-UINT32 iUniqueId = 0;
+UINT32 iSeed = -1;
 
 // shows program usage
 void usage()
@@ -58,7 +58,8 @@ void usage()
 			outputDirectory);
 	printf("   -p integer  %-9d  Brokerage House listener port\n",
 			iBHListenerPort);
-	printf("   -s integer             Seed\n");
+	printf("   -r integer             Random number generator seed\n");
+	printf("                          Invalidates run if used\n");
 	printf("   -t integer             Duration of the test (seconds)\n");
 	printf("   -u integer             # of Users\n");
 	printf("   -y integer  %-9d  millisecond delay between thread creation\n",
@@ -127,8 +128,8 @@ void parse_command_line(int argc, char *argv[])
 		case 'p':
 			iBHListenerPort = atoi(vp);
 			break;
-		case 's':
-			iUniqueId = atoi(vp);
+		case 'r':
+			iSeed = atoi(vp);
 			break;
 		case 't':
 			iTestDuration = atoi(vp);
@@ -197,12 +198,6 @@ bool ValidateParameters()
 		bRet = false;
 	}
 
-	// iUniqueId must be assigned
-	if (iUniqueId == 0) {
-		cerr << "A non-zero unique id number must be specified." << endl;
-		bRet = false;
-	}
-
 	// iUsers must be assigned
 	if (iUsers == 0) {
 		cerr << "The number of users threads must be specified." << endl;
@@ -252,12 +247,12 @@ int main(int argc, char *argv[])
 
 	cout << "Test duration (sec): " << iTestDuration << endl;
 	cout << "Pacing Delay (msec): " << iPacingDelay << endl << endl;
-	cout << "Unique ID (seed): " << iUniqueId << endl;
+	cout << "Unique ID (seed): " << iSeed << endl;
 
 	try {
 		CDriver Driver(szInDir, iConfiguredCustomerCount,
 				iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades,
-				iUniqueId, szBHaddr, iBHListenerPort, iUsers, iPacingDelay,
+				iSeed, szBHaddr, iBHListenerPort, iUsers, iPacingDelay,
 				outputDirectory);
 		Driver.runTest(iSleep, iTestDuration);
 

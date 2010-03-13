@@ -39,7 +39,7 @@ public:
 	TIdent iActiveCustomerCount;
 	INT32 iScaleFactor;
 	INT32 iDaysOfInitialTrades;
-	UINT32 UniqueId;
+	UINT32 iSeed;
 	char szBHaddr[iMaxHostname + 1];
 	int iBHlistenPort;
 	int iUsers;
