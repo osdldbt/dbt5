@@ -24,8 +24,6 @@ CDMSUT::~CDMSUT()
 // Data Maintenance
 bool CDMSUT::DataMaintenance( PDataMaintenanceTxnInput pTxnInput )
 {
-	cout<<"Data Maintenance requested"<<endl;
-
 	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
 	memset(pRequest, 0, sizeof(TMsgDriverBrokerage));
 

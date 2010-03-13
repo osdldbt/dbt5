@@ -14,8 +14,6 @@ void *TradeResultAsync(void* data)
 	PMEESUTThreadParam pThrParam = reinterpret_cast<PMEESUTThreadParam>(data);
 	struct TMsgDriverBrokerage request;
 
-	cout<<"Trade Result requested"<<endl;
-
 	memset(&request, 0, sizeof(TMsgDriverBrokerage));
 
 	request.TxnType = TRADE_RESULT;
@@ -96,8 +94,6 @@ void *MarketFeedAsync(void* data)
 {
 	PMEESUTThreadParam pThrParam = reinterpret_cast<PMEESUTThreadParam>(data);
 	struct TMsgDriverBrokerage request;
-
-	cout<<"Market Feed requested"<<endl;
 
 	memset(&request, 0, sizeof(TMsgDriverBrokerage));
 
