@@ -190,7 +190,7 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 
 	logErrorMessage(">> Start of ramp-up.\n");
 
-	//start thread that run the Data Maintenance transaction
+	// start thread that runs the Data Maintenance transaction
 	entryDMWorkerThread(this);
 
 	// parameter for the new thread
@@ -203,7 +203,7 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 		memset(pThrParam, 0, sizeof(TCustomerThreadParam));
 		pThrParam->pDriver = this;
 
-		entryCustomerWorkerThread( reinterpret_cast<void*>(pThrParam), i );
+		entryCustomerWorkerThread(reinterpret_cast<void *>(pThrParam), i);
 
 		// Sleep for between starting terminals
 		while (nanosleep(&ts, &rem) == -1) {
@@ -245,20 +245,29 @@ void *dmWorkerThread(void* data)
 	PCustomerThreadParam pThrParam =
 			reinterpret_cast<PCustomerThreadParam>(data);
 
+	// The Data-Maintenance transaction must run once per minute.
+	// FIXME: What do we do if the transaction takes more than a minute
+	// to run?
+	time_t start_time;
+	time_t end_time;
+	unsigned int remaining;
 	do {
+		start_time = time(NULL);
 		pThrParam->pDriver->m_pCDM->DoTxn();
-		sleep(60); // Data-Maintenance runs once a minute
-	} while (time(NULL) < stop_time);
+		end_time = time(NULL);
+		remaining = 60 - (end_time - start_time);
+		if (end_time < stop_time && remaining > 0)
+			sleep(remaining);
+	} while (end_time < stop_time);
 
-	pThrParam->pDriver->logErrorMessage(
-			"Data-Maintenance thread terminated.\n");
+	pThrParam->pDriver->logErrorMessage("Data-Maintenance thread stopped.\n");
 	delete pThrParam;
 
 	return NULL;
 }
 
 // entry point for worker thread
-void entryDMWorkerThread(CDriver* ptr)
+void entryDMWorkerThread(CDriver *ptr)
 {
 	PCustomerThreadParam pThrParam = new TCustomerThreadParam;
 	memset(pThrParam, 0, sizeof(TCustomerThreadParam)); // zero the structure
@@ -268,24 +277,21 @@ void entryDMWorkerThread(CDriver* ptr)
 
 	try {
 		// initialize the attribute object
-		int status = pthread_attr_init(&threadAttribute);
-		if (status != 0) {
-			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_INIT );
-		}
+		pthread_attr_init(&threadAttribute);
 
 		// create the thread in the joinable state
-		status = pthread_create(&g_tid[0], &threadAttribute, &dmWorkerThread,
-				reinterpret_cast<void*>(pThrParam));
+		pthread_create(&g_tid[0], &threadAttribute, &dmWorkerThread,
+				reinterpret_cast<void *>(pThrParam));
 
-		if (status != 0) {
-			throw new CThreadErr( CThreadErr::ERR_THREAD_CREATE );
-		}
 		pThrParam->pDriver->logErrorMessage(
 				">> Data-Maintenance thread started.\n");
 	} catch(CThreadErr *pErr) {
-		pThrParam->pDriver->logErrorMessage(
-				"Data-Maintenance Thread not created");
+		ostringstream msg;
+		msg << "Data-Maintenance thread not created successfully, exiting..." <<
+				endl;
+		pThrParam->pDriver->logErrorMessage(msg.str());
 		delete pErr;
+		exit(1);
 	}
 }
 
