@@ -3,6 +3,7 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2006 Rilson Nascimento
+ *               2010 Mark Wong
  *
  * 13 August 2006
  */
@@ -35,7 +36,7 @@ CBaseInterface::~CBaseInterface()
 bool CBaseInterface::Connect()
 {
 	try {
-		sock->Connect();
+		sock->dbt5Connect();
 		return true;
 	} catch(CSocketErr *pErr) {
 		ostringstream osErr;
@@ -50,7 +51,7 @@ bool CBaseInterface::Connect()
 bool CBaseInterface::Disconnect()
 {
 	try {
-		sock->CloseAccSocket();
+		sock->closeAccSocket();
 		return true;
 	} catch(CSocketErr *pErr) {
 		ostringstream osErr;
@@ -76,10 +77,10 @@ bool CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 
 	// send and wait for response
 	try {
-		length = sock->Send(reinterpret_cast<void*>(pRequest),
+		length = sock->dbt5Send(reinterpret_cast<void*>(pRequest),
 				sizeof(*pRequest));
 	} catch(CSocketErr *pErr) {
-		sock->CloseAccSocket(); // close connection
+		sock->closeAccSocket(); // close connection
 		LogResponseTime(-1, 0, 0);
 
 		ostringstream osErr;
@@ -91,9 +92,10 @@ bool CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 		delete pErr;
 	}
 	try {
-		length = sock->Receive(reinterpret_cast<void*>(&Reply), sizeof(Reply));
+		length = sock->dbt5Receive(reinterpret_cast<void *>(&Reply),
+				sizeof(Reply));
 	} catch(CSocketErr *pErr) {
-		sock->CloseAccSocket(); // close connection
+		sock->closeAccSocket(); // close connection
 		LogResponseTime(-1, 0, 0);
 
 		ostringstream osErr;

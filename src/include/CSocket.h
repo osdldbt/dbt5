@@ -3,6 +3,7 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2006 Rilson Nascimento
+ *               2010 Mark Wong
  *
  * Socket class for C++ (based on dbt2 _socket)
  * 25 June 2006
@@ -18,35 +19,36 @@
 #include <arpa/inet.h>
 #include <errno.h>
 
-#include <CThreadErr.h>
+#include "CThreadErr.h"
+#include "MiscConsts.h"
 
 class CSocket
 {
 public:
 	CSocket(void);
-	CSocket(char* address, int port);
+	CSocket(char *, int);
 	~CSocket();
 
-	int Accept(void);
-	void Connect();
-	int Receive(void* data, int length);
-	int Send(void *data, int length);
-	void Listen(const int port);
+	int dbt5Accept(void);
+	void dbt5Connect();
+	int dbt5Receive(void *, int);
+	int dbt5Send(void *, int);
+	void dbt5Listen(const int);
 
-	void SetSocketfd(int sockfd) { m_sockfd = sockfd; }
-	int  GetSocketfd() { return m_sockfd; }
-	void CloseAccSocket() { close(m_sockfd); m_sockfd = 0; }
-	void CloseListenSocket() { close(m_sockfd); }
+	void setSocketFd(int sockfd) { m_sockfd = sockfd; }
+	int getSocketFd() { return m_sockfd; }
+	void closeAccSocket() { close(m_sockfd); m_sockfd = 0; }
+	void closeListenSocket() { close(m_sockfd); }
 
 private:
-	void ThrowError(CSocketErr::Action eAction);
-	int ResolveProto(const char *proto);
+	void throwError(CSocketErr::Action);
+	int resolveProto(const char *);
 
-	char address[1024];
+	char address[iMaxHostname + 1];
 	int port;
 
-	int m_listenfd;		// listen socket
-	int m_sockfd;		// accept socket
+	int m_listenfd; // listen socket
+	int m_sockfd; // accept socket
 };
 
-#endif	//SOCKET_H
+#endif // SOCKET_H

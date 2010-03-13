@@ -15,7 +15,7 @@ void *workerThread(void *data)
 	PThreadParameter pThrParam = reinterpret_cast<PThreadParameter>(data);
 
 	CSocket sockDrv;
-	sockDrv.SetSocketfd(pThrParam->iSockfd);	// client socket
+	sockDrv.setSocketFd(pThrParam->iSockfd);	// client socket
 
 	PMsgDriverBrokerage pMessage = new TMsgDriverBrokerage;
 	memset(pMessage, 0, sizeof(TMsgDriverBrokerage));   // zero the structure
@@ -62,10 +62,10 @@ void *workerThread(void *data)
 
 	do {
 		try {
-			sockDrv.Receive(reinterpret_cast<void *>(pMessage),
+			sockDrv.dbt5Receive(reinterpret_cast<void *>(pMessage),
 					sizeof(TMsgDriverBrokerage));
 		} catch(CSocketErr *pErr) {
-			sockDrv.CloseAccSocket();
+			sockDrv.closeAccSocket();
 
 			ostringstream osErr;
 			osErr << "Error on Receive: " << pErr->ErrorText() <<
@@ -410,9 +410,9 @@ void *workerThread(void *data)
 		// send status to driver
 		Reply.iStatus = iRet;
 		try {
-			sockDrv.Send(reinterpret_cast<void *>(&Reply), sizeof(Reply));
+			sockDrv.dbt5Send(reinterpret_cast<void *>(&Reply), sizeof(Reply));
 		} catch(CSocketErr *pErr) {
-			sockDrv.CloseAccSocket();
+			sockDrv.closeAccSocket();
 
 			ostringstream osErr;
 			osErr << "Error on Send: " << pErr->ErrorText() <<
@@ -599,12 +599,12 @@ void CBrokerageHouse::startListener(void)
 	int acc_socket;
 	PThreadParameter pThrParam = NULL;
 
-	m_Socket.Listen(m_iListenPort);
+	m_Socket.dbt5Listen(m_iListenPort);
 
 	while (true) {
 		acc_socket = 0;
 		try {
-			acc_socket = m_Socket.Accept();
+			acc_socket = m_Socket.dbt5Accept();
 
 			pThrParam = new TThreadParameter;
 			// zero the structure

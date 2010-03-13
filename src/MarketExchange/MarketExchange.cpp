@@ -16,20 +16,20 @@ void *MarketWorkerThread(void* data)
 	PMarketThreadParam pThrParam = reinterpret_cast<PMarketThreadParam>(data);
 
 	CSocket sockDrv;
-	sockDrv.SetSocketfd(pThrParam->iSockfd); // client socket
+	sockDrv.setSocketFd(pThrParam->iSockfd); // client socket
 
 	PTradeRequest pMessage = new TTradeRequest;
 	memset(pMessage, 0, sizeof(TTradeRequest));   // zero the structure
 
 	do {
 		try {
-			sockDrv.Receive(reinterpret_cast<void*>(pMessage),
+			sockDrv.dbt5Receive(reinterpret_cast<void*>(pMessage),
 					sizeof(TTradeRequest));
 	
 			// submit trade request
 			pThrParam->pMarketExchange->m_pCMEE->SubmitTradeRequest(pMessage);
 		} catch(CSocketErr *pErr) {
-			sockDrv.CloseAccSocket(); // close connection
+			sockDrv.closeAccSocket(); // close connection
 
 			ostringstream osErr;
 			osErr << time(NULL) <<
@@ -137,12 +137,12 @@ void CMarketExchange::startListener(void)
 	int acc_socket;
 	PMarketThreadParam pThrParam;
 
-	m_Socket.Listen(m_iListenPort);
+	m_Socket.dbt5Listen(m_iListenPort);
 
 	while (true) {
 		acc_socket = 0;
 		try {
-			acc_socket = m_Socket.Accept();
+			acc_socket = m_Socket.dbt5Accept();
 
 			// create new parameter structure
 			pThrParam = new TMarketThreadParam;

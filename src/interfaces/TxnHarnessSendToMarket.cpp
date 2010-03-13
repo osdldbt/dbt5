@@ -3,24 +3,25 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2006 Rilson Nascimento
+ *               2010 Mark Wong
  *
  * 30 July 2006
  */
 
-#include <transactions.h>
-
-char* addr = "localhost";
+#include "transactions.h"
 
 CSendToMarket::CSendToMarket(ofstream* pfile, int MEport)
 : m_pfLog(pfile), m_MEport(MEport)
 {
+	// FIXME: This addr needs to be configurable.
+	strncpy(addr, "localhost", iMaxHostname);
 	m_Socket = new CSocket(addr, m_MEport);
-	m_Socket->Connect();
+	m_Socket->dbt5Connect();
 }
 
 CSendToMarket::~CSendToMarket()
 {
-	m_Socket->CloseAccSocket();
+	m_Socket->closeAccSocket();
 	delete m_Socket;
 }
 
@@ -29,12 +30,12 @@ bool CSendToMarket::SendToMarket(TTradeRequest &trade_mes)
 	try
 	{
 		// send Trade Request to MEE
-		m_Socket->Send(reinterpret_cast<void*>(&trade_mes),
+		m_Socket->dbt5Send(reinterpret_cast<void *>(&trade_mes),
 				sizeof(TTradeRequest));
 	}
 	catch(CSocketErr *pErr)
 	{
-		m_Socket->CloseAccSocket();	// close connection
+		m_Socket->closeAccSocket();	// close connection
 
 		ostringstream osErr;
 		osErr<<endl<<"Cannot send to market"<<endl
