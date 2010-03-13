@@ -35,7 +35,7 @@ char outputDirectory[iMaxPath + 1] = "."; // path to output files
 UINT32  UniqueId = 0;
 
 // shows program usage
-void Usage()
+void usage()
 {
 	cerr <<
 			"\nUsage: DriverCustomerMain {options}" << endl << endl <<
@@ -74,7 +74,7 @@ void Usage()
 }
 
 // Parse command line
-void ParseCommandLine(int argc, char *argv[])
+void parse_command_line(int argc, char *argv[])
 {
 	int arg;
 	char *sp;
@@ -148,7 +148,7 @@ void ParseCommandLine(int argc, char *argv[])
 			sscanf(vp, "%d", &iTestDuration);
 		break;
 		default:
-			Usage();
+			usage();
 			cout << "Error: Unrecognized option: " << sp << endl;
 			exit (ERROR_BAD_OPTION);
 		}
@@ -234,7 +234,7 @@ int main(int argc, char *argv[])
 	cout << endl << "dbt5 - Driver Customer Emulator Main" << endl;
 
 	// Parse command line
-	ParseCommandLine(argc, argv);
+	parse_command_line(argc, argv);
 
 	// Validate parameters
 	if (!ValidateParameters()) {
@@ -263,7 +263,7 @@ int main(int argc, char *argv[])
 				iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades,
 				UniqueId, szBHaddr, iBHlistenPort, iUsers, iPacingDelay,
 				outputDirectory);
-		Driver.RunTest(iSleep, iTestDuration);
+		Driver.runTest(iSleep, iTestDuration);
 
 	} catch (CBaseErr *pErr) {
 		cout << endl << "Error " << pErr->ErrorNum() << ": " <<

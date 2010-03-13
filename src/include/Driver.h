@@ -16,8 +16,6 @@
 class CDriver
 {
 private:
-	int m_iUsers;
-	int m_iPacingDelay;
 	CLogFormatTab m_fmt;
 	CEGenLogger *m_pLog;
 	CInputFiles m_InputFiles;
