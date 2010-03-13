@@ -3,7 +3,7 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2006 Rilson Nascimento
- *               20010 Mark Wong
+ *               2010 Mark Wong
  *
  * This class represents the Brokerage House
  * 25 July 2006
@@ -27,11 +27,6 @@ class CBrokerageHouse
 	char m_szDBPort[iMaxPort + 1]; // PostgreSQL postmaster port
 
 private:
-	void logErrorMessage(const string sErr, bool bScreen = true);
-
-	friend void *workerThread(void *);
-	friend void entryWorkerThread(void *); // entry point for worker thread
-
 	TBrokerVolumeTxnOutput bvOutput;
 	TCustomerPositionTxnOutput cpOutput;
 	TDataMaintenanceTxnOutput dmOutput;
@@ -44,6 +39,23 @@ private:
 	TTradeResultTxnOutput trOutput;
 	TTradeStatusTxnOutput tsOutput;
 	TTradeUpdateTxnOutput tuOutput;
+
+	friend void entryWorkerThread(void *); // entry point for worker thread
+
+	void dumpInputData(PBrokerVolumeTxnInput);
+	void dumpInputData(PCustomerPositionTxnInput);
+	void dumpInputData(PDataMaintenanceTxnInput);
+	void dumpInputData(PTradeCleanupTxnInput);
+	void dumpInputData(PMarketWatchTxnInput);
+	void dumpInputData(PMarketFeedTxnInput);
+	void dumpInputData(PSecurityDetailTxnInput);
+	void dumpInputData(PTradeStatusTxnInput);
+	void dumpInputData(PTradeLookupTxnInput);
+	void dumpInputData(PTradeOrderTxnInput);
+	void dumpInputData(PTradeResultTxnInput);
+	void dumpInputData(PTradeUpdateTxnInput);
+
+	void logErrorMessage(const string sErr, bool bScreen = true);
 
 	INT32 RunBrokerVolume(PBrokerVolumeTxnInput pTxnInput,
 			CBrokerVolume &BrokerVolume);
@@ -69,6 +81,8 @@ private:
 			CTradeResult &TradeResult);
 	INT32 RunTradeUpdate(PTradeUpdateTxnInput pTxnInput,
 			CTradeUpdate &TradeUpdate);
+
+	friend void *workerThread(void *);
 
 public:
 	CBrokerageHouse(const char *, const char *, const char *, const int,

@@ -77,12 +77,12 @@ unless ($quiet) {
     }
   }
   printf("-----------------  -----  -----------------  -----------  -----------  ------\n");
-
   printf("\n");
   printf("%0.2f trade-result transactions per second (TRTPS)\n",
       $parser->metric());
-  printf("%0.1f minute duration\n", $parser->duration());
-  printf("%d total unknown errors\n", $parser->errors());
-  printf("%d second(s) ramping up\n", $parser->rampup());
+  printf("%d warning(s); %d invalid result(s); %d total unknown errors\n",
+      $parser->warnings(), $parser->invalid(), $parser->errors());
+  printf("%d second(s) to ramp up\n", $parser->rampup());
+  printf("%0.1f minute steady state duration\n", $parser->duration());
   printf("\n");
 }

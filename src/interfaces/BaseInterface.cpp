@@ -128,17 +128,9 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 	return false;
 }
 
-// Log Response Time
+// Log Transaction Response Times
 void CBaseInterface::logResponseTime(int iStatus, int iTxnType, double dRT)
 {
-	// Errors:
-	// CBaseTxnErr::SUCCESS
-	// CBaseTxnErr::ROLLBACK (trade-order)
-	// CBaseTxnErr::UNAUTHORIZED_EXECUTOR (trade-order)
-	// ERR_TYPE_PQXX
-	// ERR_TYPE_WRONGTXN
-
-	// logging
 	m_pMixLock->lock();
 	if (iStatus == CBaseTxnErr::SUCCESS) {
 		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "," << dRT <<
@@ -146,9 +138,18 @@ void CBaseInterface::logResponseTime(int iStatus, int iTxnType, double dRT)
 	} else if (iStatus == CBaseTxnErr::ROLLBACK) {
 		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "R" << "," <<
 				dRT << "," << (int) pthread_self() << endl;
+	} else if (iStatus > 0) {
+		// Warning status.
+		*(m_pfMix) << (int) time(NULL) << ",W" << iStatus << "," << dRT <<
+				"," << (int) pthread_self() << endl;
+	} else if (iStatus < 0) {
+		// Invalidating status.
+		*(m_pfMix) << (int) time(NULL) << ",I" << iStatus << "," << dRT <<
+				"," << (int) pthread_self() << endl;
 	} else {
-		*(m_pfMix) << (int) time(NULL) << "," << "E" << "," << dRT << "," <<
-				(int) pthread_self() << endl;
+		// Unknown status.
+		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "U" << iStatus <<
+				"," << dRT << "," << (int) pthread_self() << endl;
 	}
 	m_pfMix->flush();
 	m_pMixLock->unlock();

@@ -497,11 +497,219 @@ CBrokerageHouse::~CBrokerageHouse()
 	m_fLog.close();
 }
 
+void CBrokerageHouse::dumpInputData(PBrokerVolumeTxnInput pTxnInput)
+{
+	ostringstream msg;
+	msg << time(NULL) << " " << pthread_self() << endl;
+	for (int i = 0; i < max_broker_list_len; i++) {
+		msg << "broker_list[" << i << "] = " << pTxnInput->broker_list[i] <<
+				endl;
+		msg << "sector_name[" << i << "] = " << pTxnInput->sector_name[i] <<
+				endl;
+	}
+	logErrorMessage(msg.str(), false);
+}
+
+void CBrokerageHouse::dumpInputData(PCustomerPositionTxnInput pTxnInput)
+{
+	ostringstream msg;
+	msg << time(NULL) << " " << pthread_self() << " CustomerPosition" << endl;
+	msg << "acct_id_idx = " << pTxnInput->acct_id_idx << endl;
+	msg << "cust_id = " << pTxnInput->cust_id << endl;
+	msg << "get_history = " << pTxnInput->get_history << endl;
+	msg << "tax_id = " << pTxnInput->tax_id << endl;
+	logErrorMessage(msg.str(), false);
+}
+
+void CBrokerageHouse::dumpInputData(PDataMaintenanceTxnInput pTxnInput)
+{
+	ostringstream msg;
+	msg << time(NULL) << " " << pthread_self() << " DataMaintenance" << endl;
+	msg << "acct_id = " << pTxnInput->acct_id << endl;
+	msg << "c_id = " << pTxnInput->c_id << endl;
+	msg << "co_id = " << pTxnInput->co_id << endl;
+	msg << "day_of_month = " << pTxnInput->day_of_month << endl;
+	msg << "vol_incr = " << pTxnInput->vol_incr << endl;
+	msg << "symbol = " << pTxnInput->symbol << endl;
+	msg << "table_name = " << pTxnInput->table_name << endl;
+	msg << "tx_id = " << pTxnInput->tx_id << endl;
+	logErrorMessage(msg.str(), false);
+}
+
+void CBrokerageHouse::dumpInputData(PTradeCleanupTxnInput pTxnInput)
+{
+	ostringstream msg;
+	msg << time(NULL) << " " << pthread_self() << " TradeCleanup" << endl;
+	msg << "start_trade_id = " << pTxnInput->start_trade_id << endl;
+	msg << "st_canceled_id = " << pTxnInput->st_canceled_id << endl;
+	msg << "st_pending_id = " << pTxnInput->st_pending_id << endl;
+	msg << "st_submitted_id = " << pTxnInput->st_submitted_id << endl;
+	logErrorMessage(msg.str(), false);
+}
+
+void CBrokerageHouse::dumpInputData(PMarketWatchTxnInput pTxnInput)
+{
+	ostringstream msg;
+	msg << time(NULL) << " " << pthread_self() << " MarketWatch" << endl;
+	msg << "acct_id = " << pTxnInput->acct_id << endl;
+	msg << "c_id = " << pTxnInput->c_id << endl;
+	msg << "ending_co_id = " << pTxnInput->ending_co_id << endl;
+	msg << "starting_co_id = " << pTxnInput->starting_co_id << endl;
+	msg << "start_day = " << pTxnInput->start_day.year << "-" <<
+			pTxnInput->start_day.month << "-" <<
+			pTxnInput->start_day.day << " " << pTxnInput->start_day.hour <<
+			":" << pTxnInput->start_day.minute << ":" <<
+			pTxnInput->start_day.second << "." <<
+			pTxnInput->start_day.fraction << endl;
+	msg << "industry_name = " << pTxnInput->industry_name << endl;
+	logErrorMessage(msg.str(), false);
+}
+
+void CBrokerageHouse::dumpInputData(PMarketFeedTxnInput pTxnInput)
+{
+	ostringstream msg;
+	msg << time(NULL) << " " << pthread_self() << " MarketFeed" << endl;
+	msg << "StatusAndTradeType.status_submitted = " <<
+			pTxnInput->StatusAndTradeType.status_submitted << endl;
+	msg << "StatusAndTradeType.type_limit_buy = " <<
+			pTxnInput->StatusAndTradeType.type_limit_buy << endl;
+	msg << "StatusAndTradeType.type_limit_sell = " <<
+			pTxnInput->StatusAndTradeType .type_limit_sell << endl;
+	msg << "StatusAndTradeType.type_stop_loss = " <<
+			pTxnInput->StatusAndTradeType .type_stop_loss << endl;
+	msg << "zz_padding = " << pTxnInput->zz_padding << endl;
+	for (int i = 0; i < max_feed_len; i++) {
+		msg << "Entries[" << i << "].price_quote = " <<
+				pTxnInput->Entries[i].price_quote << endl;
+		msg << "Entries[" << i << "].trade_qty = " <<
+				pTxnInput->Entries[i].trade_qty << endl;
+		msg << "Entries[" << i << "].symbol = " <<
+				pTxnInput->Entries[i].symbol << endl;
+	}
+	logErrorMessage(msg.str(), false);
+}
+
+void CBrokerageHouse::dumpInputData(PSecurityDetailTxnInput pTxnInput)
+{
+	ostringstream msg;
+	msg << time(NULL) << " " << pthread_self() << " SecurityDetail" << endl;
+	msg << "max_rows_to_return = " << pTxnInput->max_rows_to_return << endl;;
+	msg << "access_lob_flag = " << pTxnInput->access_lob_flag << endl;;
+	msg << "start_day = " << pTxnInput->start_day.year << "-" <<
+			pTxnInput->start_day.month << "-" <<
+			pTxnInput->start_day.day << " " << pTxnInput->start_day.hour <<
+			":" << pTxnInput->start_day.minute << ":" <<
+			pTxnInput->start_day.second << "." <<
+			pTxnInput->start_day.fraction << endl;
+	msg << "symbol = " << pTxnInput->symbol << endl;
+	logErrorMessage(msg.str(), false);
+}
+
+void CBrokerageHouse::dumpInputData(PTradeStatusTxnInput pTxnInput)
+{
+	ostringstream msg;
+	msg << time(NULL) << " " << pthread_self() << " TradeStatus" << endl;
+	msg << "acct_id = " << pTxnInput->acct_id << endl;
+	logErrorMessage(msg.str(), false);
+}
+
+void CBrokerageHouse::dumpInputData(PTradeLookupTxnInput pTxnInput)
+{
+	ostringstream msg;
+	msg << time(NULL) << " " << pthread_self() << " TradeLookup" << endl;
+	for (int i = 0; i < TradeLookupFrame1MaxRows; i++) {
+		msg << "trade_id[" << i << "] = " << pTxnInput->trade_id[i] << endl;
+	}
+	msg << "acct_id = " << pTxnInput->acct_id << endl;
+	msg << "max_acct_id = " << pTxnInput->max_acct_id << endl;
+	msg << "frame_to_execute = " << pTxnInput->frame_to_execute << endl;
+	msg << "max_trades = " << pTxnInput->max_trades << endl;
+	msg << "end_trade_dts = " << pTxnInput->end_trade_dts.year << "-" <<
+			pTxnInput->end_trade_dts.month << "-" <<
+			pTxnInput->end_trade_dts.day << " " <<
+			pTxnInput->end_trade_dts.hour <<
+			":" << pTxnInput->end_trade_dts.minute << ":" <<
+			pTxnInput->end_trade_dts.second << "." <<
+			pTxnInput->end_trade_dts.fraction << endl;
+	msg << "start_trade_dts = " << pTxnInput->start_trade_dts.year << "-" <<
+			pTxnInput->start_trade_dts.month << "-" <<
+			pTxnInput->start_trade_dts.day << " " <<
+			pTxnInput->start_trade_dts.hour <<
+			":" << pTxnInput->start_trade_dts.minute << ":" <<
+			pTxnInput->start_trade_dts.second << "." <<
+			pTxnInput->start_trade_dts.fraction << endl;
+	msg << "symbol = " << pTxnInput->symbol << endl;
+	logErrorMessage(msg.str(), false);
+}
+
+void CBrokerageHouse::dumpInputData(PTradeOrderTxnInput pTxnInput)
+{
+	ostringstream msg;
+	msg << time(NULL) << " " << pthread_self() << " TradeOrder" << endl;
+	msg << "acct_id = " << pTxnInput->acct_id << endl;
+	msg << "is_lifo = " << pTxnInput->is_lifo << endl;
+	msg << "roll_it_back = " << pTxnInput->roll_it_back << endl;
+	msg << "trade_qty = " << pTxnInput->trade_qty << endl;
+	msg << "type_is_margin = " << pTxnInput->type_is_margin << endl;
+	msg << "co_name = " << pTxnInput->co_name << endl;
+	msg << "exec_f_name = " << pTxnInput->exec_f_name << endl;
+	msg << "exec_l_name = " << pTxnInput->exec_l_name << endl;
+	msg << "exec_tax_id = " << pTxnInput->exec_tax_id << endl;
+	msg << "issue = " << pTxnInput->issue << endl;
+	msg << "st_pending_id = " << pTxnInput->st_pending_id << endl;
+	msg << "st_submitted_id = " << pTxnInput->st_submitted_id << endl;
+	msg << "symbol = " << pTxnInput->symbol << endl;
+	msg << "trade_type_id = " << pTxnInput->trade_type_id << endl;
+	logErrorMessage(msg.str(), false);
+}
+
+void CBrokerageHouse::dumpInputData(PTradeResultTxnInput pTxnInput)
+{
+	ostringstream msg;
+	msg << time(NULL) << " " << pthread_self() << " TradeResult" << endl;
+	msg << "trade_price = " << pTxnInput->trade_price << endl;
+	msg << "trade_id = " << pTxnInput->trade_id << endl;
+	logErrorMessage(msg.str(), false);
+}
+
+void CBrokerageHouse::dumpInputData(PTradeUpdateTxnInput pTxnInput)
+{
+	ostringstream msg;
+	msg << time(NULL) << " " << pthread_self() << " TradeUpdate" << endl;
+	for (int i = 0; i < TradeUpdateFrame1MaxRows; i++) {
+		msg << "trade_id[" << i << "] = " << pTxnInput->trade_id[i] << endl;
+	}
+	msg << "acct_id = " << pTxnInput->acct_id << endl;
+	msg << "max_acct_id = " << pTxnInput->max_acct_id << endl;
+	msg << "frame_to_execute = " << pTxnInput->frame_to_execute << endl;
+	msg << "max_trades = " << pTxnInput->max_trades << endl;
+	msg << "trade_id = " << pTxnInput->trade_id << endl;
+	msg << "end_trade_dts = " << pTxnInput->end_trade_dts.year << "-" <<
+			pTxnInput->end_trade_dts.month << "-" <<
+			pTxnInput->end_trade_dts.day << " " <<
+			pTxnInput->end_trade_dts.hour <<
+			":" << pTxnInput->end_trade_dts.minute << ":" <<
+			pTxnInput->end_trade_dts.second << "." <<
+			pTxnInput->end_trade_dts.fraction << endl;
+	msg << "start_trade_dts = " << pTxnInput->start_trade_dts.year << "-" <<
+			pTxnInput->start_trade_dts.month << "-" <<
+			pTxnInput->start_trade_dts.day << " " <<
+			pTxnInput->start_trade_dts.hour <<
+			":" << pTxnInput->start_trade_dts.minute << ":" <<
+			pTxnInput->start_trade_dts.second << "." <<
+			pTxnInput->start_trade_dts.fraction << endl;
+	msg << "symbol = " << pTxnInput->symbol << endl;
+	logErrorMessage(msg.str(), false);
+}
+
 // Run Broker Volume transaction
 INT32 CBrokerageHouse::RunBrokerVolume(PBrokerVolumeTxnInput pTxnInput,
 		CBrokerVolume &brokerVolume)
 {
 	brokerVolume.DoTxn(pTxnInput, &bvOutput);
+	if (bvOutput.status != CBaseTxnErr::SUCCESS) {
+		dumpInputData(pTxnInput);
+	}
 	return bvOutput.status;
 }
 
@@ -510,6 +718,9 @@ INT32 CBrokerageHouse::RunCustomerPosition(PCustomerPositionTxnInput pTxnInput,
 		CCustomerPosition &customerPosition)
 {
 	customerPosition.DoTxn(pTxnInput, &cpOutput);
+	if (cpOutput.status != CBaseTxnErr::SUCCESS) {
+		dumpInputData(pTxnInput);
+	}
 	return cpOutput.status;
 }
 
@@ -518,6 +729,9 @@ INT32 CBrokerageHouse::RunDataMaintenance(PDataMaintenanceTxnInput pTxnInput,
 		CDataMaintenance &dataMaintenance)
 {
 	dataMaintenance.DoTxn(pTxnInput, &dmOutput);
+	if (dmOutput.status != CBaseTxnErr::SUCCESS) {
+		dumpInputData(pTxnInput);
+	}
 	return dmOutput.status;
 }
 
@@ -526,6 +740,9 @@ INT32 CBrokerageHouse::RunTradeCleanup(PTradeCleanupTxnInput pTxnInput,
 		CTradeCleanup &tradeCleanup)
 {
 	tradeCleanup.DoTxn(pTxnInput, &tcOutput);
+	if (tcOutput.status != CBaseTxnErr::SUCCESS) {
+		dumpInputData(pTxnInput);
+	}
 	return tcOutput.status;
 }
 
@@ -534,6 +751,9 @@ INT32 CBrokerageHouse::RunMarketFeed(PMarketFeedTxnInput pTxnInput,
 		CMarketFeed &marketFeed)
 {
 	marketFeed.DoTxn(pTxnInput, &mfOutput);
+	if (mfOutput.status != CBaseTxnErr::SUCCESS) {
+		dumpInputData(pTxnInput);
+	}
 	return mfOutput.status;
 }
 
@@ -542,6 +762,9 @@ INT32 CBrokerageHouse::RunMarketWatch(PMarketWatchTxnInput pTxnInput,
 		CMarketWatch &marketWatch)
 {
 	marketWatch.DoTxn(pTxnInput, &mwOutput);
+	if (mwOutput.status != CBaseTxnErr::SUCCESS) {
+		dumpInputData(pTxnInput);
+	}
 	return mwOutput.status;
 }
 
@@ -550,6 +773,9 @@ INT32 CBrokerageHouse::RunSecurityDetail(PSecurityDetailTxnInput pTxnInput,
 		CSecurityDetail &securityDetail)
 {
 	securityDetail.DoTxn(pTxnInput, &sdOutput);
+	if (sdOutput.status != CBaseTxnErr::SUCCESS) {
+		dumpInputData(pTxnInput);
+	}
 	return sdOutput.status;
 }
 
@@ -558,6 +784,9 @@ INT32 CBrokerageHouse::RunTradeLookup(PTradeLookupTxnInput pTxnInput,
 		CTradeLookup &tradeLookup)
 {
 	tradeLookup.DoTxn(pTxnInput, &tlOutput);
+	if (tlOutput.status != CBaseTxnErr::SUCCESS) {
+		dumpInputData(pTxnInput);
+	}
 	return tlOutput.status;
 }
 
@@ -566,6 +795,9 @@ INT32 CBrokerageHouse::RunTradeOrder(PTradeOrderTxnInput pTxnInput,
 		CTradeOrder &tradeOrder)
 {
 	tradeOrder.DoTxn(pTxnInput, &toOutput);
+	if (toOutput.status != CBaseTxnErr::SUCCESS) {
+		dumpInputData(pTxnInput);
+	}
 	return toOutput.status;
 }
 
@@ -574,6 +806,9 @@ INT32 CBrokerageHouse::RunTradeResult(PTradeResultTxnInput pTxnInput,
 		CTradeResult &tradeResult)
 {
 	tradeResult.DoTxn(pTxnInput, &trOutput);
+	if (trOutput.status != CBaseTxnErr::SUCCESS) {
+		dumpInputData(pTxnInput);
+	}
 	return trOutput.status;
 }
 
@@ -582,6 +817,9 @@ INT32 CBrokerageHouse::RunTradeStatus(PTradeStatusTxnInput pTxnInput,
 		CTradeStatus &tradeStatus)
 {
 	tradeStatus.DoTxn(pTxnInput, &tsOutput);
+	if (tsOutput.status != CBaseTxnErr::SUCCESS) {
+		dumpInputData(pTxnInput);
+	}
 	return tsOutput.status;
 }
 
@@ -590,6 +828,9 @@ INT32 CBrokerageHouse::RunTradeUpdate(PTradeUpdateTxnInput pTxnInput,
 		CTradeUpdate &tradeUpdate)
 {
 	tradeUpdate.DoTxn(pTxnInput, &tuOutput);
+	if (tuOutput.status != CBaseTxnErr::SUCCESS) {
+		dumpInputData(pTxnInput);
+	}
 	return tuOutput.status;
 }
 
