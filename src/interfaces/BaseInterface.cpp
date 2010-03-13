@@ -8,12 +8,12 @@
  * 13 August 2006
  */
 
-#include <transactions.h>
+#include "transactions.h"
 
 // constructor
-CBaseInterface::CBaseInterface(char* addr, const int iListenPort,
-		ofstream* pflog, ofstream* pfmix, CMutex* pLogLock,
-		CMutex* pMixLock)
+CBaseInterface::CBaseInterface(char *addr, const int iListenPort,
+		ofstream *pflog, ofstream *pfmix, CMutex *pLogLock,
+		CMutex *pMixLock)
 : m_szBHAddress(addr),
   m_iBHlistenPort(iListenPort),
   m_pLogLock(pLogLock),
@@ -40,8 +40,8 @@ bool CBaseInterface::Connect()
 		return true;
 	} catch(CSocketErr *pErr) {
 		ostringstream osErr;
-		osErr << "Error: " << pErr->ErrorText() << " at " <<
-				"CBaseInterface::TalkToSUT " << endl;
+		osErr << "Error: " << pErr->ErrorText() <<
+				" at CBaseInterface::TalkToSUT " << endl;
 		LogErrorMessage(osErr.str());
 		return false;
 	}
@@ -55,8 +55,8 @@ bool CBaseInterface::Disconnect()
 		return true;
 	} catch(CSocketErr *pErr) {
 		ostringstream osErr;
-		osErr << "Error: " << pErr->ErrorText() << " at " <<
-				"CBaseInterface::TalkToSUT " << endl;
+		osErr << "Error: " << pErr->ErrorText() <<
+				" at CBaseInterface::TalkToSUT " << endl;
 		LogErrorMessage(osErr.str());
 		return false;
 	}
@@ -66,10 +66,10 @@ bool CBaseInterface::Disconnect()
 bool CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 {
 	int length;
-	TMsgBrokerageDriver Reply;	// reply message from BrokerageHouse
-	memset(&Reply, 0, sizeof(Reply)); 
+	TMsgBrokerageDriver Reply; // reply message from BrokerageHouse
+	memset(&Reply, 0, sizeof(Reply));
 
-	CDateTime	StartTime, EndTime, TxnTime;	// to time the transaction
+	CDateTime StartTime, EndTime, TxnTime; // to time the transaction
 
 	// record txn start time -- please, see TPC-E specification clause
 	// 6.2.1.3
@@ -77,7 +77,7 @@ bool CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 
 	// send and wait for response
 	try {
-		length = sock->dbt5Send(reinterpret_cast<void*>(pRequest),
+		length = sock->dbt5Send(reinterpret_cast<void *>(pRequest),
 				sizeof(*pRequest));
 	} catch(CSocketErr *pErr) {
 		sock->closeAccSocket(); // close connection
@@ -117,11 +117,11 @@ bool CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 	EndTime.SetToCurrent();
 
 	// calculate txn response time
-	TxnTime.Set(0);	// clear time
-	TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
+	TxnTime.Set(0); // clear time
+	TxnTime.Add(0, (int) ((EndTime - StartTime) * MsPerSecond)); // add ms
 
 	//log response time
-	LogResponseTime(Reply.iStatus, pRequest->TxnType, (TxnTime.MSec()/1000.0));
+	LogResponseTime(Reply.iStatus, pRequest->TxnType, TxnTime.MSec() / 1000.0);
 
 	if (Reply.iStatus == 0)
 		return true;
@@ -140,18 +140,13 @@ void CBaseInterface::LogResponseTime(int iStatus, int iTxnType, double dRT)
 
 	// logging
 	m_pMixLock->lock();
-	if (iStatus == CBaseTxnErr::SUCCESS)
-	{
+	if (iStatus == CBaseTxnErr::SUCCESS) {
 		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "," << dRT <<
 				"," << (int) pthread_self() << endl;
-	}
-	else if (iStatus == CBaseTxnErr::ROLLBACK)
-	{
+	} else if (iStatus == CBaseTxnErr::ROLLBACK) {
 		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "R" << "," <<
 				dRT << "," << (int) pthread_self() << endl;
-	}
-	else
-	{
+	} else {
 		*(m_pfMix) << (int) time(NULL) << "," << "E" << "," << dRT << "," <<
 				(int) pthread_self() << endl;
 	}
@@ -160,11 +155,11 @@ void CBaseInterface::LogResponseTime(int iStatus, int iTxnType, double dRT)
 }
 
 // LogErrorMessage
-void CBaseInterface::LogErrorMessage( const string sErr )
+void CBaseInterface::LogErrorMessage(const string sErr)
 {
 	m_pLogLock->lock();
-	cout<<sErr;
-	*(m_pfLog)<<sErr;
+	cout << sErr;
+	*(m_pfLog) << sErr;
 	m_pfLog->flush();
 	m_pLogLock->unlock();
 }
