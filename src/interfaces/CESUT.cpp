@@ -30,7 +30,7 @@ bool CCESUT::BrokerVolume(PBrokerVolumeTxnInput pTxnInput)
 	memcpy(&(request.TxnInput.BrokerVolumeTxnInput), pTxnInput,
 			sizeof(request.TxnInput.BrokerVolumeTxnInput));
 	
-	return TalkToSUT(&request);
+	return talkToSUT(&request);
 }
 
 // Customer Position
@@ -42,7 +42,7 @@ bool CCESUT::CustomerPosition(PCustomerPositionTxnInput pTxnInput)
 	memcpy(&(request.TxnInput.CustomerPositionTxnInput), pTxnInput,
 			sizeof(request.TxnInput.CustomerPositionTxnInput));
 	
-	return TalkToSUT(&request);
+	return talkToSUT(&request);
 }
 
 // Market Watch
@@ -54,7 +54,7 @@ bool CCESUT::MarketWatch(PMarketWatchTxnInput pTxnInput)
 	memcpy(&(request.TxnInput.MarketWatchTxnInput), pTxnInput,
 			sizeof(request.TxnInput.MarketWatchTxnInput));
 	
-	return TalkToSUT(&request);
+	return talkToSUT(&request);
 }
 
 // Security Detail
@@ -66,7 +66,7 @@ bool CCESUT::SecurityDetail(PSecurityDetailTxnInput pTxnInput)
 	memcpy(&(request.TxnInput.SecurityDetailTxnInput), pTxnInput,
 			sizeof(request.TxnInput.SecurityDetailTxnInput));
 	
-	return TalkToSUT(&request);
+	return talkToSUT(&request);
 }
 
 // Trade Lookup
@@ -78,7 +78,7 @@ bool CCESUT::TradeLookup(PTradeLookupTxnInput pTxnInput)
 	memcpy(&(request.TxnInput.TradeLookupTxnInput), pTxnInput,
 			sizeof(request.TxnInput.TradeLookupTxnInput));
 	
-	return TalkToSUT(&request);
+	return talkToSUT(&request);
 }
 
 // Trade Status
@@ -90,7 +90,7 @@ bool CCESUT::TradeStatus(PTradeStatusTxnInput pTxnInput)
 	memcpy(&(request.TxnInput.TradeStatusTxnInput), pTxnInput,
 			sizeof(request.TxnInput.TradeStatusTxnInput));
 	
-	return TalkToSUT(&request);
+	return talkToSUT(&request);
 }
 
 // Trade Order
@@ -103,7 +103,7 @@ bool CCESUT::TradeOrder(PTradeOrderTxnInput pTxnInput, INT32 iTradeType,
 	memcpy(&(request.TxnInput.TradeOrderTxnInput), pTxnInput,
 			sizeof(request.TxnInput.TradeOrderTxnInput));
 	
-	return TalkToSUT(&request);
+	return talkToSUT(&request);
 }
 
 // Trade Update
@@ -115,5 +115,5 @@ bool CCESUT::TradeUpdate(PTradeUpdateTxnInput pTxnInput)
 	memcpy(&(request.TxnInput.TradeUpdateTxnInput), pTxnInput,
 			sizeof(request.TxnInput.TradeUpdateTxnInput));
 	
-	return TalkToSUT(&request);
+	return talkToSUT(&request);
 }

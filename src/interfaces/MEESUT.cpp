@@ -24,7 +24,7 @@ void *TradeResultAsync(void* data)
 			sizeof(request.TxnInput.TradeResultTxnInput));
 
 	// communicate with the SUT and log response time
-	pThrParam->pCMEESUT->TalkToSUT(&request);
+	pThrParam->pCMEESUT->talkToSUT(&request);
 
 	delete pThrParam;
 	return NULL;
@@ -69,7 +69,7 @@ bool RunTradeResultAsync( void* data )
 		ostringstream osErr;
 		osErr<<endl<<"Error: "<<pErr->ErrorText()
 		     <<" at "<<"MEESUT::RunTradeResultAsync"<<endl;
-		pThrParam->pCMEESUT->LogErrorMessage(osErr.str());
+		pThrParam->pCMEESUT->logErrorMessage(osErr.str());
 		delete pErr;
 		return false;
 	}
@@ -107,7 +107,7 @@ void *MarketFeedAsync(void* data)
 			sizeof(request.TxnInput.MarketFeedTxnInput));
 
 	// communicate with the SUT and log response time
-	pThrParam->pCMEESUT->TalkToSUT(&request);
+	pThrParam->pCMEESUT->talkToSUT(&request);
 
 	delete pThrParam;
 	return NULL;
@@ -152,7 +152,7 @@ bool RunMarketFeedAsync(void* data)
 		ostringstream osErr;
 		osErr<<endl<<"Error: "<<pErr->ErrorText()
 		     <<" at "<<"MEESUT::RunMarketFeedAsync"<<endl;
-		pThrParam->pCMEESUT->LogErrorMessage(osErr.str());
+		pThrParam->pCMEESUT->logErrorMessage(osErr.str());
 		delete pErr;
 		return false;
 	}

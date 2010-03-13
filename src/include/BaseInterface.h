@@ -17,8 +17,8 @@
 class CBaseInterface
 {
 protected:
-	bool TalkToSUT(PMsgDriverBrokerage);
-	void LogErrorMessage(const string);
+	bool talkToSUT(PMsgDriverBrokerage);
+	void logErrorMessage(const string);
 
 	char *m_szBHAddress;
 	int m_iBHlistenPort;
@@ -29,15 +29,15 @@ protected:
 
 private:
 	CSocket	*sock;
-	void LogResponseTime(int, int, double);
+	void logResponseTime(int, int, double);
 	
 public:
 
 	CBaseInterface(char *, const int, ofstream *, ofstream *, CMutex *,
 			CMutex *);
 	~CBaseInterface(void);
-	bool Connect();
-	bool Disconnect();
+	bool biConnect();
+	bool biDisconnect();
 };
 
 #endif // BASE_INTERFACE_H

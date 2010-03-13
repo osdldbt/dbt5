@@ -22,18 +22,18 @@ CBaseInterface::CBaseInterface(char *addr, const int iListenPort,
   m_pfMix(pfmix)
 {
 	sock = new CSocket(m_szBHAddress, m_iBHlistenPort);
-	Connect();
+	biConnect();
 }
 
 // destructor
 CBaseInterface::~CBaseInterface()
 {
-	Disconnect();
+	biDisconnect();
 	delete sock;
 }
 
 // connect to BrokerageHouse
-bool CBaseInterface::Connect()
+bool CBaseInterface::biConnect()
 {
 	try {
 		sock->dbt5Connect();
@@ -41,14 +41,14 @@ bool CBaseInterface::Connect()
 	} catch(CSocketErr *pErr) {
 		ostringstream osErr;
 		osErr << "Error: " << pErr->ErrorText() <<
-				" at CBaseInterface::TalkToSUT " << endl;
-		LogErrorMessage(osErr.str());
+				" at CBaseInterface::talkToSUT " << endl;
+		logErrorMessage(osErr.str());
 		return false;
 	}
 }
 
 // close connection to BrokerageHouse
-bool CBaseInterface::Disconnect()
+bool CBaseInterface::biDisconnect()
 {
 	try {
 		sock->closeAccSocket();
@@ -56,14 +56,14 @@ bool CBaseInterface::Disconnect()
 	} catch(CSocketErr *pErr) {
 		ostringstream osErr;
 		osErr << "Error: " << pErr->ErrorText() <<
-				" at CBaseInterface::TalkToSUT " << endl;
-		LogErrorMessage(osErr.str());
+				" at CBaseInterface::talkToSUT " << endl;
+		logErrorMessage(osErr.str());
 		return false;
 	}
 }
 
 // Connect to BrokerageHouse, send request, receive reply, and calculate RT
-bool CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
+bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 {
 	int length;
 	TMsgBrokerageDriver Reply; // reply message from BrokerageHouse
@@ -81,13 +81,13 @@ bool CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 				sizeof(*pRequest));
 	} catch(CSocketErr *pErr) {
 		sock->closeAccSocket(); // close connection
-		LogResponseTime(-1, 0, 0);
+		logResponseTime(-1, 0, 0);
 
 		ostringstream osErr;
 		osErr << "Error sending ("<< length << ") txn " <<
 				pRequest->TxnType << ": " << pErr->ErrorText() << " at " <<
-				"CBaseInterface::TalkToSUT " << endl;
-		LogErrorMessage(osErr.str());
+				"CBaseInterface::talkToSUT " << endl;
+		logErrorMessage(osErr.str());
 		length = -1;
 		delete pErr;
 	}
@@ -96,13 +96,13 @@ bool CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 				sizeof(Reply));
 	} catch(CSocketErr *pErr) {
 		sock->closeAccSocket(); // close connection
-		LogResponseTime(-1, 0, 0);
+		logResponseTime(-1, 0, 0);
 
 		ostringstream osErr;
 		osErr << "Error sending ("<< length << ") txn " <<
 				pRequest->TxnType << ": " << pErr->ErrorText() << " at " <<
-				"CBaseInterface::TalkToSUT " << endl;
-		LogErrorMessage(osErr.str());
+				"CBaseInterface::talkToSUT " << endl;
+		logErrorMessage(osErr.str());
 		length = -1;
 		if (pErr->getAction() == CSocketErr::ERR_SOCKET_CLOSED)
 			// FIXME: If the socket is closed, it's most likely because the
@@ -121,7 +121,7 @@ bool CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 	TxnTime.Add(0, (int) ((EndTime - StartTime) * MsPerSecond)); // add ms
 
 	//log response time
-	LogResponseTime(Reply.iStatus, pRequest->TxnType, TxnTime.MSec() / 1000.0);
+	logResponseTime(Reply.iStatus, pRequest->TxnType, TxnTime.MSec() / 1000.0);
 
 	if (Reply.iStatus == 0)
 		return true;
@@ -129,7 +129,7 @@ bool CBaseInterface::TalkToSUT(PMsgDriverBrokerage pRequest)
 }
 
 // Log Response Time
-void CBaseInterface::LogResponseTime(int iStatus, int iTxnType, double dRT)
+void CBaseInterface::logResponseTime(int iStatus, int iTxnType, double dRT)
 {
 	// Errors:
 	// CBaseTxnErr::SUCCESS
@@ -154,8 +154,8 @@ void CBaseInterface::LogResponseTime(int iStatus, int iTxnType, double dRT)
 	m_pMixLock->unlock();
 }
 
-// LogErrorMessage
-void CBaseInterface::LogErrorMessage(const string sErr)
+// logErrorMessage
+void CBaseInterface::logErrorMessage(const string sErr)
 {
 	m_pLogLock->lock();
 	cout << sErr;
