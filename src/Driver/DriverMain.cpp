@@ -14,7 +14,7 @@
 #include "transactions.h"
 
 // Establish defaults for command line options
-char szBHaddr[1024] = "localhost"; // Brokerage House address
+char szBHaddr[iMaxHostname + 1] = "localhost"; // Brokerage House address
 int iBHlistenPort = BrokerageHousePort;
 // # of customers in one load unit
 int iLoadUnitSize = iDefaultLoadUnitSize;
@@ -109,7 +109,7 @@ void ParseCommandLine(int argc, char *argv[])
 			strncpy(szInDir, vp, iMaxPath);
 			break;
 		case 'h':
-			strncpy(szBHaddr, vp, sizeof(szBHaddr));
+			strncpy(szBHaddr, vp, iMaxHostname);
 			break;
 		case 'c':
 			sscanf(vp, "%"PRId64, &iConfiguredCustomerCount);

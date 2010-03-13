@@ -26,27 +26,27 @@ private:
 	ofstream m_fLog; // error log file
 	ofstream m_fMix; // mix log file
 
-	void LogErrorMessage(const string);
+	void logErrorMessage(const string);
 
-	friend void *CustomerWorkerThread(void *);
+	friend void *customerWorkerThread(void *);
 	// entry point for driver worker thread
-	friend void EntryCustomerWorkerThread(void *, int);
+	friend void entryCustomerWorkerThread(void *, int);
 
-	friend void *DMWorkerThread(void *);
-	friend void EntryDMWorkerThread(CDriver *);
+	friend void *dmWorkerThread(void *);
+	friend void entryDMWorkerThread(CDriver *);
 
 public:
-	char szInDir[iMaxPath];
+	char szInDir[iMaxPath + 1];
 	TIdent iConfiguredCustomerCount;
 	TIdent iActiveCustomerCount;
 	INT32 iScaleFactor;
 	INT32 iDaysOfInitialTrades;
 	UINT32 UniqueId;
-	char szBHaddr[1024];
+	char szBHaddr[iMaxHostname + 1];
 	int iBHlistenPort;
 	int iUsers;
 	int iPacingDelay;
-	char outputDirectory[iMaxPath];
+	char outputDirectory[iMaxPath + 1];
 	CMutex m_MixLock;
 	CDMSUT *m_pCDMSUT;
 	CDM *m_pCDM;
@@ -55,7 +55,7 @@ public:
 			int, char *);
 	~CDriver();
 
-	void RunTest(int, int);
+	void runTest(int, int);
 };
 
 //parameter structure for the threads
