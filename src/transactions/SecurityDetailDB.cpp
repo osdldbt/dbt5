@@ -8,7 +8,7 @@
  * 15 July 2006
  */
 
-#include <transactions.h>
+#include "transactions.h"
 
 // Call Security Detail Frame 1
 void CSecurityDetailDB::DoSecurityDetailFrame1(
@@ -51,11 +51,11 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	BeginTxn();
+	begin();
 	// Isolation level required by Clause 7.4.1.3
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
-	result R( m_Txn->exec( osCall.str() ) );
-	CommitTxn();
+	execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
+	result R(execute(osCall.str()));
+	commit();
 
 	// stored procedure can return an empty result set by design
 	result::const_iterator c = R.begin();

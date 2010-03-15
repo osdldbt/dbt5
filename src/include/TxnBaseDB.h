@@ -2,7 +2,8 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * 2006 Rilson Nascimento
+ * Copyright (C) 2006 Rilson Nascimento
+ *               2010 Mark Wong
  *
  * Base class for transacation classes
  * 13 June 2006
@@ -11,24 +12,33 @@
 #ifndef TXN_BASE_DB_H
 #define TXN_BASE_DB_H
 
+#include <string>
+using namespace std;
+
+#include "DBT5Consts.h"
+using namespace TPCE;
+
+#include <pqxx/pqxx>
+using namespace pqxx;
+
+#include "DBConnection.h"
 #include "locking.h"
 
 class CTxnBaseDB
 {
-
 protected:
-	CDBConnection*		m_pDBConnection;
-	connection*		m_Conn;		// libpqxx Connection
-	nontransaction*		m_Txn;		// libpqxx dummy Transaction
-	CMutex		m_coutLock;
+	CDBConnection *pDB;
+
+	void begin();
+	void commit();
+	string escape(string);
+	result execute(string);
+	void reconect();
+	void rollback();
 
 public:
-	CTxnBaseDB(CDBConnection *pDBConn);
-	~CTxnBaseDB() {};
-
-	void BeginTxn();
-	void CommitTxn();
-	void RollbackTxn();
+	CTxnBaseDB(CDBConnection *pDB);
+	~CTxnBaseDB();
 };
 
-#endif	//TXN_BASE_DB_H
+#endif // TXN_BASE_DB_H

@@ -22,7 +22,7 @@ void *workerThread(void *data)
 
 	TMsgBrokerageDriver Reply; // return message
 	INT32 iRet = 0; // return error
-	CDBConnection* pDBConnection = NULL;
+	CDBConnection *pDBConnection = NULL;
 
 	int iNumRetry;
 
@@ -127,7 +127,7 @@ void *workerThread(void *data)
 								// Rollback the current transaction and
 								// try again.  Wait 1 second to give the
 								// other transaction time to finish.
-								pDBConnection->RollbackTxn();
+								pDBConnection->rollback();
 								sleep(1);
 							} else {
 								// it couldn't resubmit successfully,
@@ -208,7 +208,7 @@ void *workerThread(void *data)
 								// Rollback the current transaction and
 								// try again.  Wait 1 second to give the
 								// other transaction time to finish.
-								pDBConnection->RollbackTxn();
+								pDBConnection->rollback();
 								sleep(1);
 							} else {
 								// it couldn't resubmit successfully,
@@ -274,7 +274,7 @@ void *workerThread(void *data)
 								// Rollback the current transaction and
 								// try again.  Wait 1 second to give the
 								// other transaction time to finish.
-								pDBConnection->RollbackTxn();
+								pDBConnection->rollback();
 								sleep(1);
 							} else {
 								// it couldn't resubmit successfully,
@@ -345,7 +345,7 @@ void *workerThread(void *data)
 								// Rollback the current transaction and
 								// try again.  Wait 1 second to give the
 								// other transaction time to finish.
-								pDBConnection->RollbackTxn();
+								pDBConnection->rollback();
 								sleep(1);
 							} else {
 								// it couldn't resubmit successfully,
@@ -402,7 +402,7 @@ void *workerThread(void *data)
 
 			iRet = CBaseTxnErr::ROLLBACK;
 		} catch (const pqxx::sql_error &e) {
-			pDBConnection->RollbackTxn();
+			pDBConnection->rollback();
 
 			ostringstream msg;
 			msg << time(NULL) << " " << pthread_self() << " " <<

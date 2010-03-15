@@ -27,10 +27,10 @@ void CTradeResultDB::DoTradeResultFrame1(
 #endif // DEBUG
 
 	// start transaction but not commit in this frame
-	BeginTxn();
+	begin();
 	// Isolation level required by Clause 7.4.1.3
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
-	result R( m_Txn->exec( osCall.str() ) );
+	execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
+	result R(execute(osCall.str()));
 
 	if (R.empty())
 	{
@@ -106,7 +106,7 @@ void CTradeResultDB::DoTradeResultFrame2(
 
 	// we are inside a transaction
 	result R;
-	R = m_Txn->exec(osCall.str());
+	R = execute(osCall.str());
 	if (R.empty()) {
 		cerr << "warning: empty result set at DoTradeResultFrame2" <<
 				endl << osCall.str() << endl;
@@ -173,7 +173,7 @@ void CTradeResultDB::DoTradeResultFrame3(
 #endif //DEBUG
 
 	// we are inside a transaction
-	result R( m_Txn->exec( osCall.str() ) );
+	result R(execute(osCall.str()));
 
 	if (R.empty())
 	{
@@ -222,7 +222,7 @@ void CTradeResultDB::DoTradeResultFrame4(
 
 	// we are inside a transaction
 	result R;
-	R = m_Txn->exec(osCall.str());
+	R = execute(osCall.str());
 	if (R.empty()) {
 		cerr << "warning: empty result set at DoTradeResultFrame4" <<
 				endl << osCall.str() << endl;
@@ -285,7 +285,7 @@ void CTradeResultDB::DoTradeResultFrame5(
 #endif //DEBUG
 
 	// we are inside a transaction
-	result R( m_Txn->exec(osCall.str()));
+	result R(execute(osCall.str()));
 	if (R.empty()) {
 		//throw logic_error("TradeResultFrame5: empty result set");
 		cerr << "warning: empty result set at DoTradeResultFrame5" << endl;
@@ -317,7 +317,7 @@ void CTradeResultDB::DoTradeResultFrame6(
 			pIn->due_date.hour << ":" <<
 			pIn->due_date.minute << ":" <<
 			pIn->due_date.second << "','" <<
-			m_Txn->esc(pIn->s_name) << "', " <<
+			escape(pIn->s_name) << "', " <<
 			pIn->se_amount << ",'" <<
 			pIn->trade_dts.year << "-" <<
 			pIn->trade_dts.month << "-" <<
@@ -356,8 +356,8 @@ void CTradeResultDB::DoTradeResultFrame6(
 #endif //DEBUG
 
 	// we are inside a transaction
-	result R(m_Txn->exec(osCall.str()));
-	CommitTxn();
+	result R(execute(osCall.str()));
+	commit();
 	if (R.empty()) {
 		cerr << "warning: empty result set at DoTradeResultFrame6" <<
 				endl << osCall.str() << endl;

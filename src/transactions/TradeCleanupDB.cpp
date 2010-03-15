@@ -8,7 +8,7 @@
  * 18 July 2006
  */
 
-#include <transactions.h>
+#include "transactions.h"
 
 // Call Trade Cleanup Frame 1
 void CTradeCleanupDB::DoTradeCleanupFrame1(
@@ -33,9 +33,9 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	BeginTxn();
-	result R( m_Txn->exec( osCall.str() ) );
-	CommitTxn();
+	begin();
+	result R(execute(osCall.str()));
+	commit();
 
 	if (R.empty()) 
 	{

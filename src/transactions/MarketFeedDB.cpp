@@ -65,11 +65,11 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	BeginTxn();
+	begin();
 	// Isolation level required by Clause 7.4.1.3
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;");
-	result R( m_Txn->exec( osCall.str() ) );
-	CommitTxn();
+	execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;");
+	result R(execute(osCall.str()));
+	commit();
 
 	if (!R.empty()) 
 	{

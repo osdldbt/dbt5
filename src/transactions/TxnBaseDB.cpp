@@ -8,26 +8,39 @@
  * 13 June 2006
  */
 
-#include <transactions.h>
+#include "TxnBaseDB.h"
 
-CTxnBaseDB::CTxnBaseDB(CDBConnection *pDBConn)
-: m_pDBConnection(pDBConn)
+CTxnBaseDB::CTxnBaseDB(CDBConnection *pDB)
 {
-	m_Conn = m_pDBConnection->m_Conn;  //FIXME?
-	m_Txn = m_pDBConnection->m_Txn;
+	this->pDB = pDB;
 }
 
-void CTxnBaseDB::BeginTxn()
+CTxnBaseDB::~CTxnBaseDB()
 {
-	m_pDBConnection->BeginTxn();
+	pDB->disconnect();
 }
 
-void CTxnBaseDB::CommitTxn()
+void CTxnBaseDB::begin()
 {
-	m_pDBConnection->CommitTxn();
+	pDB->startTransaction();
 }
 
-void CTxnBaseDB::RollbackTxn()
+void CTxnBaseDB::commit()
 {
-	m_pDBConnection->RollbackTxn();
+	pDB->commit();
+}
+
+string CTxnBaseDB::escape(string s)
+{
+	return pDB->escape(s);
+}
+
+result CTxnBaseDB::execute(string sql)
+{
+	return pDB->execute(sql);
+}
+
+void CTxnBaseDB::rollback()
+{
+	pDB->rollback();
 }

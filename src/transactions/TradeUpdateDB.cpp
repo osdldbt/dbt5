@@ -47,11 +47,11 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	BeginTxn();
+	begin();
 	// Isolation level required by Clause 7.4.1.3
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
-	result R( m_Txn->exec( osCall.str() ) );
-	CommitTxn();
+	execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
+	result R(execute(osCall.str()));
+	commit();
 
 	if (R.empty()) 
 	{
@@ -371,10 +371,10 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	BeginTxn();
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
-	result R( m_Txn->exec( osCall.str() ) );
-	CommitTxn();
+	begin();
+	execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
+	result R(execute(osCall.str()));
+	commit();
 
 	if (R.empty()) 
 	{
@@ -695,10 +695,10 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
 	m_coutLock.unlock();
 #endif //DEBUG
 
-	BeginTxn();
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
-	result R( m_Txn->exec( osCall.str() ) );
-	CommitTxn();
+	begin();
+	execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
+	result R(execute(osCall.str()));
+	commit();
 
 	if (R.empty()) 
 	{

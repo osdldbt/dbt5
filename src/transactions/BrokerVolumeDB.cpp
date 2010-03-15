@@ -8,7 +8,7 @@
  * 13 July 2006
  */
 
-#include <transactions.h>
+#include "transactions.h"
 
 // Call Broker Volume Frame 1
 void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
@@ -21,7 +21,7 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 
 	osBrokers << pIn->broker_list[i];
 	for (i = 1; pIn->broker_list[i][0] != '\0'; i++) {
-		osBrokers << ", " << m_Txn->esc(pIn->broker_list[i]);
+		osBrokers << ", " << escape(pIn->broker_list[i]);
 	}
 
 	ostringstream osCall;
@@ -38,11 +38,11 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	BeginTxn();
+	begin();
 	// Isolation level required by Clause 7.4.1.3
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
-	result R( m_Txn->exec( osCall.str() ) );
-	CommitTxn();
+	execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
+	result R(execute(osCall.str()));
+	commit();
 
 	// stored procedure can return an empty result set by design
 	result::const_iterator c = R.begin();

@@ -8,7 +8,7 @@
  * 08 July 2006
  */
 
-#include <transactions.h>
+#include "transactions.h"
 
 // Call Trade Lookup Frame 1
 void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
@@ -45,11 +45,11 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	BeginTxn();
+	begin();
 	// Isolation level required by Clause 7.4.1.3
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
-	result R( m_Txn->exec( osCall.str() ) );
-	CommitTxn();
+	execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
+	result R(execute(osCall.str()));
+	commit();
 
 	if (R.empty()) 
 	{
@@ -365,11 +365,11 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	BeginTxn();
+	begin();
 	// Isolation level required by Clause 7.4.1.3
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
-	result R( m_Txn->exec( osCall.str() ) );
-	CommitTxn();
+	execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
+	result R(execute(osCall.str()));
+	commit();
 
 	if (R.empty()) 
 	{
@@ -673,11 +673,11 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	BeginTxn();
+	begin();
 	// Isolation level required by Clause 7.4.1.3
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
-	result R( m_Txn->exec( osCall.str() ) );
-	CommitTxn();
+	execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
+	result R(execute(osCall.str()));
+	commit();
 
 	if (R.empty()) 
 	{
@@ -1012,11 +1012,11 @@ void CTradeLookupDB::DoTradeLookupFrame4(const TTradeLookupFrame4Input *pIn,
 	m_coutLock.unlock();
 #endif //DEBUG
 
-	BeginTxn();
+	begin();
 	// Isolation level required by Clause 7.4.1.3
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
-	result R( m_Txn->exec( osCall.str() ) );
-	CommitTxn();
+	execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
+	result R(execute(osCall.str()));
+	commit();
 
 	if (R.empty()) 
 	{

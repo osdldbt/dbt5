@@ -8,7 +8,7 @@
  * 13 July 2006
  */
 
-#include <transactions.h>
+#include "transactions.h"
 
 // Call Market Watch Frame 1
 void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
@@ -39,10 +39,10 @@ void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	BeginTxn();
+	begin();
 	// Isolation level required by Clause 7.4.1.3
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
-	result R( m_Txn->exec( osCall.str() ) );
+	execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
+	result R(execute(osCall.str()));
 
 	if (R.empty()) 
 	{
@@ -60,11 +60,11 @@ void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
 
 	if (pOut->status == 0)	// status ok
 	{
-		CommitTxn();
+		commit();
 	}
 	else
 	{
-		RollbackTxn();
+		rollback();
 	}
 
 #ifdef DEBUG

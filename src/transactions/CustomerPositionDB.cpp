@@ -8,7 +8,7 @@
  * 12 July 2006
  */
 
-#include <transactions.h>
+#include "transactions.h"
 
 // Call Customer Position Frame 1
 void CCustomerPositionDB::DoCustomerPositionFrame1(
@@ -29,10 +29,10 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	BeginTxn();
+	begin();
 	// Isolation level required by Clause 7.4.1.3
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
-	result R( m_Txn->exec( osCall.str() ) );
+	execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
+	result R(execute(osCall.str()));
 
 	if (R.empty())
 	{
@@ -190,8 +190,8 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 
 
 	// we are inside a txn
-	result R( m_Txn->exec( osCall.str() ) );
-	CommitTxn();
+	result R(execute(osCall.str()));
+	commit();
 
 	if (R.empty())
 	{
@@ -294,7 +294,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame3(
 #endif
 
 	// commit the transaction we are inside
-	CommitTxn();
+	commit();
 	pOut->status = 0;
 
 #ifdef DEBUG

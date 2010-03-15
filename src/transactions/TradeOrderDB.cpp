@@ -8,7 +8,7 @@
  * 03 July 2006
  */
 
-#include <transactions.h>
+#include "transactions.h"
 
 // Call Trade Order Frame 1
 void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
@@ -26,10 +26,10 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 #endif // DEBUG
 
 	// start transaction but not commit in this frame
-	BeginTxn();
+	begin();
 	// Isolation level required by Clause 7.4.1.3
-	m_Txn->exec("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;");
-	result R( m_Txn->exec( osCall.str() ) );
+	execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;");
+	result R(execute(osCall.str()));
 
 	if (R.empty()) 
 	{
@@ -74,8 +74,8 @@ void CTradeOrderDB::DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
 	ostringstream osCall;
 	osCall << "SELECT * FROM TradeOrderFrame2(" <<
 			pIn->acct_id << ",'" <<
-			m_Txn->esc(pIn->exec_f_name) << "','" <<
-			m_Txn->esc(pIn->exec_l_name) << "','" <<
+			escape(pIn->exec_f_name) << "','" <<
+			escape(pIn->exec_l_name) << "','" <<
 			pIn->exec_tax_id<<"')";
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -83,21 +83,21 @@ void CTradeOrderDB::DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
 	cout << "*** " << osCall.str() << endl;
 	cout << "- Trade Order Frame 2 (input)" << endl <<
 			"-- acct_id: " << pIn->acct_id << endl <<
-			"-- exec_f_name: " << m_Txn->esc(pIn->exec_f_name) << endl <<
-			"-- exec_l_name: " << m_Txn->esc(pIn->exec_l_name) << endl <<
+			"-- exec_f_name: " << escape(pIn->exec_f_name) << endl <<
+			"-- exec_l_name: " << escape(pIn->exec_l_name) << endl <<
 			"-- exec_tax_id: " << pIn->exec_tax_id << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 
 	// we are inside a transaction
-	result R( m_Txn->exec( osCall.str() ) );
+	result R(execute(osCall.str()));
 
 	if (R.empty()) 
 	{
 		cout << "warning: empty result set at DoTradeOrderFrame2" << endl <<
 				osCall.str() << endl;
 		pOut->status = CBaseTxnErr::ROLLBACK;
-		RollbackTxn();
+		rollback();
 		return;
 	}
 	result::const_iterator c = R.begin();
@@ -135,7 +135,7 @@ void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 			pIn->trade_qty << ",'" <<
 			pIn->trade_type_id << "'," <<
 			pIn->type_is_margin << "::SMALLINT,'" <<
-			m_Txn->esc(pIn->co_name) << "'," <<
+			escape(pIn->co_name) << "'," <<
 			pIn->requested_price << ",'" <<
 			pIn->symbol << "')";
 #ifdef DEBUG
@@ -161,7 +161,7 @@ void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 #endif //DEBUG
 
 	// we are inside a transaction
-	result R( m_Txn->exec( osCall.str() ) );
+	result R(execute(osCall.str()));
 
 	if (R.empty()) 
 	{
@@ -220,7 +220,7 @@ void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 			pIn->broker_id << "," <<
 			pIn->charge_amount << "," <<
 			pIn->comm_amount << ",'" <<
-			m_Txn->esc(pIn->exec_name) << "'," <<
+			escape(pIn->exec_name) << "'," <<
 			pIn->is_cash << "::SMALLINT," <<
 			pIn->is_lifo << "::SMALLINT," <<
 			pIn->requested_price << ",'" <<
@@ -251,7 +251,7 @@ void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 #endif //DEBUG
 
 	// we are inside a transaction
-	result R( m_Txn->exec( osCall.str() ) );
+	result R(execute(osCall.str()));
 
 	if (R.empty()) 
 	{
@@ -283,7 +283,7 @@ void CTradeOrderDB::DoTradeOrderFrame5(TTradeOrderFrame5Output *pOut)
 #endif
 
 	// rollback the transaction we are inside
-	RollbackTxn();
+	rollback();
 	pOut->status = CBaseTxnErr::ROLLBACK;
 
 #ifdef DEBUG
@@ -301,7 +301,7 @@ void CTradeOrderDB::DoTradeOrderFrame6(TTradeOrderFrame6Output *pOut)
 #endif
 
 	// commit the transaction we are inside
-	CommitTxn();
+	commit();
 	pOut->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
