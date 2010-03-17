@@ -11,6 +11,8 @@
 #define MARKET_WATCH_DB_H
 
 #include <TxnHarnessDBInterface.h> 
+
+#include "TxnBaseDB.h"
  
 class CMarketWatchDB : public CTxnBaseDB, public CMarketWatchDBInterface
 {

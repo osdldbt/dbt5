@@ -3,6 +3,7 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2006-2007 Rilson Nascimento
+ *               2010      Mark Wong
  *
  * header files used throughout the project
  */
@@ -22,7 +23,6 @@ using namespace pqxx;
 
 #include <CThreadErr.h>
 #include <CSocket.h>
-#include <SocketPorts.h>
 #include <EGenStandardTypes.h>
 #include <MiscConsts.h>
 #include <TxnHarnessStructs.h>
@@ -61,76 +61,5 @@ using namespace pqxx;
 #include <BrokerageHouse.h>
 #include <MarketExchange.h>
 #include <Driver.h>
-
-// Array Tokenizer
-void inline TokenizeArray(const string& str2, vector<string>& tokens)
-{
-	// This is essentially an empty array. i.e. '{}'
-	if (str2.size() < 3)
-		return;
-
-	// We only call this function because we need to chop up arrays that
-	// are in the format '{{1,2,3},{a,b,c}}', so trim off the braces.
-	string str = str2.substr(1, str2.size() - 2);
-
-	// Skip delimiters at beginning.
-	string::size_type lastPos = str.find_first_of("{", 0);
-	// Find first "non-delimiter".
-	string::size_type pos = str.find_first_of("}", lastPos);
-
-	while (string::npos != pos || string::npos != lastPos)
-	{
-		// Found a token, add it to the vector.
-		tokens.push_back(str.substr(lastPos, pos - lastPos + 1));
-
-		lastPos = str.find_first_of("{", pos);
-		pos = str.find_first_of("}", lastPos);
-	}
-}
-
-// String Tokenizer
-// FIXME: This token doesn't handle strings with escaped characters.
-void inline TokenizeSmart(const string& str, vector<string>& tokens)
-{
-	// This is essentially an empty array. i.e. '{}'
-	if (str.size() < 3)
-		return;
-
-	string::size_type lastPos = 1;
-	string::size_type pos = 1;
-	bool end = false;
-	while (end == false)
-	{
-		if (str[lastPos] == '"') {
-			pos = str.find_first_of("\"", lastPos + 1);
-			if (pos == string::npos) {
-				pos = str.find_first_of("}", lastPos);
-				end = true;
-			}
-			tokens.push_back(str.substr(lastPos + 1, pos - lastPos - 1));
-			lastPos = pos + 2;
-		} else if (str[lastPos] == '\0') {
-			return;
-		} else {
-			pos = str.find_first_of(",", lastPos);
-			if (pos == string::npos) {
-				pos = str.find_first_of("}", lastPos);
-				end = true;
-			}
-			tokens.push_back(str.substr(lastPos, pos - lastPos));
-			lastPos = pos + 1;
-		}
-	}
-}
-
-bool inline check_count(int should, int is, char *file, int line) {
-	if (should != is) {
-		cout << "*** array length (" << is <<
-				") does not match expections (" << should << "): " << file <<
-				":" << line << endl;
-		return false;
-	}
-	return true;
-}
 
 #endif	// TRANSACTIONS_H

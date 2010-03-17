@@ -11,6 +11,8 @@
 #define SECURITY_DETAIL_DB_H
 
 #include <TxnHarnessDBInterface.h> 
+
+#include "TxnBaseDB.h"
  
 class CSecurityDetailDB : public CTxnBaseDB, public CSecurityDetailDBInterface
 {

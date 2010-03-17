@@ -8,7 +8,7 @@
  * 07 July 2006
  */
 
-#include <transactions.h>
+#include "transactions.h"
 
 // Call Trade Result Frame 1
 void CTradeResultDB::DoTradeResultFrame1(
@@ -27,32 +27,10 @@ void CTradeResultDB::DoTradeResultFrame1(
 #endif // DEBUG
 
 	// start transaction but not commit in this frame
-	begin();
+	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
-	execute("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
-	result R(execute(osCall.str()));
-
-	if (R.empty())
-	{
-		cerr << "warning: empty result set at DoTradeResultFrame1" << endl <<
-				osCall.str() << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
-	result::const_iterator c = R.begin();
-	
-	pOut->acct_id = c[0].as(long());
-	pOut->charge = c[1].as(double());
-	pOut->hs_qty = c[2].as(int());
-	pOut->is_lifo = c[3].as(int());
-	pOut->status = c[4].as(int());
-	strncpy(pOut->symbol, c[5].c_str(), cSYMBOL_len);
-	pOut->trade_is_cash = c[6].as(int());
-	pOut->trade_qty = c[7].as(int());
-	strncpy(pOut->type_id, c[8].c_str(), cTT_ID_len);
-	pOut->type_is_market = c[9].as(int());
-	pOut->type_is_sell = c[10].as(int());
-	strncpy(pOut->type_name, c[11].c_str(), cTT_NAME_len);
+	setSerializable();
+	execute(osCall.str(), pOut);
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -104,30 +82,7 @@ void CTradeResultDB::DoTradeResultFrame2(
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	// we are inside a transaction
-	result R;
-	R = execute(osCall.str());
-	if (R.empty()) {
-		cerr << "warning: empty result set at DoTradeResultFrame2" <<
-				endl << osCall.str() << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
-	result::const_iterator c = R.begin();
-
-	pOut->broker_id = c[0].as(long());
-	pOut->buy_value = c[1].as(double());
-	pOut->cust_id = c[2].as(long());
-	pOut->sell_value = c[3].as(double());
-	pOut->status = c[4].as(int());
-	pOut->tax_status = c[5].as(int());
-	sscanf(c[6].c_str(), "%hd-%hd-%hd %hd:%hd:%hd.%*d",
-			&pOut->trade_dts.year,
-			&pOut->trade_dts.month,
-			&pOut->trade_dts.day,
-			&pOut->trade_dts.hour,
-			&pOut->trade_dts.minute,
-			&pOut->trade_dts.second);
+	execute(osCall.str(), pOut);
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -172,20 +127,7 @@ void CTradeResultDB::DoTradeResultFrame3(
 	m_coutLock.unlock();
 #endif //DEBUG
 
-	// we are inside a transaction
-	result R(execute(osCall.str()));
-
-	if (R.empty())
-	{
-		cerr << "warning: empty result set at DoTradeResultFrame3" << endl <<
-				osCall.str() << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
-	result::const_iterator c = R.begin();
-
-	pOut->status = c[0].as(int());
-	pOut->tax_amount = c[1].as(double());
+	execute(osCall.str(), pOut);
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -220,21 +162,7 @@ void CTradeResultDB::DoTradeResultFrame4(
 	m_coutLock.unlock();
 #endif //DEBUG
 
-	// we are inside a transaction
-	result R;
-	R = execute(osCall.str());
-	if (R.empty()) {
-		cerr << "warning: empty result set at DoTradeResultFrame4" <<
-				endl << osCall.str() << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
-
-	result::const_iterator c = R.begin();
-
-	pOut->comm_rate = c[0].as(double());
-	strncpy(pOut->s_name, c[1].c_str(), cS_NAME_len);
-	pOut->status = c[2].as(int());
+	execute(osCall.str(), pOut);
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -284,15 +212,7 @@ void CTradeResultDB::DoTradeResultFrame5(
 	m_coutLock.unlock();
 #endif //DEBUG
 
-	// we are inside a transaction
-	result R(execute(osCall.str()));
-	if (R.empty()) {
-		//throw logic_error("TradeResultFrame5: empty result set");
-		cerr << "warning: empty result set at DoTradeResultFrame5" << endl;
-	}
-
-	result::const_iterator c = R.begin();
-	pOut->status = c[0].as(int());
+	execute(osCall.str(), pOut);
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -355,19 +275,8 @@ void CTradeResultDB::DoTradeResultFrame6(
 	m_coutLock.unlock();
 #endif //DEBUG
 
-	// we are inside a transaction
-	result R(execute(osCall.str()));
-	commit();
-	if (R.empty()) {
-		cerr << "warning: empty result set at DoTradeResultFrame6" <<
-				endl << osCall.str() << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
-	result::const_iterator c = R.begin();
-
-	pOut->acct_bal = c[0].as(double());
-	pOut->status = c[1].as(int());
+	execute(osCall.str(), pOut);
+	commitTransaction();
 
 #ifdef DEBUG
 	m_coutLock.lock();

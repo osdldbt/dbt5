@@ -11,6 +11,8 @@
 #define DATA_MAINTENANCE_DB_H
 
 #include <TxnHarnessDBInterface.h> 
+
+#include "TxnBaseDB.h"
  
 class CDataMaintenanceDB : public CTxnBaseDB, public CDataMaintenanceDBInterface
 {

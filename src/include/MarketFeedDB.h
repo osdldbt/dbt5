@@ -12,15 +12,15 @@
 
 #include <TxnHarnessDBInterface.h> 
 
+#include "TxnBaseDB.h"
+
 class CMarketFeedDB : public CTxnBaseDB, public CMarketFeedDBInterface
 {
-	// member used to send triggered orders to MEE
-	TTradeRequest		m_TriggeredLimitOrders;
 public:
 	CMarketFeedDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
 	~CMarketFeedDB() {};
 
-	virtual void DoMarketFeedFrame1(const TMarketFeedFrame1Input *pIn, 
+	virtual void DoMarketFeedFrame1(const TMarketFeedFrame1Input *pIn,
 			TMarketFeedFrame1Output *pOut,
 			CSendToMarketInterface *pSendToMarket);
 

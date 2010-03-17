@@ -33,19 +33,9 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	begin();
-	result R(execute(osCall.str()));
-	commit();
-
-	if (R.empty()) 
-	{
-		cerr << "warning: empty result set at DoTradeCleanupFrame1" << endl <<
-				osCall.str() << endl;
- 		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
-	result::const_iterator c = R.begin();
- 	pOut->status = c[0].as(int());
+	startTransaction();
+	execute(osCall.str(), pOut);
+	commitTransaction();
 
 #ifdef DEBUG
 	m_coutLock.lock();

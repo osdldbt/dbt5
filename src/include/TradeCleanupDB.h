@@ -11,6 +11,8 @@
 #define TRADE_CLEANUP_DB_H
 
 #include <TxnHarnessDBInterface.h> 
+
+#include "TxnBaseDB.h"
  
 class CTradeCleanupDB : public CTxnBaseDB, public CTradeCleanupDBInterface
 {

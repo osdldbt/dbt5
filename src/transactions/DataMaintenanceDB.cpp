@@ -8,7 +8,7 @@
  * 17 July 2006
  */
 
-#include <transactions.h>
+#include "transactions.h"
 
 // Call Data Maintenance Frame 1
 void CDataMaintenanceDB::DoDataMaintenanceFrame1(
@@ -40,14 +40,11 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	begin();
+	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
-	execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
-	result R(execute(osCall.str()));
-	commit();
-
-	result::const_iterator c = R.begin();
- 	pOut->status = c[0].as(int());
+	setReadCommitted();
+	execute(osCall.str(), pOut);
+	commitTransaction();
 
 #ifdef DEBUG
 	m_coutLock.lock();

@@ -17,8 +17,6 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 	ostringstream osBrokers;
 	int i = 0;
 
-	enum bvf1 { i_broker_name=0, i_list_len, i_status, i_volume };
-
 	osBrokers << pIn->broker_list[i];
 	for (i = 1; pIn->broker_list[i][0] != '\0'; i++) {
 		osBrokers << ", " << escape(pIn->broker_list[i]);
@@ -38,39 +36,11 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	begin();
+	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
-	execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
-	result R(execute(osCall.str()));
-	commit();
-
-	// stored procedure can return an empty result set by design
-	result::const_iterator c = R.begin();
-
-	pOut->list_len = c[i_list_len].as(int());;
-
-	vector<string> vAux;
-	vector<string>::iterator p;
-
-	TokenizeSmart(c[i_broker_name].c_str(), vAux);
-	i = 0;	
-	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		strncpy(pOut->broker_name[i], (*p).c_str(), cB_NAME_len);
-		++i;
-	}
-	check_count(pOut->list_len, vAux.size(), __FILE__, __LINE__);
-	vAux.clear();
-
-	TokenizeSmart(c[i_volume].c_str(), vAux);
-	i = 0;	
-	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->volume[i] = atof((*p).c_str());
-		++i;
-	}
-	check_count(pOut->list_len, vAux.size(), __FILE__, __LINE__);
-	vAux.clear();
-
-	pOut->status = c[i_status].as(int());
+	setReadCommitted();
+	execute(osCall.str(), pOut);
+	commitTransaction();
 
 #ifdef DEBUG
 	m_coutLock.lock();

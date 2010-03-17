@@ -25,31 +25,10 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	// start transaction but not commit in this frame
-	begin();
+	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
-	execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;");
-	result R(execute(osCall.str()));
-
-	if (R.empty()) 
-	{
-		cout << "warning: empty result set at DoTradeOrderFrame1" << endl <<
-				osCall.str() << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
-	result::const_iterator c = R.begin();
-	
-	strncpy(pOut->acct_name, c[0].c_str(), cCA_NAME_len);
-	pOut->broker_id = c[1].as(long());
-	strncpy(pOut->broker_name, c[2].c_str(), cB_NAME_len);
-	strncpy(pOut->cust_f_name, c[3].c_str(), cF_NAME_len);
-	pOut->cust_id = c[4].as(long());
-	strncpy(pOut->cust_l_name, c[5].c_str(), cL_NAME_len);
-	pOut->cust_tier = c[6].as(int());
-	pOut->status = c[7].as(int());
-	strncpy(pOut->tax_id, c[8].c_str(), cTAX_ID_len);
-	pOut->tax_status = c[9].as(int());
+	setRepeatableRead();
+	execute(osCall.str(), pOut);
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -89,24 +68,7 @@ void CTradeOrderDB::DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	// we are inside a transaction
-	result R(execute(osCall.str()));
-
-	if (R.empty()) 
-	{
-		cout << "warning: empty result set at DoTradeOrderFrame2" << endl <<
-				osCall.str() << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		rollback();
-		return;
-	}
-	result::const_iterator c = R.begin();
-	
-	if (c[0].is_null() == false)
-		strncpy(pOut->ap_acl, c[0].c_str(), cACL_len);
-	else
-		pOut->ap_acl[0] = '\0';
-	pOut->status = c[1].as(int());
+	execute(osCall.str(), pOut);
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -160,33 +122,7 @@ void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 	m_coutLock.unlock();
 #endif //DEBUG
 
-	// we are inside a transaction
-	result R(execute(osCall.str()));
-
-	if (R.empty()) 
-	{
-		cout << "warning: empty result set at DoTradeOrderFrame3" << endl <<
-				osCall.str() << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
-	result::const_iterator c = R.begin();
-	
-	strncpy(pOut->co_name, c[0].c_str(), cCO_NAME_len);
-	pOut->requested_price = c[1].as(double());
-	strncpy(pOut->symbol, c[2].c_str(), cSYMBOL_len);
-	pOut->buy_value = c[3].as(double());
-	pOut->charge_amount = c[4].as(double());
-	pOut->comm_rate = c[5].as(double());
-	pOut->cust_assets = c[6].as(double());
-	pOut->market_price = c[7].as(double());
-	strncpy(pOut->s_name, c[8].c_str(), cS_NAME_len);
-	pOut->sell_value = c[9].as(double());
-	pOut->status = c[10].as(int());
-	strncpy(pOut->status_id, c[11].c_str(), cTH_ST_ID_len);
-	pOut->tax_amount = c[12].as(double());
-	pOut->type_is_market = (c[13].c_str()[0] == 't' ? 1 : 0);
-	pOut->type_is_sell = (c[14].c_str()[0] == 't' ? 1 : 0);
+	execute(osCall.str(), pOut);
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -251,19 +187,7 @@ void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 #endif //DEBUG
 
 	// we are inside a transaction
-	result R(execute(osCall.str()));
-
-	if (R.empty()) 
-	{
-		cout << "warning: empty result set at DoTradeOrderFrame4" << endl <<
-				osCall.str() << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
-	result::const_iterator c = R.begin();
-
-	pOut->status = c[0].as(int());
-	pOut->trade_id = c[1].as(long());
+	execute(osCall.str(), pOut);
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -283,7 +207,7 @@ void CTradeOrderDB::DoTradeOrderFrame5(TTradeOrderFrame5Output *pOut)
 #endif
 
 	// rollback the transaction we are inside
-	rollback();
+	rollbackTransaction();
 	pOut->status = CBaseTxnErr::ROLLBACK;
 
 #ifdef DEBUG
@@ -301,7 +225,7 @@ void CTradeOrderDB::DoTradeOrderFrame6(TTradeOrderFrame6Output *pOut)
 #endif
 
 	// commit the transaction we are inside
-	commit();
+	commitTransaction();
 	pOut->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG

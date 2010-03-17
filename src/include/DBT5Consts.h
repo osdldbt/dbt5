@@ -2,7 +2,8 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2010 Mark Wong
+ * Copyright (C) 2006 Rilson Nascimento
+ *               2010 Mark Wong
  */
 
 #ifndef DBT5_CONSTS_H
@@ -13,6 +14,9 @@ namespace TPCE
 const int iMaxPort = 8;
 const int iMaxRetries = 10;
 const int iMaxConnectString = 128;
+
+const int iBrokerageHousePort = 30000;
+const int iMarketExchangePort = 30010;
 
 // Transaction Names
 static const char szTransactionName[12][18] = {

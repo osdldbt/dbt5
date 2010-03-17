@@ -8,18 +8,12 @@
  * 13 June 2006
  */
 
-#include <transactions.h>
+#include "transactions.h"
 
 // Call Trade Status Frame 1
 void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 		TTradeStatusFrame1Output *pOut)
 {
-	enum tsf1 {                                                             
-			i_broker_name=0, i_charge, i_cust_f_name, i_cust_l_name,        
-			i_ex_name, i_exec_name, i_s_name, i_status, i_status_name,      
-			i_symbol, i_trade_dts, i_trade_id, i_trade_qty, i_type_name     
-	};
-
 	ostringstream osCall;
 	osCall << "SELECT * from TradeStatusFrame1(" << pIn->acct_id << ")";
 #ifdef DEBUG
@@ -31,128 +25,11 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	begin();
+	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
-	execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
-	result R(execute(osCall.str()));
-	commit();
-
-	if (R.empty()) 
-	{
-		cout << "warning: empty result set at DoTradeStatusFrame1" << endl <<
-				osCall.str() << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
-
-	result::const_iterator c = R.begin();
-
-	vector<string> vAux;
-	vector<string>::iterator p;
-
-	strncpy(pOut->broker_name, c[i_broker_name].c_str(), cB_NAME_len);
-
-	TokenizeSmart(c[i_charge].c_str(), vAux);
-	int i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->charge[i] = atof((*p).c_str());
-		++i;
-	}
-	vAux.clear();
-
-	strncpy(pOut->cust_f_name, c[i_cust_f_name].c_str(), cF_NAME_len);
-	strncpy(pOut->cust_l_name, c[i_cust_l_name].c_str(), cL_NAME_len);
-
-	int len = i;
-
-	TokenizeSmart(c[i_ex_name].c_str(), vAux);
-	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		strncpy(pOut->ex_name[i], (*p).c_str(), cEX_NAME_len);
-		++i;
-	}
-	check_count(len, vAux.size(), __FILE__, __LINE__);
-	vAux.clear();
-
-	TokenizeSmart(c[i_exec_name].c_str(), vAux);
-	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		strncpy(pOut->exec_name[i], (*p).c_str(), cEXEC_NAME_len);
-		++i;
-	}
-	check_count(len, vAux.size(), __FILE__, __LINE__);
-	vAux.clear();
-
-	TokenizeSmart(c[i_s_name].c_str(), vAux);
-	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		strncpy(pOut->s_name[i], (*p).c_str(), cS_NAME_len);
-		++i;
-	}
-	check_count(len, vAux.size(), __FILE__, __LINE__);
-	vAux.clear();
-
-	pOut->status = c[i_status].as(int());
-
-	TokenizeSmart(c[i_status_name].c_str(), vAux);
-	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		strncpy(pOut->status_name[i], (*p).c_str(), cST_NAME_len);
-		++i;
-	}
-	check_count(len, vAux.size(), __FILE__, __LINE__);
-	vAux.clear();
-
-	TokenizeSmart(c[i_symbol].c_str(), vAux);
-	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		strncpy(pOut->symbol[i], (*p).c_str(), cSYMBOL_len);
-		++i;
-	}
-	check_count(len, vAux.size(), __FILE__, __LINE__);
-	vAux.clear();
-
-	TokenizeSmart(c[i_trade_dts].c_str(), vAux);
-	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
-				&pOut->trade_dts[i].year,
-				&pOut->trade_dts[i].month,
-				&pOut->trade_dts[i].day,
-				&pOut->trade_dts[i].hour,
-				&pOut->trade_dts[i].minute,
-				&pOut->trade_dts[i].second);
-		++i;
-	}
-	check_count(len, vAux.size(), __FILE__, __LINE__);
-	vAux.clear();
-
-	TokenizeSmart(c[i_trade_id].c_str(), vAux);
-	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->trade_id[i] = atol((*p).c_str());
-		++i;
-	}
-	check_count(len, vAux.size(), __FILE__, __LINE__);
-	vAux.clear();
-
-	TokenizeSmart(c[i_trade_qty].c_str(), vAux);
-	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->trade_qty[i] = atoi((*p).c_str());
-		++i;
-	}
-	check_count(len, vAux.size(), __FILE__, __LINE__);
-	vAux.clear();
-
-	TokenizeSmart(c[i_type_name].c_str(), vAux);
-	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		strncpy(pOut->type_name[i], (*p).c_str(), cTT_NAME_len);
-		++i;
-	}
-	check_count(len, vAux.size(), __FILE__, __LINE__);
-	vAux.clear();
+	setReadCommitted();
+	execute(osCall.str(), pOut);
+	commitTransaction();
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -160,7 +37,7 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 			"-- cust_l_name: " << pOut->cust_l_name << endl <<
 			"-- cust_f_name: " << pOut->cust_f_name << endl <<
 			"-- broker_name: " << pOut->broker_name << endl;
-	for (i = 0; i < len; i++) {
+	for (int i = 0; i < max_trade_status_len; i++) {
 		cout << "-- charge[" << i << "]: " << pOut->charge[i] << endl <<
 				"-- exec_name[" << i << "]: " << pOut->exec_name[i] << endl <<
 				"-- ex_name[" << i << "]: " << pOut->ex_name[i] << endl <<

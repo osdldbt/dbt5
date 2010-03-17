@@ -15,7 +15,7 @@
 
 // Establish defaults for command line options
 char szBHaddr[iMaxHostname + 1] = "localhost"; // Brokerage House address
-int iBHListenerPort = BrokerageHousePort;
+int iBHListenerPort = iBrokerageHousePort;
 // # of customers in one load unit
 int iLoadUnitSize = iDefaultLoadUnitSize;
 // # of customers for this instance

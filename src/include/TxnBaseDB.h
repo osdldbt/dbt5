@@ -29,12 +29,58 @@ class CTxnBaseDB
 protected:
 	CDBConnection *pDB;
 
-	void begin();
-	void commit();
+	void commitTransaction();
 	string escape(string);
-	result execute(string);
+
+	void execute(string, TBrokerVolumeFrame1Output *);
+
+	void execute(string, TCustomerPositionFrame1Output *);
+	void execute(string, TCustomerPositionFrame2Output *);
+
+	void execute(string, TDataMaintenanceFrame1Output *);
+
+	void execute(string sql, TMarketFeedFrame1Output *,
+        CSendToMarketInterface *);
+
+	void execute(string, TMarketWatchFrame1Output *);
+
+	void execute(string, TSecurityDetailFrame1Output *);
+
+	void execute(string, TTradeCleanupFrame1Output *);
+
+	void execute(string, TTradeLookupFrame1Output *);
+	void execute(string, TTradeLookupFrame2Output *);
+	void execute(string, TTradeLookupFrame3Output *);
+	void execute(string, TTradeLookupFrame4Output *);
+
+	void execute(string, TTradeOrderFrame1Output *);
+	void execute(string, TTradeOrderFrame2Output *);
+	void execute(string, TTradeOrderFrame3Output *);
+	void execute(string, TTradeOrderFrame4Output *);
+
+	void execute(string, TTradeResultFrame1Output *);
+	void execute(string, TTradeResultFrame2Output *);
+	void execute(string, TTradeResultFrame3Output *);
+	void execute(string, TTradeResultFrame4Output *);
+	void execute(string, TTradeResultFrame5Output *);
+	void execute(string, TTradeResultFrame6Output *);
+
+	void execute(string, TTradeStatusFrame1Output *);
+
+	void execute(string, TTradeUpdateFrame1Output *);
+	void execute(string, TTradeUpdateFrame2Output *);
+	void execute(string, TTradeUpdateFrame3Output *);
+
 	void reconect();
-	void rollback();
+
+	void rollbackTransaction();
+
+	void setReadCommitted();
+	void setReadUncommitted();
+	void setRepeatableRead();
+	void setSerializable();
+
+	void startTransaction();
 
 public:
 	CTxnBaseDB(CDBConnection *pDB);

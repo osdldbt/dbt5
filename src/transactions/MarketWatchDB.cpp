@@ -39,32 +39,16 @@ void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	begin();
+	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
-	execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
-	result R(execute(osCall.str()));
+	setReadCommitted();
+	execute(osCall.str(), pOut);
 
-	if (R.empty()) 
-	{
-		//throw logic_error("TradeLookupFrame1: empty result set");
-		cout<<"warning: empty result set at DoMarketWatchFrame1"<<endl;
-		pOut->status = 1;
-	}
-	else
-	{
-		result::const_iterator c = R.begin();
-
-		pOut->pct_change = c[0].as(double());
-		pOut->status = c[1].as(int());
-	}
-
-	if (pOut->status == 0)	// status ok
-	{
-		commit();
-	}
-	else
-	{
-		rollback();
+	if (pOut->status == CBaseTxnErr::SUCCESS) {
+	// status ok
+		commitTransaction();
+	} else {
+		rollbackTransaction();
 	}
 
 #ifdef DEBUG
