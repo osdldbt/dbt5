@@ -65,7 +65,7 @@ void *workerThread(void *data)
 			sockDrv.dbt5Receive(reinterpret_cast<void *>(pMessage),
 					sizeof(TMsgDriverBrokerage));
 		} catch(CSocketErr *pErr) {
-			sockDrv.closeAccSocket();
+			sockDrv.dbt5Disconnect();
 
 			ostringstream osErr;
 			osErr << "Error on Receive: " << pErr->ErrorText() <<
@@ -419,7 +419,7 @@ void *workerThread(void *data)
 		try {
 			sockDrv.dbt5Send(reinterpret_cast<void *>(&Reply), sizeof(Reply));
 		} catch(CSocketErr *pErr) {
-			sockDrv.closeAccSocket();
+			sockDrv.dbt5Disconnect();
 
 			ostringstream osErr;
 			osErr << "Error on Send: " << pErr->ErrorText() <<

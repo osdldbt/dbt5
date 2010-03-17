@@ -51,7 +51,7 @@ bool CBaseInterface::biConnect()
 bool CBaseInterface::biDisconnect()
 {
 	try {
-		sock->closeAccSocket();
+		sock->dbt5Disconnect();
 		return true;
 	} catch(CSocketErr *pErr) {
 		ostringstream osErr;
@@ -80,7 +80,7 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 		length = sock->dbt5Send(reinterpret_cast<void *>(pRequest),
 				sizeof(*pRequest));
 	} catch(CSocketErr *pErr) {
-		sock->closeAccSocket(); // close connection
+		sock->dbt5Disconnect(); // close connection
 		logResponseTime(-1, 0, 0);
 
 		ostringstream osErr;
@@ -95,7 +95,7 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 		length = sock->dbt5Receive(reinterpret_cast<void *>(&Reply),
 				sizeof(Reply));
 	} catch(CSocketErr *pErr) {
-		sock->closeAccSocket(); // close connection
+		sock->dbt5Disconnect(); // close connection
 		logResponseTime(-1, 0, 0);
 
 		ostringstream osErr;

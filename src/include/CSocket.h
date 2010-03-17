@@ -31,14 +31,15 @@ public:
 
 	int dbt5Accept(void);
 	void dbt5Connect();
-	int dbt5Receive(void *, int);
-	int dbt5Send(void *, int);
+	void dbt5Disconnect();
 	void dbt5Listen(const int);
+	int dbt5Receive(void *, int);
+	void dbt5Reconnect();
+	int dbt5Send(void *, int);
 
 	void setSocketFd(int sockfd) { m_sockfd = sockfd; }
 	int getSocketFd() { return m_sockfd; }
-	void closeAccSocket() { close(m_sockfd); m_sockfd = 0; }
-	void closeListenSocket() { close(m_sockfd); }
+	void closeListenerSocket() { close(m_listenfd); }
 
 private:
 	void throwError(CSocketErr::Action);

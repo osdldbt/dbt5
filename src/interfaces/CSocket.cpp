@@ -3,6 +3,7 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2006-2007 Rilson Nascimento
+ *               2010      Mark Wong
  *
  * 25 June 2006
  */
@@ -10,8 +11,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <CSocket.h>
-#include <CThreadErr.h>
+
+#include "CSocket.h"
+#include "CThreadErr.h"
 
 #define LISTENQ 1024
 
@@ -33,8 +35,8 @@ CSocket::CSocket(char *address, int port)
 //Destructor
 CSocket::~CSocket()
 {
-	if (m_listenfd != 0) close(m_listenfd);
-	if (m_sockfd != 0) close(m_sockfd);
+	closeListenerSocket();
+	dbt5Disconnect();
 }
 
 // Accept
@@ -92,13 +94,18 @@ void CSocket::dbt5Connect()
 	}
 }
 
+void CSocket::dbt5Disconnect()
+{
+	if (m_sockfd != 0) close(m_sockfd);
+}
+
 // Receive
-int CSocket::dbt5Receive(void* data, int length)
+int CSocket::dbt5Receive(void *data, int length)
 {
 	int received, total, remaining;
 	remaining = length;
 	total = 0;
-	char* szData = NULL;
+	char *szData = NULL;
 	do {
 		errno = 0;
 		received = recv(m_sockfd, data, remaining, 0);
@@ -121,6 +128,12 @@ int CSocket::dbt5Receive(void* data, int length)
 	}
 
 	return total;
+}
+
+void CSocket::dbt5Reconnect()
+{
+	dbt5Disconnect();
+	dbt5Connect();
 }
 
 int CSocket::dbt5Send(void *data, int length)

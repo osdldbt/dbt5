@@ -29,7 +29,7 @@ void *MarketWorkerThread(void* data)
 			// submit trade request
 			pThrParam->pMarketExchange->m_pCMEE->SubmitTradeRequest(pMessage);
 		} catch(CSocketErr *pErr) {
-			sockDrv.closeAccSocket(); // close connection
+			sockDrv.dbt5Disconnect(); // close connection
 
 			ostringstream osErr;
 			osErr << time(NULL) <<

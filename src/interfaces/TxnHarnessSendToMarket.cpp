@@ -22,7 +22,7 @@ CSendToMarket::CSendToMarket(ofstream* pfile, int MEport)
 
 CSendToMarket::~CSendToMarket()
 {
-	m_Socket->closeAccSocket();
+	m_Socket->dbt5Disconnect();
 	delete m_Socket;
 }
 
@@ -36,7 +36,7 @@ bool CSendToMarket::SendToMarket(TTradeRequest &trade_mes)
 	}
 	catch(CSocketErr *pErr)
 	{
-		m_Socket->closeAccSocket();	// close connection
+		m_Socket->dbt5Disconnect();	// close connection
 
 		ostringstream osErr;
 		osErr<<endl<<"Cannot send to market"<<endl

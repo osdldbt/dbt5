@@ -10,7 +10,11 @@
 #ifndef TXN_HARNESS_SENDTOMARKET_H
 #define TXN_HARNESS_SENDTOMARKET_H
 
+#include "TxnHarnessSendToMarketInterface.h"
 #include "locking.h"
+
+#include "SocketPorts.h"
+#include "CSocket.h"
 
 class CSendToMarket : public CSendToMarketInterface
 {
