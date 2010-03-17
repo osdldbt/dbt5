@@ -10,7 +10,22 @@
 
 namespace TPCE
 {
-	const int iMaxPort = 8;
+const int iMaxPort = 8;
+
+// Transaction Names
+static const char szTransactionName[12][18] = {
+		"TRADE_ORDER",
+		"TRADE_RESULT",
+		"TRADE_LOOKUP",
+		"TRADE_UPDATE",
+		"TRADE_STATUS",
+		"CUSTOMER_POSITION",
+		"BROKER_VOLUME",
+		"SECURITY_DETAIL",
+		"MARKET_FEED",
+		"MARKET_WATCH",
+		"DATA_MAINTENANCE",
+		"TRADE_CLEANUP"};
 }
 
 #endif	// DBT5_CONSTS_H

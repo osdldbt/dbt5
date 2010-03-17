@@ -80,14 +80,14 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 		length = sock->dbt5Send(reinterpret_cast<void *>(pRequest),
 				sizeof(*pRequest));
 	} catch(CSocketErr *pErr) {
-		sock->dbt5Disconnect(); // close connection
-		logResponseTime(-1, 0, 0);
+		sock->dbt5Reconnect();
+		logResponseTime(-1, 0, -1);
 
-		ostringstream osErr;
-		osErr << "Error sending ("<< length << ") txn " <<
-				pRequest->TxnType << ": " << pErr->ErrorText() << " at " <<
-				"CBaseInterface::talkToSUT " << endl;
-		logErrorMessage(osErr.str());
+		ostringstream msg;
+		msg << "Error sending ("<< length << ") txn " <<
+				szTransactionName[pRequest->TxnType] << ": " <<
+				pErr->ErrorText() << endl;
+		logErrorMessage(msg.str());
 		length = -1;
 		delete pErr;
 	}
@@ -95,21 +95,16 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 		length = sock->dbt5Receive(reinterpret_cast<void *>(&Reply),
 				sizeof(Reply));
 	} catch(CSocketErr *pErr) {
-		sock->dbt5Disconnect(); // close connection
-		logResponseTime(-1, 0, 0);
+		logResponseTime(-1, 0, -2);
 
-		ostringstream osErr;
-		osErr << "Error sending ("<< length << ") txn " <<
-				pRequest->TxnType << ": " << pErr->ErrorText() << " at " <<
-				"CBaseInterface::talkToSUT " << endl;
-		logErrorMessage(osErr.str());
+		ostringstream msg;
+		msg << "Error reeiving ("<< length << ") txn " <<
+				szTransactionName[pRequest->TxnType] << ": " <<
+				pErr->ErrorText() << endl;
+		logErrorMessage(msg.str());
 		length = -1;
 		if (pErr->getAction() == CSocketErr::ERR_SOCKET_CLOSED)
-			// FIXME: If the socket is closed, it's most likely because the
-			// BrokerageHouse program went down so there is no point in
-			// continuing.  Yet there must be a more robust way of going about
-			// this.
-			exit(1);
+			sock->dbt5Reconnect();
 		delete pErr;
 	}
 
@@ -123,7 +118,7 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 	//log response time
 	logResponseTime(Reply.iStatus, pRequest->TxnType, TxnTime.MSec() / 1000.0);
 
-	if (Reply.iStatus == 0)
+	if (Reply.iStatus == CBaseTxnErr::SUCCESS)
 		return true;
 	return false;
 }
@@ -140,12 +135,18 @@ void CBaseInterface::logResponseTime(int iStatus, int iTxnType, double dRT)
 				dRT << "," << (int) pthread_self() << endl;
 	} else if (iStatus > 0) {
 		// Warning status.
-		*(m_pfMix) << (int) time(NULL) << ",W" << iStatus << "," << dRT <<
-				"," << (int) pthread_self() << endl;
+		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "W" << iStatus <<
+				"," << dRT << "," << (int) pthread_self() << endl;
+	} else if (iStatus == -1 && dRT == -1) {
+		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "US" << iStatus <<
+				"," << dRT << "," << (int) pthread_self() << endl;
+	} else if (iStatus == -1 && dRT == -2) {
+		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "UR" << iStatus <<
+				"," << dRT << "," << (int) pthread_self() << endl;
 	} else if (iStatus < 0) {
 		// Invalidating status.
-		*(m_pfMix) << (int) time(NULL) << ",I" << iStatus << "," << dRT <<
-				"," << (int) pthread_self() << endl;
+		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "I" << iStatus <<
+				"," << dRT << "," << (int) pthread_self() << endl;
 	} else {
 		// Unknown status.
 		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "U" << iStatus <<
