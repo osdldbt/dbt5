@@ -8,7 +8,7 @@ EGEN=@egen_path@/src
 
 bin_PROGRAMS = DriverMain
 
-DriverMain_CPPFLAGS=-I@egen_path@/inc -I../include @DB_CFLAGS@
+DriverMain_CPPFLAGS=-I@egen_path@/inc -I../include
 DriverMain_LDFLAGS=$(DB_LDFLAGS)
 DriverMain_SOURCES = Driver.cpp \
                      DriverMain.cpp \

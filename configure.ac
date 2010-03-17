@@ -200,45 +200,20 @@ if test "$database_to_use" = "pgsql"; then
     AC_MSG_ERROR([*** vacuumdb is required])
   fi
 
-  if test "$PG_CONFIG" != "no"; then
-    AC_MSG_CHECKING([for PostgreSQL libraries])
-
-    BINDIR=`$PG_CONFIG --bindir`
-    AC_SUBST(BINDIR)
-    INCLUDEDIR=`$PG_CONFIG --includedir`
-    PKGINCLUDEDIR=`$PG_CONFIG --pkgincludedir`
-    INCLUDEDIR_SERVER=`$PG_CONFIG --includedir-server`
-
-    DB_CFLAGS="-I$INCLUDEDIR -I$PKGINCLUDEDIR -I$INCLUDEDIR_SERVER"
-    LIBDIR=`$PG_CONFIG --libdir`
-    DB_LDFLAGS="-L$LIBDIR -Wl,-R$LIBDIR -lpq $LDFLAGS"
-
-    POSTGRESQL_VERSION=`$PG_CONFIG --version | sed -e 's#PostgreSQL ##'`
-
-    AC_DEFINE([HAVE_POSTGRESQL], [1],
-        [Define to 1 if PostgreSQL libraries are available])
-
-    found_postgresql="yes"
-    AC_MSG_RESULT([yes])
-  fi
-
   dnl
-  dnl Find pqxx libraries
+  dnl Find libpq and libpqxx headers and libraries.
   dnl
-
   LIBPQXX_CFLAGS=`$PKG_CONFIG --cflags libpqxx`
-  LIBPQXX_LDFLAGS=`$PKG_CONFIG --libs libpqxx`
-  DB_CFLAGS="$DB_CFLAGS $LIBPQXX_CFLAGS"
-  DB_LDFLAGS="$DB_LDFLAGS $LIBPQXX_LDFLAGS"
-  AC_MSG_NOTICE([using libpqxx headers at $LIBPQXX_CFLAGS])
-  AC_MSG_NOTICE([using libpqxx libraries at $LIBPQXX_LDFLAGS])
+dnl  AC_CHECK_HEADER(pqxx/pqxx, [], [
+dnl      AC_MSG_ERROR([could not locate pqxx headers])
+dnl  ])
+  AC_CHECK_LIB(pq, PQtrace)
+  AC_CHECK_LIB(pqxx, connect)
 
   STORED_PROC_TYPE="COMPILE_PLSQL_FUNCTION"
   CFLAGS="$CFLAGS $DEBUG_FLAG -DCOMPILE_PGSQL_LOAD"
 fi
 
-AC_SUBST(DB_CFLAGS)
-AC_SUBST(DB_LDFLAGS)
 AC_SUBST(STORED_PROC_TYPE)
 
 AC_SUBST(database_to_use)

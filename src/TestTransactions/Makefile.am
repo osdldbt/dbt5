@@ -9,7 +9,7 @@ EGEN=@egen_path@/src
 
 bin_PROGRAMS = TestTxn
 
-TestTxn_CPPFLAGS=-I@egen_path@/inc -I../include @DB_CFLAGS@
+TestTxn_CPPFLAGS=-I@egen_path@/inc -I../include
 TestTxn_LDFLAGS=$(DB_LDFLAGS)
 TestTxn_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                   $(EGEN)/BaseLogger.cpp \
