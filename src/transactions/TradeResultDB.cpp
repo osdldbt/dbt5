@@ -121,7 +121,7 @@ void CTradeResultDB::DoTradeResultFrame2(
 	pOut->sell_value = c[3].as(double());
 	pOut->status = c[4].as(int());
 	pOut->tax_status = c[5].as(int());
-	sscanf(c[6].c_str(), "%d-%d-%d %d:%d:%d.%*d",
+	sscanf(c[6].c_str(), "%hd-%hd-%hd %hd:%hd:%hd.%*d",
 			&pOut->trade_dts.year,
 			&pOut->trade_dts.month,
 			&pOut->trade_dts.day,

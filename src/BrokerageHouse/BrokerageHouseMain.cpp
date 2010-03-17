@@ -78,7 +78,7 @@ void parse_command_line(int argc, char *argv[])
 			strncpy(szDBPort, vp, iMaxPort);
 			break;
 		case 'l':
-			sscanf(vp, "%"PRId64, &iListenPort);
+			iListenPort = atoi(vp);
 			break;
 		default:
 			usage();

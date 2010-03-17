@@ -89,7 +89,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 	TokenizeSmart(c[i_cash_transaction_dts].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].cash_transaction_dts.year,
 				&pOut->trade_info[i].cash_transaction_dts.month,
 				&pOut->trade_info[i].cash_transaction_dts.day,
@@ -152,7 +152,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 	TokenizeSmart(c[i_settlement_cash_due_date].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].settlement_cash_due_date.year,
 				&pOut->trade_info[i].settlement_cash_due_date.month,
 				&pOut->trade_info[i].settlement_cash_due_date.day,
@@ -184,21 +184,21 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 		vector<string>::iterator p2;
 		TokenizeSmart((*p).c_str(), v2);
 		p2 = v2.begin();
-		sscanf((*p2++).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p2++).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].trade_history_dts[0].year,
 				&pOut->trade_info[i].trade_history_dts[0].month,
 				&pOut->trade_info[i].trade_history_dts[0].day,
 				&pOut->trade_info[i].trade_history_dts[0].hour,
 				&pOut->trade_info[i].trade_history_dts[0].minute,
 				&pOut->trade_info[i].trade_history_dts[0].second);
-		sscanf((*p2++).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p2++).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].trade_history_dts[1].year,
 				&pOut->trade_info[i].trade_history_dts[1].month,
 				&pOut->trade_info[i].trade_history_dts[1].day,
 				&pOut->trade_info[i].trade_history_dts[1].hour,
 				&pOut->trade_info[i].trade_history_dts[1].minute,
 				&pOut->trade_info[i].trade_history_dts[1].second);
-		sscanf((*p2).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p2).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].trade_history_dts[2].year,
 				&pOut->trade_info[i].trade_history_dts[2].month,
 				&pOut->trade_info[i].trade_history_dts[2].day,
@@ -412,7 +412,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 	TokenizeSmart(c[i_cash_transaction_dts].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].cash_transaction_dts.year,
 				&pOut->trade_info[i].cash_transaction_dts.month,
 				&pOut->trade_info[i].cash_transaction_dts.day,
@@ -466,7 +466,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 	TokenizeSmart(c[i_settlement_cash_due_date].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].settlement_cash_due_date.year,
 				&pOut->trade_info[i].settlement_cash_due_date.month,
 				&pOut->trade_info[i].settlement_cash_due_date.day,
@@ -497,21 +497,21 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 		vector<string>::iterator p2;
 		TokenizeSmart((*p).c_str(), v2);
 		p2 = v2.begin();
-		sscanf((*p2++).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p2++).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].trade_history_dts[0].year,
 				&pOut->trade_info[i].trade_history_dts[0].month,
 				&pOut->trade_info[i].trade_history_dts[0].day,
 				&pOut->trade_info[i].trade_history_dts[0].hour,
 				&pOut->trade_info[i].trade_history_dts[0].minute,
 				&pOut->trade_info[i].trade_history_dts[0].second);
-		sscanf((*p2++).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p2++).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].trade_history_dts[1].year,
 				&pOut->trade_info[i].trade_history_dts[1].month,
 				&pOut->trade_info[i].trade_history_dts[1].day,
 				&pOut->trade_info[i].trade_history_dts[1].hour,
 				&pOut->trade_info[i].trade_history_dts[1].minute,
 				&pOut->trade_info[i].trade_history_dts[1].second);
-		sscanf((*p2).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p2).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].trade_history_dts[2].year,
 				&pOut->trade_info[i].trade_history_dts[2].month,
 				&pOut->trade_info[i].trade_history_dts[2].day,
@@ -739,7 +739,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
 	TokenizeSmart(c[i_cash_transaction_dts].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].cash_transaction_dts.year,
 				&pOut->trade_info[i].cash_transaction_dts.month,
 				&pOut->trade_info[i].cash_transaction_dts.day,
@@ -819,7 +819,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
 	TokenizeSmart(c[i_settlement_cash_due_date].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].settlement_cash_due_date.year,
 				&pOut->trade_info[i].settlement_cash_due_date.month,
 				&pOut->trade_info[i].settlement_cash_due_date.day,
@@ -846,7 +846,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
 	TokenizeSmart(c[i_trade_dts].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].trade_dts.year,
 				&pOut->trade_info[i].trade_dts.month,
 				&pOut->trade_info[i].trade_dts.day,
@@ -866,7 +866,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
 		TokenizeSmart((*p).c_str(), v2);
 		int j = 0;
 		for (p2 = v2.begin(); p2 != v2.end(); ++p2) {
-			sscanf((*p2).c_str(), "%d-%d-%d %d:%d:%d",
+			sscanf((*p2).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 					&pOut->trade_info[i].trade_history_dts[j].year,
 					&pOut->trade_info[i].trade_history_dts[j].month,
 					&pOut->trade_info[i].trade_history_dts[j].day,

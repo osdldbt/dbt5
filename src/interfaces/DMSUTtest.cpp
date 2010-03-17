@@ -31,6 +31,8 @@ bool CDMSUTtest::DataMaintenance( PDataMaintenanceTxnInput pTxnInput )
 	
 	// Perform Data Maintenance
 	m_DataMaintenance.DoTxn( pTxnInput, &m_DataMaintenanceTxnOutput);
+
+	return true;
 }
 
 bool CDMSUTtest::TradeCleanup( PTradeCleanupTxnInput pTxnInput )
@@ -45,4 +47,6 @@ bool CDMSUTtest::TradeCleanup( PTradeCleanupTxnInput pTxnInput )
 	
 	// Perform Trade Cleanup	
 	m_TradeCleanup.DoTxn( pTxnInput, &m_TradeCleanupTxnOutput);
+
+	return true;
 }

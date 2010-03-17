@@ -31,9 +31,9 @@ void usage()
 	cout << "Usage: MarketExchangeMain [options]" << endl << endl;
 	cout << "   Option      Default     Description" << endl;
 	cout << "   ==========  ==========  =============================" << endl;
-	printf("   -a integer  %-10d  Active customer count\n",
+	printf("   -a integer  %-10ld  Active customer count\n",
 			iActiveCustomerCount);
-	printf("   -c integer  %-10d  Configured customer count\n",
+	printf("   -c integer  %-10ld  Configured customer count\n",
 			iConfiguredCustomerCount);
 	cout << "   -e string               Location of EGen flat_in directory" <<
 			endl;
@@ -78,10 +78,10 @@ void parse_command_line(int argc, char *argv[])
 		// Parse the switch
 		switch (*sp) {
 		case 'a':
-			sscanf(vp, "%"PRId64, &iActiveCustomerCount);
+			iActiveCustomerCount = atol(vp);
 			break;
 		case 'c':
-			sscanf(vp, "%"PRId64, &iConfiguredCustomerCount);
+			iConfiguredCustomerCount = atol(vp);
 			break;
 		case 'e':
 			strncpy(szFileLoc, vp, iMaxPath);
@@ -90,7 +90,7 @@ void parse_command_line(int argc, char *argv[])
 			strncpy(szBHaddr, vp, iMaxHostname);
 			break;
 		case 'l':
-			sscanf(vp, "%d", &iListenPort);
+			iListenPort = atoi(vp);
 			break;
 		case 'o':
 			strncpy(outputDirectory, vp, iMaxPath);

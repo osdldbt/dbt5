@@ -65,12 +65,12 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	pOut->news_len = c[i_news_len].as(int());
 
 	pOut->s52_wk_high = c[i_s52_wk_high].as(double());
-	sscanf(c[i_s52_wk_high_date].c_str(), "%d-%d-%d",
+	sscanf(c[i_s52_wk_high_date].c_str(), "%hd-%hd-%hd",
 			&pOut->s52_wk_high_date.year,
 			&pOut->s52_wk_high_date.month,
 			&pOut->s52_wk_high_date.day);
 	pOut->s52_wk_low = c[i_s52_wk_low].as(double());
-	sscanf(c[i_s52_wk_low_date].c_str(), "%d-%d-%d",
+	sscanf(c[i_s52_wk_low_date].c_str(), "%hd-%hd-%hd",
 			&pOut->s52_wk_low_date.year,
 			&pOut->s52_wk_low_date.month,
 			&pOut->s52_wk_low_date.day);
@@ -126,7 +126,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 		TokenizeSmart((*p).c_str(), v2);
 
 		p2 = v2.begin();
-		sscanf((*p2++).c_str(), "%d-%d-%d",
+		sscanf((*p2++).c_str(), "%hd-%hd-%hd",
 				&pOut->day[i].date.year,
 				&pOut->day[i].date.month,
 				&pOut->day[i].date.day);
@@ -149,7 +149,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	strncpy(pOut->ex_ad_town, c[i_ex_ad_town].c_str(), cAD_TOWN_len);
 	strncpy(pOut->ex_ad_zip, c[i_ex_ad_zip].c_str(), cAD_ZIP_len);
 	pOut->ex_close = c[i_ex_close].as(int());
-	sscanf(c[i_ex_date].c_str(), "%d-%d-%d",
+	sscanf(c[i_ex_date].c_str(), "%hd-%hd-%hd",
 			&pOut->ex_date.year,
 			&pOut->ex_date.month,
 			&pOut->ex_date.day);
@@ -171,7 +171,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 		p2 = v2.begin();
 		pOut->fin[i].year = atoi((*p2++).c_str());
 		pOut->fin[i].qtr = atoi((*p2++).c_str());
-		sscanf((*p2++).c_str(), "%d-%d-%d",
+		sscanf((*p2++).c_str(), "%hd-%hd-%hd",
 				&pOut->fin[i].start_date.year,
 				&pOut->fin[i].start_date.month,
 				&pOut->fin[i].start_date.day);
@@ -207,7 +207,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 
 		p2 = v2.begin();
 		strcpy(pOut->news[i].item, (*p2++).c_str());
-		sscanf((*p2++).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p2++).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->news[i].dts.year,
 				&pOut->news[i].dts.month,
 				&pOut->news[i].dts.day,
@@ -224,7 +224,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	check_count(pOut->news_len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	sscanf(c[i_open_date].c_str(), "%d-%d-%d",
+	sscanf(c[i_open_date].c_str(), "%hd-%hd-%hd",
 			&pOut->open_date.year,
 			&pOut->open_date.month,
 			&pOut->open_date.day);
@@ -232,7 +232,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	strncpy(pOut->s_name, c[i_s_name].c_str(), cS_NAME_len);
 	pOut->num_out = c[i_num_out].as(int());
 	strncpy(pOut->sp_rate, c[i_sp_rate].c_str(), cSP_RATE_len);
-	sscanf(c[i_start_date].c_str(), "%d-%d-%d",
+	sscanf(c[i_start_date].c_str(), "%hd-%hd-%hd",
 			&pOut->start_date.year,
 			&pOut->start_date.month,
 			&pOut->start_date.day);

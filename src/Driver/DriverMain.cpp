@@ -32,7 +32,7 @@ int iPacingDelay = 0;
 char szInDir[iMaxPath + 1]; // path to EGen input files
 char outputDirectory[iMaxPath + 1] = "."; // path to output files
 // automatic RNG seed generation requires unique input
-UINT32 iSeed = -1;
+UINT32 iSeed = 0;
 
 // shows program usage
 void usage()
@@ -40,9 +40,9 @@ void usage()
 	cout << "Usage: DriverMain {options}" << endl << endl <<
 			"   Option      Default    Description" << endl <<
 			"   ==========  =========  ===============================" << endl;
-	printf("   -a integer  %-9d  Active customer count\n",
+	printf("   -a integer  %-9ld  Active customer count\n",
 			iActiveCustomerCount);
-	printf("   -c integer  %-9d  Configured customer count\n",
+	printf("   -c integer  %-9ld  Configured customer count\n",
 			iConfiguredCustomerCount);
 	printf("   -e string   %-9s  Path to EGen flat_in directory\n", szInDir);
 	printf("   -f integer  %-9d  # of customers per 1 TRTPS\n",

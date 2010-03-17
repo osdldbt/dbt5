@@ -91,7 +91,7 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 	TokenizeSmart(c[i_cash_transaction_dts].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].cash_transaction_dts.year,
 				&pOut->trade_info[i].cash_transaction_dts.month,
 				&pOut->trade_info[i].cash_transaction_dts.day,
@@ -162,7 +162,7 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 	TokenizeSmart(c[i_settlement_cash_due_date].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].settlement_cash_due_date.year,
 				&pOut->trade_info[i].settlement_cash_due_date.month,
 				&pOut->trade_info[i].settlement_cash_due_date.day,
@@ -197,7 +197,7 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 		TokenizeSmart((*p).c_str(), v2);
 		int j = 0;
 		for (p2 = v2.begin(); p2 != v2.end(); ++p2) {
-			sscanf((*p2).c_str(), "%d-%d-%d %d:%d:%d",
+			sscanf((*p2).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 					&pOut->trade_info[i].trade_history_dts[j].year,
 					&pOut->trade_info[i].trade_history_dts[j].month,
 					&pOut->trade_info[i].trade_history_dts[j].day,
@@ -407,7 +407,7 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 	TokenizeSmart(c[i_cash_transaction_dts].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].cash_transaction_dts.year,
 				&pOut->trade_info[i].cash_transaction_dts.month,
 				&pOut->trade_info[i].cash_transaction_dts.day,
@@ -461,7 +461,7 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 	TokenizeSmart(c[i_settlement_cash_due_date].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].settlement_cash_due_date.year,
 				&pOut->trade_info[i].settlement_cash_due_date.month,
 				&pOut->trade_info[i].settlement_cash_due_date.day,
@@ -493,7 +493,7 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 		TokenizeSmart((*p).c_str(), v2);
 		int j = 0;
 		for (p2 = v2.begin(); p2 != v2.end(); ++p2) {
-			sscanf((*p2).c_str(), "%d-%d-%d %d:%d:%d",
+			sscanf((*p2).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 					&pOut->trade_info[i].trade_history_dts[j].year,
 					&pOut->trade_info[i].trade_history_dts[j].month,
 					&pOut->trade_info[i].trade_history_dts[j].day,
@@ -713,7 +713,7 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 	TokenizeSmart(c[i_cash_transaction_dts].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].cash_transaction_dts.year,
 				&pOut->trade_info[i].cash_transaction_dts.month,
 				&pOut->trade_info[i].cash_transaction_dts.day,
@@ -786,7 +786,7 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 	TokenizeSmart(c[i_settlement_cash_due_date].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].settlement_cash_due_date.year,
 				&pOut->trade_info[i].settlement_cash_due_date.month,
 				&pOut->trade_info[i].settlement_cash_due_date.day,
@@ -813,7 +813,7 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 	TokenizeSmart(c[i_trade_dts].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].trade_dts.year,
 				&pOut->trade_info[i].trade_dts.month,
 				&pOut->trade_info[i].trade_dts.day,
@@ -833,7 +833,7 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 		TokenizeSmart((*p).c_str(), v2);
 		int j = 0;
 		for (p2 = v2.begin(); p2 != v2.end(); ++p2) {
-			sscanf((*p2).c_str(), "%d-%d-%d %d:%d:%d",
+			sscanf((*p2).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 					&pOut->trade_info[i].trade_history_dts[j].year,
 					&pOut->trade_info[i].trade_history_dts[j].month,
 					&pOut->trade_info[i].trade_history_dts[j].day,

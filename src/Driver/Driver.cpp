@@ -51,7 +51,7 @@ CDriver::CDriver(char *szInDir,
 			&m_LogLock, &m_MixLock);
 
 	// initialize DM - Data Maintenance
-	if (iSeed == -1) {
+	if (iSeed == 0) {
 		m_pCDM = new CDM(m_pCDMSUT, m_pLog, m_InputFiles,
 				iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
 				iDaysOfInitialTrades, pthread_self());

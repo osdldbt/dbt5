@@ -19,14 +19,15 @@ CCustomer::CCustomer(char* szInDir,
 : m_iUsers(iUsers), m_iPacingDelay(iPacingDelay)
 {
 	char filename[1024];
-	sprintf(filename, "%s/Customer_%d.log", outputDirectory, pthread_self());
+	sprintf(filename, "%s/Customer_%d.log", outputDirectory,
+			(int) pthread_self());
 	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
 	m_pDriverCETxnSettings = new TDriverCETxnSettings;
 	m_InputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount,
 			iActiveCustomerCount, szInDir);
 
 	sprintf(filename, "%s/Customer_Error_%d.log", outputDirectory,
-			pthread_self());
+			(int) pthread_self());
 	m_fLog.open(filename, ios::out);
 
 	// initialize CESUT interface
@@ -34,7 +35,7 @@ CCustomer::CCustomer(char* szInDir,
 			&m_LogLock, m_MixLock);
 
 	// initialize CE - Customer Emulator
-	if (iSeed == -1) {
+	if (iSeed == 0) {
 		m_pCCE = new CCE(m_pCCESUT, m_pLog, m_InputFiles,
 				iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
 				iDaysOfInitialTrades, pthread_self(), m_pDriverCETxnSettings);

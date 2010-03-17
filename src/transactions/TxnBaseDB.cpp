@@ -17,7 +17,6 @@ CTxnBaseDB::CTxnBaseDB(CDBConnection *pDB)
 
 CTxnBaseDB::~CTxnBaseDB()
 {
-	pDB->disconnect();
 }
 
 void CTxnBaseDB::begin()

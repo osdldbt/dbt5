@@ -36,7 +36,7 @@ CDBConnection::CDBConnection(const char *szHost, const char *szDBName,
 	}
 
 	char name[16];
-	sscanf(name, "%d", pthread_self());
+	sprintf(name, "%d", (int) pthread_self());
 	m_Conn = new connection(szConnectStr);
 	m_Txn = new nontransaction(*m_Conn, name);
 }

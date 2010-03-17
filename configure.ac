@@ -6,7 +6,7 @@ AM_INIT_AUTOMAKE
 
 dnl Check for programs.
 AC_PROG_CXX
-CXXFLAGS="-g -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS"
+CXXFLAGS="-g -Wall -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS"
 
 dnl Replace below with this in future release AC_PROG_EGREP
 AC_PATH_PROGS([EGREP], ['grep -E'], ,

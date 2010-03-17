@@ -19,7 +19,8 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 	enum mff1 {i_send_len=0, i_status, i_rows_updated, i_symbol,
 			i_trade_id, i_price_quote, i_trade_qty, i_trade_type};
 
-	for (int i = 0; i < (sizeof(pIn->Entries)/sizeof(pIn->Entries[0])); ++i)
+	for (unsigned int i = 0;
+			i < (sizeof(pIn->Entries)/sizeof(pIn->Entries[0])); ++i)
 	{
 		if (i == 0)
 		{

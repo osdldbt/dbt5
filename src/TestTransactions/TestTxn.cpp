@@ -185,7 +185,7 @@ bool ParseCommandLine( int argc, char *argv[] )
 			}
 			break;
 		case 'r':
-			sscanf(vp, "%d", &Seed);
+			Seed = atoi(vp);
 			break;
 		default:
 			return(false);

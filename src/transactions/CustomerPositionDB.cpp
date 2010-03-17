@@ -92,7 +92,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 	strncpy(pOut->c_ctry_2, c[i_c_ctry_2].c_str(), cCTRY_len);
 	strncpy(pOut->c_ctry_3, c[i_c_ctry_3].c_str(), cCTRY_len);
 
-	sscanf(c[i_c_dob].c_str(), "%d-%d-%d", &pOut->c_dob.year,
+	sscanf(c[i_c_dob].c_str(), "%hd-%hd-%hd", &pOut->c_dob.year,
 			&pOut->c_dob.month, &pOut->c_dob.day);
 
 	strncpy(pOut->c_email_1, c[i_c_email_1].c_str(), cEMAIL_len);
@@ -212,7 +212,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 	TokenizeSmart(c[i_hist_dts].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->hist_dts[i].year,
 				&pOut->hist_dts[i].month,
 				&pOut->hist_dts[i].day,

@@ -115,7 +115,7 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 	TokenizeSmart(c[i_trade_dts].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
-		sscanf((*p).c_str(), "%d-%d-%d %d:%d:%d",
+		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_dts[i].year,
 				&pOut->trade_dts[i].month,
 				&pOut->trade_dts[i].day,
