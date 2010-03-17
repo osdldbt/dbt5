@@ -11,6 +11,8 @@
 namespace TPCE
 {
 const int iMaxPort = 8;
+const int iMaxRetries = 10;
+const int iMaxConnectString = 128;
 
 // Transaction Names
 static const char szTransactionName[12][18] = {
@@ -26,6 +28,13 @@ static const char szTransactionName[12][18] = {
 		"MARKET_WATCH",
 		"DATA_MAINTENANCE",
 		"TRADE_CLEANUP"};
+
+// PostgreSQL Messages
+static std::string PGSQL_SERIALIZE_ERROR =
+		"ERROR:  could not serialize access due to concurrent update";
+static std::string PGSQL_RECOVERY_ERROR =
+		"FATAL:  the database system is in recovery mode";
+static std::string PGSQL_CONNECTION_FAILED = "Connection to database failed";
 }
 
 #endif	// DBT5_CONSTS_H

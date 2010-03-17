@@ -21,7 +21,7 @@ void *workerThread(void *data)
 	memset(pMessage, 0, sizeof(TMsgDriverBrokerage));   // zero the structure
 
 	TMsgBrokerageDriver Reply; // return message
-	INT32 iRet = 0; // return error
+	INT32 iRet = 0; // transaction return code
 	CDBConnection *pDBConnection = NULL;
 
 	int iNumRetry;
@@ -104,41 +104,31 @@ void *workerThread(void *data)
 								marketFeed);
 						break;
 					} catch (const pqxx::sql_error &e) {
-						// catch only serialization failure errors
-						if (PGSQL_SERIALIZE_ERROR.compare(e.what())) {
+						if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
 							ostringstream msg;
 							msg << time(NULL) << " " << pthread_self() << " " <<
-									pMessage->TxnType << endl;
+									szTransactionName[pMessage->TxnType] <<
+									endl;
+							msg << "attempt: " << iNumRetry << endl;
 							msg << "what: " << e.what();
 							msg << "query: " << e.query() << endl;
-							pThrParam->pBrokerageHouse->
-									logErrorMessage(msg.str(), false);
 
-							ostringstream osErr;
-							osErr << "*** MARKET FEED serialization failure : thread = " <<
-									pthread_self() << " Retry #"
-									<< iNumRetry << endl <<
-									"*** query = " << e.query() << endl;
-							pThrParam->pBrokerageHouse->logErrorMessage(
-									osErr.str(), false);
-
-							if (iNumRetry <= 100) {
-								iNumRetry++;
+							if (iNumRetry <= iMaxRetries) {
 								// Rollback the current transaction and
 								// try again.  Wait 1 second to give the
 								// other transaction time to finish.
 								pDBConnection->rollback();
+								pThrParam->pBrokerageHouse->
+										logErrorMessage(msg.str(), false);
+								iNumRetry++;
 								sleep(1);
 							} else {
-								// it couldn't resubmit successfully,
-								osErr << "*** MARKET FEED could not resubmit transaction successfully : thread = " <<
-										pthread_self() << " Retry #"
-										<< iNumRetry << endl <<
-										"*** query = " << e.query() << endl;
+								// Couldn't resubmit successfully.
+								msg << "giving up" << endl;
+								pThrParam->pBrokerageHouse->
+										logErrorMessage(msg.str(), false);
 								throw;
 							}
-							// error should be caught by the next pqxx
-							// catch in this function
 						} else {
 							// other pqxx errors should be caught by the next
 							// pqxx catch in this function
@@ -185,41 +175,31 @@ void *workerThread(void *data)
 								tradeOrder);
 						break;
 					} catch (const pqxx::sql_error &e) {
-						// catch only serialization failure errors
-						if (PGSQL_SERIALIZE_ERROR.compare(e.what())) {
+						if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
 							ostringstream msg;
 							msg << time(NULL) << " " << pthread_self() << " " <<
-									pMessage->TxnType << endl;
+									szTransactionName[pMessage->TxnType] <<
+									endl;
+							msg << "attempt: " << iNumRetry << endl;
 							msg << "what: " << e.what();
 							msg << "query: " << e.query() << endl;
-							pThrParam->pBrokerageHouse->
-									logErrorMessage(msg.str(), false);
 
-							ostringstream osErr;
-							osErr << "*** TRADE ORDER serialization failure : thread = " <<
-									pthread_self() << " Retry #"
-									<< iNumRetry << endl <<
-									"*** query = " << e.query() << endl;
-							pThrParam->pBrokerageHouse->logErrorMessage(
-									osErr.str(), false);
-
-							if (iNumRetry <= 100) {
-								iNumRetry++;
+							if (iNumRetry <= iMaxRetries) {
 								// Rollback the current transaction and
 								// try again.  Wait 1 second to give the
 								// other transaction time to finish.
 								pDBConnection->rollback();
+								pThrParam->pBrokerageHouse->
+										logErrorMessage(msg.str(), false);
+								iNumRetry++;
 								sleep(1);
 							} else {
-								// it couldn't resubmit successfully,
-								osErr << "*** TRADE ORDER could not resubmit transaction successfully : thread = " <<
-										pthread_self() << " Retry #"
-										<< iNumRetry << endl <<
-										"*** query = " << e.query() << endl;
+								// Couldn't resubmit successfully.
+								msg << "giving up" << endl;
+								pThrParam->pBrokerageHouse->
+										logErrorMessage(msg.str(), false);
 								throw;
 							}
-							// error should be caught by the next pqxx
-							// catch in this function
 						} else {
 							// other pqxx errors should be caught by the next
 							// pqxx catch in this function
@@ -252,40 +232,31 @@ void *workerThread(void *data)
 						break;
 					} catch (const pqxx::sql_error &e) {
 						// catch only serialization failure errors
-						if (PGSQL_SERIALIZE_ERROR.compare(e.what())) {
+						if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
 							ostringstream msg;
 							msg << time(NULL) << " " << pthread_self() << " " <<
-									pMessage->TxnType << endl;
+									szTransactionName[pMessage->TxnType] <<
+									endl;
+							msg << "attempt: " << iNumRetry << endl;
 							msg << "what: " << e.what();
 							msg << "query: " << e.query() << endl;
-							pThrParam->pBrokerageHouse->
-									logErrorMessage(msg.str(), false);
 
-							ostringstream osErr;
-							osErr << "*** TRADE RESULT serialization failure : thread = " <<
-									pthread_self() << " Retry #"
-									<< iNumRetry << endl <<
-									"*** query = " << e.query() << endl;
-							pThrParam->pBrokerageHouse->logErrorMessage(
-									osErr.str(), false);
-
-							if (iNumRetry <= 100) {
-								iNumRetry++;
+							if (iNumRetry <= iMaxRetries) {
 								// Rollback the current transaction and
 								// try again.  Wait 1 second to give the
 								// other transaction time to finish.
 								pDBConnection->rollback();
+								pThrParam->pBrokerageHouse->
+										logErrorMessage(msg.str(), false);
+								iNumRetry++;
 								sleep(1);
 							} else {
-								// it couldn't resubmit successfully,
-								osErr << "*** TRADE RESULT could not resubmit transaction successfully : thread = " <<
-										pthread_self() << " Retry #"
-										<< iNumRetry << endl <<
-										"*** query = " << e.query() << endl;
+								// Couldn't resubmit successfully.
+								msg << "giving up" << endl;
+								pThrParam->pBrokerageHouse->
+										logErrorMessage(msg.str(), false);
 								throw;
 							}
-							// error should be caught by the next pqxx
-							// catch in this function
 						} else {
 							// other pqxx errors should be caught by the next
 							// pqxx catch in this function
@@ -322,41 +293,31 @@ void *workerThread(void *data)
 								tradeUpdate);
 						break;
 					} catch (const pqxx::sql_error &e) {
-						// catch only serialization failure errors
-						if (PGSQL_SERIALIZE_ERROR.compare(e.what())) {
+						if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
 							ostringstream msg;
 							msg << time(NULL) << " " << pthread_self() << " " <<
-									pMessage->TxnType << endl;
+									szTransactionName[pMessage->TxnType] <<
+									endl;
+							msg << "attempt: " << iNumRetry << endl;
 							msg << "what: " << e.what();
 							msg << "query: " << e.query() << endl;
-							pThrParam->pBrokerageHouse->
-									logErrorMessage(msg.str(), false);
 
-							ostringstream osErr;
-							osErr << "*** TRADE UPDATE serialization failure : thread = " <<
-									pthread_self() << " Retry #"
-									<< iNumRetry << endl <<
-									"*** query = " << e.query() << endl;
-							pThrParam->pBrokerageHouse->logErrorMessage(
-									osErr.str(), false);
-
-							if (iNumRetry <= 100) {
-								iNumRetry++;
+							if (iNumRetry <= iMaxRetries) {
 								// Rollback the current transaction and
 								// try again.  Wait 1 second to give the
 								// other transaction time to finish.
 								pDBConnection->rollback();
+								pThrParam->pBrokerageHouse->
+										logErrorMessage(msg.str(), false);
+								iNumRetry++;
 								sleep(1);
 							} else {
-								// it couldn't resubmit successfully,
-								osErr << "*** TRADE UPDATE could not resubmit transaction successfully : thread = " <<
-										pthread_self() << " Retry #"
-										<< iNumRetry << endl <<
-										"*** query = " << e.query() << endl;
+								// Couldn't resubmit successfully.
+								msg << "giving up" << endl;
+								pThrParam->pBrokerageHouse->
+										logErrorMessage(msg.str(), false);
 								throw;
 							}
-							// error should be caught by the next pqxx
-							// catch in this function
 						} else {
 							// other pqxx errors should be caught by the next
 							// pqxx catch in this function
@@ -391,27 +352,34 @@ void *workerThread(void *data)
 		} catch (const pqxx::broken_connection &e) {
 			ostringstream msg;
 			msg << time(NULL) << " " << pthread_self() << " " <<
-					pMessage->TxnType << endl;
+					szTransactionName[pMessage->TxnType] << endl;
 			msg << "what: " << e.what() << endl;
-			pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
 
-			if (PGSQL_RECOVERY_ERROR.compare(e.what())) {
+			if (PGSQL_RECOVERY_ERROR.compare(e.what()) == 0) {
 				// The database has crashed, just quit.
+				msg << "fatal" << endl;
+				pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
 				exit(1);
+			} else if (PGSQL_CONNECTION_FAILED.compare(e.what()) == 0) {
+				msg << "reconnecting to database" << endl;
+				sockDrv.dbt5Reconnect();
+			} else {
+				msg << "unhandled" << endl;
 			}
+			pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
 
 			iRet = CBaseTxnErr::ROLLBACK;
 		} catch (const pqxx::sql_error &e) {
+			// Rollback current transaction.
 			pDBConnection->rollback();
 
 			ostringstream msg;
 			msg << time(NULL) << " " << pthread_self() << " " <<
-					pMessage->TxnType << endl;
+					szTransactionName[pMessage->TxnType] << endl;
 			msg << "what: " << e.what();
 			msg << "query: " << e.query() << endl;
 			pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
 			iRet = CBaseTxnErr::ROLLBACK;
-			// Rollback any transaction in place.
 		}
 
 		// send status to driver
