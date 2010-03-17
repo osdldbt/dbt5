@@ -8,7 +8,7 @@
  * 30 July 2006
  */
 
-#include "transactions.h"
+#include "MarketExchange.h"
 
 // worker thread
 void *MarketWorkerThread(void* data)
@@ -19,7 +19,7 @@ void *MarketWorkerThread(void* data)
 	sockDrv.setSocketFd(pThrParam->iSockfd); // client socket
 
 	PTradeRequest pMessage = new TTradeRequest;
-	memset(pMessage, 0, sizeof(TTradeRequest));   // zero the structure
+	memset(pMessage, 0, sizeof(TTradeRequest)); // zero the structure
 
 	do {
 		try {
@@ -49,7 +49,7 @@ void *MarketWorkerThread(void* data)
 }
 
 // entry point for worker thread
-void EntryMarketWorkerThread(void* data)
+void EntryMarketWorkerThread(void *data)
 {
 	PMarketThreadParam pThrParam = reinterpret_cast<PMarketThreadParam>(data);
 
@@ -91,10 +91,10 @@ void EntryMarketWorkerThread(void* data)
 }
 
 // Constructor
-CMarketExchange::CMarketExchange(char* szFileLoc,
+CMarketExchange::CMarketExchange(char *szFileLoc,
 		TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
-		int iListenPort, char* szBHaddr, int iBHlistenPort,
-		char* outputDirectory)
+		int iListenPort, char *szBHaddr, int iBHlistenPort,
+		char *outputDirectory)
 : m_iListenPort(iListenPort)
 {
 	char filename[iMaxPath + 1];

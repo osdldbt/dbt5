@@ -2,7 +2,7 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * 2006 Rilson Nascimento
+ * Copyright (C) 2006-2010 Rilson Nascimento
  *
  * This class represents the workload driver
  * 03 August 2006
@@ -11,7 +11,13 @@
 #ifndef DRIVER_H
 #define DRIVER_H
 
+#include "EGenLogFormatterTab.h"
+#include "EGenLogger.h"
+#include "InputFlatFilesStructure.h"
+#include "DMSUT.h"
 #include "locking.h"
+
+using namespace TPCE;
 
 class CDriver
 {

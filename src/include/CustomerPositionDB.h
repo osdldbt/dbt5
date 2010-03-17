@@ -10,8 +10,12 @@
 #ifndef CUSTOMER_POSITION_DB_H
 #define CUSTOMER_POSITION_DB_H
 
-#include <TxnHarnessDBInterface.h> 
- 
+#include "TxnHarnessDBInterface.h"
+
+#include "TxnBaseDB.h"
+#include "DBConnection.h"
+using namespace TPCE;
+
 class CCustomerPositionDB : public CTxnBaseDB,
 		public CCustomerPositionDBInterface
 {

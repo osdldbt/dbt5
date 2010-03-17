@@ -2,7 +2,7 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2006-2007 Rilson Nascimento
+ * Copyright (C) 2006-2010 Rilson Nascimento
  *
  * 11 July 2006
  */
@@ -10,8 +10,12 @@
 #ifndef TRADE_UPDATE_DB_H
 #define TRADE_UPDATE_DB_H
 
-#include <TxnHarnessDBInterface.h> 
- 
+#include "TxnHarnessDBInterface.h"
+
+#include "TxnBaseDB.h"
+#include "DBConnection.h"
+using namespace TPCE;
+
 class CTradeUpdateDB : public CTxnBaseDB, public CTradeUpdateDBInterface
 {
 public:

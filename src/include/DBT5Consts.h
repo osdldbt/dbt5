@@ -9,6 +9,9 @@
 #ifndef DBT5_CONSTS_H
 #define DBT5_CONSTS_H
 
+#include <string>
+using namespace std;
+
 namespace TPCE
 {
 const int iMaxPort = 8;

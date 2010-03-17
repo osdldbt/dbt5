@@ -8,7 +8,7 @@
  * 13 July 2006
  */
 
-#include "transactions.h"
+#include "BrokerVolumeDB.h"
 
 // Call Broker Volume Frame 1
 void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,

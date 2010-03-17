@@ -8,7 +8,7 @@
  * 12 July 2006
  */
 
-#include "transactions.h"
+#include "CustomerPositionDB.h"
 
 // Call Customer Position Frame 1
 void CCustomerPositionDB::DoCustomerPositionFrame1(

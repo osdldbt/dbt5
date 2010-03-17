@@ -8,7 +8,7 @@
  * 07 July 2006
  */
 
-#include "transactions.h"
+#include "TradeResultDB.h"
 
 // Call Trade Result Frame 1
 void CTradeResultDB::DoTradeResultFrame1(

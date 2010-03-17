@@ -2,13 +2,12 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2006 Rilson Nascimento
+ * Copyright (C) 2006-2010 Rilson Nascimento
  *
  * 17 July 2006
  */
 
-#include <transactions.h>
-#include <DMSUTtest.h>
+#include "DMSUTtest.h"
 
 CDMSUTtest::CDMSUTtest(CDBConnection *pDBConn)
 : m_pDBConnection(pDBConn)
@@ -19,7 +18,7 @@ CDMSUTtest::~CDMSUTtest()
 {
 }
 
-bool CDMSUTtest::DataMaintenance( PDataMaintenanceTxnInput pTxnInput )
+bool CDMSUTtest::DataMaintenance(PDataMaintenanceTxnInput pTxnInput)
 {
 	// Data Maintenance harness code (TPC provided)
 	// this class uses our implementation of CDataMaintenanceDB class
@@ -30,12 +29,12 @@ bool CDMSUTtest::DataMaintenance( PDataMaintenanceTxnInput pTxnInput )
 	TDataMaintenanceTxnOutput	m_DataMaintenanceTxnOutput;
 	
 	// Perform Data Maintenance
-	m_DataMaintenance.DoTxn( pTxnInput, &m_DataMaintenanceTxnOutput);
+	m_DataMaintenance.DoTxn(pTxnInput, &m_DataMaintenanceTxnOutput);
 
 	return true;
 }
 
-bool CDMSUTtest::TradeCleanup( PTradeCleanupTxnInput pTxnInput )
+bool CDMSUTtest::TradeCleanup(PTradeCleanupTxnInput pTxnInput)
 {
 	// Data Maintenance harness code (TPC provided)
 	// this class uses our implementation of CTradeCleanupDB class
@@ -46,7 +45,7 @@ bool CDMSUTtest::TradeCleanup( PTradeCleanupTxnInput pTxnInput )
 	TTradeCleanupTxnOutput	m_TradeCleanupTxnOutput;
 	
 	// Perform Trade Cleanup	
-	m_TradeCleanup.DoTxn( pTxnInput, &m_TradeCleanupTxnOutput);
+	m_TradeCleanup.DoTxn(pTxnInput, &m_TradeCleanupTxnOutput);
 
 	return true;
 }

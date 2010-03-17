@@ -2,7 +2,7 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2006 Rilson Nascimento
+ * Copyright (C) 2006-2010 Rilson Nascimento
  *
  * 06 July 2006
  */
@@ -13,23 +13,23 @@
 #include "TxnHarnessSendToMarketInterface.h"
 #include "locking.h"
 
-#include "SocketPorts.h"
+#include "DBT5Consts.h"
 #include "CSocket.h"
 
 class CSendToMarket : public CSendToMarketInterface
 {
-	ofstream*	m_pfLog;
-	int		m_MEport;
-	CSocket		*m_Socket;
-	CMutex	m_LogLock;
+	ofstream *m_pfLog;
+	int m_MEport;
+	CSocket *m_Socket;
+	CMutex m_LogLock;
 
 public:
-	void LogErrorMessage(const string sErr);
+	void LogErrorMessage(const string);
 
-	CSendToMarket(ofstream* pfile, int MEport = MarketExchangePort);
+	CSendToMarket(ofstream* pfile, int MEport = iMarketExchangePort);
 	~CSendToMarket();
 
-	virtual bool SendToMarket(TTradeRequest &trade_mes);
+	virtual bool SendToMarket(TTradeRequest &);
 };
 
 #endif	// TXN_HARNESS_SENDTOMARKET_H

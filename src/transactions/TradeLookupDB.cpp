@@ -8,7 +8,7 @@
  * 08 July 2006
  */
 
-#include "transactions.h"
+#include "TradeLookupDB.h"
 
 // Call Trade Lookup Frame 1
 void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,

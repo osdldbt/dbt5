@@ -8,7 +8,7 @@
  * 13 July 2006
  */
 
-#include "transactions.h"
+#include "MarketWatchDB.h"
 
 // Call Market Watch Frame 1
 void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,

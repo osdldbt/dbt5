@@ -8,9 +8,9 @@
  * 13 August 2006
  */
 
-#include "transactions.h"
+#include "BaseInterface.h"
+#include "DBT5Consts.h"
 
-// constructor
 CBaseInterface::CBaseInterface(char *addr, const int iListenPort,
 		ofstream *pflog, ofstream *pfmix, CMutex *pLogLock,
 		CMutex *pMixLock)

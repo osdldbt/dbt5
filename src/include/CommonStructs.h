@@ -3,12 +3,16 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2006 Rilson Nascimento
+ *               2010 Mark Wong
  *
  * 29 July 2006
  */
 
 #ifndef COMMON_STRUCTS_H
 #define COMMON_STRUCTS_H
+
+#include "CE.h"
+using namespace TPCE;
 
 // Transaction types
 enum eTxnType
@@ -32,7 +36,7 @@ enum eTxnType
 typedef struct TMsgDriverBrokerage
 {
 	eTxnType	TxnType;
-	union 
+	union
 	{
 		TBrokerVolumeTxnInput		BrokerVolumeTxnInput;
 		TCustomerPositionTxnInput	CustomerPositionTxnInput;

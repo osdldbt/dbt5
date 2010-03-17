@@ -8,9 +8,8 @@
  * 21 July 2006
  */
 
-#include "transactions.h"
 
-#include "TxnBaseDB.h"
+#include "MarketFeedDB.h"
 
 // Call Market Feed Frame 1
 void CMarketFeedDB::DoMarketFeedFrame1(

@@ -8,7 +8,7 @@
  * 18 July 2006
  */
 
-#include "transactions.h"
+#include "TradeCleanupDB.h"
 
 // Call Trade Cleanup Frame 1
 void CTradeCleanupDB::DoTradeCleanupFrame1(

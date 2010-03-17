@@ -8,7 +8,7 @@
  * 13 June 2006
  */
 
-#include "transactions.h"
+#include "TradeStatusDB.h"
 
 // Call Trade Status Frame 1
 void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,

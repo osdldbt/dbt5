@@ -9,12 +9,13 @@
  * 30 July 2006
  */
 
-#include "transactions.h"
+#include "MarketExchange.h"
+#include "DBT5Consts.h"
 
 // Establish defaults for command line options
 char szBHaddr[iMaxHostname + 1] = "localhost"; // Brokerage House address
-int iListenPort = MarketExchangePort; // socket port to listen
-int iBHlistenPort = BrokerageHousePort;
+int iListenPort = iMarketExchangePort; // socket port to listen
+int iBHlistenPort = iBrokerageHousePort;
 // # of customers for this instance
 TIdent iConfiguredCustomerCount = iDefaultLoadUnitSize;
 // total number of customers in the database
@@ -106,7 +107,7 @@ void parse_command_line(int argc, char *argv[])
 	}
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
 	// Establish defaults for command line options
 	strncpy(szFileLoc, "flat_in", iMaxPath);
@@ -126,7 +127,7 @@ int main(int argc, char* argv[])
 	cout << "Brokerage House port: " << iBHlistenPort << endl;
 
 	try {
-		CMarketExchange	MarketExchange(szFileLoc, iConfiguredCustomerCount,
+		CMarketExchange MarketExchange(szFileLoc, iConfiguredCustomerCount,
 				iActiveCustomerCount, iListenPort, szBHaddr, iBHlistenPort,
 				outputDirectory);
 		cout << "Market Exchange started, waiting for trade requests..." <<

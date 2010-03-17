@@ -8,7 +8,7 @@
  * 03 July 2006
  */
 
-#include "transactions.h"
+#include "TradeOrderDB.h"
 
 // Call Trade Order Frame 1
 void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,

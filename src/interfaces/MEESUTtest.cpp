@@ -2,14 +2,20 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2006 Rilson Nascimento
+ * Copyright (C) 2006-2010 Rilson Nascimento
  *
  * 23 July 2006
  */
 
-#include <transactions.h>
-#include <MEESUTtest.h>
-#include <TxnHarnessSendToMarketTest.h>
+#include "MEESUTtest.h"
+#include "TxnHarnessSendToMarketTest.h"
+
+#include "TxnHarnessMarketFeed.h"
+#include "TxnHarnessTradeResult.h"
+
+#include "MarketFeedDB.h"
+#include "TradeResultDB.h"
+using namespace TPCE;
 
 void *TradeResultAsync(void* data)
 {

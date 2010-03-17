@@ -2,21 +2,22 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2006 Rilson Nascimento
+ * Copyright (C) 2006-2010 Rilson Nascimento
  */
 
-#include <transactions.h>
-#include <CETxnInputGenerator.h>
 #include <cstdlib>
-#include <TxnHarnessSendToMarketTest.h>
-#include <DMSUTtest.h>
-#include <CESUT.h>
+using namespace std;
+
+#include "CETxnInputGenerator.h"
+#include "TxnHarnessSendToMarketTest.h"
+#include "DMSUTtest.h"
+#include "CESUT.h"
 #include "locking.h"
 
 // BrokerageHouseMain variables;
 CCESUT	*m_pCCESUT = NULL;
-char szBHaddr[1024] = "";
-int iBHlistenPort = BrokerageHousePort;
+char szBHaddr[iMaxHostname + 1] = "";
+int iBHlistenPort = iBrokerageHousePort;
 
 const int iPortLen = 7;
 char szPort[iPortLen + 1] = "";
@@ -123,7 +124,7 @@ bool ParseCommandLine( int argc, char *argv[] )
 		*/
 		switch ( *sp ) {
 		case 'b':
-			strcpy(szBHaddr, vp);
+			strncpy(szBHaddr, vp, iMaxHostname);
 			cout << "Will connect to BrokerageHouseMain at '" << szBHaddr <<
 					"'." << endl;
 			break;

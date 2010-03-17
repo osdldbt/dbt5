@@ -8,7 +8,9 @@
  * 03 August 2006
  */
 
-#include "transactions.h"
+#include "DM.h"
+
+#include "Driver.h"
 #include "Customer.h"
 
 // global variables
@@ -221,17 +223,15 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 
 	// mark end of ramp-up
 	m_MixLock.lock();
-	m_fMix << (int)time(NULL) << ",START" << endl;
+	m_fMix << (int) time(NULL) << ",START" << endl;
 	m_MixLock.unlock();
 
 	logErrorMessage(">> End of ramp-up.\n\n");
 
 	// wait until all threads quit
 	// 0 represents the Data-Maintenance thread
-	for (int i = 0; i <= iUsers; i++)
-	{
-		if (pthread_join(g_tid[i], NULL) != 0)
-		{
+	for (int i = 0; i <= iUsers; i++) {
+		if (pthread_join(g_tid[i], NULL) != 0) {
 			throw new CThreadErr( CThreadErr::ERR_THREAD_JOIN,
 					"Driver::RunTest" );
 		}
@@ -240,7 +240,7 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 
 
 // DM worker thread
-void *dmWorkerThread(void* data)
+void *dmWorkerThread(void *data)
 {
 	PCustomerThreadParam pThrParam =
 			reinterpret_cast<PCustomerThreadParam>(data);
@@ -296,7 +296,7 @@ void entryDMWorkerThread(CDriver *ptr)
 }
 
 // logErrorMessage
-void CDriver::logErrorMessage( const string sErr )
+void CDriver::logErrorMessage(const string sErr)
 {
 	m_LogLock.lock();
 	cout << sErr;

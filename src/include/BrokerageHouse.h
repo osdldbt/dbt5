@@ -12,8 +12,27 @@
 #ifndef BROKERAGE_HOUSE_H
 #define BROKERAGE_HOUSE_H
 
-#include "DBT5Consts.h"
+#include <fstream>
+using namespace std;
+
 #include "locking.h"
+#include "TxnHarnessStructs.h"
+#include "TxnHarnessBrokerVolume.h"
+#include "TxnHarnessCustomerPosition.h"
+#include "TxnHarnessDataMaintenance.h"
+#include "TxnHarnessMarketFeed.h"
+#include "TxnHarnessMarketWatch.h"
+#include "TxnHarnessSecurityDetail.h"
+#include "TxnHarnessTradeCleanup.h"
+#include "TxnHarnessTradeLookup.h"
+#include "TxnHarnessTradeOrder.h"
+#include "TxnHarnessTradeResult.h"
+#include "TxnHarnessTradeStatus.h"
+#include "TxnHarnessTradeUpdate.h"
+
+#include "DBT5Consts.h"
+#include "CSocket.h"
+using namespace TPCE;
 
 class CBrokerageHouse
 {

@@ -8,7 +8,7 @@
  * 15 July 2006
  */
 
-#include "transactions.h"
+#include "SecurityDetailDB.h"
 
 // Call Security Detail Frame 1
 void CSecurityDetailDB::DoSecurityDetailFrame1(

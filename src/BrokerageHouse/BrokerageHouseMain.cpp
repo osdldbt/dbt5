@@ -9,10 +9,11 @@
  * 25 July 2006
  */
 
-#include "transactions.h"
+#include "BrokerageHouse.h"
+#include "DBT5Consts.h"
 
 // Establish defaults for command line option
-int iListenPort = BrokerageHousePort;
+int iListenPort = iBrokerageHousePort;
 
 char szHost[iMaxHostname + 1] = "";
 char szDBName[iMaxDBName + 1] = "";
@@ -82,14 +83,12 @@ void parse_command_line(int argc, char *argv[])
 			break;
 		default:
 			usage();
-			cout <<  "Error: Unrecognized option: " << sp << endl;
-			exit(ERROR_BAD_OPTION);
+			cout << endl << "Error: Unrecognized option: " << sp << endl;
+			exit(1);
 		}
 	}
 }
 
-
-// main
 int main(int argc, char *argv[])
 {
 	cout << "dbt5 - Brokerage House" << endl;
@@ -117,7 +116,7 @@ int main(int argc, char *argv[])
 		cout << endl;
 		return 1;
 	} catch (std::bad_alloc err) {
-		// operator new will throw std::bad_alloc exception if there is no
+		// operator new will throw std::bad_alloc exception if there is not
 		// sufficient memory for the request.
 		cout << "*** Out of memory ***" << endl;
 		return 2;

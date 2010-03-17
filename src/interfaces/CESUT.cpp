@@ -2,12 +2,12 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2006 Rilson Nascimento
+ * Copyright (C) 2006-2010 Rilson Nascimento
  *
  * 13 August 2006
  */
 
-#include <transactions.h>
+#include "CESUT.h"
 
 // Constructor
 CCESUT::CCESUT(char* addr, const int iListenPort, ofstream* pflog,

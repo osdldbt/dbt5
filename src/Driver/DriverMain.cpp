@@ -11,7 +11,8 @@
 // TODO Partitioning by C_ID: This should be done by using the apropriate CCE's
 // constructor.
 
-#include "transactions.h"
+#include "Driver.h"
+#include "DBT5Consts.h"
 
 // Establish defaults for command line options
 char szBHaddr[iMaxHostname + 1] = "localhost"; // Brokerage House address

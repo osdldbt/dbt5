@@ -3,30 +3,32 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright (C) 2006 Rilson Nascimento
+ *               2010 Mark Wong
  *
  * 03 August 2006
  */
 
-#include <Customer.h>
-#include <transactions.h>
+#include "Customer.h"
+
+#include "CE.h"
 
 // Constructor
-CCustomer::CCustomer(char* szInDir,
+CCustomer::CCustomer(char *szInDir,
 		TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
 		INT32 iScaleFactor, INT32 iDaysOfInitialTrades, UINT32 iSeed,
-		char* szBHaddr, int iBHlistenPort, int iUsers, int iPacingDelay,
-		char* outputDirectory, ofstream *m_fMix, CMutex *m_MixLock)
+		char *szBHaddr, int iBHlistenPort, int iUsers, int iPacingDelay,
+		char *outputDirectory, ofstream *m_fMix, CMutex *m_MixLock)
 : m_iUsers(iUsers), m_iPacingDelay(iPacingDelay)
 {
-	char filename[1024];
-	sprintf(filename, "%s/Customer_%d.log", outputDirectory,
+	char filename[iMaxPath + 1];
+	snprintf(filename, iMaxPath, "%s/Customer_%d.log", outputDirectory,
 			(int) pthread_self());
 	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
 	m_pDriverCETxnSettings = new TDriverCETxnSettings;
 	m_InputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount,
 			iActiveCustomerCount, szInDir);
 
-	sprintf(filename, "%s/Customer_Error_%d.log", outputDirectory,
+	snprintf(filename, iMaxPath, "%s/Customer_Error_%d.log", outputDirectory,
 			(int) pthread_self());
 	m_fLog.open(filename, ios::out);
 
@@ -68,7 +70,7 @@ void CCustomer::DoTxn()
 }
 
 // LogErrorMessage
-void CCustomer::LogErrorMessage( const string sErr )
+void CCustomer::LogErrorMessage(const string sErr)
 {
 	m_LogLock.lock();
 	cout<<sErr;

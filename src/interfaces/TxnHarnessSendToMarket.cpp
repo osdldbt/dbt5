@@ -8,7 +8,7 @@
  * 30 July 2006
  */
 
-#include "transactions.h"
+#include "TxnHarnessSendToMarket.h"
 
 CSendToMarket::CSendToMarket(ofstream* pfile, int MEport)
 : m_pfLog(pfile), m_MEport(MEport)
@@ -28,20 +28,17 @@ CSendToMarket::~CSendToMarket()
 
 bool CSendToMarket::SendToMarket(TTradeRequest &trade_mes)
 {
-	try
-	{
+	try {
 		// send Trade Request to MEE
 		m_Socket->dbt5Send(reinterpret_cast<void *>(&trade_mes),
 				sizeof(TTradeRequest));
-	}
-	catch(CSocketErr *pErr)
-	{
+	} catch (CSocketErr *pErr) {
 		m_Socket->dbt5Disconnect();	// close connection
 
 		ostringstream osErr;
-		osErr<<endl<<"Cannot send to market"<<endl
-		     <<"Error: "<<pErr->ErrorText()
-		     <<" at "<<"CSendToMarket::SendToMarket"<<endl;
+		osErr << "Cannot send to market" << endl <<
+				"Error: " << pErr->ErrorText() <<
+				" at CSendToMarket::SendToMarket" << endl;
 		delete pErr;
 		LogErrorMessage(osErr.str());
 		return false;
@@ -51,11 +48,11 @@ bool CSendToMarket::SendToMarket(TTradeRequest &trade_mes)
 }
 
 // LogErrorMessage
-void CSendToMarket::LogErrorMessage( const string sErr )
+void CSendToMarket::LogErrorMessage(const string sErr)
 {
 	m_LogLock.lock();
-	cout<<sErr;
-	*(m_pfLog)<<sErr;
+	cout << sErr;
+	*(m_pfLog) << sErr;
 	m_pfLog->flush();
 	m_LogLock.unlock();
 }

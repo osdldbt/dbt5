@@ -8,17 +8,32 @@
  * 25 July 2006
  */
 
-#include "transactions.h"
+#include "BrokerageHouse.h"
+#include "CommonStructs.h"
+#include "DBConnection.h"
+
+#include "BrokerVolumeDB.h"
+#include "CustomerPositionDB.h"
+#include "DataMaintenanceDB.h"
+#include "MarketFeedDB.h"
+#include "MarketWatchDB.h"
+#include "SecurityDetailDB.h"
+#include "TradeCleanupDB.h"
+#include "TradeLookupDB.h"
+#include "TradeOrderDB.h"
+#include "TradeResultDB.h"
+#include "TradeStatusDB.h"
+#include "TradeUpdateDB.h"
 
 void *workerThread(void *data)
 {
 	PThreadParameter pThrParam = reinterpret_cast<PThreadParameter>(data);
 
 	CSocket sockDrv;
-	sockDrv.setSocketFd(pThrParam->iSockfd);	// client socket
+	sockDrv.setSocketFd(pThrParam->iSockfd); // client socket
 
 	PMsgDriverBrokerage pMessage = new TMsgDriverBrokerage;
-	memset(pMessage, 0, sizeof(TMsgDriverBrokerage));   // zero the structure
+	memset(pMessage, 0, sizeof(TMsgDriverBrokerage)); // zero the structure
 
 	TMsgBrokerageDriver Reply; // return message
 	INT32 iRet = 0; // transaction return code
@@ -26,7 +41,7 @@ void *workerThread(void *data)
 
 	int iNumRetry;
 
-	// new connection
+	// new database connection
 	pDBConnection = new CDBConnection(
 			pThrParam->pBrokerageHouse->m_szHost,
 			pThrParam->pBrokerageHouse->m_szDBName,

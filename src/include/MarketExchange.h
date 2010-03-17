@@ -12,7 +12,14 @@
 #ifndef MARKET_EXCHANGE_H
 #define MARKET_EXCHANGE_H
 
+#include "EGenLogFormatterTab.h"
+#include "EGenLogger.h"
+#include "SecurityFile.h"
 #include "locking.h"
+
+#include "CSocket.h"
+#include "MEESUT.h"
+using namespace TPCE;
 
 class CMarketExchange
 {
