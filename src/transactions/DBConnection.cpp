@@ -155,7 +155,14 @@ void CDBConnection::execute(string sql, TBrokerVolumeFrame1Output *pOut)
 	enum bvf1 { i_broker_name=0, i_list_len, i_status, i_volume };
 
 	result R(m_Txn->exec(sql));
-	// stored procedure can return an empty result set by design
+	if (R.empty()) {
+		pOut->status = CBaseTxnErr::ROLLBACK;
+		ostringstream msg;
+		msg << time(NULL) << " " << pthread_self() << endl <<
+				sql << endl;
+		bh->logErrorMessage(msg.str(), false);
+		return;
+	}
 
 	result::const_iterator c = R.begin();
 
@@ -188,14 +195,15 @@ void CDBConnection::execute(string sql, TBrokerVolumeFrame1Output *pOut)
 void CDBConnection::execute(string sql, TCustomerPositionFrame1Output *pOut)
 {
 	result R(m_Txn->exec(sql));
-
 	if (R.empty()) {
-		cout << "warning: empty result set at DoCustomerPositionFrame1" <<
-						endl <<
-				sql << endl;
 		pOut->status = CBaseTxnErr::ROLLBACK;
+		ostringstream msg;
+		msg << time(NULL) << " " << pthread_self() << endl <<
+				sql << endl;
+		bh->logErrorMessage(msg.str(), false);
 		return;
 	}
+
 	result::const_iterator c = R.begin();
 
 	enum cpf1 {
@@ -284,6 +292,14 @@ void CDBConnection::execute(string sql, TCustomerPositionFrame2Output *pOut)
 	};
 
 	result R(m_Txn->exec(sql));
+	if (R.empty()) {
+		pOut->status = CBaseTxnErr::ROLLBACK;
+		ostringstream msg;
+		msg << time(NULL) << " " << pthread_self() << endl <<
+				sql << endl;
+		bh->logErrorMessage(msg.str(), false);
+		return;
+	}
 
 	result::const_iterator c = R.begin();
 
@@ -350,6 +366,14 @@ void CDBConnection::execute(string sql, TCustomerPositionFrame2Output *pOut)
 void CDBConnection::execute(string sql, TDataMaintenanceFrame1Output *pOut)
 {
 	result R(m_Txn->exec(sql));
+	if (R.empty()) {
+		pOut->status = CBaseTxnErr::ROLLBACK;
+		ostringstream msg;
+		msg << time(NULL) << " " << pthread_self() << endl <<
+				sql << endl;
+		bh->logErrorMessage(msg.str(), false);
+		return;
+	}
 
 	result::const_iterator c = R.begin();
 	pOut->status = c[0].as(int());
@@ -371,6 +395,15 @@ void CDBConnection::execute(string sql, TMarketFeedFrame1Output *pOut,
 	while (true) {
 		try {
 			R = m_Txn->exec(sql);
+			if (R.empty()) {
+				pOut->send_len = 0;
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				ostringstream msg;
+				msg << time(NULL) << " " << pthread_self() << endl <<
+						sql << endl;
+				bh->logErrorMessage(msg.str(), false);
+				return;
+			}
 			break;
 		} catch (const pqxx::sql_error &e) {
 			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
@@ -403,73 +436,70 @@ void CDBConnection::execute(string sql, TMarketFeedFrame1Output *pOut,
 		}
 	}
 
-	if (!R.empty()) {
-		result::const_iterator c = R.begin();
+	result::const_iterator c = R.begin();
 
-		pOut->send_len = c[i_send_len].as(int());;
+	pOut->send_len = c[i_send_len].as(int());;
 
-		vector<string> v1;
-		vector<string>::iterator p1;
-		vector<string> v2;
-		vector<string>::iterator p2;
-		vector<string> v3;
-		vector<string>::iterator p3;
-		vector<string> v4;
-		vector<string>::iterator p4;
-		vector<string> v5;
-		vector<string>::iterator p5;
+	vector<string> v1;
+	vector<string>::iterator p1;
+	vector<string> v2;
+	vector<string>::iterator p2;
+	vector<string> v3;
+	vector<string>::iterator p3;
+	vector<string> v4;
+	vector<string>::iterator p4;
+	vector<string> v5;
+	vector<string>::iterator p5;
 
-		TokenizeSmart(c[i_symbol].c_str(), v1);
-		TokenizeSmart(c[i_trade_id].c_str(), v2);
-		TokenizeSmart(c[i_price_quote].c_str(), v3);
-		TokenizeSmart(c[i_trade_qty].c_str(), v4);
-		TokenizeSmart(c[i_trade_type].c_str(), v5);
+	TokenizeSmart(c[i_symbol].c_str(), v1);
+	TokenizeSmart(c[i_trade_id].c_str(), v2);
+	TokenizeSmart(c[i_price_quote].c_str(), v3);
+	TokenizeSmart(c[i_trade_qty].c_str(), v4);
+	TokenizeSmart(c[i_trade_type].c_str(), v5);
 
-		// FIXME: Consider altering to match spec.  Since PostgreSQL cannot
-		// control transaction from within a stored function and because we're
-		// making the call to the Market Exchange Emulator from outside
-		// the transaction, consider altering the code to call a stored
-		// function once per symbol to match the transaction rules in
-		// the spec.
-		int i = 0;
-		bool bSent;
-		for (p1 = v1.begin(), p2 = v2.begin(), p3 = v3.begin(), p4 = v4.begin(),
-				p5 = v5.begin(); p1 != v1.end(); ++p1, ++p2, ++p3, ++p4) {
-			strncpy(m_TriggeredLimitOrders.symbol, (*p1).c_str(), cSYMBOL_len);
-			m_TriggeredLimitOrders.trade_id = atol((*p2).c_str());
-			m_TriggeredLimitOrders.price_quote = atof((*p3).c_str());
-			m_TriggeredLimitOrders.trade_qty = atoi((*p4).c_str());
-			strncpy(m_TriggeredLimitOrders.trade_type_id, (*p5).c_str(),
-					cTT_ID_len);
+	// FIXME: Consider altering to match spec.  Since PostgreSQL cannot
+	// control transaction from within a stored function and because we're
+	// making the call to the Market Exchange Emulator from outside
+	// the transaction, consider altering the code to call a stored
+	// function once per symbol to match the transaction rules in
+	// the spec.
+	int i = 0;
+	bool bSent;
+	for (p1 = v1.begin(), p2 = v2.begin(), p3 = v3.begin(), p4 = v4.begin(),
+			p5 = v5.begin(); p1 != v1.end(); ++p1, ++p2, ++p3, ++p4) {
+		strncpy(m_TriggeredLimitOrders.symbol, (*p1).c_str(), cSYMBOL_len);
+		m_TriggeredLimitOrders.trade_id = atol((*p2).c_str());
+		m_TriggeredLimitOrders.price_quote = atof((*p3).c_str());
+		m_TriggeredLimitOrders.trade_qty = atoi((*p4).c_str());
+		strncpy(m_TriggeredLimitOrders.trade_type_id, (*p5).c_str(),
+				cTT_ID_len);
 
-			bSent = pMarketExchange->SendToMarketFromFrame(
-					m_TriggeredLimitOrders);
-			++i;
-		}
-		check_count(pOut->send_len, i, __FILE__, __LINE__);
-
-		if (atoi(c[i_rows_updated].c_str()) != max_feed_len)
-			pOut->status = -311;
-	} else {
-		pOut->send_len = 0;
-		pOut->status = CBaseTxnErr::ROLLBACK;
+		bSent = pMarketExchange->SendToMarketFromFrame(
+				m_TriggeredLimitOrders);
+		++i;
 	}
+	check_count(pOut->send_len, i, __FILE__, __LINE__);
+
+	if (atoi(c[i_rows_updated].c_str()) != max_feed_len)
+		pOut->status = -311;
 }
 
 void CDBConnection::execute(string sql, TMarketWatchFrame1Output *pOut)
 {
 	result R(m_Txn->exec(sql));
-
 	if (R.empty()) {
-		cout << "warning: empty result set at DoMarketWatchFrame1" << endl <<
-				sql << endl;
 		pOut->status = CBaseTxnErr::ROLLBACK;
-	} else {
-		result::const_iterator c = R.begin();
-
-		pOut->pct_change = c[0].as(double());
-		pOut->status = c[1].as(int());
+		ostringstream msg;
+		msg << time(NULL) << " " << pthread_self() << endl <<
+				sql << endl;
+		bh->logErrorMessage(msg.str(), false);
+		return;
 	}
+
+	result::const_iterator c = R.begin();
+
+	pOut->pct_change = c[0].as(double());
+	pOut->status = c[1].as(int());
 }
 
 void CDBConnection::execute(string sql, TSecurityDetailFrame1Output *pOut)
@@ -488,6 +518,14 @@ void CDBConnection::execute(string sql, TSecurityDetailFrame1Output *pOut)
 	};
 
 	result R(m_Txn->exec(sql));
+	if (R.empty()) {
+		pOut->status = CBaseTxnErr::ROLLBACK;
+		ostringstream msg;
+		msg << time(NULL) << " " << pthread_self() << endl <<
+				sql << endl;
+		bh->logErrorMessage(msg.str(), false);
+		return;
+	}
 
 	result::const_iterator c = R.begin();
 
@@ -668,12 +706,16 @@ void CDBConnection::execute(string sql, TTradeCleanupFrame1Output *pOut)
 {
 	result R(m_Txn->exec(sql));
 	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeCleanupFrame1" << endl <<
-				sql << endl;
 		pOut->status = CBaseTxnErr::ROLLBACK;
+		ostringstream msg;
+		msg << time(NULL) << " " << pthread_self() << endl <<
+				sql << endl;
+		bh->logErrorMessage(msg.str(), false);
 		return;
 	}
+
 	result::const_iterator c = R.begin();
+
 	pOut->status = c[0].as(int());
 }
 
@@ -689,13 +731,15 @@ void CDBConnection::execute(string sql, TTradeLookupFrame1Output *pOut)
 	};
 
 	result R(m_Txn->exec(sql));
-
 	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeLookupFrame1" << endl <<
-				sql << endl;
 		pOut->status = CBaseTxnErr::ROLLBACK;
+		ostringstream msg;
+		msg << time(NULL) << " " << pthread_self() << endl <<
+				sql << endl;
+		bh->logErrorMessage(msg.str(), false);
 		return;
 	}
+
 	result::const_iterator c = R.begin();
 
 	pOut->num_found = c[i_num_found].as(int());
@@ -864,13 +908,17 @@ void CDBConnection::execute(string sql, TTradeLookupFrame2Output *pOut)
 			i_settlement_cash_type, i_status, i_trade_history_dts,
 			i_trade_history_status_id, i_trade_list, i_trade_price
 	};
+
 	result R(m_Txn->exec(sql));
 	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeLookupFrame2" << endl <<
-				sql << endl;
 		pOut->status = CBaseTxnErr::ROLLBACK;
+		ostringstream msg;
+		msg << time(NULL) << " " << pthread_self() << endl <<
+				sql << endl;
+		bh->logErrorMessage(msg.str(), false);
 		return;
 	}
+
 	result::const_iterator c = R.begin();
 
 	pOut->num_found = c[i_num_found].as(int());
@@ -1041,11 +1089,17 @@ void CDBConnection::execute(string sql, TTradeLookupFrame3Output *pOut)
 			i_trade_dts, i_trade_history_dts, i_trade_history_status_id,
 			i_trade_list, i_trade_type
 	};
+
 	result R(m_Txn->exec(sql));
 	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeLookupFrame3" << endl <<
-				sql << endl;;
+		pOut->status = CBaseTxnErr::ROLLBACK;
+		ostringstream msg;
+		msg << time(NULL) << " " << pthread_self() << endl <<
+				sql << endl;
+		bh->logErrorMessage(msg.str(), false);
+		return;
 	}
+
 	result::const_iterator c = R.begin();
 
 	pOut->num_found = c[i_num_found].as(int());
@@ -1246,14 +1300,17 @@ void CDBConnection::execute(string sql, TTradeLookupFrame4Output *pOut)
 			i_holding_history_id=0, i_holding_history_trade_id, i_num_found,
 			i_quantity_after, i_quantity_before, i_status, i_trade_id
 	};
+
 	result R(m_Txn->exec(sql));
 	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeLookupFrame4" << endl <<
+		pOut->status = CBaseTxnErr::ROLLBACK;
+		ostringstream msg;
+		msg << time(NULL) << " " << pthread_self() << endl <<
 				sql << endl;
-		pOut->num_found = 0;
-		pOut->status = CBaseTxnErr::SUCCESS;
+		bh->logErrorMessage(msg.str(), false);
 		return;
 	}
+
 	result::const_iterator c = R.begin();
 
 	pOut->num_found = c[i_num_found].as(int());
@@ -1312,6 +1369,14 @@ void CDBConnection::execute(string sql, TTradeOrderFrame1Output *pOut)
 	while (true) {
 		try {
 			R = m_Txn->exec(sql);
+			if (R.empty()) {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				ostringstream msg;
+				msg << time(NULL) << " " << pthread_self() << endl <<
+						sql << endl;
+				bh->logErrorMessage(msg.str(), false);
+				return;
+			}
 			break;
 		} catch (const pqxx::sql_error &e) {
 			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
@@ -1344,12 +1409,6 @@ void CDBConnection::execute(string sql, TTradeOrderFrame1Output *pOut)
 		}
 	}
 
-	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeOrderFrame1" << endl <<
-				sql << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
 	result::const_iterator c = R.begin();
 
 	strncpy(pOut->acct_name, c[0].c_str(), cCA_NAME_len);
@@ -1375,6 +1434,14 @@ void CDBConnection::execute(string sql, TTradeOrderFrame2Output *pOut)
 	while (true) {
 		try {
 			R = m_Txn->exec(sql);
+			if (R.empty()) {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				ostringstream msg;
+				msg << time(NULL) << " " << pthread_self() << endl <<
+						sql << endl;
+				bh->logErrorMessage(msg.str(), false);
+				return;
+			}
 			break;
 		} catch (const pqxx::sql_error &e) {
 			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
@@ -1405,14 +1472,6 @@ void CDBConnection::execute(string sql, TTradeOrderFrame2Output *pOut)
 			pOut->status = CBaseTxnErr::ROLLBACK;
 			return;
 		}
-	}
-
-	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeOrderFrame2" << endl <<
-				sql << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		rollback();
-		return;
 	}
 
 	result::const_iterator c = R.begin();
@@ -1436,6 +1495,14 @@ void CDBConnection::execute(string sql, TTradeOrderFrame3Output *pOut)
 	while (true) {
 		try {
 			R = m_Txn->exec(sql);
+			if (R.empty()) {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				ostringstream msg;
+				msg << time(NULL) << " " << pthread_self() << endl <<
+						sql << endl;
+				bh->logErrorMessage(msg.str(), false);
+				return;
+			}
 			break;
 		} catch (const pqxx::sql_error &e) {
 			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
@@ -1468,12 +1535,6 @@ void CDBConnection::execute(string sql, TTradeOrderFrame3Output *pOut)
 		}
 	}
 
-	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeOrderFrame3" << endl <<
-			sql << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
 	result::const_iterator c = R.begin();
 
 	strncpy(pOut->co_name, c[0].c_str(), cCO_NAME_len);
@@ -1504,6 +1565,14 @@ void CDBConnection::execute(string sql, TTradeOrderFrame4Output *pOut)
 	while (true) {
 		try {
 			R = m_Txn->exec(sql);
+			if (R.empty()) {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				ostringstream msg;
+				msg << time(NULL) << " " << pthread_self() << endl <<
+						sql << endl;
+				bh->logErrorMessage(msg.str(), false);
+				return;
+			}
 			break;
 		} catch (const pqxx::sql_error &e) {
 			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
@@ -1536,12 +1605,6 @@ void CDBConnection::execute(string sql, TTradeOrderFrame4Output *pOut)
 		}
 	}
 
-	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeOrderFrame4" << endl <<
-				sql << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
 	result::const_iterator c = R.begin();
 
 	pOut->status = c[0].as(int());
@@ -1559,6 +1622,14 @@ void CDBConnection::execute(string sql, TTradeResultFrame1Output *pOut)
 	while (true) {
 		try {
 			R = m_Txn->exec(sql);
+			if (R.empty()) {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				ostringstream msg;
+				msg << time(NULL) << " " << pthread_self() << endl <<
+						sql << endl;
+				bh->logErrorMessage(msg.str(), false);
+				return;
+			}
 			break;
 		} catch (const pqxx::sql_error &e) {
 			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
@@ -1591,12 +1662,6 @@ void CDBConnection::execute(string sql, TTradeResultFrame1Output *pOut)
 		}
 	}
 
-	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeResultFrame1" << endl <<
-				sql << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
 	result::const_iterator c = R.begin();
 
 	pOut->acct_id = c[0].as(long());
@@ -1624,6 +1689,14 @@ void CDBConnection::execute(string sql, TTradeResultFrame2Output *pOut)
 	while (true) {
 		try {
 			R = m_Txn->exec(sql);
+			if (R.empty()) {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				ostringstream msg;
+				msg << time(NULL) << " " << pthread_self() << endl <<
+						sql << endl;
+				bh->logErrorMessage(msg.str(), false);
+				return;
+			}
 			break;
 		} catch (const pqxx::sql_error &e) {
 			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
@@ -1656,13 +1729,6 @@ void CDBConnection::execute(string sql, TTradeResultFrame2Output *pOut)
 		}
 	}
 
-	if (R.empty()) {
-			cout << "warning: empty result set at DoTradeResultFrame2" <<
-							endl <<
-					sql << endl;
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
-	}
 	result::const_iterator c = R.begin();
 
 	pOut->broker_id = c[0].as(long());
@@ -1691,6 +1757,14 @@ void CDBConnection::execute(string sql, TTradeResultFrame3Output *pOut)
 	while (true) {
 		try {
 			R = m_Txn->exec(sql);
+			if (R.empty()) {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				ostringstream msg;
+				msg << time(NULL) << " " << pthread_self() << endl <<
+						sql << endl;
+				bh->logErrorMessage(msg.str(), false);
+				return;
+			}
 			break;
 		} catch (const pqxx::sql_error &e) {
 			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
@@ -1723,12 +1797,6 @@ void CDBConnection::execute(string sql, TTradeResultFrame3Output *pOut)
 		}
 	}
 
-	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeResultFrame3" << endl <<
-				sql << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
 	result::const_iterator c = R.begin();
 
 	pOut->status = c[0].as(int());
@@ -1746,6 +1814,14 @@ void CDBConnection::execute(string sql, TTradeResultFrame4Output *pOut)
 	while (true) {
 		try {
 			R = m_Txn->exec(sql);
+			if (R.empty()) {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				ostringstream msg;
+				msg << time(NULL) << " " << pthread_self() << endl <<
+						sql << endl;
+				bh->logErrorMessage(msg.str(), false);
+				return;
+			}
 			break;
 		} catch (const pqxx::sql_error &e) {
 			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
@@ -1776,14 +1852,6 @@ void CDBConnection::execute(string sql, TTradeResultFrame4Output *pOut)
 			pOut->status = CBaseTxnErr::ROLLBACK;
 			return;
 		}
-	}
-
-	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeResultFrame4" <<
-						endl <<
-				sql << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
 	}
 
 	result::const_iterator c = R.begin();
@@ -1804,6 +1872,14 @@ void CDBConnection::execute(string sql, TTradeResultFrame5Output *pOut)
 	while (true) {
 		try {
 			R = m_Txn->exec(sql);
+			if (R.empty()) {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				ostringstream msg;
+				msg << time(NULL) << " " << pthread_self() << endl <<
+						sql << endl;
+				bh->logErrorMessage(msg.str(), false);
+				return;
+			}
 			break;
 		} catch (const pqxx::sql_error &e) {
 			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
@@ -1834,11 +1910,6 @@ void CDBConnection::execute(string sql, TTradeResultFrame5Output *pOut)
 			pOut->status = CBaseTxnErr::ROLLBACK;
 			return;
 		}
-	}
-
-	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeResultFrame5" << endl <<
-				sql << endl;;
 	}
 
 	result::const_iterator c = R.begin();
@@ -1856,6 +1927,14 @@ void CDBConnection::execute(string sql, TTradeResultFrame6Output *pOut)
 	while (true) {
 		try {
 			R = m_Txn->exec(sql);
+			if (R.empty()) {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				ostringstream msg;
+				msg << time(NULL) << " " << pthread_self() << endl <<
+						sql << endl;
+				bh->logErrorMessage(msg.str(), false);
+				return;
+			}
 			break;
 		} catch (const pqxx::sql_error &e) {
 			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
@@ -1888,13 +1967,6 @@ void CDBConnection::execute(string sql, TTradeResultFrame6Output *pOut)
 		}
 	}
 
-	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeResultFrame6" <<
-						endl <<
-				sql << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
 	result::const_iterator c = R.begin();
 
 	pOut->acct_bal = c[0].as(double());
@@ -1910,11 +1982,12 @@ void CDBConnection::execute(string sql, TTradeStatusFrame1Output *pOut)
 	};
 
 	result R(m_Txn->exec(sql));
-
 	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeStatusFrame1" << endl <<
-				sql << endl;
 		pOut->status = CBaseTxnErr::ROLLBACK;
+		ostringstream msg;
+		msg << time(NULL) << " " << pthread_self() << endl <<
+				sql << endl;
+		bh->logErrorMessage(msg.str(), false);
 		return;
 	}
 
@@ -2047,6 +2120,14 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame1Output *pOut)
 	while (true) {
 		try {
 			R = m_Txn->exec(sql);
+			if (R.empty()) {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				ostringstream msg;
+				msg << time(NULL) << " " << pthread_self() << endl <<
+						sql << endl;
+				bh->logErrorMessage(msg.str(), false);
+				return;
+			}
 			break;
 		} catch (const pqxx::sql_error &e) {
 			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
@@ -2079,12 +2160,6 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame1Output *pOut)
 		}
 	}
 
-	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeUpdateFrame1" << endl <<
-				sql << endl;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
 	result::const_iterator c = R.begin();
 
 	pOut->num_found = c[i_num_found].as(int());
@@ -2279,6 +2354,14 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame2Output *pOut)
 	while (true) {
 		try {
 			R = m_Txn->exec(sql);
+			if (R.empty()) {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				ostringstream msg;
+				msg << time(NULL) << " " << pthread_self() << endl <<
+						sql << endl;
+				bh->logErrorMessage(msg.str(), false);
+				return;
+			}
 			break;
 		} catch (const pqxx::sql_error &e) {
 			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
@@ -2311,13 +2394,6 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame2Output *pOut)
 		}
 	}
 
-	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeUpdateFrame2" << endl <<
-				sql << endl;
-		pOut->num_found = 0;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
 	result::const_iterator c = R.begin();
 
 	pOut->num_found = c[i_num_found].as(int());
@@ -2516,6 +2592,14 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame3Output *pOut)
 	while (true) {
 		try {
 			R = m_Txn->exec(sql);
+			if (R.empty()) {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				ostringstream msg;
+				msg << time(NULL) << " " << pthread_self() << endl <<
+						sql << endl;
+				bh->logErrorMessage(msg.str(), false);
+				return;
+			}
 			break;
 		} catch (const pqxx::sql_error &e) {
 			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
@@ -2548,13 +2632,6 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame3Output *pOut)
 		}
 	}
 
-	if (R.empty()) {
-		cout << "warning: empty result set at DoTradeUpdateFrame3" << endl <<
-				sql << endl;
-		pOut->num_found = 0;
-		pOut->status = CBaseTxnErr::ROLLBACK;
-		return;
-	}
 	result::const_iterator c = R.begin();
 
 	pOut->num_found = c[i_num_found].as(int());
