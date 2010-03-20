@@ -164,7 +164,15 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 {
 	g_tid = (pthread_t*) malloc(sizeof(pthread_t) * iUsers);
 
-	// time to sleep between thread creation
+	// before starting the test run Trade-Cleanup transaction
+	cout << endl <<
+			"Running Trade-Cleanup transaction before starting the test..." <<
+			endl;
+	m_pCDM->DoCleanupTxn();
+	cout << "Trade-Cleanup transaction completed." << endl << endl;
+
+	// time to sleep between thread creation, convert from millaseconds to
+	// nanoseconds.
 	struct timespec ts, rem;
 	ts.tv_sec = (time_t) (iSleep / 1000);
 	ts.tv_nsec = (long) (iSleep % 1000) * 1000000;
@@ -178,17 +186,11 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 	dtAux.SetToCurrent();
 
 	cout << "Test is starting at " << dtAux.ToStr(02) << endl <<
-			"Duration of ramp-up: " << threads_start_time << " seconds" << endl;
+			"Estimated duration of ramp-up: " << threads_start_time <<
+			" seconds" << endl;
 
 	dtAux.AddMinutes((iTestDuration + threads_start_time)/60);
-	cout << "Test will stop at " << dtAux.ToStr(02) << endl;
-
-	// before starting the test run Trade-Cleanup transaction
-	cout << endl <<
-			"Running Trade-Cleanup transaction before starting the test..." <<
-			endl;
-	m_pCDM->DoCleanupTxn();
-	cout << "Trade-Cleanup transaction completed." << endl << endl;
+	cout << "Estimated end time " << dtAux.ToStr(02) << endl;
 
 	logErrorMessage(">> Start of ramp-up.\n");
 
@@ -198,8 +200,7 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 	// parameter for the new thread
 	PCustomerThreadParam pThrParam;
 
-	for (int i = 1; i <= iUsers; i++)  // i=0 is Data-Maintenance
-	{
+	for (int i = 1; i <= iUsers; i++) {
 		pThrParam = new TCustomerThreadParam;
 		// zero the structure
 		memset(pThrParam, 0, sizeof(TCustomerThreadParam));
