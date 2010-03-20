@@ -127,7 +127,7 @@
 #define TX_ID_LEN 4
 #define TX_NAME_LEN 50
 
-#define STATUS_LEN 4
+#define STATUS_LEN 5
 
 #define USE_ISO_DATES 1
 

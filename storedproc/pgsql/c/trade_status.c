@@ -141,6 +141,8 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
+			if (SPI_processed != 50)
+				strcpy(values[i_status], "-911");
 		} else {
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_tsf1_inputs(acct_id);

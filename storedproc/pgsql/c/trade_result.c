@@ -55,7 +55,8 @@ PG_MODULE_MAGIC;
 #define TRF2_1 \
 		"SELECT ca_b_id, ca_c_id, ca_tax_st\n" \
 		"FROM customer_account\n" \
-		"WHERE ca_id = %ld"
+		"WHERE ca_id = %ld\n" \
+		"FOR UPDATE"
 
 #define TRF2_2a \
 		"INSERT INTO holding_summary(hs_ca_id, hs_s_symb, hs_qty)\n" \
@@ -72,14 +73,16 @@ PG_MODULE_MAGIC;
 		"FROM holding\n" \
 		"WHERE h_ca_id = %ld\n" \
 		"  AND h_s_symb = '%s'\n" \
-		"ORDER BY h_dts DESC"
+		"ORDER BY h_dts DESC\n" \
+		"FOR UPDATE"
 
 #define TRF2_3b \
 		"SELECT h_t_id, h_qty, h_price\n" \
 		"FROM holding\n" \
 		"WHERE h_ca_id = %ld\n" \
 		"  AND h_s_symb = '%s'\n" \
-		"ORDER BY h_dts ASC"
+		"ORDER BY h_dts ASC\n" \
+		"FOR UPDATE"
 
 #define TRF2_4a \
 		"INSERT INTO holding_history(hh_h_t_id, hh_t_id, hh_before_qty,\n" \
@@ -352,52 +355,80 @@ Datum TradeResultFrame1(PG_FUNCTION_ARGS)
 				values[i_charge] = SPI_getvalue(tuple, tupdesc, 5);
 				values[i_is_lifo] = SPI_getvalue(tuple, tupdesc, 6);
 				values[i_trade_is_cash] = SPI_getvalue(tuple, tupdesc, 7);
+
+				sprintf(sql, TRF1_2, values[i_type_id]);
+#ifdef DEBUG
+				elog(NOTICE, "SQL\n%s", sql);
+#endif /* DEBUG */
+				ret = SPI_exec(sql, 0);
+				if (ret == SPI_OK_SELECT) {
+					tupdesc = SPI_tuptable->tupdesc;
+					tuptable = SPI_tuptable;
+					if (SPI_processed > 0) {
+						tuple = tuptable->vals[0];
+						values[i_type_name] = SPI_getvalue(tuple, tupdesc, 1);
+						values[i_type_is_sell] =
+								SPI_getvalue(tuple, tupdesc, 2);
+						values[i_type_is_market] =
+								SPI_getvalue(tuple, tupdesc, 3);
+					}
+				} else {
+					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+					dump_trf1_inputs(trade_id);
+				}
+
+				sprintf(sql, TRF1_3, values[i_acct_id], values[i_symbol]);
+#ifdef DEBUG
+				elog(NOTICE, "SQL\n%s", sql);
+#endif /* DEBUG */
+				ret = SPI_exec(sql, 0);
+				if (ret == SPI_OK_SELECT) {
+					tupdesc = SPI_tuptable->tupdesc;
+					tuptable = SPI_tuptable;
+					if (SPI_processed > 0) {
+						tuple = tuptable->vals[0];
+						values[i_hs_qty] = SPI_getvalue(tuple, tupdesc, 1);
+					} else {
+						values[i_hs_qty] = (char *) palloc(sizeof(char) * 2);
+						strncpy(values[i_hs_qty], "0", 2);
+					}
+				} else {
+					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+					dump_trf1_inputs(trade_id);
+				}
 			} else if (SPI_processed == 0) {
-				FAIL_FRAME3(&funcctx->max_calls, values[i_status], sql, "-811");
-			}
-		} else {
-			dump_trf1_inputs(trade_id);
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
-		}
+				strncpy(values[i_status], "-811", STATUS_LEN);
 
-		sprintf(sql, TRF1_2, values[i_type_id]);
-#ifdef DEBUG
-		elog(NOTICE, "SQL\n%s", sql);
-#endif /* DEBUG */
-		ret = SPI_exec(sql, 0);
-		if (ret == SPI_OK_SELECT) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-			if (SPI_processed > 0) {
-				tuple = tuptable->vals[0];
-				values[i_type_name] = SPI_getvalue(tuple, tupdesc, 1);
-				values[i_type_is_sell] = SPI_getvalue(tuple, tupdesc, 2);
-				values[i_type_is_market] = SPI_getvalue(tuple, tupdesc, 3);
-			}
-		} else {
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
-			dump_trf1_inputs(trade_id);
-		}
+				values[i_acct_id] = (char *) palloc(2 * sizeof(char));
+				strncpy(values[i_acct_id], "0", 2);
+				values[i_type_id] = (char *) palloc(sizeof(char));
+				values[i_type_id][0] = '\0';
+				values[i_symbol] = (char *) palloc(sizeof(char));
+				values[i_symbol][0] = '\0';
+				values[i_trade_qty] = (char *) palloc(2 * sizeof(char));
+				strncpy(values[i_trade_qty], "0", 2);
+				values[i_charge] = (char *) palloc(2 * sizeof(char));
+				strncpy(values[i_charge], "0", 2);
+				values[i_is_lifo] = (char *) palloc(2 * sizeof(char));
+				strncpy(values[i_is_lifo], "0", 2);
+				values[i_trade_is_cash] = (char *) palloc(2 * sizeof(char));
+				strncpy(values[i_trade_is_cash], "0", 2);
 
-		sprintf(sql, TRF1_3, values[i_acct_id], values[i_symbol]);
-#ifdef DEBUG
-		elog(NOTICE, "SQL\n%s", sql);
-#endif /* DEBUG */
-		ret = SPI_exec(sql, 0);
-		if (ret == SPI_OK_SELECT) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-			if (SPI_processed > 0) {
-				tuple = tuptable->vals[0];
-				values[i_hs_qty] = SPI_getvalue(tuple, tupdesc, 1);
-			} else {
+				values[i_type_name] = (char *) palloc(sizeof(char));
+				values[i_type_name][0] = '\0';
+				values[i_type_is_sell] = (char *) palloc(2 * sizeof(char));
+				strncpy(values[i_type_is_sell], "0", 2);
+				values[i_type_is_market] = (char *) palloc(2 * sizeof(char));
+				strncpy(values[i_type_is_market], "0", 2);
+
 				values[i_hs_qty] = (char *) palloc(sizeof(char) * 2);
-				strcpy(values[i_hs_qty], "0");
+				strncpy(values[i_hs_qty], "0", 2);
 			}
 		} else {
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 			dump_trf1_inputs(trade_id);
+			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 		}
+
 
 		/* Build a tuple descriptor for our result type */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
@@ -518,7 +549,7 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
-		strcpy(values[i_status], "0");
+		strncpy(values[i_status], "0", 2);
 		funcctx->max_calls = 1;
 
 		/* switch to memory context appropriate for multiple function calls */
@@ -696,7 +727,7 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 
 			/*
 			 * Sell short:
-			 * If needed_qty > = then customer has sold all existing
+			 * If needed_qty > 0 then customer has sold all existing
 			 * holdings and customer is selling short.  A new HOLDING
 			 * record will be created with H_QTY set to the negative
 			 * number of needed shares.
