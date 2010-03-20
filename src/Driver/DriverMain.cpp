@@ -17,12 +17,10 @@
 // Establish defaults for command line options
 char szBHaddr[iMaxHostname + 1] = "localhost"; // Brokerage House address
 int iBHListenerPort = iBrokerageHousePort;
-// # of customers in one load unit
-int iLoadUnitSize = iDefaultLoadUnitSize;
 // # of customers for this instance
-TIdent iConfiguredCustomerCount = iDefaultLoadUnitSize;
+TIdent iConfiguredCustomerCount = iDefaultCustomerCount;
 // total number of customers in the database
-TIdent iActiveCustomerCount = iDefaultLoadUnitSize;
+TIdent iActiveCustomerCount = iDefaultCustomerCount;
 int iScaleFactor = 500; // # of customers for 1 TRTPS
 int iDaysOfInitialTrades = 300;
 int iTestDuration = 0;
@@ -41,18 +39,13 @@ void usage()
 	cout << "Usage: DriverMain {options}" << endl << endl <<
 			"   Option      Default    Description" << endl <<
 			"   ==========  =========  ===============================" << endl;
-	printf("   -a integer  %-9ld  Active customer count\n",
-			iActiveCustomerCount);
 	printf("   -c integer  %-9ld  Configured customer count\n",
-			iConfiguredCustomerCount);
-	printf("   -e string   %-9s  Path to EGen flat_in directory\n", szInDir);
+			iActiveCustomerCount);
+	printf("   -d integer             Duration of the test (seconds)\n");
 	printf("   -f integer  %-9d  # of customers per 1 TRTPS\n",
 			iScaleFactor);
 	printf("   -h string   %-9s  Brokerage House address\n", szBHaddr);
-	printf("   -i integer  %-9d  # of Days of Initial Trades\n",
-			iDaysOfInitialTrades);
-	printf("   -l integer  %-9d  # of customers in one load unit\n",
-		iLoadUnitSize);
+	printf("   -i string   %-9s  Path to EGen flat_in directory\n", szInDir);
 	printf("   -n integer  %-9d  millisecond delay between transactions\n",
 			iPacingDelay);
 	printf("   -o string   %-9s  # directory for output files\n",
@@ -61,8 +54,11 @@ void usage()
 			iBHListenerPort);
 	printf("   -r integer             Random number generator seed\n");
 	printf("                          Invalidates run if used\n");
-	printf("   -t integer             Duration of the test (seconds)\n");
+	printf("   -t integer  %-9ld  Active customer count\n",
+			iConfiguredCustomerCount);
 	printf("   -u integer             # of Users\n");
+	printf("   -w integer  %-9d  # of Days of Initial Trades\n",
+			iDaysOfInitialTrades);
 	printf("   -y integer  %-9d  millisecond delay between thread creation\n",
 			iSleep);
 }
@@ -99,14 +95,11 @@ void parse_command_line(int argc, char *argv[])
 
 		// Parse the switch
 		switch (*sp) {
-		case 'a':
+		case 'c':
 			iActiveCustomerCount = atol(vp);
 			break;
-		case 'c':
-			iConfiguredCustomerCount = atol(vp);
-			break;
-		case 'e':	// input files path
-			strncpy(szInDir, vp, iMaxPath);
+		case 'd':
+			iTestDuration = atoi(vp);
 			break;
 		case 'f':
 			iScaleFactor = atoi(vp);
@@ -114,11 +107,8 @@ void parse_command_line(int argc, char *argv[])
 		case 'h':
 			strncpy(szBHaddr, vp, iMaxHostname);
 			break;
-		case 'i':
-			iDaysOfInitialTrades = atoi(vp);
-			break;
-		case 'l':
-			iLoadUnitSize = atoi(vp);
+		case 'i':	// input files path
+			strncpy(szInDir, vp, iMaxPath);
 			break;
 		case 'n':
 			iPacingDelay = atoi(vp);
@@ -133,7 +123,10 @@ void parse_command_line(int argc, char *argv[])
 			iSeed = atoi(vp);
 			break;
 		case 't':
-			iTestDuration = atoi(vp);
+			iConfiguredCustomerCount = atol(vp);
+			break;
+		case 'w':
+			iDaysOfInitialTrades = atoi(vp);
 			break;
 		case 'u':
 			iUsers = atoi(vp);
@@ -157,23 +150,23 @@ bool ValidateParameters()
 
 	// Configured Customer count must be a non-zero integral multiple of load
 	// unit size.
-	if ((iLoadUnitSize > iConfiguredCustomerCount) ||
-			(0 != iConfiguredCustomerCount % iLoadUnitSize)) {
+	if ((iDefaultLoadUnitSize > iConfiguredCustomerCount) ||
+			(0 != iConfiguredCustomerCount % iDefaultLoadUnitSize)) {
 		cerr << "The specified customer count (-c " <<
 				iConfiguredCustomerCount <<
 				") must be a non-zero integral multiple of the load unit size (" <<
-				iLoadUnitSize << ")." << endl;
+				iDefaultLoadUnitSize << ")." << endl;
 
 		bRet = false;
 	}
 
 	// Active customer count must be a non-zero integral multiple of load unit
 	// size.
-	if ((iLoadUnitSize > iActiveCustomerCount) ||
-			(0 != iActiveCustomerCount % iLoadUnitSize)) {
+	if ((iDefaultLoadUnitSize > iActiveCustomerCount) ||
+			(0 != iActiveCustomerCount % iDefaultLoadUnitSize)) {
 		cerr << "The total customer count (-a " << iActiveCustomerCount <<
 				") must be a non-zero integral multiple of the load unit size (" <<
-				iLoadUnitSize << ")." << endl;
+				iDefaultLoadUnitSize << ")." << endl;
 
 		bRet = false;
 	}
@@ -181,11 +174,11 @@ bool ValidateParameters()
 	// Completed trades in 8 hours must be a non-zero integral multiple of 100
 	// so that exactly 1% extra trade ids can be assigned to simulate aborts.
 	//
-	if ((INT64) (HoursPerWorkDay * SecondsPerHour * iLoadUnitSize /
+	if ((INT64) (HoursPerWorkDay * SecondsPerHour * iDefaultLoadUnitSize /
 			iScaleFactor) % 100 != 0) {
 		cerr << "Incompatible value for Scale Factor (-f) specified." << endl;
 		cerr << HoursPerWorkDay << " * " << SecondsPerHour <<
-				" * Load Unit Size (" << iLoadUnitSize <<
+				" * Load Unit Size (" << iDefaultLoadUnitSize <<
 				") / Scale Factor (" << iScaleFactor <<
 				") must be integral multiple of 100." << endl;
 
@@ -239,7 +232,6 @@ int main(int argc, char *argv[])
 
 	cout << "Configured customer count: " << iConfiguredCustomerCount << endl;
 	cout << "Active customer count: " << iActiveCustomerCount << endl;
-	cout << "Load unit size: " << iLoadUnitSize << endl;
 	cout << "Days of initial trades: " << iDaysOfInitialTrades << endl;
 	cout << "Scale Factor: " << iScaleFactor << endl << endl;
 

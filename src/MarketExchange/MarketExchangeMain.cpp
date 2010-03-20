@@ -17,9 +17,9 @@ char szBHaddr[iMaxHostname + 1] = "localhost"; // Brokerage House address
 int iListenPort = iMarketExchangePort; // socket port to listen
 int iBHlistenPort = iBrokerageHousePort;
 // # of customers for this instance
-TIdent iConfiguredCustomerCount = iDefaultLoadUnitSize;
+TIdent iConfiguredCustomerCount = iDefaultCustomerCount;
 // total number of customers in the database
-TIdent iActiveCustomerCount = iDefaultLoadUnitSize;
+TIdent iActiveCustomerCount = iDefaultCustomerCount;
 
 // EGen flat_ing directory location
 char szFileLoc[iMaxPath + 1];
@@ -32,16 +32,16 @@ void usage()
 	cout << "Usage: MarketExchangeMain [options]" << endl << endl;
 	cout << "   Option      Default     Description" << endl;
 	cout << "   ==========  ==========  =============================" << endl;
-	printf("   -a integer  %-10ld  Active customer count\n",
-			iActiveCustomerCount);
 	printf("   -c integer  %-10ld  Configured customer count\n",
 			iConfiguredCustomerCount);
-	cout << "   -e string               Location of EGen flat_in directory" <<
+	cout << "   -i string               Location of EGen flat_in directory" <<
 			endl;
 	printf("   -l integer  %-10d  Socket listen port\n", iListenPort);
 	printf("   -h string   %-10s  Brokerage House address\n", szBHaddr);
 	printf("   -o string   %-10s  directory for output files\n",
 			outputDirectory);
+	printf("   -t integer  %-10ld  Active customer count\n",
+			iActiveCustomerCount);
 	printf("   -p integer  %-10d  Brokerage House listen port\n",
 			iBHlistenPort);
 }
@@ -78,17 +78,14 @@ void parse_command_line(int argc, char *argv[])
 
 		// Parse the switch
 		switch (*sp) {
-		case 'a':
-			iActiveCustomerCount = atol(vp);
-			break;
 		case 'c':
-			iConfiguredCustomerCount = atol(vp);
-			break;
-		case 'e':
-			strncpy(szFileLoc, vp, iMaxPath);
+			iActiveCustomerCount = atol(vp);
 			break;
 		case 'h':
 			strncpy(szBHaddr, vp, iMaxHostname);
+			break;
+		case 'i':
+			strncpy(szFileLoc, vp, iMaxPath);
 			break;
 		case 'l':
 			iListenPort = atoi(vp);
@@ -98,6 +95,9 @@ void parse_command_line(int argc, char *argv[])
 			break;
 		case 'p':
 			sscanf(vp, "%d", &iBHlistenPort);
+			break;
+		case 't':
+			iConfiguredCustomerCount = atol(vp);
 			break;
 		default:
 			usage();

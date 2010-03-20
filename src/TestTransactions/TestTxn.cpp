@@ -48,18 +48,16 @@ void Usage()
 	cout << "   Option               Description" << endl;
 	cout << "   =========            ========================" << endl;
 	cout << "   -b address           Address of BrokerageHouseMain" << endl;
-	cout << "   -c number            Customer count (default 1000)" << endl;
-	cout << "   -d number            Days of initial trades (default 300)" <<
-			endl;
+	cout << "   -c number            Customer count (default 5000)" << endl;
 	cout << "   -f number            Number of customers for 1 TRTPS (default 500)" << endl;
 	cout << "   -h host              Hostname of database server" << endl;
+	cout << "   -i path              full path to EGen flat_in directory" <<
+			endl;
 	cout << "   -g dbname            Database name" << endl;
 	cout << "                        Optional if testing BrokerageHouseMain" <<
 			endl;
 	cout << "   -p number            database listener port" << endl;
 	cout << "   -r number            optional random number" << endl;
-	cout << "   -s path              full path to EGen flat_in directory" <<
-			endl;
 	cout << "   -t letter            Transaction type" << endl;
 	cout << "                        A - TRADE_ORDER" << endl;
 	cout << "                            TRADE_RESULT" << endl;
@@ -73,6 +71,8 @@ void Usage()
 	cout << "                        J - MARKET_WATCH" << endl;
 	cout << "                        K - DATA_MAINTENANCE" << endl;
 	cout << "                        L - TRADE_CLEANUP" << endl;
+	cout << "   -w number            Days of initial trades (default 300)" <<
+			endl;
 	cout << endl;
 	cout << "Note: Trade Order triggers Trade Result and Market Feed" << endl;
 	cout << "      when the type of trade is Market (type_is_market=1)" << endl;
@@ -131,23 +131,20 @@ bool ParseCommandLine( int argc, char *argv[] )
 		case 'c':
 			sscanf(vp, "%"PRId64, &iConfiguredCustomerCount);
 			break;
-		case 'd':
-			iDaysOfInitialTrades = atoi(vp);
-			break;
 		case 'f':
 			iScaleFactor = atoi(vp);
 			break;
 		case 'h':
 			strncpy(szDBHost, vp, iDBHostLen);
 			break;
+		case 'i':
+			strncpy(szInDir, vp, iInDirLen);
+			break;
 		case 'g':
 			strncpy(szDBName, vp, iDBNameLen);
 			break;
 		case 'p':
 			strncpy(szPort, vp, iPortLen);
-			break;
-		case 's':
-			strncpy(szInDir, vp, iInDirLen);
 			break;
 		case 't':
 			switch ( *vp) {
@@ -187,6 +184,9 @@ bool ParseCommandLine( int argc, char *argv[] )
 			break;
 		case 'r':
 			Seed = atoi(vp);
+			break;
+		case 'w':
+			iDaysOfInitialTrades = atoi(vp);
 			break;
 		default:
 			return(false);
