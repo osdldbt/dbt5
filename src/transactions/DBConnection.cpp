@@ -159,9 +159,11 @@ void CDBConnection::execute(string sql, TBrokerVolumeFrame1Output *pOut)
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
+				"NO RESULTS" << endl <<
 				sql << endl;
 		bh->logErrorMessage(msg.str(), false);
-		return;
+		rollback();
+		throw;
 	}
 
 	result::const_iterator c = R.begin();
@@ -199,9 +201,11 @@ void CDBConnection::execute(string sql, TCustomerPositionFrame1Output *pOut)
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
+				"NO RESULTS" << endl <<
 				sql << endl;
 		bh->logErrorMessage(msg.str(), false);
-		return;
+		rollback();
+		throw;
 	}
 
 	result::const_iterator c = R.begin();
@@ -296,9 +300,11 @@ void CDBConnection::execute(string sql, TCustomerPositionFrame2Output *pOut)
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
+				"NO RESULTS" << endl <<
 				sql << endl;
 		bh->logErrorMessage(msg.str(), false);
-		return;
+		rollback();
+		throw;
 	}
 
 	result::const_iterator c = R.begin();
@@ -370,9 +376,11 @@ void CDBConnection::execute(string sql, TDataMaintenanceFrame1Output *pOut)
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
+				"NO RESULTS" << endl <<
 				sql << endl;
 		bh->logErrorMessage(msg.str(), false);
-		return;
+		rollback();
+		throw;
 	}
 
 	result::const_iterator c = R.begin();
@@ -400,9 +408,11 @@ void CDBConnection::execute(string sql, TMarketFeedFrame1Output *pOut,
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
+						"NO RESULTS" << endl <<
 						sql << endl;
 				bh->logErrorMessage(msg.str(), false);
-				return;
+				rollback();
+				throw;
 			}
 			break;
 		} catch (const pqxx::sql_error &e) {
@@ -415,10 +425,8 @@ void CDBConnection::execute(string sql, TMarketFeedFrame1Output *pOut,
 					msg << "query: " << e.query() << endl;
 
 					if (iNumRetry <= iMaxRetries) {
-						// Rollback the current transaction and try again.
 						// Wait 1 second to give the other transaction time to
 						// finish.
-						rollback();
 						bh->logErrorMessage(msg.str(), false);
 						iNumRetry++;
 						sleep(1);
@@ -427,12 +435,14 @@ void CDBConnection::execute(string sql, TMarketFeedFrame1Output *pOut,
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
 						pOut->status = CBaseTxnErr::ROLLBACK;
-						return;
+						rollback();
+						throw;
 					}
+			} else {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				rollback();
+				throw;
 			}
-
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
 		}
 	}
 
@@ -491,9 +501,11 @@ void CDBConnection::execute(string sql, TMarketWatchFrame1Output *pOut)
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
+				"NO RESULTS" << endl <<
 				sql << endl;
 		bh->logErrorMessage(msg.str(), false);
-		return;
+		rollback();
+		throw;
 	}
 
 	result::const_iterator c = R.begin();
@@ -522,9 +534,11 @@ void CDBConnection::execute(string sql, TSecurityDetailFrame1Output *pOut)
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
+				"NO RESULTS" << endl <<
 				sql << endl;
 		bh->logErrorMessage(msg.str(), false);
-		return;
+		rollback();
+		throw;
 	}
 
 	result::const_iterator c = R.begin();
@@ -709,9 +723,11 @@ void CDBConnection::execute(string sql, TTradeCleanupFrame1Output *pOut)
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
+				"NO RESULTS" << endl <<
 				sql << endl;
 		bh->logErrorMessage(msg.str(), false);
-		return;
+		rollback();
+		throw;
 	}
 
 	result::const_iterator c = R.begin();
@@ -735,9 +751,11 @@ void CDBConnection::execute(string sql, TTradeLookupFrame1Output *pOut)
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
+				"NO RESULTS" << endl <<
 				sql << endl;
 		bh->logErrorMessage(msg.str(), false);
-		return;
+		rollback();
+		throw;
 	}
 
 	result::const_iterator c = R.begin();
@@ -914,9 +932,11 @@ void CDBConnection::execute(string sql, TTradeLookupFrame2Output *pOut)
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
+				"NO RESULTS" << endl <<
 				sql << endl;
 		bh->logErrorMessage(msg.str(), false);
-		return;
+		rollback();
+		throw;
 	}
 
 	result::const_iterator c = R.begin();
@@ -1095,9 +1115,11 @@ void CDBConnection::execute(string sql, TTradeLookupFrame3Output *pOut)
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
+				"NO RESULTS" << endl <<
 				sql << endl;
 		bh->logErrorMessage(msg.str(), false);
-		return;
+		rollback();
+		throw;
 	}
 
 	result::const_iterator c = R.begin();
@@ -1306,9 +1328,11 @@ void CDBConnection::execute(string sql, TTradeLookupFrame4Output *pOut)
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
+				"NO RESULTS" << endl <<
 				sql << endl;
 		bh->logErrorMessage(msg.str(), false);
-		return;
+		rollback();
+		throw;
 	}
 
 	result::const_iterator c = R.begin();
@@ -1373,9 +1397,11 @@ void CDBConnection::execute(string sql, TTradeOrderFrame1Output *pOut)
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
+						"NO RESULTS" << endl <<
 						sql << endl;
 				bh->logErrorMessage(msg.str(), false);
-				return;
+				rollback();
+				throw;
 			}
 			break;
 		} catch (const pqxx::sql_error &e) {
@@ -1388,10 +1414,8 @@ void CDBConnection::execute(string sql, TTradeOrderFrame1Output *pOut)
 					msg << "query: " << e.query() << endl;
 
 					if (iNumRetry <= iMaxRetries) {
-						// Rollback the current transaction and try again.
 						// Wait 1 second to give the other transaction time to
 						// finish.
-						rollback();
 						bh->logErrorMessage(msg.str(), false);
 						iNumRetry++;
 						sleep(1);
@@ -1400,12 +1424,14 @@ void CDBConnection::execute(string sql, TTradeOrderFrame1Output *pOut)
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
 						pOut->status = CBaseTxnErr::ROLLBACK;
-						return;
+						rollback();
+						throw;
 					}
+			} else {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				rollback();
+				throw;
 			}
-
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
 		}
 	}
 
@@ -1438,9 +1464,11 @@ void CDBConnection::execute(string sql, TTradeOrderFrame2Output *pOut)
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
+						"NO RESULTS" << endl <<
 						sql << endl;
 				bh->logErrorMessage(msg.str(), false);
-				return;
+				rollback();
+				throw;
 			}
 			break;
 		} catch (const pqxx::sql_error &e) {
@@ -1453,10 +1481,8 @@ void CDBConnection::execute(string sql, TTradeOrderFrame2Output *pOut)
 					msg << "query: " << e.query() << endl;
 
 					if (iNumRetry <= iMaxRetries) {
-						// Rollback the current transaction and try again.
 						// Wait 1 second to give the other transaction time to
 						// finish.
-						rollback();
 						bh->logErrorMessage(msg.str(), false);
 						iNumRetry++;
 						sleep(1);
@@ -1465,12 +1491,14 @@ void CDBConnection::execute(string sql, TTradeOrderFrame2Output *pOut)
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
 						pOut->status = CBaseTxnErr::ROLLBACK;
-						return;
+						rollback();
+						throw;
 					}
+			} else {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				rollback();
+				throw;
 			}
-
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
 		}
 	}
 
@@ -1499,9 +1527,11 @@ void CDBConnection::execute(string sql, TTradeOrderFrame3Output *pOut)
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
+						"NO RESULTS" << endl <<
 						sql << endl;
 				bh->logErrorMessage(msg.str(), false);
-				return;
+				rollback();
+				throw;
 			}
 			break;
 		} catch (const pqxx::sql_error &e) {
@@ -1514,10 +1544,8 @@ void CDBConnection::execute(string sql, TTradeOrderFrame3Output *pOut)
 					msg << "query: " << e.query() << endl;
 
 					if (iNumRetry <= iMaxRetries) {
-						// Rollback the current transaction and try again.
 						// Wait 1 second to give the other transaction time to
 						// finish.
-						rollback();
 						bh->logErrorMessage(msg.str(), false);
 						iNumRetry++;
 						sleep(1);
@@ -1526,12 +1554,14 @@ void CDBConnection::execute(string sql, TTradeOrderFrame3Output *pOut)
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
 						pOut->status = CBaseTxnErr::ROLLBACK;
-						return;
+						rollback();
+						throw;
 					}
+			} else {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				rollback();
+				throw;
 			}
-
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
 		}
 	}
 
@@ -1569,9 +1599,11 @@ void CDBConnection::execute(string sql, TTradeOrderFrame4Output *pOut)
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
+						"NO RESULTS" << endl <<
 						sql << endl;
 				bh->logErrorMessage(msg.str(), false);
-				return;
+				rollback();
+				throw;
 			}
 			break;
 		} catch (const pqxx::sql_error &e) {
@@ -1584,10 +1616,8 @@ void CDBConnection::execute(string sql, TTradeOrderFrame4Output *pOut)
 					msg << "query: " << e.query() << endl;
 
 					if (iNumRetry <= iMaxRetries) {
-						// Rollback the current transaction and try again.
 						// Wait 1 second to give the other transaction time to
 						// finish.
-						rollback();
 						bh->logErrorMessage(msg.str(), false);
 						iNumRetry++;
 						sleep(1);
@@ -1596,12 +1626,14 @@ void CDBConnection::execute(string sql, TTradeOrderFrame4Output *pOut)
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
 						pOut->status = CBaseTxnErr::ROLLBACK;
-						return;
+						rollback();
+						throw;
 					}
+			} else {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				rollback();
+				throw;
 			}
-
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
 		}
 	}
 
@@ -1626,9 +1658,11 @@ void CDBConnection::execute(string sql, TTradeResultFrame1Output *pOut)
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
+						"NO RESULTS" << endl <<
 						sql << endl;
 				bh->logErrorMessage(msg.str(), false);
-				return;
+				rollback();
+				throw;
 			}
 			break;
 		} catch (const pqxx::sql_error &e) {
@@ -1641,10 +1675,8 @@ void CDBConnection::execute(string sql, TTradeResultFrame1Output *pOut)
 					msg << "query: " << e.query() << endl;
 
 					if (iNumRetry <= iMaxRetries) {
-						// Rollback the current transaction and try again.
 						// Wait 1 second to give the other transaction time to
 						// finish.
-						rollback();
 						bh->logErrorMessage(msg.str(), false);
 						iNumRetry++;
 						sleep(1);
@@ -1653,12 +1685,14 @@ void CDBConnection::execute(string sql, TTradeResultFrame1Output *pOut)
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
 						pOut->status = CBaseTxnErr::ROLLBACK;
-						return;
+						rollback();
+						throw;
 					}
+			} else {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				rollback();
+				throw;
 			}
-
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
 		}
 	}
 
@@ -1693,9 +1727,11 @@ void CDBConnection::execute(string sql, TTradeResultFrame2Output *pOut)
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
+						"NO RESULTS" << endl <<
 						sql << endl;
 				bh->logErrorMessage(msg.str(), false);
-				return;
+				rollback();
+				throw;
 			}
 			break;
 		} catch (const pqxx::sql_error &e) {
@@ -1708,10 +1744,8 @@ void CDBConnection::execute(string sql, TTradeResultFrame2Output *pOut)
 					msg << "query: " << e.query() << endl;
 
 					if (iNumRetry <= iMaxRetries) {
-						// Rollback the current transaction and try again.
 						// Wait 1 second to give the other transaction time to
 						// finish.
-						rollback();
 						bh->logErrorMessage(msg.str(), false);
 						iNumRetry++;
 						sleep(1);
@@ -1720,12 +1754,14 @@ void CDBConnection::execute(string sql, TTradeResultFrame2Output *pOut)
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
 						pOut->status = CBaseTxnErr::ROLLBACK;
-						return;
+						rollback();
+						throw;
 					}
+			} else {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				rollback();
+				throw;
 			}
-
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
 		}
 	}
 
@@ -1761,9 +1797,11 @@ void CDBConnection::execute(string sql, TTradeResultFrame3Output *pOut)
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
+						"NO RESULTS" << endl <<
 						sql << endl;
 				bh->logErrorMessage(msg.str(), false);
-				return;
+				rollback();
+				throw;
 			}
 			break;
 		} catch (const pqxx::sql_error &e) {
@@ -1776,10 +1814,8 @@ void CDBConnection::execute(string sql, TTradeResultFrame3Output *pOut)
 					msg << "query: " << e.query() << endl;
 
 					if (iNumRetry <= iMaxRetries) {
-						// Rollback the current transaction and try again.
 						// Wait 1 second to give the other transaction time to
 						// finish.
-						rollback();
 						bh->logErrorMessage(msg.str(), false);
 						iNumRetry++;
 						sleep(1);
@@ -1788,12 +1824,14 @@ void CDBConnection::execute(string sql, TTradeResultFrame3Output *pOut)
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
 						pOut->status = CBaseTxnErr::ROLLBACK;
-						return;
+						rollback();
+						throw;
 					}
+			} else {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				rollback();
+				throw;
 			}
-
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
 		}
 	}
 
@@ -1818,9 +1856,11 @@ void CDBConnection::execute(string sql, TTradeResultFrame4Output *pOut)
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
+						"NO RESULTS" << endl <<
 						sql << endl;
 				bh->logErrorMessage(msg.str(), false);
-				return;
+				rollback();
+				throw;
 			}
 			break;
 		} catch (const pqxx::sql_error &e) {
@@ -1833,10 +1873,8 @@ void CDBConnection::execute(string sql, TTradeResultFrame4Output *pOut)
 					msg << "query: " << e.query() << endl;
 
 					if (iNumRetry <= iMaxRetries) {
-						// Rollback the current transaction and try again.
 						// Wait 1 second to give the other transaction time to
 						// finish.
-						rollback();
 						bh->logErrorMessage(msg.str(), false);
 						iNumRetry++;
 						sleep(1);
@@ -1845,12 +1883,14 @@ void CDBConnection::execute(string sql, TTradeResultFrame4Output *pOut)
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
 						pOut->status = CBaseTxnErr::ROLLBACK;
-						return;
+						rollback();
+						throw;
 					}
+			} else {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				rollback();
+				throw;
 			}
-
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
 		}
 	}
 
@@ -1876,9 +1916,11 @@ void CDBConnection::execute(string sql, TTradeResultFrame5Output *pOut)
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
+						"NO RESULTS" << endl <<
 						sql << endl;
 				bh->logErrorMessage(msg.str(), false);
-				return;
+				rollback();
+				throw;
 			}
 			break;
 		} catch (const pqxx::sql_error &e) {
@@ -1891,10 +1933,8 @@ void CDBConnection::execute(string sql, TTradeResultFrame5Output *pOut)
 					msg << "query: " << e.query() << endl;
 
 					if (iNumRetry <= iMaxRetries) {
-						// Rollback the current transaction and try again.
 						// Wait 1 second to give the other transaction time to
 						// finish.
-						rollback();
 						bh->logErrorMessage(msg.str(), false);
 						iNumRetry++;
 						sleep(1);
@@ -1903,12 +1943,14 @@ void CDBConnection::execute(string sql, TTradeResultFrame5Output *pOut)
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
 						pOut->status = CBaseTxnErr::ROLLBACK;
-						return;
+						rollback();
+						throw;
 					}
+			} else {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				rollback();
+				throw;
 			}
-
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
 		}
 	}
 
@@ -1931,9 +1973,11 @@ void CDBConnection::execute(string sql, TTradeResultFrame6Output *pOut)
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
+						"NO RESULTS" << endl <<
 						sql << endl;
 				bh->logErrorMessage(msg.str(), false);
-				return;
+				rollback();
+				throw;
 			}
 			break;
 		} catch (const pqxx::sql_error &e) {
@@ -1946,10 +1990,8 @@ void CDBConnection::execute(string sql, TTradeResultFrame6Output *pOut)
 					msg << "query: " << e.query() << endl;
 
 					if (iNumRetry <= iMaxRetries) {
-						// Rollback the current transaction and try again.
 						// Wait 1 second to give the other transaction time to
 						// finish.
-						rollback();
 						bh->logErrorMessage(msg.str(), false);
 						iNumRetry++;
 						sleep(1);
@@ -1958,12 +2000,14 @@ void CDBConnection::execute(string sql, TTradeResultFrame6Output *pOut)
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
 						pOut->status = CBaseTxnErr::ROLLBACK;
-						return;
+						rollback();
+						throw;
 					}
+			} else {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				rollback();
+				throw;
 			}
-
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
 		}
 	}
 
@@ -1986,9 +2030,11 @@ void CDBConnection::execute(string sql, TTradeStatusFrame1Output *pOut)
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
+				"NO RESULTS" << endl <<
 				sql << endl;
 		bh->logErrorMessage(msg.str(), false);
-		return;
+		rollback();
+		throw;
 	}
 
 	result::const_iterator c = R.begin();
@@ -2124,9 +2170,11 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame1Output *pOut)
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
+						"NO RESULTS" << endl <<
 						sql << endl;
 				bh->logErrorMessage(msg.str(), false);
-				return;
+				rollback();
+				throw;
 			}
 			break;
 		} catch (const pqxx::sql_error &e) {
@@ -2139,10 +2187,8 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame1Output *pOut)
 					msg << "query: " << e.query() << endl;
 
 					if (iNumRetry <= iMaxRetries) {
-						// Rollback the current transaction and try again.
 						// Wait 1 second to give the other transaction time to
 						// finish.
-						rollback();
 						bh->logErrorMessage(msg.str(), false);
 						iNumRetry++;
 						sleep(1);
@@ -2151,12 +2197,14 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame1Output *pOut)
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
 						pOut->status = CBaseTxnErr::ROLLBACK;
-						return;
+						rollback();
+						throw;
 					}
+			} else {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				rollback();
+				throw;
 			}
-
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
 		}
 	}
 
@@ -2358,9 +2406,11 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame2Output *pOut)
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
+						"NO RESULTS" << endl <<
 						sql << endl;
 				bh->logErrorMessage(msg.str(), false);
-				return;
+				rollback();
+				throw;
 			}
 			break;
 		} catch (const pqxx::sql_error &e) {
@@ -2373,10 +2423,8 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame2Output *pOut)
 					msg << "query: " << e.query() << endl;
 
 					if (iNumRetry <= iMaxRetries) {
-						// Rollback the current transaction and try again.
 						// Wait 1 second to give the other transaction time to
 						// finish.
-						rollback();
 						bh->logErrorMessage(msg.str(), false);
 						iNumRetry++;
 						sleep(1);
@@ -2385,12 +2433,14 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame2Output *pOut)
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
 						pOut->status = CBaseTxnErr::ROLLBACK;
-						return;
+						rollback();
+						throw;
 					}
+			} else {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				rollback();
+				throw;
 			}
-
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
 		}
 	}
 
@@ -2596,9 +2646,11 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame3Output *pOut)
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
+						"NO RESULTS" << endl <<
 						sql << endl;
 				bh->logErrorMessage(msg.str(), false);
-				return;
+				rollback();
+				throw;
 			}
 			break;
 		} catch (const pqxx::sql_error &e) {
@@ -2611,10 +2663,8 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame3Output *pOut)
 					msg << "query: " << e.query() << endl;
 
 					if (iNumRetry <= iMaxRetries) {
-						// Rollback the current transaction and try again.
 						// Wait 1 second to give the other transaction time to
 						// finish.
-						rollback();
 						bh->logErrorMessage(msg.str(), false);
 						iNumRetry++;
 						sleep(1);
@@ -2623,12 +2673,14 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame3Output *pOut)
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
 						pOut->status = CBaseTxnErr::ROLLBACK;
-						return;
+						rollback();
+						throw;
 					}
+			} else {
+				pOut->status = CBaseTxnErr::ROLLBACK;
+				rollback();
+				throw;
 			}
-
-			pOut->status = CBaseTxnErr::ROLLBACK;
-			return;
 		}
 	}
 
