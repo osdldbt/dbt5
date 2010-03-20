@@ -13,7 +13,6 @@
  */
 
 #include "DBConnection.h"
-#include "DBT5Consts.h"
 
 // These are inlined function that should only be used here.
 
@@ -93,7 +92,7 @@ void inline TokenizeSmart(const string& str, vector<string>& tokens)
 CDBConnection::CDBConnection(const char *szHost, const char *szDBName,
 		const char *szDBPort)
 {
-	char szConnectStr[iMaxConnectString + 1] = "";
+	szConnectStr[0] = '\0';
 
 	// Just pad everything with spaces so we don't have to figure out if it's
 	// needed or not.
@@ -110,7 +109,6 @@ CDBConnection::CDBConnection(const char *szHost, const char *szDBName,
 		strcat(szConnectStr, szDBPort);
 	}
 
-	char name[16];
 	sprintf(name, "%d", (int) pthread_self());
 	m_Conn = new connection(szConnectStr);
 	m_Txn = new nontransaction(*m_Conn, name);
@@ -130,6 +128,12 @@ void CDBConnection::begin()
 	m_Txn->exec("BEGIN;");
 }
 
+void CDBConnection::connect()
+{
+	m_Conn = new connection(szConnectStr);
+	m_Txn = new nontransaction(*m_Conn, name);
+}
+
 void CDBConnection::commit()
 {
 	m_Txn->exec("COMMIT;");
@@ -138,6 +142,12 @@ void CDBConnection::commit()
 string CDBConnection::escape(string s)
 {
 	return m_Txn->esc(s);
+}
+
+void CDBConnection::disconnect()
+{
+	delete m_Txn;
+	delete m_Conn;
 }
 
 void CDBConnection::execute(string sql, TBrokerVolumeFrame1Output *pOut)
@@ -2751,6 +2761,12 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame3Output *pOut)
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
+}
+
+void CDBConnection::reconnect()
+{
+	disconnect();
+	connect();
 }
 
 void CDBConnection::rollback()

@@ -19,6 +19,7 @@ using namespace pqxx;
 #include "TxnHarnessSendToMarket.h"
 
 #include "BrokerageHouse.h"
+#include "DBT5Consts.h"
 using namespace TPCE;
 
 class CDBConnection
@@ -26,6 +27,9 @@ class CDBConnection
 private:
 	connection *m_Conn; // libpqxx Connection
 	nontransaction *m_Txn; // libpqxx dummy Transaction
+
+	char szConnectStr[iMaxConnectString + 1];
+	char name[16];
 
 	CBrokerageHouse *bh;
 
@@ -38,7 +42,9 @@ public:
 	void begin();
 
 	void commit();
+	void connect();
 	string escape(string);
+	void disconnect();
 
 	void execute(string, TBrokerVolumeFrame1Output *);
 
@@ -77,6 +83,8 @@ public:
 	void execute(string, TTradeUpdateFrame1Output *);
 	void execute(string, TTradeUpdateFrame2Output *);
 	void execute(string, TTradeUpdateFrame3Output *);
+
+	void reconnect();
 
 	void rollback();
 

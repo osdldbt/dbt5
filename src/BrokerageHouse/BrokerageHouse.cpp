@@ -170,7 +170,7 @@ void *workerThread(void *data)
 				exit(1);
 			} else if (PGSQL_CONNECTION_FAILED.compare(e.what()) == 0) {
 				msg << "reconnecting to database" << endl;
-				sockDrv.dbt5Reconnect();
+				pDBConnection->reconnect();
 			} else {
 				msg << "unhandled" << endl;
 			}
