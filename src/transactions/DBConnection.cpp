@@ -13,6 +13,7 @@
  */
 
 #include "DBConnection.h"
+#include "DBT5Consts.h"
 
 // These are inlined function that should only be used here.
 
@@ -92,7 +93,7 @@ void inline TokenizeSmart(const string& str, vector<string>& tokens)
 CDBConnection::CDBConnection(const char *szHost, const char *szDBName,
 		const char *szDBPort)
 {
-	char szConnectStr[256] = "";
+	char szConnectStr[iMaxConnectString + 1] = "";
 
 	// Just pad everything with spaces so we don't have to figure out if it's
 	// needed or not.
@@ -351,7 +352,46 @@ void CDBConnection::execute(string sql, TMarketFeedFrame1Output *pOut,
 	enum mff1 {i_send_len=0, i_status, i_rows_updated, i_symbol,
 			i_trade_id, i_price_quote, i_trade_qty, i_trade_type};
 
-	result R(m_Txn->exec(sql));
+	// For PostgreSQL, see comment in the Concurrency Control chapter, under
+	// the Transaction Isolation section for dealing with serialization
+	// failures.  These serialization failures can occur with REPEATABLE READS
+	// or SERIALIZABLE.
+	int iNumRetry = 1;
+	result R;
+	while (true) {
+		try {
+			R = m_Txn->exec(sql);
+			break;
+		} catch (const pqxx::sql_error &e) {
+			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
+					ostringstream msg;
+					msg << time(NULL) << " " << pthread_self() <<
+							"MARKET_FEED" << endl;
+					msg << "attempt: " << iNumRetry << endl;
+					msg << "what: " << e.what();
+					msg << "query: " << e.query() << endl;
+
+					if (iNumRetry <= iMaxRetries) {
+						// Rollback the current transaction and try again.
+						// Wait 1 second to give the other transaction time to
+						// finish.
+						rollback();
+						bh->logErrorMessage(msg.str(), false);
+						iNumRetry++;
+						sleep(1);
+					} else {
+						// Couldn't resubmit successfully.
+						msg << "giving up" << endl;
+						bh->logErrorMessage(msg.str(), false);
+						pOut->status = CBaseTxnErr::ROLLBACK;
+						return;
+					}
+			}
+
+			pOut->status = CBaseTxnErr::ROLLBACK;
+			return;
+		}
+	}
 
 	if (!R.empty()) {
 		result::const_iterator c = R.begin();
@@ -1250,7 +1290,46 @@ void CDBConnection::execute(string sql, TTradeLookupFrame4Output *pOut)
 
 void CDBConnection::execute(string sql, TTradeOrderFrame1Output *pOut)
 {
-	result R(m_Txn->exec(sql));
+	// For PostgreSQL, see comment in the Concurrency Control chapter, under
+	// the Transaction Isolation section for dealing with serialization
+	// failures.  These serialization failures can occur with REPEATABLE READS
+	// or SERIALIZABLE.
+	int iNumRetry = 1;
+	result R;
+	while (true) {
+		try {
+			R = m_Txn->exec(sql);
+			break;
+		} catch (const pqxx::sql_error &e) {
+			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
+					ostringstream msg;
+					msg << time(NULL) << " " << pthread_self() <<
+							"TRADE_ORDER" << endl;
+					msg << "attempt: " << iNumRetry << endl;
+					msg << "what: " << e.what();
+					msg << "query: " << e.query() << endl;
+
+					if (iNumRetry <= iMaxRetries) {
+						// Rollback the current transaction and try again.
+						// Wait 1 second to give the other transaction time to
+						// finish.
+						rollback();
+						bh->logErrorMessage(msg.str(), false);
+						iNumRetry++;
+						sleep(1);
+					} else {
+						// Couldn't resubmit successfully.
+						msg << "giving up" << endl;
+						bh->logErrorMessage(msg.str(), false);
+						pOut->status = CBaseTxnErr::ROLLBACK;
+						return;
+					}
+			}
+
+			pOut->status = CBaseTxnErr::ROLLBACK;
+			return;
+		}
+	}
 
 	if (R.empty()) {
 		cout << "warning: empty result set at DoTradeOrderFrame1" << endl <<
@@ -1274,7 +1353,46 @@ void CDBConnection::execute(string sql, TTradeOrderFrame1Output *pOut)
 
 void CDBConnection::execute(string sql, TTradeOrderFrame2Output *pOut)
 {
-	result R(m_Txn->exec(sql));
+	// For PostgreSQL, see comment in the Concurrency Control chapter, under
+	// the Transaction Isolation section for dealing with serialization
+	// failures.  These serialization failures can occur with REPEATABLE READS
+	// or SERIALIZABLE.
+	int iNumRetry = 1;
+	result R;
+	while (true) {
+		try {
+			R = m_Txn->exec(sql);
+			break;
+		} catch (const pqxx::sql_error &e) {
+			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
+					ostringstream msg;
+					msg << time(NULL) << " " << pthread_self() <<
+							"TRADE_ORDER" << endl;
+					msg << "attempt: " << iNumRetry << endl;
+					msg << "what: " << e.what();
+					msg << "query: " << e.query() << endl;
+
+					if (iNumRetry <= iMaxRetries) {
+						// Rollback the current transaction and try again.
+						// Wait 1 second to give the other transaction time to
+						// finish.
+						rollback();
+						bh->logErrorMessage(msg.str(), false);
+						iNumRetry++;
+						sleep(1);
+					} else {
+						// Couldn't resubmit successfully.
+						msg << "giving up" << endl;
+						bh->logErrorMessage(msg.str(), false);
+						pOut->status = CBaseTxnErr::ROLLBACK;
+						return;
+					}
+			}
+
+			pOut->status = CBaseTxnErr::ROLLBACK;
+			return;
+		}
+	}
 
 	if (R.empty()) {
 		cout << "warning: empty result set at DoTradeOrderFrame2" << endl <<
@@ -1296,7 +1414,46 @@ void CDBConnection::execute(string sql, TTradeOrderFrame2Output *pOut)
 
 void CDBConnection::execute(string sql, TTradeOrderFrame3Output *pOut)
 {
-	result R(m_Txn->exec(sql));
+	// For PostgreSQL, see comment in the Concurrency Control chapter, under
+	// the Transaction Isolation section for dealing with serialization
+	// failures.  These serialization failures can occur with REPEATABLE READS
+	// or SERIALIZABLE.
+	int iNumRetry = 1;
+	result R;
+	while (true) {
+		try {
+			R = m_Txn->exec(sql);
+			break;
+		} catch (const pqxx::sql_error &e) {
+			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
+					ostringstream msg;
+					msg << time(NULL) << " " << pthread_self() <<
+							"TRADE_ORDER" << endl;
+					msg << "attempt: " << iNumRetry << endl;
+					msg << "what: " << e.what();
+					msg << "query: " << e.query() << endl;
+
+					if (iNumRetry <= iMaxRetries) {
+						// Rollback the current transaction and try again.
+						// Wait 1 second to give the other transaction time to
+						// finish.
+						rollback();
+						bh->logErrorMessage(msg.str(), false);
+						iNumRetry++;
+						sleep(1);
+					} else {
+						// Couldn't resubmit successfully.
+						msg << "giving up" << endl;
+						bh->logErrorMessage(msg.str(), false);
+						pOut->status = CBaseTxnErr::ROLLBACK;
+						return;
+					}
+			}
+
+			pOut->status = CBaseTxnErr::ROLLBACK;
+			return;
+		}
+	}
 
 	if (R.empty()) {
 		cout << "warning: empty result set at DoTradeOrderFrame3" << endl <<
@@ -1325,7 +1482,46 @@ void CDBConnection::execute(string sql, TTradeOrderFrame3Output *pOut)
 
 void CDBConnection::execute(string sql, TTradeOrderFrame4Output *pOut)
 {
-	result R(m_Txn->exec(sql));
+	// For PostgreSQL, see comment in the Concurrency Control chapter, under
+	// the Transaction Isolation section for dealing with serialization
+	// failures.  These serialization failures can occur with REPEATABLE READS
+	// or SERIALIZABLE.
+	int iNumRetry = 1;
+	result R;
+	while (true) {
+		try {
+			R = m_Txn->exec(sql);
+			break;
+		} catch (const pqxx::sql_error &e) {
+			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
+					ostringstream msg;
+					msg << time(NULL) << " " << pthread_self() <<
+							"TRADE_ORDER" << endl;
+					msg << "attempt: " << iNumRetry << endl;
+					msg << "what: " << e.what();
+					msg << "query: " << e.query() << endl;
+
+					if (iNumRetry <= iMaxRetries) {
+						// Rollback the current transaction and try again.
+						// Wait 1 second to give the other transaction time to
+						// finish.
+						rollback();
+						bh->logErrorMessage(msg.str(), false);
+						iNumRetry++;
+						sleep(1);
+					} else {
+						// Couldn't resubmit successfully.
+						msg << "giving up" << endl;
+						bh->logErrorMessage(msg.str(), false);
+						pOut->status = CBaseTxnErr::ROLLBACK;
+						return;
+					}
+			}
+
+			pOut->status = CBaseTxnErr::ROLLBACK;
+			return;
+		}
+	}
 
 	if (R.empty()) {
 		cout << "warning: empty result set at DoTradeOrderFrame4" << endl <<
@@ -1341,7 +1537,47 @@ void CDBConnection::execute(string sql, TTradeOrderFrame4Output *pOut)
 
 void CDBConnection::execute(string sql, TTradeResultFrame1Output *pOut)
 {
-	result R(m_Txn->exec(sql));
+	// For PostgreSQL, see comment in the Concurrency Control chapter, under
+	// the Transaction Isolation section for dealing with serialization
+	// failures.  These serialization failures can occur with REPEATABLE READS
+	// or SERIALIZABLE.
+	int iNumRetry = 1;
+	result R;
+	while (true) {
+		try {
+			R = m_Txn->exec(sql);
+			break;
+		} catch (const pqxx::sql_error &e) {
+			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
+					ostringstream msg;
+					msg << time(NULL) << " " << pthread_self() <<
+							"TRADE_RESULT" << endl;
+					msg << "attempt: " << iNumRetry << endl;
+					msg << "what: " << e.what();
+					msg << "query: " << e.query() << endl;
+
+					if (iNumRetry <= iMaxRetries) {
+						// Rollback the current transaction and try again.
+						// Wait 1 second to give the other transaction time to
+						// finish.
+						rollback();
+						bh->logErrorMessage(msg.str(), false);
+						iNumRetry++;
+						sleep(1);
+					} else {
+						// Couldn't resubmit successfully.
+						msg << "giving up" << endl;
+						bh->logErrorMessage(msg.str(), false);
+						pOut->status = CBaseTxnErr::ROLLBACK;
+						return;
+					}
+			}
+
+			pOut->status = CBaseTxnErr::ROLLBACK;
+			return;
+		}
+	}
+
 	if (R.empty()) {
 		cout << "warning: empty result set at DoTradeResultFrame1" << endl <<
 				sql << endl;
@@ -1366,7 +1602,47 @@ void CDBConnection::execute(string sql, TTradeResultFrame1Output *pOut)
 
 void CDBConnection::execute(string sql, TTradeResultFrame2Output *pOut)
 {
-	result R(m_Txn->exec(sql));
+	// For PostgreSQL, see comment in the Concurrency Control chapter, under
+	// the Transaction Isolation section for dealing with serialization
+	// failures.  These serialization failures can occur with REPEATABLE READS
+	// or SERIALIZABLE.
+	int iNumRetry = 1;
+	result R;
+	while (true) {
+		try {
+			R = m_Txn->exec(sql);
+			break;
+		} catch (const pqxx::sql_error &e) {
+			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
+					ostringstream msg;
+					msg << time(NULL) << " " << pthread_self() <<
+							"TRADE_RESULT" << endl;
+					msg << "attempt: " << iNumRetry << endl;
+					msg << "what: " << e.what();
+					msg << "query: " << e.query() << endl;
+
+					if (iNumRetry <= iMaxRetries) {
+						// Rollback the current transaction and try again.
+						// Wait 1 second to give the other transaction time to
+						// finish.
+						rollback();
+						bh->logErrorMessage(msg.str(), false);
+						iNumRetry++;
+						sleep(1);
+					} else {
+						// Couldn't resubmit successfully.
+						msg << "giving up" << endl;
+						bh->logErrorMessage(msg.str(), false);
+						pOut->status = CBaseTxnErr::ROLLBACK;
+						return;
+					}
+			}
+
+			pOut->status = CBaseTxnErr::ROLLBACK;
+			return;
+		}
+	}
+
 	if (R.empty()) {
 			cout << "warning: empty result set at DoTradeResultFrame2" <<
 							endl <<
@@ -1393,7 +1669,47 @@ void CDBConnection::execute(string sql, TTradeResultFrame2Output *pOut)
 
 void CDBConnection::execute(string sql, TTradeResultFrame3Output *pOut)
 {
-	result R(m_Txn->exec(sql));
+	// For PostgreSQL, see comment in the Concurrency Control chapter, under
+	// the Transaction Isolation section for dealing with serialization
+	// failures.  These serialization failures can occur with REPEATABLE READS
+	// or SERIALIZABLE.
+	int iNumRetry = 1;
+	result R;
+	while (true) {
+		try {
+			R = m_Txn->exec(sql);
+			break;
+		} catch (const pqxx::sql_error &e) {
+			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
+					ostringstream msg;
+					msg << time(NULL) << " " << pthread_self() <<
+							"TRADE_RESULT" << endl;
+					msg << "attempt: " << iNumRetry << endl;
+					msg << "what: " << e.what();
+					msg << "query: " << e.query() << endl;
+
+					if (iNumRetry <= iMaxRetries) {
+						// Rollback the current transaction and try again.
+						// Wait 1 second to give the other transaction time to
+						// finish.
+						rollback();
+						bh->logErrorMessage(msg.str(), false);
+						iNumRetry++;
+						sleep(1);
+					} else {
+						// Couldn't resubmit successfully.
+						msg << "giving up" << endl;
+						bh->logErrorMessage(msg.str(), false);
+						pOut->status = CBaseTxnErr::ROLLBACK;
+						return;
+					}
+			}
+
+			pOut->status = CBaseTxnErr::ROLLBACK;
+			return;
+		}
+	}
+
 	if (R.empty()) {
 		cout << "warning: empty result set at DoTradeResultFrame3" << endl <<
 				sql << endl;
@@ -1408,7 +1724,47 @@ void CDBConnection::execute(string sql, TTradeResultFrame3Output *pOut)
 
 void CDBConnection::execute(string sql, TTradeResultFrame4Output *pOut)
 {
-	result R(m_Txn->exec(sql));
+	// For PostgreSQL, see comment in the Concurrency Control chapter, under
+	// the Transaction Isolation section for dealing with serialization
+	// failures.  These serialization failures can occur with REPEATABLE READS
+	// or SERIALIZABLE.
+	int iNumRetry = 1;
+	result R;
+	while (true) {
+		try {
+			R = m_Txn->exec(sql);
+			break;
+		} catch (const pqxx::sql_error &e) {
+			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
+					ostringstream msg;
+					msg << time(NULL) << " " << pthread_self() <<
+							"TRADE_RESULT" << endl;
+					msg << "attempt: " << iNumRetry << endl;
+					msg << "what: " << e.what();
+					msg << "query: " << e.query() << endl;
+
+					if (iNumRetry <= iMaxRetries) {
+						// Rollback the current transaction and try again.
+						// Wait 1 second to give the other transaction time to
+						// finish.
+						rollback();
+						bh->logErrorMessage(msg.str(), false);
+						iNumRetry++;
+						sleep(1);
+					} else {
+						// Couldn't resubmit successfully.
+						msg << "giving up" << endl;
+						bh->logErrorMessage(msg.str(), false);
+						pOut->status = CBaseTxnErr::ROLLBACK;
+						return;
+					}
+			}
+
+			pOut->status = CBaseTxnErr::ROLLBACK;
+			return;
+		}
+	}
+
 	if (R.empty()) {
 		cout << "warning: empty result set at DoTradeResultFrame4" <<
 						endl <<
@@ -1426,7 +1782,47 @@ void CDBConnection::execute(string sql, TTradeResultFrame4Output *pOut)
 
 void CDBConnection::execute(string sql, TTradeResultFrame5Output *pOut)
 {
-	result R(m_Txn->exec(sql));
+	// For PostgreSQL, see comment in the Concurrency Control chapter, under
+	// the Transaction Isolation section for dealing with serialization
+	// failures.  These serialization failures can occur with REPEATABLE READS
+	// or SERIALIZABLE.
+	int iNumRetry = 1;
+	result R;
+	while (true) {
+		try {
+			R = m_Txn->exec(sql);
+			break;
+		} catch (const pqxx::sql_error &e) {
+			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
+					ostringstream msg;
+					msg << time(NULL) << " " << pthread_self() <<
+							"TRADE_RESULT" << endl;
+					msg << "attempt: " << iNumRetry << endl;
+					msg << "what: " << e.what();
+					msg << "query: " << e.query() << endl;
+
+					if (iNumRetry <= iMaxRetries) {
+						// Rollback the current transaction and try again.
+						// Wait 1 second to give the other transaction time to
+						// finish.
+						rollback();
+						bh->logErrorMessage(msg.str(), false);
+						iNumRetry++;
+						sleep(1);
+					} else {
+						// Couldn't resubmit successfully.
+						msg << "giving up" << endl;
+						bh->logErrorMessage(msg.str(), false);
+						pOut->status = CBaseTxnErr::ROLLBACK;
+						return;
+					}
+			}
+
+			pOut->status = CBaseTxnErr::ROLLBACK;
+			return;
+		}
+	}
+
 	if (R.empty()) {
 		cout << "warning: empty result set at DoTradeResultFrame5" << endl <<
 				sql << endl;;
@@ -1438,7 +1834,47 @@ void CDBConnection::execute(string sql, TTradeResultFrame5Output *pOut)
 
 void CDBConnection::execute(string sql, TTradeResultFrame6Output *pOut)
 {
-	result R(m_Txn->exec(sql));
+	// For PostgreSQL, see comment in the Concurrency Control chapter, under
+	// the Transaction Isolation section for dealing with serialization
+	// failures.  These serialization failures can occur with REPEATABLE READS
+	// or SERIALIZABLE.
+	int iNumRetry = 1;
+	result R;
+	while (true) {
+		try {
+			R = m_Txn->exec(sql);
+			break;
+		} catch (const pqxx::sql_error &e) {
+			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
+					ostringstream msg;
+					msg << time(NULL) << " " << pthread_self() <<
+							"TRADE_RESULT" << endl;
+					msg << "attempt: " << iNumRetry << endl;
+					msg << "what: " << e.what();
+					msg << "query: " << e.query() << endl;
+
+					if (iNumRetry <= iMaxRetries) {
+						// Rollback the current transaction and try again.
+						// Wait 1 second to give the other transaction time to
+						// finish.
+						rollback();
+						bh->logErrorMessage(msg.str(), false);
+						iNumRetry++;
+						sleep(1);
+					} else {
+						// Couldn't resubmit successfully.
+						msg << "giving up" << endl;
+						bh->logErrorMessage(msg.str(), false);
+						pOut->status = CBaseTxnErr::ROLLBACK;
+						return;
+					}
+			}
+
+			pOut->status = CBaseTxnErr::ROLLBACK;
+			return;
+		}
+	}
+
 	if (R.empty()) {
 		cout << "warning: empty result set at DoTradeResultFrame6" <<
 						endl <<
@@ -1588,7 +2024,48 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame1Output *pOut)
 			i_settlement_cash_type, i_status, i_trade_history_dts,
 			i_trade_history_status_id, i_trade_price
 	};
-	result R(m_Txn->exec(sql));
+
+	// For PostgreSQL, see comment in the Concurrency Control chapter, under
+	// the Transaction Isolation section for dealing with serialization
+	// failures.  These serialization failures can occur with REPEATABLE READS
+	// or SERIALIZABLE.
+	int iNumRetry = 1;
+	result R;
+	while (true) {
+		try {
+			R = m_Txn->exec(sql);
+			break;
+		} catch (const pqxx::sql_error &e) {
+			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
+					ostringstream msg;
+					msg << time(NULL) << " " << pthread_self() <<
+							"TRADE_UPDATE" << endl;
+					msg << "attempt: " << iNumRetry << endl;
+					msg << "what: " << e.what();
+					msg << "query: " << e.query() << endl;
+
+					if (iNumRetry <= iMaxRetries) {
+						// Rollback the current transaction and try again.
+						// Wait 1 second to give the other transaction time to
+						// finish.
+						rollback();
+						bh->logErrorMessage(msg.str(), false);
+						iNumRetry++;
+						sleep(1);
+					} else {
+						// Couldn't resubmit successfully.
+						msg << "giving up" << endl;
+						bh->logErrorMessage(msg.str(), false);
+						pOut->status = CBaseTxnErr::ROLLBACK;
+						return;
+					}
+			}
+
+			pOut->status = CBaseTxnErr::ROLLBACK;
+			return;
+		}
+	}
+
 	if (R.empty()) {
 		cout << "warning: empty result set at DoTradeUpdateFrame1" << endl <<
 				sql << endl;
@@ -1779,7 +2256,47 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame2Output *pOut)
 			i_trade_history_dts, i_trade_history_status_id, i_trade_list,
 			i_trade_price
 	};
-	result R(m_Txn->exec(sql));
+
+	// For PostgreSQL, see comment in the Concurrency Control chapter, under
+	// the Transaction Isolation section for dealing with serialization
+	// failures.  These serialization failures can occur with REPEATABLE READS
+	// or SERIALIZABLE.
+	int iNumRetry = 1;
+	result R;
+	while (true) {
+		try {
+			R = m_Txn->exec(sql);
+			break;
+		} catch (const pqxx::sql_error &e) {
+			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
+					ostringstream msg;
+					msg << time(NULL) << " " << pthread_self() <<
+							"TRADE_UPDATE" << endl;
+					msg << "attempt: " << iNumRetry << endl;
+					msg << "what: " << e.what();
+					msg << "query: " << e.query() << endl;
+
+					if (iNumRetry <= iMaxRetries) {
+						// Rollback the current transaction and try again.
+						// Wait 1 second to give the other transaction time to
+						// finish.
+						rollback();
+						bh->logErrorMessage(msg.str(), false);
+						iNumRetry++;
+						sleep(1);
+					} else {
+						// Couldn't resubmit successfully.
+						msg << "giving up" << endl;
+						bh->logErrorMessage(msg.str(), false);
+						pOut->status = CBaseTxnErr::ROLLBACK;
+						return;
+					}
+			}
+
+			pOut->status = CBaseTxnErr::ROLLBACK;
+			return;
+		}
+	}
 
 	if (R.empty()) {
 		cout << "warning: empty result set at DoTradeUpdateFrame2" << endl <<
@@ -1946,6 +2463,7 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame2Output *pOut)
 	vAux.clear();
 
 	TokenizeSmart(c[i_trade_list].c_str(), vAux);
+	this->bh = bh;
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].trade_id = atol((*p).c_str());
@@ -1975,7 +2493,47 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame3Output *pOut)
 			i_trade_history_dts, i_trade_history_status_id, i_trade_list,
 			i_type_name, i_trade_type
 	};
-	result R(m_Txn->exec(sql));
+
+	// For PostgreSQL, see comment in the Concurrency Control chapter, under
+	// the Transaction Isolation section for dealing with serialization
+	// failures.  These serialization failures can occur with REPEATABLE READS
+	// or SERIALIZABLE.
+	int iNumRetry = 1;
+	result R;
+	while (true) {
+		try {
+			R = m_Txn->exec(sql);
+			break;
+		} catch (const pqxx::sql_error &e) {
+			if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
+					ostringstream msg;
+					msg << time(NULL) << " " << pthread_self() <<
+							"TRADE_UPDATE" << endl;
+					msg << "attempt: " << iNumRetry << endl;
+					msg << "what: " << e.what();
+					msg << "query: " << e.query() << endl;
+
+					if (iNumRetry <= iMaxRetries) {
+						// Rollback the current transaction and try again.
+						// Wait 1 second to give the other transaction time to
+						// finish.
+						rollback();
+						bh->logErrorMessage(msg.str(), false);
+						iNumRetry++;
+						sleep(1);
+					} else {
+						// Couldn't resubmit successfully.
+						msg << "giving up" << endl;
+						bh->logErrorMessage(msg.str(), false);
+						pOut->status = CBaseTxnErr::ROLLBACK;
+						return;
+					}
+			}
+
+			pOut->status = CBaseTxnErr::ROLLBACK;
+			return;
+		}
+	}
 
 	if (R.empty()) {
 		cout << "warning: empty result set at DoTradeUpdateFrame3" << endl <<
@@ -2198,6 +2756,11 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame3Output *pOut)
 void CDBConnection::rollback()
 {
 	m_Txn->exec("ROLLBACK;");
+}
+
+void CDBConnection::setBrokerageHouse(CBrokerageHouse *bh)
+{
+	this->bh = bh;
 }
 
 void CDBConnection::setReadCommitted()

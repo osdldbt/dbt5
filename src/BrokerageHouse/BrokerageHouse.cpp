@@ -8,6 +8,9 @@
  * 25 July 2006
  */
 
+#include <pqxx/pqxx>
+using namespace pqxx;
+
 #include "BrokerageHouse.h"
 #include "CommonStructs.h"
 #include "DBConnection.h"
@@ -39,13 +42,12 @@ void *workerThread(void *data)
 	INT32 iRet = 0; // transaction return code
 	CDBConnection *pDBConnection = NULL;
 
-	int iNumRetry;
-
 	// new database connection
 	pDBConnection = new CDBConnection(
 			pThrParam->pBrokerageHouse->m_szHost,
 			pThrParam->pBrokerageHouse->m_szDBName,
 			pThrParam->pBrokerageHouse->m_szDBPort);
+	pDBConnection->setBrokerageHouse(pThrParam->pBrokerageHouse);
 	CSendToMarket sendToMarket = CSendToMarket(
 			&(pThrParam->pBrokerageHouse->m_fLog));
 	CMarketFeedDB marketFeedDB(pDBConnection);
@@ -106,65 +108,12 @@ void *workerThread(void *data)
 						customerPosition);
 				break;
 			case MARKET_FEED:
-				// For PostgreSQL, see comment in the Concurrency
-				// Control chapter, under the Transaction Isolation
-				// section for dealing with serialization failures.
-				// These serialization failures can occur with
-				// REPEATABLE READS or SERIALIZABLE.
-				iNumRetry = 1;
-				while (true) {
-					try {
-						iRet = pThrParam->pBrokerageHouse->RunMarketFeed(
-								&(pMessage->TxnInput.MarketFeedTxnInput),
-								marketFeed);
-						break;
-					} catch (const pqxx::sql_error &e) {
-						if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
-							ostringstream msg;
-							msg << time(NULL) << " " << pthread_self() << " " <<
-									szTransactionName[pMessage->TxnType] <<
-									endl;
-							msg << "attempt: " << iNumRetry << endl;
-							msg << "what: " << e.what();
-							msg << "query: " << e.query() << endl;
-
-							if (iNumRetry <= iMaxRetries) {
-								// Rollback the current transaction and
-								// try again.  Wait 1 second to give the
-								// other transaction time to finish.
-								pDBConnection->rollback();
-								pThrParam->pBrokerageHouse->
-										logErrorMessage(msg.str(), false);
-								iNumRetry++;
-								sleep(1);
-							} else {
-								// Couldn't resubmit successfully.
-								msg << "giving up" << endl;
-								pThrParam->pBrokerageHouse->
-										logErrorMessage(msg.str(), false);
-								throw;
-							}
-						} else {
-							// other pqxx errors should be caught by the next
-							// pqxx catch in this function
-							throw;
-						}
-					}
-				}
-
-				if (iNumRetry > 1) {
-					ostringstream osErr;
-					osErr << "*** MARKET FEED re-submission ok : thread = " <<
-							pthread_self() << " #Retries = " <<
-							iNumRetry << endl;
-					pThrParam->pBrokerageHouse->logErrorMessage(osErr.str(),
-							false);
-				}
+				iRet = pThrParam->pBrokerageHouse->RunMarketFeed(
+						&(pMessage->TxnInput.MarketFeedTxnInput), marketFeed);
 				break;
 			case MARKET_WATCH:
 				iRet = pThrParam->pBrokerageHouse->RunMarketWatch(
-						&(pMessage->TxnInput.MarketWatchTxnInput),
-						marketWatch);
+						&(pMessage->TxnInput.MarketWatchTxnInput), marketWatch);
 				break;
 			case SECURITY_DETAIL:
 				iRet = pThrParam->pBrokerageHouse->RunSecurityDetail(
@@ -173,121 +122,15 @@ void *workerThread(void *data)
 				break;
 			case TRADE_LOOKUP:
 				iRet = pThrParam->pBrokerageHouse->RunTradeLookup(
-						&(pMessage->TxnInput.TradeLookupTxnInput),
-						tradeLookup);
+						&(pMessage->TxnInput.TradeLookupTxnInput), tradeLookup);
 				break;
 			case TRADE_ORDER:
-				// For PostgreSQL, see comment in the Concurrency
-				// Control chapter, under the Transaction Isolation
-				// section for dealing with serialization failures.
-				// These serialization failures can occur with
-				// REPEATABLE READS or SERIALIZABLE.
-				iNumRetry = 1;
-				while (true) {
-					try {
-						iRet = pThrParam->pBrokerageHouse->RunTradeOrder(
-								&(pMessage->TxnInput.TradeOrderTxnInput),
-								tradeOrder);
-						break;
-					} catch (const pqxx::sql_error &e) {
-						if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
-							ostringstream msg;
-							msg << time(NULL) << " " << pthread_self() << " " <<
-									szTransactionName[pMessage->TxnType] <<
-									endl;
-							msg << "attempt: " << iNumRetry << endl;
-							msg << "what: " << e.what();
-							msg << "query: " << e.query() << endl;
-
-							if (iNumRetry <= iMaxRetries) {
-								// Rollback the current transaction and
-								// try again.  Wait 1 second to give the
-								// other transaction time to finish.
-								pDBConnection->rollback();
-								pThrParam->pBrokerageHouse->
-										logErrorMessage(msg.str(), false);
-								iNumRetry++;
-								sleep(1);
-							} else {
-								// Couldn't resubmit successfully.
-								msg << "giving up" << endl;
-								pThrParam->pBrokerageHouse->
-										logErrorMessage(msg.str(), false);
-								throw;
-							}
-						} else {
-							// other pqxx errors should be caught by the next
-							// pqxx catch in this function
-							throw;
-						}
-					}
-				}
-
-				if (iNumRetry > 1) {
-					ostringstream osErr;
-					osErr << "*** TRADE ORDER re-submission ok : thread = " <<
-							pthread_self() << " #Retries = " <<
-							iNumRetry << endl;
-					pThrParam->pBrokerageHouse->logErrorMessage(osErr.str(),
-							false);
-				}
+				iRet = pThrParam->pBrokerageHouse->RunTradeOrder(
+						&(pMessage->TxnInput.TradeOrderTxnInput), tradeOrder);
 				break;
 			case TRADE_RESULT:
-				// For PostgreSQL, see comment in the Concurrency
-				// Control chapter, under the Transaction Isolation
-				// section for dealing with serialization failures.
-				// These serialization failures can occur with
-				// REPEATABLE READS or SERIALIZABLE.
-				iNumRetry = 1;
-				while (true) {
-					try {
-						iRet = pThrParam->pBrokerageHouse->RunTradeResult(
-								&(pMessage->TxnInput.TradeResultTxnInput),
-								tradeResult);
-						break;
-					} catch (const pqxx::sql_error &e) {
-						// catch only serialization failure errors
-						if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
-							ostringstream msg;
-							msg << time(NULL) << " " << pthread_self() << " " <<
-									szTransactionName[pMessage->TxnType] <<
-									endl;
-							msg << "attempt: " << iNumRetry << endl;
-							msg << "what: " << e.what();
-							msg << "query: " << e.query() << endl;
-
-							if (iNumRetry <= iMaxRetries) {
-								// Rollback the current transaction and
-								// try again.  Wait 1 second to give the
-								// other transaction time to finish.
-								pDBConnection->rollback();
-								pThrParam->pBrokerageHouse->
-										logErrorMessage(msg.str(), false);
-								iNumRetry++;
-								sleep(1);
-							} else {
-								// Couldn't resubmit successfully.
-								msg << "giving up" << endl;
-								pThrParam->pBrokerageHouse->
-										logErrorMessage(msg.str(), false);
-								throw;
-							}
-						} else {
-							// other pqxx errors should be caught by the next
-							// pqxx catch in this function
-							throw;
-						}
-					}
-				}
-
-				if (iNumRetry > 1) {
-					ostringstream osErr;
-					osErr << "*** TRADE RESULT re-submission ok : thread = " <<
-							pthread_self() << " #Retries = " <<
-							iNumRetry << endl;
-					pThrParam->pBrokerageHouse->logErrorMessage(osErr.str(),
-							false);
-				}
+				iRet = pThrParam->pBrokerageHouse->RunTradeResult(
+						&(pMessage->TxnInput.TradeResultTxnInput), tradeResult);
 				break;
 			case TRADE_STATUS:
 				iRet = pThrParam->pBrokerageHouse->RunTradeStatus(
@@ -295,60 +138,8 @@ void *workerThread(void *data)
 						tradeStatus);
 				break;
 			case TRADE_UPDATE:
-				// For PostgreSQL, see comment in the Concurrency
-				// Control chapter, under the Transaction Isolation
-				// section for dealing with serialization failures.
-				// These serialization failures can occur with
-				// REPEATABLE READS or SERIALIZABLE.
-				iNumRetry = 1;
-				while (true) {
-					try {
-						iRet = pThrParam->pBrokerageHouse->RunTradeUpdate(
-								&(pMessage->TxnInput.TradeUpdateTxnInput),
-								tradeUpdate);
-						break;
-					} catch (const pqxx::sql_error &e) {
-						if (PGSQL_SERIALIZE_ERROR.compare(e.what()) == 0) {
-							ostringstream msg;
-							msg << time(NULL) << " " << pthread_self() << " " <<
-									szTransactionName[pMessage->TxnType] <<
-									endl;
-							msg << "attempt: " << iNumRetry << endl;
-							msg << "what: " << e.what();
-							msg << "query: " << e.query() << endl;
-
-							if (iNumRetry <= iMaxRetries) {
-								// Rollback the current transaction and
-								// try again.  Wait 1 second to give the
-								// other transaction time to finish.
-								pDBConnection->rollback();
-								pThrParam->pBrokerageHouse->
-										logErrorMessage(msg.str(), false);
-								iNumRetry++;
-								sleep(1);
-							} else {
-								// Couldn't resubmit successfully.
-								msg << "giving up" << endl;
-								pThrParam->pBrokerageHouse->
-										logErrorMessage(msg.str(), false);
-								throw;
-							}
-						} else {
-							// other pqxx errors should be caught by the next
-							// pqxx catch in this function
-							throw;
-						}
-					}
-				}
-
-				if (iNumRetry > 1) {
-					ostringstream osErr;
-					osErr << "*** TRADE UPDATE re-submission ok : thread = " <<
-							pthread_self() << " #Retries = " <<
-							iNumRetry << endl;
-					pThrParam->pBrokerageHouse->logErrorMessage(osErr.str(),
-							false);
-				}
+				iRet = pThrParam->pBrokerageHouse->RunTradeUpdate(
+						&(pMessage->TxnInput.TradeUpdateTxnInput), tradeUpdate);
 				break;
 			case DATA_MAINTENANCE:
 				iRet = pThrParam->pBrokerageHouse->RunDataMaintenance(
@@ -365,6 +156,8 @@ void *workerThread(void *data)
 				iRet = ERR_TYPE_WRONGTXN;
 			}
 		} catch (const pqxx::broken_connection &e) {
+			// FIXME: Is there a better place to put this to remove all
+			// database specific API calls into the DBConnection class?
 			ostringstream msg;
 			msg << time(NULL) << " " << pthread_self() << " " <<
 					szTransactionName[pMessage->TxnType] << endl;

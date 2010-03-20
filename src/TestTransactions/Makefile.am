@@ -52,4 +52,6 @@ TestTxn_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                   $(INTF)/CESUT.cpp \
                   $(INTF)/CSocket.cpp \
                   $(INTF)/TxnHarnessSendToMarketTest.cpp \
+                  $(INTF)/TxnHarnessSendToMarket.cpp \
+                  ../BrokerageHouse/BrokerageHouse.cpp \
                   TestTxn.cpp

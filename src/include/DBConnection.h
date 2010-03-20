@@ -17,6 +17,8 @@ using namespace pqxx;
 
 #include "TxnHarnessStructs.h"
 #include "TxnHarnessSendToMarket.h"
+
+#include "BrokerageHouse.h"
 using namespace TPCE;
 
 class CDBConnection
@@ -24,6 +26,8 @@ class CDBConnection
 private:
 	connection *m_Conn; // libpqxx Connection
 	nontransaction *m_Txn; // libpqxx dummy Transaction
+
+	CBrokerageHouse *bh;
 
 	TTradeRequest m_TriggeredLimitOrders;
 
@@ -75,6 +79,8 @@ public:
 	void execute(string, TTradeUpdateFrame3Output *);
 
 	void rollback();
+
+	void setBrokerageHouse(CBrokerageHouse *);
 
 	void setReadCommitted();
 	void setReadUncommitted();

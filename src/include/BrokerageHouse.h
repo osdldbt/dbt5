@@ -36,6 +36,7 @@ using namespace TPCE;
 
 class CBrokerageHouse
 {
+private:
 	int m_iListenPort;
 	CSocket m_Socket;
 	CMutex m_LogLock;
@@ -45,7 +46,6 @@ class CBrokerageHouse
 	char m_szDBName[iMaxDBName + 1]; // database name
 	char m_szDBPort[iMaxPort + 1]; // PostgreSQL postmaster port
 
-private:
 	TBrokerVolumeTxnOutput bvOutput;
 	TCustomerPositionTxnOutput cpOutput;
 	TDataMaintenanceTxnOutput dmOutput;
@@ -73,8 +73,6 @@ private:
 	void dumpInputData(PTradeOrderTxnInput);
 	void dumpInputData(PTradeResultTxnInput);
 	void dumpInputData(PTradeUpdateTxnInput);
-
-	void logErrorMessage(const string sErr, bool bScreen = true);
 
 	INT32 RunBrokerVolume(PBrokerVolumeTxnInput pTxnInput,
 			CBrokerVolume &BrokerVolume);
@@ -108,8 +106,9 @@ public:
 				char *);
 	~CBrokerageHouse();
 
-	void startListener(void);
+	void logErrorMessage(const string sErr, bool bScreen = true);
 
+	void startListener(void);
 };
 
 //parameter structure for the threads
