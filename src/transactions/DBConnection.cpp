@@ -627,7 +627,10 @@ void CDBConnection::execute(string sql, TSecurityDetailFrame1Output *pOut)
 		TokenizeSmart((*p).c_str(), v2);
 
 		p2 = v2.begin();
-		strcpy(pOut->news[i].item, (*p2++).c_str());
+		// FIXME: Postgresql can actually return 5 times the amount of data due
+		// to escaped characters.  Cap the data at the length that EGen defines
+		// it and hope it isn't a problem for continuing the test correctly.
+		strncpy(pOut->news[i].item, (*p2++).c_str(), cNI_ITEM_len);
 		sscanf((*p2++).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->news[i].dts.year,
 				&pOut->news[i].dts.month,
@@ -635,10 +638,10 @@ void CDBConnection::execute(string sql, TSecurityDetailFrame1Output *pOut)
 				&pOut->news[i].dts.hour,
 				&pOut->news[i].dts.minute,
 				&pOut->news[i].dts.second);
-		strcpy(pOut->news[i].src, (*p2++).c_str());
-		strcpy(pOut->news[i].auth, (*p2++).c_str());
-		strcpy(pOut->news[i].headline, (*p2++).c_str());
-		strcpy(pOut->news[i].summary, (*p2++).c_str());
+		strncpy(pOut->news[i].src, (*p2++).c_str(), cNI_SOURCE_len);
+		strncpy(pOut->news[i].auth, (*p2++).c_str(), cNI_AUTHOR_len);
+		strncpy(pOut->news[i].headline, (*p2++).c_str(), cNI_HEADLINE_len);
+		strncpy(pOut->news[i].summary, (*p2++).c_str(), cNI_SUMMARY_len);
 		++i;
 		v2.clear();
 	}

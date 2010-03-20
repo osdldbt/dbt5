@@ -220,8 +220,8 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 
 		char *co_id = NULL;
 
-		strcpy(symbol, DatumGetCString(DirectFunctionCall1(textout,
-				PointerGetDatum(symbol_p))));
+		strncpy(symbol, DatumGetCString(DirectFunctionCall1(textout,
+				PointerGetDatum(symbol_p))), S_SYMB_LEN);
 		j2date(start_date_p + POSTGRES_EPOCH_JDATE,
 				&(tm->tm_year), &(tm->tm_mon), &(tm->tm_mday));
 		EncodeDateOnly(tm, DateStyle, buf);
@@ -476,7 +476,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
 			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
 		}
-			sprintf(values[i_news_len], "%d", SPI_processed);
+		sprintf(values[i_news_len], "%d", SPI_processed);
 		strcpy(values[i_news], "{");
 		for (i = 0; i < SPI_processed; i++) {
 			tuple = tuptable->vals[i];

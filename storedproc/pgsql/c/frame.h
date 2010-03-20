@@ -105,7 +105,8 @@
 #define IN_NAME_LEN 50
 
 #define NI_AUTHOR_LEN 30
-#define NI_ITEM_LEN 100000
+/* PostgreSQL bytea can blow this up by 5. */
+#define NI_ITEM_LEN 100000 * 5
 #define NI_SOURCE_LEN 30
 #define NI_HEADLINE_LEN 80
 #define NI_SUMMARY_LEN 255
