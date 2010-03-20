@@ -84,8 +84,9 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 		logResponseTime(-1, 0, -1);
 
 		ostringstream msg;
-		msg << "Error sending ("<< length << ") txn " <<
-				szTransactionName[pRequest->TxnType] << ": " <<
+		msg << time(NULL) << " " << pthread_self() << " " <<
+				szTransactionName[pRequest->TxnType] << ": " << endl <<
+				"Error sending " << length << " bytes of data" << endl <<
 				pErr->ErrorText() << endl;
 		logErrorMessage(msg.str());
 		length = -1;
@@ -98,8 +99,9 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 		logResponseTime(-1, 0, -2);
 
 		ostringstream msg;
-		msg << "Error reeiving ("<< length << ") txn " <<
-				szTransactionName[pRequest->TxnType] << ": " <<
+		msg << time(NULL) << " " << pthread_self() << " " <<
+				szTransactionName[pRequest->TxnType] << ": " << endl <<
+				"Error receiving " << length << " bytes of data" << endl <<
 				pErr->ErrorText() << endl;
 		logErrorMessage(msg.str());
 		length = -1;
