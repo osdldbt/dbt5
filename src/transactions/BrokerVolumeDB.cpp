@@ -18,8 +18,9 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 	int i = 0;
 
 	osBrokers << pIn->broker_list[i];
-	for (i = 1; pIn->broker_list[i][0] != '\0'; i++) {
-		osBrokers << ", " << escape(pIn->broker_list[i]);
+	for (i = 1; pIn->broker_list[i][0] != '\0' &&
+			i < max_broker_list_len; i++) {
+		osBrokers << ", " << pIn->broker_list[i];
 	}
 
 	ostringstream osCall;
