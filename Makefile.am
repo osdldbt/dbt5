@@ -13,6 +13,7 @@ SUBDIRS = . src
 
 bin_SCRIPTS = \
 	scripts/dbt5-generate-report \
+	scripts/dbt5-plot-transaction-rate \
 	scripts/dbt5-post-process \
 	scripts/dbt5-sysstats \
 	scripts/dbt5-get-os-info \

@@ -1,0 +1,177 @@
+#!/usr/bin/env python
+
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright (C) 2010 Mark Wong
+#
+
+import sys
+from math import fsum
+from os import makedirs, system
+from os.path import exists, realpath
+
+if len(sys.argv) != 3:
+    print 'Create a plot the rate of transactions.'
+    print 'usage: %s <tag> <mix.log> <output directory>' % sys.argv[0]
+    print
+    print '    <mix.log> - full path to the mix.log file'
+    print '    <output directory> - location to write output files'
+    print
+    print 'Will attempt to create <output directory> if it does not exist.'
+    exit(1)
+
+infilename = sys.argv[1]
+outputdir = sys.argv[2]
+
+# Make sure we can oping the file to read in data.
+try:
+    f = open(infilename, 'r')
+except:
+    print 'cannot open file: %s' % infilename
+    exit(1)
+
+# Make sure we can open the files to write to.
+
+if not exists(outputdir):
+    try:
+        # FIXME: Don't know why makedirs sometimes fails.
+        #makedirs(outputdir)
+        system('mkdir -p %s' % outputdir)
+    except:
+        print 'cannot create directory "%s"' % outputdir
+        exit(2)
+
+outputdir = realpath(outputdir)
+
+datafilename = 'transaction-rate.data'
+try:
+    d = open(outputdir + '/' + datafilename, 'w')
+except:
+    print 'cannot open file to write: %s/%s' % (outputdir, datafilename)
+    exit(3)
+    
+rfilename = 'transaction-rate.r'
+try:
+    r = open(outputdir + '/' + rfilename, 'w')
+except:
+    print 'cannot open file to write: %s/%s' % (outputdir, rfilename)
+    exit(4)
+
+# Read in the data and write out the datafile for R.
+
+to = '0'
+tr = '1'
+tl = '2'
+tu = '3'
+ts = '4'
+cp = '5'
+bv = '6'
+sd = '7'
+mf = '8'
+mw = '9'
+dm = '10'
+tc = '11'
+
+response_time = dict()
+for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu, dm, tc]:
+    response_time[key] = list()
+
+start_ctime = None
+ctime1 = None
+ctime2 = None
+count = 1
+
+for line in f:
+    c = line.strip().split(',')
+
+    if len(c) != 4:
+        continue
+
+    if start_ctime is None:
+        start_ctime = long(c[0])
+        ctime1 = long(c[0])
+        ctime2 = long(c[0])
+
+    ctime2 = long(c[0])
+    try:
+        response_time[c[1]].append(float(c[2]))
+    except:
+        # Don't care about items we didn't already initialize for.
+        continue
+
+    if (ctime2 - ctime1 + 1) >= 60:
+        d.write('%d' % count)
+        for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu, dm, tc]:
+            try:
+                rate = float(len(response_time[key])) / 60.0
+            except:
+                rate = 0
+            d.write(' %f' % rate)
+            response_time[key] = list()
+        d.write('\n')
+        ctime1 = ctime2
+        count += 1
+
+f.close()
+d.close()
+
+# Create the R file.
+
+transaction_name = dict()
+transaction_name[to] = 'Trade Order'
+transaction_name[tr] = 'Trade Result'
+transaction_name[tl] = 'Trade Lookup'
+transaction_name[tu] = 'Trade Update'
+transaction_name[ts] = 'Trade Status'
+transaction_name[cp] = 'Customer Position'
+transaction_name[bv] = 'Broker Volume'
+transaction_name[sd] = 'Security Detail'
+transaction_name[mf] = 'Market Feed'
+transaction_name[mw] = 'Market Watch'
+transaction_name[dm] = 'Data Maintenance'
+transaction_name[tc] = 'Trade Cleanup'
+
+column = dict()
+column[to] = 2
+column[tr] = 3
+column[tl] = 4
+column[tu] = 5
+column[ts] = 6
+column[cp] = 7
+column[bv] = 8
+column[sd] = 9
+column[mf] = 10
+column[mw] = 11
+column[dm] = 12
+column[tc] = 13
+
+r.write('d <- read.table("%s", header = FALSE)\n' % datafilename)
+
+for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu, dm, tc]:
+    r.write('bitmap("t%s-transaction-rate.png",\n' % key)
+    r.write('       type = "png16m",\n')
+    r.write('       units = "px",\n')
+    r.write('       width = 1280,\n')
+    r.write('       height = 800,\n')
+    r.write('       res = 150,\n')
+    r.write('       taa = 4,\n')
+    r.write('       gaa = 4)\n')
+    r.write('xmax = max(d$V1)\n')
+    r.write('ymax = max(d$V%d)\n' % column[key])
+    r.write('plot(d$V1,\n')
+    r.write('     d$V%d,\n' % column[key])
+    r.write('     xlim = c(0,xmax),\n')
+    r.write('     ylim = c(0,ymax),\n')
+    r.write('     type = "b",\n')
+    r.write('     main = "%s Transaction Rate",\n' % \
+            transaction_name[key])
+    r.write('     xlab = "Elapsed Time (minutes)",\n')
+    r.write('     ylab = "Transactions per Second")\n')
+    r.write('grid(col = "gray")\n')
+    r.write('\n')
+
+r.close()
+
+system('(cd %s && R --slave --no-save < %s)' % (outputdir, rfilename))
