@@ -13,8 +13,11 @@ usage()
 	echo "usage: create-db [-p port]"
 }
 
-while getopts "hp:" OPT; do
+while getopts "d:hp:" OPT; do
 	case ${OPT} in
+	d)
+		DBNAME=${OPTARG}
+		;;
 	h)
 		usage
 		exit 0
@@ -30,7 +33,7 @@ if [ -z ${PGDATA} ]; then
 	exit 1
 fi
 
-if [ -z ${DBNAME} ]; then
+if [ "${DBNAME}" = "x" ]; then
 	echo "DBNAME not defined."
 	exit 1
 fi
@@ -60,6 +63,8 @@ fi
 sleep 4
 
 createdb ${PORTOPT} -E SQL_ASCII ${DBNAME} || exit 1
-createlang ${PORTOPT} plpgsql ${DBNAME} || exit 1
+# FIXME: Add a check for what version of PostgreSQL is being used and then
+# determine whether we need to run createland got plpgsql.
+#createlang ${PORTOPT} plpgsql ${DBNAME} || exit 1
 
 exit 0

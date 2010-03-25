@@ -7,8 +7,11 @@
 # Copyright (C) 2002-2010 Mark Wong & Open Source Development Labs, Inc.
 #
 
-while getopts "i:p:o:s:" opt; do
+while getopts "d:i:p:o:s:" opt; do
 	case ${opt} in
+	d)
+		DBNAME=${OPTARG}
+		;;
 	i)
 		ITERATIONS=${OPTARG}
 		;;
@@ -33,7 +36,8 @@ if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
 fi
 
-PSQL="psql -e -d ${DBNAME} ${PORTARG}"
+PSQL="psql -t --no-align -e -d ${DBNAME} ${PORTARG}"
+PSQL2="psql -t --no-align -d ${DBNAME} ${PORTARG}"
 
 # Get database version.
 pg_config --version >> ${OUTPUT_DIR}/readme.txt
@@ -43,8 +47,21 @@ echo "libpqxx ${PQXX_VERSION}" >> ${OUTPUT_DIR}/readme.txt
 # Get database parameters.
 ${PSQL} -c "show all" > ${OUTPUT_DIR}/param.out
 
-# Get indexes.
-${PSQL} -c "select * from pg_stat_user_indexes;" -o ${OUTPUT_DIR}/indexes.out
+# Get list of tables in the public schema, where dbt5 should be.
+# This file is used for the report generation.
+${PSQL2} -c "
+SELECT tablename
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY tablename;" > ${OUTPUT_DIR}/table-list.txt
+
+# Get list of indexes in the public schema, where dbt5 should be.
+# This file is used for the report generation.
+${PSQL2} -c "
+SELECT indexname
+FROM pg_indexes
+WHERE schemaname = 'public'
+ORDER BY indexname;" > ${OUTPUT_DIR}/index-list.txt
 
 # Get the plans before the test.
 dbt5-pgsql-db-plans ${PORTARG} -o ${OUTPUT_DIR}/plan0.out
@@ -52,14 +69,30 @@ dbt5-pgsql-db-plans ${PORTARG} -o ${OUTPUT_DIR}/plan0.out
 COUNTER=0
 
 while [ $COUNTER -lt $ITERATIONS ]; do
-	${PSQL} -c "SELECT relname, pid, mode, granted FROM pg_locks, pg_class WHERE relfilenode = relation ORDER BY relname;" >> $OUTPUT_DIR/lockstats.out
+	${PSQL} -c "SELECT relname, pid, mode, granted FROM pg_locks, pg_class WHERE relfilenode = relation ORDER BY relname;" >> $OUTPUT_DIR/lockstats.out &
 	#${PSQL} -c "SELECT * FROM pg_locks WHERE transaction IS NOT NULL;" >> $OUTPUT_DIR/tran_lock.out
-	${PSQL} -c "SELECT * FROM pg_stat_activity;" >> $OUTPUT_DIR/db_activity.out
-	${PSQL} -c "SELECT * FROM pg_stat_database WHERE datname ='${DBNAME}';" >> $OUTPUT_DIR/db_load.out
-	${PSQL} -c "SELECT relid, relname, heap_blks_read, heap_blks_hit, idx_blks_read, idx_blks_hit FROM pg_statio_user_tables ORDER BY relname;" >> $OUTPUT_DIR/table_info.out
-	${PSQL} -c "SELECT relid, indexrelid, relname, indexrelname, idx_blks_read, idx_blks_hit FROM pg_statio_user_indexes ORDER BY indexrelname;" >> $OUTPUT_DIR/index_info.out
-	${PSQL} -c "SELECT * FROM pg_stat_user_tables;" >> $OUTPUT_DIR/table_scan.out
-	${PSQL} -c "SELECT * FROM pg_stat_user_indexes;" >> $OUTPUT_DIR/indexes_scan.out
+	${PSQL} -c "SELECT * FROM pg_stat_activity;" >> $OUTPUT_DIR/db_activity.out &
+	${PSQL} -c "
+SELECT TRANSACTION_TIMESTAMP(), datname, numbackends, xact_commit,
+       xact_rollback, blks_read, blks_hit, tup_returned, tup_fetched,
+       tup_inserted, tup_updated, tup_deleted
+FROM pg_stat_database;
+" >> $OUTPUT_DIR/pg_stat_databases.out &
+	${PSQL} -c "
+SELECT TRANSACTION_TIMESTAMP(), a.schemaname, a.relname, seq_scan, seq_tup_read,
+       idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd, n_tup_del, n_tup_hot_upd,
+       n_live_tup, n_dead_tup, heap_blks_read, heap_blks_hit, idx_blks_read,
+       idx_blks_hit, toast_blks_read, toast_blks_hit, tidx_blks_read,
+       tidx_blks_hit
+FROM pg_statio_all_tables a, pg_stat_all_tables b
+WHERE a.relid = b.relid;
+" >> $OUTPUT_DIR/pg_stat_tables.out &
+	${PSQL} -c "
+SELECT TRANSACTION_TIMESTAMP(), a.schemaname, a.relname, a.indexrelname,
+       idx_scan, idx_tup_read, idx_tup_fetch, idx_blks_read, idx_blks_hit
+FROM pg_stat_all_indexes a, pg_statio_all_indexes b
+WHERE a.indexrelid = b.indexrelid;
+" >> $OUTPUT_DIR/pg_stat_indexes.out &
 
 	COUNTER=`expr ${COUNTER} + 1`
 	sleep ${SAMPLE_LENGTH}

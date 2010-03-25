@@ -10,50 +10,61 @@
 usage()
 {
 	echo "Usage:"
-	echo "    build-db [option]"
-	echo "    build-db -h"
+	echo "    $0 [option]"
+	echo "    $0 -h"
 	echo "Options:"
-	echo "    -c <customers>"
-	echo "        Number of customers (total in the database)"
-	echo "    -i <customers>"
-	echo "        Number of customers (for this instance)"
+	echo "    -b <integer>"
+	echo "        Beginning customer ordinal position"
+	echo "    -c <integer>"
+	echo "        Number of customers for this instance"
+	echo "    -d <dbname>"
+	echo "        PGDATABASE name"
+	echo "    -h"
+	echo "        this help"
+	echo "    -i <path>"
+	echo "        Path to EGen"
 	echo "    -l <port>"
-	echo "        database port (default=5432)"
+	echo "        database port"
 	echo "    -p <database_parameters>"
 	echo "        PostgreSQL database parameters"
 	echo "    -r"
 	echo "        Drop existing database before building a new database"
 	echo "    -s <scale factor>"
 	echo "        Scale factor (customers per 1 trtps)"
-	echo "    -t"
+	echo "    -t <integer>"
+	echo "        Number of customers (total)"
+	echo "    -u"
 	echo "        Use tablespaces"
 	echo "    -w <days>"
-	echo -n "        Number of Workdays (8-hour days) of " 
-	echo "initial trades to populate"
+	echo "        Initial trade days (business days) to populate" 
 }
 
 REBUILD_DB=0
 
-CUSTOMERS_INSTANCE=1000
-CUSTOMERS_TOTAL=1000
-#
-# I don't know what the smallest SCALE_FACTOR is, which is what I would like to
-# set there, but 500 is definitely smaller than 1.
-#
+# These are minimum values defined by the specification.
+CUSTOMERS_INSTANCE=5000
+CUSTOMERS_TOTAL=5000
 SCALE_FACTOR=500
-WORKDAYS=1
+STARTING_CUSTOMER=1
+ITD=300
 
-while getopts "c:hi:l:p:rs:tw:" OPT; do
+while getopts "b:c:d:hi:l:p:rs:t:uw:" OPT; do
 	case ${OPT} in
+	b)
+		STARTING_CUSTOMER=${OPTARG}
+		;;
 	c)
-		CUSTOMERS_TOTAL=${OPTARG}
+		CUSTOMERS_INSTANCE=${OPTARG}
+		;;
+	d)
+		DBNAME=${OPTARG}
+		;;
+	e)
+		EGENDIR=${OPTARG}
 		;;
 	h)
 		usage
 		exit 0
-		;;
-	i)
-		CUSTOMERS_INSTANCE=${OPTARG}
 		;;
 	l)
 		PORT=${OPTARG}
@@ -68,27 +79,41 @@ while getopts "c:hi:l:p:rs:tw:" OPT; do
 		SCALE_FACTOR=${OPTARG}
 		;;
 	t)
+		CUSTOMERS_TOTAL=${OPTARG}
+		;;
+	u)
 		TABLESPACES_FLAG="-t"
 		;;
 	w)
-		WORKDAYS=${OPTARG}
+		ITD=${OPTARG}
 		;;
 	esac
 done
 
-if [ "x${EGENDIR}" = "x" ]; then
-	echo "EGENDIR not defined, specify EGen's directory."
+if [ $# -eq 0 ]; then
+	usage
 	exit 1
 fi
 
-if [ "x${DBNAME}" = "x" ]; then
-	echo "DBNAME not defined."
+if [ "x${EGENDIR}" = "x" ]; then
+	echo "EGENDIR not defined, specify EGen's directory."
 	exit 1
+else
+	EGENLOADER="${EGENDIR}/bin/EGenLoader"
+	if [ ! -f ${EGENLOADER} ]; then
+		echo "Cannot verify that '${EGENLOADER}' exists..."
+		exit 1
+	fi
+fi
+
+if [ ! "x${DBNAME}" = "x" ]; then
+	DBNAMEARG="-d ${DBNAME}"
+	DBNAMEARG2="dbname=${DBNAME}"
 fi
 
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
-	EGENPORT="port=${PORT}"
+	PORTARG2="port=${PORT}"
 fi
 
 if [ ${REBUILD_DB} -eq 1 ]; then
@@ -109,16 +134,16 @@ dbt5-pgsql-start-db -p "${PARAMETERS}" || exit 1
 
 dbt5-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG} || exit 1
 (cd ${EGENDIR} && \
-		${EGENDIR}/bin/EGenLoader -l CUSTOM -f ${SCALE_FACTOR} -w ${WORKDAYS} \
-		-c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} \
-		-p "dbname=${DBNAME} ${EGENPORT}") || exit 1
+		${EGENLOADER} -b ${STARDING_ID} -l CUSTOM -f ${SCALE_FACTOR} \
+		-w ${ITD} -c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} \
+		-p "${DBNAMEARG2} ${PORTARG2}") || exit 1
 dbt5-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG} || exit 1
-dbt5-pgsql-load-stored-procs -c ${PORTARG} || exit 1
-psql ${PORTARG} -e -d ${DBNAME} -c "SELECT setseed(0);" || exit 1
+dbt5-pgsql-load-stored-procs ${PORTARG} || exit 1
+psql ${PORTARG} -e ${DBNAMEARG} -c "SELECT setseed(0);" || exit 1
 #
 # VACUUM FULL ANALYZE: Build optimizer statistics for newly-created
 # tables. The VACUUM FULL is probably unnecessary; we want to scan the
 # heap and update the commit-hint bits on each new tuple, but a regular
 # VACUUM ought to suffice for that.
 #
-vacuumdb ${PORTARG} -z -f -d ${DBNAME} || exit 1
+vacuumdb ${PORTARG} -z -f ${DBNAMEARG} || exit 1

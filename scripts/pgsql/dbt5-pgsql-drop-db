@@ -7,15 +7,18 @@
 # Copyright (C) 2002-2010 Mark Wong & Open Source Development Labs, Inc.
 #
 
-while getopts "p:" OPT; do
+while getopts "d:p:" OPT; do
 	case ${OPT} in
+	d)
+		DBNAME=${OPTARG}
+		;;
 	p)
 		PORT=${OPTARG}
 		;;
 	esac
 done
 
-if [ -z "${DBNAME}" ]; then
+if [ "x${DBNAME}" = "x" ]; then
 	echo "DBNAME not defined."
 	exit 1
 fi

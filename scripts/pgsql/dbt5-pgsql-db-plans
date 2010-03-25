@@ -13,11 +13,14 @@
 
 explain() {
 	SQL="EXPLAIN ${@}"
-	psql -e ${PORTARG} -d ${DBNAME} -c "${SQL}" >> ${OUTPUT_FILE} 2>&1
+	psql -e ${PORTARG} ${DBNAMEARG} -c "${SQL}" >> ${OUTPUT_FILE} 2>&1
 }
 
-while getopts "o:p:" opt; do
+while getopts "d:o:p:" opt; do
 	case ${opt} in
+	d)
+		DBNAME=${OPTARG}
+		;;
 	o)
 		OUTPUT_FILE=${OPTARG}
 		;;
@@ -27,9 +30,8 @@ while getopts "o:p:" opt; do
 	esac
 done
 
-if [ "x${DBNAME}" = "x" ]; then
-	echo "DBNAME not defined."
-	exit 1
+if [ ! "x${DBNAME}" = "x" ]; then
+	DBNAMEARG="-d ${DBNAME}"
 fi
 
 if [ ! "x${PORT}" = "x" ]; then

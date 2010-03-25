@@ -11,8 +11,11 @@
 # FIXME: Currently assumes we are loading in the C stored functions.  More
 # logic needed to also handle plpgsql if so desired.
 
-while getopts "cp:q" OPT; do
+while getopts "d:p:q" OPT; do
 	case ${OPT} in
+	d)
+		DBNAME=${OPTARG}
+		;;
 	p)
 		PORT=${OPTARG}
 		;;
@@ -22,12 +25,11 @@ while getopts "cp:q" OPT; do
 	esac
 done
 
-if [ "x${DBNAME}" = "x" ]; then
-	echo "DBNAME not defined."
-	exit 1
+if [ ! "x${DBNAME}" = "x" ]; then
+	DBNAMEARG="-d ${DBNAME}"
 fi
 
-PSQL="psql ${PORTARG} -e -d ${DBNAME}"
+PSQL="psql ${PORTARG} -e ${DBNAMEARG}"
 SHAREDIR=`pg_config --sharedir`
 
 # Broker Volume transaction

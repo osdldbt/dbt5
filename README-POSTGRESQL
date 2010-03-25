@@ -1,70 +1,67 @@
+Building the kit:
+
+	Requirements:
+
+		* Developed against Postgresql 8.4 and newer.  May work with older
+		  versions but not quite tested.
+		* pqxx 2.6.0.  Maybe work with older versions but not quite tested.
+
+	1. Configure:
+
+		./configure --with-postgresql
+
+	2. Build EGen:
+
+		cd egen/prj
+		make -f Makefile.pgsql
+
+	2. Build and install the C stored functions:
+
+		cd storedprocs/pgsql/c
+		make
+		make install
+
+	3. Make the rest of the kit:
+
+		# At the top level of the tree
+		make
+		make install
+
+-----
+
 These PostgreSQL and PostgreSQL specific testing environment variables need to
 be set:
 
 # Our database will be named dbt5
 DBNAME=dbt5; export DBNAME
-PORT=5432
 
-# Data instance path.  Storage location for this instance of the database
-# should be within the working directory.  If you're going to mount a device,
-# do it at /mnt/postgresql.
-export PGDATA=/mnt/test/dbt5
+# pgdata path.  Storage location for this instance of the database should be
+# within the working directory.  If you're going to mount a device, do it at
+# /mnt/dbt5.  For example:
+export PGDATA=/mnt/dbt5/pgdata
 
-# Path of database data
-export DBDATA=/mnt/test/data
-
-# Directory with tablespace mount points, only if using tablespaces.
-export TSDIR=/mnt/test/dbt5
-
-# Build EGen, separate build system from the rest of the kit.
-    (cd egen/prj && make)
-
-# configure
-    ./configure --with-<database>
-
-# Build the rest of the kit.
-    make
-    make install
+# Directory with filesystem mount points to be used for tablespaces.  This is
+# required only if using tablespaces.
+export TSDIR=/mnt/dbt5
 
 # Run a quick 60 second test.
-    dbt5-run-workload -a <dbms> -n <dbname> -c 1000 -t 60 -u 1 -e 1 -f 500 -i 1 -s 100
+    dbt5-run-workload -a pgsql -c 5000 -t 5000 -d 60 -u 1 -i ~/dbt5/egen \
+			-f 500 -w 300 -n dbt5 -o /tmp/results
 
 -----
 
-Software Requirements:
-
-libpqxx-2.6 or newer is required.
-
------
-
-When building the stored procedures, you need to have the path to the
-PostgreSQL installation you want to test first in your $PATH environment
-variable.  The PGXS stuff uses your $PATH over the path set with the
---with-postgresql flag used for configure for some reason.
-
------
-
-To build a small database somewhat manually:
+To build a small database somewhat (see README for notes on database size):
 	dbt5-pgsql-build-db -c 1000 -i 1000 -s 500 -w 1
 
 -----
 
-Using EGen directly to load into PostgreSQL (assuming you built the tables by
-hand):
-
-	cd egen
-	bin/EGenLoader -c 1000 -t 1000 -w 1 -l CUSTOM \
-			-p 'host=testdb port=5432 dbname=dbt5'
-
------
-
-2-tier notes
+multi-tier notes
 
 Default PostgreSQL installations from CVS or source disable the tpc/ip listener
 except for localhost connections.  It can be enabled through the
 scripts/run-workload scripts using '-d "-c listen_addresses=*"' to enable
 listening from all ip accresses, or by setting the postgresql.conf file.
 
-The scripts/pgsql/create-db scripts will copy over a pg_hba.conf file only if
-the scripts has to run initdb.  This pg_hba.conf enables anyone from anywhere
-to connect to the database.
+The pg_hba.conf file also must be modified in order to allow connections from another host.
+
+See examples in the examples/pgsql directory.
