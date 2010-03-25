@@ -189,24 +189,26 @@ usage()
 	fi
 
 	echo ''
-	echo 'usage: run_workload.sh -c <number of customers> -t <duration of test> -u <number of users> -e <seed>'
+	echo 'usage: run_workload.sh -c <number of customers> -d <duration of test> -u <number of users>'
 	echo 'other options:'
 	echo '       -a <pgsql>'
-	echo '       -b <egen_path>'
-	echo '       -d <database parameters>'
+	echo '       -b <database parameters>'
 	echo '       -f <scale factor. (default 500)>'
 	echo '       -h <database host name. (default localhost)>'
-	echo '       -i <initial trade days. (default 300)>'
+	echo '       -i <egen_path>'
 	echo '       -l <pacing delay. (default 0)>'
 	echo '       -n <database name. (default dbt5)>'
 	echo '       -o <result output dir>'
 	echo '       -p <database port number. (default 5432)>'
-	echo '       -q (oprofile)'
-	echo '       -r (readprofile)'
-	echo '       -s <delay of starting of new thread in milliseconds (default 1000)>'
+	echo '       -r <random number seed, invalidates test>'
+	echo '       -s <delay between starting threads in milliseconds (default 1000)>'
+	echo '       -t <customers total>'
+	echo '       -w <initial trade days. (default 300)>'
+	echo '       -x (oprofile)'
+	echo '       -y (readprofile)'
 	echo '       -z <comment describing this test run>'
 	echo ''
-	echo 'Example: sh run_workload.sh -c 1000 -t 300 -u 3 -e 5 -i 10'
+	echo 'Example: sh run_workload.sh -c 1000 -t 300 -u 3 -i 10'
 	echo 'Test will be run for 300 seconds with 3 users, on a 1000 customers database with 10 initial trade days, and seed 5'
 	echo ''
 }
@@ -219,47 +221,47 @@ validate_parameter()
 	fi
 }
 
+if [ $# -eq 0 ]; then
+	usage
+	exit 1
+fi
+
 SCALE_FACTOR=500
 SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
 USE_READPROFILE=0
 PACING_DELAY=0
 
-while getopts "a:b:c:d:e:f:h:i:l:n:o:rp:qs:t:u:w:z:" opt; do
+while getopts "a:b:c:d:f:h:i:l:n:o:rp:s:t:u:w:xyz:" opt; do
 	case $opt in
 	a)
 		DBMS=${OPTARG}
 		export DATABASE=${DBMS}
 		;;
 	b)
-		EGENDIR=${OPTARG}
+		DB_PARAMS=$OPTARG
 		;;
 	c)
 		# Configured customer count
-		CUSTOMERS=`echo $OPTARG | egrep "^[0-9]+$"`
-		validate_parameter $opt $OPTARG $CUSTOMERS
+		CUSTOMERS_INSTANCE=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $CUSTOMERS_INSTANCE
 		;;
 	d)
-		DB_PARAMS=$OPTARG
+		# duration of the test
+		DURATION=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $DURATION
 		;;
-	e)	
-		SEED=`echo $OPTARG | egrep "^[0-9]+$"`
-		validate_parameter $opt $OPTARG $SEED
-		;;
-	f)	
+	f)
 		SCALE_FACTOR=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $SCALE_FACTOR
 		;;
 	h)
 		DB_HOSTNAME=$OPTARG
-		DB_COMMAND="ssh ${DB_HOSTNAME}"
 		;;
-	i)	
-		# intial trade days
-		ITD=`echo $OPTARG | egrep "^[0-9]+$"`
-		validate_parameter $opt $OPTARG $ITD
+	i)
+		EGENDIR=${OPTARG}
 		;;
-	l)	
+	l)
 		PACING_DELAY=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $PACING_DELAY
 		;;
@@ -274,24 +276,33 @@ while getopts "a:b:c:d:e:f:h:i:l:n:o:rp:qs:t:u:w:z:" opt; do
 		DB_PORT=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $DB_PORT
 		;;
-	q)
-		USE_OPROFILE=1
-		;;
 	r)
-		USE_READPROFILE=1
+		SEED=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $SEED
 		;;
 	s)
 		SLEEPY=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $SLEEPY
 		;;
 	t)
-		# duration of the test
-		DURATION=`echo $OPTARG | egrep "^[0-9]+$"`
-		validate_parameter $opt $OPTARG $DURATION
+		# Configured customer count
+		CUSTOMERS_TOTAL=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $CUSTOMERS_TOTAL
 		;;
 	u)
 		USERS=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $USERS
+		;;
+	w)
+		# intial trade days
+		ITD=`echo $OPTARG | egrep "^[0-9]+$"`
+		validate_parameter $opt $OPTARG $ITD
+		;;
+	x)
+		USE_OPROFILE=1
+		;;
+	y)
+		USE_READPROFILE=1
 		;;
 	z)
 		COMMENT=$OPTARG
@@ -299,10 +310,15 @@ while getopts "a:b:c:d:e:f:h:i:l:n:o:rp:qs:t:u:w:z:" opt; do
 	esac
 done
 
+if [ $# -eq 0 ]; then
+	usage
+	exit 1
+fi
+
 # Check parameters.
 
 if [ "x${EGENDIR}}" = "x" ]; then
-	usage "specify path to EGen using -b <path>"
+	usage "specify path to EGen using -i <path>"
 	exit 1
 fi
 
@@ -316,23 +332,23 @@ if [ "x${DB_NAME}" = "x" ]; then
 	exit 1
 fi
 
-if [ "x${CUSTOMERS}" = "x" ]; then
-	usage "specify the number of configured customers -c #"
+if [ "x${CUSTOMERS_INSTANCE}" = "x" ]; then
+	usage "specify the number of customers in this instance -c #"
+	exit 1
+fi
+
+if [ "x${CUSTOMERS_TOTAL}" = "x" ]; then
+	usage "specify the number of total customers -t #"
 	exit 1
 fi
 
 if [ "x${DURATION}" = "x" ]; then
-	usage "specify the duration of the test in seconds using -t #"
+	usage "specify the duration of the test in seconds using -d #"
 	exit 1
 fi
 
 if [ "x${USERS}" = "x" ]; then
 	usage "specify the number of users using -u #"
-	exit 1
-fi
-
-if [ "x${SEED}" = "x" ]; then
-	usage "specify the seed using -e #"
 	exit 1
 fi
 
@@ -355,12 +371,10 @@ if [ ! "x${DB_PORT}" = "x" ]; then
     DB_PORT_ARG="-p ${DB_PORT}"
 fi
 
-#ULIMIT_N=`ulimit -n`
-#ESTIMATED_ULIMIT=$(( 2*${WAREHOUSES}*${THREADS_PER_WAREHOUSE}+${DBCON} ))
-#if [ ${ULIMIT_N} -lt $(( $ESTIMATED_ULIMIT )) ]; then
-#  usage "you're open files ulimit is too small, must be at least ${ESTIMATED_ULIMIT}"
-#  exit 1
-#fi
+if [ ! "x${SEED}" = "x" ]; then
+    SEEDARG="-r ${SEED}"
+	echo "WARNING: INVALID RUN BECAUSE RANDOM NUMBER SEED SPECIFIED"
+fi
 
 # Determine the output directories for storing data.
 BH_OUTPUT_DIR=${OUTPUT_DIR}/bh
@@ -383,16 +397,25 @@ uname -a >> ${OUTPUT_DIR}/readme.txt
 echo "Command line: $0 $@" >> ${OUTPUT_DIR}/readme.txt
 
 # Get any OS specific information.
-OS_DIR=`uname`
 dbt5-get-os-info -o ${OUTPUT_DIR}
 
 # Output run information into the readme.txt.
-echo "Database Scale Factor: ${CUSTOMERS} customers" >> ${OUTPUT_DIR}/readme.txt
+echo "Database Scale Factor: ${SCALE_FACTOR}" >> ${OUTPUT_DIR}/readme.txt
+echo "Database Customer Cardinality: ${CUSTOMERS_TOTAL}" >> ${OUTPUT_DIR}/readme.txt
 echo "Test Duration: ${DURATION} seconds" >> ${OUTPUT_DIR}/readme.txt
 
-# Restart PostgreSQL
+if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+	DB_COMMAND="ssh ${DB_HOSTNAME}"
+	# Get the OS information from the database system.
+	${DB_COMMAND} dbt5-get-os-info -o ${DB_OUTPUT_DIR}
+	${DB_COMMAND} "uname -a >> ${DB_OUTPUT_DIR}/readme.txt"
+else
+	uname -a >> ${DB_OUTPUT_DIR}/readme.txt
+fi
+
+# Restart database.
 ${DB_COMMAND} dbt5-${DBMS}-stop-db
-if [ -n "${DB_COMMAND}" ]; then
+if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	${DB_COMMAND} "dbt5-${DBMS}-start-db -p \"${DB_PARAMS}\" -o ${DB_OUTPUT_DIR}" || exit 1
 else
 	dbt5-${DBMS}-start-db -p "${DB_PARAMS}" -o ${DB_OUTPUT_DIR} || exit 1
@@ -429,7 +452,8 @@ do_sleep 1
 #
 echo
 echo "2. Starting Market Exchange server"
-MarketExchangeMain -c ${CUSTOMERS} -a ${CUSTOMERS} -s ${EGENDIR}/flat_in \
+MarketExchangeMain -c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} \
+		-i ${EGENDIR}/flat_in \
 		-o ${MEE_OUTPUT_DIR} > ${MEE_OUTPUT_DIR}/mee.out 2>&1 &
 
 # Start collecting data before we start the test.
@@ -442,12 +466,17 @@ ITERATIONS=`expr ${SLEEPYTIME} / ${SAMPLE_LENGTH}`
 ITERATIONS=`expr ${ITERATIONS} + 1`
 dbt5-sysstats --iter ${ITERATIONS} \
 		--sample ${SAMPLE_LENGTH} \
-		--outdir ${OUTPUT_DIR} > ${OUTPUT_DIR}/stats.out 2>&1 &
+		--outdir ${DRIVER_OUTPUT_DIR} > ${DRIVER_OUTPUT_DIR}/stats.out 2>&1 &
+if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+	${DB_COMMAND} dbt5-sysstats --iter ${ITERATIONS} \
+			--sample ${SAMPLE_LENGTH} \
+			--outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1 &
+fi
 ${DB_COMMAND} dbt5-${DBMS}-db-stat \
 		-o ${DB_OUTPUT_DIR} \
 		-i ${ITERATIONS} \
 		${DB_PORT_ARG} \
-		-s ${SAMPLE_LENGTH} > ${OUTPUT_DIR}/dbstats.out 2>&1 &
+		-s ${SAMPLE_LENGTH} > ${DB_OUTPUT_DIR}/dbstats.out 2>&1 &
 
 # Initialize oprofile before we start the driver.
 if [ ${USE_OPROFILE} -eq 1 ]; then
@@ -462,16 +491,17 @@ fi
 #
 
 echo
-echo "3. Starting Customer driver: $USERS user(s), 1 user starting every $SLEEPY milliseconds..."
-DriverMain -c ${CUSTOMERS} -a ${CUSTOMERS} \
-		-f ${SCALE_FACTOR} -d ${ITD} -t ${DURATION} -s ${SLEEPY} \
-		-u ${USERS} -p ${PACING_DELAY} -g ${SEED} \
-		-e ${EGENDIR}/flat_in \
-		-o ${DRIVER_OUTPUT_DIR} > ${OUTPUT_DIR}/driver.out 2>&1 &
+echo "3. Starting Customer driver: ${USERS} user(s)"
+echo "   1 user starting every ${SLEEPY} milliseconds..."
+DriverMain -c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} \
+		-f ${SCALE_FACTOR} -w ${ITD} -d ${DURATION} -y ${SLEEPY} \
+		-u ${USERS} -n ${PACING_DELAY} ${SEEDARG} \
+		-i ${EGENDIR}/flat_in \
+		-o ${DRIVER_OUTPUT_DIR} > ${DRIVER_OUTPUT_DIR}/driver.out 2>&1 &
 DCMPID=`ps -C DriverMain -o pid=`
 echo "Results will be written to: $OUTPUT_DIR"
 
-do_sleep $SLEEP_RAMPUP
+do_sleep ${SLEEP_RAMPUP}
 
 # Clear the readprofile data after the driver ramps up.
 if [ ${USE_READPROFILE} -eq 1 ]; then
@@ -517,15 +547,17 @@ if [ ${USE_OPROFILE} -eq 1 ]; then
 	fi
 fi
 
+MIXFILE="$DRIVER_OUTPUT_DIR/mix.log"
 # sort and merge emulators mix files into mix.log
 sort -t "," -k 1 ${DRIVER_OUTPUT_DIR}/ce_mix.log \
-		${MEE_OUTPUT_DIR}/mee_mix.log -o $DRIVER_OUTPUT_DIR/mix.log
+		${MEE_OUTPUT_DIR}/mee_mix.log -o ${MIXFILE}
 
-# Run some post processing analysese.
+# Run some post processing analyses.
 echo
 echo "4. Run Post processing analyses"
 
-dbt5-post-process --dir ${OUTPUT_DIR} --xml > ${DRIVER_OUTPUT_DIR}/results.out
+RESULTSFILE="${OUTPUT_DIR}/results.txt"
+dbt5-post-process ${MIXFILE} > ${RESULTSFILE}
 
 # Servers don't go away by themselves like the driver does, so kill it.
 echo "Killing Servers..."
@@ -549,6 +581,23 @@ if [ ${USE_OPROFILE} -eq 1 ]; then
 fi
 
 
+which sar > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+	SAR=sar
+else
+	SAR=true
+fi
+${SAR} -f ${DRIVER_OUTPUT_DIR}/sar_raw.out -A > ${DRIVER_OUTPUT_DIR}/sar.out
+if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+	${DB_COMMAND} "${SAR2} which sar > /dev/null 2>&1"
+	if [ $? -eq 0 ]; then
+		SAR2=sar
+	else
+		SAR2=true
+	fi
+	${DB_COMMAND} "${SAR2} -f ${DB_OUTPUT_DIR}/sar_raw.out -A > ${DB_OUTPUT_DIR}/sar.out"
+fi
+
 if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	rsync -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
 			${DB_OUTPUT_DIR}/
@@ -557,18 +606,10 @@ fi
 # Move the database log.  (No, not the transaction log.)
 chmod 644 ${DB_OUTPUT_DIR}/log
 
-which sar > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-	SAR=sar
-else
-	SAR=true
-fi
-${SAR} -f ${OUTPUT_DIR}/sar_raw.out -A > ${OUTPUT_DIR}/sar.out
-
-# Postprocessing of Database Statistics
+# Post processing of Database Statistics
 
 echo ">> Test completed."
-echo "Results are in: $OUTPUT_DIR"
+echo "Results are in: ${OUTPUT_DIR}"
 echo
 
-cat ${DRIVER_OUTPUT_DIR}/results.out
+cat ${RESULTSFILE}

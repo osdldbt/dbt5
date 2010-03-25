@@ -3,5 +3,26 @@ fair-use must be observed:
 
     http://www.tpc.org/information/about/documentation/TPC_Policies_v5.13.htm#_Toc124863463
 
-Usage varies depending on the database system used.  See addition README-* for
-specific instructions.
+-----
+
+Usage varies depending on the database management system used.  See addition
+README-* for specific instructions.
+
+-----
+
+Comments regarding database scale:
+
+The minimum "valid" configuration is supposed to be 5000 customer with 300
+initial trade days and a scale factor of 500.  An example to build this would
+be:
+
+	dbt5-pgsql-build-db -c 5000 -i 5000 -t 5000 -s 500 -w 300
+
+Although not verified, through testing there appeared to be a significantly
+higher number of invalid and warning results when using a database scaled
+smaller than this..  While it is possible to use the programs provided and have
+the kit build something to the small size of:
+
+	dbt5-pgsql-build-db -c 1000 -i 1000 -t 1000 -s 500 -w 1
+
+This may result is a high level of failed transactions.
