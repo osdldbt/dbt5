@@ -1,416 +1,337 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env python
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2006 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2010 Mark Wong & Open Source Development Labs, Inc.
 #               2006 Rilson Nascimento
 #
 
-use strict;
-use warnings;
-use Getopt::Long;
-use Test::Parser::Dbt5;
-use Test::Presenter::Dbt5;
+# Because of the massive number of arguments we could have, use long-style only
+# options.
 
-my $format = "png";
-my $indir;
-my $outdir = "report";
-my $xml_file = undef;
+from optparse import OptionParser
+from os import system
+from os.path import isfile, realpath
+from subprocess import PIPE, Popen
+from re import sub
 
-#
-# Disk devices per tablespace.
-#
-my $account_permission;
-my $customer;
-my $customer_account;
-my $customer_taxrate;
-my $log;
-my $holding;
-my $holding_history;
-my $holding_summary;
-my $watch_item;
-my $watch_list;
-my $broker;
-my $cash_transaction;
-my $charge;
-my $commission_rate;
-my $settlement;
-my $trade;
-my $trade_history;
-my $trade_request;
-my $trade_type;
-my $company;
-my $company_competitor;
-my $daily_market;
-my $exchange;
-my $financial;
-my $industry;
-my $last_trade;
-my $news_item;
-my $news_xref;
-my $sector;
-my $security;
-my $address;
-my $status_type;
-my $taxrate;
-my $zip_code;
-#
-# Primary key tablespaces.
-#
-my $pkaccount_permission;
-my $pkcustomer;
-my $pkcustomer_account;
-my $pkcustomer_taxrate;
-my $pkholding;
-my $pkholding_history;
-my $pkholding_summary;
-my $pkwatch_item;
-my $pkwatch_list;
-my $pkbroker;
-my $pkcash_transaction;
-my $pkcharge;
-my $pkcommission_rate;
-my $pksettlement;
-my $pktrade;
-my $pktrade_history;
-my $pktrade_request;
-my $pktrade_type;
-my $pkcompany;
-my $pkcompany_competitor;
-my $pkdaily_market;
-my $pkexchange;
-my $pkfinancial;
-my $pkindustry;
-my $pklast_trade;
-my $pknews_item;
-my $pknews_xref;
-my $pksector;
-my $pksecurity;
-my $pkaddress;
-my $pkstatus_type;
-my $pktaxrate;
-my $pkzip_code;
-#
-# Index tablespaces
-#
+parser = OptionParser(usage = 'usage: %prog --dbms <dbms> --i <dir> --o <dir> [options]')
+parser.add_option('--dbms', help = 'dbms used <pgsql>')
+parser.add_option('--dbname', help = 'dbname, for use with pgsql')
+parser.add_option('--devices',
+		help = 'comma delimited devices to plot (iostat)')
+parser.add_option('--i', help = 'dbt5 results directory')
+parser.add_option('--o', help = 'output directory')
+options, args = parser.parse_args()
 
-GetOptions(
-    'format=s' => \$format,
-    'indir=s' => \$indir,
-    'log=s' => \$log,
-    'outdir=s' => \$outdir,
-    'xml-file=s' => \$xml_file,
-    'account_permission=s' => \$account_permission,
-    'customer=s' => \$customer,
-    'customer_account=s' => \$customer_account,
-    'customer_taxrate=s' => \$customer_taxrate,
-    'holding=s' => \$holding,
-    'holding_history=s' => \$holding_history,
-    'holding_summary=s' => \$holding_summary,
-    'watch_item=s' => \$watch_item,
-    'watch_list=s' => \$watch_list,
-    'broker=s' => \$broker,
-    'cash_transaction=s' => \$cash_transaction,
-    'charge=s' => \$charge,
-    'commission_rate=s' => \$commission_rate,
-    'settlement=s' => \$settlement,
-    'trade=s' => \$trade,
-    'trade_history=s' => \$trade_history,
-    'trade_request=s' => \$trade_request,
-    'trade_type=s' => \$trade_type,
-    'company=s' => \$company,
-    'company_competitor=s' => \$company_competitor,
-    'daily_market=s' => \$daily_market,
-    'exchange=s' => \$exchange,
-    'financial=s' => \$financial,
-    'industry=s' => \$industry,
-    'last_trade=s' => \$last_trade,
-    'news_item=s' => \$news_item,
-    'news_xref=s' => \$news_xref,
-    'sector=s' => \$sector,
-    'security=s' => \$security,
-    'address=s' => \$address,
-    'status_type=s' => \$status_type,
-    'taxrate=s' => \$taxrate,
-    'zip_code=s' => \$zip_code,
-    'pkaccount_permission=s' => \$pkaccount_permission,
-    'pkcustomer=s' => \$pkcustomer,
-    'pkcustomer_account=s' => \$pkcustomer_account,
-    'pkcustomer_taxrate=s' => \$pkcustomer_taxrate,
-    'pkholding=s' => \$pkholding,
-    'pkholding_history=s' => \$pkholding_history,
-    'pkholding_summary=s' => \$pkholding_summary,
-    'pkwatch_item=s' => \$pkwatch_item,
-    'pkwatch_list=s' => \$pkwatch_list,
-    'pkbroker=s' => \$pkbroker,
-    'pkcash_transaction=s' => \$pkcash_transaction,
-    'pkcharge=s' => \$pkcharge,
-    'pkcommission_rate=s' => \$pkcommission_rate,
-    'pksettlement=s' => \$pksettlement,
-    'pktrade=s' => \$pktrade,
-    'pktrade_history=s' => \$pktrade_history,
-    'pktrade_request=s' => \$pktrade_request,
-    'pktrade_type=s' => \$pktrade_type,
-    'pkcompany=s' => \$pkcompany,
-    'pkcompany_competitor=s' => \$pkcompany_competitor,
-    'pkdaily_market=s' => \$pkdaily_market,
-    'pkexchange=s' => \$pkexchange,
-    'pkfinancial=s' => \$pkfinancial,
-    'pkindustry=s' => \$pkindustry,
-    'pklast_trade=s' => \$pklast_trade,
-    'pknews_item=s' => \$pknews_item,
-    'pknews_xref=s' => \$pknews_xref,
-    'pksector=s' => \$pksector,
-    'pksecurity=s' => \$pksecurity,
-    'pkaddress=s' => \$pkaddress,
-    'pkstatus_type=s' => \$pkstatus_type,
-    'pktaxrate=s' => \$pktaxrate,
-    'pkzip_code=s' => \$pkzip_code
-);
+if not options.dbms:
+    parser.error('--dbms flag required')
+else:
+    # Validate supported dbms.
 
-my $presenter;
-if ($xml_file) {
-  if (-f $xml_file) {
-    $presenter = Test::Presenter::Dbt5->new($xml_file);
-  } else {
-    print "'$xml_file' does not exist.\n";
-    exit(1);
-  }
-} elsif (-d $indir) {
-  my $parser = new Test::Parser::Dbt5;;
-  $parser->parse($indir);
-  $presenter = Test::Presenter::Dbt5->new($parser->data());
-} else {
-  #usage
-  exit(1);
-}
+    dbms = options.dbms
+    if dbms == 'pgsql':
+        if not options.dbname:
+            parser.error('"--dbms pgsql" requires --dbname to be used')
+        else:
+            dbname = options.dbname
+    else:
+        parser.error('unrecognized dbms')
+        exit(1)
 
-unless ($presenter) {
-  print "no xml data\n";
-  exit(1);
-}
+if not options.i:
+    parser.error('--i flag required')
 
-#
-# Tables.
-#
-if ($log) {
-  $presenter->set_devices('log', split(/,/, $log));
-}
-if ($account_permission) {
-  $presenter->set_devices('account_permission', split(/,/, $account_permission));
-}
-if ($customer) {
-  $presenter->set_devices('customer', split(/,/, $customer));
-}
-if ($customer_account) {
-  $presenter->set_devices('customer_account', split(/,/, $customer_account));
-}
-if ($customer_taxrate) {
-  $presenter->set_devices('customer_taxrate', split(/,/, $customer_taxrate));
-}
-if ($holding) {
-  $presenter->set_devices('holding', split(/,/, $holding));
-}
-if ($holding_history) {
-  $presenter->set_devices('holding_history', split(/,/, $holding_history));
-}
-if ($holding_summary) {
-  $presenter->set_devices('holding_summary', split(/,/, $holding_summary));
-}
-if ($watch_item) {
-  $presenter->set_devices('watch_item', split(/,/, $watch_item));
-}
-if ($watch_list) {
-  $presenter->set_devices('watch_list', split(/,/, $watch_list));
-}
-if ($broker) {
-  $presenter->set_devices('broker', split(/,/, $broker));
-}
-if ($cash_transaction) {
-  $presenter->set_devices('cash_transaction', split(/,/, $cash_transaction));
-}
-if ($charge) {
-  $presenter->set_devices('charge', split(/,/, $charge));
-}
-if ($commission_rate) {
-  $presenter->set_devices('commission_rate', split(/,/, $commission_rate));
-}
-if ($settlement) {
-  $presenter->set_devices('settlement', split(/,/, $settlement));
-}
-if ($trade) {
-  $presenter->set_devices('trade', split(/,/, $trade));
-}
-if ($trade_history) {
-  $presenter->set_devices('trade_history', split(/,/, $trade_history));
-}
-if ($trade_request) {
-  $presenter->set_devices('trade_request', split(/,/, $trade_request));
-}
-if ($trade_type) {
-  $presenter->set_devices('trade_type', split(/,/, $trade_type));
-}
-if ($company) {
-  $presenter->set_devices('company', split(/,/, $company));
-}
-if ($company_competitor) {
-  $presenter->set_devices('company_competitor', split(/,/, $company_competitor));
-}
-if ($daily_market) {
-  $presenter->set_devices('daily_market', split(/,/, $daily_market));
-}
-if ($exchange) {
-  $presenter->set_devices('exchange', split(/,/, $exchange));
-}
-if ($financial) {
-  $presenter->set_devices('financial', split(/,/, $financial));
-}
-if ($industry) {
-  $presenter->set_devices('industry', split(/,/, $industry));
-}
-if ($last_trade) {
-  $presenter->set_devices('last_trade', split(/,/, $last_trade));
-}
-if ($news_item) {
-  $presenter->set_devices('news_item', split(/,/, $news_item));
-}
-if ($news_xref) {
-  $presenter->set_devices('news_xref', split(/,/, $news_xref));
-}
-if ($sector) {
-  $presenter->set_devices('sector', split(/,/, $sector));
-}
-if ($security) {
-  $presenter->set_devices('security', split(/,/, $security));
-}
-if ($address) {
-  $presenter->set_devices('address', split(/,/, $address));
-}
-if ($status_type) {
-  $presenter->set_devices('status_type', split(/,/, $status_type));
-}
-if ($taxrate) {
-  $presenter->set_devices('taxrate', split(/,/, $taxrate));
-}
-if ($zip_code) {
-  $presenter->set_devices('zip_code', split(/,/, $zip_code));
-}
-#
-# Primary key indexes.
-#
-if ($pkaccount_permission) {
-  $presenter->set_devices('pkaccount_permission', split(/,/, $pkaccount_permission));
-}
-if ($pkcustomer) {
-  $presenter->set_devices('pkcustomer', split(/,/, $pkcustomer));
-}
-if ($pkcustomer_account) {
-  $presenter->set_devices('pkcustomer_account', split(/,/, $pkcustomer_account));
-}
-if ($pkcustomer_taxrate) {
-  $presenter->set_devices('pkcustomer_taxrate', split(/,/, $pkcustomer_taxrate));
-}
-if ($pkholding) {
-  $presenter->set_devices('pkholding', split(/,/, $pkholding));
-}
-if ($pkholding_history) {
-  $presenter->set_devices('pkholding_history', split(/,/, $pkholding_history));
-}
-if ($pkholding_summary) {
-  $presenter->set_devices('pkholding_summary', split(/,/, $pkholding_summary));
-}
-if ($pkwatch_item) {
-  $presenter->set_devices('pkwatch_item', split(/,/, $pkwatch_item));
-}
-if ($pkwatch_list) {
-  $presenter->set_devices('pkwatch_list', split(/,/, $pkwatch_list));
-}
-if ($pkbroker) {
-  $presenter->set_devices('pkbroker', split(/,/, $pkbroker));
-}
-if ($pkcash_transaction) {
-  $presenter->set_devices('pkcash_transaction', split(/,/, $pkcash_transaction));
-}
-if ($pkcharge) {
-  $presenter->set_devices('pkcharge', split(/,/, $pkcharge));
-}
-if ($pkcommission_rate) {
-  $presenter->set_devices('pkcommission_rate', split(/,/, $pkcommission_rate));
-}
-if ($pksettlement) {
-  $presenter->set_devices('pksettlement', split(/,/, $pksettlement));
-}
-if ($pktrade) {
-  $presenter->set_devices('pktrade', split(/,/, $pktrade));
-}
-if ($pktrade_history) {
-  $presenter->set_devices('pktrade_history', split(/,/, $pktrade_history));
-}
-if ($pktrade_request) {
-  $presenter->set_devices('pktrade_request', split(/,/, $pktrade_request));
-}
-if ($pktrade_type) {
-  $presenter->set_devices('pktrade_type', split(/,/, $pktrade_type));
-}
-if ($pkcompany) {
-  $presenter->set_devices('pkcompany', split(/,/, $pkcompany));
-}
-if ($pkcompany_competitor) {
-  $presenter->set_devices('pkcompany_competitor', split(/,/, $pkcompany_competitor));
-}
-if ($pkdaily_market) {
-  $presenter->set_devices('pkdaily_market', split(/,/, $pkdaily_market));
-}
-if ($pkexchange) {
-  $presenter->set_devices('pkexchange', split(/,/, $pkexchange));
-}
-if ($pkfinancial) {
-  $presenter->set_devices('pkfinancial', split(/,/, $pkfinancial));
-}
-if ($pkindustry) {
-  $presenter->set_devices('pkindustry', split(/,/, $pkindustry));
-}
-if ($pklast_trade) {
-  $presenter->set_devices('pklast_trade', split(/,/, $pklast_trade));
-}
-if ($pknews_item) {
-  $presenter->set_devices('pknews_item', split(/,/, $pknews_item));
-}
-if ($pknews_xref) {
-  $presenter->set_devices('pknews_xref', split(/,/, $pknews_xref));
-}
-if ($pksector) {
-  $presenter->set_devices('pksector', split(/,/, $pksector));
-}
-if ($pksecurity) {
-  $presenter->set_devices('pksecurity', split(/,/, $pksecurity));
-}
-if ($pkaddress) {
-  $presenter->set_devices('pkaddress', split(/,/, $pkaddress));
-}
-if ($pkstatus_type) {
-  $presenter->set_devices('pkstatus_type', split(/,/, $pkstatus_type));
-}
-if ($pktaxrate) {
-  $presenter->set_devices('pktaxrate', split(/,/, $pktaxrate));
-}
-if ($pkzip_code) {
-  $presenter->set_devices('pkzip_code', split(/,/, $pkzip_code));
-}
-#
-# Indexes.
-#
+if not options.o:
+    parser.error('--o flag required')
 
-#
-# Start creating report.
-#
-$presenter->format($format);
-$presenter->outdir($outdir);
-$presenter->plot();
-system "mkdir -p $outdir";
-open(H, "> $outdir/index.html")
-    or die "Couldn't open $outdir/index.html for writing: $!\n";
-print H $presenter->to_html();
-close(H);
-print "DBT-5 report generated.\n";
+indir = realpath(options.i)
+outdir = realpath(options.o)
+mixfile = '%s/driver/mix.log' % indir
+
+device_arg = ''
+if options.devices:
+    device_arg = options.devices
+
+to = '0'
+tr = '1'
+tl = '2'
+tu = '3'
+ts = '4'
+cp = '5'
+bv = '6'
+sd = '7'
+mf = '8'
+mw = '9'
+dm = '10'
+tc = '11'
+
+transaction_name = dict()
+transaction_name[to] = 'Trade Order'
+transaction_name[tr] = 'Trade Result'
+transaction_name[tl] = 'Trade Lookup'
+transaction_name[tu] = 'Trade Update'
+transaction_name[ts] = 'Trade Status'
+transaction_name[cp] = 'Customer Position'
+transaction_name[bv] = 'Broker Volume'
+transaction_name[sd] = 'Security Detail'
+transaction_name[mf] = 'Market Feed'
+transaction_name[mw] = 'Market Watch'
+transaction_name[dm] = 'Data Maintenance'
+transaction_name[tc] = 'Trade Cleanup'
+
+for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu, dm, tc]:
+    system('dbt-plot-transaction-distribution "%s" %s %s %s/txn' % \
+            (transaction_name[key], key, mixfile, outdir))
+
+mpstatfile = '%s/driver/mpstat.out' % indir
+if isfile(mpstatfile):
+    system('dbt-plot-mpstat %s %s/driver/mpstat' % (mpstatfile, outdir))
+
+mpstatfile = '%s/db/mpstat.out' % indir
+if isfile(mpstatfile):
+    system('dbt-plot-mpstat %s %s/db/mpstat' % (mpstatfile, outdir))
+
+mpstatfile = '%s/driver/iostatx.out' % indir
+if isfile(mpstatfile):
+    system('dbt-plot-iostat %s %s/driver/iostat %s' % \
+            (mpstatfile, outdir, device_arg))
+
+iostatfile = '%s/db/iostatx.out' % indir
+if isfile(iostatfile):
+    system('dbt-plot-iostat %s %s/db/iostat %s' % \
+            (iostatfile, outdir, device_arg))
+
+vmstatfile = '%s/driver/vmstat.out' % indir
+if isfile(vmstatfile):
+    system('dbt-plot-vmstat %s %s/driver/vmstat' % (vmstatfile, outdir))
+
+vmstatfile = '%s/db/vmstat.out' % indir
+if isfile(vmstatfile):
+    system('dbt-plot-vmstat %s %s/db/vmstat' % (vmstatfile, outdir))
+
+system('dbt5-plot-transaction-rate %s %s/txn' % (mixfile, outdir))
+
+if dbms == 'pgsql':
+    system('dbt-pgsql-plot-database-stats ' \
+            '%s/db/pg_stat_databases.out %s %s/db' % (indir, dbname, outdir))
+
+    # This relies on the scripts for PostgreSQL to generate these
+    # table-list.txt and index-list.txt files.
+    f = None
+    try:
+        f = open('%s/db/table-list.txt' % indir)
+    except:
+        print 'Cannot open table list to generate database table stats, ' \
+                'continuing...'
+
+    if f is not None:
+        for table in f:
+            system('dbt-pgsql-plot-table-stats %s/db/pg_stat_tables.out ' \
+                    '%s %s/db/tables' % (indir, table.strip(), outdir))
+        f.close()
+
+    f = None
+    try:
+        f = open('%s/db/index-list.txt' % indir)
+    except:
+        print 'Cannot open index list to generate database index stats, ' \
+                'continuing...'
+
+    if f is not None:
+        for index in f:
+            system('dbt-pgsql-plot-index-stats %s/db/pg_stat_indexes.out ' \
+                    '%s %s/db/indexes' % (indir, index.strip(), outdir))
+        f.close()
+
+reportfile = '%s/index.html' % outdir
+try:
+    h = open(reportfile, 'w')
+except:
+    print 'Cannot open file: %s' % reportfile
+    exit(3)
+
+h.write('<html>\n')
+h.write('<head>\n')
+h.write('<title>Database Test 5 Report</title>\n')
+h.write('</head>\n')
+h.write('<body>\n')
+h.write('<h1>Database Test 5 Report</h1>\n')
+
+h.write('<p>\n')
+
+cmd = 'head -n 1 %s/readme.txt' % indir
+p = Popen(cmd.split(), stdout=PIPE)
+h.write(p.communicate()[0])
+
+h.write('</p>\n')
+
+h.write('<table>\n')
+
+h.write('<tr>\n')
+h.write('<td>\n')
+h.write('<table>\n')
+h.write('<caption>Results Summary</caption>\n')
+
+h.write('<tr>\n')
+h.write('<td align="right">Trade Result Transactions per Second:</td>\n')
+
+cmd = 'grep trtps %s/results.txt' % indir
+p = Popen(cmd.split(), stdout=PIPE)
+h.write('<td>%s</td>\n' % p.communicate()[0].split()[0])
+
+h.write('</tr>\n')
+
+h.write('<tr>\n')
+h.write('<td align="right">Customers:</td>\n')
+
+cmd = 'grep Customer %s/readme.txt' % indir
+p = Popen(cmd.split(), stdout=PIPE)
+h.write('<td>%s</td>\n' % p.communicate()[0].split()[3])
+
+h.write('</tr>\n')
+
+h.write('<tr>\n')
+h.write('<td align="right">Test Duration (minutes):</td>\n')
+
+cmd = 'grep Duration %s/readme.txt' % indir
+p = Popen(cmd.split(), stdout=PIPE)
+h.write('<td>%0.1f</td>\n' % (float(p.communicate()[0].split()[2]) / 60.0))
+
+h.write('</tr>\n')
+
+h.write('</table>\n')
+h.write('</td>\n')
+h.write('<td>\n')
+chart = 'txn/t1-transaction-rate.png'
+h.write('<a href="%s"><img width="128" src="%s" height="96" />\n' % \
+        (chart, chart))
+h.write('</td>\n')
+h.write('</tr>\n')
+
+h.write('</table>\n')
+
+h.write('<table border=1>\n')
+h.write('<caption>Transaction Summary</caption>\n')
+
+h.write('<tr>\n')
+h.write('<th colspan=2>Transaction</th>\n')
+h.write('<th colspan=2>Response Time (seconds)</th>\n')
+h.write('<th colspan=5></th>\n')
+h.write('<th colspan=2>Charts</th>\n')
+h.write('</tr>\n')
+
+h.write('<tr>\n')
+h.write('<th>Name</th>\n')
+h.write('<th>Mix %</th>\n')
+h.write('<th>Average</th>\n')
+h.write('<th>90th %</th>\n')
+h.write('<th>Total</th>\n')
+h.write('<th>Rollbacks</th>\n')
+h.write('<th>%</th>\n')
+h.write('<th>Warnings</th>\n')
+h.write('<th>Invalid</th>\n')
+h.write('<th>Transaction Rate</th>\n')
+h.write('<th>Response Time Distribution</th>\n')
+h.write('</tr>\n')
+
+count = 0
+for transaction in ['Order', 'Result', 'Lookup', 'Update', 'Status',
+        'Position', 'Broker', 'Security', 'Feed', 'Watch', 'Data']:
+    cmd = 'grep %s %s/results.txt' % (transaction, indir)
+    p = Popen(cmd.split(), stdout=PIPE)
+    c = sub(':', ' ', p.communicate()[0])
+    c = sub('%', ' ', c)
+    c = c.split()
+
+    h.write('<tr>\n')
+    h.write('<td>%s %s</td>\n' % (c[0], c[1]))
+    h.write('<td>%s</td>\n' % c[2])
+    h.write('<td>%s</td>\n' % c[3])
+    h.write('<td>%s</td>\n' % c[4])
+    h.write('<td>%s</td>\n' % c[5])
+    h.write('<td>%s</td>\n' % c[6])
+    h.write('<td>%s</td>\n' % c[7])
+    h.write('<td>%s</td>\n' % c[8])
+    h.write('<td>%s</td>\n' % c[9])
+    chart = 'txn/t%d-transaction-rate.png' % count
+    h.write('<td align="center">\n')
+    h.write('<a href="%s"><img width="128" src="%s" height="96" />\n' % \
+            (chart, chart))
+    h.write('</td>\n')
+    chart = 'txn/t%d-distribution.png' % count
+    h.write('<td align="center">\n')
+    h.write('<a href="%s"><img width="128" src="%s" height="96" />\n' % \
+            (chart, chart))
+    h.write('</td>\n')
+    h.write('</tr>\n')
+    count += 1
+
+h.write('</table>\n')
+
+h.write('<table>\n')
+h.write('<caption>System Summary</caption>\n')
+
+h.write('<tr>\n')
+h.write('<td align="right">Operating System:</td>\n')
+
+file = '%s/db/readme.txt' % indir
+cmd = 'head -n 2 %s' % file
+p = Popen(cmd.split(), stdout=PIPE)
+c = p.communicate()[0].split('\n')
+c1 = c[0].split()
+c2 = c[1]
+settings = 'db/proc.txt'
+system('cp -p %s/db/proc.out %s/%s' % (indir, outdir, settings))
+h.write('<td>%s %s %s</td>\n' % (c1[0], c1[2], c1[11]))
+h.write('<td><a href="%s">Settings</a></td>\n' % settings)
+
+h.write('</tr>\n')
+
+h.write('<tr>\n')
+h.write('<td align="right">Database Management System:</td>\n')
+h.write('<td>%s</td>\n' % c2)
+
+file1 = 'db/param.out'
+if isfile('%s/%s' % (indir, file1)):
+    file2 = 'db/param.txt'
+    system('cp -p %s/%s %s/%s' % (indir, file1, outdir, file2))
+    h.write('<td><a href="%s">Settings</a></td>\n' % file2)
+
+file1 = 'db/plan0.out'
+if isfile('%s/%s' % (indir, file1)):
+    file2 = 'db/plan0.txt'
+    system('cp -p %s/%s %s/%s' % (indir, file1, outdir, file2))
+    h.write('<td><a href="%s">Query Plans</a></td>\n' % file2)
+
+h.write('</tr>\n')
+
+h.write('<tr>\n')
+
+file = '%s/readme.txt' % indir
+cmd = 'head -n 2 %s' % file
+p = Popen(cmd.split(), stdout=PIPE)
+c = p.communicate()[0].split('\n')
+
+h.write('<td align="right">Notes:</td>\n')
+h.write('<td>%s</td>\n' % c[1])
+
+h.write('</tr>\n')
+
+h.write('<tr>\n')
+h.write('<td align="right">Driver Charts:</td>\n')
+h.write('<td><a href="driver">View Directories</a></td>\n')
+h.write('</tr>\n')
+
+h.write('<tr>\n')
+h.write('<td align="right">Database Charts:</td>\n')
+h.write('<td><a href="db">View Directories</a></td>\n')
+h.write('</tr>\n')
+
+h.write('</table>\n')
+
+h.write('</body>\n')
+h.write('</html>\n')
+
+system('cp -p %s/proc.out %s/driver/proc.txt' % (indir, outdir))
