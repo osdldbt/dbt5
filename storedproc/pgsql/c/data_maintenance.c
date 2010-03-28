@@ -159,6 +159,7 @@ PG_MODULE_MAGIC;
 		"FROM (SELECT wi_s_symb\n" \
 		"      FROM watch_item, watch_list\n" \
 		"      WHERE wl_c_id = %ld\n" \
+		"        AND wi_wl_id = wl_id\n" \
 		"      ORDER BY wi_s_symb ASC) AS foo\n" \
 		"OFFSET %d\n" \
 		"LIMIT 1"

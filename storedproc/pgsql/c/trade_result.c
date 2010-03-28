@@ -121,7 +121,7 @@ PG_MODULE_MAGIC;
 #define TRF3_1 \
 		"SELECT SUM(tx_rate)\n" \
 		"FROM taxrate\n" \
-		"WHERE tx_id in (SELECT cx_tx_id\n" \
+		"WHERE tx_id IN (SELECT cx_tx_id\n" \
 		"                FROM customer_taxrate\n" \
 		"                WHERE cx_c_id = %ld)\n"
 

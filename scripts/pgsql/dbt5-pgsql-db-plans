@@ -357,14 +357,6 @@ WHERE  lt_s_symb = '%s'
 RETURNING lt_s_symb
 "
 
-echo "------------------------" >> ${OUTPUT_FILE}
-echo "Market Watch Transaction" >> ${OUTPUT_FILE}
-echo "------------------------" >> ${OUTPUT_FILE}
-
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 1" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
-
 explain "
 SELECT tr_t_id,
        tr_bid_price,
@@ -384,19 +376,72 @@ explain "
 UPDATE trade
 SET    t_dts = now(),
        t_st_id = '%s'
-WHERE  t_id = 1;
+WHERE  t_id = 1
 "
 
 explain "
 DELETE FROM trade_request
-WHERE  tr_t_id = 1;
+WHERE  tr_t_id = 1
 "
 
 explain "
 INSERT INTO trade_history(th_t_id, th_dts, th_st_id)
-VALUES (1, now(), '%s');
+VALUES (1, now(), '%s')
 "
 
+echo "------------------------" >> ${OUTPUT_FILE}
+echo "Market Watch Transaction" >> ${OUTPUT_FILE}
+echo "------------------------" >> ${OUTPUT_FILE}
+
+echo "-------" >> ${OUTPUT_FILE}
+echo "Frame 1" >> ${OUTPUT_FILE}
+echo "-------" >> ${OUTPUT_FILE}
+
+
+explain "
+SELECT wi_s_symb
+FROM   watch_item,
+       watch_list
+WHERE  wi_wl_id = wl_id
+       AND wl_c_id = 1
+"
+
+explain "
+SELECT s_symb
+FROM   industry,
+       company,
+       security
+WHERE  in_name = '%s'
+       AND co_in_id = in_id
+       AND co_id BETWEEN 1
+                         AND 2
+       AND s_co_id = co_id
+"
+
+explain "
+SELECT hs_s_symb
+FROM   holding_summary
+WHERE  hs_ca_id = 1
+"
+
+explain "
+SELECT lt_price
+FROM   last_trade
+WHERE  lt_s_symb = '%s'
+"
+
+explain "
+SELECT s_num_out
+FROM   security
+WHERE  s_symb = '%s'
+"
+
+explain "
+SELECT dm_close
+FROM   daily_market
+WHERE  dm_s_symb = '%s'
+       AND dm_date = '2002-02-22'
+"
 
 echo "---------------------------" >> ${OUTPUT_FILE}
 echo "Security Detail Transaction" >> ${OUTPUT_FILE}
@@ -993,7 +1038,7 @@ echo "-------" >> ${OUTPUT_FILE}
 explain "
 SELECT SUM(tx_rate)
 FROM taxrate
-WHERE tx_id in (SELECT cx_tx_id
+WHERE tx_id IN (SELECT cx_tx_id
                 FROM customer_taxrate
                 WHERE cx_c_id = 1)
 "
