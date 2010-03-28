@@ -36,36 +36,33 @@
  */
 
 /*
-*	Database loader class for WATCH_LIST table.
-*/
+ * Database loader class for WATCH_LIST table.
+ */
+
 #ifndef PGSQL_WATCH_LIST_LOAD_H
 #define PGSQL_WATCH_LIST_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLWatchListLoad : public CPGSQLLoader <WATCH_LIST_ROW>
-{	
+class CPGSQLWatchListLoad : public CPGSQLLoader<WATCH_LIST_ROW>
+{
 public:
 	CPGSQLWatchListLoad(char *szConnectStr, char *szTable = "WATCH_LIST")
-		: CPGSQLLoader<WATCH_LIST_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<WATCH_LIST_ROW>(szConnectStr, szTable) { };
 
+	//copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
 		buf.push_back(stringify(m_row.WL_ID));
 		buf.push_back(stringify(m_row.WL_C_ID));
-		
+
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_WATCH_LIST_LOAD_H
+#endif // PGSQL_WATCH_LIST_LOAD_H

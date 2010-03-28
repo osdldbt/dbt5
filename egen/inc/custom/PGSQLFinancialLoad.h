@@ -36,28 +36,27 @@
  */
 
 /*
-*	Database loader class for FINANCIAL table.
-*/
+ * Database loader class for FINANCIAL table.
+ */
+
 #ifndef PGSQL_FINANCIAL_LOAD_H
 #define PGSQL_FINANCIAL_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLFinancialLoad : public CPGSQLLoader <FINANCIAL_ROW>
-{	
+class CPGSQLFinancialLoad : public CPGSQLLoader<FINANCIAL_ROW>
+{
 
 public:
 	CPGSQLFinancialLoad(char *szConnectStr, char *szTable = "FINANCIAL")
-		: CPGSQLLoader<FINANCIAL_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<FINANCIAL_ROW>(szConnectStr, szTable) { };
 
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
+
 		buf.push_back(stringify(m_row.FI_CO_ID));
 		buf.push_back(stringify(m_row.FI_YEAR));
 		buf.push_back(stringify(m_row.FI_QTR));
@@ -76,9 +75,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_FINANCIAL_LOAD_H
+#endif // PGSQL_FINANCIAL_LOAD_H

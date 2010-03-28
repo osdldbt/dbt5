@@ -36,38 +36,36 @@
  */
 
 /*
-*	Database loader class fot this table.
-*/
+ * Database loader class fot this table.
+ */
+
 #ifndef PGSQL_CUSTOMER_LOAD_H
 #define PGSQL_CUSTOMER_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLCustomerLoad : public CPGSQLLoader <CUSTOMER_ROW>
+class CPGSQLCustomerLoad : public CPGSQLLoader<CUSTOMER_ROW>
 {
 
 public:
 	CPGSQLCustomerLoad(char *szConnectStr, char *szTable = "CUSTOMER")
-		: CPGSQLLoader<CUSTOMER_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<CUSTOMER_ROW>(szConnectStr, szTable) { };
 
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
-		buf.push_back(stringify(m_row.C_ID));			
+		buf.push_back(stringify(m_row.C_ID));
 		buf.push_back(m_row.C_TAX_ID);
 		buf.push_back(m_row.C_ST_ID);
 		buf.push_back(m_row.C_L_NAME);
 		buf.push_back(m_row.C_F_NAME);
 		buf.push_back(m_row.C_M_NAME);
 		buf.push_back(stringify(m_row.C_GNDR));
-		buf.push_back(stringify((int)m_row.C_TIER));
+		buf.push_back(stringify((int) m_row.C_TIER));
 		buf.push_back(m_row.C_DOB.ToStr(iDateTimeFmt));
-		buf.push_back(stringify(m_row.C_AD_ID));			
+		buf.push_back(stringify(m_row.C_AD_ID));
 		buf.push_back(m_row.C_CTRY_1);
 		buf.push_back(m_row.C_AREA_1);
 		buf.push_back(m_row.C_LOCAL_1);
@@ -82,12 +80,12 @@ public:
 		buf.push_back(m_row.C_EXT_3);
 		buf.push_back(m_row.C_EMAIL_1);
 		buf.push_back(m_row.C_EMAIL_2);
-			
+
 		m_TW->insert(buf);
 		buf.clear();
 	}
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_CUSTOMER_LOAD_H
+#endif // PGSQL_CUSTOMER_LOAD_H

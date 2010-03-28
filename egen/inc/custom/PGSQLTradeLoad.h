@@ -36,33 +36,30 @@
  */
 
 /*
-*	Database loader class for TRADE table.
-*/
+ * Database loader class for TRADE table.
+ */
+
 #ifndef PGSQL_TRADE_LOAD_H
 #define PGSQL_TRADE_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLTradeLoad : public CPGSQLLoader <TRADE_ROW>
-{	
+class CPGSQLTradeLoad : public CPGSQLLoader<TRADE_ROW>
+{
 
 public:
 	CPGSQLTradeLoad(char *szConnectStr, char *szTable = "TRADE")
-		: CPGSQLLoader<TRADE_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<TRADE_ROW>(szConnectStr, szTable) { };
 
-
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 	
 		buf.push_back(stringify(m_row.T_ID));
 		buf.push_back(m_row.T_DTS.ToStr(iDateTimeFmt));
 		buf.push_back(m_row.T_ST_ID);
 		buf.push_back(m_row.T_TT_ID);
-		//buf.push_back((m_row.T_IS_CASH ? "true" : "false"));
 		buf.push_back(stringify(m_row.T_IS_CASH));
 		buf.push_back(m_row.T_S_SYMB);
 		buf.push_back(stringify(m_row.T_QTY));
@@ -73,32 +70,28 @@ public:
 		buf.push_back(stringify(m_row.T_CHRG));
 		buf.push_back(stringify(m_row.T_COMM));
 		buf.push_back(stringify(m_row.T_TAX));
-		//buf.push_back((m_row.T_LIFO ? "true" : "false"));
 		buf.push_back(stringify(m_row.T_LIFO));
 
 		m_TW->insert(buf);
 		buf.clear();
 	}
 
-	virtual void FinishLoad()
-	{
+	virtual void FinishLoad() {
 		m_TW->complete();
 		ostringstream osCall;
 
-		result R( m_Txn->exec("select max(t_id) from trade"));
+		result R(m_Txn->exec("SELECT MAX(t_id) FROM trade"));
 		result::const_iterator c = R.begin();
-		osCall<<"SELECT setval('seq_trade_id',"<<c[0]<<")";
+		osCall << "SELECT SETVAL('seq_trade_id'," << c[0] << ")";
 		m_Txn->exec(osCall.str());
 
 		m_Txn->commit();
 		delete m_TW;
 		delete m_Txn;
-	
-		Disconnect();	// While destructor is not being called
+		Disconnect(); // While destructor is not being called
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_TRADE_LOAD_H
+#endif // PGSQL_TRADE_LOAD_H

@@ -36,28 +36,26 @@
  */
 
 /*
-*	Database loader class for LAST TRADE table.
-*/
+ * Database loader class for LAST TRADE table.
+ */
+
 #ifndef PGSQL_LAST_TRADE_LOAD_H
 #define PGSQL_LAST_TRADE_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLLastTradeLoad : public CPGSQLLoader <LAST_TRADE_ROW>
-{	
+class CPGSQLLastTradeLoad : public CPGSQLLoader<LAST_TRADE_ROW>
+{
 
 public:
 	CPGSQLLastTradeLoad(char *szConnectStr, char *szTable = "LAST_TRADE")
-		: CPGSQLLoader<LAST_TRADE_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<LAST_TRADE_ROW>(szConnectStr, szTable) { };
 
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
 		buf.push_back(m_row.LT_S_SYMB);
 		buf.push_back(m_row.LT_DTS.ToStr(iDateTimeFmt));
 		buf.push_back(stringify(m_row.LT_PRICE));
@@ -67,9 +65,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_LAST_TRADE_LOAD_H
+#endif // PGSQL_LAST_TRADE_LOAD_H

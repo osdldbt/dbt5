@@ -36,8 +36,9 @@
  */
 
 /*
-*	Database loader class for HOLDING_HISTORY table.
-*/
+ * Database loader class for HOLDING_HISTORY table.
+ */
+
 #ifndef HOLDING_HISTORY_LOAD_H
 #define HOLDING_HISTORY_LOAD_H
 
@@ -47,15 +48,13 @@ namespace TPCE
 class CPGSQLHoldingHistoryLoad : public CPGSQLLoader <HOLDING_HISTORY_ROW>
 {
 public:
-	CPGSQLHoldingHistoryLoad(char *szConnectStr, char *szTable = "HOLDING_HISTORY")
-		: CPGSQLLoader<HOLDING_HISTORY_ROW>(szConnectStr, szTable)
-	{
-	};
+	CPGSQLHoldingHistoryLoad(char *szConnectStr,
+			char *szTable = "HOLDING_HISTORY")
+			: CPGSQLLoader<HOLDING_HISTORY_ROW>(szConnectStr, szTable) { };
 
-
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 	
 		buf.push_back(stringify(m_row.HH_H_T_ID));
 		buf.push_back(stringify(m_row.HH_T_ID));
@@ -65,9 +64,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //HOLDING_HISTORY_LOAD_H
+#endif // HOLDING_HISTORY_LOAD_H

@@ -36,26 +36,25 @@
  */
 
 /*
-*	Database loader class for BROKER table.
-*/
+ * Database loader class for BROKER table.
+ */
+
 #ifndef PGSQL_BROKER_LOAD_H
 #define PGSQL_BROKER_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLBrokerLoad : public CPGSQLLoader <BROKER_ROW>
-{	
+class CPGSQLBrokerLoad : public CPGSQLLoader<BROKER_ROW>
+{
 public:
 	CPGSQLBrokerLoad(char *szConnectStr, char *szTable = "BROKER")
-		: CPGSQLLoader<BROKER_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<BROKER_ROW>(szConnectStr, szTable) { };
 
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 	
 		buf.push_back(stringify(m_row.B_ID));
 		buf.push_back(m_row.B_ST_ID);
@@ -66,9 +65,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_BROKER_LOAD_H
+#endif // PGSQL_BROKER_LOAD_H

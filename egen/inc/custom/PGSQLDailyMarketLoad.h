@@ -36,27 +36,26 @@
  */
 
 /*
-*	PGSQL Database loader class for DAILY_MARKET table.
-*/
+ * PGSQL Database loader class for DAILY_MARKET table.
+ */
+
 #ifndef PGSQL_DAILY_MARKET_LOAD_H
 #define PGSQL_DAILY_MARKET_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLDailyMarketLoad : public CPGSQLLoader <DAILY_MARKET_ROW>
-{	
+class CPGSQLDailyMarketLoad : public CPGSQLLoader<DAILY_MARKET_ROW>
+{
 
 public:
 	CPGSQLDailyMarketLoad(char *szConnectStr, char *szTable = "DAILY_MARKET")
-		: CPGSQLLoader<DAILY_MARKET_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<DAILY_MARKET_ROW>(szConnectStr, szTable) { };
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
+
 		buf.push_back(m_row.DM_DATE.ToStr(iDateTimeFmt));
 		buf.push_back(m_row.DM_S_SYMB);
 		buf.push_back(stringify(m_row.DM_CLOSE));
@@ -67,9 +66,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	}
-	
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_DAILY_MARKET_LOAD_H
+#endif // PGSQL_DAILY_MARKET_LOAD_H

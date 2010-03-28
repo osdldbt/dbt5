@@ -36,27 +36,26 @@
  */
 
 /*
-*	Database loader class for EXCHANGE table.
-*/
+ * Database loader class for EXCHANGE table.
+ */
+
 #ifndef PGSQL_EXCHANGE_LOAD_H
 #define PGSQL_EXCHANGE_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLExchangeLoad : public CPGSQLLoader <EXCHANGE_ROW>
-{	
+class CPGSQLExchangeLoad : public CPGSQLLoader<EXCHANGE_ROW>
+{
 public:
 	CPGSQLExchangeLoad(char *szConnectStr, char *szTable = "EXCHANGE")
-		: CPGSQLLoader<EXCHANGE_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<EXCHANGE_ROW>(szConnectStr, szTable) { };
 
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-		
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
+
 		buf.push_back(m_row.EX_ID);
 		buf.push_back(m_row.EX_NAME);
 		buf.push_back(stringify(m_row.EX_NUM_SYMB));
@@ -68,9 +67,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_EXCHANGE_LOAD_H
+#endif // PGSQL_EXCHANGE_LOAD_H

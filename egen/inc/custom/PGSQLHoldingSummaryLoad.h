@@ -41,30 +41,26 @@
 namespace TPCE
 {
 
-class CPGSQLHoldingSummaryLoad : public CPGSQLLoader <HOLDING_SUMMARY_ROW>
-{	
-private:
+class CPGSQLHoldingSummaryLoad : public CPGSQLLoader<HOLDING_SUMMARY_ROW>
+{
 public:
-	CPGSQLHoldingSummaryLoad(char *szConnectStr, char *szTable = "HOLDING_SUMMARY")
-		: CPGSQLLoader<HOLDING_SUMMARY_ROW>(szConnectStr, szTable)
-	{
-	};
+	CPGSQLHoldingSummaryLoad(char *szConnectStr,
+			char *szTable = "HOLDING_SUMMARY")
+			: CPGSQLLoader<HOLDING_SUMMARY_ROW>(szConnectStr, szTable) { };
 
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
-		buf.push_back(stringify(m_row.HS_CA_ID));	
+		buf.push_back(stringify(m_row.HS_CA_ID));
 		buf.push_back(m_row.HS_S_SYMB);
 		buf.push_back(stringify(m_row.HS_QTY));
 
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_HOLDING_SUMMARY_LOAD_H
+#endif // PGSQL_HOLDING_SUMMARY_LOAD_H

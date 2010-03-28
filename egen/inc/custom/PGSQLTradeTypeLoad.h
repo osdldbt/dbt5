@@ -36,40 +36,35 @@
  */
 
 /*
-*	Database loader class for TRADE_TYPE table.
-*/
+ * Database loader class for TRADE_TYPE table.
+ */
+
 #ifndef PGSQL_TRADE_TYPE_LOAD_H
 #define PGSQL_TRADE_TYPE_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLTradeTypeLoad : public CPGSQLLoader <TRADE_TYPE_ROW>
-{	
+class CPGSQLTradeTypeLoad : public CPGSQLLoader<TRADE_TYPE_ROW>
+{
 public:
 	CPGSQLTradeTypeLoad(char *szConnectStr, char *szTable = "TRADE_TYPE")
-		: CPGSQLLoader<TRADE_TYPE_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<TRADE_TYPE_ROW>(szConnectStr, szTable) { };
 
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
 		buf.push_back(m_row.TT_ID);
 		buf.push_back(m_row.TT_NAME);
-		//buf.push_back((m_row.TT_IS_SELL ? "true" : "false"));
 		buf.push_back(stringify(m_row.TT_IS_SELL));
-		//buf.push_back((m_row.TT_IS_MRKT ? "true" : "false"));
 		buf.push_back(stringify(m_row.TT_IS_MRKT));
 
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_TRADE_TYPE_LOAD_H
+#endif // PGSQL_TRADE_TYPE_LOAD_H

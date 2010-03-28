@@ -36,28 +36,27 @@
  */
 
 /*
-*	Database loader class for COMMISSION_RATE table.
-*/
+ * Database loader class for COMMISSION_RATE table.
+ */
+
 #ifndef PGSQL_COMMISSION_RATE_LOAD_H
 #define PGSQL_COMMISSION_RATE_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLCommissionRateLoad : public CPGSQLLoader <COMMISSION_RATE_ROW>
-{	
+class CPGSQLCommissionRateLoad : public CPGSQLLoader<COMMISSION_RATE_ROW>
+{
 public:
-	CPGSQLCommissionRateLoad(char *szConnectStr, char *szTable = "COMMISSION_RATE")
-		: CPGSQLLoader<COMMISSION_RATE_ROW>(szConnectStr, szTable)
-	{
-	};
+	CPGSQLCommissionRateLoad(char *szConnectStr,
+			char *szTable = "COMMISSION_RATE")
+			: CPGSQLLoader<COMMISSION_RATE_ROW>(szConnectStr, szTable) { };
 
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
-		buf.push_back(stringify(m_row.CR_C_TIER));			
+		buf.push_back(stringify(m_row.CR_C_TIER));
 		buf.push_back(m_row.CR_TT_ID);
 		buf.push_back(m_row.CR_EX_ID);
 		buf.push_back(stringify(m_row.CR_FROM_QTY));
@@ -67,9 +66,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_COMMISSION_RATE_LOAD_H
+#endif // PGSQL_COMMISSION_RATE_LOAD_H

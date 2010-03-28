@@ -36,28 +36,28 @@
  */
 
 /*
-*	Database loader class for COMPANY_COMPETITOR table.
-*/
+ * Database loader class for COMPANY_COMPETITOR table.
+ */
+
 #ifndef PGSQL_COMPANY_COMPETITOR_LOAD_H
 #define PGSQL_COMPANY_COMPETITOR_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLCompanyCompetitorLoad : public CPGSQLLoader <COMPANY_COMPETITOR_ROW>
-{	
+class CPGSQLCompanyCompetitorLoad : public CPGSQLLoader<COMPANY_COMPETITOR_ROW>
+{
 public:
-	CPGSQLCompanyCompetitorLoad(char *szConnectStr, char *szTable = "COMPANY_COMPETITOR")
-		: CPGSQLLoader<COMPANY_COMPETITOR_ROW>(szConnectStr, szTable)
-	{
-	}
+	CPGSQLCompanyCompetitorLoad(char *szConnectStr,
+			char *szTable = "COMPANY_COMPETITOR")
+			: CPGSQLLoader<COMPANY_COMPETITOR_ROW>(szConnectStr, szTable) { }
 
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
-		buf.push_back(stringify(m_row.CP_CO_ID));			
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
+
+		buf.push_back(stringify(m_row.CP_CO_ID));
 		buf.push_back(stringify(m_row.CP_COMP_CO_ID));
 		buf.push_back(m_row.CP_IN_ID);
 
@@ -66,6 +66,6 @@ public:
 	}
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_COMPANY_COMPETITOR_LOAD_H
+#endif // PGSQL_COMPANY_COMPETITOR_LOAD_H

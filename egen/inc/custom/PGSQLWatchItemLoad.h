@@ -36,27 +36,25 @@
  */
 
 /*
-*	Database loader class for WATCH_ITEM table.
-*/
+ * Database loader class for WATCH_ITEM table.
+ */
+
 #ifndef PGSQL_WATCH_ITEM_LOAD_H
 #define PGSQL_WATCH_ITEM_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLWatchItemLoad : public CPGSQLLoader <WATCH_ITEM_ROW>
-{	
+class CPGSQLWatchItemLoad : public CPGSQLLoader<WATCH_ITEM_ROW>
+{
 public:
 	CPGSQLWatchItemLoad(char *szConnectStr, char *szTable = "WATCH_ITEM")
-		: CPGSQLLoader<WATCH_ITEM_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<WATCH_ITEM_ROW>(szConnectStr, szTable) { };
 
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
 		buf.push_back(stringify(m_row.WI_WL_ID));
 		buf.push_back(m_row.WI_S_SYMB);
 
@@ -65,6 +63,6 @@ public:
 	}
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_WATCH_ITEM_LOAD_H
+#endif // PGSQL_WATCH_ITEM_LOAD_H

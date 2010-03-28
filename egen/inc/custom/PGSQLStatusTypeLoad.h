@@ -36,26 +36,25 @@
  */
 
 /*
-*	Database loader class for STATUS_TYPE table.
-*/
+ * Database loader class for STATUS_TYPE table.
+ */
+
 #ifndef PGSQL_STATUS_TYPE_LOAD_H
 #define PGSQL_STATUS_TYPE_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLStatusTypeLoad : public CPGSQLLoader <STATUS_TYPE_ROW>
-{	
+class CPGSQLStatusTypeLoad : public CPGSQLLoader<STATUS_TYPE_ROW>
+{
 public:
 	CPGSQLStatusTypeLoad(char *szConnectStr, char *szTable = "STATUS_TYPE")
-		: CPGSQLLoader<STATUS_TYPE_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<STATUS_TYPE_ROW>(szConnectStr, szTable) { };
 
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 	
 		buf.push_back(m_row.ST_ID);
 		buf.push_back(m_row.ST_NAME);
@@ -63,9 +62,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_STATUS_TYPE_LOAD_H
+#endif // PGSQL_STATUS_TYPE_LOAD_H
