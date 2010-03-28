@@ -150,17 +150,31 @@ void CDBConnection::disconnect()
 	delete m_Conn;
 }
 
-void CDBConnection::execute(string sql, TBrokerVolumeFrame1Output *pOut)
+void CDBConnection::execute(const TBrokerVolumeFrame1Input *pIn,
+		TBrokerVolumeFrame1Output *pOut)
 {
-	enum bvf1 { i_broker_name=0, i_list_len, i_status, i_volume };
+	enum bvf1 {i_broker_name=0, i_list_len, i_status, i_volume};
 
-	result R(m_Txn->exec(sql));
+	ostringstream osBrokers;
+	int i = 0;
+	osBrokers << pIn->broker_list[i];
+	for (i = 1; pIn->broker_list[i][0] != '\0' &&
+			i < max_broker_list_len; i++) {
+		osBrokers << ", " << pIn->broker_list[i];
+	}
+
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM BrokerVolumeFrame1('{" <<
+			osBrokers.str() << "}','" <<
+			pIn->sector_name << "')";
+
+	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
-				sql << endl;
+				osSQL.str() << endl;
 		bh->logErrorMessage(msg.str(), false);
 		rollback();
 		throw;
@@ -174,7 +188,7 @@ void CDBConnection::execute(string sql, TBrokerVolumeFrame1Output *pOut)
 	vector<string>::iterator p;
 
 	TokenizeSmart(c[i_broker_name].c_str(), vAux);
-	int i = 0;
+	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->broker_name[i], (*p).c_str(), cB_NAME_len);
 		++i;
@@ -194,15 +208,21 @@ void CDBConnection::execute(string sql, TBrokerVolumeFrame1Output *pOut)
 	pOut->status = c[i_status].as(int());
 }
 
-void CDBConnection::execute(string sql, TCustomerPositionFrame1Output *pOut)
+void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
+		TCustomerPositionFrame1Output *pOut)
 {
-	result R(m_Txn->exec(sql));
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM CustomerPositionFrame1(" <<
+			pIn->cust_id << ",'" <<
+			pIn->tax_id << "')";
+
+	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
-				sql << endl;
+				osSQL.str() << endl;
 		bh->logErrorMessage(msg.str(), false);
 		rollback();
 		throw;
@@ -288,20 +308,24 @@ void CDBConnection::execute(string sql, TCustomerPositionFrame1Output *pOut)
 	pOut->status = c[i_status].as(int());
 }
 
-void CDBConnection::execute(string sql, TCustomerPositionFrame2Output *pOut)
+void CDBConnection::execute(const TCustomerPositionFrame2Input *pIn,
+		TCustomerPositionFrame2Output *pOut)
 {
 	enum cpf2 {
 		i_hist_dts=0, i_hist_len, i_qty, i_status, i_symbol,
 		i_trade_id, i_trade_status
 	};
 
-	result R(m_Txn->exec(sql));
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM CustomerPositionFrame2(" << pIn->acct_id << ")";
+
+	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
-				sql << endl;
+				osSQL.str() << endl;
 		bh->logErrorMessage(msg.str(), false);
 		rollback();
 		throw;
@@ -369,15 +393,27 @@ void CDBConnection::execute(string sql, TCustomerPositionFrame2Output *pOut)
 	vAux.clear();
 }
 
-void CDBConnection::execute(string sql, TDataMaintenanceFrame1Output *pOut)
+void CDBConnection::execute(const TDataMaintenanceFrame1Input *pIn,
+		TDataMaintenanceFrame1Output *pOut)
 {
-	result R(m_Txn->exec(sql));
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM DataMaintenanceFrame1(" <<
+			pIn->acct_id << ", " <<
+			pIn->c_id << ", " <<
+			pIn->co_id << ", " <<
+			pIn->day_of_month << ", '" <<
+			pIn->symbol << "', '" <<
+			pIn->table_name << "', '" <<
+			pIn->tx_id << "', " <<
+			pIn->vol_incr << ")";
+
+	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
-				sql << endl;
+				osSQL.str() << endl;
 		bh->logErrorMessage(msg.str(), false);
 		rollback();
 		throw;
@@ -388,11 +424,37 @@ void CDBConnection::execute(string sql, TDataMaintenanceFrame1Output *pOut)
 }
 
 
-void CDBConnection::execute(string sql, TMarketFeedFrame1Output *pOut,
-		CSendToMarketInterface *pMarketExchange)
+void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
+		TMarketFeedFrame1Output *pOut, CSendToMarketInterface *pMarketExchange)
 {
 	enum mff1 {i_send_len=0, i_status, i_rows_updated, i_symbol,
 			i_trade_id, i_price_quote, i_trade_qty, i_trade_type};
+
+	ostringstream osSymbol, osPrice, osQty;
+
+	for (unsigned int i = 0;
+			i < (sizeof(pIn->Entries) / sizeof(pIn->Entries[0])); ++i) {
+		if (i == 0) {
+			osSymbol << "\"" << pIn->Entries[i].symbol;
+			osPrice << pIn->Entries[i].price_quote;
+			osQty << pIn->Entries[i].trade_qty;
+		} else {
+			osSymbol << "\",\"" << pIn->Entries[i].symbol;
+			osPrice << "," << pIn->Entries[i].price_quote;
+			osQty << "," << pIn->Entries[i].trade_qty;
+		}
+	}
+	osSymbol << "\"";
+
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM MarketFeedFrame1('{" <<
+			osPrice.str() << "}','" <<
+			pIn->StatusAndTradeType.status_submitted << "','{" <<
+			osSymbol.str() << "}', '{" <<
+			osQty.str() << "}','" <<
+			pIn->StatusAndTradeType.type_limit_buy << "','" <<
+			pIn->StatusAndTradeType.type_limit_sell << "','" <<
+			pIn->StatusAndTradeType.type_stop_loss << "')";
 
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
 	// the Transaction Isolation section for dealing with serialization
@@ -402,14 +464,14 @@ void CDBConnection::execute(string sql, TMarketFeedFrame1Output *pOut,
 	result R;
 	while (true) {
 		try {
-			R = m_Txn->exec(sql);
+			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
 				pOut->send_len = 0;
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
-						sql << endl;
+						osSQL.str() << endl;
 				bh->logErrorMessage(msg.str(), false);
 				rollback();
 				throw;
@@ -494,15 +556,27 @@ void CDBConnection::execute(string sql, TMarketFeedFrame1Output *pOut,
 		pOut->status = -311;
 }
 
-void CDBConnection::execute(string sql, TMarketWatchFrame1Output *pOut)
+void CDBConnection::execute(const TMarketWatchFrame1Input *pIn,
+		TMarketWatchFrame1Output *pOut)
 {
-	result R(m_Txn->exec(sql));
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM MarketWatchFrame1(" <<
+			pIn->acct_id << "," <<
+			pIn->c_id << "," <<
+			pIn->ending_co_id << ",'" <<
+			pIn->industry_name << "','" <<
+			pIn->start_day.year << "-" <<
+			pIn->start_day.month << "-" <<
+			pIn->start_day.day << "'," <<
+			pIn->starting_co_id << ")";
+
+	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
-				sql << endl;
+				osSQL.str() << endl;
 		bh->logErrorMessage(msg.str(), false);
 		rollback();
 		throw;
@@ -514,7 +588,8 @@ void CDBConnection::execute(string sql, TMarketWatchFrame1Output *pOut)
 	pOut->status = c[1].as(int());
 }
 
-void CDBConnection::execute(string sql, TSecurityDetailFrame1Output *pOut)
+void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
+		TSecurityDetailFrame1Output *pOut)
 {
 	enum sdf1 {
 		i_s52_wk_high=0, i_s52_wk_high_date, i_s52_wk_low,
@@ -529,13 +604,22 @@ void CDBConnection::execute(string sql, TSecurityDetailFrame1Output *pOut)
 		i_pe_ratio, i_s_name, i_sp_rate, i_start_date, i_status, i_yield
 	};
 
-	result R(m_Txn->exec(sql));
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM SecurityDetailFrame1(" <<
+			(pIn->access_lob_flag == 0 ? "false" : "true") << "," <<
+			pIn->max_rows_to_return << ",'" <<
+			pIn->start_day.year << "-" <<
+			pIn->start_day.month << "-" <<
+			pIn->start_day.day << "','" <<
+			pIn->symbol << "')";
+
+	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
-				sql << endl;
+				osSQL.str() << endl;
 		bh->logErrorMessage(msg.str(), false);
 		rollback();
 		throw;
@@ -716,15 +800,23 @@ void CDBConnection::execute(string sql, TSecurityDetailFrame1Output *pOut)
 	pOut->yield = c[i_yield].as(double());
 }
 
-void CDBConnection::execute(string sql, TTradeCleanupFrame1Output *pOut)
+void CDBConnection::execute(const TTradeCleanupFrame1Input *pIn,
+		TTradeCleanupFrame1Output *pOut)
 {
-	result R(m_Txn->exec(sql));
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeCleanupFrame1('" <<
+			pIn->st_canceled_id << "','" <<
+			pIn->st_pending_id << "','" <<
+			pIn->st_submitted_id << "'," <<
+			pIn->start_trade_id << ")";
+
+	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
-				sql << endl;
+				osSQL.str() << endl;
 		bh->logErrorMessage(msg.str(), false);
 		rollback();
 		throw;
@@ -735,7 +827,8 @@ void CDBConnection::execute(string sql, TTradeCleanupFrame1Output *pOut)
 	pOut->status = c[0].as(int());
 }
 
-void CDBConnection::execute(string sql, TTradeLookupFrame1Output *pOut)
+void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
+		TTradeLookupFrame1Output *pOut)
 {
 	enum tlf1 {
 			i_bid_price=0, i_cash_transaction_amount,
@@ -746,13 +839,25 @@ void CDBConnection::execute(string sql, TTradeLookupFrame1Output *pOut)
 			i_trade_price
 	};
 
-	result R(m_Txn->exec(sql));
+	ostringstream osTrades;
+	int i = 0;
+	osTrades << pIn->trade_id[i];
+	for ( i = 1; i < pIn->max_trades; i++) {
+		osTrades << "," << pIn->trade_id[i];
+	}
+
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeLookupFrame1(" <<
+			pIn->max_trades << ",'{" <<
+			osTrades.str() << "}')";
+
+	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
-				sql << endl;
+				osSQL.str() << endl;
 		bh->logErrorMessage(msg.str(), false);
 		rollback();
 		throw;
@@ -766,7 +871,7 @@ void CDBConnection::execute(string sql, TTradeLookupFrame1Output *pOut)
 	vector<string>::iterator p;
 
 	TokenizeSmart(c[i_bid_price].c_str(), vAux);
-	int i = 0;
+	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].bid_price = atof((*p).c_str());
 		++i;
@@ -917,7 +1022,8 @@ void CDBConnection::execute(string sql, TTradeLookupFrame1Output *pOut)
 	vAux.clear();
 }
 
-void CDBConnection::execute(string sql, TTradeLookupFrame2Output *pOut)
+void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
+		TTradeLookupFrame2Output *pOut)
 {
 	enum tlf2 {
 			i_bid_price=0, i_cash_transaction_amount, i_cash_transaction_dts,
@@ -927,13 +1033,30 @@ void CDBConnection::execute(string sql, TTradeLookupFrame2Output *pOut)
 			i_trade_history_status_id, i_trade_list, i_trade_price
 	};
 
-	result R(m_Txn->exec(sql));
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeLookupFrame2(" <<
+			pIn->acct_id << ",'" <<
+			pIn->end_trade_dts.year << "-" <<
+			pIn->end_trade_dts.month << "-" <<
+			pIn->end_trade_dts.day << " " <<
+			pIn->end_trade_dts.hour << ":" <<
+			pIn->end_trade_dts.minute << ":" <<
+			pIn->end_trade_dts.second << "'," <<
+			pIn->max_trades << ",'" <<
+			pIn->start_trade_dts.year << "-" <<
+			pIn->start_trade_dts.month << "-" <<
+			pIn->start_trade_dts.day << " " <<
+			pIn->start_trade_dts.hour << ":" <<
+			pIn->start_trade_dts.minute << ":" <<
+			pIn->start_trade_dts.second << "')";
+
+	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
-				sql << endl;
+				osSQL.str() << endl;
 		bh->logErrorMessage(msg.str(), false);
 		rollback();
 		throw;
@@ -1099,7 +1222,8 @@ void CDBConnection::execute(string sql, TTradeLookupFrame2Output *pOut)
 	vAux.clear();
 }
 
-void CDBConnection::execute(string sql, TTradeLookupFrame3Output *pOut)
+void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
+		TTradeLookupFrame3Output *pOut)
 {
 	enum tlf3 {
 			i_acct_id=0, i_cash_transaction_amount, i_cash_transaction_dts,
@@ -1110,13 +1234,31 @@ void CDBConnection::execute(string sql, TTradeLookupFrame3Output *pOut)
 			i_trade_list, i_trade_type
 	};
 
-	result R(m_Txn->exec(sql));
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeLookupFrame3('" <<
+			pIn->end_trade_dts.year << "-" <<
+			pIn->end_trade_dts.month << "-" <<
+			pIn->end_trade_dts.day << " " <<
+			pIn->end_trade_dts.hour << ":" <<
+			pIn->end_trade_dts.minute << ":" <<
+			pIn->end_trade_dts.second << "'," <<
+			pIn->max_acct_id << "," <<
+			pIn->max_trades << ",'" <<
+			pIn->start_trade_dts.year << "-" <<
+			pIn->start_trade_dts.month << "-" <<
+			pIn->start_trade_dts.day << " " <<
+			pIn->start_trade_dts.hour << ":" <<
+			pIn->start_trade_dts.minute << ":" <<
+			pIn->start_trade_dts.second << "','" <<
+			pIn->symbol << "')";
+
+	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
-				sql << endl;
+				osSQL.str() << endl;
 		bh->logErrorMessage(msg.str(), false);
 		rollback();
 		throw;
@@ -1316,20 +1458,31 @@ void CDBConnection::execute(string sql, TTradeLookupFrame3Output *pOut)
 	vAux.clear();
 }
 
-void CDBConnection::execute(string sql, TTradeLookupFrame4Output *pOut)
+void CDBConnection::execute(const TTradeLookupFrame4Input *pIn,
+		TTradeLookupFrame4Output *pOut)
 {
 	enum tlf4 {
 			i_holding_history_id=0, i_holding_history_trade_id, i_num_found,
 			i_quantity_after, i_quantity_before, i_status, i_trade_id
 	};
 
-	result R(m_Txn->exec(sql));
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeLookupFrame4(" <<
+			pIn->acct_id << ",'" <<
+			pIn->trade_dts.year << "-" <<
+			pIn->trade_dts.month << "-" <<
+			pIn->trade_dts.day << " " <<
+			pIn->trade_dts.hour << ":" <<
+			pIn->trade_dts.minute << ":" <<
+			pIn->trade_dts.second << "')";
+
+	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
-				sql << endl;
+				osSQL.str() << endl;
 		bh->logErrorMessage(msg.str(), false);
 		rollback();
 		throw;
@@ -1382,8 +1535,12 @@ void CDBConnection::execute(string sql, TTradeLookupFrame4Output *pOut)
 	pOut->trade_id = c[i_trade_id].as(long());
 }
 
-void CDBConnection::execute(string sql, TTradeOrderFrame1Output *pOut)
+void CDBConnection::execute(const TTradeOrderFrame1Input *pIn,
+		TTradeOrderFrame1Output *pOut)
 {
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeOrderFrame1(" << pIn->acct_id << ")";
+
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
 	// the Transaction Isolation section for dealing with serialization
 	// failures.  These serialization failures can occur with REPEATABLE READS
@@ -1392,13 +1549,13 @@ void CDBConnection::execute(string sql, TTradeOrderFrame1Output *pOut)
 	result R;
 	while (true) {
 		try {
-			R = m_Txn->exec(sql);
+			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
-						sql << endl;
+						osSQL.str() << endl;
 				bh->logErrorMessage(msg.str(), false);
 				rollback();
 				throw;
@@ -1449,8 +1606,16 @@ void CDBConnection::execute(string sql, TTradeOrderFrame1Output *pOut)
 	pOut->tax_status = c[9].as(int());
 }
 
-void CDBConnection::execute(string sql, TTradeOrderFrame2Output *pOut)
+void CDBConnection::execute(const TTradeOrderFrame2Input *pIn,
+		TTradeOrderFrame2Output *pOut)
 {
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeOrderFrame2(" <<
+			pIn->acct_id << ",'" <<
+			escape(pIn->exec_f_name) << "','" <<
+			escape(pIn->exec_l_name) << "','" <<
+			pIn->exec_tax_id<<"')";
+
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
 	// the Transaction Isolation section for dealing with serialization
 	// failures.  These serialization failures can occur with REPEATABLE READS
@@ -1459,13 +1624,13 @@ void CDBConnection::execute(string sql, TTradeOrderFrame2Output *pOut)
 	result R;
 	while (true) {
 		try {
-			R = m_Txn->exec(sql);
+			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
-						sql << endl;
+						osSQL.str() << endl;
 				bh->logErrorMessage(msg.str(), false);
 				rollback();
 				throw;
@@ -1512,8 +1677,26 @@ void CDBConnection::execute(string sql, TTradeOrderFrame2Output *pOut)
 	pOut->status = c[1].as(int());
 }
 
-void CDBConnection::execute(string sql, TTradeOrderFrame3Output *pOut)
+void CDBConnection::execute(const TTradeOrderFrame3Input *pIn,
+		TTradeOrderFrame3Output *pOut)
 {
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeOrderFrame3(" <<
+			pIn->acct_id << "," <<
+			pIn->cust_id << "," <<
+			pIn->cust_tier << "::SMALLINT," <<
+			pIn->is_lifo << "::SMALLINT,'" <<
+			pIn->issue << "','" <<
+			pIn->st_pending_id << "','" <<
+			pIn->st_submitted_id << "'," <<
+			pIn->tax_status << "::SMALLINT," <<
+			pIn->trade_qty << ",'" <<
+			pIn->trade_type_id << "'," <<
+			pIn->type_is_margin << "::SMALLINT,'" <<
+			escape(pIn->co_name) << "'," <<
+			pIn->requested_price << ",'" <<
+			pIn->symbol << "')";
+
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
 	// the Transaction Isolation section for dealing with serialization
 	// failures.  These serialization failures can occur with REPEATABLE READS
@@ -1522,13 +1705,13 @@ void CDBConnection::execute(string sql, TTradeOrderFrame3Output *pOut)
 	result R;
 	while (true) {
 		try {
-			R = m_Txn->exec(sql);
+			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
-						sql << endl;
+						osSQL.str() << endl;
 				bh->logErrorMessage(msg.str(), false);
 				rollback();
 				throw;
@@ -1584,8 +1767,25 @@ void CDBConnection::execute(string sql, TTradeOrderFrame3Output *pOut)
 	pOut->type_is_sell = (c[14].c_str()[0] == 't' ? 1 : 0);
 }
 
-void CDBConnection::execute(string sql, TTradeOrderFrame4Output *pOut)
+void CDBConnection::execute(const TTradeOrderFrame4Input *pIn,
+		TTradeOrderFrame4Output *pOut)
 {
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeOrderFrame4(" <<
+			pIn->acct_id << "," <<
+			pIn->broker_id << "," <<
+			pIn->charge_amount << "," <<
+			pIn->comm_amount << ",'" <<
+			escape(pIn->exec_name) << "'," <<
+			pIn->is_cash << "::SMALLINT," <<
+			pIn->is_lifo << "::SMALLINT," <<
+			pIn->requested_price << ",'" <<
+			pIn->status_id << "','" <<
+			pIn->symbol << "'," <<
+			pIn->trade_qty << ",'" <<
+			pIn->trade_type_id << "'," <<
+			pIn->type_is_market << "::SMALLINT)";
+
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
 	// the Transaction Isolation section for dealing with serialization
 	// failures.  These serialization failures can occur with REPEATABLE READS
@@ -1594,13 +1794,13 @@ void CDBConnection::execute(string sql, TTradeOrderFrame4Output *pOut)
 	result R;
 	while (true) {
 		try {
-			R = m_Txn->exec(sql);
+			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
-						sql << endl;
+						osSQL.str() << endl;
 				bh->logErrorMessage(msg.str(), false);
 				rollback();
 				throw;
@@ -1643,8 +1843,12 @@ void CDBConnection::execute(string sql, TTradeOrderFrame4Output *pOut)
 	pOut->trade_id = c[1].as(long());
 }
 
-void CDBConnection::execute(string sql, TTradeResultFrame1Output *pOut)
+void CDBConnection::execute(const TTradeResultFrame1Input *pIn,
+		TTradeResultFrame1Output *pOut)
 {
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeResultFrame1(" << pIn->trade_id << ")";
+
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
 	// the Transaction Isolation section for dealing with serialization
 	// failures.  These serialization failures can occur with REPEATABLE READS
@@ -1653,13 +1857,13 @@ void CDBConnection::execute(string sql, TTradeResultFrame1Output *pOut)
 	result R;
 	while (true) {
 		try {
-			R = m_Txn->exec(sql);
+			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
-						sql << endl;
+						osSQL.str() << endl;
 				bh->logErrorMessage(msg.str(), false);
 				rollback();
 				throw;
@@ -1712,8 +1916,20 @@ void CDBConnection::execute(string sql, TTradeResultFrame1Output *pOut)
 	strncpy(pOut->type_name, c[11].c_str(), cTT_NAME_len);
 }
 
-void CDBConnection::execute(string sql, TTradeResultFrame2Output *pOut)
+void CDBConnection::execute(const TTradeResultFrame2Input *pIn,
+		TTradeResultFrame2Output *pOut)
 {
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeResultFrame2(" <<
+			pIn->acct_id << "," <<
+			pIn->hs_qty << "," <<
+			pIn->is_lifo << "::SMALLINT,'" <<
+			pIn->symbol << "'," <<
+			pIn->trade_id << "," <<
+			pIn->trade_price << "," <<
+			pIn->trade_qty << "," <<
+			pIn->type_is_sell << "::SMALLINT)";
+
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
 	// the Transaction Isolation section for dealing with serialization
 	// failures.  These serialization failures can occur with REPEATABLE READS
@@ -1722,13 +1938,13 @@ void CDBConnection::execute(string sql, TTradeResultFrame2Output *pOut)
 	result R;
 	while (true) {
 		try {
-			R = m_Txn->exec(sql);
+			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
-						sql << endl;
+						osSQL.str() << endl;
 				bh->logErrorMessage(msg.str(), false);
 				rollback();
 				throw;
@@ -1782,8 +1998,16 @@ void CDBConnection::execute(string sql, TTradeResultFrame2Output *pOut)
 			&pOut->trade_dts.second);
 }
 
-void CDBConnection::execute(string sql, TTradeResultFrame3Output *pOut)
+void CDBConnection::execute(const TTradeResultFrame3Input *pIn,
+		TTradeResultFrame3Output *pOut)
 {
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeResultFrame3(" <<
+			pIn->buy_value << "," <<
+			pIn->cust_id << "," <<
+			pIn->sell_value << "," <<
+			pIn->trade_id << ")";
+
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
 	// the Transaction Isolation section for dealing with serialization
 	// failures.  These serialization failures can occur with REPEATABLE READS
@@ -1792,13 +2016,13 @@ void CDBConnection::execute(string sql, TTradeResultFrame3Output *pOut)
 	result R;
 	while (true) {
 		try {
-			R = m_Txn->exec(sql);
+			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
-						sql << endl;
+						osSQL.str() << endl;
 				bh->logErrorMessage(msg.str(), false);
 				rollback();
 				throw;
@@ -1841,8 +2065,16 @@ void CDBConnection::execute(string sql, TTradeResultFrame3Output *pOut)
 	pOut->tax_amount = c[1].as(double());
 }
 
-void CDBConnection::execute(string sql, TTradeResultFrame4Output *pOut)
+void CDBConnection::execute(const TTradeResultFrame4Input *pIn,
+		TTradeResultFrame4Output *pOut)
 {
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeResultFrame4(" <<
+			pIn->cust_id << ",'" <<
+			pIn->symbol << "'," <<
+			pIn->trade_qty << ",'" <<
+			pIn->type_id << "')";
+
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
 	// the Transaction Isolation section for dealing with serialization
 	// failures.  These serialization failures can occur with REPEATABLE READS
@@ -1851,13 +2083,13 @@ void CDBConnection::execute(string sql, TTradeResultFrame4Output *pOut)
 	result R;
 	while (true) {
 		try {
-			R = m_Txn->exec(sql);
+			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
-						sql << endl;
+						osSQL.str() << endl;
 				bh->logErrorMessage(msg.str(), false);
 				rollback();
 				throw;
@@ -1901,8 +2133,23 @@ void CDBConnection::execute(string sql, TTradeResultFrame4Output *pOut)
 	pOut->status = c[2].as(int());
 }
 
-void CDBConnection::execute(string sql, TTradeResultFrame5Output *pOut)
+void CDBConnection::execute(const TTradeResultFrame5Input *pIn,
+TTradeResultFrame5Output *pOut)
 {
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeResultFrame5(" <<
+			pIn->broker_id << "," <<
+			pIn->comm_amount << ",'" <<
+			pIn->st_completed_id << "','" <<
+			pIn->trade_dts.year << "-" <<
+			pIn->trade_dts.month << "-" <<
+			pIn->trade_dts.day << " " <<
+			pIn->trade_dts.hour << ":" <<
+			pIn->trade_dts.minute << ":" <<
+			pIn->trade_dts.second << "'," <<
+			pIn->trade_id << "," <<
+			pIn->trade_price << ")";
+
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
 	// the Transaction Isolation section for dealing with serialization
 	// failures.  These serialization failures can occur with REPEATABLE READS
@@ -1911,13 +2158,13 @@ void CDBConnection::execute(string sql, TTradeResultFrame5Output *pOut)
 	result R;
 	while (true) {
 		try {
-			R = m_Txn->exec(sql);
+			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
-						sql << endl;
+						osSQL.str() << endl;
 				bh->logErrorMessage(msg.str(), false);
 				rollback();
 				throw;
@@ -1958,8 +2205,31 @@ void CDBConnection::execute(string sql, TTradeResultFrame5Output *pOut)
 	pOut->status = c[0].as(int());
 }
 
-void CDBConnection::execute(string sql, TTradeResultFrame6Output *pOut)
+void CDBConnection::execute(const TTradeResultFrame6Input *pIn,
+		TTradeResultFrame6Output *pOut)
 {
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeResultFrame6(" <<
+			pIn->acct_id << ",'" <<
+			pIn->due_date.year << "-"<<
+			pIn->due_date.month << "-" <<
+			pIn->due_date.day << " " <<
+			pIn->due_date.hour << ":" <<
+			pIn->due_date.minute << ":" <<
+			pIn->due_date.second << "','" <<
+			escape(pIn->s_name) << "', " <<
+			pIn->se_amount << ",'" <<
+			pIn->trade_dts.year << "-" <<
+			pIn->trade_dts.month << "-" <<
+			pIn->trade_dts.day << " " <<
+			pIn->trade_dts.hour << ":" <<
+			pIn->trade_dts.minute << ":" <<
+			pIn->trade_dts.second << "'," <<
+			pIn->trade_id << "," <<
+			pIn->trade_is_cash << "::SMALLINT," <<
+			pIn->trade_qty << ",'" <<
+			pIn->type_name << "')";
+
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
 	// the Transaction Isolation section for dealing with serialization
 	// failures.  These serialization failures can occur with REPEATABLE READS
@@ -1968,13 +2238,13 @@ void CDBConnection::execute(string sql, TTradeResultFrame6Output *pOut)
 	result R;
 	while (true) {
 		try {
-			R = m_Txn->exec(sql);
+			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
-						sql << endl;
+						osSQL.str() << endl;
 				bh->logErrorMessage(msg.str(), false);
 				rollback();
 				throw;
@@ -2017,7 +2287,8 @@ void CDBConnection::execute(string sql, TTradeResultFrame6Output *pOut)
 	pOut->status = c[1].as(int());
 }
 
-void CDBConnection::execute(string sql, TTradeStatusFrame1Output *pOut)
+void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
+		TTradeStatusFrame1Output *pOut)
 {
 	enum tsf1 {
 			i_broker_name=0, i_charge, i_cust_f_name, i_cust_l_name,
@@ -2025,13 +2296,16 @@ void CDBConnection::execute(string sql, TTradeStatusFrame1Output *pOut)
 			i_symbol, i_trade_dts, i_trade_id, i_trade_qty, i_type_name
 	};
 
-	result R(m_Txn->exec(sql));
+	ostringstream osSQL;
+	osSQL << "SELECT * from TradeStatusFrame1(" << pIn->acct_id << ")";
+
+	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
 		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
-				sql << endl;
+				osSQL.str() << endl;
 		bh->logErrorMessage(msg.str(), false);
 		rollback();
 		throw;
@@ -2146,7 +2420,8 @@ void CDBConnection::execute(string sql, TTradeStatusFrame1Output *pOut)
 	vAux.clear();
 }
 
-void CDBConnection::execute(string sql, TTradeUpdateFrame1Output *pOut)
+void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
+		TTradeUpdateFrame1Output *pOut)
 {
 	enum tuf1 {
 			i_bid_price=0, i_cash_transaction_amount,
@@ -2157,6 +2432,19 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame1Output *pOut)
 			i_trade_history_status_id, i_trade_price
 	};
 
+	ostringstream osTrades;
+	int i = 0;
+	osTrades << pIn->trade_id[i];
+	for (i = 1; i < pIn->max_trades; i++) {
+		osTrades << "," << pIn->trade_id[i];
+	}
+
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeUpdateFrame1(" <<
+			pIn->max_trades << "," <<
+			pIn->max_updates << ",'{" <<
+			osTrades.str() << "}')";
+
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
 	// the Transaction Isolation section for dealing with serialization
 	// failures.  These serialization failures can occur with REPEATABLE READS
@@ -2165,13 +2453,13 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame1Output *pOut)
 	result R;
 	while (true) {
 		try {
-			R = m_Txn->exec(sql);
+			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
-						sql << endl;
+						osSQL.str() << endl;
 				bh->logErrorMessage(msg.str(), false);
 				rollback();
 				throw;
@@ -2216,7 +2504,7 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame1Output *pOut)
 	vector<string>::iterator p;
 
 	TokenizeSmart(c[i_bid_price].c_str(), vAux);
-	int i = 0;
+	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].bid_price = atof((*p).c_str());
 		++i;
@@ -2382,7 +2670,8 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame1Output *pOut)
 	vAux.clear();
 }
 
-void CDBConnection::execute(string sql, TTradeUpdateFrame2Output *pOut)
+void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
+		TTradeUpdateFrame2Output *pOut)
 {
 	enum tuf2 {
 			i_bid_price=0, i_cash_transaction_amount,
@@ -2393,6 +2682,24 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame2Output *pOut)
 			i_trade_price
 	};
 
+	ostringstream osSQL;
+	osSQL << "SELECT * FROM TradeUpdateFrame2(" <<
+			pIn->acct_id << ",'" <<
+			pIn->end_trade_dts.year << "-" <<
+			pIn->end_trade_dts.month << "-" <<
+			pIn->end_trade_dts.day << " " <<
+			pIn->end_trade_dts.hour << ":" <<
+			pIn->end_trade_dts.minute << ":" <<
+			pIn->end_trade_dts.second << "'," <<
+			pIn->max_trades << "," <<
+			pIn->max_updates << ",'" <<
+			pIn->end_trade_dts.year << "-" <<
+			pIn->end_trade_dts.month << "-" <<
+			pIn->end_trade_dts.day << " " <<
+			pIn->end_trade_dts.hour << ":" <<
+			pIn->end_trade_dts.minute << ":" <<
+			pIn->end_trade_dts.second << "')";
+
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
 	// the Transaction Isolation section for dealing with serialization
 	// failures.  These serialization failures can occur with REPEATABLE READS
@@ -2401,13 +2708,13 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame2Output *pOut)
 	result R;
 	while (true) {
 		try {
-			R = m_Txn->exec(sql);
+			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
-						sql << endl;
+						osSQL.str() << endl;
 				bh->logErrorMessage(msg.str(), false);
 				rollback();
 				throw;
@@ -2621,7 +2928,8 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame2Output *pOut)
 	vAux.clear();
 }
 
-void CDBConnection::execute(string sql, TTradeUpdateFrame3Output *pOut)
+void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
+		TTradeUpdateFrame3Output *pOut)
 {
 	enum tuf3 {
 			i_acct_id=0, i_cash_transaction_amount,
@@ -2633,6 +2941,25 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame3Output *pOut)
 			i_type_name, i_trade_type
 	};
 
+	ostringstream osSQL;
+	osSQL << "SELECT * from TradeUpdateFrame3('" <<
+			pIn->end_trade_dts.year << "-" <<
+			pIn->end_trade_dts.month << "-" <<
+			pIn->end_trade_dts.day << " " <<
+			pIn->end_trade_dts.hour << ":" <<
+			pIn->end_trade_dts.minute << ":" <<
+			pIn->end_trade_dts.second << "'," <<
+			pIn->max_acct_id << "," <<
+			pIn->max_trades << "," <<
+			pIn->max_updates << ",'" <<
+			pIn->start_trade_dts.year << "-" <<
+			pIn->start_trade_dts.month << "-" <<
+			pIn->start_trade_dts.day << " " <<
+			pIn->start_trade_dts.hour << ":" <<
+			pIn->start_trade_dts.minute << ":" <<
+			pIn->start_trade_dts.second << "','" <<
+			pIn->symbol << "')";
+
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
 	// the Transaction Isolation section for dealing with serialization
 	// failures.  These serialization failures can occur with REPEATABLE READS
@@ -2641,13 +2968,13 @@ void CDBConnection::execute(string sql, TTradeUpdateFrame3Output *pOut)
 	result R;
 	while (true) {
 		try {
-			R = m_Txn->exec(sql);
+			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
 				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
-						sql << endl;
+						osSQL.str() << endl;
 				bh->logErrorMessage(msg.str(), false);
 				rollback();
 				throw;

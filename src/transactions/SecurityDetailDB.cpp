@@ -15,18 +15,9 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 		const TSecurityDetailFrame1Input *pIn,
 		TSecurityDetailFrame1Output *pOut)
 {
-	ostringstream osCall;
-	osCall << "SELECT * FROM SecurityDetailFrame1(" <<
-			(pIn->access_lob_flag == 0 ? "false" : "true") << "," <<
-			pIn->max_rows_to_return << ",'" <<
-			pIn->start_day.year << "-" <<
-			pIn->start_day.month << "-" <<
-			pIn->start_day.day << "','" <<
-			pIn->symbol << "')";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< SDF1" << endl;
-	cout << "*** " << osCall.str() << endl;
 	cout << "- Security Detail Frame 1 (input)" << endl <<
 			"-- access_lob_flag: " << pIn->access_lob_flag << endl <<
 			"-- start_day: " << pIn->start_day.year << "-" <<
@@ -41,7 +32,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
 	setReadCommitted();
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 	commitTransaction();
 
 #ifdef DEBUG

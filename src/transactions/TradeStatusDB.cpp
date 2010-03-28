@@ -14,12 +14,9 @@
 void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 		TTradeStatusFrame1Output *pOut)
 {
-	ostringstream osCall;
-	osCall << "SELECT * from TradeStatusFrame1(" << pIn->acct_id << ")";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< TSF1" << endl;
-	cout << "*** " << osCall.str() << endl;
 	cout << "- Trade Status Frame 1 (input)" << endl <<
 			"-- acct_id: " << pIn->acct_id << endl;
 	m_coutLock.unlock();
@@ -28,7 +25,7 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
 	setReadCommitted();
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 	commitTransaction();
 
 #ifdef DEBUG

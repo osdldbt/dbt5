@@ -14,23 +14,9 @@
 void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 		TBrokerVolumeFrame1Output *pOut)
 {
-	ostringstream osBrokers;
-	int i = 0;
-
-	osBrokers << pIn->broker_list[i];
-	for (i = 1; pIn->broker_list[i][0] != '\0' &&
-			i < max_broker_list_len; i++) {
-		osBrokers << ", " << pIn->broker_list[i];
-	}
-
-	ostringstream osCall;
-	osCall << "SELECT * FROM BrokerVolumeFrame1('{" <<
-			osBrokers.str() << "}','" <<
-			pIn->sector_name << "')";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< BVF1" << endl;
-	cout << "*** " << osCall.str() << endl;
 	cout << "- Broker Volume Frame 1 (input)" << endl <<
 		"-- broker_list: " << osBrokers.str() << endl <<
 		"-- sector name: " << pIn->sector_name << endl;
@@ -40,7 +26,7 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
 	setReadCommitted();
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 	commitTransaction();
 
 #ifdef DEBUG

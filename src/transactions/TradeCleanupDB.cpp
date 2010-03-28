@@ -15,15 +15,8 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
 		const TTradeCleanupFrame1Input *pIn,
 		TTradeCleanupFrame1Output *pOut)
 {
-	ostringstream osCall;
-	osCall << "SELECT * FROM TradeCleanupFrame1('" <<
-			pIn->st_canceled_id << "','" <<
-			pIn->st_pending_id << "','" <<
-			pIn->st_submitted_id << "'," <<
-			pIn->start_trade_id << ")";
 #ifdef DEBUG
 	m_coutLock.lock();
-	cout << "<<< TCF1" << endl;
 	cout << "*** " << osCall.str() << endl;
 	cout << "- Trade Cleanup Frame 1 (input)" << endl <<
 			"-- st_canceled_id: " << pIn->st_canceled_id << endl <<
@@ -34,7 +27,7 @@ void CTradeCleanupDB::DoTradeCleanupFrame1(
 #endif // DEBUG
 
 	startTransaction();
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 	commitTransaction();
 
 #ifdef DEBUG
