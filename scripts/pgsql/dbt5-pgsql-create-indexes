@@ -964,6 +964,11 @@ ON trade (t_ca_id);
 " & pids="$pids $!"
 
 psql ${PORTARG} -e ${DBNAMEARG} -c "
+CREATE INDEX i_t_s_symb
+ON trade (t_s_symb);
+" & pids="$pids $!"
+
+psql ${PORTARG} -e ${DBNAMEARG} -c "
 CREATE INDEX i_co_name
 ON company (co_name);
 " & pids="$pids $!"
@@ -976,6 +981,11 @@ ON security (s_co_id, s_issue);
 psql ${PORTARG} -e ${DBNAMEARG} -c "
 CREATE INDEX i_holding
 ON holding (h_ca_id, h_s_symb);
+" & pids="$pids $!"
+
+psql ${PORTARG} -e ${DBNAMEARG} -c "
+CREATE INDEX i_hh_t_id
+ON holding_history (hh_t_id);
 " & pids="$pids $!"
 
 wait ${pids}
