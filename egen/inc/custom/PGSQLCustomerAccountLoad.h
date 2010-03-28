@@ -36,38 +36,38 @@
  */
 
 /*
-*	Database loader class for CUSTOMER_ACCOUNT table.
-*/
+ * Database loader class for CUSTOMER_ACCOUNT table.
+ */
+
 #ifndef PGSQL_CUSTOMER_ACCOUNT_LOAD_H
 #define PGSQL_CUSTOMER_ACCOUNT_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLCustomerAccountLoad : public CPGSQLLoader <CUSTOMER_ACCOUNT_ROW>
-{	
+class CPGSQLCustomerAccountLoad : public CPGSQLLoader<CUSTOMER_ACCOUNT_ROW>
+{
 public:
-	CPGSQLCustomerAccountLoad(char *szConnectStr, char *szTable = "CUSTOMER_ACCOUNT")
-		: CPGSQLLoader<CUSTOMER_ACCOUNT_ROW>(szConnectStr, szTable)
-	{
-	};
+	CPGSQLCustomerAccountLoad(char *szConnectStr,
+			char *szTable = "CUSTOMER_ACCOUNT")
+			: CPGSQLLoader<CUSTOMER_ACCOUNT_ROW>(szConnectStr, szTable) { };
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 	
 		buf.push_back(stringify(m_row.CA_ID));
 		buf.push_back(stringify(m_row.CA_B_ID));
-		buf.push_back(stringify(m_row.CA_C_ID));			
+		buf.push_back(stringify(m_row.CA_C_ID));
 		buf.push_back(m_row.CA_NAME);
 		buf.push_back(stringify((int)m_row.CA_TAX_ST));
-		buf.push_back(stringify(m_row.CA_BAL));			
+		buf.push_back(stringify(m_row.CA_BAL));
 
 		m_TW->insert(buf);
 		buf.clear();
 	}
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_CUSTOMER_ACCOUNT_LOAD_H
+#endif // PGSQL_CUSTOMER_ACCOUNT_LOAD_H

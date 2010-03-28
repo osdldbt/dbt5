@@ -36,25 +36,24 @@
  */
 
 /*
-*	Database loader class for NEWS_XREF table.
-*/
+ * Database loader class for NEWS_XREF table.
+ */
+
 #ifndef PGSQL_NEWS_XREF_LOAD_H
 #define PGSQL_NEWS_XREF_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLNewsXRefLoad : public CPGSQLLoader <NEWS_XREF_ROW>
-{	
+class CPGSQLNewsXRefLoad : public CPGSQLLoader<NEWS_XREF_ROW>
+{
 public:
 	CPGSQLNewsXRefLoad(char *szConnectStr, char *szTable = "NEWS_XREF")
-		: CPGSQLLoader<NEWS_XREF_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<NEWS_XREF_ROW>(szConnectStr, szTable) { };
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 	
 		buf.push_back(stringify(m_row.NX_NI_ID));
 		buf.push_back(stringify(m_row.NX_CO_ID));
@@ -62,9 +61,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	};
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_NEWS_XREF_LOAD_H
+#endif // PGSQL_NEWS_XREF_LOAD_H

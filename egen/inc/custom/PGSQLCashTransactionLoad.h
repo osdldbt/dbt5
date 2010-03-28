@@ -36,29 +36,28 @@
  */
 
 /*
-*	Database loader class for CASH_TRANSACTION table.
-*/
+ * Database loader class for CASH_TRANSACTION table.
+ */
+
 #ifndef PGSQL_CASH_TRANSACTION_LOAD_H
 #define PGSQL_CASH_TRANSACTION_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLCashTransactionLoad : public CPGSQLLoader <CASH_TRANSACTION_ROW>
-{	
+class CPGSQLCashTransactionLoad : public CPGSQLLoader<CASH_TRANSACTION_ROW>
+{
 
 public:
-	CPGSQLCashTransactionLoad(char *szConnectStr, char *szTable = "CASH_TRANSACTION")
-		: CPGSQLLoader<CASH_TRANSACTION_ROW>(szConnectStr, szTable)
-	{
-	};
+	CPGSQLCashTransactionLoad(char *szConnectStr,
+			char *szTable = "CASH_TRANSACTION")
+			: CPGSQLLoader<CASH_TRANSACTION_ROW>(szConnectStr, szTable) { };
 
-
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 	
-		buf.push_back(stringify(m_row.CT_T_ID));			
+		buf.push_back(stringify(m_row.CT_T_ID));
 		buf.push_back(m_row.CT_DTS.ToStr(iDateTimeFmt));
 		buf.push_back(stringify(m_row.CT_AMT));
 		buf.push_back(m_row.CT_NAME);
@@ -66,9 +65,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
 #endif //PGSQL_CASH_TRANSACTION_LOAD_H

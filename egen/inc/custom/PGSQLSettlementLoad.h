@@ -36,29 +36,27 @@
  */
 
 /*
-*	Database loader class for SETTLEMENT table.
-*/
+ * Database loader class for SETTLEMENT table.
+ */
 #ifndef PGSQL_SETTLEMENT_LOAD_H
 #define PGSQL_SETTLEMENT_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLSettlementLoad : public CPGSQLLoader <SETTLEMENT_ROW>
-{	
+class CPGSQLSettlementLoad : public CPGSQLLoader<SETTLEMENT_ROW>
+{
 
 public:
 	CPGSQLSettlementLoad(char *szConnectStr, char *szTable = "SETTLEMENT")
-		: CPGSQLLoader<SETTLEMENT_ROW>(szConnectStr, szTable)
-	{		
-	};
+			: CPGSQLLoader<SETTLEMENT_ROW>(szConnectStr, szTable) { };
 
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
-		buf.push_back(stringify(m_row.SE_T_ID));			
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
+
+		buf.push_back(stringify(m_row.SE_T_ID));
 		buf.push_back(m_row.SE_CASH_TYPE);
 		buf.push_back(m_row.SE_CASH_DUE_DATE.ToStr(iDateTimeFmt));
 		buf.push_back(stringify(m_row.SE_AMT));
@@ -66,9 +64,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_SETTLEMENT_LOAD_H
+#endif // PGSQL_SETTLEMENT_LOAD_H

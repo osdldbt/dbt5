@@ -36,27 +36,24 @@
  */
 
 /*
-*	Database loader class for TAXRATE table.
-*/
+ * Database loader class for TAXRATE table.
+ */
 #ifndef PGSQL_TAXRATE_LOAD_H
 #define PGSQL_TAXRATE_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLTaxrateLoad : public CPGSQLLoader <TAXRATE_ROW>
-{	
+class CPGSQLTaxrateLoad : public CPGSQLLoader<TAXRATE_ROW>
+{
 public:
 	CPGSQLTaxrateLoad(char *szConnectStr, char *szTable = "TAXRATE")
-		: CPGSQLLoader<TAXRATE_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<TAXRATE_ROW>(szConnectStr, szTable) { };
 
+	//copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
 		buf.push_back(m_row.TX_ID);
 		buf.push_back(m_row.TX_NAME);
 		buf.push_back(stringify(m_row.TX_RATE));
@@ -64,9 +61,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_TAXRATE_LOAD_H
+#endif // PGSQL_TAXRATE_LOAD_H

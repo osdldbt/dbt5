@@ -36,28 +36,26 @@
  */
 
 /*
-*	Database loader class for COMPANY table.
-*/
+ * Database loader class for COMPANY table.
+ */
+
 #ifndef PGSQL_COMPANY_LOAD_H
 #define PGSQL_COMPANY_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLCompanyLoad : public CPGSQLLoader <COMPANY_ROW>
+class CPGSQLCompanyLoad : public CPGSQLLoader<COMPANY_ROW>
 {
 
 public:
 	CPGSQLCompanyLoad(char *szConnectStr, char *szTable = "COMPANY")
-		: CPGSQLLoader<COMPANY_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<COMPANY_ROW>(szConnectStr, szTable) { };
 
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
 		buf.push_back(stringify(m_row.CO_ID));
 		buf.push_back(m_row.CO_ST_ID);
 		buf.push_back(m_row.CO_NAME);
@@ -71,10 +69,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_COMPANY_LOAD_H
+#endif // PGSQL_COMPANY_LOAD_H

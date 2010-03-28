@@ -36,27 +36,25 @@
  */
 
 /*
-*	Database loader class for NEWS_ITEM table.
-*/
+ * Database loader class for NEWS_ITEM table.
+ */
 #ifndef PGSQL_NEWS_ITEM_LOAD_H
 #define PGSQL_NEWS_ITEM_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLNewsItemLoad : public CPGSQLLoader <NEWS_ITEM_ROW>
-{	
+class CPGSQLNewsItemLoad : public CPGSQLLoader<NEWS_ITEM_ROW>
+{
 
 public:
 	CPGSQLNewsItemLoad(char *szConnectStr, char *szTable = "NEWS_ITEM")
-		: CPGSQLLoader<NEWS_ITEM_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<NEWS_ITEM_ROW>(szConnectStr, szTable) { };
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
+
 		buf.push_back(stringify(m_row.NI_ID));
 		buf.push_back(m_row.NI_HEADLINE);
 		buf.push_back(m_row.NI_SUMMARY);
@@ -68,10 +66,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	};
-
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_NEWS_ITEM_LOAD_H
+#endif // PGSQL_NEWS_ITEM_LOAD_H

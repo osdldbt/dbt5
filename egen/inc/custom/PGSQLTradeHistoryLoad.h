@@ -36,38 +36,35 @@
  */
 
 /*
-*	Database loader class for TRADE_HISTORY table.
-*/
+ * Database loader class for TRADE_HISTORY table.
+ */
+
 #ifndef PGSQL_TRADE_HISTORY_LOAD_H
 #define PGSQL_TRADE_HISTORY_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLTradeHistoryLoad : public CPGSQLLoader <TRADE_HISTORY_ROW>
-{	
+class CPGSQLTradeHistoryLoad : public CPGSQLLoader<TRADE_HISTORY_ROW>
+{
 
 public:
 	CPGSQLTradeHistoryLoad(char *szConnectStr, char *szTable = "TRADE_HISTORY")
-		: CPGSQLLoader<TRADE_HISTORY_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<TRADE_HISTORY_ROW>(szConnectStr, szTable) { };
 
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
-		buf.push_back(stringify(m_row.TH_T_ID));			
+		buf.push_back(stringify(m_row.TH_T_ID));
 		buf.push_back(m_row.TH_DTS.ToStr(iDateTimeFmt));
 		buf.push_back(m_row.TH_ST_ID);
 
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_TRADE_HISTORY_LOAD_H
+#endif // PGSQL_TRADE_HISTORY_LOAD_H

@@ -36,28 +36,27 @@
  */
 
 /*
-*	Database loader class for SECURITY table.
-*/
+ * Database loader class for SECURITY table.
+ */
+
 #ifndef PGSQL_SECURITY_LOAD_H
 #define PGSQL_SECURITY_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLSecurityLoad : public CPGSQLLoader <SECURITY_ROW>
-{	
+class CPGSQLSecurityLoad : public CPGSQLLoader<SECURITY_ROW>
+{
 
 public:
 	CPGSQLSecurityLoad(char *szConnectStr, char *szTable = "SECURITY")
-		: CPGSQLLoader<SECURITY_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<SECURITY_ROW>(szConnectStr, szTable) { };
 
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
+
 		buf.push_back(m_row.S_SYMB);
 		buf.push_back(m_row.S_ISSUE);
 		buf.push_back(m_row.S_ST_ID);
@@ -78,9 +77,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_SECURITY_LOAD_H
+#endif // PGSQL_SECURITY_LOAD_H

@@ -36,8 +36,8 @@
  */
 
 /*
-*	Database loader class for ADDRESS table.
-*/
+ * Database loader class for ADDRESS table.
+ */
 #ifndef PGSQL_ADDRESS_LOAD_H
 #define PGSQL_ADDRESS_LOAD_H
 
@@ -45,19 +45,17 @@ namespace TPCE
 {
 
 class CPGSQLAddressLoad : public CPGSQLLoader <ADDRESS_ROW>
-{	
+{
 public:
 	CPGSQLAddressLoad(char *szConnectStr, char *szTable = "ADDRESS")
-		: CPGSQLLoader<ADDRESS_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<ADDRESS_ROW>(szConnectStr, szTable) { };
 
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 	
-		buf.push_back(stringify(m_row.AD_ID));			
+		buf.push_back(stringify(m_row.AD_ID));
 		buf.push_back(m_row.AD_LINE1);
 		buf.push_back(m_row.AD_LINE2);
 		buf.push_back(m_row.AD_ZC_CODE);
@@ -66,9 +64,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	}
-	
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_ADDRESS_LOAD_H
+#endif // PGSQL_ADDRESS_LOAD_H

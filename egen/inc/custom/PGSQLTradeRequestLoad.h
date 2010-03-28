@@ -36,28 +36,26 @@
  */
 
 /*
-*	Database loader class for TRADE_REQUEST table.
-*/
+ * Database loader class for TRADE_REQUEST table.
+ */
+
 #ifndef PGSQL_TRADE_REQUEST_LOAD_H
 #define PGSQL_TRADE_REQUEST_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLTradeRequestLoad : public CPGSQLLoader <TRADE_REQUEST_ROW>
-{	
+class CPGSQLTradeRequestLoad : public CPGSQLLoader<TRADE_REQUEST_ROW>
+{
 
 public:
 	CPGSQLTradeRequestLoad(char *szConnectStr, char *szTable = "TRADE_REQUEST")
-		: CPGSQLLoader<TRADE_REQUEST_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<TRADE_REQUEST_ROW>(szConnectStr, szTable) { };
 
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
 		buf.push_back(stringify(m_row.TR_T_ID));
 		buf.push_back(m_row.TR_TT_ID);
 		buf.push_back(m_row.TR_S_SYMB);
@@ -70,6 +68,6 @@ public:
 	}
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_TRADE_REQUEST_LOAD_H
+#endif // PGSQL_TRADE_REQUEST_LOAD_H

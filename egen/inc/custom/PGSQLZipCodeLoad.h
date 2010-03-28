@@ -36,27 +36,25 @@
  */
 
 /*
-*	Database loader class for ZIP_CODE table.
-*/
+ * Database loader class for ZIP_CODE table.
+ */
+
 #ifndef PGSQL_ZIP_CODE_LOAD_H
 #define PGSQL_ZIP_CODE_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLZipCodeLoad : public CPGSQLLoader <ZIP_CODE_ROW>
-{	
+class CPGSQLZipCodeLoad : public CPGSQLLoader<ZIP_CODE_ROW>
+{
 public:
 	CPGSQLZipCodeLoad(char *szConnectStr, char *szTable = "ZIP_CODE")
-		: CPGSQLLoader<ZIP_CODE_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<ZIP_CODE_ROW>(szConnectStr, szTable) { };
 
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
 		buf.push_back(m_row.ZC_CODE);
 		buf.push_back(m_row.ZC_TOWN);
 		buf.push_back(m_row.ZC_DIV);
@@ -64,9 +62,8 @@ public:
 		m_TW->insert(buf);
 		buf.clear();
 	}
-
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_ZIP_CODE_LOAD_H
+#endif // PGSQL_ZIP_CODE_LOAD_H

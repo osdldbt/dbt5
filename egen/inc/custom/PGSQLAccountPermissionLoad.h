@@ -36,27 +36,27 @@
  */
 
 /*
-*	PostgreSQL loader class for ACCOUNT_PERMISSION table.
-*/
+ * PostgreSQL loader class for ACCOUNT_PERMISSION table.
+ */
+
 #ifndef PGSQL_ACCOUNT_PERMISSION_LOAD_H
 #define PGSQL_ACCOUNT_PERMISSION_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLAccountPermissionLoad : public CPGSQLLoader <ACCOUNT_PERMISSION_ROW>
-{	
-public: 
-	CPGSQLAccountPermissionLoad(char *szConnectStr, char *szTable = "ACCOUNT_PERMISSION")
-		: CPGSQLLoader<ACCOUNT_PERMISSION_ROW>(szConnectStr, szTable)
-	{
-	};
+class CPGSQLAccountPermissionLoad : public CPGSQLLoader<ACCOUNT_PERMISSION_ROW>
+{
+public:
+	CPGSQLAccountPermissionLoad(char *szConnectStr,
+			char *szTable = "ACCOUNT_PERMISSION")
+			: CPGSQLLoader<ACCOUNT_PERMISSION_ROW>(szConnectStr, szTable) { };
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
-		buf.push_back(stringify(m_row.AP_CA_ID));			
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
+
+		buf.push_back(stringify(m_row.AP_CA_ID));
 		buf.push_back(m_row.AP_ACL);
 		buf.push_back(m_row.AP_TAX_ID);
 		buf.push_back(m_row.AP_L_NAME);
@@ -68,6 +68,6 @@ public:
 
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
 #endif //PGSQL_ACCOUNT_PERMISSION_LOAD_H

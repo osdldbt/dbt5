@@ -36,8 +36,9 @@
  */
 
 /*
-*	Database loader class for HOLDING table.
-*/
+ * Database loader class for HOLDING table.
+ */
+
 #ifndef PGSQL_HOLDING_LOAD_H
 #define PGSQL_HOLDING_LOAD_H
 
@@ -45,19 +46,16 @@ namespace TPCE
 {
 
 class CPGSQLHoldingLoad : public CPGSQLLoader <HOLDING_ROW>
-{	
+{
 
 public:
 	CPGSQLHoldingLoad(char *szConnectStr, char *szTable = "HOLDING")
-		: CPGSQLLoader<HOLDING_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<HOLDING_ROW>(szConnectStr, szTable) { };
 
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
 		buf.push_back(stringify(m_row.H_T_ID));
 		buf.push_back(stringify(m_row.H_CA_ID));
 		buf.push_back(m_row.H_S_SYMB);
@@ -70,6 +68,6 @@ public:
 	}
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
-#endif //PGSQL_HOLDING_LOAD_H
+#endif // PGSQL_HOLDING_LOAD_H

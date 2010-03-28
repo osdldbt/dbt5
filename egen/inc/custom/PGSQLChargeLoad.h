@@ -36,27 +36,25 @@
  */
 
 /*
-*	Database loader class for CHARGE table.
-*/
+ * Database loader class for CHARGE table.
+ */
+
 #ifndef PGSQL_CHARGE_LOAD_H
 #define PGSQL_CHARGE_LOAD_H
 
 namespace TPCE
 {
 
-class CPGSQLChargeLoad : public CPGSQLLoader <CHARGE_ROW>
-{	
+class CPGSQLChargeLoad : public CPGSQLLoader<CHARGE_ROW>
+{
 public:
 	CPGSQLChargeLoad(char *szConnectStr, char *szTable = "CHARGE")
-		: CPGSQLLoader<CHARGE_ROW>(szConnectStr, szTable)
-	{
-	};
+			: CPGSQLLoader<CHARGE_ROW>(szConnectStr, szTable) { };
 
+	// copy to the bound location inside this class first
+	virtual void WriteNextRecord(PT next_record) {
+		CopyRow(next_record);
 
-	virtual void WriteNextRecord(PT next_record)
-	{
-		CopyRow(next_record);	//copy to the bound location inside this class first
-	
 		buf.push_back(m_row.CH_TT_ID);
 		buf.push_back(stringify(m_row.CH_C_TIER));
 		buf.push_back(stringify(m_row.CH_CHRG));
@@ -66,6 +64,6 @@ public:
 	}
 };
 
-}	// namespace TPCE
+} // namespace TPCE
 
 #endif //PGSQL_CHARGE_LOAD_H
