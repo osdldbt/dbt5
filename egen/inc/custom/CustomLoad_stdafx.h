@@ -43,7 +43,9 @@
 #ifndef CUSTOM_LOAD_STDAFX_H
 #define CUSTOM_LOAD_STDAFX_H
 
-#include "PGSQLLoad.h"
+#ifdef PGSQL
+#include "pgsql/PGSQLLoad.h"
+#endif // PGSQL
 
 namespace TPCE
 {

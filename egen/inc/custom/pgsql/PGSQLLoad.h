@@ -40,9 +40,9 @@
 
 #include <stdio.h>
 
-#include "../EGenUtilities_stdafx.h"
-#include "../Table_Defs.h"
-#include "../EGenBaseLoader_stdafx.h"
+#include "../../EGenUtilities_stdafx.h"
+#include "../../Table_Defs.h"
+#include "../../EGenBaseLoader_stdafx.h"
 
 #include "pgloader.h"
 #include "PGSQLAccountPermissionLoad.h"
