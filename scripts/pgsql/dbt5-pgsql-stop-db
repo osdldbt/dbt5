@@ -15,7 +15,5 @@ fi
 
 # We only need to stop the database if it's running.
 if [ -f ${PGDATA}/postmaster.pid ]; then
-	sleep 1
-	pg_ctl -D ${PGDATA} stop ${1}
-	sleep 1
+	pg_ctl -w -D ${PGDATA} stop ${1}
 fi
