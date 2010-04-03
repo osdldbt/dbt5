@@ -203,12 +203,16 @@ if test "$database_to_use" = "pgsql"; then
   dnl
   dnl Find libpq and libpqxx headers and libraries.
   dnl
-  LIBPQXX_CFLAGS=`$PKG_CONFIG --cflags libpqxx`
-dnl  AC_CHECK_HEADER(pqxx/pqxx, [], [
-dnl      AC_MSG_ERROR([could not locate pqxx headers])
-dnl  ])
-  AC_CHECK_LIB(pq, PQtrace)
-  AC_CHECK_LIB(pqxx, connect)
+  AC_CHECK_LIB(pq, PQtrace, [], [
+      AC_MSG_ERROR([could not locate libpq])
+  ])
+  dnl FIXME: How to check for pqxx headers properly?
+  dnl AC_CHECK_HEADER(pqxx/pqxx, [], [
+  dnl     AC_MSG_ERROR([could not locate pqxx headers])
+  dnl ])
+  AC_CHECK_LIB(pqxx, connect, [], [
+      AC_MSG_ERROR([could not locate libpqxx])
+  ])
 
   STORED_PROC_TYPE="COMPILE_PLSQL_FUNCTION"
   CFLAGS="$CFLAGS $DEBUG_FLAG -DCOMPILE_PGSQL_LOAD"
