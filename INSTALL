@@ -1,0 +1,22 @@
+Building DBT-5:
+
+    # Configure
+    cmake CMakeLists.txt -DDBMS=<pgsql>
+    # Build
+    make
+
+-----
+
+Installing DBT-5:
+
+    make install DESTDIR=/usr/local
+
+This will put all binaries in '/usr/local/bin'.
+
+-----
+
+Uninstalling DBT-5:
+
+    xargs rm < install_manifest.txt
+
+The file 'install_manifest.txt' will be created after running 'make install'.
