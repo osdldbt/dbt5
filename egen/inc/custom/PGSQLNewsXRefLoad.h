@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for NEWS_XREF table.
- */
+//
+// Database loader class for NEWS_XREF table.
+//
 
 #ifndef PGSQL_NEWS_XREF_LOAD_H
 #define PGSQL_NEWS_XREF_LOAD_H
@@ -48,18 +48,16 @@ namespace TPCE
 class CPGSQLNewsXRefLoad : public CPGSQLLoader<NEWS_XREF_ROW>
 {
 public:
-	CPGSQLNewsXRefLoad(char *szConnectStr, char *szTable = "NEWS_XREF")
+	CPGSQLNewsXRefLoad(char *szConnectStr, char *szTable = "news_xref")
 			: CPGSQLLoader<NEWS_XREF_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-	
-		buf.push_back(stringify(m_row.NX_NI_ID));
-		buf.push_back(stringify(m_row.NX_CO_ID));
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%ld%c%ld\n",
+				next_record->NX_NI_ID, delimiter,
+				next_record->NX_CO_ID);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	};
 };
 

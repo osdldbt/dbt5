@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for HOLDING_HISTORY table.
- */
+//
+// Database loader class for HOLDING_HISTORY table.
+//
 
 #ifndef HOLDING_HISTORY_LOAD_H
 #define HOLDING_HISTORY_LOAD_H
@@ -45,24 +45,22 @@
 namespace TPCE
 {
 
-class CPGSQLHoldingHistoryLoad : public CPGSQLLoader <HOLDING_HISTORY_ROW>
+class CPGSQLHoldingHistoryLoad : public CPGSQLLoader<HOLDING_HISTORY_ROW>
 {
 public:
 	CPGSQLHoldingHistoryLoad(char *szConnectStr,
-			char *szTable = "HOLDING_HISTORY")
+			char *szTable = "holding_history")
 			: CPGSQLLoader<HOLDING_HISTORY_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-	
-		buf.push_back(stringify(m_row.HH_H_T_ID));
-		buf.push_back(stringify(m_row.HH_T_ID));
-		buf.push_back(stringify(m_row.HH_BEFORE_QTY));
-		buf.push_back(stringify(m_row.HH_AFTER_QTY));
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%ld%c%ld%c%d%c%d\n",
+				next_record->HH_H_T_ID, delimiter,
+				next_record->HH_T_ID, delimiter,
+				next_record->HH_BEFORE_QTY, delimiter,
+				next_record->HH_AFTER_QTY);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

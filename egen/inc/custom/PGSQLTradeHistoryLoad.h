@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for TRADE_HISTORY table.
- */
+//
+// Database loader class for TRADE_HISTORY table.
+//
 
 #ifndef PGSQL_TRADE_HISTORY_LOAD_H
 #define PGSQL_TRADE_HISTORY_LOAD_H
@@ -47,21 +47,23 @@ namespace TPCE
 
 class CPGSQLTradeHistoryLoad : public CPGSQLLoader<TRADE_HISTORY_ROW>
 {
+private:
+	CDateTime th_dts;
 
 public:
-	CPGSQLTradeHistoryLoad(char *szConnectStr, char *szTable = "TRADE_HISTORY")
+	CPGSQLTradeHistoryLoad(char *szConnectStr, char *szTable = "trade_history")
 			: CPGSQLLoader<TRADE_HISTORY_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
+		th_dts = next_record->TH_DTS;
 
-		buf.push_back(stringify(m_row.TH_T_ID));
-		buf.push_back(m_row.TH_DTS.ToStr(iDateTimeFmt));
-		buf.push_back(m_row.TH_ST_ID);
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%ld%c%s%c%s\n",
+				next_record->TH_T_ID, delimiter,
+				th_dts.ToStr(iDateTimeFmt), delimiter,
+				next_record->TH_ST_ID);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

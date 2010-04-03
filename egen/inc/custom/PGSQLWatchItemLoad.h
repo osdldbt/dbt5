@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for WATCH_ITEM table.
- */
+//
+// Database loader class for WATCH_ITEM table.
+//
 
 #ifndef PGSQL_WATCH_ITEM_LOAD_H
 #define PGSQL_WATCH_ITEM_LOAD_H
@@ -48,18 +48,16 @@ namespace TPCE
 class CPGSQLWatchItemLoad : public CPGSQLLoader<WATCH_ITEM_ROW>
 {
 public:
-	CPGSQLWatchItemLoad(char *szConnectStr, char *szTable = "WATCH_ITEM")
+	CPGSQLWatchItemLoad(char *szConnectStr, char *szTable = "watch_item")
 			: CPGSQLLoader<WATCH_ITEM_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-
-		buf.push_back(stringify(m_row.WI_WL_ID));
-		buf.push_back(m_row.WI_S_SYMB);
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%ld%c%s\n",
+				next_record->WI_WL_ID, delimiter,
+				next_record->WI_S_SYMB);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

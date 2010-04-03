@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for CASH_TRANSACTION table.
- */
+//
+// Database loader class for CASH_TRANSACTION table.
+//
 
 #ifndef PGSQL_CASH_TRANSACTION_LOAD_H
 #define PGSQL_CASH_TRANSACTION_LOAD_H
@@ -47,23 +47,23 @@ namespace TPCE
 
 class CPGSQLCashTransactionLoad : public CPGSQLLoader<CASH_TRANSACTION_ROW>
 {
-
+private:
+	CDateTime ct_dts;
 public:
 	CPGSQLCashTransactionLoad(char *szConnectStr,
-			char *szTable = "CASH_TRANSACTION")
+			char *szTable = "cash_transaction")
 			: CPGSQLLoader<CASH_TRANSACTION_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-	
-		buf.push_back(stringify(m_row.CT_T_ID));
-		buf.push_back(m_row.CT_DTS.ToStr(iDateTimeFmt));
-		buf.push_back(stringify(m_row.CT_AMT));
-		buf.push_back(m_row.CT_NAME);
-
-		m_TW->insert(buf);
-		buf.clear();
+		ct_dts = next_record->CT_DTS;
+		fprintf(p, "%ld%c%s%c%.2f%c%s\n",
+				next_record->CT_T_ID, delimiter,
+				ct_dts.ToStr(iDateTimeFmt), delimiter,
+				next_record->CT_AMT, delimiter,
+				next_record->CT_NAME);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

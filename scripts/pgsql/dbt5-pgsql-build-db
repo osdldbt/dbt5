@@ -45,13 +45,13 @@ REBUILD_DB=0
 CUSTOMERS_INSTANCE=5000
 CUSTOMERS_TOTAL=5000
 SCALE_FACTOR=500
-STARTING_CUSTOMER=1
+STARTING_CUSTOMER_ID=1
 ITD=300
 
 while getopts "b:c:d:hi:l:p:rs:t:uw:" OPT; do
 	case ${OPT} in
 	b)
-		STARTING_CUSTOMER=${OPTARG}
+		STARTING_CUSTOMER_ID=${OPTARG}
 		;;
 	c)
 		CUSTOMERS_INSTANCE=${OPTARG}
@@ -108,12 +108,12 @@ fi
 
 if [ ! "x${DBNAME}" = "x" ]; then
 	DBNAMEARG="-d ${DBNAME}"
-	DBNAMEARG2="dbname=${DBNAME}"
+	export PGDATABASE="${DBNAME}"
 fi
 
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
-	PORTARG2="port=${PORT}"
+	export PGPORT="${PORT}"
 fi
 
 if [ ${REBUILD_DB} -eq 1 ]; then
@@ -132,11 +132,12 @@ dbt5-pgsql-create-db ${PORTARG} || exit 1
 dbt5-pgsql-stop-db
 dbt5-pgsql-start-db -p "${PARAMETERS}" || exit 1
 
+# FIXME: Find a way to pass arguments to psql using EGen's -p flag, which
+# apparently doesn't like arguments to have dashes (-) in them.
 dbt5-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG} || exit 1
 (cd ${EGENDIR} && \
-		${EGENLOADER} -b ${STARDING_ID} -l CUSTOM -f ${SCALE_FACTOR} \
-		-w ${ITD} -c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} \
-		-p "${DBNAMEARG2} ${PORTARG2}") || exit 1
+		${EGENLOADER} -b ${STARTING_CUSTOMER_ID} -l CUSTOM -f ${SCALE_FACTOR} \
+		-w ${ITD} -c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL}) || exit 1
 dbt5-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG} || exit 1
 dbt5-pgsql-load-stored-procs ${PORTARG} || exit 1
 psql ${PORTARG} -e ${DBNAMEARG} -c "SELECT setseed(0);" || exit 1

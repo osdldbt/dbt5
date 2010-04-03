@@ -35,10 +35,10 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * loader class factory for PostgreSQL.
- * This class instantiates particular table loader classes.
- */
+//
+// loader class factory for PostgreSQL.
+// This class instantiates particular table loader classes.
+//
 
 #ifndef CUSTOM_LOAD_STDAFX_H
 #define CUSTOM_LOAD_STDAFX_H

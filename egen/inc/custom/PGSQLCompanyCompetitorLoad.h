@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for COMPANY_COMPETITOR table.
- */
+//
+// Database loader class for COMPANY_COMPETITOR table.
+//
 
 #ifndef PGSQL_COMPANY_COMPETITOR_LOAD_H
 #define PGSQL_COMPANY_COMPETITOR_LOAD_H
@@ -49,20 +49,17 @@ class CPGSQLCompanyCompetitorLoad : public CPGSQLLoader<COMPANY_COMPETITOR_ROW>
 {
 public:
 	CPGSQLCompanyCompetitorLoad(char *szConnectStr,
-			char *szTable = "COMPANY_COMPETITOR")
-			: CPGSQLLoader<COMPANY_COMPETITOR_ROW>(szConnectStr, szTable) { }
-
+			char *szTable = "company_competitor")
+			: CPGSQLLoader<COMPANY_COMPETITOR_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-
-		buf.push_back(stringify(m_row.CP_CO_ID));
-		buf.push_back(stringify(m_row.CP_COMP_CO_ID));
-		buf.push_back(m_row.CP_IN_ID);
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%ld%c%ld%c%s\n",
+				next_record->CP_CO_ID, delimiter,
+				next_record->CP_COMP_CO_ID, delimiter,
+				next_record->CP_IN_ID);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

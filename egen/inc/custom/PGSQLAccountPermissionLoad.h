@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * PostgreSQL loader class for ACCOUNT_PERMISSION table.
- */
+//
+// PostgreSQL loader class for ACCOUNT_PERMISSION table.
+//
 
 #ifndef PGSQL_ACCOUNT_PERMISSION_LOAD_H
 #define PGSQL_ACCOUNT_PERMISSION_LOAD_H
@@ -49,25 +49,22 @@ class CPGSQLAccountPermissionLoad : public CPGSQLLoader<ACCOUNT_PERMISSION_ROW>
 {
 public:
 	CPGSQLAccountPermissionLoad(char *szConnectStr,
-			char *szTable = "ACCOUNT_PERMISSION")
+			char *szTable = "account_permission")
 			: CPGSQLLoader<ACCOUNT_PERMISSION_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-
-		buf.push_back(stringify(m_row.AP_CA_ID));
-		buf.push_back(m_row.AP_ACL);
-		buf.push_back(m_row.AP_TAX_ID);
-		buf.push_back(m_row.AP_L_NAME);
-		buf.push_back(m_row.AP_F_NAME);
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%ld%c%s%c%s%c%s%c%s\n",
+				next_record->AP_CA_ID, delimiter,
+				next_record->AP_ACL, delimiter,
+				next_record->AP_TAX_ID, delimiter,
+				next_record->AP_L_NAME, delimiter,
+				next_record->AP_F_NAME);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
-
 };
 
 } // namespace TPCE
 
-#endif //PGSQL_ACCOUNT_PERMISSION_LOAD_H
+#endif // PGSQL_ACCOUNT_PERMISSION_LOAD_H

@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for INDUSTRY table.
- */
+//
+// Database loader class for INDUSTRY table.
+//
 
 #ifndef PGSQL_INDUSTRY_LOAD_H
 #define PGSQL_INDUSTRY_LOAD_H
@@ -48,19 +48,17 @@ namespace TPCE
 class CPGSQLIndustryLoad : public CPGSQLLoader<INDUSTRY_ROW>
 {
 public:
-	CPGSQLIndustryLoad(char *szConnectStr, char *szTable = "INDUSTRY")
+	CPGSQLIndustryLoad(char *szConnectStr, char *szTable = "industry")
 			: CPGSQLLoader<INDUSTRY_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-
-		buf.push_back(stringify(m_row.IN_ID));
-		buf.push_back(stringify(m_row.IN_NAME));
-		buf.push_back(stringify(m_row.IN_SC_ID));
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%s%c%s%c%s\n",
+				next_record->IN_ID, delimiter,
+				next_record->IN_NAME, delimiter,
+				next_record->IN_SC_ID);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

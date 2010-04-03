@@ -35,9 +35,10 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for TAXRATE table.
- */
+//
+// Database loader class for TAXRATE table.
+//
+
 #ifndef PGSQL_TAXRATE_LOAD_H
 #define PGSQL_TAXRATE_LOAD_H
 
@@ -47,19 +48,17 @@ namespace TPCE
 class CPGSQLTaxrateLoad : public CPGSQLLoader<TAXRATE_ROW>
 {
 public:
-	CPGSQLTaxrateLoad(char *szConnectStr, char *szTable = "TAXRATE")
+	CPGSQLTaxrateLoad(char *szConnectStr, char *szTable = "taxrate")
 			: CPGSQLLoader<TAXRATE_ROW>(szConnectStr, szTable) { };
 
 	//copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-
-		buf.push_back(m_row.TX_ID);
-		buf.push_back(m_row.TX_NAME);
-		buf.push_back(stringify(m_row.TX_RATE));
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%s%c%s%c%.5f\n",
+				next_record->TX_ID, delimiter,
+				next_record->TX_NAME, delimiter,
+				next_record->TX_RATE);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

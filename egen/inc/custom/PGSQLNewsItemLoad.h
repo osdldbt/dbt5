@@ -35,9 +35,10 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for NEWS_ITEM table.
- */
+//
+// Database loader class for NEWS_ITEM table.
+//
+
 #ifndef PGSQL_NEWS_ITEM_LOAD_H
 #define PGSQL_NEWS_ITEM_LOAD_H
 
@@ -46,25 +47,26 @@ namespace TPCE
 
 class CPGSQLNewsItemLoad : public CPGSQLLoader<NEWS_ITEM_ROW>
 {
+private:
+	CDateTime ni_dts;
 
 public:
-	CPGSQLNewsItemLoad(char *szConnectStr, char *szTable = "NEWS_ITEM")
+	CPGSQLNewsItemLoad(char *szConnectStr, char *szTable = "news_item")
 			: CPGSQLLoader<NEWS_ITEM_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-
-		buf.push_back(stringify(m_row.NI_ID));
-		buf.push_back(m_row.NI_HEADLINE);
-		buf.push_back(m_row.NI_SUMMARY);
-		buf.push_back(m_row.NI_ITEM);
-		buf.push_back(m_row.NI_DTS.ToStr(iDateTimeFmt));
-		buf.push_back(m_row.NI_SOURCE);
-		buf.push_back(m_row.NI_AUTHOR);
-
-		m_TW->insert(buf);
-		buf.clear();
+		ni_dts = next_record->NI_DTS;
+		fprintf(p, "%ld%c%s%c%s%c%s%c%s%c%s%c%s\n",
+				next_record->NI_ID, delimiter,
+				next_record->NI_HEADLINE, delimiter,
+				next_record->NI_SUMMARY, delimiter,
+				next_record->NI_ITEM, delimiter,
+				ni_dts.ToStr(iDateTimeFmt), delimiter,
+				next_record->NI_SOURCE, delimiter,
+				next_record->NI_AUTHOR);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	};
 };
 

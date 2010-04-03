@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for TRADE_TYPE table.
- */
+//
+// Database loader class for TRADE_TYPE table.
+//
 
 #ifndef PGSQL_TRADE_TYPE_LOAD_H
 #define PGSQL_TRADE_TYPE_LOAD_H
@@ -48,20 +48,18 @@ namespace TPCE
 class CPGSQLTradeTypeLoad : public CPGSQLLoader<TRADE_TYPE_ROW>
 {
 public:
-	CPGSQLTradeTypeLoad(char *szConnectStr, char *szTable = "TRADE_TYPE")
+	CPGSQLTradeTypeLoad(char *szConnectStr, char *szTable = "trade_type")
 			: CPGSQLLoader<TRADE_TYPE_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-
-		buf.push_back(m_row.TT_ID);
-		buf.push_back(m_row.TT_NAME);
-		buf.push_back(stringify(m_row.TT_IS_SELL));
-		buf.push_back(stringify(m_row.TT_IS_MRKT));
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%s%c%s%c%s%c%s\n",
+				next_record->TT_ID, delimiter,
+				next_record->TT_NAME, delimiter,
+				next_record->TT_IS_SELL ? "TRUE" : "FALSE" , delimiter,
+				next_record->TT_IS_MRKT ? "TRUE" : "FALSE");
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

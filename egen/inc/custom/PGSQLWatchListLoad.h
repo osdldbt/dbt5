@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for WATCH_LIST table.
- */
+//
+// Database loader class for WATCH_LIST table.
+//
 
 #ifndef PGSQL_WATCH_LIST_LOAD_H
 #define PGSQL_WATCH_LIST_LOAD_H
@@ -48,18 +48,16 @@ namespace TPCE
 class CPGSQLWatchListLoad : public CPGSQLLoader<WATCH_LIST_ROW>
 {
 public:
-	CPGSQLWatchListLoad(char *szConnectStr, char *szTable = "WATCH_LIST")
+	CPGSQLWatchListLoad(char *szConnectStr, char *szTable = "watch_list")
 			: CPGSQLLoader<WATCH_LIST_ROW>(szConnectStr, szTable) { };
 
 	//copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-
-		buf.push_back(stringify(m_row.WL_ID));
-		buf.push_back(stringify(m_row.WL_C_ID));
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%ld%c%ld\n",
+				next_record->WL_ID, delimiter,
+				next_record->WL_C_ID);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

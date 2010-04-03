@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for CUSTOMER_ACCOUNT table.
- */
+//
+// Database loader class for CUSTOMER_ACCOUNT table.
+//
 
 #ifndef PGSQL_CUSTOMER_ACCOUNT_LOAD_H
 #define PGSQL_CUSTOMER_ACCOUNT_LOAD_H
@@ -49,22 +49,20 @@ class CPGSQLCustomerAccountLoad : public CPGSQLLoader<CUSTOMER_ACCOUNT_ROW>
 {
 public:
 	CPGSQLCustomerAccountLoad(char *szConnectStr,
-			char *szTable = "CUSTOMER_ACCOUNT")
+			char *szTable = "customer_account")
 			: CPGSQLLoader<CUSTOMER_ACCOUNT_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-	
-		buf.push_back(stringify(m_row.CA_ID));
-		buf.push_back(stringify(m_row.CA_B_ID));
-		buf.push_back(stringify(m_row.CA_C_ID));
-		buf.push_back(m_row.CA_NAME);
-		buf.push_back(stringify((int)m_row.CA_TAX_ST));
-		buf.push_back(stringify(m_row.CA_BAL));
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%ld%c%ld%c%ld%c%s%c%d%c%.2f\n",
+				next_record->CA_ID, delimiter,
+				next_record->CA_B_ID, delimiter,
+				next_record->CA_C_ID, delimiter,
+				next_record->CA_NAME, delimiter,
+				next_record->CA_TAX_ST, delimiter,
+				next_record->CA_BAL);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

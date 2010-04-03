@@ -35,9 +35,10 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for ADDRESS table.
- */
+//
+// Database loader class for ADDRESS table.
+//
+
 #ifndef PGSQL_ADDRESS_LOAD_H
 #define PGSQL_ADDRESS_LOAD_H
 
@@ -47,22 +48,19 @@ namespace TPCE
 class CPGSQLAddressLoad : public CPGSQLLoader <ADDRESS_ROW>
 {
 public:
-	CPGSQLAddressLoad(char *szConnectStr, char *szTable = "ADDRESS")
+	CPGSQLAddressLoad(char *szConnectStr, char *szTable = "address")
 			: CPGSQLLoader<ADDRESS_ROW>(szConnectStr, szTable) { };
-
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-	
-		buf.push_back(stringify(m_row.AD_ID));
-		buf.push_back(m_row.AD_LINE1);
-		buf.push_back(m_row.AD_LINE2);
-		buf.push_back(m_row.AD_ZC_CODE);
-		buf.push_back(m_row.AD_CTRY);
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%ld%c%s%c%s%c%s%c%s\n",
+				next_record->AD_ID, delimiter,
+				next_record->AD_LINE1, delimiter,
+				next_record->AD_LINE2, delimiter,
+				next_record->AD_ZC_CODE, delimiter,
+				next_record->AD_CTRY);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

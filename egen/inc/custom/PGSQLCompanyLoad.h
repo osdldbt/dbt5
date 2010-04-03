@@ -47,27 +47,29 @@ namespace TPCE
 
 class CPGSQLCompanyLoad : public CPGSQLLoader<COMPANY_ROW>
 {
+private:
+	CDateTime co_open_date;
 
 public:
-	CPGSQLCompanyLoad(char *szConnectStr, char *szTable = "COMPANY")
+	CPGSQLCompanyLoad(char *szConnectStr, char *szTable = "company")
 			: CPGSQLLoader<COMPANY_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
+		co_open_date = next_record->CO_OPEN_DATE;
 
-		buf.push_back(stringify(m_row.CO_ID));
-		buf.push_back(m_row.CO_ST_ID);
-		buf.push_back(m_row.CO_NAME);
-		buf.push_back(m_row.CO_IN_ID);
-		buf.push_back(m_row.CO_SP_RATE);
-		buf.push_back(m_row.CO_CEO);
-		buf.push_back(stringify(m_row.CO_AD_ID));
-		buf.push_back(m_row.CO_DESC);
-		buf.push_back(m_row.CO_OPEN_DATE.ToStr(iDateTimeFmt));
-		
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%ld%c%s%c%s%c%s%c%s%c%s%c%ld%c%s%c%s\n",
+				next_record->CO_ID, delimiter,
+				next_record->CO_ST_ID, delimiter,
+				next_record->CO_NAME, delimiter,
+				next_record->CO_IN_ID, delimiter,
+				next_record->CO_SP_RATE, delimiter,
+				next_record->CO_CEO, delimiter,
+				next_record->CO_AD_ID, delimiter,
+				next_record->CO_DESC, delimiter,
+				co_open_date.ToStr(iDateTimeFmt));
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

@@ -47,33 +47,35 @@ namespace TPCE
 
 class CPGSQLFinancialLoad : public CPGSQLLoader<FINANCIAL_ROW>
 {
+private:
+	CDateTime fi_qtr_start_date;
 
 public:
-	CPGSQLFinancialLoad(char *szConnectStr, char *szTable = "FINANCIAL")
+	CPGSQLFinancialLoad(char *szConnectStr, char *szTable = "financial")
 			: CPGSQLLoader<FINANCIAL_ROW>(szConnectStr, szTable) { };
-
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
+		fi_qtr_start_date = next_record->FI_QTR_START_DATE;
 
-		buf.push_back(stringify(m_row.FI_CO_ID));
-		buf.push_back(stringify(m_row.FI_YEAR));
-		buf.push_back(stringify(m_row.FI_QTR));
-		buf.push_back(m_row.FI_QTR_START_DATE.ToStr(iDateTimeFmt));
-		buf.push_back(stringify(m_row.FI_REVENUE));
-		buf.push_back(stringify(m_row.FI_NET_EARN));
-		buf.push_back(stringify(m_row.FI_BASIC_EPS));
-		buf.push_back(stringify(m_row.FI_DILUT_EPS));
-		buf.push_back(stringify(m_row.FI_MARGIN));
-		buf.push_back(stringify(m_row.FI_INVENTORY));
-		buf.push_back(stringify(m_row.FI_ASSETS));
-		buf.push_back(stringify(m_row.FI_LIABILITY));
-		buf.push_back(stringify((int)m_row.FI_OUT_BASIC));
-		buf.push_back(stringify((int)m_row.FI_OUT_DILUT));
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p,
+				"%ld%c%d%c%d%c%s%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%.0f%c%.0f\n",
+				next_record->FI_CO_ID, delimiter,
+				next_record->FI_YEAR, delimiter,
+				next_record->FI_QTR, delimiter,
+				fi_qtr_start_date.ToStr(iDateTimeFmt), delimiter,
+				next_record->FI_REVENUE, delimiter,
+				next_record->FI_NET_EARN, delimiter,
+				next_record->FI_BASIC_EPS, delimiter,
+				next_record->FI_DILUT_EPS, delimiter,
+				next_record->FI_MARGIN, delimiter,
+				next_record->FI_INVENTORY, delimiter,
+				next_record->FI_ASSETS, delimiter,
+				next_record->FI_LIABILITY, delimiter,
+				next_record->FI_OUT_BASIC, delimiter,
+				next_record->FI_OUT_DILUT);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for CUSTOMER_TAXRATE table.
- */
+//
+// Database loader class for CUSTOMER_TAXRATE table.
+//
 
 #ifndef PGSQL_CUSTOMER_TAXRATE_LOAD_H
 #define PGSQL_CUSTOMER_TAXRATE_LOAD_H
@@ -49,18 +49,16 @@ class CPGSQLCustomerTaxRateLoad : public CPGSQLLoader<CUSTOMER_TAXRATE_ROW>
 {
 public:
 	CPGSQLCustomerTaxRateLoad(char *szConnectStr,
-			char *szTable = "CUSTOMER_TAXRATE")
+			char *szTable = "customer_taxrate")
 			: CPGSQLLoader<CUSTOMER_TAXRATE_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-
-		buf.push_back(m_row.CX_TX_ID);
-		buf.push_back(stringify(m_row.CX_C_ID));
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%s%c%ld\n",
+				next_record->CX_TX_ID, delimiter,
+				next_record->CX_C_ID);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

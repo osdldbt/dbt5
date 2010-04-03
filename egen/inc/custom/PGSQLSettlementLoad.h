@@ -35,9 +35,10 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for SETTLEMENT table.
- */
+//
+// Database loader class for SETTLEMENT table.
+//
+
 #ifndef PGSQL_SETTLEMENT_LOAD_H
 #define PGSQL_SETTLEMENT_LOAD_H
 
@@ -46,23 +47,23 @@ namespace TPCE
 
 class CPGSQLSettlementLoad : public CPGSQLLoader<SETTLEMENT_ROW>
 {
+private:
+	CDateTime se_cash_due_date;
 
 public:
-	CPGSQLSettlementLoad(char *szConnectStr, char *szTable = "SETTLEMENT")
+	CPGSQLSettlementLoad(char *szConnectStr, char *szTable = "settlement")
 			: CPGSQLLoader<SETTLEMENT_ROW>(szConnectStr, szTable) { };
-
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-
-		buf.push_back(stringify(m_row.SE_T_ID));
-		buf.push_back(m_row.SE_CASH_TYPE);
-		buf.push_back(m_row.SE_CASH_DUE_DATE.ToStr(iDateTimeFmt));
-		buf.push_back(stringify(m_row.SE_AMT));
-
-		m_TW->insert(buf);
-		buf.clear();
+		se_cash_due_date = next_record->SE_CASH_DUE_DATE;
+		fprintf(p, "%ld%c%s%c%s%c%.2f\n",
+				next_record->SE_T_ID, delimiter,
+				next_record->SE_CASH_TYPE, delimiter,
+				se_cash_due_date.ToStr(iDateTimeFmt), delimiter,
+				next_record->SE_AMT);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

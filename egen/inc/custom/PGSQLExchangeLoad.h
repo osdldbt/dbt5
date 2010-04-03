@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for EXCHANGE table.
- */
+//
+// Database loader class for EXCHANGE table.
+//
 
 #ifndef PGSQL_EXCHANGE_LOAD_H
 #define PGSQL_EXCHANGE_LOAD_H
@@ -48,24 +48,21 @@ namespace TPCE
 class CPGSQLExchangeLoad : public CPGSQLLoader<EXCHANGE_ROW>
 {
 public:
-	CPGSQLExchangeLoad(char *szConnectStr, char *szTable = "EXCHANGE")
+	CPGSQLExchangeLoad(char *szConnectStr, char *szTable = "exchange")
 			: CPGSQLLoader<EXCHANGE_ROW>(szConnectStr, szTable) { };
-
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-
-		buf.push_back(m_row.EX_ID);
-		buf.push_back(m_row.EX_NAME);
-		buf.push_back(stringify(m_row.EX_NUM_SYMB));
-		buf.push_back(stringify(m_row.EX_OPEN));
-		buf.push_back(stringify(m_row.EX_CLOSE));
-		buf.push_back(m_row.EX_DESC);
-		buf.push_back(stringify(m_row.EX_AD_ID));
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%s%c%s%c%d%c%d%c%d%c%s%c%ld\n",
+				next_record->EX_ID, delimiter,
+				next_record->EX_NAME, delimiter,
+				next_record->EX_NUM_SYMB, delimiter,
+				next_record->EX_OPEN, delimiter,
+				next_record->EX_CLOSE, delimiter,
+				next_record->EX_DESC, delimiter,
+				next_record->EX_AD_ID);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

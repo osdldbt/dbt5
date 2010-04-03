@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for COMMISSION_RATE table.
- */
+//
+// Database loader class for COMMISSION_RATE table.
+//
 
 #ifndef PGSQL_COMMISSION_RATE_LOAD_H
 #define PGSQL_COMMISSION_RATE_LOAD_H
@@ -49,22 +49,20 @@ class CPGSQLCommissionRateLoad : public CPGSQLLoader<COMMISSION_RATE_ROW>
 {
 public:
 	CPGSQLCommissionRateLoad(char *szConnectStr,
-			char *szTable = "COMMISSION_RATE")
+			char *szTable = "commission_rate")
 			: CPGSQLLoader<COMMISSION_RATE_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-
-		buf.push_back(stringify(m_row.CR_C_TIER));
-		buf.push_back(m_row.CR_TT_ID);
-		buf.push_back(m_row.CR_EX_ID);
-		buf.push_back(stringify(m_row.CR_FROM_QTY));
-		buf.push_back(stringify(m_row.CR_TO_QTY));
-		buf.push_back(stringify(m_row.CR_RATE));
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%d%c%s%c%s%c%.0f%c%.0f%c%.2f\n",
+				next_record->CR_C_TIER, delimiter,
+				next_record->CR_TT_ID, delimiter,
+				next_record->CR_EX_ID, delimiter,
+				next_record->CR_FROM_QTY, delimiter,
+				next_record->CR_TO_QTY, delimiter,
+				next_record->CR_RATE);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

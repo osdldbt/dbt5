@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * PGSQL Database loader class for DAILY_MARKET table.
- */
+//
+// PGSQL Database loader class for DAILY_MARKET table.
+//
 
 #ifndef PGSQL_DAILY_MARKET_LOAD_H
 #define PGSQL_DAILY_MARKET_LOAD_H
@@ -47,24 +47,26 @@ namespace TPCE
 
 class CPGSQLDailyMarketLoad : public CPGSQLLoader<DAILY_MARKET_ROW>
 {
+private:
+	CDateTime dm_date;
 
 public:
-	CPGSQLDailyMarketLoad(char *szConnectStr, char *szTable = "DAILY_MARKET")
+	CPGSQLDailyMarketLoad(char *szConnectStr, char *szTable = "daily_market")
 			: CPGSQLLoader<DAILY_MARKET_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
+		dm_date = next_record->DM_DATE;
 
-		buf.push_back(m_row.DM_DATE.ToStr(iDateTimeFmt));
-		buf.push_back(m_row.DM_S_SYMB);
-		buf.push_back(stringify(m_row.DM_CLOSE));
-		buf.push_back(stringify(m_row.DM_HIGH));
-		buf.push_back(stringify(m_row.DM_LOW));
-		buf.push_back(stringify(m_row.DM_VOL));
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%s%c%s%c%.2f%c%.2f%c%.2f%c%d\n",
+				dm_date.ToStr(iDateTimeFmt), delimiter,
+				next_record->DM_S_SYMB, delimiter,
+				next_record->DM_CLOSE, delimiter,
+				next_record->DM_HIGH, delimiter,
+				next_record->DM_LOW, delimiter,
+				next_record->DM_VOL);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

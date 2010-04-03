@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for TRADE_REQUEST table.
- */
+//
+// Database loader class for TRADE_REQUEST table.
+//
 
 #ifndef PGSQL_TRADE_REQUEST_LOAD_H
 #define PGSQL_TRADE_REQUEST_LOAD_H
@@ -47,24 +47,21 @@ namespace TPCE
 
 class CPGSQLTradeRequestLoad : public CPGSQLLoader<TRADE_REQUEST_ROW>
 {
-
 public:
-	CPGSQLTradeRequestLoad(char *szConnectStr, char *szTable = "TRADE_REQUEST")
+	CPGSQLTradeRequestLoad(char *szConnectStr, char *szTable = "trade_request")
 			: CPGSQLLoader<TRADE_REQUEST_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-
-		buf.push_back(stringify(m_row.TR_T_ID));
-		buf.push_back(m_row.TR_TT_ID);
-		buf.push_back(m_row.TR_S_SYMB);
-		buf.push_back(stringify(m_row.TR_QTY));
-		buf.push_back(stringify(m_row.TR_BID_PRICE));
-		buf.push_back(stringify(m_row.TR_B_ID));
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%ld%c%s%c%s%c%d%c%.2f%c%ld\n",
+				next_record->TR_T_ID, delimiter,
+				next_record->TR_TT_ID, delimiter,
+				next_record->TR_S_SYMB, delimiter,
+				next_record->TR_QTY, delimiter,
+				next_record->TR_BID_PRICE, delimiter,
+				next_record->TR_B_ID);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

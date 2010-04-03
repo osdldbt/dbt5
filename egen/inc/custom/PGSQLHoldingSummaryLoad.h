@@ -45,19 +45,17 @@ class CPGSQLHoldingSummaryLoad : public CPGSQLLoader<HOLDING_SUMMARY_ROW>
 {
 public:
 	CPGSQLHoldingSummaryLoad(char *szConnectStr,
-			char *szTable = "HOLDING_SUMMARY")
+			char *szTable = "holding_summary")
 			: CPGSQLLoader<HOLDING_SUMMARY_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-
-		buf.push_back(stringify(m_row.HS_CA_ID));
-		buf.push_back(m_row.HS_S_SYMB);
-		buf.push_back(stringify(m_row.HS_QTY));
-
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p, "%ld%c%s%c%d\n",
+				next_record->HS_CA_ID, delimiter,
+				next_record->HS_S_SYMB, delimiter,
+				next_record->HS_QTY);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 

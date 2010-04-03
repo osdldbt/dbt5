@@ -35,9 +35,9 @@
  * - 2010 Mark Wong <markwkm@postgresql.org>
  */
 
-/*
- * Database loader class for TRADE table.
- */
+//
+// Database loader class for TRADE table.
+//
 
 #ifndef PGSQL_TRADE_LOAD_H
 #define PGSQL_TRADE_LOAD_H
@@ -47,48 +47,54 @@ namespace TPCE
 
 class CPGSQLTradeLoad : public CPGSQLLoader<TRADE_ROW>
 {
+private:
+	CDateTime t_dts;
 
 public:
-	CPGSQLTradeLoad(char *szConnectStr, char *szTable = "TRADE")
+	CPGSQLTradeLoad(char *szConnectStr, char *szTable = "trade")
 			: CPGSQLLoader<TRADE_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		CopyRow(next_record);
-	
-		buf.push_back(stringify(m_row.T_ID));
-		buf.push_back(m_row.T_DTS.ToStr(iDateTimeFmt));
-		buf.push_back(m_row.T_ST_ID);
-		buf.push_back(m_row.T_TT_ID);
-		buf.push_back(stringify(m_row.T_IS_CASH));
-		buf.push_back(m_row.T_S_SYMB);
-		buf.push_back(stringify(m_row.T_QTY));
-		buf.push_back(stringify(m_row.T_BID_PRICE));
-		buf.push_back(stringify(m_row.T_CA_ID));
-		buf.push_back(m_row.T_EXEC_NAME);
-		buf.push_back(stringify(m_row.T_TRADE_PRICE));
-		buf.push_back(stringify(m_row.T_CHRG));
-		buf.push_back(stringify(m_row.T_COMM));
-		buf.push_back(stringify(m_row.T_TAX));
-		buf.push_back(stringify(m_row.T_LIFO));
+		t_dts = next_record->T_DTS;
 
-		m_TW->insert(buf);
-		buf.clear();
+		fprintf(p,
+				"%ld%c%s%c%s%c%s%c%d%c%s%c%d%c%.2f%c%ld%c%s%c%.2f%c%.2f%c%.2f%c%.2f%c%d\n",
+				next_record->T_ID, delimiter,
+				t_dts.ToStr(iDateTimeFmt), delimiter,
+				next_record->T_ST_ID, delimiter,
+				next_record->T_TT_ID, delimiter,
+				next_record->T_IS_CASH, delimiter,
+				next_record->T_S_SYMB, delimiter,
+				next_record->T_QTY, delimiter,
+				next_record->T_BID_PRICE, delimiter,
+				next_record->T_CA_ID, delimiter,
+				next_record->T_EXEC_NAME, delimiter,
+				next_record->T_TRADE_PRICE, delimiter,
+				next_record->T_CHRG, delimiter,
+				next_record->T_COMM, delimiter,
+				next_record->T_TAX, delimiter,
+				next_record->T_LIFO);
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 
 	virtual void FinishLoad() {
-		m_TW->complete();
-		ostringstream osCall;
+		// FIXME: Can't we call the parent class's FinishLoad to do the COMMIT?
+		// End of the COPY.
+		fprintf(p, "\\.\n");
+		// FIXME: Have blind faith that COPY was successful.
+		while (fgetc(p) != EOF) ;
 
-		result R(m_Txn->exec("SELECT MAX(t_id) FROM trade"));
-		result::const_iterator c = R.begin();
-		osCall << "SELECT SETVAL('seq_trade_id'," << c[0] << ")";
-		m_Txn->exec(osCall.str());
+		// COMMIT the COPY.
+		fprintf(p, "COMMIT;\n");
+		// FIXME: Have blind faith that COMMIT was successful.
+		while (fgetc(p) != EOF) ;
 
-		m_Txn->commit();
-		delete m_TW;
-		delete m_Txn;
-		Disconnect(); // While destructor is not being called
+		fprintf(p,
+				"SELECT SETVAL('seq_trade_id', (SELECT MAX(t_id) FROM trade));\n");
+		// FIXME: Have blind faith that this row of data was built correctly.
+		while (fgetc(p) != EOF) ;
 	}
 };
 
