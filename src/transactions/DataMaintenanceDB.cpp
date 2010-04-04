@@ -15,16 +15,6 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 		const TDataMaintenanceFrame1Input *pIn,
 		TDataMaintenanceFrame1Output *pOut)
 {
-	ostringstream osCall;
-	osCall << "SELECT * FROM DataMaintenanceFrame1(" <<
-			pIn->acct_id << ", " <<
-			pIn->c_id << ", " <<
-			pIn->co_id << ", " <<
-			pIn->day_of_month << ", '" <<
-			pIn->symbol << "', '" <<
-			pIn->table_name << "', '" <<
-			pIn->tx_id << "', " <<
-			pIn->vol_incr << ")";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< DMF1" << endl;
@@ -43,7 +33,7 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
 	setReadCommitted();
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 	commitTransaction();
 
 #ifdef DEBUG

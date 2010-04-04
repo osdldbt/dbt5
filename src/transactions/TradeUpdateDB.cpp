@@ -14,22 +14,9 @@
 void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 		TTradeUpdateFrame1Output *pOut)
 {
-	ostringstream osTrades;
-	int i = 0;
-	osTrades << pIn->trade_id[i];
-	for (i = 1; i < pIn->max_trades; i++) {
-		osTrades << "," << pIn->trade_id[i];
-	}
-
-	ostringstream osCall;
-	osCall << "SELECT * FROM TradeUpdateFrame1(" <<
-			pIn->max_trades << "," <<
-			pIn->max_updates << ",'{" <<
-			osTrades.str() << "}')";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< TUF1" << endl;
-	cout << "*** " << osCall.str() << endl;
 	cout << "- Trade Update Frame 1 (input)" << endl <<
 			"-- max_trades: " << pIn->max_trades << endl <<
 			"-- max_updates: " << pIn->max_updates << endl <<
@@ -39,7 +26,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 
 	startTransaction();
 	setRepeatableRead();
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 	commitTransaction();
 
 #ifdef DEBUG
@@ -133,27 +120,9 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 		TTradeUpdateFrame2Output *pOut)
 {
-	ostringstream osCall;
-	osCall << "SELECT * FROM TradeUpdateFrame2(" <<
-			pIn->acct_id << ",'" <<
-			pIn->end_trade_dts.year << "-" <<
-			pIn->end_trade_dts.month << "-" <<
-			pIn->end_trade_dts.day << " " <<
-			pIn->end_trade_dts.hour << ":" <<
-			pIn->end_trade_dts.minute << ":" <<
-			pIn->end_trade_dts.second << "'," <<
-			pIn->max_trades << "," <<
-			pIn->max_updates << ",'" <<
-			pIn->end_trade_dts.year << "-" <<
-			pIn->end_trade_dts.month << "-" <<
-			pIn->end_trade_dts.day << " " <<
-			pIn->end_trade_dts.hour << ":" <<
-			pIn->end_trade_dts.minute << ":" <<
-			pIn->end_trade_dts.second << "')";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< TUF2" << endl;
-	cout << "*** " << osCall.str() << endl;
 	cout << "- Trade Update Frame 2 (input)" << endl <<
 			"-- acct_id: " << pIn->acct_id << endl <<
 			"-- max_trades: " << pIn->max_trades << endl <<
@@ -169,7 +138,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 
 	startTransaction();
 	setRepeatableRead();
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 	commitTransaction();
 
 #ifdef DEBUG
@@ -262,28 +231,9 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 void CTradeUpdateDB::DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
 		TTradeUpdateFrame3Output *pOut)
 {
-	ostringstream osCall;
-	osCall << "SELECT * from TradeUpdateFrame3('" <<
-			pIn->end_trade_dts.year << "-" <<
-			pIn->end_trade_dts.month << "-" <<
-			pIn->end_trade_dts.day << " " <<
-			pIn->end_trade_dts.hour << ":" <<
-			pIn->end_trade_dts.minute << ":" <<
-			pIn->end_trade_dts.second << "'," <<
-			pIn->max_acct_id << "," <<
-			pIn->max_trades << "," <<
-			pIn->max_updates << ",'" <<
-			pIn->start_trade_dts.year << "-" <<
-			pIn->start_trade_dts.month << "-" <<
-			pIn->start_trade_dts.day << " " <<
-			pIn->start_trade_dts.hour << ":" <<
-			pIn->start_trade_dts.minute << ":" <<
-			pIn->start_trade_dts.second << "','" <<
-			pIn->symbol << "')";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< TUF3" << endl;
-	cout << "*** " << osCall.str() << endl;
 	cout << "- Trade Update Frame 3 (input)" << endl <<
 			"-- max_acct_id: " << pIn->max_acct_id << endl <<
 			"-- max_trades: " << pIn->max_trades << endl <<
@@ -300,7 +250,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
 
 	startTransaction();
 	setRepeatableRead();
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 	commitTransaction();
 
 #ifdef DEBUG

@@ -14,22 +14,9 @@
 void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 		TTradeLookupFrame1Output *pOut)
 {
-	ostringstream osTrades;
-	int i = 0;
-	osTrades << pIn->trade_id[i];
-	for ( i = 1; i < pIn->max_trades; i++)
-	{
-		osTrades << "," << pIn->trade_id[i];
-	}
-
-	ostringstream osCall;
-	osCall << "SELECT * FROM TradeLookupFrame1(" <<
-			pIn->max_trades << ",'{" <<
-			osTrades.str() << "}')";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< TLF1" << endl;
-	cout << "*** " << osCall.str() << endl;
 	cout << "- Trade Lookup Frame 1 (input)" << endl <<
 			"-- max_trades: " << pIn->max_trades << endl <<
 			"-- Trades: {" << osTrades.str() << "}" << endl;
@@ -39,7 +26,7 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
 	setReadCommitted();
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 	commitTransaction();
 
 #ifdef DEBUG
@@ -132,26 +119,9 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 		TTradeLookupFrame2Output *pOut)
 {
-	ostringstream osCall;
-	osCall << "SELECT * FROM TradeLookupFrame2(" <<
-			pIn->acct_id << ",'" <<
-			pIn->end_trade_dts.year << "-" <<
-			pIn->end_trade_dts.month << "-" <<
-			pIn->end_trade_dts.day << " " <<
-			pIn->end_trade_dts.hour << ":" <<
-			pIn->end_trade_dts.minute << ":" <<
-			pIn->end_trade_dts.second << "'," <<
-			pIn->max_trades << ",'" <<
-			pIn->start_trade_dts.year << "-" <<
-			pIn->start_trade_dts.month << "-" <<
-			pIn->start_trade_dts.day << " " <<
-			pIn->start_trade_dts.hour << ":" <<
-			pIn->start_trade_dts.minute << ":" <<
-			pIn->start_trade_dts.second << "')";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< TLF2" << endl;
-	cout << "*** " << osCall.str() << endl;
 	cout << "- Trade Lookup Frame 2 (input)" << endl <<
 			"-- acct_id: " << pIn->acct_id << endl <<
 			"-- max_trades: " << pIn->max_trades << endl <<
@@ -167,7 +137,7 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
 	setReadCommitted();
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 	commitTransaction();
 
 #ifdef DEBUG
@@ -260,27 +230,9 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 		TTradeLookupFrame3Output *pOut)
 {
-	ostringstream osCall;
-	osCall << "SELECT * FROM TradeLookupFrame3('" <<
-			pIn->end_trade_dts.year << "-" <<
-			pIn->end_trade_dts.month << "-" <<
-			pIn->end_trade_dts.day << " " <<
-			pIn->end_trade_dts.hour << ":" <<
-			pIn->end_trade_dts.minute << ":" <<
-			pIn->end_trade_dts.second << "'," <<
-			pIn->max_acct_id << "," <<
-			pIn->max_trades << ",'" <<
-			pIn->start_trade_dts.year << "-" <<
-			pIn->start_trade_dts.month << "-" <<
-			pIn->start_trade_dts.day << " " <<
-			pIn->start_trade_dts.hour << ":" <<
-			pIn->start_trade_dts.minute << ":" <<
-			pIn->start_trade_dts.second << "','" <<
-			pIn->symbol << "')";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< TLF3" << endl;
-	cout << "*** " << osCall.str() <<  endl;
 	cout << "- Trade Lookup Frame 3 (input)" << endl <<
 			"-- max_acct_id: " << pIn->max_acct_id << endl <<
 			"-- max_trades: " << pIn->max_trades << endl <<
@@ -297,7 +249,7 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
 	setReadCommitted();
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 	commitTransaction();
 
 #ifdef DEBUG
@@ -404,19 +356,9 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 void CTradeLookupDB::DoTradeLookupFrame4(const TTradeLookupFrame4Input *pIn,
 		TTradeLookupFrame4Output *pOut)
 {
-	ostringstream osCall;
-	osCall << "SELECT * FROM TradeLookupFrame4(" <<
-			pIn->acct_id << ",'" <<
-			pIn->trade_dts.year << "-" <<
-			pIn->trade_dts.month << "-" <<
-			pIn->trade_dts.day << " " <<
-			pIn->trade_dts.hour << ":" <<
-			pIn->trade_dts.minute << ":" <<
-			pIn->trade_dts.second << "')";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< TLF4" << endl;
-	cout << "*** " << osCall.str() << endl;
 	cout << "- Trade Lookup Frame 4 (input)" << endl <<
 			"-- acct_id: " << pIn->acct_id << endl <<
 			"-- trade_dts: " << pIn->trade_dts.year << "-" <<
@@ -430,7 +372,7 @@ void CTradeLookupDB::DoTradeLookupFrame4(const TTradeLookupFrame4Input *pIn,
 	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
 	setReadCommitted();
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 	commitTransaction();
 
 #ifdef DEBUG

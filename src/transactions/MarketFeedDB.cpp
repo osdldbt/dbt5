@@ -16,38 +16,9 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 		const TMarketFeedFrame1Input *pIn, TMarketFeedFrame1Output *pOut,
 		CSendToMarketInterface *pMarketExchange)
 {
-	ostringstream osSymbol, osPrice, osQty;
-	enum mff1 {i_send_len=0, i_status, i_rows_updated, i_symbol,
-			i_trade_id, i_price_quote, i_trade_qty, i_trade_type};
-
-	for (unsigned int i = 0;
-			i < (sizeof(pIn->Entries)/sizeof(pIn->Entries[0])); ++i) {
-		if (i == 0) {
-			osSymbol << "\"" << pIn->Entries[i].symbol;
-			osPrice << pIn->Entries[i].price_quote;
-			osQty << pIn->Entries[i].trade_qty;
-		} else {
-			osSymbol << "\",\"" << pIn->Entries[i].symbol;
-			osPrice << "," << pIn->Entries[i].price_quote;
-			osQty << "," << pIn->Entries[i].trade_qty;
-		}
-	}
-	osSymbol << "\"";
-
-	ostringstream osCall;
-	osCall << "SELECT * FROM MarketFeedFrame1('{" <<
-			osPrice.str() << "}','" <<
-			pIn->StatusAndTradeType.status_submitted << "','{" <<
-			osSymbol.str() << "}', '{" <<
-			osQty.str() << "}','" <<
-			pIn->StatusAndTradeType.type_limit_buy << "','" <<
-			pIn->StatusAndTradeType.type_limit_sell << "','" <<
-			pIn->StatusAndTradeType.type_stop_loss << "')";
-
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< MFF1" << endl;
-	cout << "*** " << osCall.str() << endl;
 	cout << "- Market Feed Frame 1 (input)" << endl <<
 			"-- max_feed_len: " << max_feed_len << endl <<
 			"-- price_quote: " << "{" << osPrice.str() << "}"<< endl <<
@@ -67,7 +38,7 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
 	setRepeatableRead();
-	execute(osCall.str(), pOut, pMarketExchange);
+	execute(pIn, pOut, pMarketExchange);
 	commitTransaction();
 	
 #ifdef DEBUG

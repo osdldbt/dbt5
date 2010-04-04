@@ -14,12 +14,9 @@
 void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 		TTradeOrderFrame1Output *pOut)
 {
-	ostringstream osCall;
-	osCall << "SELECT * FROM TradeOrderFrame1(" << pIn->acct_id << ")";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< TOF1" << endl;
-	cout << "*** " << osCall.str() << endl;
 	cout << "- Trade Order Frame 1 (input)" << endl <<
 			"-- acct_id: " << pIn->acct_id << endl;
 	m_coutLock.unlock();
@@ -28,7 +25,7 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
 	setRepeatableRead();
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -50,16 +47,9 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 void CTradeOrderDB::DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
 		TTradeOrderFrame2Output *pOut)
 {
-	ostringstream osCall;
-	osCall << "SELECT * FROM TradeOrderFrame2(" <<
-			pIn->acct_id << ",'" <<
-			escape(pIn->exec_f_name) << "','" <<
-			escape(pIn->exec_l_name) << "','" <<
-			pIn->exec_tax_id<<"')";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< TOF2" << endl;
-	cout << "*** " << osCall.str() << endl;
 	cout << "- Trade Order Frame 2 (input)" << endl <<
 			"-- acct_id: " << pIn->acct_id << endl <<
 			"-- exec_f_name: " << escape(pIn->exec_f_name) << endl <<
@@ -68,7 +58,7 @@ void CTradeOrderDB::DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -84,26 +74,9 @@ void CTradeOrderDB::DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
 void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 		TTradeOrderFrame3Output *pOut)
 {
-	ostringstream osCall;
-	osCall << "SELECT * FROM TradeOrderFrame3(" <<
-			pIn->acct_id << "," <<
-			pIn->cust_id << "," <<
-			pIn->cust_tier << "::SMALLINT," <<
-			pIn->is_lifo << "::SMALLINT,'" <<
-			pIn->issue << "','" <<
-			pIn->st_pending_id << "','" <<
-			pIn->st_submitted_id << "'," <<
-			pIn->tax_status << "::SMALLINT," <<
-			pIn->trade_qty << ",'" <<
-			pIn->trade_type_id << "'," <<
-			pIn->type_is_margin << "::SMALLINT,'" <<
-			escape(pIn->co_name) << "'," <<
-			pIn->requested_price << ",'" <<
-			pIn->symbol << "')";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< TOF3" << endl;
-	cout << "*** " << osCall.str() << endl;
 	cout << "- Trade Order Frame 3 (input)" << endl <<
 			"-- acct_id: " << pIn->acct_id << endl <<
 			"-- cust_id: " << pIn->cust_id << endl <<
@@ -122,7 +95,7 @@ void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 	m_coutLock.unlock();
 #endif //DEBUG
 
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -150,25 +123,9 @@ void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 		TTradeOrderFrame4Output *pOut)
 {
-	ostringstream osCall;
-	osCall << "SELECT * FROM TradeOrderFrame4(" <<
-			pIn->acct_id << "," <<
-			pIn->broker_id << "," <<
-			pIn->charge_amount << "," <<
-			pIn->comm_amount << ",'" <<
-			escape(pIn->exec_name) << "'," <<
-			pIn->is_cash << "::SMALLINT," <<
-			pIn->is_lifo << "::SMALLINT," <<
-			pIn->requested_price << ",'" <<
-			pIn->status_id << "','" <<
-			pIn->symbol << "'," <<
-			pIn->trade_qty << ",'" <<
-			pIn->trade_type_id << "'," <<
-			pIn->type_is_market << "::SMALLINT)";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< TOF4" << endl;
-	cout << "*** " << osCall.str() << endl;
 	cout << "-Trade Order Frame 4 (input)" << endl <<
 			"-- acct_id: " << pIn->acct_id << endl <<
 			"-- broker_id: " << pIn->broker_id << endl <<
@@ -187,7 +144,7 @@ void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 #endif //DEBUG
 
 	// we are inside a transaction
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 
 #ifdef DEBUG
 	m_coutLock.lock();

@@ -15,10 +15,6 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 		const TCustomerPositionFrame1Input *pIn,
 		TCustomerPositionFrame1Output *pOut)
 {
-	ostringstream osCall;
-	osCall << "SELECT * FROM CustomerPositionFrame1(" <<
-			pIn->cust_id << ",'" <<
-			pIn->tax_id << "')";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< CPF1" << endl;
@@ -32,7 +28,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
 	setReadCommitted();
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 
 #ifdef DEBUG
 	m_coutLock.lock();
@@ -79,18 +75,15 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 		const TCustomerPositionFrame2Input *pIn,
 		TCustomerPositionFrame2Output *pOut)
 {
-	ostringstream osCall;
-	osCall << "SELECT * FROM CustomerPositionFrame2(" << pIn->acct_id << ")";
 #ifdef DEBUG
 	m_coutLock.lock();
 	cout << "<<< CPF2" << endl;
-	cout << "*** " << osCall.str() << endl;
 	cout << "- Customer Position Frame 2 (input)" << endl <<
 			"-- cust_id: " << pIn->acct_id << endl;
 	m_coutLock.unlock();
 #endif // DEBUG
 
-	execute(osCall.str(), pOut);
+	execute(pIn, pOut);
 	commitTransaction();
 
 #ifdef DEBUG

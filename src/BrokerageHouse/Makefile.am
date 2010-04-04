@@ -15,7 +15,7 @@ BrokerageHouseMain_SOURCES = $(EGEN)/DateTime.cpp \
                              $(EGEN)/locking.cpp \
                              $(INTF)/CSocket.cpp \
                              $(INTF)/TxnHarnessSendToMarket.cpp \
-                             $(TXN)/DBConnection.cpp \
+                             $(TXN)/@database_to_use@/DBConnection.cpp \
                              $(TXN)/TxnBaseDB.cpp \
                              $(TXN)/MarketFeedDB.cpp \
                              $(TXN)/TradeCleanupDB.cpp \

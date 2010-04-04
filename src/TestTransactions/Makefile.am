@@ -32,7 +32,7 @@ TestTxn_SOURCES = $(EGEN)/ReadRowFunctions.cpp \
                   $(EGEN)/MEETradingFloor.cpp \
                   $(EGEN)/MEE.cpp \
                   $(EGEN)/locking.cpp \
-                  $(TXN)/DBConnection.cpp \
+                  $(TXN)/@database_to_use@/DBConnection.cpp \
                   $(TXN)/TxnBaseDB.cpp \
                   $(INTF)/MEESUTtest.cpp \
                   $(INTF)/DMSUTtest.cpp \
