@@ -790,7 +790,7 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 			&pOut->open_date.day);
 	pOut->pe_ratio = c[i_pe_ratio].as(double());
 	strncpy(pOut->s_name, c[i_s_name].c_str(), cS_NAME_len);
-	pOut->num_out = c[i_num_out].as(int());
+	pOut->num_out = c[i_num_out].as(long());
 	strncpy(pOut->sp_rate, c[i_sp_rate].c_str(), cSP_RATE_len);
 	sscanf(c[i_start_date].c_str(), "%hd-%hd-%hd",
 			&pOut->start_date.year,
