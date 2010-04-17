@@ -18,12 +18,12 @@
 # Platform specific defines
 #CXX=
 CCFLAGS=-g -ggdb -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS
-LDFLAGS=-lpqxx -lpq -lpthread
+LDFLAGS=-lpthread
 #AR=
 #ARFLAGS=
 
 # Application specific defines
-APPDEFINES=-DCOMPILE_FLAT_FILE_LOAD -DCOMPILE_CUSTOM_LOAD
+APPDEFINES=-DCOMPILE_FLAT_FILE_LOAD -DCOMPILE_CUSTOM_LOAD -DPGSQL
 
 # Directory for source files
 SRC = ../src

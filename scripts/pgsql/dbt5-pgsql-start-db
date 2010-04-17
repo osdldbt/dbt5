@@ -40,12 +40,10 @@ fi
 sleep 1
 
 if [ "x${PARAMETERS}" = "x" ]; then
-	pg_ctl -D ${PGDATA} -l ${OUTDIR}/${LOGFILE} start
+	pg_ctl -w -D ${PGDATA} -l ${OUTDIR}/${LOGFILE} start
 else
-	pg_ctl -D ${PGDATA} -o "${PARAMETERS}" -l ${OUTDIR}/${LOGFILE} start
+	pg_ctl -w -D ${PGDATA} -o "${PARAMETERS}" -l ${OUTDIR}/${LOGFILE} start
 fi
-
-sleep 10
 
 if [ ! -f ${PGDATA}/postmaster.pid ]; then
 	echo "database did not start correctly, check database log"

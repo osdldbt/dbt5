@@ -50,7 +50,7 @@ CREATE OR REPLACE FUNCTION SecurityDetailFrame1 (
 		OUT last_vol INTEGER,
 		OUT news VARCHAR[],
 		OUT news_len INTEGER,
-		OUT num_out INTEGER,
+		OUT num_out BIGINT,
 		OUT open_date DATE,
 		OUT pe_ratio NUMERIC,
 		OUT s_name VARCHAR,
