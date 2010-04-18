@@ -42,6 +42,7 @@
 #include <stdexcept>
 
 #include "EGenStandardTypes.h"
+#include <string.h>
 
 namespace TPCE
 {

@@ -41,6 +41,7 @@
 #define FLAT_FILE_H
 
 #include "EGenUtilities_stdafx.h"
+#include <cstring>
 
 namespace TPCE
 {

@@ -41,6 +41,7 @@
 #include <stdexcept>
 #include <cerrno>
 #include <cstdlib>
+#include <cstring>
 
 #include "../inc/error.h"
 
