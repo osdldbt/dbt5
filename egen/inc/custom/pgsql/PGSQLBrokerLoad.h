@@ -53,7 +53,7 @@ public:
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		fprintf(p, "%ld%c%s%c%s%c%d%c%.2f\n",
+		fprintf(p, "%lld%c%s%c%s%c%d%c%.2f\n",
 				next_record->B_ID, delimiter,
 				next_record->B_ST_ID, delimiter,
 				next_record->B_NAME, delimiter,

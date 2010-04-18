@@ -58,7 +58,7 @@ public:
 	virtual void WriteNextRecord(PT next_record) {
 		th_dts = next_record->TH_DTS;
 
-		fprintf(p, "%ld%c%s%c%s\n",
+		fprintf(p, "%lld%c%s%c%s\n",
 				next_record->TH_T_ID, delimiter,
 				th_dts.ToStr(iDateTimeFmt), delimiter,
 				next_record->TH_ST_ID);

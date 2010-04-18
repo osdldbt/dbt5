@@ -59,7 +59,7 @@ public:
 		t_dts = next_record->T_DTS;
 
 		fprintf(p,
-				"%ld%c%s%c%s%c%s%c%d%c%s%c%d%c%.2f%c%ld%c%s%c%.2f%c%.2f%c%.2f%c%.2f%c%d\n",
+				"%lld%c%s%c%s%c%s%c%d%c%s%c%d%c%.2f%c%lld%c%s%c%.2f%c%.2f%c%.2f%c%.2f%c%d\n",
 				next_record->T_ID, delimiter,
 				t_dts.ToStr(iDateTimeFmt), delimiter,
 				next_record->T_ST_ID, delimiter,

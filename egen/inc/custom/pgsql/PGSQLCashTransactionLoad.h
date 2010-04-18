@@ -57,7 +57,7 @@ public:
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
 		ct_dts = next_record->CT_DTS;
-		fprintf(p, "%ld%c%s%c%.2f%c%s\n",
+		fprintf(p, "%lld%c%s%c%.2f%c%s\n",
 				next_record->CT_T_ID, delimiter,
 				ct_dts.ToStr(iDateTimeFmt), delimiter,
 				next_record->CT_AMT, delimiter,

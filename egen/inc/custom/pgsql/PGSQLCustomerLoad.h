@@ -59,7 +59,7 @@ public:
 		c_dob = next_record->C_DOB;
 
 		fprintf(p,
-				"%ld%c%s%c%s%c%s%c%s%c%s%c%c%c%d%c%s%c%ld%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s\n",
+				"%lld%c%s%c%s%c%s%c%s%c%s%c%c%c%d%c%s%c%lld%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s\n",
 				next_record->C_ID, delimiter,
 				next_record->C_TAX_ID, delimiter,
 				next_record->C_ST_ID, delimiter,

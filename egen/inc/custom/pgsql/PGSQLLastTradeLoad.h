@@ -58,7 +58,7 @@ public:
 	virtual void WriteNextRecord(PT next_record) {
 		lt_dts = next_record->LT_DTS;
 
-		fprintf(p, "%s%c%s%c%.2f%c%.2f%c%d\n",
+		fprintf(p, "%s%c%s%c%.2f%c%.2f%c%lld\n",
 				next_record->LT_S_SYMB, delimiter,
 				lt_dts.ToStr(iDateTimeFmt), delimiter,
 				next_record->LT_PRICE, delimiter,

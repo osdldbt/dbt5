@@ -45,7 +45,7 @@
 namespace TPCE
 {
 
-class CPGSQLAddressLoad : public CPGSQLLoader <ADDRESS_ROW>
+class CPGSQLAddressLoad : public CPGSQLLoader<ADDRESS_ROW>
 {
 public:
 	CPGSQLAddressLoad(char *szConnectStr, char *szTable = "address")
@@ -53,7 +53,7 @@ public:
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		fprintf(p, "%ld%c%s%c%s%c%s%c%s\n",
+		fprintf(p, "%lld%c%s%c%s%c%s%c%s\n",
 				next_record->AD_ID, delimiter,
 				next_record->AD_LINE1, delimiter,
 				next_record->AD_LINE2, delimiter,

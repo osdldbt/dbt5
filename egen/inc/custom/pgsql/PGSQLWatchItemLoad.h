@@ -53,7 +53,7 @@ public:
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		fprintf(p, "%ld%c%s\n",
+		fprintf(p, "%lld%c%s\n",
 				next_record->WI_WL_ID, delimiter,
 				next_record->WI_S_SYMB);
 		// FIXME: Have blind faith that this row of data was built correctly.

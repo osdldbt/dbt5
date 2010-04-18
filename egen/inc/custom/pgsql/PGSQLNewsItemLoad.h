@@ -57,7 +57,7 @@ public:
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
 		ni_dts = next_record->NI_DTS;
-		fprintf(p, "%ld%c%s%c%s%c%s%c%s%c%s%c%s\n",
+		fprintf(p, "%lld%c%s%c%s%c%s%c%s%c%s%c%s\n",
 				next_record->NI_ID, delimiter,
 				next_record->NI_HEADLINE, delimiter,
 				next_record->NI_SUMMARY, delimiter,

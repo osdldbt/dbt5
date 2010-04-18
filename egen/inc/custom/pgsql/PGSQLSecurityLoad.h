@@ -65,7 +65,7 @@ public:
 		s_52wk_low_date = next_record->S_52WK_LOW_DATE;
 
 		fprintf(p,
-				"%s%c%s%c%s%c%s%c%s%c%ld%c%ld%c%s%c%s%c%.2f%c%.2f%c%s%c%.2f%c%s%c%.2f%c%.2f\n",
+				"%s%c%s%c%s%c%s%c%s%c%lld%c%lld%c%s%c%s%c%.2f%c%.2f%c%s%c%.2f%c%s%c%.2f%c%.2f\n",
 				next_record->S_SYMB, delimiter,
 				next_record->S_ISSUE, delimiter,
 				next_record->S_ST_ID, delimiter,
