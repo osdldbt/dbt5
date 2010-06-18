@@ -24,6 +24,8 @@
 PG_MODULE_MAGIC;
 #endif
 
+#define TABLE_NAME_LEN 18
+
 #define DMF1_1 \
 		"SELECT ap_acl\n" \
 		"FROM account_permission\n" \
@@ -218,7 +220,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 	int vol_incr = PG_GETARG_INT32(7);
 
 	char symbol[S_SYMB_LEN + 1];
-	char table_name[17];
+	char table_name[TABLE_NAME_LEN + 1];
 	char tx_id[TX_ID_LEN + 1];
 
 	int ret;
@@ -229,12 +231,16 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 	char sql[2048];
 	int status = 0;
 
-	strcpy(symbol, DatumGetCString(DirectFunctionCall1(textout,
-			PointerGetDatum(symbol_p))));
-	strcpy(table_name, DatumGetCString(DirectFunctionCall1(textout,
-			PointerGetDatum(table_name_p))));
-	strcpy(tx_id, DatumGetCString(DirectFunctionCall1(textout,
-			PointerGetDatum(tx_id_p))));
+
+	strncpy(symbol, DatumGetCString(DirectFunctionCall1(textout,
+			PointerGetDatum(symbol_p))), S_SYMB_LEN);
+	symbol[S_SYMB_LEN] = '\0';
+	strncpy(table_name, DatumGetCString(DirectFunctionCall1(textout,
+			PointerGetDatum(table_name_p))), TABLE_NAME_LEN);
+	table_name[TABLE_NAME_LEN] = '\0';
+	strncpy(tx_id, DatumGetCString(DirectFunctionCall1(textout,
+			PointerGetDatum(tx_id_p))), TX_ID_LEN);
+	tx_id[TX_ID_LEN] = '\0';
 
 #ifdef DEBUG
 	dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol, table_name,

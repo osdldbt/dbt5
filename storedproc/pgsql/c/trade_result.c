@@ -527,6 +527,7 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 
 		strncpy(symbol, DatumGetCString(DirectFunctionCall1(textout,
 				PointerGetDatum(symbol_p))), S_SYMB_LEN);
+		symbol[S_SYMB_LEN] = '\0';
 		trade_price = DatumGetFloat8(DirectFunctionCall1(
 				numeric_float8_no_overflow, PointerGetDatum(trade_price_num)));
 
@@ -557,7 +558,7 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 
 		SPI_connect();
 
-		strncpy(sql, "SELECT now()", 2047);
+		strncpy(sql, "SELECT now()", 13);
 #ifdef DEBUG
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
@@ -1185,8 +1186,10 @@ Datum TradeResultFrame4(PG_FUNCTION_ARGS)
 
 		strncpy(symbol, DatumGetCString(DirectFunctionCall1(textout,
 				PointerGetDatum(symbol_p))), S_SYMB_LEN);
+		symbol[S_SYMB_LEN] = '\0';
 		strncpy(type_id, DatumGetCString(DirectFunctionCall1(textout,
 				PointerGetDatum(type_id_p))), TT_ID_LEN);
+		type_id[TT_ID_LEN] = '\0';
 
 		/*
 		 * Prepare a values array for building the returned tuple.
@@ -1336,6 +1339,7 @@ Datum TradeResultFrame5(PG_FUNCTION_ARGS)
 
 	strncpy(st_completed_id, DatumGetCString(DirectFunctionCall1(textout,
 			PointerGetDatum(st_completed_id_p))), ST_ID_LEN);
+	st_completed_id[ST_ID_LEN] = '\0';
 
 	comm_amount = DatumGetFloat8(DirectFunctionCall1(
 			numeric_float8_no_overflow, PointerGetDatum(comm_amount_num)));
@@ -1454,6 +1458,7 @@ Datum TradeResultFrame6(PG_FUNCTION_ARGS)
                 PointerGetDatum(s_name_p))));
 		strncpy(type_name, DatumGetCString(DirectFunctionCall1(textout,
 				PointerGetDatum(type_name_p))), TT_NAME_LEN);
+		type_name[TT_NAME_LEN] = '\0';
 
 		if (timestamp2tm(due_date_ts, NULL, tm, &fsec, NULL, NULL) == 0) {
 			EncodeDateTime(tm, fsec, NULL, &tzn, USE_ISO_DATES, due_date);
