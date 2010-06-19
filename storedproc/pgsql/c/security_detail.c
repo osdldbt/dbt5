@@ -222,6 +222,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 
 		strncpy(symbol, DatumGetCString(DirectFunctionCall1(textout,
 				PointerGetDatum(symbol_p))), S_SYMB_LEN);
+		symbol[S_SYMB_LEN] = '\0';
 		j2date(start_date_p + POSTGRES_EPOCH_JDATE,
 				&(tm->tm_year), &(tm->tm_mon), &(tm->tm_mday));
 		EncodeDateOnly(tm, DateStyle, buf);
