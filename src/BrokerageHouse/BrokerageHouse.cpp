@@ -265,8 +265,11 @@ CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName,
 : m_iListenPort(iListenPort)
 {
 	strncpy(m_szHost, szHost, iMaxHostname);
+	m_szHost[iMaxHostname] = '\0';
 	strncpy(m_szDBName, szDBName, iMaxDBName);
+	m_szDBName[iMaxDBName] = '\0';
 	strncpy(m_szDBPort, szDBPort, iMaxPort);
+	m_szDBPort[iMaxPort] = '\0';
 
 	char filename[iMaxPath + 1];
 	snprintf(filename, iMaxPath, "%s/BrokerageHouse_Error.log",

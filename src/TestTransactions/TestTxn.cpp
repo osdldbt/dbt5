@@ -125,6 +125,7 @@ bool ParseCommandLine( int argc, char *argv[] )
 		switch ( *sp ) {
 		case 'b':
 			strncpy(szBHaddr, vp, iMaxHostname);
+			szBHaddr[iMaxHostname] = '\0';
 			cout << "Will connect to BrokerageHouseMain at '" << szBHaddr <<
 					"'." << endl;
 			break;
@@ -136,15 +137,19 @@ bool ParseCommandLine( int argc, char *argv[] )
 			break;
 		case 'h':
 			strncpy(szDBHost, vp, iDBHostLen);
+			szDBHost[iDBHostLen] = '\0';
 			break;
 		case 'i':
 			strncpy(szInDir, vp, iInDirLen);
+			szInDir[iInDirLen] = '\0';
 			break;
 		case 'g':
 			strncpy(szDBName, vp, iDBNameLen);
+			szDBName[iDBNameLen] = '\0';
 			break;
 		case 'p':
 			strncpy(szPort, vp, iPortLen);
+			szPort[iPortLen] = '\0';
 			break;
 		case 't':
 			switch ( *vp) {

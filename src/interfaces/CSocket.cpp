@@ -29,6 +29,7 @@ CSocket::CSocket(char *address, int port)
   m_sockfd(0)
 {
 	strncpy(this->address, address, iMaxHostname);
+	this->address[iMaxHostname] = '\0';
 	this->port = port;
 }
 

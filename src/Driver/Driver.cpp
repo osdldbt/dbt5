@@ -37,16 +37,19 @@ CDriver::CDriver(char *szInDir,
 	m_fMix.open(filename, ios::out);
 
 	strncpy(this->szInDir, szInDir, iMaxPath);
+	this->szInDir[iMaxPath] = '\0';
 	this->iConfiguredCustomerCount = iConfiguredCustomerCount;
 	this->iActiveCustomerCount = iActiveCustomerCount;
 	this->iScaleFactor = iScaleFactor;
 	this->iDaysOfInitialTrades = iDaysOfInitialTrades;
 	this->iSeed = iSeed;
 	strncpy(this->szBHaddr, szBHaddr, iMaxHostname);
+	this->szBHaddr[iMaxHostname] = '\0';
 	this->iBHlistenPort = iBHlistenPort;
 	this->iUsers = iUsers;
 	this->iPacingDelay = iPacingDelay;
 	strncpy(this->outputDirectory, outputDirectory, iMaxPath);
+	this->outputDirectory[iMaxPath] = '\0';
 	//
 	// initialize DMSUT interface
 	m_pCDMSUT = new CDMSUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix,

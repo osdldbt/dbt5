@@ -68,15 +68,19 @@ void parse_command_line(int argc, char *argv[])
 		switch (*sp) {
 		case 'd': // Database name.
 			strncpy(szDBName, vp, iMaxDBName);
+			szDBName[iMaxDBName] = '\0';
 			break;
 		case 'h': // Database host name.
 			strncpy(szHost, vp, iMaxHostname);
+			szHost[iMaxHostname] = '\0';
 			break;
 		case 'o': // output directory
 			strncpy(outputDirectory, vp, iMaxPath);
+			outputDirectory[iMaxPath] = '\0';
 			break;
 		case 'p': // Postmaster port
 			strncpy(szDBPort, vp, iMaxPort);
+			szDBPort[iMaxPort] = '\0';
 			break;
 		case 'l':
 			iListenPort = atoi(vp);

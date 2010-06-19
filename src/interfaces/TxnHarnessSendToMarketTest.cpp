@@ -21,6 +21,7 @@ CSendToMarketTest::CSendToMarketTest(TIdent iConfiguredCustomerCountIn,
 	iConfiguredCustomerCount = iConfiguredCustomerCountIn;
 	iActiveCustomerCount = iActiveCustomerCountIn;
 	strncpy(szInDir, szInDirIn, iMaxPath);
+	szInDir[iMaxPath] = '\0';
 }
 
 CSendToMarketTest::~CSendToMarketTest()

@@ -191,6 +191,7 @@ void CDBConnection::execute(const TBrokerVolumeFrame1Input *pIn,
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->broker_name[i], (*p).c_str(), cB_NAME_len);
+		pOut->broker_name[i][cB_NAME_len] = '\0';
 		++i;
 	}
 	check_count(pOut->list_len, vAux.size(), __FILE__, __LINE__);
@@ -267,33 +268,52 @@ void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
 	pOut->c_ad_id = c[i_c_ad_id].as(long());
 
 	strncpy(pOut->c_area_1, c[i_c_area_1].c_str(), cAREA_len);
+	pOut->c_area_1[cAREA_len] = '\0';
 	strncpy(pOut->c_area_2, c[i_c_area_2].c_str(), cAREA_len);
+	pOut->c_area_2[cAREA_len] = '\0';
 	strncpy(pOut->c_area_3, c[i_c_area_3].c_str(), cAREA_len);
+	pOut->c_area_3[cAREA_len] = '\0';
 
 	strncpy(pOut->c_ctry_1, c[i_c_ctry_1].c_str(), cCTRY_len);
+	pOut->c_ctry_1[cCTRY_len] = '\0';
 	strncpy(pOut->c_ctry_2, c[i_c_ctry_2].c_str(), cCTRY_len);
+	pOut->c_ctry_2[cCTRY_len] = '\0';
 	strncpy(pOut->c_ctry_3, c[i_c_ctry_3].c_str(), cCTRY_len);
+	pOut->c_ctry_3[cCTRY_len] = '\0';
 
 	sscanf(c[i_c_dob].c_str(), "%hd-%hd-%hd", &pOut->c_dob.year,
 			&pOut->c_dob.month, &pOut->c_dob.day);
 
 	strncpy(pOut->c_email_1, c[i_c_email_1].c_str(), cEMAIL_len);
+	pOut->c_email_1[cEMAIL_len] = '\0';
 	strncpy(pOut->c_email_2, c[i_c_email_2].c_str(), cEMAIL_len);
+	pOut->c_email_2[cEMAIL_len] = '\0';
 
 	strncpy(pOut->c_ext_1, c[i_c_ext_1].c_str(), cEXT_len);
+	pOut->c_ext_1[cEXT_len] = '\0';
 	strncpy(pOut->c_ext_2, c[i_c_ext_2].c_str(), cEXT_len);
+	pOut->c_ext_2[cEXT_len] = '\0';
 	strncpy(pOut->c_ext_3, c[i_c_ext_3].c_str(), cEXT_len);
+	pOut->c_ext_3[cEXT_len] = '\0';
 
 	strncpy(pOut->c_f_name, c[i_c_f_name].c_str(), cF_NAME_len);
+	pOut->c_f_name[cF_NAME_len] = '\0';
 	strncpy(pOut->c_gndr, c[i_c_gndr].c_str(), cGNDR_len);
+	pOut->c_gndr[cGNDR_len] = '\0';
 	strncpy(pOut->c_l_name, c[i_c_l_name].c_str(), cL_NAME_len);
+	pOut->c_l_name[cL_NAME_len] = '\0';
 
 	strncpy(pOut->c_local_1, c[i_c_local_1].c_str(), cLOCAL_len);
+	pOut->c_local_1[cLOCAL_len] = '\0';
 	strncpy(pOut->c_local_2, c[i_c_local_2].c_str(), cLOCAL_len);
+	pOut->c_local_2[cLOCAL_len] = '\0';
 	strncpy(pOut->c_local_3, c[i_c_local_3].c_str(), cLOCAL_len);
+	pOut->c_local_3[cLOCAL_len] = '\0';
 
 	strncpy(pOut->c_m_name, c[i_c_m_name].c_str(), cM_NAME_len);
+	pOut->c_m_name[cM_NAME_len] = '\0';
 	strncpy(pOut->c_st_id, c[i_c_st_id].c_str(), cST_ID_len);
+	pOut->c_st_id[cST_ID_len] = '\0';
 	strncpy(&pOut->c_tier, c[i_c_tier].c_str(), 1);
 
 	TokenizeSmart(c[i_cash_bal].c_str(), vAux);
@@ -369,6 +389,7 @@ void CDBConnection::execute(const TCustomerPositionFrame2Input *pIn,
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->symbol[i], (*p).c_str(), cSYMBOL_len);
+		pOut->symbol[i][cSYMBOL_len] = '\0';
 		++i;
 	}
 	check_count(pOut->hist_len, vAux.size(), __FILE__, __LINE__);
@@ -387,6 +408,7 @@ void CDBConnection::execute(const TCustomerPositionFrame2Input *pIn,
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_status[i], (*p).c_str(), cST_NAME_len);
+		pOut->trade_status[i][cST_NAME_len] = '\0';
 		++i;
 	}
 	check_count(pOut->hist_len, vAux.size(), __FILE__, __LINE__);
@@ -540,11 +562,13 @@ void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 	for (p1 = v1.begin(), p2 = v2.begin(), p3 = v3.begin(), p4 = v4.begin(),
 			p5 = v5.begin(); p1 != v1.end(); ++p1, ++p2, ++p3, ++p4) {
 		strncpy(m_TriggeredLimitOrders.symbol, (*p1).c_str(), cSYMBOL_len);
+		m_TriggeredLimitOrders.symbol[cSYMBOL_len] = '\0';
 		m_TriggeredLimitOrders.trade_id = atol((*p2).c_str());
 		m_TriggeredLimitOrders.price_quote = atof((*p3).c_str());
 		m_TriggeredLimitOrders.trade_qty = atoi((*p4).c_str());
 		strncpy(m_TriggeredLimitOrders.trade_type_id, (*p5).c_str(),
 				cTT_ID_len);
+		m_TriggeredLimitOrders.trade_type_id[cTT_ID_len] = '\0';
 
 		bSent = pMarketExchange->SendToMarketFromFrame(
 				m_TriggeredLimitOrders);
@@ -643,15 +667,25 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 			&pOut->s52_wk_low_date.day);
 
 	strncpy(pOut->ceo_name, c[i_ceo_name].c_str(), cCEO_NAME_len);
+	pOut->ceo_name[cCEO_NAME_len] = '\0';
 	strncpy(pOut->co_ad_cty, c[i_co_ad_cty].c_str(), cAD_CTRY_len);
+	pOut->co_ad_cty[cAD_CTRY_len] = '\0';
 	strncpy(pOut->co_ad_div, c[i_co_ad_div].c_str(), cAD_DIV_len);
+	pOut->co_ad_div[cAD_DIV_len] = '\0';
 	strncpy(pOut->co_ad_line1, c[i_co_ad_line1].c_str(), cAD_LINE_len);
+	pOut->co_ad_line1[cAD_LINE_len] = '\0';
 	strncpy(pOut->co_ad_line2, c[i_co_ad_line2].c_str(), cAD_LINE_len);
+	pOut->co_ad_line2[cAD_LINE_len] = '\0';
 	strncpy(pOut->co_ad_town, c[i_co_ad_town].c_str(), cAD_TOWN_len);
+	pOut->co_ad_town[cAD_TOWN_len] = '\0';
 	strncpy(pOut->co_ad_zip, c[i_co_ad_zip].c_str(), cAD_ZIP_len);
+	pOut->co_ad_zip[cAD_ZIP_len] = '\0';
 	strncpy(pOut->co_desc, c[i_co_desc].c_str(), cCO_DESC_len);
+	pOut->co_desc[cCO_DESC_len] = '\0';
 	strncpy(pOut->co_name, c[i_co_name].c_str(), cCO_NAME_len);
+	pOut->co_name[cCO_NAME_len] = '\0';
 	strncpy(pOut->co_st_id, c[i_co_st_id].c_str(), cST_ID_len);
+	pOut->co_st_id[cST_ID_len] = '\0';
 
 	vector<string> vAux;
 	vector<string>::iterator p;
@@ -659,6 +693,7 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 	int i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->cp_co_name[i], (*p).c_str(), cCO_NAME_len);
+		pOut->cp_co_name[i][cCO_NAME_len] = '\0';
 		++i;
 	}
 	// FIXME: The stored functions for PostgreSQL are designed to return 3
@@ -670,6 +705,7 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->cp_in_name[i], (*p).c_str(), cIN_NAME_len);
+		pOut->cp_in_name[i][cIN_NAME_len] = '\0';
 		++i;
 	}
 
@@ -704,18 +740,26 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 	pOut->divid = c[i_divid].as(double());
 
 	strncpy(pOut->ex_ad_cty, c[i_ex_ad_cty].c_str(), cAD_CTRY_len);
+	pOut->ex_ad_cty[cAD_CTRY_len] = '\0';
 	strncpy(pOut->ex_ad_div, c[i_ex_ad_div].c_str(), cAD_DIV_len);
+	pOut->ex_ad_div[cAD_DIV_len] = '\0';
 	strncpy(pOut->ex_ad_line1, c[i_ex_ad_line1].c_str(), cAD_LINE_len);
+	pOut->ex_ad_line1[cAD_LINE_len] = '\0';
 	strncpy(pOut->ex_ad_line2, c[i_ex_ad_line2].c_str(), cAD_LINE_len);
+	pOut->ex_ad_line2[cAD_LINE_len] = '\0';
 	strncpy(pOut->ex_ad_town, c[i_ex_ad_town].c_str(), cAD_TOWN_len);
+	pOut->ex_ad_town[cAD_TOWN_len]  = '\0';
 	strncpy(pOut->ex_ad_zip, c[i_ex_ad_zip].c_str(), cAD_ZIP_len);
+	pOut->ex_ad_zip[cAD_ZIP_len] = '\0';
 	pOut->ex_close = c[i_ex_close].as(int());
 	sscanf(c[i_ex_date].c_str(), "%hd-%hd-%hd",
 			&pOut->ex_date.year,
 			&pOut->ex_date.month,
 			&pOut->ex_date.day);
 	strncpy(pOut->ex_desc, c[i_ex_desc].c_str(), cEX_DESC_len);
+	pOut->ex_desc[cEX_DESC_len] = '\0';
 	strncpy(pOut->ex_name, c[i_ex_name].c_str(), cEX_NAME_len);
+	pOut->ex_name[cEX_NAME_len] = '\0';
 	pOut->ex_num_symb = c[i_ex_num_symb].as(int());
 	pOut->ex_open = c[i_ex_open].as(int());
 
@@ -767,6 +811,7 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 		// to escaped characters.  Cap the data at the length that EGen defines
 		// it and hope it isn't a problem for continuing the test correctly.
 		strncpy(pOut->news[i].item, (*p2++).c_str(), cNI_ITEM_len);
+		pOut->news[i].item[cNI_ITEM_len] = '\0';
 		sscanf((*p2++).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->news[i].dts.year,
 				&pOut->news[i].dts.month,
@@ -775,9 +820,13 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 				&pOut->news[i].dts.minute,
 				&pOut->news[i].dts.second);
 		strncpy(pOut->news[i].src, (*p2++).c_str(), cNI_SOURCE_len);
+		pOut->news[i].src[cNI_SOURCE_len] = '\0';
 		strncpy(pOut->news[i].auth, (*p2++).c_str(), cNI_AUTHOR_len);
+		pOut->news[i].auth[cNI_AUTHOR_len] = '\0';
 		strncpy(pOut->news[i].headline, (*p2++).c_str(), cNI_HEADLINE_len);
+		pOut->news[i].headline[cNI_HEADLINE_len] = '\0';
 		strncpy(pOut->news[i].summary, (*p2++).c_str(), cNI_SUMMARY_len);
+		pOut->news[i].summary[cNI_SUMMARY_len] = '\0';
 		++i;
 		v2.clear();
 	}
@@ -790,8 +839,10 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 			&pOut->open_date.day);
 	pOut->pe_ratio = c[i_pe_ratio].as(double());
 	strncpy(pOut->s_name, c[i_s_name].c_str(), cS_NAME_len);
+	pOut->s_name[cS_NAME_len] = '\0';
 	pOut->num_out = c[i_num_out].as(long());
 	strncpy(pOut->sp_rate, c[i_sp_rate].c_str(), cSP_RATE_len);
+	pOut->sp_rate[cSP_RATE_len] = '\0';
 	sscanf(c[i_start_date].c_str(), "%hd-%hd-%hd",
 			&pOut->start_date.year,
 			&pOut->start_date.month,
@@ -906,6 +957,7 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str(),
 				cCT_NAME_len);
+		pOut->trade_info[i].cash_transaction_name[cCT_NAME_len] = '\0';
 		++i;
 	}
 	vAux.clear();
@@ -914,6 +966,7 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].exec_name, (*p).c_str(), cEXEC_NAME_len);
+		pOut->trade_info[i].exec_name[cEXEC_NAME_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -968,6 +1021,7 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str(),
 				cSE_CASH_TYPE_len);
+		pOut->trade_info[i].settlement_cash_type[cSE_CASH_TYPE_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -1006,6 +1060,8 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 		for (p2 = v2.begin(); p2 != v2.end(); ++p2) {
 			strncpy(pOut->trade_info[i].trade_history_status_id[j],
 					(*p2).c_str(), cTH_ST_ID_len);
+			pOut->trade_info[i].trade_history_status_id[j][cTH_ST_ID_len] =
+					'\0';
 			++j;
 		}
 		++i;
@@ -1107,6 +1163,7 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str(),
 				cCT_NAME_len);
+		pOut->trade_info[i].cash_transaction_name[cCT_NAME_len] = '\0';
 		++i;
 	}
 	// FIXME: According to spec, this may not match the returned number found?
@@ -1116,6 +1173,7 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].exec_name, (*p).c_str(), cEXEC_NAME_len);
+		pOut->trade_info[i].exec_name[cEXEC_NAME_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -1159,6 +1217,7 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str(),
 				cSE_CASH_TYPE_len);
+		pOut->trade_info[i].settlement_cash_type[cSE_CASH_TYPE_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -1197,6 +1256,8 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 		for (p2 = v2.begin(); p2 != v2.end(); ++p2) {
 			strncpy(pOut->trade_info[i].trade_history_status_id[j],
 						(*p2).c_str(), cTH_ST_ID_len);
+			pOut->trade_info[i].trade_history_status_id[j][cTH_ST_ID_len] =
+					'\0';
 			++j;
 		}
 		++i;
@@ -1309,6 +1370,7 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str(),
 				cCT_NAME_len);
+		pOut->trade_info[i].cash_transaction_name[cCT_NAME_len] = '\0';
 		++i;
 	}
 	// FIXME: According to spec, this may not match the returned number found?
@@ -1319,6 +1381,7 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].exec_name, (*p).c_str(),
 				cEXEC_NAME_len);
+		pOut->trade_info[i].exec_name[cEXEC_NAME_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -1380,6 +1443,7 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str(),
 				cSE_CASH_TYPE_len);
+		pOut->trade_info[i].settlement_cash_type[cSE_CASH_TYPE_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -1433,6 +1497,8 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 		for (p2 = v2.begin(); p2 != v2.end(); ++p2) {
 			strncpy(pOut->trade_info[i].trade_history_status_id[j],
 					(*p2).c_str(), cTH_ST_ID_len);
+			pOut->trade_info[i].trade_history_status_id[j][cTH_ST_ID_len] =
+					'\0';
 			++j;
 		}
 		++i;
@@ -1452,6 +1518,7 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].trade_type, (*p).c_str(), cTT_ID_len);
+		pOut->trade_info[i].trade_type[cTT_ID_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -1595,14 +1662,19 @@ void CDBConnection::execute(const TTradeOrderFrame1Input *pIn,
 	result::const_iterator c = R.begin();
 
 	strncpy(pOut->acct_name, c[0].c_str(), cCA_NAME_len);
+	pOut->acct_name[cCA_NAME_len] ='\0';
 	pOut->broker_id = c[1].as(long());
 	strncpy(pOut->broker_name, c[2].c_str(), cB_NAME_len);
+	pOut->broker_name[cB_NAME_len]  ='\0';
 	strncpy(pOut->cust_f_name, c[3].c_str(), cF_NAME_len);
+	pOut->cust_f_name[cF_NAME_len] = '\0';
 	pOut->cust_id = c[4].as(long());
 	strncpy(pOut->cust_l_name, c[5].c_str(), cL_NAME_len);
+	pOut->cust_l_name[cL_NAME_len] = '\0';
 	pOut->cust_tier = c[6].as(int());
 	pOut->status = c[7].as(int());
 	strncpy(pOut->tax_id, c[8].c_str(), cTAX_ID_len);
+	pOut->tax_id[cTAX_ID_len] = '\0';
 	pOut->tax_status = c[9].as(int());
 }
 
@@ -1671,6 +1743,7 @@ void CDBConnection::execute(const TTradeOrderFrame2Input *pIn,
 
 	if (c[0].is_null() == false) {
 		strncpy(pOut->ap_acl, c[0].c_str(), cACL_len);
+		pOut->ap_acl[cACL_len] = '\0';
 	} else {
 		pOut->ap_acl[0] = '\0';
 	}
@@ -1753,15 +1826,18 @@ void CDBConnection::execute(const TTradeOrderFrame3Input *pIn,
 	strncpy(pOut->co_name, c[0].c_str(), cCO_NAME_len);
 	pOut->requested_price = c[1].as(double());
 	strncpy(pOut->symbol, c[2].c_str(), cSYMBOL_len);
+	pOut->symbol[cSYMBOL_len] = '\0';
 	pOut->buy_value = c[3].as(double());
 	pOut->charge_amount = c[4].as(double());
 	pOut->comm_rate = c[5].as(double());
 	pOut->cust_assets = c[6].as(double());
 	pOut->market_price = c[7].as(double());
 	strncpy(pOut->s_name, c[8].c_str(), cS_NAME_len);
+	pOut->s_name[cS_NAME_len] = '\0';
 	pOut->sell_value = c[9].as(double());
 	pOut->status = c[10].as(int());
 	strncpy(pOut->status_id, c[11].c_str(), cTH_ST_ID_len);
+	pOut->status_id[cTH_ST_ID_len] = '\0';
 	pOut->tax_amount = c[12].as(double());
 	pOut->type_is_market = (c[13].c_str()[0] == 't' ? 1 : 0);
 	pOut->type_is_sell = (c[14].c_str()[0] == 't' ? 1 : 0);
@@ -1908,12 +1984,15 @@ void CDBConnection::execute(const TTradeResultFrame1Input *pIn,
 	pOut->is_lifo = c[3].as(int());
 	pOut->status = c[4].as(int());
 	strncpy(pOut->symbol, c[5].c_str(), cSYMBOL_len);
+	pOut->symbol[cSYMBOL_len] = '\0';
 	pOut->trade_is_cash = c[6].as(int());
 	pOut->trade_qty = c[7].as(int());
 	strncpy(pOut->type_id, c[8].c_str(), cTT_ID_len);
+	pOut->type_id[cTT_ID_len] = '\0';
 	pOut->type_is_market = c[9].as(int());
 	pOut->type_is_sell = c[10].as(int());
 	strncpy(pOut->type_name, c[11].c_str(), cTT_NAME_len);
+	pOut->type_name[cTT_NAME_len] = '\0';
 }
 
 void CDBConnection::execute(const TTradeResultFrame2Input *pIn,
@@ -2130,6 +2209,7 @@ void CDBConnection::execute(const TTradeResultFrame4Input *pIn,
 
 	pOut->comm_rate = c[0].as(double());
 	strncpy(pOut->s_name, c[1].c_str(), cS_NAME_len);
+	pOut->s_name[cS_NAME_len] = '\0';
 	pOut->status = c[2].as(int());
 }
 
@@ -2317,6 +2397,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 	vector<string>::iterator p;
 
 	strncpy(pOut->broker_name, c[i_broker_name].c_str(), cB_NAME_len);
+	pOut->broker_name[cB_NAME_len] = '\0';
 
 	TokenizeSmart(c[i_charge].c_str(), vAux);
 	int i = 0;
@@ -2327,7 +2408,9 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 	vAux.clear();
 
 	strncpy(pOut->cust_f_name, c[i_cust_f_name].c_str(), cF_NAME_len);
+	pOut->cust_f_name[cF_NAME_len] = '\0';
 	strncpy(pOut->cust_l_name, c[i_cust_l_name].c_str(), cL_NAME_len);
+	pOut->cust_l_name[cL_NAME_len] = '\0';
 
 	int len = i;
 
@@ -2335,6 +2418,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->ex_name[i], (*p).c_str(), cEX_NAME_len);
+		pOut->ex_name[i][cEX_NAME_len] = '\0';
 		++i;
 	}
 	check_count(len, vAux.size(), __FILE__, __LINE__);
@@ -2344,6 +2428,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->exec_name[i], (*p).c_str(), cEXEC_NAME_len);
+		pOut->exec_name[i][cEXEC_NAME_len] = '\0';
 		++i;
 	}
 	check_count(len, vAux.size(), __FILE__, __LINE__);
@@ -2353,6 +2438,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->s_name[i], (*p).c_str(), cS_NAME_len);
+		pOut->s_name[i][cS_NAME_len] = '\0';
 		++i;
 	}
 	check_count(len, vAux.size(), __FILE__, __LINE__);
@@ -2364,6 +2450,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->status_name[i], (*p).c_str(), cST_NAME_len);
+		pOut->status_name[i][cST_NAME_len] = '\0';
 		++i;
 	}
 	check_count(len, vAux.size(), __FILE__, __LINE__);
@@ -2372,6 +2459,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->symbol[i], (*p).c_str(), cSYMBOL_len);
+		pOut->symbol[i][cSYMBOL_len] = '\0';
 		++i;
 	}
 	check_count(len, vAux.size(), __FILE__, __LINE__);
@@ -2414,6 +2502,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->type_name[i], (*p).c_str(), cTT_NAME_len);
+		pOut->type_name[i][cTT_NAME_len] = '\0';
 		++i;
 	}
 	check_count(len, vAux.size(), __FILE__, __LINE__);
@@ -2541,6 +2630,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str(),
 				cCT_NAME_len);
+		pOut->trade_info[i].cash_transaction_name[cCT_NAME_len] = '\0';
 		++i;
 	}
 	// FIXME: According to spec, this may not match the returned number found?
@@ -2550,6 +2640,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].exec_name, (*p).c_str(), cEXEC_NAME_len);
+		pOut->trade_info[i].exec_name[cEXEC_NAME_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -2601,6 +2692,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str(),
 				cSE_CASH_TYPE_len);
+		pOut->trade_info[i].settlement_cash_type[cSE_CASH_TYPE_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -2651,10 +2743,13 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 		p2 = v2.begin();
 		strncpy(pOut->trade_info[i].trade_history_status_id[0],
 				(*p2++).c_str(), cTH_ST_ID_len);
+		pOut->trade_info[i].trade_history_status_id[0][cTH_ST_ID_len] = '\0';
 		strncpy(pOut->trade_info[i].trade_history_status_id[1],
 				(*p2++).c_str(), cTH_ST_ID_len);
+		pOut->trade_info[i].trade_history_status_id[1][cTH_ST_ID_len] = '\0';
 		strncpy(pOut->trade_info[i].trade_history_status_id[3],
 				(*p2).c_str(), cTH_ST_ID_len);
+		pOut->trade_info[i].trade_history_status_id[3][cTH_ST_ID_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -2796,6 +2891,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str(),
 				cCT_NAME_len);
+		pOut->trade_info[i].cash_transaction_name[cCT_NAME_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -2805,6 +2901,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].exec_name, (*p).c_str(), cEXEC_NAME_len);
+		pOut->trade_info[i].exec_name[cEXEC_NAME_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -2850,6 +2947,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str(),
 				cSE_CASH_TYPE_len);
+		pOut->trade_info[i].settlement_cash_type[cSE_CASH_TYPE_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -2899,10 +2997,13 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 		p2 = v2.begin();
 		strncpy(pOut->trade_info[i].trade_history_status_id[0],
 				(*p2++).c_str(), cTH_ST_ID_len);
+		pOut->trade_info[i].trade_history_status_id[0][cTH_ST_ID_len] = '\0';
 		strncpy(pOut->trade_info[i].trade_history_status_id[1],
 				(*p2++).c_str(), cTH_ST_ID_len);
+		pOut->trade_info[i].trade_history_status_id[1][cTH_ST_ID_len] = '\0';
 		strncpy(pOut->trade_info[i].trade_history_status_id[3],
 				(*p2).c_str(), cTH_ST_ID_len);
+		pOut->trade_info[i].trade_history_status_id[3][cTH_ST_ID_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -3056,6 +3157,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str(),
 				cCT_NAME_len);
+		pOut->trade_info[i].cash_transaction_name[cCT_NAME_len] = '\0';
 		++i;
 	}
 	vAux.clear();
@@ -3064,6 +3166,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].exec_name, (*p).c_str(), cEXEC_NAME_len);
+		pOut->trade_info[i].exec_name[cEXEC_NAME_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -3102,6 +3205,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].s_name, (*p).c_str(), cS_NAME_len);
+		pOut->trade_info[i].s_name[cS_NAME_len] = '\0';
 		++i;
 	}
 	vAux.clear();
@@ -3135,6 +3239,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str(),
 				cSE_CASH_TYPE_len);
+		pOut->trade_info[i].settlement_cash_type[cSE_CASH_TYPE_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -3188,6 +3293,8 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 		for (p2 = v2.begin(); p2 != v2.end(); ++p2) {
 			strncpy(pOut->trade_info[i].trade_history_status_id[j],
 					(*p2).c_str(), cTH_ST_ID_len);
+			pOut->trade_info[i].trade_history_status_id[j][cTH_ST_ID_len] =
+					'\0';
 			++j;
 		}
 		++i;
@@ -3207,6 +3314,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].type_name, (*p).c_str(), cTT_NAME_len);
+		pOut->trade_info[i].type_name[cTT_NAME_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -3216,6 +3324,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].trade_type, (*p).c_str(), cTT_ID_len);
+		pOut->trade_info[i].trade_type[cTT_ID_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);

@@ -106,15 +106,18 @@ void parse_command_line(int argc, char *argv[])
 			break;
 		case 'h':
 			strncpy(szBHaddr, vp, iMaxHostname);
+			szBHaddr[iMaxHostname] = '\0';
 			break;
 		case 'i':	// input files path
 			strncpy(szInDir, vp, iMaxPath);
+			szInDir[iMaxPath] = '\0';
 			break;
 		case 'n':
 			iPacingDelay = atoi(vp);
 			break;
 		case 'o':
 			strncpy(outputDirectory, vp, iMaxPath);
+			outputDirectory[iMaxPath] = '\0';
 			break;
 		case 'p':
 			iBHListenerPort = atoi(vp);
