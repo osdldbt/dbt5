@@ -314,6 +314,7 @@ SELECT wi_s_symb
 FROM (SELECT wi_s_symb
       FROM watch_item, watch_list
       WHERE wl_c_id = 1
+        AND wi_wl_id = wl_id
       ORDER BY wi_s_symb ASC) AS foo
 OFFSET 1
 LIMIT 1
