@@ -4,7 +4,8 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2010 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2002-2006 Open Source Development Labs, Inc.
+#               2002-2010 Mark Wong
 #
 
 while getopts "d:i:p:o:s:" opt; do
@@ -70,7 +71,6 @@ COUNTER=0
 
 while [ $COUNTER -lt $ITERATIONS ]; do
 	${PSQL} -c "SELECT relname, pid, mode, granted FROM pg_locks, pg_class WHERE relfilenode = relation ORDER BY relname;" >> $OUTPUT_DIR/lockstats.out &
-	#${PSQL} -c "SELECT * FROM pg_locks WHERE transaction IS NOT NULL;" >> $OUTPUT_DIR/tran_lock.out
 	${PSQL} -c "SELECT * FROM pg_stat_activity;" >> $OUTPUT_DIR/db_activity.out &
 	${PSQL} -c "
 SELECT TRANSACTION_TIMESTAMP(), datname, numbackends, xact_commit,
