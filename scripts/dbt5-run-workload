@@ -49,8 +49,6 @@ oprofile_annotate()
 		HOST=`hostname`
 	fi
 	echo "oprofile is annotating source: ${HOST}"
-	${COMMAND} mkdir -p ${DIR}/oprofile/
-	${COMMAND} mkdir -p ${DIR}/oprofile/annotate
 	if [ -n "${COMMAND}" ]; then
 		${COMMAND} "sudo opannotate --source --assembly > ${DIR}/oprofile/assembly.txt" > /dev/null 2>&1
 	else
@@ -69,19 +67,21 @@ oprofile_collect()
 	else
 		HOST=`hostname`
 	fi
+	${COMMAND} mkdir -p ${DIR}/oprofile/
+	${COMMAND} mkdir -p ${DIR}/oprofile/annotate
 	#
 	# I don't think we need any output dumped to the terminal.
 	#
 	echo "oprofile is dumping data: ${HOST}"
 	${COMMAND} sudo opcontrol --dump
 	if [ -n "${COMMAND}" ]; then
-		${COMMAND} "sudo opreport -l -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/oprofile.txt > /dev/null 2>&1"
-		${COMMAND} "sudo opreport -l -c -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/callgraph.txt > /dev/null 2>&1"
+		${COMMAND} "sudo opreport -l -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/oprofile/oprofile.txt > /dev/null 2>&1"
+		${COMMAND} "sudo opreport -l -c -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/oprofile/callgraph.txt > /dev/null 2>&1"
 	else
 		sudo opreport -l -p /lib/modules/`uname -r` \
-				-o ${DIR}/oprofile.txt > /dev/null 2>&1
+				-o ${DIR}/oprofile/oprofile.txt > /dev/null 2>&1
 		sudo opreport -l -c -p /lib/modules/`uname -r` \
-				-o ${DIR}/callgraph.txt > /dev/null 2>&1
+				-o ${DIR}/oprofile/callgraph.txt > /dev/null 2>&1
 	fi
 	${COMMAND} sudo opcontrol --stop
 }
@@ -158,6 +158,10 @@ oprofile_init()
 		# have valid default setting depending on arch?
 		#
 		START_ARGS="-e CYCLES:150000:0:1:1"
+	elif [ "x${MACHINE}" = "x86_64" ]; then
+		# Some core 2 procs need a more requent sample otherwise the counters
+		# will overflow.
+		START_ARGS="-e CPU_CLK_UNHALTED:90000:0:1:1"
 	fi
 	${COMMAND} sudo opcontrol --start-daemon ${START_ARGS}
 	sleep 1
@@ -541,7 +545,7 @@ fi
 
 # Collect oprofile data.
 if [ ${USE_OPROFILE} -eq 1 ]; then
-	oprofile_collect ${OUTPUT_DIR}
+	oprofile_collect ${DRIVER_OUTPUT_DIR}
 	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		oprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
 	fi
@@ -566,7 +570,7 @@ killall BrokerageHouseMain MarketExchangeMain DriverMain 2> /dev/null
 ${DB_COMMAND} dbt5-${DBMS}-stop-db
 
 if [ ${USE_OPROFILE} -eq 1 ]; then
-	oprofile_annotate ${OUTPUT_DIR} &
+	oprofile_annotate ${DRIVER_OUTPUT_DIR} &
 	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		oprofile_annotate ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
 	fi
