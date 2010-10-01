@@ -58,6 +58,7 @@ public:
 
     void DoTxn( PTradeResultTxnInput pTxnInput, PTradeResultTxnOutput pTxnOutput )
     {
+        // Initialization
         TTradeResultFrame1Input     Frame1Input;
         TTradeResultFrame1Output    Frame1Output;
         memset(&Frame1Input, 0, sizeof( Frame1Input ));
@@ -79,22 +80,36 @@ public:
         memset(&Frame4Output, 0, sizeof( Frame4Output ));
 
         TTradeResultFrame5Input     Frame5Input;
-        TTradeResultFrame5Output    Frame5Output;
         memset(&Frame5Input, 0, sizeof( Frame5Input ));
-        memset(&Frame5Output, 0, sizeof( Frame5Output ));
 
         TTradeResultFrame6Input     Frame6Input;
         TTradeResultFrame6Output    Frame6Output;
         memset(&Frame6Input, 0, sizeof( Frame6Input ));
         memset(&Frame6Output, 0, sizeof( Frame6Output ));
 
-        //Init Frame 1 input params
+        TXN_HARNESS_SET_STATUS_SUCCESS;
+
+        //
+        // FRAME 1
+        //
+
+        // Copy Frame 1 Input
         Frame1Input.trade_id = pTxnInput->trade_id;
 
+        // Execute Frame 1
         m_db->DoTradeResultFrame1(&Frame1Input, &Frame1Output);
-        pTxnOutput->status = Frame1Output.status;
 
-        //Init Frame 2 input params
+        // Validate Frame 1 Output
+        if (Frame1Output.num_found != 1)
+        {
+            TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::TRF1_ERROR1);
+        }
+
+        //
+        // FRAME 2
+        //
+
+        // Copy Frame 2 Input
         Frame2Input.acct_id = Frame1Output.acct_id;
         Frame2Input.hs_qty = Frame1Output.hs_qty;
         Frame2Input.is_lifo = Frame1Output.is_lifo;
@@ -104,33 +119,57 @@ public:
         Frame2Input.trade_qty = Frame1Output.trade_qty;
         Frame2Input.type_is_sell = Frame1Output.type_is_sell;
 
+        // Execute Frame 2
         m_db->DoTradeResultFrame2(&Frame2Input, &Frame2Output);
-        pTxnOutput->status = Frame2Output.status;
+
+        //
+        // FRAME 3
+        //
 
         Frame3Output.tax_amount = 0.0;
         if (( Frame2Output.tax_status == 1 || Frame2Output.tax_status == 2 ) &&
             ( Frame2Output.sell_value > Frame2Output.buy_value ))
         {
-            //Init Frame 3 input params
+            // Copy Frame 3 Input
             Frame3Input.buy_value = Frame2Output.buy_value;
             Frame3Input.cust_id = Frame2Output.cust_id;
             Frame3Input.sell_value = Frame2Output.sell_value;
             Frame3Input.trade_id = pTxnInput->trade_id;
 
+            // Execute Frame 3
             m_db->DoTradeResultFrame3(&Frame3Input, &Frame3Output);
-            pTxnOutput->status = Frame3Output.status;
+
+            // Validate Frame 3 Output
+            if (Frame3Output.tax_amount < 0.00)
+            {
+                TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::TRF3_ERROR1);
+            }
         }
 
-        //Init Frame 4 input params
+        //
+        // FRAME 4
+        //
+
+        // Copy Frame 4 Input
         Frame4Input.cust_id = Frame2Output.cust_id;
         strncpy(Frame4Input.symbol, Frame1Output.symbol, sizeof(Frame4Input.symbol));
         Frame4Input.trade_qty = Frame1Output.trade_qty;
         strncpy(Frame4Input.type_id, Frame1Output.type_id, sizeof(Frame4Input.type_id));
 
+        // Execute Frame 4
         m_db->DoTradeResultFrame4(&Frame4Input, &Frame4Output);
-        pTxnOutput->status = Frame4Output.status;
 
-        //Init Frame 5 input params
+        // Validate Frame 4 Output
+        if (Frame4Output.comm_rate <= 0.0000)
+        {
+            TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::TRF4_ERROR1);
+        }
+
+        //
+        // FRAME 5
+        //
+
+        // Copy Frame 5 Input
         Frame5Input.broker_id = Frame2Output.broker_id;
         Frame5Input.comm_amount = ( Frame4Output.comm_rate / 100.00 ) * ( Frame1Output.trade_qty * pTxnInput->trade_price );
         // round up for correct precision (cents only)
@@ -141,9 +180,14 @@ public:
         Frame5Input.trade_id = pTxnInput->trade_id;
         Frame5Input.trade_price = pTxnInput->trade_price;
 
-        m_db->DoTradeResultFrame5(&Frame5Input, &Frame5Output);
-        pTxnOutput->status = Frame5Output.status;
+        // Execute Frame 5
+        m_db->DoTradeResultFrame5(&Frame5Input);
 
+        //
+        // FRAME 6
+        //
+
+        // Compute Frame 6 Input
         CDateTime   due_date_time( &Frame2Output.trade_dts );
         due_date_time.Add(2, 0);        // add 2 days
         due_date_time.SetHMS(0,0,0,0);  // zero out time portion
@@ -167,32 +211,23 @@ public:
             Frame6Input.se_amount -= Frame3Output.tax_amount;
         }
 
-        //Init Frame 6 input params
+        // Copy Frame 6 Input
         Frame6Input.acct_id = Frame1Output.acct_id;
         due_date_time.GetTimeStamp(&Frame6Input.due_date);
         strncpy(Frame6Input.s_name, Frame4Output.s_name, sizeof(Frame6Input.s_name));
-        //Frame6Input.se_amount - set above
         Frame6Input.trade_dts = Frame2Output.trade_dts;
         Frame6Input.trade_id = pTxnInput->trade_id;
         Frame6Input.trade_is_cash = Frame1Output.trade_is_cash;
         Frame6Input.trade_qty = Frame1Output.trade_qty;
         strncpy(Frame6Input.type_name, Frame1Output.type_name, sizeof(Frame6Input.type_name));
 
+        // Execute Frame 6
         m_db->DoTradeResultFrame6(&Frame6Input, &Frame6Output);
 
+        // Copy Frame 6 Output
         pTxnOutput->acct_id = Frame1Output.acct_id;
         pTxnOutput->acct_bal = Frame6Output.acct_bal;
         pTxnOutput->load_unit = (INT32)((Frame2Output.cust_id - iTIdentShift - 1) / iDefaultLoadUnitSize) + 1;
-        pTxnOutput->status = Frame6Output.status;
-
-        if (Frame3Output.tax_amount < 0.00)
-        {
-            pTxnOutput->status = -831;
-        }
-        else if (Frame4Output.comm_rate <= 0.0000)
-        {
-            pTxnOutput->status = -841;
-        }
     }
 };
 

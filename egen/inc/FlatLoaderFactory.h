@@ -42,7 +42,6 @@
 #define FLAT_LOADER_FACTORY_H
 
 #include "FlatFileLoad_stdafx.h"
-#include <string.h>
 
 namespace TPCE
 {

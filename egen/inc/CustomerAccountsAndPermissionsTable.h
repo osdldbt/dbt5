@@ -730,7 +730,7 @@ public:
 
         // Set the starting broker to be the first broker for the current load unit of customers.
         //
-        TIdent iStartFromBroker = (iCustomerId / m_iLoadUnitSize) * iMaxAccountsPerCust + iStartingBrokerID + iTIdentShift;
+        TIdent iStartFromBroker = (iCustomerId / m_iLoadUnitSize) * m_iBrokersCount + iStartingBrokerID + iTIdentShift;
 
         // Note: this depends on broker ids being integer numbers from contiguous range.
         // The method of generating broker ids should be in sync with the CBrokerTable.

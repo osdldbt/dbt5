@@ -60,6 +60,7 @@ public:
 
     void DoTxn( PTradeOrderTxnInput pTxnInput, PTradeOrderTxnOutput pTxnOutput )
     {
+        // Initialization
         TTradeOrderFrame1Input  Frame1Input;
         TTradeOrderFrame1Output Frame1Output;
         memset(&Frame1Input, 0, sizeof( Frame1Input ));
@@ -80,42 +81,60 @@ public:
         memset(&Frame4Input, 0, sizeof( Frame4Input ));
         memset(&Frame4Output, 0, sizeof( Frame4Output ));
 
-        TTradeOrderFrame5Output Frame5Output;
-        memset(&Frame5Output, 0, sizeof( Frame5Output ));
-
-        TTradeOrderFrame6Output Frame6Output;
-        memset(&Frame6Output, 0, sizeof( Frame6Output ));
-
         TTradeRequest           TradeRequestForMEE; //sent to MEE
 
-        //Init Frame1 input params
+        TXN_HARNESS_SET_STATUS_SUCCESS;
+
+        //
+        // FRAME 1
+        //
+
+        // Copy Frame 1 Input
         Frame1Input.acct_id = pTxnInput->acct_id;
+
+        // Execute Frame 1
         m_db->DoTradeOrderFrame1(&Frame1Input, &Frame1Output );
 
-        Frame2Output.ap_acl[0] = '\0';
+        // Validate Frame 1 Output
+        if (Frame1Output.num_found != 1)
+        {
+            TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::TOF1_ERROR1);
+        }
+
+        //
+        // FRAME 2
+        //
 
         if (strcmp(pTxnInput->exec_l_name, Frame1Output.cust_l_name)
             || strcmp(pTxnInput->exec_f_name, Frame1Output.cust_f_name)
             || strcmp(pTxnInput->exec_tax_id, Frame1Output.tax_id))
         {
+            // Copy Frame 2 Input
+            Frame2Output.ap_acl[0] = '\0';
             Frame2Input.acct_id = pTxnInput->acct_id;
             strncpy(Frame2Input.exec_f_name, pTxnInput->exec_f_name, sizeof(Frame2Input.exec_f_name));
             strncpy(Frame2Input.exec_l_name, pTxnInput->exec_l_name, sizeof(Frame2Input.exec_l_name));
             strncpy(Frame2Input.exec_tax_id, pTxnInput->exec_tax_id, sizeof(Frame2Input.exec_tax_id));
 
+            // Execute Frame 2
             m_db->DoTradeOrderFrame2(&Frame2Input, &Frame2Output);
-            pTxnOutput->status = Frame2Output.status;
 
+            // Validate Frame 2 Output
             if (Frame2Output.ap_acl[0] == '\0')
-            {   //Frame 2 found unauthorized executor
-                m_db->DoTradeOrderFrame5(&Frame5Output); //Rollback
-                pTxnOutput->status = CBaseTxnErr::UNAUTHORIZED_EXECUTOR;    //return error code
+            {
+                TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::TOF2_ERROR1);
+
+                // Rollback
+                m_db->DoTradeOrderFrame5();
                 return;
             }
-
         }
 
-        //Init Frame 3 input params
+        //
+        // FRAME 3
+        //
+
+        // Copy Frame 3 Input
         Frame3Input.acct_id = pTxnInput->acct_id;
         Frame3Input.cust_id = Frame1Output.cust_id;
         Frame3Input.cust_tier = Frame1Output.cust_tier;
@@ -131,13 +150,35 @@ public:
         Frame3Input.requested_price = pTxnInput->requested_price;
         strncpy(Frame3Input.symbol, pTxnInput->symbol, sizeof(Frame3Input.symbol));
 
+        // Execute Frame 3
         m_db->DoTradeOrderFrame3(&Frame3Input, &Frame3Output);
 
+        // Validate Frame 3 Output
+        if (   Frame3Output.sell_value > Frame3Output.buy_value
+            && ((Frame3Input.tax_status == 1) || (Frame3Input.tax_status == 2))
+            && Frame3Output.tax_amount == 0.00)
+        {
+            TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::TOF3_ERROR1);
+        }
+        if (Frame3Output.comm_rate == 0.0000)
+        {
+            TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::TOF3_ERROR2);
+        }
+        if (Frame3Output.charge_amount == 0.00)
+        {
+            TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::TOF3_ERROR3);
+        }
+
+        // Copy Frame 3 Output
         pTxnOutput->buy_value = Frame3Output.buy_value;   //output param
         pTxnOutput->sell_value = Frame3Output.sell_value;
         pTxnOutput->tax_amount = Frame3Output.tax_amount;
 
-        //Frame 4 input params
+        //
+        // FRAME 4
+        //
+
+        // Copy Frame 4 Input
         Frame4Input.acct_id = pTxnInput->acct_id;
         Frame4Input.broker_id = Frame1Output.broker_id;
         Frame4Input.charge_amount = Frame3Output.charge_amount;
@@ -157,23 +198,30 @@ public:
         strncpy(Frame4Input.trade_type_id, pTxnInput->trade_type_id, sizeof(Frame4Input.trade_type_id));
         Frame4Input.type_is_market = Frame3Output.type_is_market;
 
+        // Execute Frame 4
         m_db->DoTradeOrderFrame4(&Frame4Input, &Frame4Output);
 
-        pTxnOutput->trade_id = Frame4Output.trade_id;   //output param
-        pTxnOutput->status = Frame4Output.status;
+        // Copy Frame 4 Output
+        pTxnOutput->trade_id = Frame4Output.trade_id;
+
+        //
+        // FRAME 5/6
+        //
 
         if (pTxnInput->roll_it_back)
         {
-            m_db->DoTradeOrderFrame5(&Frame5Output);
-            pTxnOutput->status = Frame5Output.status;
+            // Execute Frame 5
+            m_db->DoTradeOrderFrame5();
+
+            TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::EXPECTED_ROLLBACK);
         }
         else
         {
-            m_db->DoTradeOrderFrame6(&Frame6Output);
-            pTxnOutput->status = Frame6Output.status;
+            // Execute Frame 6
+            m_db->DoTradeOrderFrame6();
 
             //
-            //Send to Market Emulator here.
+            // Send to Market Exchange Emulator
             //
             TradeRequestForMEE.price_quote = Frame4Input.requested_price;
             strncpy(TradeRequestForMEE.symbol, Frame4Input.symbol, sizeof(TradeRequestForMEE.symbol));
@@ -191,21 +239,6 @@ public:
             }
 
             m_pSendToMarket->SendToMarketFromHarness(TradeRequestForMEE); // maybe should check the return code here
-        }
-
-        if (   Frame3Output.sell_value > Frame3Output.buy_value
-            && ((Frame3Input.tax_status == 1) || (Frame3Input.tax_status == 2))
-            && Frame3Output.tax_amount == 0.00)
-        {
-            pTxnOutput->status = -731;
-        }
-        else if (Frame3Output.comm_rate == 0.0000)
-        {
-            pTxnOutput->status = -732;
-        }
-        else if (Frame3Output.charge_amount == 0.00)
-        {
-            pTxnOutput->status = -733;
         }
     }
 };

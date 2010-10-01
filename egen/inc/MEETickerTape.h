@@ -62,6 +62,7 @@ private:
     CMEEPriceBoard*     m_pPriceBoard;
     TMarketFeedTxnInput m_TxnInput;
     INT32               m_BatchIndex;
+    INT32               m_BatchDuplicates;
     CRandom             m_rnd;
     bool                m_Enabled;
     TStatusTypeFile*    m_pStatusType;

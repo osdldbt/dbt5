@@ -31,7 +31,7 @@
  *     ADVANCE NOTICE OF THE POSSIBILITY OF SUCH DAMAGES.
  *
  * Contributors
- * - Sergey Vasilevskiy
+ * - Sergey Vasilevskiy, Matt Emmerton
  */
 
 #ifndef ERROR_H
@@ -182,16 +182,55 @@ class CBaseTxnErr
 public:
     enum
     {
+        // Expected Transaction Status Values
         SUCCESS = 0,
-        //Trade Order errors
-        UNAUTHORIZED_EXECUTOR,
-        ROLLBACK,   // return from TradeOrderFrame5 to indicate transaction rollback
-        BAD_INPUT_DATA,
-        Last
-    }   mErrCode;
+        EXPECTED_ROLLBACK = 1,	// returned from Trade-Order Frame 5 to indicate transaction rollback
 
-    static const char* szMsgs[CBaseTxnErr::Last+1];
-    static const char* ErrorText(int code);
+        // Unexpected Transaction Status Values
+        // Negative values are errors
+        // Positive values are warnings
+
+        BVF1_ERROR1 = -111,	// list_len not in [0..max_broker_list_len]
+
+        CPF1_ERROR1 = -211,	// acct_len not in [1..max_acct_len]
+        CPF2_ERROR1 = -221,	// hist_len not in [min_hist_len..max_hist_len]
+
+        MFF1_ERROR1 = -311,     // num_updated < unique symbols
+
+        MWF1_ERROR1 = -411,     // invalid input
+
+        SDF1_ERROR1 = -511,     // day_len not in [min_day_len..max_day_len]
+        SDF1_ERROR2 = -512,     // fin_len <> max_fin_len
+        SDF1_ERROR3 = -513,     // news_len <> max_news_len
+
+        TLF1_ERROR1 = -611,     // num_found <> max_trades
+        TLF2_ERROR1 = -621,     // num_found not in [0..max_trades]
+        TLF2_WARN1  = +621,     // num_found == 0
+        TLF3_ERROR1 = -631,     // num_found not in [0..max_trades]
+        TLF3_WARN1  = +631,     // num_found == 0 
+        TLF4_ERROR1 = -641,     // num_trades_found not in [0..1]
+        TLF4_WARN1  = +641,     // num_trades_found == 0
+        TLF4_ERROR2 = -642,     // num_found not in [1..20]
+
+        TOF1_ERROR1 = -711,     // num_found <> 1
+        TOF2_ERROR1 = -721,     // ap_acl[0] == '\0'
+        TOF3_ERROR1 = -731,     // tax_amount == 0 (for profitable, taxable trade)
+        TOF3_ERROR2 = -732,     // comm_rate == 0
+        TOF3_ERROR3 = -733,     // charge_amount == 0
+
+        TRF1_ERROR1 = -811,     // num_found <> 1
+        TRF3_ERROR1 = -831,     // tax_amount < 0
+        TRF4_ERROR1 = -841,     // comm_rate <= 0
+
+        TSF1_ERROR1 = -911,     // num_found <> max_trade_status_len
+
+        TUF1_ERROR1 = -1011,    // num_found <> max_trades || num_updated <> max_updates
+        TUF2_ERROR1 = -1021,    // num_updated <> num_found || num_found not in [0..max_trades]
+        TUF2_WARN1  = +1021,    // num_updated == 0
+        TUF3_ERROR1 = -1031,    // num_updated <> num_found || num_found not in [0..max_trades]
+        TUF3_WARN1  = +1031,    // num_updated == 0
+
+    }   mErrCode;
 };
 
 class CCheckErr : public CBaseErr

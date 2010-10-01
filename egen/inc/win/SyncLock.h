@@ -1,9 +1,9 @@
 /*
  * Legal Notice
  *
- * This document and associated source code (the "Work") is a part of a
- * benchmark specification maintained by the TPC.
- *
+ * This document and associated source code (the "Work") is a preliminary
+ * version of a benchmark specification being developed by the TPC. The
+ * Work is being made available to the public for review and comment only.
  * The TPC reserves all right, title, and interest to the Work as provided
  * under U.S. and international laws, including without limitation all patent
  * and trademark rights therein.
@@ -34,58 +34,46 @@
  * - Sergey Vasilevskiy
  */
 
-#ifndef TXN_HARNESS_MARKET_FEED_H
-#define TXN_HARNESS_MARKET_FEED_H
+#ifndef SYNCLOCK_H
+#define SYNCLOCK_H
 
-#include "TxnHarnessDBInterface.h"
+/*
+*   Windows implementation of a syncronization lock that uses Win32 mutex.
+*/
 
 namespace TPCE
 {
 
-class CMarketFeed
+class CSyncLock
 {
-    CMarketFeedDBInterface*     m_db;
-    CSendToMarketInterface*     m_pSendToMarket;
-
+    CRITICAL_SECTION    m_CriticalSection;
 public:
-    CMarketFeed(CMarketFeedDBInterface *pDB, CSendToMarketInterface *pSendToMarket)
-    : m_db(pDB)
-    , m_pSendToMarket(pSendToMarket)
+
+    // Constructor
+    CSyncLock()
     {
-    };
+        InitializeCriticalSection(&m_CriticalSection);  // do not acquire initial ownership
+    }
 
-    void DoTxn( PMarketFeedTxnInput pTxnInput, PMarketFeedTxnOutput pTxnOutput )
+    // Destructor
+    ~CSyncLock()
     {
-        // Initialization
-        TMarketFeedFrame1Input    Frame1Input;
-        TMarketFeedFrame1Output   Frame1Output;
+        DeleteCriticalSection(&m_CriticalSection);
+    }
 
-        memset(&Frame1Input, 0, sizeof( Frame1Input ));
-        memset(&Frame1Output, 0, sizeof( Frame1Output ));
+    // Acquire lock
+    void ClaimLock()
+    {
+        EnterCriticalSection(&m_CriticalSection);
+    }
 
-        TXN_HARNESS_SET_STATUS_SUCCESS;
-
-        // Copy Frame 1 Input
-        Frame1Input.StatusAndTradeType = pTxnInput->StatusAndTradeType;
-        for (int i=0; i<max_feed_len; i++)
-        {
-          Frame1Input.Entries[i] = pTxnInput->Entries[i];
-        }
-
-        // Execute Frame 1
-        m_db->DoMarketFeedFrame1(&Frame1Input, &Frame1Output, m_pSendToMarket);
-
-        // Validate Frame 1 Output
-        if (Frame1Output.num_updated < pTxnInput->unique_symbols)
-        {
-            TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::MFF1_ERROR1);
-        }
-
-        // Copy Frame 1 Output
-        pTxnOutput->send_len = Frame1Output.send_len;
+    // Release mutex
+    void ReleaseLock()
+    {
+        LeaveCriticalSection(&m_CriticalSection);
     }
 };
 
 }   // namespace TPCE
 
-#endif //TXN_HARNESS_MARKET_FEED_H
+#endif  // #ifndef SYNCLOCK_H

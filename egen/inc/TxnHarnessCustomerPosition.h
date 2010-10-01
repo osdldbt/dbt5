@@ -58,99 +58,99 @@ public:
 
     void DoTxn( PCustomerPositionTxnInput pTxnInput, PCustomerPositionTxnOutput pTxnOutput)
     {
-        TCustomerPositionFrame1Input    CustomerPositionFrame1Input;
-        TCustomerPositionFrame1Output   CustomerPositionFrame1Output;
+        // Initialization
+        TCustomerPositionFrame1Input    Frame1Input;
+        TCustomerPositionFrame1Output   Frame1Output;
+        TCustomerPositionFrame2Input    Frame2Input;
+        TCustomerPositionFrame2Output   Frame2Output;
 
-        TCustomerPositionFrame2Input    CustomerPositionFrame2Input;
-        TCustomerPositionFrame2Output   CustomerPositionFrame2Output;
+        memset(&Frame1Input, 0, sizeof(Frame1Input));
+        memset(&Frame1Output, 0, sizeof(Frame1Output));
+        memset(&Frame2Input, 0, sizeof(Frame2Input));
+        memset(&Frame2Output, 0, sizeof(Frame2Output));
 
-        TCustomerPositionFrame3Output   CustomerPositionFrame3Output;
+        TXN_HARNESS_SET_STATUS_SUCCESS;
 
-        memset(&CustomerPositionFrame1Input, 0, sizeof(CustomerPositionFrame1Input));
-        memset(&CustomerPositionFrame1Output, 0, sizeof(CustomerPositionFrame1Output));
+        // Copy Frame 1 Input
+        Frame1Input.cust_id = pTxnInput->cust_id;
+        strncpy(Frame1Input.tax_id, pTxnInput->tax_id, sizeof(Frame1Input.tax_id));
 
-        memset(&CustomerPositionFrame2Input, 0, sizeof(CustomerPositionFrame2Input));
-        memset(&CustomerPositionFrame2Output, 0, sizeof(CustomerPositionFrame2Output));
+        // Execute Frame 1
+        m_db->DoCustomerPositionFrame1(&Frame1Input, &Frame1Output);
 
-        memset(&CustomerPositionFrame3Output, 0, sizeof(CustomerPositionFrame3Output));
-
-        CustomerPositionFrame1Input.cust_id = pTxnInput->cust_id;
-        strncpy(CustomerPositionFrame1Input.tax_id, pTxnInput->tax_id, sizeof(CustomerPositionFrame1Input.tax_id));
-
-        m_db->DoCustomerPositionFrame1(&CustomerPositionFrame1Input, &CustomerPositionFrame1Output);
-
-        // Copy Frame 1 outputs to transaction level outputs.
-
-        pTxnOutput->status = CustomerPositionFrame1Output.status;
-        pTxnOutput->acct_len = CustomerPositionFrame1Output.acct_len;
-
-        if ((pTxnOutput->acct_len < 1) ||
-            (pTxnOutput->acct_len > max_acct_len))
+        // Validate Frame 1 Output
+        if ((Frame1Output.acct_len < 1) ||
+            (Frame1Output.acct_len > max_acct_len))
         {
-            pTxnOutput->status = -211;
+            TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::CPF1_ERROR1);
         }
 
-        pTxnOutput->c_ad_id = CustomerPositionFrame1Output.c_ad_id;
-        strncpy(pTxnOutput->c_area_1, CustomerPositionFrame1Output.c_area_1, sizeof(pTxnOutput->c_area_1));
-        strncpy(pTxnOutput->c_area_2, CustomerPositionFrame1Output.c_area_2, sizeof(pTxnOutput->c_area_2));
-        strncpy(pTxnOutput->c_area_3, CustomerPositionFrame1Output.c_area_3, sizeof(pTxnOutput->c_area_3));
-        strncpy(pTxnOutput->c_ctry_1, CustomerPositionFrame1Output.c_ctry_1, sizeof(pTxnOutput->c_ctry_1));
-        strncpy(pTxnOutput->c_ctry_2, CustomerPositionFrame1Output.c_ctry_2, sizeof(pTxnOutput->c_ctry_2));
-        strncpy(pTxnOutput->c_ctry_3, CustomerPositionFrame1Output.c_ctry_3, sizeof(pTxnOutput->c_ctry_3));
-        pTxnOutput->c_dob = CustomerPositionFrame1Output.c_dob;
-        strncpy(pTxnOutput->c_email_1, CustomerPositionFrame1Output.c_email_1, sizeof(pTxnOutput->c_email_1));
-        strncpy(pTxnOutput->c_email_2, CustomerPositionFrame1Output.c_email_2, sizeof(pTxnOutput->c_email_2));
-        strncpy(pTxnOutput->c_ext_1, CustomerPositionFrame1Output.c_ext_1, sizeof(pTxnOutput->c_ext_1));
-        strncpy(pTxnOutput->c_ext_2, CustomerPositionFrame1Output.c_ext_2, sizeof(pTxnOutput->c_ext_2));
-        strncpy(pTxnOutput->c_ext_3, CustomerPositionFrame1Output.c_ext_3, sizeof(pTxnOutput->c_ext_3));
-        strncpy(pTxnOutput->c_f_name, CustomerPositionFrame1Output.c_f_name, sizeof(pTxnOutput->c_f_name));
-        strncpy(pTxnOutput->c_gndr, CustomerPositionFrame1Output.c_gndr, sizeof(pTxnOutput->c_gndr));
-        strncpy(pTxnOutput->c_l_name, CustomerPositionFrame1Output.c_l_name, sizeof(pTxnOutput->c_l_name));
-        strncpy(pTxnOutput->c_local_1, CustomerPositionFrame1Output.c_local_1, sizeof(pTxnOutput->c_local_1));
-        strncpy(pTxnOutput->c_local_2, CustomerPositionFrame1Output.c_local_2, sizeof(pTxnOutput->c_local_2));
-        strncpy(pTxnOutput->c_local_3, CustomerPositionFrame1Output.c_local_3, sizeof(pTxnOutput->c_local_3));
-        strncpy(pTxnOutput->c_m_name, CustomerPositionFrame1Output.c_m_name, sizeof(pTxnOutput->c_m_name));
-        strncpy(pTxnOutput->c_st_id, CustomerPositionFrame1Output.c_st_id, sizeof(pTxnOutput->c_st_id));
-        pTxnOutput->c_tier = CustomerPositionFrame1Output.c_tier;
-        //pTxnOutput->cust_id = CustomerPositionFrame1Output.cust_id;
+        // Copy Frame 1 Output
+        pTxnOutput->acct_len = Frame1Output.acct_len;
+        pTxnOutput->c_ad_id = Frame1Output.c_ad_id;
+        strncpy(pTxnOutput->c_area_1, Frame1Output.c_area_1, sizeof(pTxnOutput->c_area_1));
+        strncpy(pTxnOutput->c_area_2, Frame1Output.c_area_2, sizeof(pTxnOutput->c_area_2));
+        strncpy(pTxnOutput->c_area_3, Frame1Output.c_area_3, sizeof(pTxnOutput->c_area_3));
+        strncpy(pTxnOutput->c_ctry_1, Frame1Output.c_ctry_1, sizeof(pTxnOutput->c_ctry_1));
+        strncpy(pTxnOutput->c_ctry_2, Frame1Output.c_ctry_2, sizeof(pTxnOutput->c_ctry_2));
+        strncpy(pTxnOutput->c_ctry_3, Frame1Output.c_ctry_3, sizeof(pTxnOutput->c_ctry_3));
+        pTxnOutput->c_dob = Frame1Output.c_dob;
+        strncpy(pTxnOutput->c_email_1, Frame1Output.c_email_1, sizeof(pTxnOutput->c_email_1));
+        strncpy(pTxnOutput->c_email_2, Frame1Output.c_email_2, sizeof(pTxnOutput->c_email_2));
+        strncpy(pTxnOutput->c_ext_1, Frame1Output.c_ext_1, sizeof(pTxnOutput->c_ext_1));
+        strncpy(pTxnOutput->c_ext_2, Frame1Output.c_ext_2, sizeof(pTxnOutput->c_ext_2));
+        strncpy(pTxnOutput->c_ext_3, Frame1Output.c_ext_3, sizeof(pTxnOutput->c_ext_3));
+        strncpy(pTxnOutput->c_f_name, Frame1Output.c_f_name, sizeof(pTxnOutput->c_f_name));
+        strncpy(pTxnOutput->c_gndr, Frame1Output.c_gndr, sizeof(pTxnOutput->c_gndr));
+        strncpy(pTxnOutput->c_l_name, Frame1Output.c_l_name, sizeof(pTxnOutput->c_l_name));
+        strncpy(pTxnOutput->c_local_1, Frame1Output.c_local_1, sizeof(pTxnOutput->c_local_1));
+        strncpy(pTxnOutput->c_local_2, Frame1Output.c_local_2, sizeof(pTxnOutput->c_local_2));
+        strncpy(pTxnOutput->c_local_3, Frame1Output.c_local_3, sizeof(pTxnOutput->c_local_3));
+        strncpy(pTxnOutput->c_m_name, Frame1Output.c_m_name, sizeof(pTxnOutput->c_m_name));
+        strncpy(pTxnOutput->c_st_id, Frame1Output.c_st_id, sizeof(pTxnOutput->c_st_id));
+        pTxnOutput->c_tier = Frame1Output.c_tier;
+        //pTxnOutput->cust_id = Frame1Output.cust_id;
 
-        for (int i=0; i<pTxnOutput->acct_len; i++)
+        for (int i=0; i < Frame1Output.acct_len && i < max_acct_len; i++)
         {
-            pTxnOutput->acct_id[i] = CustomerPositionFrame1Output.acct_id[i];
-            pTxnOutput->asset_total[i] = CustomerPositionFrame1Output.asset_total[i];
-            pTxnOutput->cash_bal[i] = CustomerPositionFrame1Output.cash_bal[i];
+            pTxnOutput->acct_id[i] = Frame1Output.acct_id[i];
+            pTxnOutput->asset_total[i] = Frame1Output.asset_total[i];
+            pTxnOutput->cash_bal[i] = Frame1Output.cash_bal[i];
         }
 
         if (pTxnInput->get_history)
         {
-            CustomerPositionFrame2Input.acct_id = CustomerPositionFrame1Output.acct_id[ pTxnInput->acct_id_idx ];
-            m_db->DoCustomerPositionFrame2(&CustomerPositionFrame2Input, &CustomerPositionFrame2Output);
+            // Copy Frame 2 Input
+            Frame2Input.acct_id = Frame1Output.acct_id[ pTxnInput->acct_id_idx ];
 
-            // Copy Frame 2 outputs to transaction level outputs.
-            pTxnOutput->hist_len = CustomerPositionFrame2Output.hist_len;
-            pTxnOutput->status = CustomerPositionFrame2Output.status;
-            for (int i=0; i<pTxnOutput->hist_len; i++)
+            // Execute Frame 2
+            m_db->DoCustomerPositionFrame2(&Frame2Input, &Frame2Output);
+
+            // Validate Frame 2 Output
+            if ((Frame2Output.hist_len < min_hist_len) || 
+                (Frame2Output.hist_len > max_hist_len))
             {
-                pTxnOutput->hist_dts[i] = CustomerPositionFrame2Output.hist_dts[i];
-                pTxnOutput->qty[i] = CustomerPositionFrame2Output.qty[i];
-                strncpy(pTxnOutput->symbol[i], CustomerPositionFrame2Output.symbol[i], sizeof(pTxnOutput->symbol[i]));
-                pTxnOutput->trade_id[i] = CustomerPositionFrame2Output.trade_id[i];
-                strncpy(pTxnOutput->trade_status[i], CustomerPositionFrame2Output.trade_status[i], sizeof(pTxnOutput->trade_status[i]));
+                TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::CPF2_ERROR1);
             }
 
-            if ((pTxnOutput->hist_len < 10) || 
-                (pTxnOutput->hist_len > max_hist_len))
+            // Copy Frame 2 Output
+            pTxnOutput->hist_len = Frame2Output.hist_len;
+            for (int i=0; i < Frame2Output.hist_len && i < max_hist_len; i++)
             {
-                pTxnOutput->status = -221;
+                pTxnOutput->hist_dts[i] = Frame2Output.hist_dts[i];
+                pTxnOutput->qty[i] = Frame2Output.qty[i];
+                strncpy(pTxnOutput->symbol[i], Frame2Output.symbol[i], sizeof(pTxnOutput->symbol[i]));
+                pTxnOutput->trade_id[i] = Frame2Output.trade_id[i];
+                strncpy(pTxnOutput->trade_status[i], Frame2Output.trade_status[i], sizeof(pTxnOutput->trade_status[i]));
             }
         }
         else
         {
-            //commit here
-            m_db->DoCustomerPositionFrame3(&CustomerPositionFrame3Output);
+            // Execute Frame 3
+            m_db->DoCustomerPositionFrame3();
 
+            // Copy Frame 3 Output
             pTxnOutput->hist_len = 0;
-            pTxnOutput->status = CustomerPositionFrame3Output.status;
         }
     }
 };

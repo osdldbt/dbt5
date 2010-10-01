@@ -58,8 +58,8 @@ class CTradeOrderDBInterface {
         virtual void DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn, TTradeOrderFrame2Output *pOut) = 0;
         virtual void DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn, TTradeOrderFrame3Output *pOut) = 0;
         virtual void DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn, TTradeOrderFrame4Output *pOut) = 0;
-        virtual void DoTradeOrderFrame5(                                   TTradeOrderFrame5Output *pOut) = 0;
-        virtual void DoTradeOrderFrame6(                                   TTradeOrderFrame6Output *pOut) = 0;
+        virtual void DoTradeOrderFrame5(void                                                            ) = 0;
+        virtual void DoTradeOrderFrame6(void                                                            ) = 0;
         virtual ~CTradeOrderDBInterface  () { }
 };
 
@@ -73,7 +73,7 @@ class CCustomerPositionDBInterface {
     public:
         virtual void DoCustomerPositionFrame1(const TCustomerPositionFrame1Input *pIn, TCustomerPositionFrame1Output *pOut) = 0;
         virtual void DoCustomerPositionFrame2(const TCustomerPositionFrame2Input *pIn, TCustomerPositionFrame2Output *pOut) = 0;
-        virtual void DoCustomerPositionFrame3(                                         TCustomerPositionFrame3Output *pOut) = 0;
+        virtual void DoCustomerPositionFrame3(void                                                                        ) = 0;
         virtual ~CCustomerPositionDBInterface  () { }
 };
 
@@ -118,7 +118,7 @@ class CTradeResultDBInterface {
         virtual void DoTradeResultFrame2(const TTradeResultFrame2Input *pIn, TTradeResultFrame2Output *pOut) = 0;
         virtual void DoTradeResultFrame3(const TTradeResultFrame3Input *pIn, TTradeResultFrame3Output *pOut) = 0;
         virtual void DoTradeResultFrame4(const TTradeResultFrame4Input *pIn, TTradeResultFrame4Output *pOut) = 0;
-        virtual void DoTradeResultFrame5(const TTradeResultFrame5Input *pIn, TTradeResultFrame5Output *pOut) = 0;
+        virtual void DoTradeResultFrame5(const TTradeResultFrame5Input *pIn                                ) = 0;
         virtual void DoTradeResultFrame6(const TTradeResultFrame6Input *pIn, TTradeResultFrame6Output *pOut) = 0;
         virtual ~CTradeResultDBInterface  () { }
 };
@@ -131,13 +131,13 @@ class CMarketFeedDBInterface {
 
 class CDataMaintenanceDBInterface {
     public:
-        virtual void DoDataMaintenanceFrame1(const TDataMaintenanceFrame1Input *pIn, TDataMaintenanceFrame1Output *pOut) = 0;
+        virtual void DoDataMaintenanceFrame1(const TDataMaintenanceFrame1Input *pIn) = 0;
         virtual ~CDataMaintenanceDBInterface  () { }
 };
 
 class CTradeCleanupDBInterface {
     public:
-        virtual void DoTradeCleanupFrame1(const TTradeCleanupFrame1Input *pIn, TTradeCleanupFrame1Output *pOut) = 0;
+        virtual void DoTradeCleanupFrame1(const TTradeCleanupFrame1Input *pIn) = 0;
         virtual ~CTradeCleanupDBInterface  () { }
 };
 

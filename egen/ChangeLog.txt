@@ -1,3 +1,25 @@
+Change 1.12.0b1 to 1.12.0 by M.E.
+* Wed Jun 23, 2010
+  Bless 1.12.0b1 as 1.12.0
+
+Change 1.11.0 to 1.12.0b1 by M.E.
+* Fri Jun 11, 2010
+  Fix bug in Market-Feed transaction harness. (TPCE-256)
+
+Change 1.11.0b2 => 1.11.0 by M.E.
+* Thu Apr 22, 2010
+  Bless 1.11.0b2 as 1.11.0
+
+Change 1.11.0b1 => 1.11.0b2 by M.E.
+* Tue Mar 9, 2010
+  Fix bug in Trade-Order Frame 2.
+
+Change 1.10.0 => 1.11.0b1 by M.E.
+* Mon Mar 8, 2010
+  Revert to v1.10.0b4 codebase.
+  Correct Trade-Update status checks. (TPCE-74)
+  Output ROLLBACK_EXPECTED status in Trade-Order Frame 5.
+
 Change 1.10.0b4 => 1.10.0 by M.E.
 * Thu Feb 11, 2010
   Revert to v1.9.0 codebase and bump version.

@@ -54,12 +54,9 @@ public:
 
     void DoTxn( PTradeCleanupTxnInput pTxnInput, PTradeCleanupTxnOutput pTxnOutput)
     {
-        TTradeCleanupFrame1Output   Frame1Output;
-        memset(&Frame1Output, 0, sizeof( Frame1Output ));
+        TXN_HARNESS_SET_STATUS_SUCCESS;
 
-        m_db->DoTradeCleanupFrame1(pTxnInput, &Frame1Output);
-
-        pTxnOutput->status = Frame1Output.status;
+        m_db->DoTradeCleanupFrame1(pTxnInput);
     }
 };
 

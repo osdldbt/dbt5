@@ -49,7 +49,6 @@
 #include "EGenVersion.h"
 #include "BaseLogger.h"
 #include "EGenLogFormatterTab.h"
-#include <cstring>
 
 namespace TPCE
 {

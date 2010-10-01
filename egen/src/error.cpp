@@ -35,7 +35,6 @@
  */
 
 #include "../inc/EGenUtilities_stdafx.h"    // Windows-specific error file
-#include <string.h>
 
 using namespace TPCE;
 
@@ -64,21 +63,4 @@ CSystemErr::CSystemErr(int iError, Action eAction, char const * szLocation)
 const char * CSystemErr::ErrorText() const
 {
     return strerror(m_idMsg);
-}
-
-const char *CBaseTxnErr::szMsgs[CBaseTxnErr::Last+1] = {
-    "Success",
-    //Trade Order errors
-    "Unauthorized executor",
-    "Transaction rolled back",
-    "Bad input data",
-    "Error code above the range"
-};
-
-const char* CBaseTxnErr::ErrorText(int code)
-{
-    if (code > CBaseTxnErr::Last)
-        return szMsgs[CBaseTxnErr::Last];
-    else
-        return szMsgs[code];
 }

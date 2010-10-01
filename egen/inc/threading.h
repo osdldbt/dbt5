@@ -42,7 +42,6 @@
 #include <stdexcept>
 
 #include "EGenStandardTypes.h"
-#include <string.h>
 
 namespace TPCE
 {
@@ -73,11 +72,34 @@ class Thread : public ThreadBase
     private:
         std::auto_ptr<T> obj_;
         TThread tid_;
+#ifndef WIN32
+        TThreadAttr attr_;
+#endif
+        int stacksize_;
     public:
         Thread(std::auto_ptr<T> throbj)
         : obj_(throbj)
         , tid_()
+#ifndef WIN32
+        , attr_()
+#endif
+        , stacksize_(0)
         {
+#ifndef WIN32
+	    pthread_attr_init(&attr_);
+#endif
+        }
+        Thread(std::auto_ptr<T> throbj, int stacksize)
+        : obj_(throbj)
+        , tid_()
+#ifndef WIN32
+        , attr_()
+#endif
+        , stacksize_(stacksize)
+        {
+#ifndef WIN32
+	   pthread_attr_init(&attr_);
+#endif
         }
         T* obj() {
             return obj_.get();
@@ -95,11 +117,10 @@ class Thread : public ThreadBase
 
 #ifdef WIN32
 
-
 template<typename T>
 void Thread<T>::start()
 {
-    tid_ = CreateThread(NULL, 0, start_thread, this, NULL, NULL);
+    tid_ = CreateThread(NULL, stacksize_, start_thread, this, NULL, NULL);
     if (tid_ == NULL) {
        std::ostringstream strm;
        strm << "CreateThread error: " << GetLastError();
@@ -127,7 +148,19 @@ void Thread<T>::stop()
 template<typename T>
 void Thread<T>::start()
 {
-   int rc = pthread_create(&tid_, NULL, start_thread, this);
+   int rc = 0;
+
+   if (stacksize_ > 0)
+   {
+       rc = pthread_attr_setstacksize(&attr_, stacksize_);
+       if (rc != 0) {
+           std::ostringstream strm;
+           strm << "pthread_attr_setstacksize error: " << strerror(rc) << "(" << rc << ")";
+           throw std::runtime_error(strm.str());
+       }
+   }
+
+   rc = pthread_create(&tid_, &attr_, start_thread, this);
    if (rc != 0) {
        std::ostringstream strm;
        strm << "pthread_create error: " << strerror(rc) << "(" << rc << ")";

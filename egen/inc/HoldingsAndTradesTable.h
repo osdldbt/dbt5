@@ -217,8 +217,7 @@ public:
     }
 
     /*
-    *   Get seed for the starting account id for a given customer id.
-    *   This is needed for the driver to know what account ids belong to a given customer
+    *   Get seed for the starting security ID seed for a given customer id.
     */
     RNGSEED GetStartingSecIDSeed(TIdent iCA_ID)
     {

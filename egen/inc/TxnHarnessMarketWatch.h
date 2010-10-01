@@ -54,13 +54,25 @@ public:
 
     void DoTxn(PMarketWatchTxnInput pTxnInput, PMarketWatchTxnOutput pTxnOutput)
     {
+        TXN_HARNESS_SET_STATUS_SUCCESS;
+
         if ( pTxnInput->acct_id != 0  ||
              pTxnInput->c_id != 0     ||
              pTxnInput->industry_name[0] != '\0')
         {
-            m_db->DoMarketWatchFrame1(pTxnInput, pTxnOutput);
-        } else {
-            pTxnOutput->status = -411;
+            // Initialization
+            TMarketWatchFrame1Output   Frame1Output;
+            memset(&Frame1Output, 0, sizeof(Frame1Output));
+
+            // Execute Frame 1
+            m_db->DoMarketWatchFrame1(pTxnInput, &Frame1Output);
+
+            // Copy Frame 1 Output
+            pTxnOutput->pct_change = Frame1Output.pct_change;
+        }
+        else
+        {
+            TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::MWF1_ERROR1);
         }
     }
 };

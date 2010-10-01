@@ -58,19 +58,49 @@ const INT32 iFinQtrPerYear = 4;
 const INT32 iMaxDailyHistory = 10;
 const INT32 iMaxNews = 10;
 
-const INT32 min_broker_list_len = 20;   // for Broker-Volume
-const INT32 max_broker_list_len = 40;   // for Broker-Volume
-const INT32 max_acct_len = iMaxAccountsPerCust; // for Customer-Position
-const INT32 max_hist_len = max_acct_len * 3;    // for Customer-Position
-const INT32 max_feed_len = 20;      // for Market-Feed
-const INT32 min_day_len = 5;        // for Security-Detail
-const INT32 max_day_len = 20;       // for Security-Detail
-const INT32 max_fin_len = 20;       // for Security-Detail
-const INT32 max_news_len = 2;       // for Security-Detail
-const INT32 max_comp_len = 3;       // for Security-Detail
-const INT32 max_trade_status_len = 50;  // for Trade-Status
+// Broker-Volume
+const INT32 min_broker_list_len = 20;
+const INT32 max_broker_list_len = 40;
 
-const INT32 max_table_name = 30;    // for Data Maintenance
+// Customer-Position
+const INT32 max_acct_len = iMaxAccountsPerCust;
+const INT32 min_hist_len = 10 * 1;
+const INT32 max_hist_len = 10 * 3;
+
+// Market-Feed
+const INT32 max_feed_len = 20;
+
+// Security-Detail
+const INT32 min_day_len = 5;
+const INT32 max_day_len = 20;
+const INT32 max_fin_len = 20;
+const INT32 max_news_len = 2;
+const INT32 max_comp_len = 3;
+
+// Trade-Status
+const INT32 max_trade_status_len = 50;
+
+// Data-Maintenance
+const INT32 max_table_name = 30;
+
+/*
+* Macros for harness validation
+*/
+
+#define TXN_HARNESS_PROPAGATE_STATUS(code)           \
+if ((pTxnOutput->status >= 0) && ((code) < 0))       \
+{                                                    \
+  /* propagate error over existing ok/warn status */ \
+  pTxnOutput->status = (code);                       \
+}                                                    \
+else if ((pTxnOutput->status == 0) && ((code) > 0))  \
+{                                                    \
+  /* propagate warning over existing ok status */    \
+  pTxnOutput->status = (code);                       \
+}
+
+#define TXN_HARNESS_SET_STATUS_SUCCESS               \
+  pTxnOutput->status = CBaseTxnErr::SUCCESS;
 
 /*
 *   Broker-Volume
@@ -97,7 +127,6 @@ typedef struct TBrokerVolumeFrame1Output
     // Frame level outputs
     double          volume[max_broker_list_len];
     INT32           list_len;
-    INT32           status;
     char            broker_name[max_broker_list_len][cB_NAME_len+1];
 }   *PBrokerVolumeFrame1Output;
 /*
@@ -162,7 +191,6 @@ typedef struct TCustomerPositionFrame1Output
     TIdent              c_ad_id;
     TIdent              cust_id;
     INT32               acct_len;
-    INT32               status;
     TIMESTAMP_STRUCT    c_dob;
     char                c_area_1[cAREA_len+1];
     char                c_area_2[cAREA_len+1];
@@ -196,16 +224,11 @@ typedef struct TCustomerPositionFrame2Output
     TTrade              trade_id[max_hist_len];
     INT32               qty[max_hist_len];
     INT32               hist_len;
-    INT32               status;
     TIMESTAMP_STRUCT    hist_dts[max_hist_len];
     char                symbol[max_hist_len][cSYMBOL_len+1];
     char                trade_status[max_hist_len][cST_NAME_len+1];
 } *PCustomerPositionFrame2Output;
 
-typedef struct TCustomerPositionFrame3Output
-{
-    INT32           status;
-} *PCustomerPositionFrame3Output;
 
 
 /*
@@ -228,10 +251,7 @@ typedef struct TDataMaintenanceTxnInput
 typedef struct TDataMaintenanceTxnOutput
 {
     INT32   status;
-}   *PDataMaintenanceTxnOutput,
-     TDataMaintenanceFrame1Output,  // Single-Frame transaction
-    *PDataMaintenanceFrame1Output;  // Single-Frame transaction
-
+}   *PDataMaintenanceTxnOutput;
 
 /*
 *   Market-Feed
@@ -267,12 +287,12 @@ typedef struct TTickerEntry
 //Market-Feed data sent from MEE to sponsor provided SUT interface
 typedef struct TMarketFeedTxnInput
 {
+    INT32               unique_symbols;
+    char                zz_padding1[4];
     TStatusAndTradeType StatusAndTradeType;
-    char                zz_padding[4];
+    char                zz_padding2[4];
     TTickerEntry        Entries[max_feed_len];
-}   *PMarketFeedTxnInput,
-     TMarketFeedFrame1Input,    // Single-Frame transaction
-    *PMarketFeedFrame1Input;    // Single-Frame transaction
+}   *PMarketFeedTxnInput;
 
 typedef struct TMarketFeedTxnOutput
 {
@@ -280,10 +300,17 @@ typedef struct TMarketFeedTxnOutput
     INT32           status;
 }   *PMarketFeedTxnOutput;
 
+typedef struct TMarketFeedFrame1Input
+{
+    TStatusAndTradeType StatusAndTradeType;
+    char                zz_padding[4];
+    TTickerEntry        Entries[max_feed_len];
+}   *PMarketFeedFrame1Input;
+
 typedef struct TMarketFeedFrame1Output
 {
+    INT32           num_updated;
     INT32           send_len;
-    INT32           status;
 }   *PMarketFeedFrame1Output;
 
 
@@ -306,9 +333,12 @@ typedef struct TMarketWatchTxnOutput
 {
     double  pct_change;
     INT32   status;
-}   *PMarketWatchTxnOutput,
-     TMarketWatchFrame1Output,  // Single-Frame transaction
-    *PMarketWatchFrame1Output;  // Single-Frame transaction
+}   *PMarketWatchTxnOutput;
+
+typedef struct TMarketWatchFrame1Output
+{
+    double  pct_change;
+}   *PMarketWatchFrame1Output;
 
 
 /*
@@ -403,7 +433,6 @@ typedef struct TSecurityDetailFrame1Output
     INT32               ex_open;
     INT32               fin_len;
     INT32               news_len;
-    INT32               status;
     TIMESTAMP_STRUCT    ex_date;
     TIMESTAMP_STRUCT    open_date;
     TIMESTAMP_STRUCT    s52_wk_high_date;
@@ -502,7 +531,6 @@ typedef struct TTradeLookupFrame1TradeInfo
 typedef struct TTradeLookupFrame1Output
 {
     INT32                       num_found;
-    INT32                       status;
     TTradeLookupFrame1TradeInfo trade_info[TradeLookupFrame1MaxRows];
 } *PTradeLookupFrame1Output;
 
@@ -549,7 +577,6 @@ typedef struct TTradeLookupFrame2TradeInfo
 typedef struct TTradeLookupFrame2Output
 {
     INT32                       num_found;
-    INT32                       status;
     TTradeLookupFrame2TradeInfo trade_info[TradeLookupFrame2MaxRows];
 } *PTradeLookupFrame2Output;
 
@@ -603,7 +630,6 @@ typedef struct TTradeLookupFrame3TradeInfo
 typedef struct TTradeLookupFrame3Output
 {
     INT32                       num_found;
-    INT32                       status;
     TTradeLookupFrame3TradeInfo trade_info[TradeLookupFrame3MaxRows];
 } *PTradeLookupFrame3Output;
 
@@ -631,7 +657,7 @@ typedef struct TTradeLookupFrame4Output
 {
     TTrade                      trade_id;
     INT32                       num_found;
-    INT32                       status;
+    INT32                       num_trades_found;
     TTradeLookupFrame4TradeInfo trade_info[TradeLookupFrame4MaxRows];
 } *PTradeLookupFrame4Output;
 
@@ -677,7 +703,7 @@ typedef struct TTradeOrderFrame1Output
     TIdent  broker_id;
     TIdent  cust_id;
     INT32   cust_tier;
-    INT32   status;
+    INT32   num_found;
     INT32   tax_status;
     char    acct_name[cCA_NAME_len+1];
     char    broker_name[cB_NAME_len+1];
@@ -696,7 +722,6 @@ typedef struct TTradeOrderFrame2Input
 
 typedef struct TTradeOrderFrame2Output
 {
-    INT32       status;
     char        ap_acl[cACL_len+1];
 } *PTradeOrderFrame2Output;
 
@@ -720,15 +745,14 @@ typedef struct TTradeOrderFrame3Input
 
 typedef struct TTradeOrderFrame3Output
 {
+    double  acct_assets;
     double  buy_value;
     double  charge_amount;
     double  comm_rate;
-    double  cust_assets;
     double  market_price;
     double  requested_price;            // IN-OUT parameter
     double  sell_value;
     double  tax_amount;
-    INT32   status;
     INT32   type_is_market;
     INT32   type_is_sell;
     char    co_name[cCO_NAME_len+1];    // IN-OUT parameter
@@ -757,18 +781,7 @@ typedef struct TTradeOrderFrame4Input
 typedef struct TTradeOrderFrame4Output
 {
     TTrade  trade_id;
-    INT32   status;
 } *PTradeOrderFrame4Output;
-
-typedef struct TTradeOrderFrame5Output
-{
-    INT32       status;
-} *PTradeOrderFrame5Output;
-
-typedef struct TTradeOrderFrame6Output
-{
-    INT32       status;
-} *PTradeOrderFrame6Output;
 
 
 /*
@@ -800,7 +813,7 @@ typedef struct TTradeResultFrame1Output
     TIdent  acct_id;
     INT32   hs_qty;
     INT32   is_lifo;
-    INT32   status;
+    INT32   num_found;
     INT32   trade_is_cash;
     INT32   trade_qty;
     INT32   type_is_market;
@@ -828,7 +841,6 @@ typedef struct TTradeResultFrame2Output
     double              sell_value;
     TIdent              broker_id;
     TIdent              cust_id;
-    INT32               status;
     INT32               tax_status;
     TIMESTAMP_STRUCT    trade_dts;
 } *PTradeResultFrame2Output;
@@ -844,7 +856,6 @@ typedef struct TTradeResultFrame3Input
 typedef struct TTradeResultFrame3Output
 {
     double  tax_amount;
-    INT32   status;
 } *PTradeResultFrame3Output;
 
 typedef struct TTradeResultFrame4Input
@@ -858,7 +869,6 @@ typedef struct TTradeResultFrame4Input
 typedef struct TTradeResultFrame4Output
 {
     double  comm_rate;
-    INT32   status;
     char    s_name[cS_NAME_len+1];
 } *PTradeResultFrame4Output;
 
@@ -871,11 +881,6 @@ typedef struct TTradeResultFrame5Input
     TIMESTAMP_STRUCT    trade_dts;
     char                st_completed_id[cST_ID_len+1];
 } *PTradeResultFrame5Input;
-
-typedef struct TTradeResultFrame5Output
-{
-    INT32       status;
-} *PTradeResultFrame5Output;
 
 typedef struct TTradeResultFrame6Input
 {
@@ -893,7 +898,6 @@ typedef struct TTradeResultFrame6Input
 typedef struct TTradeResultFrame6Output
 {
     double      acct_bal;
-    INT32       status;
 } *PTradeResultFrame6Output;
 
 
@@ -919,7 +923,7 @@ typedef struct TTradeStatusFrame1Output
     double              charge[max_trade_status_len];
     TTrade              trade_id[max_trade_status_len];
     INT32               trade_qty[max_trade_status_len];
-    INT32               status;
+    INT32               num_found;
     TIMESTAMP_STRUCT    trade_dts[max_trade_status_len];
     char                ex_name[max_trade_status_len][cEX_NAME_len+1];
     char                exec_name[max_trade_status_len][cEXEC_NAME_len+1];
@@ -1000,8 +1004,6 @@ typedef struct TTradeUpdateFrame1Output
 {
     INT32                       num_found;
     INT32                       num_updated;
-    INT32                       status;
-    char                        zz_padding[4];
     TTradeUpdateFrame1TradeInfo trade_info[TradeUpdateFrame1MaxRows];
 } *PTradeUpdateFrame1Output;
 
@@ -1048,7 +1050,6 @@ typedef struct TTradeUpdateFrame2Output
 {
     INT32                       num_found;
     INT32                       num_updated;
-    INT32                       status;
     TTradeUpdateFrame2TradeInfo trade_info[TradeUpdateFrame2MaxRows];
 } *PTradeUpdateFrame2Output;
 
@@ -1106,7 +1107,6 @@ typedef struct TTradeUpdateFrame3Output
 {
     INT32                       num_found;
     INT32                       num_updated;
-    INT32                       status;
     TTradeUpdateFrame3TradeInfo trade_info[TradeUpdateFrame3MaxRows];
 } *PTradeUpdateFrame3Output;
 
@@ -1127,12 +1127,6 @@ typedef struct TTradeCleanupTxnOutput
 {
     INT32               status;
 }   *PTradeCleanupTxnOutput;
-
-typedef struct TTradeCleanupFrame1Output
-{
-    INT32               status;
-}   *PTradeCleanupFrame1Output;
-
 
 }   // namespace TPCE
 

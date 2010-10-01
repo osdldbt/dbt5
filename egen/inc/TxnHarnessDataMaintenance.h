@@ -54,7 +54,10 @@ public:
 
     void DoTxn( PDataMaintenanceTxnInput pTxnInput, PDataMaintenanceTxnOutput pTxnOutput )
     {
-        m_db->DoDataMaintenanceFrame1( pTxnInput, pTxnOutput);
+        TXN_HARNESS_SET_STATUS_SUCCESS;
+
+        // Execute Frame 1
+        m_db->DoDataMaintenanceFrame1(pTxnInput);
     }
 };
 

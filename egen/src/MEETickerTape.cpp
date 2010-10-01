@@ -84,6 +84,7 @@ CMEETickerTape::CMEETickerTape( CMEESUTInterface* pSUT, CMEEPriceBoard* pPriceBo
     : m_pSUT( pSUT )
     , m_pPriceBoard( pPriceBoard )
     , m_BatchIndex( 0 )
+    , m_BatchDuplicates( 0 )
     , m_rnd( RNGSeedBaseMEETickerTape )
     , m_Enabled( true )
     , m_pBaseTime( pBaseTime )
@@ -99,6 +100,7 @@ CMEETickerTape::CMEETickerTape( CMEESUTInterface* pSUT, CMEEPriceBoard* pPriceBo
     : m_pSUT( pSUT )
     , m_pPriceBoard( pPriceBoard )
     , m_BatchIndex( 0 )
+    , m_BatchDuplicates( 0 )
     , m_rnd( RNGSeed )
     , m_Enabled( true )
     , m_pBaseTime( pBaseTime )
@@ -129,7 +131,7 @@ void CMEETickerTape::AddEntry( PTickerEntry pTickerEntry )
 {
     if( m_Enabled )
     {
-        AddToBatch( pTickerEntry);
+        AddToBatch( pTickerEntry );
         AddArtificialEntries( );
     }
 }
@@ -219,12 +221,26 @@ void CMEETickerTape::AddArtificialEntries( void )
 
 void CMEETickerTape::AddToBatch( PTickerEntry pTickerEntry )
 {
+    // Check to see if this symbol already exists in the batch
+    for (int i=0; i<m_BatchIndex; i++)
+    {
+        if (strncmp(pTickerEntry->symbol, m_TxnInput.Entries[i].symbol, cSYMBOL_len) == 0)
+        {
+            m_BatchDuplicates++;
+            break;
+        }
+    }
+
+    // Add the ticker to the batch
     m_TxnInput.Entries[m_BatchIndex++] = *pTickerEntry;
+
+    // Buffer is full, time for Market-Feed.
     if( max_feed_len == m_BatchIndex )
     {
-        // Buffer is full, time for Market-Feed.
+        m_TxnInput.unique_symbols = (max_feed_len - m_BatchDuplicates);
         m_pSUT->MarketFeed( &m_TxnInput );
         m_BatchIndex = 0;
+        m_BatchDuplicates = 0;
     }
 }
 

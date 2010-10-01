@@ -58,61 +58,60 @@ public:
 
     void DoTxn( PTradeUpdateTxnInput pTxnInput, PTradeUpdateTxnOutput pTxnOutput )
     {
-        int i;
+        TXN_HARNESS_SET_STATUS_SUCCESS;
 
         switch( pTxnInput->frame_to_execute )
         {
         case 1:
+            // Initialize
             TTradeUpdateFrame1Input     Frame1Input;
             TTradeUpdateFrame1Output    Frame1Output;
             memset(&Frame1Input, 0, sizeof( Frame1Input ));
             memset(&Frame1Output, 0, sizeof( Frame1Output ));
 
+            // Copy Frame 1 Input
             Frame1Input.max_trades = pTxnInput->max_trades;
             Frame1Input.max_updates = pTxnInput->max_updates;
             memcpy( Frame1Input.trade_id, pTxnInput->trade_id, sizeof( Frame1Input.trade_id ));
 
+            // Execute Frame 1
             m_db->DoTradeUpdateFrame1( &Frame1Input, &Frame1Output );
 
+            // Validate Frame 1 Output
+            if (   Frame1Output.num_found != pTxnInput->max_trades
+                || Frame1Output.num_updated != pTxnInput->max_updates)
+            {
+                TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::TUF1_ERROR1);
+            }
+
+            // Copy Frame 1 Output
             pTxnOutput->frame_executed = 1;
-            for (i = 0; i < Frame1Output.num_found; ++i)
+            for (int i=0; i < Frame1Output.num_found && i < TradeUpdateFrame1MaxRows; i++)
             {
                 pTxnOutput->is_cash[i] = Frame1Output.trade_info[i].is_cash;
                 pTxnOutput->is_market[i] = Frame1Output.trade_info[i].is_market;
             }
             pTxnOutput->num_found = Frame1Output.num_found;
             pTxnOutput->num_updated = Frame1Output.num_updated;
-            pTxnOutput->status = Frame1Output.status;
-            if (   Frame1Output.num_found != pTxnInput->max_trades
-                || Frame1Output.num_updated != pTxnInput->max_updates)
-            {
-                pTxnOutput->status = -1011;
-            }
+
             break;
 
         case 2:
+            // Initialize
             TTradeUpdateFrame2Input     Frame2Input;
             TTradeUpdateFrame2Output    Frame2Output;
             memset(&Frame2Input, 0, sizeof( Frame2Input ));
             memset(&Frame2Output, 0, sizeof( Frame2Output ));
 
+            // Copy Frame 2 Input
             Frame2Input.acct_id = pTxnInput->acct_id;
             Frame2Input.max_trades = pTxnInput->max_trades;
             Frame2Input.max_updates = pTxnInput->max_updates;
             Frame2Input.start_trade_dts = pTxnInput->start_trade_dts;
             Frame2Input.end_trade_dts = pTxnInput->end_trade_dts;
 
+            // Execute Frame 2
             m_db->DoTradeUpdateFrame2( &Frame2Input, &Frame2Output );
-
-            pTxnOutput->frame_executed = 2;
-            for (i = 0; i < Frame2Output.num_found; ++i)
-            {
-                pTxnOutput->is_cash[i] = Frame2Output.trade_info[i].is_cash;
-                pTxnOutput->trade_list[i] = Frame2Output.trade_info[i].trade_id;
-            }
-            pTxnOutput->num_found = Frame2Output.num_found;
-            pTxnOutput->num_updated = Frame2Output.num_updated;
-            pTxnOutput->status = Frame2Output.status;
 
             /* valid relationships           */
             /* 1) num_found   <= max_trades  */
@@ -124,17 +123,27 @@ public:
             /* 6) num_found   >=  0          */
             /* 7) num_updated  = num_found   */
 
-            // Do we want to check the rest of those relationships?
-            // The num_found < 0 test in the draft spec disagrees between the pseudo code and the comments
+            // Validate Frame 2 Output
             if (   Frame2Output.num_updated != Frame2Output.num_found
-                || Frame2Output.num_found < 0)
+                || Frame2Output.num_found < 0 || Frame2Output.num_found > Frame2Input.max_trades)
             {
-                pTxnOutput->status = -1021;
+                TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::TUF2_ERROR1);
             }
-            else if (Frame2Output.num_updated == 0)
+            if (Frame2Output.num_updated == 0)
             {
-                pTxnOutput->status =  1021;
+                TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::TUF2_WARN1);
             }
+
+            // Copy Frame 2 Output
+            pTxnOutput->frame_executed = 2;
+            for (int i=0; i < Frame2Output.num_found && i < TradeUpdateFrame2MaxRows; i++)
+            {
+                pTxnOutput->is_cash[i] = Frame2Output.trade_info[i].is_cash;
+                pTxnOutput->trade_list[i] = Frame2Output.trade_info[i].trade_id;
+            }
+            pTxnOutput->num_found = Frame2Output.num_found;
+            pTxnOutput->num_updated = Frame2Output.num_updated;
+
             break;
 
         case 3:
@@ -143,6 +152,7 @@ public:
             memset(&Frame3Input, 0, sizeof( Frame3Input ));
             memset(&Frame3Output, 0, sizeof( Frame3Output ));
 
+            // Copy Frame 3 Input
             Frame3Input.max_trades = pTxnInput->max_trades;
             Frame3Input.max_updates = pTxnInput->max_updates;
             strncpy( Frame3Input.symbol, pTxnInput->symbol, sizeof( Frame3Input.symbol ));
@@ -150,17 +160,8 @@ public:
             Frame3Input.end_trade_dts = pTxnInput->end_trade_dts;
             Frame3Input.max_acct_id = pTxnInput->max_acct_id;
 
+            // Execute Frame 3
             m_db->DoTradeUpdateFrame3( &Frame3Input, &Frame3Output );
-
-            pTxnOutput->frame_executed = 3;
-            pTxnOutput->num_found = Frame3Output.num_found;
-            pTxnOutput->num_updated = Frame3Output.num_updated;
-            pTxnOutput->status = Frame3Output.status;
-            for (i = 0; i < Frame3Output.num_found; ++i)
-            {
-                pTxnOutput->is_cash[i] = Frame3Output.trade_info[i].is_cash;
-                pTxnOutput->trade_list[i] = Frame3Output.trade_info[i].trade_id;
-            }
 
             /* valid relationships           */
             /* 1) num_found   <= max_trades  */
@@ -173,10 +174,27 @@ public:
             /* 7) num_updated <= num_found   */
             /* 8) num_updated >=  0          */
 
-            if (Frame3Output.num_found == 0)
+            // Validate Frame 3 Output
+            if ((Frame3Output.num_found < 0 || Frame3Output.num_found > Frame3Input.max_trades) ||
+                Frame3Output.num_updated > Frame3Output.num_found)
             {
-                pTxnOutput->status =  1031;
+                TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::TUF3_ERROR1);
             }
+            if (Frame3Output.num_updated == 0)
+            {
+                TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::TUF3_WARN1);
+            }
+
+            // Copy Frame 3 Output
+            pTxnOutput->frame_executed = 3;
+            pTxnOutput->num_found = Frame3Output.num_found;
+            pTxnOutput->num_updated = Frame3Output.num_updated;
+            for (int i=0; i < Frame3Output.num_found && i < TradeUpdateFrame3MaxRows; i++)
+            {
+                pTxnOutput->is_cash[i] = Frame3Output.trade_info[i].is_cash;
+                pTxnOutput->trade_list[i] = Frame3Output.trade_info[i].trade_id;
+            }
+
             break;
 
         default:

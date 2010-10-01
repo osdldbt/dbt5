@@ -148,6 +148,7 @@ typedef uint64_t        UINT64, *PUINT64;
 #include <pthread.h>
 
 typedef pthread_t       TThread;
+typedef pthread_attr_t  TThreadAttr;
 typedef pthread_mutex_t TMutex;
 
 #endif // (__unix) || (_AIX)

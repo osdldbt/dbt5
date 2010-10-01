@@ -35,7 +35,6 @@
  */
 
 #include "../inc/locking.h"
-#include <cstring>
 
 #ifndef WIN32
 #include <iostream>

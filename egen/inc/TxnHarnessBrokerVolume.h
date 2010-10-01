@@ -54,21 +54,26 @@ public:
 
     void DoTxn( PBrokerVolumeTxnInput pTxnInput, PBrokerVolumeTxnOutput pTxnOutput )
     {
+        // Initialize
         TBrokerVolumeFrame1Output   Frame1Output;
         memset(&Frame1Output, 0, sizeof( Frame1Output ));
 
+        TXN_HARNESS_SET_STATUS_SUCCESS;
+
+        // Execute Frame 1
         m_db->DoBrokerVolumeFrame1( pTxnInput, &Frame1Output );
 
-        pTxnOutput->list_len = Frame1Output.list_len;
-        pTxnOutput->status = Frame1Output.status;
-        for( INT32 ii=0; ii < Frame1Output.list_len; ii++ )
+        // Validate Frame 1 Output
+        if (Frame1Output.list_len < 0 || Frame1Output.list_len > max_broker_list_len)
         {
-            pTxnOutput->volume[ii] = Frame1Output.volume[ii];
+            TXN_HARNESS_PROPAGATE_STATUS(CBaseTxnErr::BVF1_ERROR1);
         }
 
-        if (pTxnOutput->list_len < 0)
+        // Copy Frame 1 Output
+        pTxnOutput->list_len = Frame1Output.list_len;
+        for (int i=0; i < Frame1Output.list_len && i < max_broker_list_len; i++)
         {
-            pTxnOutput->status = -111;
+            pTxnOutput->volume[i] = Frame1Output.volume[i];
         }
     }
 };
