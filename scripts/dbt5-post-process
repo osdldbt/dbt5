@@ -4,24 +4,25 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2006-2010 Mark Wong & Open Source Development Labs, Inc.
-# Copyright (C) 2006 Rilson Nascimento.
+# Copyright (C) 2006      Open Source Development Labs, Inc.
+#               2006      Rilson Nascimento.
+#               2006-2010 Mark Wong
 #
 
 import sys
-import math
+from math import ceil, floor, fsum
 from re import match, search, sub
 
 def average(values):
-    try:
-        return fsum(values) / float(len(values))
-    except:
+    count = float(len(values))
+    if count == 0:
         return 0
+    return fsum(values) / float(len(values))
 
 def percentile_90(values):
     index = 0.9 * float(len(values))
-    findex = int(math.floor(index))
-    cindex = int(math.ceil(index))
+    findex = int(floor(index))
+    cindex = int(ceil(index))
     values.sort()
     try:
         if findex == cindex:
@@ -93,14 +94,11 @@ for line in f:
         steadystate_start = long(c[0])
         continue
 
-    if c[1] == '0' or c[1] == '1' or c[1] == '2' or c[1] == '3' or \
-            c[1] == '4' or c[1] == '5' or c[1] == '6' or c[1] == '7' or \
-            c[1] == '8' or c[1] == '9' or c[1] == '10':
+    if c[1] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']:
         transaction_count[c[1]] += 1
         response_time[c[1]].append(float(c[2]))
-    elif c[1] == '0R' or c[1] == '1R' or c[1] == '2R' or c[1] == '3R' or \
-            c[1] == '4R' or c[1] == '5R' or c[1] == '6R' or c[1] == '7R' or \
-            c[1] == '8R' or c[1] == '9R' or c[1] == '10R':
+    elif c[1] in ['0R', '1R', '2R', '3R', '4R', '5R', '6R', '7R', '8R', '9',
+                  '10R']:
         m = match(r'(\d+)R', c[1])
         key = m.group(1)
         rollback_count[key] += 1
