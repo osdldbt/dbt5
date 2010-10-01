@@ -81,10 +81,12 @@ transaction_name[mw] = 'Market Watch'
 transaction_name[dm] = 'Data Maintenance'
 transaction_name[tc] = 'Trade Cleanup'
 
+print 'Generating transaction distribution charts...'
 for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu, dm, tc]:
-    system('dbt-plot-transaction-distribution "%s" %s %s %s/txn' % \
-            (transaction_name[key], key, mixfile, outdir))
+    system('dbt-plot-transaction-distribution "%s" %s %s %s/txn 12 %d' % \
+            (transaction_name[key], key, mixfile, outdir, int(key) + 1))
 
+print 'Generating mpstat charts...'
 mpstatfile = '%s/driver/mpstat.out' % indir
 if isfile(mpstatfile):
     system('dbt-plot-mpstat %s %s/driver/mpstat' % (mpstatfile, outdir))
@@ -93,16 +95,18 @@ mpstatfile = '%s/db/mpstat.out' % indir
 if isfile(mpstatfile):
     system('dbt-plot-mpstat %s %s/db/mpstat' % (mpstatfile, outdir))
 
-mpstatfile = '%s/driver/iostatx.out' % indir
+print 'Generating iostat charts...'
+iostatfile = '%s/driver/iostatx.out' % indir
 if isfile(mpstatfile):
     system('dbt-plot-iostat %s %s/driver/iostat %s' % \
-            (mpstatfile, outdir, device_arg))
+            (iostatfile, outdir, device_arg))
 
 iostatfile = '%s/db/iostatx.out' % indir
 if isfile(iostatfile):
     system('dbt-plot-iostat %s %s/db/iostat %s' % \
             (iostatfile, outdir, device_arg))
 
+print 'Generating vmstat charts...'
 vmstatfile = '%s/driver/vmstat.out' % indir
 if isfile(vmstatfile):
     system('dbt-plot-vmstat %s %s/driver/vmstat' % (vmstatfile, outdir))
@@ -111,8 +115,10 @@ vmstatfile = '%s/db/vmstat.out' % indir
 if isfile(vmstatfile):
     system('dbt-plot-vmstat %s %s/db/vmstat' % (vmstatfile, outdir))
 
+print 'Generating transaction rate charts...'
 system('dbt5-plot-transaction-rate %s %s/txn' % (mixfile, outdir))
 
+print 'Generating database statistics charts...'
 if dbms == 'pgsql':
     system('dbt-pgsql-plot-database-stats ' \
             '%s/db/pg_stat_databases.out %s %s/db' % (indir, dbname, outdir))
