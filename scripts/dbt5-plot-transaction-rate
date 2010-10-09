@@ -113,6 +113,15 @@ for line in f:
         ctime1 = ctime2
         count += 1
 
+# This should take care of the last minute of data since it won't be a full
+# minute.
+d.write('%d' % count)
+for key in [to, tr, tl, tu, ts, cp, bv, sd, mf, mw, dm, tc]:
+    rate = float(len(response_time[key])) / 60.0
+    d.write(' %f' % rate)
+    response_time[key] = list()
+d.write('\n')
+
 f.close()
 d.close()
 
