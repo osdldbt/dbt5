@@ -14,7 +14,7 @@
 #include <fmgr.h>
 #include <executor/spi.h> /* this should include most necessary APIs */
 #include <executor/executor.h>  /* for GetAttributeByName() */
-#include <funcapi.h> /* for returning set of rows in order_status */
+#include <funcapi.h> /* for returning set of rows */
 #include <utils/array.h>
 #include <utils/builtins.h>
 #include <utils/lsyscache.h>
@@ -45,8 +45,7 @@ typedef int16 NumericDigit;
 		"SET    lt_price = %s,\n" \
 		"       lt_vol = lt_vol + %d,\n" \
 		"       lt_dts = now()\n" \
-		"WHERE  lt_s_symb = '%s'\n" \
-		"RETURNING lt_s_symb"
+		"WHERE  lt_s_symb = '%s';"
 
 #define MFF1_2 \
 		"SELECT tr_t_id,\n" \
@@ -159,7 +158,7 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 	int max_calls;
 
 	int i, j, k;
-	int rows_updated = 0;
+	int num_updated = 0;
 	int rows_sent;
 	int send_len = 0;
 	int count = 0;
@@ -182,8 +181,10 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		char *type_limit_sell_p = (char *) PG_GETARG_TEXT_P(5);
 		char *type_stop_loss_p = (char *) PG_GETARG_TEXT_P(6);
 
-		enum mff1 {i_send_len=0, i_status, i_rows_updated, i_symbol,
-				i_trade_id, i_price_quote, i_trade_qty, i_trade_type};
+		enum mff1 {
+				i_num_updated=0, i_send_len, i_symbol, i_trade_id,
+				i_price_quote, i_trade_qty, i_trade_type
+		};
 
 		Datum *transdatums_pq;
 
@@ -217,11 +218,10 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		 * This should be an array of C strings, which will
 		 * be processed later by the type input functions.
 		 */
-		values = (char **) palloc(sizeof(char *) * 8);
+		values = (char **) palloc(sizeof(char *) * 7);
+		values[i_num_updated] =
+				(char *) palloc((INTEGER_LEN + 1) * sizeof(char));
 		values[i_send_len] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
-		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
-		values[i_rows_updated] =
-				(char *) palloc((STATUS_LEN + 1) * sizeof(char));
 		/*
 		 * FIXME: We don't know how many rows could be returned.  The average
 		 * is supposed to be 4.  Let's be prepared for 100, just to be safe.
@@ -236,8 +236,6 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 				sizeof(char));
 		values[i_trade_type] = (char *) palloc(((TT_ID_LEN + 3) * 100 + 3) *
 				sizeof(char));
-
-		sprintf(values[i_status], "%d", 0);
 
 		/*
 		 * This might be overkill since we always expect single dimensions
@@ -265,7 +263,6 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		strcpy(type_stop_loss, DatumGetCString(DirectFunctionCall1(textout,
                 PointerGetDatum(type_stop_loss_p))));
 
-		sprintf(values[i_status], "%d", 1);
 #ifdef DEBUG
 		dump_mff1_inputs(price_quote_p, status_submitted_p, symbol_p,
 				trade_qty, type_limit_buy_p, type_limit_sell_p,
@@ -312,15 +309,15 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 			ret = SPI_exec(sql, 0);
-			if (ret != SPI_OK_UPDATE_RETURNING) {
+			if (ret != SPI_OK_UPDATE) {
 				dump_mff1_inputs(price_quote_p, status_submitted_p, symbol_p,
 						trade_qty, type_limit_buy_p, type_limit_sell_p,
 						type_stop_loss_p);
-				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME_SET(&funcctx->max_calls, sql);
 			}
-			rows_updated += SPI_processed;
+			num_updated += SPI_processed;
 #ifdef DEBUG
-			elog(NOTICE, "%d row(s) updated", rows_updated);
+			elog(NOTICE, "%d row(s) updated", num_updated);
 #endif /* DEBUG */
 
 			sprintf(sql, MFF1_2, symbol, type_stop_loss, price_quote,
@@ -333,7 +330,7 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 				dump_mff1_inputs(price_quote_p, status_submitted_p, symbol_p,
 						trade_qty, type_limit_buy_p, type_limit_sell_p,
 						type_stop_loss_p);
-				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME_SET(&funcctx->max_calls, sql);
 				continue;
 			}
 #ifdef DEBUG
@@ -361,7 +358,7 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 					dump_mff1_inputs(price_quote_p, status_submitted_p,
 							symbol_p, trade_qty, type_limit_buy_p,
 							type_limit_sell_p, type_stop_loss_p);
-					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+					FAIL_FRAME_SET(&funcctx->max_calls, sql);
 				}
 
 				sprintf(sql, MFF1_4, trade_id);
@@ -373,7 +370,7 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 					dump_mff1_inputs(price_quote_p, status_submitted_p,
 							symbol_p, trade_qty, type_limit_buy_p,
 							type_limit_sell_p, type_stop_loss_p);
-					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+					FAIL_FRAME_SET(&funcctx->max_calls, sql);
 				}
 
 				sprintf(sql, MFF1_5, trade_id, status_submitted);
@@ -385,7 +382,7 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 					dump_mff1_inputs(price_quote_p, status_submitted_p,
 							symbol_p, trade_qty, type_limit_buy_p,
 							type_limit_sell_p, type_stop_loss_p);
-					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+					FAIL_FRAME_SET(&funcctx->max_calls, sql);
 				}
 				++rows_sent;
 #ifdef DEBUG
@@ -427,7 +424,7 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		strcat(values[i_trade_qty], "}");
 		strcat(values[i_trade_type], "}");
 
-		sprintf(values[i_rows_updated], "%d", rows_updated);
+		sprintf(values[i_num_updated], "%d", num_updated);
 		sprintf(values[i_send_len], "%d", send_len);
 		funcctx->max_calls = 1;
 
@@ -463,7 +460,7 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		Datum result;
 
 #ifdef DEBUG                                                                    
-		for (i = 0; i < 8; i++) {
+		for (i = 0; i < 7; i++) {
 			elog(NOTICE, "MFF1 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */

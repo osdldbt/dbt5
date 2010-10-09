@@ -30,8 +30,8 @@ public:
 			TTradeOrderFrame3Output *pOut);
 	virtual void DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 			TTradeOrderFrame4Output *pOut);
-	virtual void DoTradeOrderFrame5(TTradeOrderFrame5Output *pOut);
-	virtual void DoTradeOrderFrame6(TTradeOrderFrame6Output *pOut);
+	virtual void DoTradeOrderFrame5();
+	virtual void DoTradeOrderFrame6();
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

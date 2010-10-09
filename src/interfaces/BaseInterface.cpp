@@ -132,7 +132,7 @@ void CBaseInterface::logResponseTime(int iStatus, int iTxnType, double dRT)
 	if (iStatus == CBaseTxnErr::SUCCESS) {
 		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "," << dRT <<
 				"," << (int) pthread_self() << endl;
-	} else if (iStatus == CBaseTxnErr::ROLLBACK) {
+	} else if (iStatus == CBaseTxnErr::EXPECTED_ROLLBACK) {
 		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "R" << "," <<
 				dRT << "," << (int) pthread_self() << endl;
 	} else if (iStatus > 0) {

@@ -15,11 +15,10 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 		TTradeOrderFrame1Output *pOut)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< TOF1" << endl;
-	cout << "- Trade Order Frame 1 (input)" << endl <<
-			"-- acct_id: " << pIn->acct_id << endl;
-	m_coutLock.unlock();
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< TOF1" << endl;
+	cout << pid << " - Trade Order Frame 1 (input)" << endl <<
+			pid << " -- acct_id: " << pIn->acct_id << endl;
 #endif // DEBUG
 
 	startTransaction();
@@ -28,18 +27,16 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 	execute(pIn, pOut);
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Trade Order Frame 1 (output)" << endl <<
-			"-- acct_name: " << pOut->acct_name << endl <<
-			"-- broker_name: " << pOut->broker_name << endl <<
-			"-- cust_f_name: " << pOut->cust_f_name << endl <<
-			"-- cust_id: " << pOut->cust_id << endl <<
-			"-- cust_l_name: " << pOut->cust_l_name << endl <<
-			"-- cust_tier: " << pOut->cust_tier << endl <<
-			"-- tax_id: " << pOut->tax_id << endl <<
-			"-- tax_status: " << pOut->tax_status << endl;
-	cout << ">>> TOF1" << endl;
-	m_coutLock.unlock();
+	cout << pid << " - Trade Order Frame 1 (output)" << endl <<
+			pid << " -- acct_name: " << pOut->acct_name << endl <<
+			pid << " -- broker_name: " << pOut->broker_name << endl <<
+			pid << " -- cust_f_name: " << pOut->cust_f_name << endl <<
+			pid << " -- cust_id: " << pOut->cust_id << endl <<
+			pid << " -- cust_l_name: " << pOut->cust_l_name << endl <<
+			pid << " -- cust_tier: " << pOut->cust_tier << endl <<
+			pid << " -- tax_id: " << pOut->tax_id << endl <<
+			pid << " -- tax_status: " << pOut->tax_status << endl;
+	cout << pid << " >>> TOF1" << endl;
 #endif // DEBUG
 }
 
@@ -48,25 +45,21 @@ void CTradeOrderDB::DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
 		TTradeOrderFrame2Output *pOut)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< TOF2" << endl;
-	cout << "- Trade Order Frame 2 (input)" << endl <<
-			"-- acct_id: " << pIn->acct_id << endl <<
-			"-- exec_f_name: " << escape(pIn->exec_f_name) << endl <<
-			"-- exec_l_name: " << escape(pIn->exec_l_name) << endl <<
-			"-- exec_tax_id: " << pIn->exec_tax_id << endl;
-	m_coutLock.unlock();
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< TOF2" << endl;
+	cout << pid << " - Trade Order Frame 2 (input)" << endl <<
+			pid << " -- acct_id: " << pIn->acct_id << endl <<
+			pid << " -- exec_f_name: " << escape(pIn->exec_f_name) << endl <<
+			pid << " -- exec_l_name: " << escape(pIn->exec_l_name) << endl <<
+			pid << " -- exec_tax_id: " << pIn->exec_tax_id << endl;
 #endif // DEBUG
 
 	execute(pIn, pOut);
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Trade Order Frame 2 (output)" << endl <<
-			"-- ap_acl: " << pOut->ap_acl << endl <<
-			"-- status: " << pOut->status << endl;
-	cout << ">>> TOF2" << endl;
-	m_coutLock.unlock();
+	cout << pid << " - Trade Order Frame 2 (output)" << endl <<
+			pid << " -- ap_acl: " << pOut->ap_acl << endl <<
+	cout << pid << " >>> TOF2" << endl;
 #endif // DEBUG
 }
 
@@ -75,47 +68,44 @@ void CTradeOrderDB::DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
 		TTradeOrderFrame3Output *pOut)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< TOF3" << endl;
-	cout << "- Trade Order Frame 3 (input)" << endl <<
-			"-- acct_id: " << pIn->acct_id << endl <<
-			"-- cust_id: " << pIn->cust_id << endl <<
-			"-- cust_tier: " << pIn->cust_tier << endl <<
-			"-- is_lifo: " << pIn->is_lifo << endl <<
-			"-- issue: " << pIn->issue << endl <<
-			"-- st_pending_id: " << pIn->st_pending_id << endl <<
-			"-- st_submitted_id: " << pIn->st_submitted_id << endl <<
-			"-- tax_status: " << pIn->tax_status << endl <<
-			"-- trade_qty: " << pIn->trade_qty << endl <<
-			"-- trade_type_id: " << pIn->trade_type_id << endl <<
-			"-- type_is_margin: " << pIn->type_is_margin << endl <<
-			"-- co_name: " << pIn->co_name << endl <<
-			"-- requested_price: " << pIn->requested_price << endl <<
-			"-- symbol: " << pIn->symbol << endl;
-	m_coutLock.unlock();
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< TOF3" << endl;
+	cout << pid << " - Trade Order Frame 3 (input)" << endl <<
+			pid << " -- acct_id: " << pIn->acct_id << endl <<
+			pid << " -- cust_id: " << pIn->cust_id << endl <<
+			pid << " -- cust_tier: " << pIn->cust_tier << endl <<
+			pid << " -- is_lifo: " << pIn->is_lifo << endl <<
+			pid << " -- issue: " << pIn->issue << endl <<
+			pid << " -- st_pending_id: " << pIn->st_pending_id << endl <<
+			pid << " -- st_submitted_id: " << pIn->st_submitted_id << endl <<
+			pid << " -- tax_status: " << pIn->tax_status << endl <<
+			pid << " -- trade_qty: " << pIn->trade_qty << endl <<
+			pid << " -- trade_type_id: " << pIn->trade_type_id << endl <<
+			pid << " -- type_is_margin: " << pIn->type_is_margin << endl <<
+			pid << " -- co_name: " << pIn->co_name << endl <<
+			pid << " -- requested_price: " << pIn->requested_price << endl <<
+			pid << " -- symbol: " << pIn->symbol << endl;
 #endif //DEBUG
 
 	execute(pIn, pOut);
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Trade Order Frame 3 (output)" << endl <<
-			"-- co_name: " << pOut->co_name << endl <<
-			"-- requested_price: " << pOut->requested_price << endl <<
-			"-- symbol: " << pOut->symbol << endl <<
-			"-- buy_value: " << pOut->buy_value << endl <<
-			"-- charge_amount: " << pOut->charge_amount << endl <<
-			"-- comm_rate: " << pOut->comm_rate << endl <<
-			"-- cust_assets: " << pOut->cust_assets << endl <<
-			"-- market_price: " << pOut->market_price << endl <<
-			"-- s_name: " << pOut->s_name << endl <<
-			"-- sell_value: " << pOut->sell_value << endl <<
-			"-- status_id: " << pOut->status_id << endl <<
-			"-- tax_amount: " << pOut->tax_amount << endl <<
-			"-- type_is_market: " << pOut->type_is_market << endl <<
-			"-- type_is_sell: " << pOut->type_is_sell << endl;
-	cout << ">>> TOF3" << endl;
-	m_coutLock.unlock();
+	cout << pid << " - Trade Order Frame 3 (output)" << endl <<
+			pid << " -- co_name: " << pOut->co_name << endl <<
+			pid << " -- requested_price: " << pOut->requested_price << endl <<
+			pid << " -- symbol: " << pOut->symbol << endl <<
+			pid << " -- buy_value: " << pOut->buy_value << endl <<
+			pid << " -- charge_amount: " << pOut->charge_amount << endl <<
+			pid << " -- comm_rate: " << pOut->comm_rate << endl <<
+			pid << " -- acct_assets: " << pOut->acct_assets << endl <<
+			pid << " -- market_price: " << pOut->market_price << endl <<
+			pid << " -- s_name: " << pOut->s_name << endl <<
+			pid << " -- sell_value: " << pOut->sell_value << endl <<
+			pid << " -- status_id: " << pOut->status_id << endl <<
+			pid << " -- tax_amount: " << pOut->tax_amount << endl <<
+			pid << " -- type_is_market: " << pOut->type_is_market << endl <<
+			pid << " -- type_is_sell: " << pOut->type_is_sell << endl;
+	cout << pid << " >>> TOF3" << endl;
 #endif //DEBUG
 }
 
@@ -124,70 +114,62 @@ void CTradeOrderDB::DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
 		TTradeOrderFrame4Output *pOut)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< TOF4" << endl;
-	cout << "-Trade Order Frame 4 (input)" << endl <<
-			"-- acct_id: " << pIn->acct_id << endl <<
-			"-- broker_id: " << pIn->broker_id << endl <<
-			"-- charge_amount: " << pIn->charge_amount << endl <<
-			"-- comm_amount: " << pIn->comm_amount << endl <<
-			"-- exec_name: " << pIn->exec_name << endl <<
-			"-- is_cash: " << pIn->is_cash << endl <<
-			"-- is_lifo: " << pIn->is_lifo << endl <<
-			"-- requested_price: " << pIn->requested_price << endl <<
-			"-- status_id: " << pIn->status_id << endl <<
-			"-- symbol: " << pIn->symbol << endl <<
-			"-- trade_qty: " << pIn->trade_qty << endl <<
-			"-- trade_type_id: " << pIn->trade_type_id << endl <<
-			"-- type_is_market: " << pIn->type_is_market << endl;
-	m_coutLock.unlock();
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< TOF4" << endl;
+	cout << pid << " -Trade Order Frame 4 (input)" << endl <<
+			pid << " -- acct_id: " << pIn->acct_id << endl <<
+			pid << " -- broker_id: " << pIn->broker_id << endl <<
+			pid << " -- charge_amount: " << pIn->charge_amount << endl <<
+			pid << " -- comm_amount: " << pIn->comm_amount << endl <<
+			pid << " -- exec_name: " << pIn->exec_name << endl <<
+			pid << " -- is_cash: " << pIn->is_cash << endl <<
+			pid << " -- is_lifo: " << pIn->is_lifo << endl <<
+			pid << " -- requested_price: " << pIn->requested_price << endl <<
+			pid << " -- status_id: " << pIn->status_id << endl <<
+			pid << " -- symbol: " << pIn->symbol << endl <<
+			pid << " -- trade_qty: " << pIn->trade_qty << endl <<
+			pid << " -- trade_type_id: " << pIn->trade_type_id << endl <<
+			pid << " -- type_is_market: " << pIn->type_is_market << endl;
 #endif //DEBUG
 
 	// we are inside a transaction
 	execute(pIn, pOut);
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Trade Order Frame 4 (output)" << endl <<
-			"-- status: " << pOut->status << endl <<
-			"-- trade_id: " << pOut->trade_id << endl;
-	cout << ">>> TOF4" << endl;
-	m_coutLock.unlock();
+	cout << pid << " - Trade Order Frame 4 (output)" << endl <<
+			pid << " -- trade_id: " << pOut->trade_id << endl;
+	cout << pid << " >>> TOF4" << endl;
 #endif //DEBUG
 }
 
 // Call Trade Order Frame 5
-void CTradeOrderDB::DoTradeOrderFrame5(TTradeOrderFrame5Output *pOut)
+void CTradeOrderDB::DoTradeOrderFrame5()
 {
 #ifdef DEBUG
-	cout << "<<< TOF5" << endl;
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< TOF5" << endl;
 #endif
 
 	// rollback the transaction we are inside
 	rollbackTransaction();
-	pOut->status = CBaseTxnErr::ROLLBACK;
 
 #ifdef DEBUG
-	cout << "- Trade Order Frame 5 (output)" << endl <<
-			"-- status: " << pOut->status << endl;
-	cout << ">>> TOF5" << endl;
+	cout << pid << " >>> TOF5" << endl;
 #endif
 }
 
 // Call Trade Order Frame 6
-void CTradeOrderDB::DoTradeOrderFrame6(TTradeOrderFrame6Output *pOut)
+void CTradeOrderDB::DoTradeOrderFrame6()
 {
 #ifdef DEBUG
-	cout << "<<< TOF6" << endl;
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< TOF6" << endl;
 #endif
 
 	// commit the transaction we are inside
 	commitTransaction();
-	pOut->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
-	cout << "- Trade Order Frame 6 (output)" << endl <<
-			"-- status: " << pOut->status << endl;
-	cout << ">>> TOF6" << endl;
+	cout << pid << " >>> TOF6" << endl;
 #endif
 }

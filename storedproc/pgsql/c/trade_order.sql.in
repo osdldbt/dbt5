@@ -14,7 +14,7 @@ CREATE OR REPLACE FUNCTION TradeOrderFrame1 (
 		OUT cust_id BIGINT,
 		OUT cust_l_name VARCHAR(30),
 		OUT cust_tier SMALLINT,
-		OUT status INTEGER,
+		OUT num_found INTEGER,
 		OUT tax_id VARCHAR(20),
 		OUT tax_status SMALLINT)
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeOrderFrame1'
@@ -25,9 +25,8 @@ CREATE OR REPLACE FUNCTION TradeOrderFrame2 (
 		IN exec_f_name VARCHAR(30),
 		IN exec_l_name VARCHAR(30),
 		IN exec_tax_id VARCHAR(20),
-		OUT ap_acl VARCHAR(4),
-		OUT status INTEGER)
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeOrderFrame2'
+		OUT ap_acl VARCHAR(4))
+RETURNS VARCHAR AS 'MODULE_PATHNAME', 'TradeOrderFrame2'
 LANGUAGE C IMMUTABLE STRICT;
 
 CREATE OR REPLACE FUNCTION TradeOrderFrame3 (
@@ -52,7 +51,6 @@ CREATE OR REPLACE FUNCTION TradeOrderFrame3 (
 		OUT market_price NUMERIC(8, 2),
 		OUT s_name VARCHAR(70),
 		OUT sell_value NUMERIC(8, 2),
-		OUT status INTEGER,
 		OUT status_id VARCHAR(10),
 		OUT tax_amount NUMERIC(8, 2),
 		OUT type_is_market BOOLEAN,
@@ -74,7 +72,6 @@ CREATE OR REPLACE FUNCTION TradeOrderFrame4 (
 		IN trade_qty INTEGER,
 		IN trade_type_id VARCHAR(3),
 		IN type_is_market SMALLINT,
-		OUT status INTEGER,
 		OUT trade_id BIGINT)
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeOrderFrame4'
+RETURNS BIGINT AS 'MODULE_PATHNAME', 'TradeOrderFrame4'
 LANGUAGE C IMMUTABLE STRICT;

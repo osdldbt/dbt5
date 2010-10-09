@@ -29,7 +29,7 @@ public:
 	virtual void DoCustomerPositionFrame2(
 			const TCustomerPositionFrame2Input *pIn,
 			TCustomerPositionFrame2Output *pOut);
-	virtual void DoCustomerPositionFrame3(TCustomerPositionFrame3Output *pOut);
+	virtual void DoCustomerPositionFrame3();
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

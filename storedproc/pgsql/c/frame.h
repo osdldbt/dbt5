@@ -10,21 +10,13 @@
 #ifndef _FRAME_H_
 #define _FRAME_H_
 
-#define FAIL_FRAME(rows, status, sql) \
+#define FAIL_FRAME(sql) \
 		elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", \
-				__FILE__, __LINE__, sql); \
-		strncpy(status, "1", STATUS_LEN); \
-		*rows = 0;
+				__FILE__, __LINE__, sql);
 
-#define FAIL_FRAME2(status, sql) \
+#define FAIL_FRAME_SET(rows, sql) \
 		elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", \
 				__FILE__, __LINE__, sql); \
-		status = 1;
-
-#define FAIL_FRAME3(rows, status, sql, codestr) \
-		elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", \
-				__FILE__, __LINE__, sql); \
-		strncpy(status, codestr, STATUS_LEN); \
 		*rows = 0;
 
 /* PostgreSQL types */
@@ -131,23 +123,5 @@
 #define STATUS_LEN 5
 
 #define USE_ISO_DATES 1
-
-/*
- * FIXME: This escaping function probably isn't comprehensive and what a 
- * terrible thing to do to define this inline function in a header file!
- */
-void inline escape_me(char *s, char *t);
-
-void inline escape_me(char *s, char *t) {
-	int length = strlen(s);
-	int i;
-	int k = 0;
-	for (i = 0; i < length; i++) {
-		if (s[i] == '\'')
-			t[k++] = '\\';
-		t[k++] = s[i];
-	}
-	t[k] = '\0';
-}
 
 #endif /* _FRAME_H_ */

@@ -49,10 +49,9 @@ void CTxnBaseDB::execute(const TCustomerPositionFrame2Input *pIn,
 	pDB->execute(pIn, pOut);
 }
 
-void CTxnBaseDB::execute(const TDataMaintenanceFrame1Input *pIn,
-		TDataMaintenanceFrame1Output *pOut)
+void CTxnBaseDB::execute(const TDataMaintenanceFrame1Input *pIn)
 {
-	pDB->execute(pIn, pOut);
+	pDB->execute(pIn);
 }
 
 void CTxnBaseDB::execute(const TMarketFeedFrame1Input *pIn,
@@ -73,10 +72,9 @@ void CTxnBaseDB::execute(const TSecurityDetailFrame1Input *pIn,
 	pDB->execute(pIn, pOut);
 }
 
-void CTxnBaseDB::execute(const TTradeCleanupFrame1Input *pIn,
-		TTradeCleanupFrame1Output *pOut)
+void CTxnBaseDB::execute(const TTradeCleanupFrame1Input *pIn)
 {
-	pDB->execute(pIn, pOut);
+	pDB->execute(pIn);
 }
 
 void CTxnBaseDB::execute(const TTradeLookupFrame1Input *pIn,
@@ -151,10 +149,9 @@ void CTxnBaseDB::execute(const TTradeResultFrame4Input *pIn,
 	pDB->execute(pIn, pOut);
 }
 
-void CTxnBaseDB::execute(const TTradeResultFrame5Input *pIn,
-		TTradeResultFrame5Output *pOut)
+void CTxnBaseDB::execute(const TTradeResultFrame5Input *pIn)
 {
-	pDB->execute(pIn, pOut);
+	pDB->execute(pIn);
 }
 
 void CTxnBaseDB::execute(const TTradeResultFrame6Input *pIn,

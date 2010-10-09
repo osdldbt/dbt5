@@ -16,13 +16,11 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 		TCustomerPositionFrame1Output *pOut)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< CPF1" << endl;
-	cout << "*** " << osCall.str() << endl;
-	cout << "- Customer Position Frame 1 (input)" << endl <<
-			"-- cust_id: " << pIn->cust_id << endl <<
-			"-- tax_id: " << pIn->tax_id << endl;
-	m_coutLock.unlock();
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< CPF1" << endl;
+	cout << pid << " - Customer Position Frame 1 (input)" << endl <<
+			pid << " -- cust_id: " << pIn->cust_id << endl <<
+			pid << " -- tax_id: " << pIn->tax_id << endl;
 #endif // DEBUG
 
 	startTransaction();
@@ -31,42 +29,43 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 	execute(pIn, pOut);
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Customer Position Frame 1 (output)" << endl <<
-			"-- cust_id: " << pOut->cust_id << endl <<
-			"-- acct_len: " << pOut->acct_len << endl;
+	cout << pid << " - Customer Position Frame 1 (output)" << endl <<
+			pid << " -- cust_id: " << pOut->cust_id << endl <<
+			pid << " -- acct_len: " << pOut->acct_len << endl;
 	for (int i = 0; i < pOut->acct_len; i++) {
-		cout << "-- acct_id[" << i << "]: " << pOut->acct_id[i] << endl <<
-				"-- cash_bal[" << i << "]: " << pOut->cash_bal[i] << endl <<
-				"-- asset_total[" << i << "]: " << pOut->asset_total[i] << endl;
+		cout << pid << " -- acct_id[" << i << "]: " << pOut->acct_id[i] <<
+						endl <<
+				pid << " -- cash_bal[" << i << "]: " << pOut->cash_bal[i] <<
+								endl <<
+				pid << " -- asset_total[" << i << "]: " <<
+								pOut->asset_total[i] << endl;
 	}
-	cout << "-- c_st_id: " << pOut->c_st_id << endl <<
-			"-- c_l_name: " << pOut->c_l_name << endl <<
-			"-- c_f_name: " << pOut->c_f_name << endl <<
-			"-- c_m_name: " << pOut->c_m_name << endl <<
-			"-- c_gndr: " << pOut->c_gndr << endl <<
-			"-- c_tier: " << pOut->c_tier << endl <<
-			"-- c_dob: " << pOut->c_dob.year << "-" << pOut->c_dob.month <<
-					"-" << pOut->c_dob.day << " " << pOut->c_dob.hour <<
-					":" << pOut->c_dob.minute << ":" << pOut->c_dob.second <<
-					endl <<
-			"-- c_ad_id: " << pOut->c_ad_id << endl <<
-			"-- c_ctry_1: " << pOut->c_ctry_1 << endl <<
-			"-- c_area_1: " << pOut->c_area_1 << endl <<
-			"-- c_local_1: " << pOut->c_local_1 << endl <<
-			"-- c_ext_1: " << pOut->c_ext_1 << endl <<
-			"-- c_ctry_2: " << pOut->c_ctry_2 << endl <<
-			"-- c_area_2: " << pOut->c_area_2 << endl <<
-			"-- c_local_2: " << pOut->c_local_2 << endl <<
-			"-- c_ext_2: " << pOut->c_ext_2 << endl <<
-			"-- c_ctry_3: " << pOut->c_ctry_3 << endl <<
-			"-- c_area_3: " << pOut->c_area_3 << endl <<
-			"-- c_local_3: " << pOut->c_local_3 << endl <<
-			"-- c_ext_3: " << pOut->c_ext_3 << endl <<
-			"-- c_email_1: " << pOut->c_email_1 << endl <<
-			"-- c_email_2: " << pOut->c_email_2 << endl;
-	cout << ">>> CPF1" << endl;
-	m_coutLock.unlock();
+	cout << pid << " -- c_st_id: " << pOut->c_st_id << endl <<
+			pid << " -- c_l_name: " << pOut->c_l_name << endl <<
+			pid << " -- c_f_name: " << pOut->c_f_name << endl <<
+			pid << " -- c_m_name: " << pOut->c_m_name << endl <<
+			pid << " -- c_gndr: " << pOut->c_gndr << endl <<
+			pid << " -- c_tier: " << pOut->c_tier << endl <<
+			pid << " -- c_dob: " << pOut->c_dob.year << "-" <<
+					pOut->c_dob.month << "-" << pOut->c_dob.day << " " <<
+					pOut->c_dob.hour << ":" << pOut->c_dob.minute << ":" <<
+					pOut->c_dob.second << endl <<
+			pid << " -- c_ad_id: " << pOut->c_ad_id << endl <<
+			pid << " -- c_ctry_1: " << pOut->c_ctry_1 << endl <<
+			pid << " -- c_area_1: " << pOut->c_area_1 << endl <<
+			pid << " -- c_local_1: " << pOut->c_local_1 << endl <<
+			pid << " -- c_ext_1: " << pOut->c_ext_1 << endl <<
+			pid << " -- c_ctry_2: " << pOut->c_ctry_2 << endl <<
+			pid << " -- c_area_2: " << pOut->c_area_2 << endl <<
+			pid << " -- c_local_2: " << pOut->c_local_2 << endl <<
+			pid << " -- c_ext_2: " << pOut->c_ext_2 << endl <<
+			pid << " -- c_ctry_3: " << pOut->c_ctry_3 << endl <<
+			pid << " -- c_area_3: " << pOut->c_area_3 << endl <<
+			pid << " -- c_local_3: " << pOut->c_local_3 << endl <<
+			pid << " -- c_ext_3: " << pOut->c_ext_3 << endl <<
+			pid << " -- c_email_1: " << pOut->c_email_1 << endl <<
+			pid << " -- c_email_2: " << pOut->c_email_2 << endl;
+	cout << pid << " >>> CPF1" << endl;
 #endif // DEBUG
 }
 
@@ -76,27 +75,26 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 		TCustomerPositionFrame2Output *pOut)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< CPF2" << endl;
-	cout << "- Customer Position Frame 2 (input)" << endl <<
-			"-- cust_id: " << pIn->acct_id << endl;
-	m_coutLock.unlock();
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< CPF2" << endl;
+	cout << pid << " - Customer Position Frame 2 (input)" << endl <<
+			pid << " -- cust_id: " << pIn->acct_id << endl;
 #endif // DEBUG
 
 	execute(pIn, pOut);
 	commitTransaction();
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Customer Position Frame 2 (output)" << endl <<
-			"-- hist_len: " << pOut->hist_len << endl;
+	cout << pid << " - Customer Position Frame 2 (output)" << endl <<
+			pid << " -- hist_len: " << pOut->hist_len << endl;
 	for (int i = 0; i < pOut->hist_len; i++) {
-		cout << "-- trade_id[" << i << "]: " << pOut->trade_id[i] << endl <<
-				"-- symbol[" << i << "]: " << pOut->symbol[i] << endl <<
-				"-- qty[" << i << "]: " << pOut->qty[i] << endl <<
-				"-- trade_status[" << i << "]: " << pOut->trade_status[i] <<
+		cout << pid << " -- trade_id[" << i << "]: " << pOut->trade_id[i] <<
 						endl <<
-				"-- hist_dts[" << i << "]: " <<
+				pid << " -- symbol[" << i << "]: " << pOut->symbol[i] << endl <<
+				pid << " -- qty[" << i << "]: " << pOut->qty[i] << endl <<
+				pid << " -- trade_status[" << i << "]: " <<
+						pOut->trade_status[i] << endl <<
+				pid << " -- hist_dts[" << i << "]: " <<
 						pOut->hist_dts[i].year << "-" <<
 						pOut->hist_dts[i].month << "-" <<
 						pOut->hist_dts[i].day << " " <<
@@ -104,23 +102,21 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 						pOut->hist_dts[i].minute << ":" <<
 						pOut->hist_dts[i].second << endl;
 	}
-	cout << ">>> CPF2" << endl;
-	m_coutLock.unlock();
+	cout << pid << " >>> CPF2" << endl;
 #endif // DEBUG
 }
 
 // Call Customer Position Frame 3
-void CCustomerPositionDB::DoCustomerPositionFrame3(
-		TCustomerPositionFrame3Output *pOut)
+void CCustomerPositionDB::DoCustomerPositionFrame3()
 {
 #ifdef DEBUG
-	cout << "<<< CPF3" << endl;
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< CPF3" << endl;
 #endif
 
 	commitTransaction();
-	pOut->status = CBaseTxnErr::SUCCESS;
 
 #ifdef DEBUG
-	cout << ">>> CPF3" << endl;
+	cout << pid << " >>> CPF3" << endl;
 #endif
 }

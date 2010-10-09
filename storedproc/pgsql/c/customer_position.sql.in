@@ -49,8 +49,7 @@ CREATE OR REPLACE FUNCTION CustomerPositionFrame1(
 		OUT c_m_name VARCHAR(1),
 		OUT c_st_id VARCHAR(4),
 		OUT c_tier SMALLINT,
-		OUT cash_bal NUMERIC(12, 2)[],
-		OUT status INTEGER)
+		OUT cash_bal NUMERIC(12, 2)[])
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'CustomerPositionFrame1'
 LANGUAGE C IMMUTABLE STRICT;
 
@@ -60,9 +59,13 @@ LANGUAGE C IMMUTABLE STRICT;
  * specified customer account at or after the specified time.
  */
 
-CREATE OR REPLACE FUNCTION CustomerPositionFrame2(IN acct_id IDENT_T,
-		OUT hist_dts TIMESTAMP[], OUT hist_len INTEGER, OUT qty INTEGER[],
-		OUT status INTEGER, OUT symbol VARCHAR(15)[], OUT trade_id BIGINT[],
+CREATE OR REPLACE FUNCTION CustomerPositionFrame2(
+		IN acct_id IDENT_T,
+		OUT hist_dts TIMESTAMP[],
+		OUT hist_len INTEGER,
+		OUT qty INTEGER[],
+		OUT symbol VARCHAR(15)[],
+		OUT trade_id BIGINT[],
 		OUT trade_status VARCHAR(10)[])
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'CustomerPositionFrame2'
 LANGUAGE C IMMUTABLE STRICT;

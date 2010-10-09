@@ -15,12 +15,14 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 		TBrokerVolumeFrame1Output *pOut)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< BVF1" << endl;
-	cout << "- Broker Volume Frame 1 (input)" << endl <<
-		"-- broker_list: " << osBrokers.str() << endl <<
-		"-- sector name: " << pIn->sector_name << endl;
-	m_coutLock.unlock();
+	pthread_t pid = pthread_self();
+	int i;
+	cout << pid << " <<< BVF1" << endl;
+	cout << pid << " - Broker Volume Frame 1 (input)" << endl;
+	for (i = 0; i < max_broker_list_len; i++)
+		cout << pid << " -- broker_list[" << i << "]: " <<
+				pIn->broker_list[i] << endl;
+	cout << pid << " -- sector name: " << pIn->sector_name << endl;
 #endif // DEBUG
 
 	startTransaction();
@@ -30,16 +32,13 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 	commitTransaction();
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Broker Volume Frame 1 (output)" << endl <<
-			"-- status: " << pOut->status << endl <<
-			"-- list_len: " << pOut->list_len << endl;
+	cout << pid << " - Broker Volume Frame 1 (output)" << endl <<
+			pid << " -- list_len: " << pOut->list_len << endl;
 	for (i = 0; i < pOut->list_len; i ++) {
-		cout << "-- broker_name[" << i << "]: " << pOut->broker_name[i] <<
-				endl <<
-				"-- volume[" << i << "]: " << pOut->volume[i] << endl;
+		cout << pid << " -- broker_name[" << i << "]: " <<
+						pOut->broker_name[i] << endl <<
+				pid << " -- volume[" << i << "]: " << pOut->volume[i] << endl;
 	}
-	cout << ">>> BVF1" << endl;
-	m_coutLock.unlock();
+	cout << pid << " >>> BVF1" << endl;
 #endif // DEBUG
 }

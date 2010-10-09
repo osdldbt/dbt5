@@ -16,11 +16,10 @@ void CTradeResultDB::DoTradeResultFrame1(
 		TTradeResultFrame1Output *pOut)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< TRF1" << endl;
-	cout << "- Trade Result Frame 1 (input)" << endl <<
-			"-- trade_id: " << pIn->trade_id << endl;
-	m_coutLock.unlock();
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< TRF1" << endl;
+	cout << pid << " - Trade Result Frame 1 (input)" << endl <<
+			pid << " -- trade_id: " << pIn->trade_id << endl;
 #endif // DEBUG
 
 	// start transaction but not commit in this frame
@@ -30,21 +29,19 @@ void CTradeResultDB::DoTradeResultFrame1(
 	execute(pIn, pOut);
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Trade Result Frame 1 (output)" << endl <<
-			"-- acct_id: " << pOut->acct_id << endl <<
-			"-- charge: " << pOut->charge << endl <<
-			"-- hs_qty: " << pOut->hs_qty << endl <<
-			"-- is_lifo: " << pOut->is_lifo << endl <<
-			"-- symbol: " << pOut->symbol << endl <<
-			"-- trade_is_cash: " << pOut->trade_is_cash << endl <<
-			"-- trade_qty: " << pOut->trade_qty << endl <<
-			"-- type_id: " << pOut->type_id << endl <<
-			"-- type_is_market: " << pOut->type_is_market << endl <<
-			"-- type_is_sell: " << pOut->type_is_sell << endl <<
-			"-- type_name: " << pOut->type_name << endl;
-	cout << ">>> TRF1" << endl;
-	m_coutLock.unlock();
+	cout << pid << " - Trade Result Frame 1 (output)" << endl <<
+			pid << " -- acct_id: " << pOut->acct_id << endl <<
+			pid << " -- charge: " << pOut->charge << endl <<
+			pid << " -- hs_qty: " << pOut->hs_qty << endl <<
+			pid << " -- is_lifo: " << pOut->is_lifo << endl <<
+			pid << " -- symbol: " << pOut->symbol << endl <<
+			pid << " -- trade_is_cash: " << pOut->trade_is_cash << endl <<
+			pid << " -- trade_qty: " << pOut->trade_qty << endl <<
+			pid << " -- type_id: " << pOut->type_id << endl <<
+			pid << " -- type_is_market: " << pOut->type_is_market << endl <<
+			pid << " -- type_is_sell: " << pOut->type_is_sell << endl <<
+			pid << " -- type_name: " << pOut->type_name << endl;
+	cout << pid << " >>> TRF1" << endl;
 #endif // DEBUG
 }
 
@@ -54,39 +51,35 @@ void CTradeResultDB::DoTradeResultFrame2(
 		TTradeResultFrame2Output *pOut)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< TRF2" << endl;
-	cout << "- Trade Result Frame 2 (input)" << endl <<
-			"-- acct_id: " << pIn->acct_id << endl <<
-			"-- hs_qty: " << pIn->hs_qty << endl <<
-			"-- is_lifo: " << pIn->is_lifo << endl <<
-			"-- symbol: " << pIn->symbol << endl <<
-			"-- trade_id: " << pIn->trade_id << endl <<
-			"-- trade_price: " << pIn->trade_price << endl <<
-			"-- trade_qty: " << pIn->trade_qty << endl <<
-			"-- type_is_sell: " << pIn->type_is_sell << endl;
-	m_coutLock.unlock();
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< TRF2" << endl;
+	cout << pid << " - Trade Result Frame 2 (input)" << endl <<
+			pid << " -- acct_id: " << pIn->acct_id << endl <<
+			pid << " -- hs_qty: " << pIn->hs_qty << endl <<
+			pid << " -- is_lifo: " << pIn->is_lifo << endl <<
+			pid << " -- symbol: " << pIn->symbol << endl <<
+			pid << " -- trade_id: " << pIn->trade_id << endl <<
+			pid << " -- trade_price: " << pIn->trade_price << endl <<
+			pid << " -- trade_qty: " << pIn->trade_qty << endl <<
+			pid << " -- type_is_sell: " << pIn->type_is_sell << endl;
 #endif // DEBUG
 
 	execute(pIn, pOut);
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Trade Result Frame 2 (output)" << endl <<
-			"-- broker_id: " << pOut->broker_id << endl <<
-			"-- buy_value: " << pOut->buy_value << endl <<
-			"-- cust_id: " << pOut->cust_id << endl <<
-			"-- sell_value: " << pOut->sell_value << endl <<
-			"-- status: " << pOut->status << endl <<
-			"-- tax_status: " << pOut->tax_status << endl <<
-			"-- trade_dts: " << pOut->trade_dts.year << "-" <<
+	cout << pid << " - Trade Result Frame 2 (output)" << endl <<
+			pid << " -- broker_id: " << pOut->broker_id << endl <<
+			pid << " -- buy_value: " << pOut->buy_value << endl <<
+			pid << " -- cust_id: " << pOut->cust_id << endl <<
+			pid << " -- sell_value: " << pOut->sell_value << endl <<
+			pid << " -- tax_status: " << pOut->tax_status << endl <<
+			pid << " -- trade_dts: " << pOut->trade_dts.year << "-" <<
 					pOut->trade_dts.month << "-" <<
 					pOut->trade_dts.day << " " <<
 					pOut->trade_dts.hour << ":" <<
 					pOut->trade_dts.minute << ":" <<
 					pOut->trade_dts.second << endl;
-	cout << ">>> TRF2" << endl;
-	m_coutLock.unlock();
+	cout << pid << " >>> TRF2" << endl;
 #endif // DEBUG
 }
 
@@ -96,25 +89,21 @@ void CTradeResultDB::DoTradeResultFrame3(
 		TTradeResultFrame3Output *pOut)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< TRF3" << endl;
-	cout << "--Trade Result Frame 3 (input)" << endl <<
-			"-- buy_value: " << pIn->buy_value << endl <<
-			"-- cust_id: " << pIn->cust_id << endl <<
-			"-- sell_value: " << pIn->sell_value << endl <<
-			"-- trade_id: " << pIn->trade_id << endl;
-	m_coutLock.unlock();
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< TRF3" << endl;
+	cout << pid << " --Trade Result Frame 3 (input)" << endl <<
+			pid << " -- buy_value: " << pIn->buy_value << endl <<
+			pid << " -- cust_id: " << pIn->cust_id << endl <<
+			pid << " -- sell_value: " << pIn->sell_value << endl <<
+			pid << " -- trade_id: " << pIn->trade_id << endl;
 #endif //DEBUG
 
 	execute(pIn, pOut);
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Trade Result Frame 3 (output)" << endl <<
-			"-- status:" << pOut->status << endl <<
-			"-- tax_amount:" << pOut->tax_amount << endl;
-	cout << ">>> TRF3" << endl;
-	m_coutLock.unlock();
+	cout << pid << " - Trade Result Frame 3 (output)" << endl <<
+			pid << " -- tax_amount:" << pOut->tax_amount << endl;
+	cout << pid << " >>> TRF3" << endl;
 #endif //DEBUG
 }
 
@@ -124,60 +113,50 @@ void CTradeResultDB::DoTradeResultFrame4(
 		TTradeResultFrame4Output *pOut)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< TRF4" << endl;
-	cout << "- Trade Result Frame 4 (input)" << endl <<
-			"-- cust_id: " << pIn->cust_id << endl <<
-			"-- symbol: " << pIn->symbol << endl <<
-			"-- trade_qty: " << pIn->trade_qty << endl <<
-			"-- type_id: " << pIn->type_id << endl;
-	m_coutLock.unlock();
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< TRF4" << endl;
+	cout << pid << " - Trade Result Frame 4 (input)" << endl <<
+			pid << " -- cust_id: " << pIn->cust_id << endl <<
+			pid << " -- symbol: " << pIn->symbol << endl <<
+			pid << " -- trade_qty: " << pIn->trade_qty << endl <<
+			pid << " -- type_id: " << pIn->type_id << endl;
 #endif //DEBUG
 
 	execute(pIn, pOut);
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Trade Result Frame 4 (output)" << endl <<
-			"-- comm_rate:" << pOut->comm_rate << endl <<
-			"-- s_name:" << pOut->s_name << endl <<
-			"-- status:" << pOut->status << endl;
-	cout << ">>> TRF4" << endl;
-	m_coutLock.unlock();
+	cout << pid << " - Trade Result Frame 4 (output)" << endl <<
+			pid << " -- comm_rate: " << pOut->comm_rate << endl <<
+			pid << " -- s_name: " << pOut->s_name << endl;
+	cout << pid << " >>> TRF4" << endl;
 #endif //DEBUG
 }
 
 // Call Trade Result Frame 5
-void CTradeResultDB::DoTradeResultFrame5(
-		const TTradeResultFrame5Input *pIn,
-		TTradeResultFrame5Output *pOut)
+void CTradeResultDB::DoTradeResultFrame5(const TTradeResultFrame5Input *pIn)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< TRF5" << endl;
-	cout << "- Trade Result Frame 5 (input)" << endl <<
-			"-- broker_id: " << pIn->broker_id << endl <<
-			"-- comm_amount: " << pIn->comm_amount << endl <<
-			"-- st_completed_id: " << pIn->st_completed_id << endl <<
-			"-- trade_dts: " << pIn->trade_dts.year << "-" <<
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< TRF5" << endl;
+	cout << pid << " - Trade Result Frame 5 (input)" << endl <<
+			pid << " -- broker_id: " << pIn->broker_id << endl <<
+			pid << " -- comm_amount: " << pIn->comm_amount << endl <<
+			pid << " -- st_completed_id: " << pIn->st_completed_id << endl <<
+			pid << " -- trade_dts: " << pIn->trade_dts.year << "-" <<
 					pIn->trade_dts.month << "-" <<
 					pIn->trade_dts.day << " " <<
 					pIn->trade_dts.hour << ":" <<
 					pIn->trade_dts.minute << ":" <<
 					pIn->trade_dts.second << endl <<
-			"-- trade_id: " << pIn->trade_id << endl <<
-			"-- trade_price: " << pIn->trade_price << endl;
-	m_coutLock.unlock();
+			pid << " -- trade_id: " << pIn->trade_id << endl <<
+			pid << " -- trade_price: " << pIn->trade_price << endl;
 #endif //DEBUG
 
-	execute(pIn, pOut);
+	execute(pIn);
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Trade Result Frame 5 (output)" << endl <<
-			"-- stats:" << pOut->status << endl;
-	cout << ">>> TRF5" << endl;
-	m_coutLock.unlock();
+	cout << pid << " - Trade Result Frame 5 (output)" << endl;
+	cout << pid << " >>> TRF5" << endl;
 #endif //DEBUG
 }
 
@@ -187,39 +166,35 @@ void CTradeResultDB::DoTradeResultFrame6(
 		TTradeResultFrame6Output *pOut)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< TRF6" << endl;
-	cout << "- Trade Result Frame 6 (input)" << endl <<
-			"-- acct_id: " << pIn->acct_id << endl <<
-			"-- due_date: " << pIn->due_date.year << "-" <<
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< TRF6" << endl;
+	cout << pid << " - Trade Result Frame 6 (input)" << endl <<
+			pid << " -- acct_id: " << pIn->acct_id << endl <<
+			pid << " -- due_date: " << pIn->due_date.year << "-" <<
 					pIn->due_date.month << "-" << pIn->due_date.day <<
 					" " << pIn->due_date.hour << ":" <<
 					pIn->due_date.minute << ":" <<
 					pIn->due_date.second << endl <<
-			"-- s_name: " << pIn->s_name << endl <<
-			"-- se_amount: " << pIn->se_amount << endl <<
-			"-- trade_dts: " << pIn->trade_dts.year << "-" <<
+			pid << " -- s_name: " << pIn->s_name << endl <<
+			pid << " -- se_amount: " << pIn->se_amount << endl <<
+			pid << " -- trade_dts: " << pIn->trade_dts.year << "-" <<
 					pIn->trade_dts.month << "-" <<
 					pIn->trade_dts.day << " " <<
 					pIn->trade_dts.hour << ":" <<
 					pIn->trade_dts.minute << ":" <<
 					pIn->trade_dts.second << endl <<
-			"-- trade_id: " << pIn->trade_id << endl <<
-			"-- trade_is_cash: " << pIn->trade_is_cash << endl <<
-			"-- trade_qty: " << pIn->trade_qty << endl <<
-			"-- type_name: " << pIn->type_name << endl;
-	m_coutLock.unlock();
+			pid << " -- trade_id: " << pIn->trade_id << endl <<
+			pid << " -- trade_is_cash: " << pIn->trade_is_cash << endl <<
+			pid << " -- trade_qty: " << pIn->trade_qty << endl <<
+			pid << " -- type_name: " << pIn->type_name << endl;
 #endif //DEBUG
 
 	execute(pIn, pOut);
 	commitTransaction();
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "Trade Result Frame 6 (output)" << endl <<
-			"- acct_bal:" << pOut->acct_bal << endl <<
-			"- status:" << pOut->status << endl;
-	cout << ">>> TRF6" << endl;
-	m_coutLock.unlock();
+	cout << pid << " Trade Result Frame 6 (output)" << endl <<
+			pid << " - acct_bal:" << pOut->acct_bal << endl;
+	cout << pid << " >>> TRF6" << endl;
 #endif //DEBUG
 }

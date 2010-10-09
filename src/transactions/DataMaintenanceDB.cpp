@@ -12,35 +12,29 @@
 
 // Call Data Maintenance Frame 1
 void CDataMaintenanceDB::DoDataMaintenanceFrame1(
-		const TDataMaintenanceFrame1Input *pIn,
-		TDataMaintenanceFrame1Output *pOut)
+		const TDataMaintenanceFrame1Input *pIn)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< DMF1" << endl;
-	cout << "*** " << osCall.str() << endl;
-	cout << "- Data Maintenance Frame 1 (input)" << endl <<
-			"-- c_id: " << pIn->c_id << endl <<
-			"-- co_id: " << pIn->co_id << endl <<
-			"-- day_of_month: " << pIn->day_of_month << endl <<
-			"-- symbol: " << pIn->symbol << endl <<
-			"-- table_name: " << pIn->table_name << endl <<
-			"-- tx_id name: " << pIn->tx_id << endl <<
-			"-- vol_incr: " << pIn->vol_incr << endl;
-	m_coutLock.unlock();
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< DMF1" << endl;
+	cout << pid << " - Data Maintenance Frame 1 (input)" << endl <<
+			pid << " -- c_id: " << pIn->c_id << endl <<
+			pid << " -- co_id: " << pIn->co_id << endl <<
+			pid << " -- day_of_month: " << pIn->day_of_month << endl <<
+			pid << " -- symbol: " << pIn->symbol << endl <<
+			pid << " -- table_name: " << pIn->table_name << endl <<
+			pid << " -- tx_id name: " << pIn->tx_id << endl <<
+			pid << " -- vol_incr: " << pIn->vol_incr << endl;
 #endif // DEBUG
 
 	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
 	setReadCommitted();
-	execute(pIn, pOut);
+	execute(pIn);
 	commitTransaction();
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Data Maintenance Frame 1 (output)" << endl <<
-			"-- status: " << pOut->status << endl;
-	cout << ">>> DMF1" << endl;
-	m_coutLock.unlock();
+	cout << pid << " - Data Maintenance Frame 1 (output)" << endl;
+	cout << pid << " >>> DMF1" << endl;
 #endif // DEBUG
 }

@@ -11,30 +11,23 @@
 #include "TradeCleanupDB.h"
 
 // Call Trade Cleanup Frame 1
-void CTradeCleanupDB::DoTradeCleanupFrame1(
-		const TTradeCleanupFrame1Input *pIn,
-		TTradeCleanupFrame1Output *pOut)
+void CTradeCleanupDB::DoTradeCleanupFrame1(const TTradeCleanupFrame1Input *pIn)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "*** " << osCall.str() << endl;
-	cout << "- Trade Cleanup Frame 1 (input)" << endl <<
-			"-- st_canceled_id: " << pIn->st_canceled_id << endl <<
-			"-- st_pending_id: " << pIn->st_pending_id << endl <<
-			"-- st_submitted_id: " << pIn->st_submitted_id << endl <<
-			"-- trade_id: " << pIn->start_trade_id << endl;
-	m_coutLock.unlock();
+	pthread_t pid = pthread_self();
+	cout << pid << " - Trade Cleanup Frame 1 (input)" << endl <<
+			pid << " -- st_canceled_id: " << pIn->st_canceled_id << endl <<
+			pid << " -- st_pending_id: " << pIn->st_pending_id << endl <<
+			pid << " -- st_submitted_id: " << pIn->st_submitted_id << endl <<
+			pid << " -- trade_id: " << pIn->start_trade_id << endl;
 #endif // DEBUG
 
 	startTransaction();
-	execute(pIn, pOut);
+	execute(pIn);
 	commitTransaction();
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Trade Cleanup Frame 1 (output)" << endl <<
-			"-- status: " << pOut->status << endl;
-	cout << ">>> TCF1" << endl;
-	m_coutLock.unlock();
+	cout << pid << " - Trade Cleanup Frame 1 (output)" << endl <<
+			pid << " >>> TCF1" << endl;
 #endif // DEBUG
 }

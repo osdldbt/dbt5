@@ -40,8 +40,7 @@ protected:
 	void execute(const TCustomerPositionFrame2Input *,
 			TCustomerPositionFrame2Output *);
 
-	void execute(const TDataMaintenanceFrame1Input *,
-			TDataMaintenanceFrame1Output *);
+	void execute(const TDataMaintenanceFrame1Input *);
 
 	void execute(const TMarketFeedFrame1Input *, TMarketFeedFrame1Output *,
         CSendToMarketInterface *);
@@ -51,8 +50,7 @@ protected:
 	void execute(const TSecurityDetailFrame1Input *,
 			TSecurityDetailFrame1Output *);
 
-	void execute(const TTradeCleanupFrame1Input *,
-			TTradeCleanupFrame1Output *);
+	void execute(const TTradeCleanupFrame1Input *);
 
 	void execute(const TTradeLookupFrame1Input *, TTradeLookupFrame1Output *);
 	void execute(const TTradeLookupFrame2Input *, TTradeLookupFrame2Output *);
@@ -68,7 +66,7 @@ protected:
 	void execute(const TTradeResultFrame2Input *, TTradeResultFrame2Output *);
 	void execute(const TTradeResultFrame3Input *, TTradeResultFrame3Output *);
 	void execute(const TTradeResultFrame4Input *, TTradeResultFrame4Output *);
-	void execute(const TTradeResultFrame5Input *, TTradeResultFrame5Output *);
+	void execute(const TTradeResultFrame5Input *);
 	void execute(const TTradeResultFrame6Input *, TTradeResultFrame6Output *);
 
 	void execute(const TTradeStatusFrame1Input *, TTradeStatusFrame1Output *);

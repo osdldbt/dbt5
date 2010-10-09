@@ -13,7 +13,7 @@
 #include <fmgr.h>
 #include <executor/spi.h> /* this should include most necessary APIs */
 #include <executor/executor.h>  /* for GetAttributeByName() */
-#include <funcapi.h> /* for returning set of rows in order_status */
+#include <funcapi.h> /* for returning set of rows */
 #include <miscadmin.h>
 #include <utils/date.h>
 #include <utils/builtins.h>
@@ -208,7 +208,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			i_ex_close, i_ex_date, i_ex_desc, i_ex_name, i_ex_num_symb,
 			i_ex_open, i_fin, i_fin_len, i_last_open, i_last_price,
 			i_last_vol, i_news, i_news_len, i_num_out, i_open_date,
-			i_pe_ratio, i_s_name, i_sp_rate, i_start_date, i_status, i_yield
+			i_pe_ratio, i_s_name, i_sp_rate, i_start_date, i_yield
 		};
 
 		int ret;
@@ -235,7 +235,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		 * This should be an array of C strings, which will
 		 * be processed later by the type input functions.
 		 */
-		values = (char **) palloc(sizeof(char *) * 46);
+		values = (char **) palloc(sizeof(char *) * 45);
 		values[i_cp_co_name] = (char *) palloc(sizeof(char) *
 				(MAX_COMP_LEN * (CO_NAME_LEN + 3) + 3));
 		values[i_cp_in_name] = (char *) palloc(sizeof(char) *
@@ -254,8 +254,6 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 				MAXDATELEN + NI_SOURCE_LEN + NI_AUTHOR_LEN + NI_SUMMARY_LEN +
 				NI_HEADLINE_LEN + 19) * MAX_NEWS_LEN + 3));
 		values[i_news_len] = (char *) palloc(sizeof(char) * (INTEGER_LEN + 1));
-		values[i_status] = (char *) palloc(sizeof(char) * (STATUS_LEN + 1));
-		strcpy(values[i_status], "0");
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
@@ -313,7 +311,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			values[i_ex_open] = SPI_getvalue(tuple, tupdesc, 35);
 		} else {
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, sql);
 		}
 
 		sprintf(sql, SDF1_2, co_id, MAX_COMP_LEN);
@@ -354,7 +352,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			strcat(values[i_cp_in_name], "}");
 		} else {
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, sql);
 			strcpy(values[i_cp_co_name], "{}");
 			strcpy(values[i_cp_in_name], "{}");
 		}
@@ -369,7 +367,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 		} else {
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, sql);
 		}
 		sprintf(values[i_fin_len], "%d", SPI_processed);
 		strcpy(values[i_fin], "{");
@@ -418,7 +416,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 		} else {
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, sql);
 		}
 		sprintf(values[i_day_len], "%d", SPI_processed);
 		strcpy(values[i_day], "{");
@@ -455,7 +453,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			values[i_last_vol] = SPI_getvalue(tuple, tupdesc, 3);
 		} else {
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, sql);
 			values[i_last_open] = NULL;
 			values[i_last_price] = NULL;
 			values[i_last_vol] = NULL;
@@ -475,7 +473,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 		} else {
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, sql);
 		}
 		sprintf(values[i_news_len], "%d", SPI_processed);
 		strcpy(values[i_news], "{");
@@ -534,7 +532,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		Datum result;
 
 #ifdef DEBUG                                                                    
-		for (i = 0; i < 46; i++) {
+		for (i = 0; i < 45; i++) {
 			elog(NOTICE, "SDF1 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */

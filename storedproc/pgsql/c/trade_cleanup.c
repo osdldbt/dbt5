@@ -117,7 +117,7 @@ Datum TradeCleanupFrame1(PG_FUNCTION_ARGS)
 	} else {
 		dump_tcf1_inputs(st_canceled_id, st_pending_id, st_submitted_id,
 				trade_id);
-		FAIL_FRAME2(status, TCF1_1);
+		FAIL_FRAME(TCF1_1);
 	}
 
 	for (i = 0; i < SPI_processed; i++) {
@@ -132,7 +132,7 @@ Datum TradeCleanupFrame1(PG_FUNCTION_ARGS)
 		if (ret != SPI_OK_INSERT) {
 			dump_tcf1_inputs(st_canceled_id, st_pending_id, st_submitted_id,
 					trade_id);
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 		}
 
 #ifdef DEBUG
@@ -142,7 +142,7 @@ Datum TradeCleanupFrame1(PG_FUNCTION_ARGS)
 		if (ret != SPI_OK_DELETE) {
 			dump_tcf1_inputs(st_canceled_id, st_pending_id, st_submitted_id,
 					trade_id);
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 		}
 	}
 
@@ -157,7 +157,7 @@ Datum TradeCleanupFrame1(PG_FUNCTION_ARGS)
 	} else {
 		dump_tcf1_inputs(st_canceled_id, st_pending_id, st_submitted_id,
 				trade_id);
-		FAIL_FRAME2(status, sql);
+		FAIL_FRAME(sql);
 	}
 
 	for (i = 0; i < SPI_processed; i++) {
@@ -174,7 +174,7 @@ Datum TradeCleanupFrame1(PG_FUNCTION_ARGS)
 		if (ret != SPI_OK_UPDATE) {
 			dump_tcf1_inputs(st_canceled_id, st_pending_id, st_submitted_id,
 					trade_id);
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 		}
 
 		sprintf(sql, TCF1_6, t_id, st_canceled_id);
@@ -185,7 +185,7 @@ Datum TradeCleanupFrame1(PG_FUNCTION_ARGS)
 		if (ret != SPI_OK_INSERT) {
 			dump_tcf1_inputs(st_canceled_id, st_pending_id, st_submitted_id,
 					trade_id);
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 		}
 	}
 

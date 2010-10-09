@@ -56,7 +56,6 @@ CREATE OR REPLACE FUNCTION SecurityDetailFrame1 (
 		OUT s_name VARCHAR,
 		OUT sp_rate VARCHAR,
 		OUT start_date DATE,
-		OUT status INTEGER,
 		OUT yield NUMERIC)
 RETURNS SETOF record AS 'MODULE_PATHNAME', 'SecurityDetailFrame1'
 LANGUAGE C IMMUTABLE STRICT;

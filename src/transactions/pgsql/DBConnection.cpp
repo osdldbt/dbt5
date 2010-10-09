@@ -153,7 +153,7 @@ void CDBConnection::disconnect()
 void CDBConnection::execute(const TBrokerVolumeFrame1Input *pIn,
 		TBrokerVolumeFrame1Output *pOut)
 {
-	enum bvf1 {i_broker_name=0, i_list_len, i_status, i_volume};
+	enum bvf1 {i_broker_name=0, i_list_len, i_volume};
 
 	ostringstream osBrokers;
 	int i = 0;
@@ -170,7 +170,6 @@ void CDBConnection::execute(const TBrokerVolumeFrame1Input *pIn,
 
 	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
-		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
@@ -205,8 +204,6 @@ void CDBConnection::execute(const TBrokerVolumeFrame1Input *pIn,
 	}
 	check_count(pOut->list_len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
-
-	pOut->status = c[i_status].as(int());
 }
 
 void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
@@ -219,7 +216,6 @@ void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
 
 	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
-		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
@@ -237,7 +233,7 @@ void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
 			i_c_ctry_3, i_c_dob, i_c_email_1, i_c_email_2, i_c_ext_1,
 			i_c_ext_2, i_c_ext_3, i_c_f_name, i_c_gndr, i_c_l_name,
 			i_c_local_1, i_c_local_2, i_c_local_3, i_c_m_name, i_c_st_id,
-			i_c_tier, i_cash_bal, i_status
+			i_c_tier, i_cash_bal
 	};
 
 	pOut->acct_len = c[i_acct_len].as(int());
@@ -324,15 +320,13 @@ void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
 	}
 	check_count(pOut->acct_len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
-
-	pOut->status = c[i_status].as(int());
 }
 
 void CDBConnection::execute(const TCustomerPositionFrame2Input *pIn,
 		TCustomerPositionFrame2Output *pOut)
 {
 	enum cpf2 {
-		i_hist_dts=0, i_hist_len, i_qty, i_status, i_symbol,
+		i_hist_dts=0, i_hist_len, i_qty, i_symbol,
 		i_trade_id, i_trade_status
 	};
 
@@ -341,7 +335,6 @@ void CDBConnection::execute(const TCustomerPositionFrame2Input *pIn,
 
 	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
-		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
@@ -383,8 +376,6 @@ void CDBConnection::execute(const TCustomerPositionFrame2Input *pIn,
 	check_count(pOut->hist_len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	pOut->status = c[i_status].as(int());
-
 	TokenizeSmart(c[i_symbol].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
@@ -415,8 +406,7 @@ void CDBConnection::execute(const TCustomerPositionFrame2Input *pIn,
 	vAux.clear();
 }
 
-void CDBConnection::execute(const TDataMaintenanceFrame1Input *pIn,
-		TDataMaintenanceFrame1Output *pOut)
+void CDBConnection::execute(const TDataMaintenanceFrame1Input *pIn)
 {
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM DataMaintenanceFrame1(" <<
@@ -431,7 +421,6 @@ void CDBConnection::execute(const TDataMaintenanceFrame1Input *pIn,
 
 	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
-		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
@@ -442,14 +431,13 @@ void CDBConnection::execute(const TDataMaintenanceFrame1Input *pIn,
 	}
 
 	result::const_iterator c = R.begin();
-	pOut->status = c[0].as(int());
 }
 
 
 void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 		TMarketFeedFrame1Output *pOut, CSendToMarketInterface *pMarketExchange)
 {
-	enum mff1 {i_send_len=0, i_status, i_rows_updated, i_symbol,
+	enum mff1 {i_num_updated, i_send_len, i_symbol,
 			i_trade_id, i_price_quote, i_trade_qty, i_trade_type};
 
 	ostringstream osSymbol, osPrice, osQty;
@@ -489,7 +477,6 @@ void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
 				pOut->send_len = 0;
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
@@ -518,12 +505,10 @@ void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 						// Couldn't resubmit successfully.
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
-						pOut->status = CBaseTxnErr::ROLLBACK;
 						rollback();
 						throw;
 					}
 			} else {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				rollback();
 				throw;
 			}
@@ -575,9 +560,6 @@ void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 		++i;
 	}
 	check_count(pOut->send_len, i, __FILE__, __LINE__);
-
-	if (atoi(c[i_rows_updated].c_str()) != max_feed_len)
-		pOut->status = -311;
 }
 
 void CDBConnection::execute(const TMarketWatchFrame1Input *pIn,
@@ -596,7 +578,6 @@ void CDBConnection::execute(const TMarketWatchFrame1Input *pIn,
 
 	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
-		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
@@ -609,7 +590,6 @@ void CDBConnection::execute(const TMarketWatchFrame1Input *pIn,
 	result::const_iterator c = R.begin();
 
 	pOut->pct_change = c[0].as(double());
-	pOut->status = c[1].as(int());
 }
 
 void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
@@ -625,7 +605,7 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 		i_ex_close, i_ex_date, i_ex_desc, i_ex_name, i_ex_num_symb,
 		i_ex_open, i_fin, i_fin_len, i_last_open, i_last_price,
 		i_last_vol, i_news, i_news_len, i_num_out, i_open_date,
-		i_pe_ratio, i_s_name, i_sp_rate, i_start_date, i_status, i_yield
+		i_pe_ratio, i_s_name, i_sp_rate, i_start_date, i_yield
 	};
 
 	ostringstream osSQL;
@@ -639,7 +619,6 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 
 	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
-		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
@@ -847,12 +826,10 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 			&pOut->start_date.year,
 			&pOut->start_date.month,
 			&pOut->start_date.day);
-	pOut->status = c[i_status].as(int());
 	pOut->yield = c[i_yield].as(double());
 }
 
-void CDBConnection::execute(const TTradeCleanupFrame1Input *pIn,
-		TTradeCleanupFrame1Output *pOut)
+void CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
 {
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeCleanupFrame1('" <<
@@ -863,7 +840,6 @@ void CDBConnection::execute(const TTradeCleanupFrame1Input *pIn,
 
 	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
-		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
@@ -874,8 +850,6 @@ void CDBConnection::execute(const TTradeCleanupFrame1Input *pIn,
 	}
 
 	result::const_iterator c = R.begin();
-
-	pOut->status = c[0].as(int());
 }
 
 void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
@@ -886,7 +860,7 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 			i_cash_transaction_dts, i_cash_transaction_name, i_exec_name,
 			i_is_cash, i_is_market, i_num_found, i_settlement_amount,
 			i_settlement_cash_due_date, i_settlement_cash_type,
-			i_status, i_trade_history_dts, i_trade_history_status_id,
+			i_trade_history_dts, i_trade_history_status_id,
 			i_trade_price
 	};
 
@@ -904,7 +878,6 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 
 	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
-		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
@@ -1027,8 +1000,6 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	pOut->status = c[i_status].as(int());
-
 	TokenizeArray(c[i_trade_history_dts].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
@@ -1085,7 +1056,7 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 			i_bid_price=0, i_cash_transaction_amount, i_cash_transaction_dts,
 			i_cash_transaction_name, i_exec_name, i_is_cash, i_num_found,
 			i_settlement_amount, i_settlement_cash_due_date,
-			i_settlement_cash_type, i_status, i_trade_history_dts,
+			i_settlement_cash_type, i_trade_history_dts,
 			i_trade_history_status_id, i_trade_list, i_trade_price
 	};
 
@@ -1108,7 +1079,6 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 
 	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
-		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
@@ -1223,8 +1193,6 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	pOut->status = c[i_status].as(int());
-
 	TokenizeArray(c[i_trade_history_dts].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
@@ -1290,7 +1258,7 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 			i_acct_id=0, i_cash_transaction_amount, i_cash_transaction_dts,
 			i_cash_transaction_name, i_exec_name, i_is_cash, i_num_found,
 			i_price, i_quantity, i_settlement_amount,
-			i_settlement_cash_due_date, i_settlement_cash_type, i_status,
+			i_settlement_cash_due_date, i_settlement_cash_type,
 			i_trade_dts, i_trade_history_dts, i_trade_history_status_id,
 			i_trade_list, i_trade_type
 	};
@@ -1315,7 +1283,6 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 
 	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
-		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
@@ -1449,8 +1416,6 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	pOut->status = c[i_status].as(int());
-
 	TokenizeSmart(c[i_trade_dts].c_str(), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
@@ -1530,7 +1495,7 @@ void CDBConnection::execute(const TTradeLookupFrame4Input *pIn,
 {
 	enum tlf4 {
 			i_holding_history_id=0, i_holding_history_trade_id, i_num_found,
-			i_quantity_after, i_quantity_before, i_status, i_trade_id
+			i_quantity_after, i_quantity_before, i_trade_id
 	};
 
 	ostringstream osSQL;
@@ -1545,7 +1510,6 @@ void CDBConnection::execute(const TTradeLookupFrame4Input *pIn,
 
 	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
-		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
@@ -1598,7 +1562,6 @@ void CDBConnection::execute(const TTradeLookupFrame4Input *pIn,
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	pOut->status = c[i_status].as(int());
 	pOut->trade_id = c[i_trade_id].as(long());
 }
 
@@ -1618,7 +1581,6 @@ void CDBConnection::execute(const TTradeOrderFrame1Input *pIn,
 		try {
 			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
@@ -1647,20 +1609,16 @@ void CDBConnection::execute(const TTradeOrderFrame1Input *pIn,
 						// Couldn't resubmit successfully.
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
-						pOut->status = CBaseTxnErr::ROLLBACK;
 						rollback();
 						throw;
 					}
 			} else {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				rollback();
 				throw;
 			}
 		}
 	}
-
 	result::const_iterator c = R.begin();
-
 	strncpy(pOut->acct_name, c[0].c_str(), cCA_NAME_len);
 	pOut->acct_name[cCA_NAME_len] ='\0';
 	pOut->broker_id = c[1].as(long());
@@ -1672,7 +1630,7 @@ void CDBConnection::execute(const TTradeOrderFrame1Input *pIn,
 	strncpy(pOut->cust_l_name, c[5].c_str(), cL_NAME_len);
 	pOut->cust_l_name[cL_NAME_len] = '\0';
 	pOut->cust_tier = c[6].as(int());
-	pOut->status = c[7].as(int());
+	pOut->num_found = c[7].as(int());
 	strncpy(pOut->tax_id, c[8].c_str(), cTAX_ID_len);
 	pOut->tax_id[cTAX_ID_len] = '\0';
 	pOut->tax_status = c[9].as(int());
@@ -1698,7 +1656,6 @@ void CDBConnection::execute(const TTradeOrderFrame2Input *pIn,
 		try {
 			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
@@ -1727,12 +1684,10 @@ void CDBConnection::execute(const TTradeOrderFrame2Input *pIn,
 						// Couldn't resubmit successfully.
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
-						pOut->status = CBaseTxnErr::ROLLBACK;
 						rollback();
 						throw;
 					}
 			} else {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				rollback();
 				throw;
 			}
@@ -1747,7 +1702,6 @@ void CDBConnection::execute(const TTradeOrderFrame2Input *pIn,
 	} else {
 		pOut->ap_acl[0] = '\0';
 	}
-	pOut->status = c[1].as(int());
 }
 
 void CDBConnection::execute(const TTradeOrderFrame3Input *pIn,
@@ -1780,7 +1734,6 @@ void CDBConnection::execute(const TTradeOrderFrame3Input *pIn,
 		try {
 			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
@@ -1809,12 +1762,10 @@ void CDBConnection::execute(const TTradeOrderFrame3Input *pIn,
 						// Couldn't resubmit successfully.
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
-						pOut->status = CBaseTxnErr::ROLLBACK;
 						rollback();
 						throw;
 					}
 			} else {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				rollback();
 				throw;
 			}
@@ -1830,17 +1781,16 @@ void CDBConnection::execute(const TTradeOrderFrame3Input *pIn,
 	pOut->buy_value = c[3].as(double());
 	pOut->charge_amount = c[4].as(double());
 	pOut->comm_rate = c[5].as(double());
-	pOut->cust_assets = c[6].as(double());
+	pOut->acct_assets = c[6].as(double());
 	pOut->market_price = c[7].as(double());
 	strncpy(pOut->s_name, c[8].c_str(), cS_NAME_len);
 	pOut->s_name[cS_NAME_len] = '\0';
 	pOut->sell_value = c[9].as(double());
-	pOut->status = c[10].as(int());
-	strncpy(pOut->status_id, c[11].c_str(), cTH_ST_ID_len);
+	strncpy(pOut->status_id, c[10].c_str(), cTH_ST_ID_len);
 	pOut->status_id[cTH_ST_ID_len] = '\0';
-	pOut->tax_amount = c[12].as(double());
-	pOut->type_is_market = (c[13].c_str()[0] == 't' ? 1 : 0);
-	pOut->type_is_sell = (c[14].c_str()[0] == 't' ? 1 : 0);
+	pOut->tax_amount = c[11].as(double());
+	pOut->type_is_market = (c[12].c_str()[0] == 't' ? 1 : 0);
+	pOut->type_is_sell = (c[13].c_str()[0] == 't' ? 1 : 0);
 }
 
 void CDBConnection::execute(const TTradeOrderFrame4Input *pIn,
@@ -1872,7 +1822,6 @@ void CDBConnection::execute(const TTradeOrderFrame4Input *pIn,
 		try {
 			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
@@ -1901,12 +1850,10 @@ void CDBConnection::execute(const TTradeOrderFrame4Input *pIn,
 						// Couldn't resubmit successfully.
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
-						pOut->status = CBaseTxnErr::ROLLBACK;
 						rollback();
 						throw;
 					}
 			} else {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				rollback();
 				throw;
 			}
@@ -1915,8 +1862,7 @@ void CDBConnection::execute(const TTradeOrderFrame4Input *pIn,
 
 	result::const_iterator c = R.begin();
 
-	pOut->status = c[0].as(int());
-	pOut->trade_id = c[1].as(long());
+	pOut->trade_id = c[0].as(long());
 }
 
 void CDBConnection::execute(const TTradeResultFrame1Input *pIn,
@@ -1935,7 +1881,6 @@ void CDBConnection::execute(const TTradeResultFrame1Input *pIn,
 		try {
 			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
@@ -1964,12 +1909,10 @@ void CDBConnection::execute(const TTradeResultFrame1Input *pIn,
 						// Couldn't resubmit successfully.
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
-						pOut->status = CBaseTxnErr::ROLLBACK;
 						rollback();
 						throw;
 					}
 			} else {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				rollback();
 				throw;
 			}
@@ -1982,7 +1925,7 @@ void CDBConnection::execute(const TTradeResultFrame1Input *pIn,
 	pOut->charge = c[1].as(double());
 	pOut->hs_qty = c[2].as(int());
 	pOut->is_lifo = c[3].as(int());
-	pOut->status = c[4].as(int());
+	pOut->num_found = c[4].as(int());
 	strncpy(pOut->symbol, c[5].c_str(), cSYMBOL_len);
 	pOut->symbol[cSYMBOL_len] = '\0';
 	pOut->trade_is_cash = c[6].as(int());
@@ -2019,7 +1962,6 @@ void CDBConnection::execute(const TTradeResultFrame2Input *pIn,
 		try {
 			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
@@ -2048,12 +1990,10 @@ void CDBConnection::execute(const TTradeResultFrame2Input *pIn,
 						// Couldn't resubmit successfully.
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
-						pOut->status = CBaseTxnErr::ROLLBACK;
 						rollback();
 						throw;
 					}
 			} else {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				rollback();
 				throw;
 			}
@@ -2066,9 +2006,8 @@ void CDBConnection::execute(const TTradeResultFrame2Input *pIn,
 	pOut->buy_value = c[1].as(double());
 	pOut->cust_id = c[2].as(long());
 	pOut->sell_value = c[3].as(double());
-	pOut->status = c[4].as(int());
-	pOut->tax_status = c[5].as(int());
-	sscanf(c[6].c_str(), "%hd-%hd-%hd %hd:%hd:%hd.%*d",
+	pOut->tax_status = c[4].as(int());
+	sscanf(c[5].c_str(), "%hd-%hd-%hd %hd:%hd:%hd.%*d",
 			&pOut->trade_dts.year,
 			&pOut->trade_dts.month,
 			&pOut->trade_dts.day,
@@ -2097,7 +2036,6 @@ void CDBConnection::execute(const TTradeResultFrame3Input *pIn,
 		try {
 			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
@@ -2126,12 +2064,10 @@ void CDBConnection::execute(const TTradeResultFrame3Input *pIn,
 						// Couldn't resubmit successfully.
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
-						pOut->status = CBaseTxnErr::ROLLBACK;
 						rollback();
 						throw;
 					}
 			} else {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				rollback();
 				throw;
 			}
@@ -2140,8 +2076,7 @@ void CDBConnection::execute(const TTradeResultFrame3Input *pIn,
 
 	result::const_iterator c = R.begin();
 
-	pOut->status = c[0].as(int());
-	pOut->tax_amount = c[1].as(double());
+	pOut->tax_amount = c[0].as(double());
 }
 
 void CDBConnection::execute(const TTradeResultFrame4Input *pIn,
@@ -2164,7 +2099,6 @@ void CDBConnection::execute(const TTradeResultFrame4Input *pIn,
 		try {
 			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
@@ -2193,12 +2127,10 @@ void CDBConnection::execute(const TTradeResultFrame4Input *pIn,
 						// Couldn't resubmit successfully.
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
-						pOut->status = CBaseTxnErr::ROLLBACK;
 						rollback();
 						throw;
 					}
 			} else {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				rollback();
 				throw;
 			}
@@ -2210,11 +2142,9 @@ void CDBConnection::execute(const TTradeResultFrame4Input *pIn,
 	pOut->comm_rate = c[0].as(double());
 	strncpy(pOut->s_name, c[1].c_str(), cS_NAME_len);
 	pOut->s_name[cS_NAME_len] = '\0';
-	pOut->status = c[2].as(int());
 }
 
-void CDBConnection::execute(const TTradeResultFrame5Input *pIn,
-TTradeResultFrame5Output *pOut)
+void CDBConnection::execute(const TTradeResultFrame5Input *pIn)
 {
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeResultFrame5(" <<
@@ -2240,7 +2170,6 @@ TTradeResultFrame5Output *pOut)
 		try {
 			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
@@ -2269,12 +2198,10 @@ TTradeResultFrame5Output *pOut)
 						// Couldn't resubmit successfully.
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
-						pOut->status = CBaseTxnErr::ROLLBACK;
 						rollback();
 						throw;
 					}
 			} else {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				rollback();
 				throw;
 			}
@@ -2282,7 +2209,6 @@ TTradeResultFrame5Output *pOut)
 	}
 
 	result::const_iterator c = R.begin();
-	pOut->status = c[0].as(int());
 }
 
 void CDBConnection::execute(const TTradeResultFrame6Input *pIn,
@@ -2320,7 +2246,6 @@ void CDBConnection::execute(const TTradeResultFrame6Input *pIn,
 		try {
 			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
@@ -2349,12 +2274,10 @@ void CDBConnection::execute(const TTradeResultFrame6Input *pIn,
 						// Couldn't resubmit successfully.
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
-						pOut->status = CBaseTxnErr::ROLLBACK;
 						rollback();
 						throw;
 					}
 			} else {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				rollback();
 				throw;
 			}
@@ -2364,7 +2287,6 @@ void CDBConnection::execute(const TTradeResultFrame6Input *pIn,
 	result::const_iterator c = R.begin();
 
 	pOut->acct_bal = c[0].as(double());
-	pOut->status = c[1].as(int());
 }
 
 void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
@@ -2372,16 +2294,15 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 {
 	enum tsf1 {
 			i_broker_name=0, i_charge, i_cust_f_name, i_cust_l_name,
-			i_ex_name, i_exec_name, i_s_name, i_status, i_status_name,
+			i_ex_name, i_exec_name, i_num_found, i_s_name, i_status_name,
 			i_symbol, i_trade_dts, i_trade_id, i_trade_qty, i_type_name
 	};
 
 	ostringstream osSQL;
-	osSQL << "SELECT * from TradeStatusFrame1(" << pIn->acct_id << ")";
+	osSQL << "SELECT * FROM TradeStatusFrame1(" << pIn->acct_id << ")";
 
 	result R(m_Txn->exec(osSQL.str()));
 	if (R.empty()) {
-		pOut->status = CBaseTxnErr::ROLLBACK;
 		ostringstream msg;
 		msg << time(NULL) << " " << pthread_self() << endl <<
 				"NO RESULTS" << endl <<
@@ -2395,6 +2316,8 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 
 	vector<string> vAux;
 	vector<string>::iterator p;
+
+	pOut->num_found = c[i_num_found].as(int());
 
 	strncpy(pOut->broker_name, c[i_broker_name].c_str(), cB_NAME_len);
 	pOut->broker_name[cB_NAME_len] = '\0';
@@ -2443,8 +2366,6 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 	}
 	check_count(len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
-
-	pOut->status = c[i_status].as(int());
 
 	TokenizeSmart(c[i_status_name].c_str(), vAux);
 	i = 0;
@@ -2517,7 +2438,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 			i_cash_transaction_dts, i_cash_transaction_name, i_exec_name,
 			i_is_cash, i_is_market, i_num_found, i_num_updated,
 			i_settlement_amount, i_settlement_cash_due_date,
-			i_settlement_cash_type, i_status, i_trade_history_dts,
+			i_settlement_cash_type, i_trade_history_dts,
 			i_trade_history_status_id, i_trade_price
 	};
 
@@ -2544,7 +2465,6 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 		try {
 			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
@@ -2573,12 +2493,10 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 						// Couldn't resubmit successfully.
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
-						pOut->status = CBaseTxnErr::ROLLBACK;
 						rollback();
 						throw;
 					}
 			} else {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				rollback();
 				throw;
 			}
@@ -2698,7 +2616,6 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	pOut->status = c[i_status].as(int());
 	pOut->num_updated = c[i_num_updated].as(int());
 
 	TokenizeArray(c[i_trade_history_dts].c_str(), vAux);
@@ -2772,7 +2689,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 			i_bid_price=0, i_cash_transaction_amount,
 			i_cash_transaction_dts, i_cash_transaction_name, i_exec_name,
 			i_is_cash, i_num_found, i_num_updated, i_settlement_amount,
-			i_settlement_cash_due_date, i_settlement_cash_type, i_status,
+			i_settlement_cash_due_date, i_settlement_cash_type,
 			i_trade_history_dts, i_trade_history_status_id, i_trade_list,
 			i_trade_price
 	};
@@ -2805,7 +2722,6 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 		try {
 			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
@@ -2834,12 +2750,10 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 						// Couldn't resubmit successfully.
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
-						pOut->status = CBaseTxnErr::ROLLBACK;
 						rollback();
 						throw;
 					}
 			} else {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				rollback();
 				throw;
 			}
@@ -2953,8 +2867,6 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	pOut->status = c[i_status].as(int());
-
 	TokenizeArray(c[i_trade_history_dts].c_str(), vAux);
 	i = 0;
 	for  (p = vAux.begin(); p != vAux.end(); ++p) {
@@ -3037,13 +2949,13 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 			i_cash_transaction_dts, i_cash_transaction_name, i_exec_name,
 			i_is_cash, i_num_found, i_num_updated, i_price, i_quantity,
 			i_s_name, i_settlement_amount, i_settlement_cash_due_date,
-			i_settlement_cash_type, i_status, i_trade_dts,
+			i_settlement_cash_type, i_trade_dts,
 			i_trade_history_dts, i_trade_history_status_id, i_trade_list,
 			i_type_name, i_trade_type
 	};
 
 	ostringstream osSQL;
-	osSQL << "SELECT * from TradeUpdateFrame3('" <<
+	osSQL << "SELECT * FROM TradeUpdateFrame3('" <<
 			pIn->end_trade_dts.year << "-" <<
 			pIn->end_trade_dts.month << "-" <<
 			pIn->end_trade_dts.day << " " <<
@@ -3071,7 +2983,6 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 		try {
 			R = m_Txn->exec(osSQL.str());
 			if (R.empty()) {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				ostringstream msg;
 				msg << time(NULL) << " " << pthread_self() << endl <<
 						"NO RESULTS" << endl <<
@@ -3100,12 +3011,10 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 						// Couldn't resubmit successfully.
 						msg << "giving up" << endl;
 						bh->logErrorMessage(msg.str(), false);
-						pOut->status = CBaseTxnErr::ROLLBACK;
 						rollback();
 						throw;
 					}
 			} else {
-				pOut->status = CBaseTxnErr::ROLLBACK;
 				rollback();
 				throw;
 			}
@@ -3244,8 +3153,6 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
-
-	pOut->status = c[i_status].as(int());
 
 	TokenizeSmart(c[i_trade_dts].c_str(), vAux);
 	i = 0;

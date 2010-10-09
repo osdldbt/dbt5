@@ -20,8 +20,7 @@ public:
 	CTradeCleanupDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
 	~CTradeCleanupDB() {};
 
-	virtual void DoTradeCleanupFrame1(const TTradeCleanupFrame1Input *pIn,
-			TTradeCleanupFrame1Output *pOut);
+	virtual void DoTradeCleanupFrame1(const TTradeCleanupFrame1Input *pIn);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

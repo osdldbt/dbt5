@@ -203,7 +203,7 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				i_cash_transaction_dts, i_cash_transaction_name, i_exec_name,
 				i_is_cash, i_is_market, i_num_found, i_num_updated,
 				i_settlement_amount, i_settlement_cash_due_date,
-				i_settlement_cash_type, i_status, i_trade_history_dts,
+				i_settlement_cash_type, i_trade_history_dts,
 				i_trade_history_status_id, i_trade_price
 		};
 
@@ -228,6 +228,9 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 
 		int num_found = max_trades;
 		int num_updated = 0;
+		int num_updated4 = 0;
+		int num_updated5 = 0;
+		int num_updated7 = 0;
 		int num_cash = 0;
 
 		ndim = ARR_NDIM(trade_id_p);
@@ -244,7 +247,7 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 * Don't forget to factor in commas (,) and braces ({}) for the arrays.
 		 */
-		values = (char **) palloc(sizeof(char *) * 16);
+		values = (char **) palloc(sizeof(char *) * 15);
 		values[i_bid_price] =
 				(char *) palloc(((S_PRICE_T_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_cash_transaction_amount] =
@@ -268,7 +271,6 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				(char *) palloc(((MAXDATELEN + 1) * 20 + 2) * sizeof(char));
 		values[i_settlement_cash_type] = (char *) palloc(((SE_CASH_TYPE_LEN +
 				3) * 20 + 2) * sizeof(char));
-		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
 		values[i_trade_history_dts] = (char *) palloc(((MAXDATELEN * 3 + 4) *
 				20 + 22) * sizeof(char));
 		values[i_trade_history_status_id] = (char *) palloc((((ST_ID_LEN +
@@ -282,7 +284,6 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
-		strcpy(values[i_status], "0");
 		funcctx->max_calls = 1;
 
 		/* switch to memory context appropriate for multiple function calls */
@@ -304,7 +305,7 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 		strcpy(values[i_trade_history_dts], "{");
 		strcpy(values[i_trade_history_status_id], "{");
 		for (i = 0; i < max_trades; i++) {
-			char *is_cash_str;
+			char *is_cash_str = NULL;
 			char *is_market_str;
 
 			if (num_updated < max_updates) {
@@ -321,8 +322,6 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 					tuple = tuptable->vals[0];
 					ex_name = SPI_getvalue(tuple, tupdesc, 1);
 				} else {
-					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
-					dump_tuf1_inputs(max_trades, max_updates, trade_id);
 					continue;
 				}
 
@@ -345,7 +344,7 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 					tuple = tuptable->vals[0];
 					ex_name = SPI_getvalue(tuple, tupdesc, 1);
 				} else {
-					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+					FAIL_FRAME_SET(&funcctx->max_calls, sql);
 					dump_tuf1_inputs(max_trades, max_updates, trade_id);
 					continue;
 				}
@@ -360,7 +359,7 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 				ret = SPI_exec(sql, 0);
 				if (ret != SPI_OK_UPDATE) {
-					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+					FAIL_FRAME_SET(&funcctx->max_calls, sql);
 					dump_tuf1_inputs(max_trades, max_updates, trade_id);
 					continue;
 				}
@@ -368,28 +367,29 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				num_updated += SPI_processed;
 			}
 
-			if (i > 0) {
-				strcat(values[i_bid_price], ",");
-				strcat(values[i_exec_name], ",");
-				strcat(values[i_is_cash], ",");
-				strcat(values[i_is_market], ",");
-				strcat(values[i_trade_price], ",");
-				strcat(values[i_settlement_amount], ",");
-				strcat(values[i_settlement_cash_due_date], ",");
-				strcat(values[i_settlement_cash_type], ",");
-				strcat(values[i_trade_history_dts], ",");
-				strcat(values[i_trade_history_status_id], ",");
-			}
-
 			sprintf(sql, TUF1_4, trade_id[i]);
 #ifdef DEBUG
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 			ret = SPI_exec(sql, 0);
-			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
-				tupdesc = SPI_tuptable->tupdesc;
-				tuptable = SPI_tuptable;
-				tuple = tuptable->vals[0];
+			if (ret != SPI_OK_SELECT) {
+				FAIL_FRAME_SET(&funcctx->max_calls, sql);
+				dump_tuf1_inputs(max_trades, max_updates, trade_id);
+				continue;
+			}
+
+			tupdesc = SPI_tuptable->tupdesc;
+			tuptable = SPI_tuptable;
+			for (j = 0; j < SPI_processed; j++) {
+				if (num_updated4 > 0) {
+					strcat(values[i_bid_price], ",");
+					strcat(values[i_exec_name], ",");
+					strcat(values[i_is_cash], ",");
+					strcat(values[i_is_market], ",");
+					strcat(values[i_trade_price], ",");
+				}
+
+				tuple = tuptable->vals[j];
 				strcat(values[i_bid_price], SPI_getvalue(tuple, tupdesc, 1));
 				strcat(values[i_exec_name], "\"");
 				strcat(values[i_exec_name], SPI_getvalue(tuple, tupdesc, 2));
@@ -400,10 +400,8 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				strcat(values[i_is_market],
 						(is_market_str[0] == 't' ? "0" : "1"));
 				strcat(values[i_trade_price], SPI_getvalue(tuple, tupdesc, 5));
-			} else {
-				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
-				dump_tuf1_inputs(max_trades, max_updates, trade_id);
-				continue;
+
+				num_updated4++;
 			}
 
 			sprintf(sql, TUF1_5, trade_id[i]);
@@ -411,10 +409,22 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 			ret = SPI_exec(sql, 0);
-			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
-				tupdesc = SPI_tuptable->tupdesc;
-				tuptable = SPI_tuptable;
-				tuple = tuptable->vals[0];
+			if (ret != SPI_OK_SELECT) {
+				FAIL_FRAME_SET(&funcctx->max_calls, sql);
+				dump_tuf1_inputs(max_trades, max_updates, trade_id);
+				continue;
+			}
+
+			tupdesc = SPI_tuptable->tupdesc;
+			tuptable = SPI_tuptable;
+			for (j = 0; j < SPI_processed; j++) {
+				if (num_updated5 > 0) {
+					strcat(values[i_settlement_amount], ",");
+					strcat(values[i_settlement_cash_due_date], ",");
+					strcat(values[i_settlement_cash_type], ",");
+				}
+
+				tuple = tuptable->vals[j];
 				strcat(values[i_settlement_amount],
 						SPI_getvalue(tuple, tupdesc, 1));
 				strcat(values[i_settlement_cash_due_date],
@@ -423,10 +433,8 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				strcat(values[i_settlement_cash_type],
 						SPI_getvalue(tuple, tupdesc, 3));
 				strcat(values[i_settlement_cash_type], "\"");
-			} else {
-				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
-				dump_tuf1_inputs(max_trades, max_updates, trade_id);
-				continue;
+
+				num_updated5++;
 			}
 
 			if (is_cash_str[0] == 't') {
@@ -455,7 +463,7 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 					strcat(values[i_cash_transaction_name], "\"");
 					++num_cash;
 				} else {
-					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+					FAIL_FRAME_SET(&funcctx->max_calls, sql);
 					dump_tuf1_inputs(max_trades, max_updates, trade_id);
 					continue;
 				}
@@ -470,11 +478,15 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
 			} else {
-				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME_SET(&funcctx->max_calls, sql);
 				dump_tuf1_inputs(max_trades, max_updates, trade_id);
 				continue;
 			}
 
+			if (num_updated7 > 0) {
+				strcat(values[i_trade_history_dts], ",");
+				strcat(values[i_trade_history_status_id], ",");
+			}
 			strcat(values[i_trade_history_dts], "{");
 			strcat(values[i_trade_history_status_id], "{");
 			for (j = 0; j < SPI_processed; j++) {
@@ -482,6 +494,7 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 					strcat(values[i_trade_history_dts], ",");
 					strcat(values[i_trade_history_status_id], ",");
 				}
+
 				tuple = tuptable->vals[j];
 				strcat(values[i_trade_history_dts],
 							SPI_getvalue(tuple, tupdesc, 1));
@@ -489,6 +502,8 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				strcat(values[i_trade_history_status_id],
 							SPI_getvalue(tuple, tupdesc, 2));
 				strcat(values[i_trade_history_status_id], "\"");
+
+				num_updated7++;
 			}
 			for (j = SPI_processed; j < 3; j++) {
 				if (j > 0) {
@@ -497,6 +512,8 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				}
 				strcat(values[i_trade_history_dts], "NULL");
 				strcat(values[i_trade_history_status_id], "\"\"");
+
+				num_updated7++;
 			}
 			strcat(values[i_trade_history_dts], "}");
 			strcat(values[i_trade_history_status_id], "}");
@@ -550,7 +567,7 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 		Datum result;
 
 #ifdef DEBUG
-		for (i = 0; i < 16; i++) {
+		for (i = 0; i < 15; i++) {
 			elog(NOTICE, "TUF1 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
@@ -590,7 +607,7 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				i_bid_price=0, i_cash_transaction_amount,
 				i_cash_transaction_dts, i_cash_transaction_name, i_exec_name,
 				i_is_cash, i_num_found, i_num_updated, i_settlement_amount,
-				i_settlement_cash_due_date, i_settlement_cash_type, i_status,
+				i_settlement_cash_due_date, i_settlement_cash_type,
 				i_trade_history_dts, i_trade_history_status_id, i_trade_list,
 				i_trade_price
 		};
@@ -639,7 +656,7 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 * Don't forget to factor in commas (,) and braces ({}) for the arrays.
 		 */
-		values = (char **) palloc(sizeof(char *) * 16);
+		values = (char **) palloc(sizeof(char *) * 15);
 		values[i_bid_price] =
 				(char *) palloc(((S_PRICE_T_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_cash_transaction_amount] =
@@ -661,8 +678,6 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				(char *) palloc(((MAXDATELEN + 1) * 20 + 2) * sizeof(char));
 		values[i_settlement_cash_type] = (char *) palloc(((SE_CASH_TYPE_LEN +
 				3) * 20 + 2) * sizeof(char));
-		values[i_status] =
-				(char *) palloc((STATUS_LEN + 1) * sizeof(char));
 		values[i_trade_history_dts] = (char *) palloc((((MAXDATELEN + 2) * 3
 				+ 2) * 20 + 5) * sizeof(char));
 		values[i_trade_history_status_id] = (char *) palloc((((ST_ID_LEN +
@@ -674,7 +689,6 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
-		strcpy(values[i_status], "0");
 		funcctx->max_calls = 1;
 
 		/* switch to memory context appropriate for multiple function calls */
@@ -761,7 +775,7 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 					l_tuple = l_tuptable->vals[0];
 					old_cash_type = SPI_getvalue(l_tuple, l_tupdesc, 1);
 				} else {
-					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+					FAIL_FRAME_SET(&funcctx->max_calls, sql);
 					dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
 							max_updates, start_trade_dts);
 					continue;
@@ -791,7 +805,7 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 				ret = SPI_exec(sql, 0);
 				if (ret != SPI_OK_UPDATE) {
-					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+					FAIL_FRAME_SET(&funcctx->max_calls, sql);
 					dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
 							max_updates, start_trade_dts);
 					continue;
@@ -817,7 +831,7 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 						SPI_getvalue(l_tuple, l_tupdesc, 3));
 				strcat(values[i_settlement_cash_type], "\"");
 			} else {
-				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME_SET(&funcctx->max_calls, sql);
 				dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
 						max_updates, start_trade_dts);
 				continue;
@@ -843,7 +857,7 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 					strcat(values[i_cash_transaction_name], "\"");
 					++num_cash;
 				} else {
-					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+					FAIL_FRAME_SET(&funcctx->max_calls, sql);
 					dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
 							max_updates, start_trade_dts);
 					continue;
@@ -859,7 +873,7 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				l_tupdesc = SPI_tuptable->tupdesc;
 				l_tuptable = SPI_tuptable;
 			} else {
-				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME_SET(&funcctx->max_calls, sql);
 				dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
 						max_updates, start_trade_dts);
 				continue;
@@ -931,7 +945,7 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 		Datum result;
 
 #ifdef DEBUG
-		for (i = 0; i < 16; i++) {
+		for (i = 0; i < 15; i++) {
 			elog(NOTICE, "TUF2 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
@@ -960,6 +974,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 
 	int i;
 	int j;
+	int k = 0;
 
 	char **values = NULL;
 
@@ -972,7 +987,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 				i_cash_transaction_dts, i_cash_transaction_name, i_exec_name,
 				i_is_cash, i_num_found, i_num_updated, i_price, i_quantity,
 				i_s_name, i_settlement_amount, i_settlement_cash_due_date,
-				i_settlement_cash_type, i_status, i_trade_dts,
+				i_settlement_cash_type, i_trade_dts,
 				i_trade_history_dts, i_trade_history_status_id, i_trade_list,
 				i_type_name, i_trade_type
 		};
@@ -1025,7 +1040,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 * Don't forget to factor in commas (,) and braces ({}) for the arrays.
 		 */
-		values = (char **) palloc(sizeof(char *) * 21);
+		values = (char **) palloc(sizeof(char *) * 20);
 		values[i_acct_id] =
 				(char *) palloc((BIGINT_LEN * 20 + 22) * sizeof(char));
 		values[i_cash_transaction_amount] =
@@ -1053,8 +1068,6 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 				(char *) palloc((MAXDATELEN * 20 + 22) * sizeof(char));
 		values[i_settlement_cash_type] = (char *) palloc(((SE_CASH_TYPE_LEN +
 				2) * 20 + 22) * sizeof(char));
-		values[i_status] =
-				(char *) palloc((STATUS_LEN + 1) * sizeof(char));
 		values[i_trade_dts] = (char *) palloc(((MAXDATELEN + 1) * 20 + 2) *
 				sizeof(char));
 		values[i_trade_history_dts] = (char *) palloc(((MAXDATELEN * 3 + 4) *
@@ -1070,7 +1083,6 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
-		strcpy(values[i_status], "0");
 		funcctx->max_calls = 1;
 
 		/* switch to memory context appropriate for multiple function calls */
@@ -1191,7 +1203,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 						SPI_getvalue(l_tuple, l_tupdesc, 3));
 				strcat(values[i_settlement_cash_type], "\"");
 			} else {
-				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME_SET(&funcctx->max_calls, sql);
 				dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
 						max_updates, start_trade_dts, symbol);
 				continue;
@@ -1210,7 +1222,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 						l_tuple = l_tuptable->vals[0];
 						old_ct_name = SPI_getvalue(l_tuple, l_tupdesc, 1);
 					} else {
-						FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+						FAIL_FRAME_SET(&funcctx->max_calls, sql);
 						dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
 								max_updates, start_trade_dts, symbol);
 						continue;
@@ -1223,7 +1235,12 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 						sprintf(ct_name, "%s %s shares of %s", type_name,
 								quantity, s_name);
 					}
-					escape_me(ct_name, ct_name_esc);
+					for (i = 0; i < CT_NAME_LEN || ct_name[i] != '\0'; i++) {
+						if (ct_name[i] == '\'')
+							ct_name_esc[k++] = '\\';
+						ct_name_esc[k++] = ct_name[i];
+					}
+					ct_name_esc[k] = '\0';
 
 					sprintf(sql, TUF3_4, ct_name_esc, trade_list);
 #ifdef DEBUG
@@ -1231,7 +1248,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 					ret = SPI_exec(sql, 0);
 					if (ret != SPI_OK_UPDATE) {
-						FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+						FAIL_FRAME_SET(&funcctx->max_calls, sql);
 						dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
 								max_updates, start_trade_dts, symbol);
 						continue;
@@ -1262,7 +1279,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 					strcat(values[i_cash_transaction_name], "\"");
 					++num_cash;
 				} else {
-					FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+					FAIL_FRAME_SET(&funcctx->max_calls, sql);
 					dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
 							max_updates, start_trade_dts, symbol);
 					continue;
@@ -1278,7 +1295,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 				l_tupdesc = SPI_tuptable->tupdesc;
 				l_tuptable = SPI_tuptable;
 			} else {
-				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME_SET(&funcctx->max_calls, sql);
 				dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
 						max_updates, start_trade_dts, symbol);
 				continue;
@@ -1360,7 +1377,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 		Datum result;
 
 #ifdef DEBUG
-		for (i = 0; i < 21; i++) {
+		for (i = 0; i < 20; i++) {
 			elog(NOTICE, "TUF3 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */

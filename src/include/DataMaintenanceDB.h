@@ -20,8 +20,7 @@ public:
 	CDataMaintenanceDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
 	~CDataMaintenanceDB() {};
 
-	void DoDataMaintenanceFrame1(const TDataMaintenanceFrame1Input *pIn,
-			TDataMaintenanceFrame1Output *pOut);
+	void DoDataMaintenanceFrame1(const TDataMaintenanceFrame1Input *pIn);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

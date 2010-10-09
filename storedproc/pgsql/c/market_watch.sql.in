@@ -20,9 +20,12 @@
  */                                    
 
 CREATE OR REPLACE FUNCTION MarketWatchFrame1(
-		IN acct_id IDENT_T, IN cust_id IDENT_T, IN ending_co_id IDENT_T,
-		IN industry_name VARCHAR, IN start_day DATE,
-		IN starting_co_id IDENT_T, OUT pct_change NUMERIC(3, 2),
-		OUT status INTEGER)
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'MarketWatchFrame1'
+		IN acct_id IDENT_T,
+		IN cust_id IDENT_T,
+		IN ending_co_id IDENT_T,
+		IN industry_name VARCHAR,
+		IN start_day DATE,
+		IN starting_co_id IDENT_T,
+		OUT pct_change NUMERIC(3, 2))
+RETURNS NUMERIC AS 'MODULE_PATHNAME', 'MarketWatchFrame1'
 LANGUAGE C IMMUTABLE STRICT;

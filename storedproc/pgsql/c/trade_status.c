@@ -74,7 +74,7 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 
 		enum tsf1 {
 				i_broker_name=0, i_charge, i_cust_f_name, i_cust_l_name,
-				i_ex_name, i_exec_name, i_s_name, i_status, i_status_name,
+				i_ex_name, i_exec_name, i_num_found, i_s_name, i_status_name,
 				i_symbol, i_trade_dts, i_trade_id, i_trade_qty, i_type_name
 		};
 
@@ -99,9 +99,9 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 				(char *) palloc((EX_NAME_LEN + 3) * sizeof(char) * 50);
 		values[i_exec_name] =
 				(char *) palloc((T_EXEC_NAME_LEN + 3) * sizeof(char) * 50);
+		values[i_num_found] = (char *) palloc((BIGINT_LEN + 1) * sizeof(char));
 		values[i_s_name] =
 				(char *) palloc((S_NAME_LEN + 3) * sizeof(char) * 50);
-		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
 		values[i_status_name] =
 				(char *) palloc((ST_NAME_LEN + 3) * sizeof(char) * 50);
 		values[i_symbol] =
@@ -125,7 +125,6 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
-		strcpy(values[i_status], "0");
 		funcctx->max_calls = 1;
 
 		/* switch to memory context appropriate for multiple function calls */
@@ -141,13 +140,11 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
-			if (SPI_processed != 50)
-				strcpy(values[i_status], "-911");
 		} else {
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, sql);
 			dump_tsf1_inputs(acct_id);
 		}
-
+		sprintf(values[i_num_found], "%d", SPI_processed);
 		strcpy(values[i_trade_id], "{");
 		strcpy(values[i_trade_dts], "{");
 		strcpy(values[i_status_name], "{");
@@ -221,7 +218,7 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 				values[i_broker_name] = SPI_getvalue(tuple, tupdesc, 3);
 			}
 		} else {
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, sql);
 			dump_tsf1_inputs(acct_id);
 		}
 		/* Build a tuple descriptor for our result type */

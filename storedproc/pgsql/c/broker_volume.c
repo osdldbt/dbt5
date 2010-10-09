@@ -13,7 +13,7 @@
 #include <fmgr.h>
 #include <executor/spi.h> /* this should include most necessary APIs */
 #include <executor/executor.h>  /* for GetAttributeByName() */
-#include <funcapi.h> /* for returning set of rows in order_status */
+#include <funcapi.h> /* for returning set of rows */
 #include <utils/lsyscache.h>
 #include <utils/array.h>
 #include <utils/builtins.h>
@@ -103,7 +103,7 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		ArrayType *broker_list_p = PG_GETARG_ARRAYTYPE_P(0);
 		text *sector_name_p = PG_GETARG_TEXT_P(1);
 
-		enum bvf1 { i_broker_name=0, i_list_len, i_status, i_volume };
+		enum bvf1 { i_broker_name=0, i_list_len, i_volume };
 
 		int16 typlen;
 		bool typbyval;
@@ -122,11 +122,8 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		 * This should be an array of C strings, which will
 		 * be processed later by the type input functions.
 		 */
-		values = (char **) palloc(sizeof(char *) * 4);
+		values = (char **) palloc(sizeof(char *) * 3);
 		values[i_list_len] = (char *) palloc((SMALLINT_LEN + 1) * sizeof(char));
-		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
-
-		strcpy(values[i_status], "0");
 
 		/*
 		 * This might be overkill since we always expect single dimensions
@@ -188,7 +185,7 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 		} else {
 			dump_bvf1_inputs(broker_list_p, sector_name_p);
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, sql);
 		}
 
 		sprintf(values[i_list_len], "%d", SPI_processed);
@@ -256,7 +253,7 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		Datum result;
 
 #ifdef DEBUG                                                                    
-		for (i = 0; i < 4; i++) {
+		for (i = 0; i < 3; i++) {
 			elog(NOTICE, "BVF1 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */

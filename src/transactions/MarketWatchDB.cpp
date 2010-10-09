@@ -15,17 +15,16 @@ void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
 		TMarketWatchFrame1Output *pOut)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< MWF1" << endl;
-	cout << "- Market Watch Frame 1 (input)" << endl <<
-			"-- acct_id: " << pIn->acct_id << endl <<
-			"-- cust_id: " << pIn->c_id << endl <<
-			"-- ending_co_id: " << pIn->ending_co_id << endl <<
-			"-- industry_name: " << pIn->industry_name << " (5% used)" <<
-					endl <<
-			"-- starting_co_id: " << pIn->starting_co_id <<
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< MWF1" << endl;
+	cout << pid << " - Market Watch Frame 1 (input)" << endl <<
+			pid << " -- acct_id: " << pIn->acct_id << endl <<
+			pid << " -- cust_id: " << pIn->c_id << endl <<
+			pid << " -- ending_co_id: " << pIn->ending_co_id << endl <<
+			pid << " -- industry_name: " << pIn->industry_name <<
+					" (5% used)" << endl <<
+			pid << " -- starting_co_id: " << pIn->starting_co_id <<
 					" (used only when industry_name is used)" << endl;
-	m_coutLock.unlock();
 #endif // DEBUG
 
 	startTransaction();
@@ -33,19 +32,11 @@ void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
 	setReadCommitted();
 	execute(pIn, pOut);
 
-	if (pOut->status == CBaseTxnErr::SUCCESS) {
-	// status ok
-		commitTransaction();
-	} else {
-		rollbackTransaction();
-	}
+	commitTransaction();
 
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Market Watch Frame 1 (output)" << endl <<
-			"-- status: " << pOut->status << endl <<
-			"-- pct_change: " << pOut->pct_change << endl;
-	cout << ">>> MWF1" << endl;
-	m_coutLock.unlock();
+	cout << pid << " - Market Watch Frame 1 (output)" << endl <<
+			pid << " -- pct_change: " << pOut->pct_change << endl;
+	cout << pid << " >>> MWF1" << endl;
 #endif // DEBUG
 }

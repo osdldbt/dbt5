@@ -263,7 +263,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			acl = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -284,7 +284,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
 		if (ret != SPI_OK_UPDATE) {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -310,7 +310,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			line2 = SPI_getvalue(tuple, tupdesc, 1);
 			ad_id = atol(SPI_getvalue(tuple, tupdesc, 2));
 		} else {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -331,7 +331,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
 		if (ret != SPI_OK_UPDATE) {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -351,7 +351,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			sprate = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -373,7 +373,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
 		if (ret != SPI_OK_UPDATE) {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -395,7 +395,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			email2 = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -414,7 +414,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
 		if (ret != SPI_OK_UPDATE) {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -435,7 +435,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			old_tax_rate = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -471,7 +471,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
 		if (ret != SPI_OK_UPDATE) {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -485,7 +485,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
 		if (ret != SPI_OK_UPDATE) {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -504,7 +504,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			rowcount = atof(SPI_getvalue(tuple, tupdesc, 1));
 		} else {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -527,7 +527,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			ret = SPI_exec(DMF1_13b, 0);
 		}
 		if (ret != SPI_OK_UPDATE) {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -548,7 +548,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			rowcount = atof(SPI_getvalue(tuple, tupdesc, 1));
 		} else {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -569,7 +569,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
 		if (ret != SPI_OK_UPDATE) {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -582,7 +582,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
 		if (ret != SPI_OK_UPDATE) {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -595,7 +595,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
 		if (ret != SPI_OK_UPDATE) {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -617,7 +617,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			strcpy(tx_name, SPI_getvalue(tuple, tupdesc, 1));
 		} else {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -633,7 +633,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		} else if ((p = strstr(tx_name, " tax ")) > 0) {
 			p[1] = 'T';
 		} else {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -650,7 +650,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
 		if (ret != SPI_OK_UPDATE) {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -672,7 +672,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			cnt = atoi(SPI_getvalue(tuple, tupdesc, 1));
 		} else {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -696,7 +696,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			old_symbol = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -718,7 +718,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			new_symbol = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -735,7 +735,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
 		if (ret != SPI_OK_UPDATE) {
-			FAIL_FRAME2(status, sql);
+			FAIL_FRAME(sql);
 			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 					table_name, tx_id, vol_incr);
 			SPI_finish();
@@ -743,7 +743,7 @@ Datum DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		}
 	} else {
 		elog(ERROR, "unknown table for data maintenance: %s", table_name);
-		FAIL_FRAME2(status, sql);
+		FAIL_FRAME(sql);
 		dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 				table_name, tx_id, vol_incr);
 		SPI_finish();

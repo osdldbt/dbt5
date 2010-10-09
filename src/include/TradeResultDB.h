@@ -30,8 +30,7 @@ public:
 			TTradeResultFrame3Output *pOut);
 	virtual void DoTradeResultFrame4(const TTradeResultFrame4Input *pIn,
 			TTradeResultFrame4Output *pOut);
-	virtual void DoTradeResultFrame5(const TTradeResultFrame5Input *pIn,
-			TTradeResultFrame5Output *pOut);
+	virtual void DoTradeResultFrame5(const TTradeResultFrame5Input *pIn);
 	virtual void DoTradeResultFrame6(const TTradeResultFrame6Input *pIn,
 			TTradeResultFrame6Output *pOut);
 

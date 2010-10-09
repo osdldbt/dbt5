@@ -17,22 +17,18 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 		CSendToMarketInterface *pMarketExchange)
 {
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "<<< MFF1" << endl;
-	cout << "- Market Feed Frame 1 (input)" << endl <<
-			"-- max_feed_len: " << max_feed_len << endl <<
-			"-- price_quote: " << "{" << osPrice.str() << "}"<< endl <<
-			"-- status_submitted: " <<
+	pthread_t pid = pthread_self();
+	cout << pid << " <<< MFF1" << endl;
+	cout << pid << " - Market Feed Frame 1 (input)" << endl <<
+			pid << " -- max_feed_len: " << max_feed_len << endl <<
+			pid << " -- status_submitted: " <<
 					pIn->StatusAndTradeType.status_submitted << endl <<
-			"-- symbol: " << "{" << osSymbol.str() << "}" << endl <<
-			"-- trade_qty: " << "{" << osQty.str() << "}" << endl <<
-			"-- type_limit_buy: " <<
+			pid << " -- type_limit_buy: " <<
 					pIn->StatusAndTradeType.type_limit_buy << endl <<
-			"-- type_limit_sell: " <<
+			pid << " -- type_limit_sell: " <<
 					pIn->StatusAndTradeType.type_limit_sell << endl <<
-			"-- type_stop_loss: " <<
+			pid << " -- type_stop_loss: " <<
 					pIn->StatusAndTradeType.type_stop_loss << endl;
-	m_coutLock.unlock();
 #endif // DEBUG
 
 	startTransaction();
@@ -42,11 +38,8 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 	commitTransaction();
 	
 #ifdef DEBUG
-	m_coutLock.lock();
-	cout << "- Market Feed Frame 1 (output)" << endl <<
-			"-- send_len: " << pOut->send_len << endl <<
-			"-- status: " << pOut->status << endl;
-	cout << ">>> MFF1" << endl;
-	m_coutLock.unlock();
+	cout << pid << " - Market Feed Frame 1 (output)" << endl <<
+			pid << " -- send_len: " << pOut->send_len << endl <<
+	cout << pid << " >>> MFF1" << endl;
 #endif // DEBUG
 }

@@ -14,7 +14,7 @@
 #include <fmgr.h>
 #include <executor/spi.h> /* this should include most necessary APIs */
 #include <executor/executor.h>  /* for GetAttributeByName() */
-#include <funcapi.h> /* for returning set of rows in order_status */
+#include <funcapi.h> /* for returning set of rows */
 #include <utils/datetime.h>
 #include <utils/builtins.h>
 
@@ -134,7 +134,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 				i_c_ctry_3, i_c_dob, i_c_email_1, i_c_email_2, i_c_ext_1,
 				i_c_ext_2, i_c_ext_3, i_c_f_name, i_c_gndr, i_c_l_name,
 				i_c_local_1, i_c_local_2, i_c_local_3, i_c_m_name, i_c_st_id,
-				i_c_tier, i_cash_bal, i_status
+				i_c_tier, i_cash_bal
 		};
 
 		int ret;
@@ -149,14 +149,12 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		 * This should be an array of C strings, which will
 		 * be processed later by the type input functions.
 		 */
-		values = (char **) palloc(sizeof(char *) * 28);
+		values = (char **) palloc(sizeof(char *) * 27);
 		values[i_cust_id] = (char *) palloc((IDENT_T_LEN + 1) * sizeof(char));
 		values[i_acct_len] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
-		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
 
 		/* Create a function context for cross-call persistence. */
 		funcctx = SRF_FIRSTCALL_INIT();
-		strcpy(values[i_status], "0");
 
 		/* Switch to memory context appropriate for multiple function calls. */
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
@@ -185,7 +183,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			} else {
 				dump_cpf1_inputs(cust_id, tax_id_p);
-				FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+				FAIL_FRAME_SET(&funcctx->max_calls, sql);
 			}
 		}
 
@@ -282,7 +280,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			strcat(values[i_asset_total], "}");
 		} else {
 			dump_cpf1_inputs(cust_id, tax_id_p);
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, sql);
 		}
 		snprintf(values[i_cust_id], 12, "%" PRId64, cust_id);
 
@@ -315,7 +313,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		HeapTuple tuple;
 
 #ifdef DEBUG
-		for (i = 0; i < 28; i++) {
+		for (i = 0; i < 27; i++) {
 			elog(NOTICE, "CPF1 OUT: %d '%s'", i, values[i]);
 		}
 #endif /* DEBUG */
@@ -350,8 +348,8 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 		int64 acct_id = PG_GETARG_INT64(0);
 
 		enum cpf2 {
-				i_hist_dts=0, i_hist_len, i_qty, i_status, i_symbol,
-				i_trade_id, i_trade_status
+				i_hist_dts=0, i_hist_len, i_qty, i_symbol, i_trade_id,
+				i_trade_status
 		};
 
 		int ret;
@@ -366,11 +364,8 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 		 * This should be an array of C strings, which will
 		 * be processed later by the type input functions.
 		 */
-		values = (char **) palloc(sizeof(char *) * 7);
+		values = (char **) palloc(sizeof(char *) * 6);
 		values[i_hist_len] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
-		values[i_status] = (char *) palloc((STATUS_LEN + 1) * sizeof(char));
-
-		strcpy(values[i_status], "0");
 
 		/* Create a function context for cross-call persistence. */
 		funcctx = SRF_FIRSTCALL_INIT();
@@ -458,7 +453,7 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 				elog(WARNING, "Query CPF2_1 should return 10-30 rows.");
 			}
 			dump_cpf2_inputs(acct_id);
-			FAIL_FRAME(&funcctx->max_calls, values[i_status], sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, sql);
 
 			/*
 			 * FIXME: Probably don't need to do this if we're not going to
@@ -506,7 +501,7 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 		HeapTuple tuple;
 
 #ifdef DEBUG
-		for (i = 0; i < 7; i++) {
+		for (i = 0; i < 6; i++) {
 			elog(NOTICE, "CPF2 OUT: %d '%s'", i, values[i]);
 		}
 #endif /* DEBUG */
