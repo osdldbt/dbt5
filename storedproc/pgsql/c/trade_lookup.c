@@ -343,6 +343,7 @@ Datum TradeLookupFrame1(PG_FUNCTION_ARGS)
 			}
 
 			for (j = 0; j < SPI_processed; j++) {
+				char *trade_price;
 				if (num_found_count > 0) {
 					strcat(values[i_bid_price], ",");
 					strcat(values[i_exec_name], ",");
@@ -361,7 +362,12 @@ Datum TradeLookupFrame1(PG_FUNCTION_ARGS)
 				is_market_str = SPI_getvalue(tuple, tupdesc, 4);
 				strcat(values[i_is_market],
 						(is_market_str[0] == 't' ? "0" : "1"));
-				strcat(values[i_trade_price], SPI_getvalue(tuple, tupdesc, 5));
+				trade_price = SPI_getvalue(tuple, tupdesc, 5);
+				if (trade_price != NULL)
+					strcat(values[i_trade_price],
+							SPI_getvalue(tuple, tupdesc, 5));
+				else
+					strcat(values[i_trade_price], "NULL");
 #ifdef DEBUG
 				elog(NOTICE, "t_is_cash = %s", is_cash_str);
 #endif /* DEBUG */
