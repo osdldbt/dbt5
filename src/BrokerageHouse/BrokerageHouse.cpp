@@ -496,10 +496,14 @@ INT32 CBrokerageHouse::RunBrokerVolume(PBrokerVolumeTxnInput pTxnInput,
 	try {
 		brokerVolume.DoTxn(pTxnInput, &bvOutput);
 	} catch (const exception &e) {
+		logErrorMessage("BV EXCEPTION\n", false);
 		bvOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
 	if (bvOutput.status != CBaseTxnErr::SUCCESS) {
+		ostringstream msg;
+		msg << __FILE__ << " " << __LINE__ << " " << bvOutput.status << endl;
+		logErrorMessage(msg.str(), false);
 		dumpInputData(pTxnInput);
 	}
 	return bvOutput.status;
@@ -512,10 +516,14 @@ INT32 CBrokerageHouse::RunCustomerPosition(PCustomerPositionTxnInput pTxnInput,
 	try {
 		customerPosition.DoTxn(pTxnInput, &cpOutput);
 	} catch (const exception &e) {
+		logErrorMessage("CP EXCEPTION\n", false);
 		cpOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
 	if (cpOutput.status != CBaseTxnErr::SUCCESS) {
+		ostringstream msg;
+		msg << __FILE__ << " " << __LINE__ << " " << cpOutput.status << endl;
+		logErrorMessage(msg.str(), false);
 		dumpInputData(pTxnInput);
 	}
 	return cpOutput.status;
@@ -528,10 +536,14 @@ INT32 CBrokerageHouse::RunDataMaintenance(PDataMaintenanceTxnInput pTxnInput,
 	try {
 		dataMaintenance.DoTxn(pTxnInput, &dmOutput);
 	} catch (const exception &e) {
+		logErrorMessage("DM EXCEPTION\n", false);
 		dmOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
 	if (dmOutput.status != CBaseTxnErr::SUCCESS) {
+		ostringstream msg;
+		msg << __FILE__ << " " << __LINE__ << " " << dmOutput.status << endl;
+		logErrorMessage(msg.str(), false);
 		dumpInputData(pTxnInput);
 	}
 	return dmOutput.status;
@@ -544,10 +556,14 @@ INT32 CBrokerageHouse::RunTradeCleanup(PTradeCleanupTxnInput pTxnInput,
 	try {
 		tradeCleanup.DoTxn(pTxnInput, &tcOutput);
 	} catch (const exception &e) {
+		logErrorMessage("TC EXCEPTION\n", false);
 		tcOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
 	if (tcOutput.status != CBaseTxnErr::SUCCESS) {
+		ostringstream msg;
+		msg << __FILE__ << " " << __LINE__ << " " << tcOutput.status << endl;
+		logErrorMessage(msg.str(), false);
 		dumpInputData(pTxnInput);
 	}
 	return tcOutput.status;
@@ -560,10 +576,14 @@ INT32 CBrokerageHouse::RunMarketFeed(PMarketFeedTxnInput pTxnInput,
 	try {
 		marketFeed.DoTxn(pTxnInput, &mfOutput);
 	} catch (const exception &e) {
+		logErrorMessage("MF EXCEPTION\n", false);
 		mfOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
 	if (mfOutput.status != CBaseTxnErr::SUCCESS) {
+		ostringstream msg;
+		msg << __FILE__ << " " << __LINE__ << " " << mfOutput.status << endl;
+		logErrorMessage(msg.str(), false);
 		dumpInputData(pTxnInput);
 	}
 	return mfOutput.status;
@@ -576,9 +596,14 @@ INT32 CBrokerageHouse::RunMarketWatch(PMarketWatchTxnInput pTxnInput,
 	try {
 		marketWatch.DoTxn(pTxnInput, &mwOutput);
 	} catch (const exception &e) {
+		logErrorMessage("MW EXCEPTION\n", false);
 		mwOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
+
 	if (mwOutput.status != CBaseTxnErr::SUCCESS) {
+		ostringstream msg;
+		msg << __FILE__ << " " << __LINE__ << " " << mwOutput.status << endl;
+		logErrorMessage(msg.str(), false);
 		dumpInputData(pTxnInput);
 	}
 	return mwOutput.status;
@@ -591,9 +616,14 @@ INT32 CBrokerageHouse::RunSecurityDetail(PSecurityDetailTxnInput pTxnInput,
 	try {
 		securityDetail.DoTxn(pTxnInput, &sdOutput);
 	} catch (const exception &e) {
+		logErrorMessage("SD EXCEPTION\n", false);
 		sdOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
+
 	if (sdOutput.status != CBaseTxnErr::SUCCESS) {
+		ostringstream msg;
+		msg << __FILE__ << " " << __LINE__ << " " << sdOutput.status << endl;
+		logErrorMessage(msg.str(), false);
 		dumpInputData(pTxnInput);
 	}
 	return sdOutput.status;
@@ -606,9 +636,14 @@ INT32 CBrokerageHouse::RunTradeLookup(PTradeLookupTxnInput pTxnInput,
 	try {
 		tradeLookup.DoTxn(pTxnInput, &tlOutput);
 	} catch (const exception &e) {
+		logErrorMessage("TL EXCEPTION\n", false);
 		tlOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
+
 	if (tlOutput.status != CBaseTxnErr::SUCCESS) {
+		ostringstream msg;
+		msg << __FILE__ << " " << __LINE__ << " " << tlOutput.status << endl;
+		logErrorMessage(msg.str(), false);
 		dumpInputData(pTxnInput);
 	}
 	return tlOutput.status;
@@ -624,6 +659,9 @@ INT32 CBrokerageHouse::RunTradeOrder(PTradeOrderTxnInput pTxnInput,
 		toOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 	if (toOutput.status != CBaseTxnErr::SUCCESS) {
+		ostringstream msg;
+		msg << __FILE__ << " " << __LINE__ << " " << toOutput.status << endl;
+		logErrorMessage(msg.str(), false);
 		dumpInputData(pTxnInput);
 	}
 	return toOutput.status;
@@ -636,10 +674,14 @@ INT32 CBrokerageHouse::RunTradeResult(PTradeResultTxnInput pTxnInput,
 	try {
 		tradeResult.DoTxn(pTxnInput, &trOutput);
 	} catch (const exception &e) {
+		logErrorMessage("TR EXCEPTION\n", false);
 		trOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
 	if (trOutput.status != CBaseTxnErr::SUCCESS) {
+		ostringstream msg;
+		msg << __FILE__ << " " << __LINE__ << " " << trOutput.status << endl;
+		logErrorMessage(msg.str(), false);
 		dumpInputData(pTxnInput);
 	}
 	return trOutput.status;
@@ -652,9 +694,14 @@ INT32 CBrokerageHouse::RunTradeStatus(PTradeStatusTxnInput pTxnInput,
 	try {
 		tradeStatus.DoTxn(pTxnInput, &tsOutput);
 	} catch (const exception &e) {
+		logErrorMessage("TS EXCEPTION\n", false);
 		tsOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
+
 	if (tsOutput.status != CBaseTxnErr::SUCCESS) {
+		ostringstream msg;
+		msg << __FILE__ << " " << __LINE__ << " " << tsOutput.status << endl;
+		logErrorMessage(msg.str(), false);
 		dumpInputData(pTxnInput);
 	}
 	return tsOutput.status;
@@ -667,9 +714,14 @@ INT32 CBrokerageHouse::RunTradeUpdate(PTradeUpdateTxnInput pTxnInput,
 	try {
 		tradeUpdate.DoTxn(pTxnInput, &tuOutput);
 	} catch (const exception &e) {
+		logErrorMessage("TU EXCEPTION\n", false);
 		tuOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
+
 	if (tuOutput.status != CBaseTxnErr::SUCCESS) {
+		ostringstream msg;
+		msg << __FILE__ << " " << __LINE__ << " " << tuOutput.status << endl;
+		logErrorMessage(msg.str(), false);
 		dumpInputData(pTxnInput);
 	}
 	return tuOutput.status;
