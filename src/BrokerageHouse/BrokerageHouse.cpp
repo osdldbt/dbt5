@@ -159,7 +159,7 @@ void *workerThread(void *data)
 			// FIXME: Is there a better place to put this to remove all
 			// database specific API calls into the DBConnection class?
 			ostringstream msg;
-			msg << time(NULL) << " " << pthread_self() << " " <<
+			msg << time(NULL) << " " << (long long) pthread_self() << " " <<
 					szTransactionName[pMessage->TxnType] << endl;
 			msg << "what: " << e.what() << endl;
 
@@ -182,7 +182,7 @@ void *workerThread(void *data)
 			pDBConnection->rollback();
 
 			ostringstream msg;
-			msg << time(NULL) << " " << pthread_self() << " " <<
+			msg << time(NULL) << " " << (long long) pthread_self() << " " <<
 					szTransactionName[pMessage->TxnType] << endl;
 			msg << "what: " << e.what();
 			msg << "query: " << e.query() << endl;
@@ -280,13 +280,14 @@ CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName,
 // Destructor
 CBrokerageHouse::~CBrokerageHouse()
 {
+	m_Socket.closeListenerSocket();
 	m_fLog.close();
 }
 
 void CBrokerageHouse::dumpInputData(PBrokerVolumeTxnInput pTxnInput)
 {
 	ostringstream msg;
-	msg << time(NULL) << " " << pthread_self() << endl;
+	msg << time(NULL) << " " << (long long) pthread_self() << endl;
 	for (int i = 0; i < max_broker_list_len; i++) {
 		msg << "broker_list[" << i << "] = " << pTxnInput->broker_list[i] <<
 				endl;
@@ -299,7 +300,8 @@ void CBrokerageHouse::dumpInputData(PBrokerVolumeTxnInput pTxnInput)
 void CBrokerageHouse::dumpInputData(PCustomerPositionTxnInput pTxnInput)
 {
 	ostringstream msg;
-	msg << time(NULL) << " " << pthread_self() << " CustomerPosition" << endl;
+	msg << time(NULL) << " " << (long long) pthread_self() <<
+			" CustomerPosition" << endl;
 	msg << "acct_id_idx = " << pTxnInput->acct_id_idx << endl;
 	msg << "cust_id = " << pTxnInput->cust_id << endl;
 	msg << "get_history = " << pTxnInput->get_history << endl;
@@ -310,7 +312,8 @@ void CBrokerageHouse::dumpInputData(PCustomerPositionTxnInput pTxnInput)
 void CBrokerageHouse::dumpInputData(PDataMaintenanceTxnInput pTxnInput)
 {
 	ostringstream msg;
-	msg << time(NULL) << " " << pthread_self() << " DataMaintenance" << endl;
+	msg << time(NULL) << " " << (long long) pthread_self() <<
+			" DataMaintenance" << endl;
 	msg << "acct_id = " << pTxnInput->acct_id << endl;
 	msg << "c_id = " << pTxnInput->c_id << endl;
 	msg << "co_id = " << pTxnInput->co_id << endl;
@@ -325,7 +328,8 @@ void CBrokerageHouse::dumpInputData(PDataMaintenanceTxnInput pTxnInput)
 void CBrokerageHouse::dumpInputData(PTradeCleanupTxnInput pTxnInput)
 {
 	ostringstream msg;
-	msg << time(NULL) << " " << pthread_self() << " TradeCleanup" << endl;
+	msg << time(NULL) << " " << (long long) pthread_self() <<
+			" TradeCleanup" << endl;
 	msg << "start_trade_id = " << pTxnInput->start_trade_id << endl;
 	msg << "st_canceled_id = " << pTxnInput->st_canceled_id << endl;
 	msg << "st_pending_id = " << pTxnInput->st_pending_id << endl;
@@ -336,7 +340,8 @@ void CBrokerageHouse::dumpInputData(PTradeCleanupTxnInput pTxnInput)
 void CBrokerageHouse::dumpInputData(PMarketWatchTxnInput pTxnInput)
 {
 	ostringstream msg;
-	msg << time(NULL) << " " << pthread_self() << " MarketWatch" << endl;
+	msg << time(NULL) << " " << (long long) pthread_self() << " MarketWatch" <<
+			endl;
 	msg << "acct_id = " << pTxnInput->acct_id << endl;
 	msg << "c_id = " << pTxnInput->c_id << endl;
 	msg << "ending_co_id = " << pTxnInput->ending_co_id << endl;
@@ -354,7 +359,8 @@ void CBrokerageHouse::dumpInputData(PMarketWatchTxnInput pTxnInput)
 void CBrokerageHouse::dumpInputData(PMarketFeedTxnInput pTxnInput)
 {
 	ostringstream msg;
-	msg << time(NULL) << " " << pthread_self() << " MarketFeed" << endl;
+	msg << time(NULL) << " " << (long long) pthread_self() << " MarketFeed" <<
+			endl;
 	msg << "StatusAndTradeType.status_submitted = " <<
 			pTxnInput->StatusAndTradeType.status_submitted << endl;
 	msg << "StatusAndTradeType.type_limit_buy = " <<
@@ -379,7 +385,8 @@ void CBrokerageHouse::dumpInputData(PMarketFeedTxnInput pTxnInput)
 void CBrokerageHouse::dumpInputData(PSecurityDetailTxnInput pTxnInput)
 {
 	ostringstream msg;
-	msg << time(NULL) << " " << pthread_self() << " SecurityDetail" << endl;
+	msg << time(NULL) << " " << (long long) pthread_self() <<
+			" SecurityDetail" << endl;
 	msg << "max_rows_to_return = " << pTxnInput->max_rows_to_return << endl;;
 	msg << "access_lob_flag = " << pTxnInput->access_lob_flag << endl;;
 	msg << "start_day = " << pTxnInput->start_day.year << "-" <<
@@ -395,7 +402,8 @@ void CBrokerageHouse::dumpInputData(PSecurityDetailTxnInput pTxnInput)
 void CBrokerageHouse::dumpInputData(PTradeStatusTxnInput pTxnInput)
 {
 	ostringstream msg;
-	msg << time(NULL) << " " << pthread_self() << " TradeStatus" << endl;
+	msg << time(NULL) << " " << (long long) pthread_self() << " TradeStatus" <<
+			endl;
 	msg << "acct_id = " << pTxnInput->acct_id << endl;
 	logErrorMessage(msg.str(), false);
 }
@@ -403,7 +411,8 @@ void CBrokerageHouse::dumpInputData(PTradeStatusTxnInput pTxnInput)
 void CBrokerageHouse::dumpInputData(PTradeLookupTxnInput pTxnInput)
 {
 	ostringstream msg;
-	msg << time(NULL) << " " << pthread_self() << " TradeLookup" << endl;
+	msg << time(NULL) << " " << (long long) pthread_self() << " TradeLookup" <<
+			endl;
 	for (int i = 0; i < TradeLookupFrame1MaxRows; i++) {
 		msg << "trade_id[" << i << "] = " << pTxnInput->trade_id[i] << endl;
 	}
@@ -432,7 +441,8 @@ void CBrokerageHouse::dumpInputData(PTradeLookupTxnInput pTxnInput)
 void CBrokerageHouse::dumpInputData(PTradeOrderTxnInput pTxnInput)
 {
 	ostringstream msg;
-	msg << time(NULL) << " " << pthread_self() << " TradeOrder" << endl;
+	msg << time(NULL) << " " << (long long) pthread_self() << " TradeOrder" <<
+			endl;
 	msg << "acct_id = " << pTxnInput->acct_id << endl;
 	msg << "is_lifo = " << pTxnInput->is_lifo << endl;
 	msg << "roll_it_back = " << pTxnInput->roll_it_back << endl;
@@ -453,7 +463,8 @@ void CBrokerageHouse::dumpInputData(PTradeOrderTxnInput pTxnInput)
 void CBrokerageHouse::dumpInputData(PTradeResultTxnInput pTxnInput)
 {
 	ostringstream msg;
-	msg << time(NULL) << " " << pthread_self() << " TradeResult" << endl;
+	msg << time(NULL) << " " << (long long) pthread_self() << " TradeResult" <<
+			endl;
 	msg << "trade_price = " << pTxnInput->trade_price << endl;
 	msg << "trade_id = " << pTxnInput->trade_id << endl;
 	logErrorMessage(msg.str(), false);
@@ -462,7 +473,8 @@ void CBrokerageHouse::dumpInputData(PTradeResultTxnInput pTxnInput)
 void CBrokerageHouse::dumpInputData(PTradeUpdateTxnInput pTxnInput)
 {
 	ostringstream msg;
-	msg << time(NULL) << " " << pthread_self() << " TradeUpdate" << endl;
+	msg << time(NULL) << " " << (long long) pthread_self() << " TradeUpdate" <<
+			endl;
 	for (int i = 0; i < TradeUpdateFrame1MaxRows; i++) {
 		msg << "trade_id[" << i << "] = " << pTxnInput->trade_id[i] << endl;
 	}

@@ -84,7 +84,7 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 		logResponseTime(-1, 0, -1);
 
 		ostringstream msg;
-		msg << time(NULL) << " " << pthread_self() << " " <<
+		msg << time(NULL) << " " << (long long) pthread_self() << " " <<
 				szTransactionName[pRequest->TxnType] << ": " << endl <<
 				"Error sending " << length << " bytes of data" << endl <<
 				pErr->ErrorText() << endl;
@@ -99,7 +99,7 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 		logResponseTime(-1, 0, -2);
 
 		ostringstream msg;
-		msg << time(NULL) << " " << pthread_self() << " " <<
+		msg << time(NULL) << " " << (long long) pthread_self() << " " <<
 				szTransactionName[pRequest->TxnType] << ": " << endl <<
 				"Error receiving " << length << " bytes of data" << endl <<
 				pErr->ErrorText() << endl;
@@ -131,28 +131,28 @@ void CBaseInterface::logResponseTime(int iStatus, int iTxnType, double dRT)
 	m_pMixLock->lock();
 	if (iStatus == CBaseTxnErr::SUCCESS) {
 		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "," << dRT <<
-				"," << (int) pthread_self() << endl;
+				"," << (long long) pthread_self() << endl;
 	} else if (iStatus == CBaseTxnErr::EXPECTED_ROLLBACK) {
 		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "R" << "," <<
-				dRT << "," << (int) pthread_self() << endl;
+				dRT << "," << (long long) pthread_self() << endl;
 	} else if (iStatus > 0) {
 		// Warning status.
 		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "W" << iStatus <<
-				"," << dRT << "," << (int) pthread_self() << endl;
+				"," << dRT << "," << (long long) pthread_self() << endl;
 	} else if (iStatus == -1 && dRT == -1) {
 		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "US" << iStatus <<
-				"," << dRT << "," << (int) pthread_self() << endl;
+				"," << dRT << "," << (long long) pthread_self() << endl;
 	} else if (iStatus == -1 && dRT == -2) {
 		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "UR" << iStatus <<
-				"," << dRT << "," << (int) pthread_self() << endl;
+				"," << dRT << "," << (long long) pthread_self() << endl;
 	} else if (iStatus < 0) {
 		// Invalidating status.
 		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "I" << iStatus <<
-				"," << dRT << "," << (int) pthread_self() << endl;
+				"," << dRT << "," << (long long) pthread_self() << endl;
 	} else {
 		// Unknown status.
 		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "U" << iStatus <<
-				"," << dRT << "," << (int) pthread_self() << endl;
+				"," << dRT << "," << (long long) pthread_self() << endl;
 	}
 	m_pfMix->flush();
 	m_pMixLock->unlock();

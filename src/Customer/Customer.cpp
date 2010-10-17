@@ -21,15 +21,15 @@ CCustomer::CCustomer(char *szInDir,
 : m_iUsers(iUsers), m_iPacingDelay(iPacingDelay)
 {
 	char filename[iMaxPath + 1];
-	snprintf(filename, iMaxPath, "%s/Customer_%d.log", outputDirectory,
-			(int) pthread_self());
+	snprintf(filename, iMaxPath, "%s/Customer_%lld.log", outputDirectory,
+			(long long) pthread_self());
 	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
 	m_pDriverCETxnSettings = new TDriverCETxnSettings;
 	m_InputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount,
 			iActiveCustomerCount, szInDir);
 
-	snprintf(filename, iMaxPath, "%s/Customer_Error_%d.log", outputDirectory,
-			(int) pthread_self());
+	snprintf(filename, iMaxPath, "%s/Customer_Error_%lld.log", outputDirectory,
+			(long long) pthread_self());
 	m_fLog.open(filename, ios::out);
 
 	// initialize CESUT interface
