@@ -227,7 +227,8 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 
 	// mark end of ramp-up
 	m_MixLock.lock();
-	m_fMix << (int) time(NULL) << ",START" << endl;
+	m_fMix << (int) time(NULL) << ",START,,," <<
+			(long long) pthread_self() << endl;
 	m_MixLock.unlock();
 
 	logErrorMessage(">> End of ramp-up.\n\n");

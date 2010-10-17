@@ -11,7 +11,6 @@
 
 import sys
 from math import ceil, floor, fsum
-from re import match, search, sub
 
 def average(values):
     count = float(len(values))
@@ -61,6 +60,8 @@ mw = '9'
 dm = '10'
 tc = '11'
 
+transaction_list = [tr, bv, cp, mf, mw, sd, tl, to, ts, tu, dm, tc]
+
 error_count = dict()
 invalid_count = dict()
 response_time = dict()
@@ -68,7 +69,7 @@ rollback_count = dict()
 transaction_count = dict()
 warning_count = dict()
 
-for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu, dm, tc]:
+for key in transaction_list:
     error_count[key] = 0
     invalid_count[key] = 0
     response_time[key] = list()
@@ -81,7 +82,7 @@ total_transaction_count = 0
 for line in f:
     c = line.strip().split(',')
 
-    if len(c) != 4 and len(c) != 2:
+    if len(c) != 5:
         print 'unknown number of columns: %d' % len(c)
         print 'exiting'
         exit(2)
@@ -94,38 +95,26 @@ for line in f:
         steadystate_start = long(c[0])
         continue
 
-    if c[1] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']:
-        transaction_count[c[1]] += 1
-        response_time[c[1]].append(float(c[2]))
-    elif c[1] in ['0R', '1R', '2R', '3R', '4R', '5R', '6R', '7R', '8R', '9',
-                  '10R']:
-        m = match(r'(\d+)R', c[1])
-        key = m.group(1)
+    key = c[1]
+    status = int(c[2])
+    rt = float(c[3])
+
+    if key not in transaction_list:
+        print 'unknown transaction information: %s' % line
+        exit(3)
+
+    transaction_count[key] += 1
+    response_time[key].append(rt)
+    if status == 1:
         rollback_count[key] += 1
-
-        key = sub('R', '', key)
-        transaction_count[key] += 1
-    elif search('W', c[1]):
-        m = match(r'(\d+)W', c[1])
-        key = m.group(1)
+    elif status > 0:
         warning_count[key] += 1
-
-        key = sub('W', '', key)
-        transaction_count[key] += 1
-    elif search('I', c[1]):
-        m = match(r'(\d+)I', c[1])
-        key = m.group(1)
+    elif status < 0:
         invalid_count[key] += 1
-
-        key = sub('I', '', key)
-        transaction_count[key] += 1
-    elif search('U', c[1]):
-        m = match(r'(\d+)U', c[1])
-        key = m.group(1)
+    else:
         error_count[key] += 1
 
-    if c[1] != '10' and c[1] != '10R' and not search('10I', c[1]) and \
-            not search('10W', c[1]) and not search('10U', c[1]):
+    if key != '10':
         total_transaction_count += 1
 
 if rampup_end is None:

@@ -129,31 +129,8 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 void CBaseInterface::logResponseTime(int iStatus, int iTxnType, double dRT)
 {
 	m_pMixLock->lock();
-	if (iStatus == CBaseTxnErr::SUCCESS) {
-		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "," << dRT <<
-				"," << (long long) pthread_self() << endl;
-	} else if (iStatus == CBaseTxnErr::EXPECTED_ROLLBACK) {
-		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "R" << "," <<
-				dRT << "," << (long long) pthread_self() << endl;
-	} else if (iStatus > 0) {
-		// Warning status.
-		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "W" << iStatus <<
-				"," << dRT << "," << (long long) pthread_self() << endl;
-	} else if (iStatus == -1 && dRT == -1) {
-		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "US" << iStatus <<
-				"," << dRT << "," << (long long) pthread_self() << endl;
-	} else if (iStatus == -1 && dRT == -2) {
-		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "UR" << iStatus <<
-				"," << dRT << "," << (long long) pthread_self() << endl;
-	} else if (iStatus < 0) {
-		// Invalidating status.
-		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "I" << iStatus <<
-				"," << dRT << "," << (long long) pthread_self() << endl;
-	} else {
-		// Unknown status.
-		*(m_pfMix) << (int) time(NULL) << "," << iTxnType << "U" << iStatus <<
-				"," << dRT << "," << (long long) pthread_self() << endl;
-	}
+	*(m_pfMix) << (long long) time(NULL) << "," << iTxnType << "," <<
+			iStatus << "," << dRT << "," << (long long) pthread_self() << endl;
 	m_pfMix->flush();
 	m_pMixLock->unlock();
 }
