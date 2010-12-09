@@ -26,7 +26,7 @@ void usage()
 	cout << "Usage: BrokerageHouseMain [options]" << endl << endl;
  	cout << "   Option      Default    Description" << endl;
  	cout << "   =========   =========  ===============" << endl;
- 	cout << "   -d string   dbt5       Database name" << endl;
+	cout << "   -d string              Database name" << endl;
  	cout << "   -h string   localhost  Database server" << endl;
  	printf("   -l integer  %-9d  Socket listen port\n", iListenPort);
  	cout << "   -o string   .          Output directory" << endl;

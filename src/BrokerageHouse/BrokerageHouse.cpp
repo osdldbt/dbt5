@@ -8,9 +8,6 @@
  * 25 July 2006
  */
 
-#include <pqxx/pqxx>
-using namespace pqxx;
-
 #include "BrokerageHouse.h"
 #include "CommonStructs.h"
 #include "DBConnection.h"
@@ -155,37 +152,10 @@ void *workerThread(void *data)
 				cout << "wrong txn type" << endl;
 				iRet = ERR_TYPE_WRONGTXN;
 			}
-		} catch (const pqxx::broken_connection &e) {
-			// FIXME: Is there a better place to put this to remove all
-			// database specific API calls into the DBConnection class?
+		} catch (const char *str) {
 			ostringstream msg;
 			msg << time(NULL) << " " << (long long) pthread_self() << " " <<
 					szTransactionName[pMessage->TxnType] << endl;
-			msg << "what: " << e.what() << endl;
-
-			if (PGSQL_RECOVERY_ERROR.compare(e.what()) == 0) {
-				// The database has crashed, just quit.
-				msg << "fatal" << endl;
-				pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
-				exit(1);
-			} else if (PGSQL_CONNECTION_FAILED.compare(e.what()) == 0) {
-				msg << "reconnecting to database" << endl;
-				pDBConnection->reconnect();
-			} else {
-				msg << "unhandled" << endl;
-			}
-			pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
-
-			iRet = CBaseTxnErr::EXPECTED_ROLLBACK;
-		} catch (const pqxx::sql_error &e) {
-			// Rollback current transaction.
-			pDBConnection->rollback();
-
-			ostringstream msg;
-			msg << time(NULL) << " " << (long long) pthread_self() << " " <<
-					szTransactionName[pMessage->TxnType] << endl;
-			msg << "what: " << e.what();
-			msg << "query: " << e.query() << endl;
 			pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
 			iRet = CBaseTxnErr::EXPECTED_ROLLBACK;
 		}

@@ -12,8 +12,7 @@
 #ifndef DB_CONNECTION_H
 #define DB_CONNECTION_H
 
-#include <pqxx/pqxx>
-using namespace pqxx;
+#include <libpq-fe.h>
 
 #include "TxnHarnessStructs.h"
 #include "TxnHarnessSendToMarket.h"
@@ -25,8 +24,7 @@ using namespace TPCE;
 class CDBConnection
 {
 private:
-	connection *m_Conn; // libpqxx Connection
-	nontransaction *m_Txn; // libpqxx dummy Transaction
+	PGconn *m_Conn;
 
 	char szConnectStr[iMaxConnectString + 1];
 	char name[16];
@@ -43,8 +41,10 @@ public:
 
 	void commit();
 	void connect();
-	string escape(string);
+	char *escape(string);
 	void disconnect();
+
+	PGresult *exec(const char *);
 
 	void execute(const TBrokerVolumeFrame1Input *,
 			TBrokerVolumeFrame1Output *);

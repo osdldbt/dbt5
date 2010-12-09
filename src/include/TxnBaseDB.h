@@ -18,9 +18,6 @@ using namespace std;
 #include "DBT5Consts.h"
 using namespace TPCE;
 
-#include <pqxx/pqxx>
-using namespace pqxx;
-
 #include "DBConnection.h"
 #include "locking.h"
 

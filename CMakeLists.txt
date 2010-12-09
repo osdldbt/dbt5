@@ -46,7 +46,7 @@ IF (DBMS STREQUAL "pgsql")
 
         SET(DBCFLAGS "-DLIBPQ -I${PG_INCLUDEDIR}")
 
-        SET(DB_LIBS "-L${PG_LIBDIR} -lpqxx -lpq")
+        SET(DB_LIBS "-L${PG_LIBDIR} -lpq")
 
         SET(DB_SCRIPTS scripts/pgsql/dbt5-pgsql-start-db
                        scripts/pgsql/dbt5-pgsql-create-indexes
@@ -208,9 +208,8 @@ ADD_EXECUTABLE(${DBT5_TEST_TXN}
 SET(CMAKE_CXX_FLAGS "-g -Wall -I${EGENINC} -Isrc/include ${LFS_CFLAGS}")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_FORMAT_MACROS")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
-
-SET_SOURCE_FILES_PROPERTIES(${TXN}/${DBMS}/DBConnection.cpp COMPILE_FLAGS
-        "${DBCFLAGS}")
+# FIXME: How to set this for just ${TXN}/${DBMS}/DBConnection.cpp?
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DBCFLAGS}")
 
 #
 # Set linker flags.

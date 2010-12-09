@@ -453,7 +453,7 @@ int main(int argc, char* argv[])
 	}
 
 	if (strlen(szInDir) == 0) {
-		cout << "Use -s to specify full path to EGen flat_in directory." <<
+		cout << "Use -i to specify full path to EGen flat_in directory." <<
 				endl;
 		exit(1);
 	}
@@ -470,8 +470,7 @@ int main(int argc, char* argv[])
 				&m_LogLock, &m_MixLock);
 	}
 
-	try
-	{
+	try {
 		// database connection
 		CDBConnection m_Conn(szDBHost, szDBName, szPort);
 	
@@ -519,43 +518,43 @@ int main(int argc, char* argv[])
 			TradeOrder( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case TRADE_LOOKUP:
-			cout<<"=== Testing Trade Lookup ==="<<endl<<endl;
+			cout << "=== Testing Trade Lookup ===" << endl << endl;
 			TradeLookup( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case TRADE_UPDATE:
-			cout<<"=== Testing Trade Update ==="<<endl<<endl;
+			cout << "=== Testing Trade Update ===" << endl << endl;
 			TradeUpdate( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case TRADE_STATUS:
-			cout<<"=== Testing Trade Status ==="<<endl<<endl;
+			cout << "=== Testing Trade Status ===" << endl << endl;
 			TradeStatus( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case CUSTOMER_POSITION:
-			cout<<"=== Testing Customer Position ==="<<endl<<endl;
+			cout << "=== Testing Customer Position ===" << endl << endl;
 			CustomerPosition( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case BROKER_VOLUME:
-			cout<<"=== Testing Broker Volume ==="<<endl<<endl;
+			cout << "=== Testing Broker Volume ===" << endl << endl;
 			BrokerVolume( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case SECURITY_DETAIL:
-			cout<<"=== Testing Security Detail ==="<<endl<<endl;
+			cout << "=== Testing Security Detail ===" << endl << endl;
 			SecurityDetail( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case MARKET_WATCH:
-			cout<<"=== Testing Market Watch ==="<<endl<<endl;
+			cout << "=== Testing Market Watch ===" << endl << endl;
 			MarketWatch( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case DATA_MAINTENANCE:
-			cout<<"=== Testing Data Maintenance ==="<<endl<<endl;
+			cout << "=== Testing Data Maintenance ===" << endl << endl;
 			DataMaintenance( &m_CDM );
 			break;
 		case TRADE_CLEANUP:
-			cout<<"=== Testing Trade Cleanup ==="<<endl<<endl;
+			cout << "=== Testing Trade Cleanup ===" << endl << endl;
 			TradeCleanup( &m_CDM );
 			break;
 		default:
-			cout<<"wrong txn type"<<endl;
+			cout << "wrong txn type" << endl;
 			return(-1);
 		}
 
@@ -566,36 +565,19 @@ int main(int argc, char* argv[])
 		TxnTime.Set(0);	// clear time
 		TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
 
- 		cout<<"Txn Response Time = "<<(TxnTime.MSec()/1000.0)<<endl;
-	}
-	catch (CBaseErr *pErr)
-	{
-		cout<<endl<<"Error "<<pErr->ErrorNum()<<": "<<pErr->ErrorText();
+		cout << "Txn Response Time = " << (TxnTime.MSec()/1000.0) << endl;
+	} catch (CBaseErr *pErr) {
+		cout << "Error " << pErr->ErrorNum() << ": " << pErr->ErrorText();
 		if (pErr->ErrorLoc()) {
-			cout<<" at "<<pErr->ErrorLoc()<<endl;
+			cout << " at " << pErr->ErrorLoc() << endl;
 		} else {
-			cout<<endl;
+			cout << endl;
 		}
-		return(1);
-	}
-	// exceptions thrown by pqxx
-	//
-	catch (const pqxx::broken_connection &e) // broken connection
-	{
-		cout<<"libpxx: "<<e.what()<<endl;
-		return 3;
-	}
-	catch (const pqxx::sql_error &e)
-	{
-		cout<<"SQL error: "<<e.what()<<endl
-		    <<"Query was: '"<<e.query()<<"'"<<endl;
-		return 3;
-	}
-	catch (const exception &e)
-	{
-		cout<<e.what()<<endl;
+		return 1;
+	} catch (const char *str) {
+		cerr << "### FUCK THERE HAS BEEN A PROBLEM" << endl;
 		return 3;
 	}
 
-	return(0);
+	return 0;
 }
