@@ -314,11 +314,6 @@ while getopts "a:b:c:d:f:h:i:l:n:o:rp:s:t:u:w:xyz:" opt; do
 	esac
 done
 
-if [ $# -eq 0 ]; then
-	usage
-	exit 1
-fi
-
 # Check parameters.
 
 if [ "x${EGENDIR}}" = "x" ]; then
@@ -400,9 +395,6 @@ echo "${COMMENT}" >> ${OUTPUT_DIR}/readme.txt
 uname -a >> ${OUTPUT_DIR}/readme.txt
 echo "Command line: $0 $@" >> ${OUTPUT_DIR}/readme.txt
 
-# Get any OS specific information.
-dbt5-get-os-info -o ${OUTPUT_DIR}
-
 # Output run information into the readme.txt.
 echo "Database Scale Factor: ${SCALE_FACTOR}" >> ${OUTPUT_DIR}/readme.txt
 echo "Database Customer Cardinality: ${CUSTOMERS_TOTAL}" >> ${OUTPUT_DIR}/readme.txt
@@ -415,6 +407,7 @@ if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	${DB_COMMAND} "uname -a >> ${DB_OUTPUT_DIR}/readme.txt"
 else
 	uname -a >> ${DB_OUTPUT_DIR}/readme.txt
+	dbt5-get-os-info -o ${DB_OUTPUT_DIR}
 fi
 
 # Restart database.
