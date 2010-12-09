@@ -10,42 +10,20 @@
 #
 
 import sys
-from math import ceil, floor, fsum
+import os
 
-def average(values):
-    count = float(len(values))
-    if count == 0:
-        return 0
-    return fsum(values) / float(len(values))
-
-def percentile_90(values):
-    index = 0.9 * float(len(values))
-    findex = int(floor(index))
-    cindex = int(ceil(index))
-    values.sort()
-    try:
-        if findex == cindex:
-            return values[findex - 1]
-        return (values[findex - 1] + values [cindex - 1]) / 2.0
-    except:
-        return 0
+import rpy2.robjects as robjects
+from rpy2.robjects.vectors import DataFrame
 
 if len(sys.argv) != 2:
     print 'usage: %s <mix.log>' % sys.argv[0]
-    exit(1)
+    sys.exit(1)
 
 filename = sys.argv[1]
 
-try:
-    f = open(filename, 'r')
-except:
+if not os.path.exists(filename):
     print 'cannot open file: %s' % filename
-    exit(1)
-
-rampup_start = None
-rampup_end = None
-steadystate_start = None
-steadystate_end = None
+    sys.exit(1)
 
 to = '0'
 tr = '1'
@@ -58,68 +36,58 @@ sd = '7'
 mf = '8'
 mw = '9'
 dm = '10'
-tc = '11'
 
-transaction_list = [tr, bv, cp, mf, mw, sd, tl, to, ts, tu, dm, tc]
+dataframe = dict()
+transaction_count = dict()
+rollback_count = dict()
+per90 = dict()
+average_rt = dict()
 
-error_count = dict()
 invalid_count = dict()
 response_time = dict()
 rollback_count = dict()
 transaction_count = dict()
 warning_count = dict()
 
+r = robjects.r
+df = DataFrame.from_csvfile(filename, header=False)
+rampup_start = df[0][0]
+
+start_subset = r.subset(df, df.rx('V2').ro == "START")
+if start_subset.nrow == 0:
+    print 'START market not found in: %s' % filename
+    sys.exit(1)
+steadystate_start = start_subset[0][0]
+steadystate_end = df[0][df.nrow - 1]
+steadystate = r.subset(df, df.rx('V1').ro > steadystate_start)
+if steadystate.nrow == 0:
+    print 'No data was collected during the steady state portion of the test.'
+    sys.exit(1)
+
+# Don't count the Data Maintenance transaction towards the total.
+total_transaction_count = r.subset(steadystate,
+                                   steadystate.rx('V1').ro != int(dm)).nrow
+
+transaction_list = [tr, bv, cp, mf, mw, sd, tl, to, ts, tu, dm]
+
 for key in transaction_list:
-    error_count[key] = 0
-    invalid_count[key] = 0
-    response_time[key] = list()
-    rollback_count[key] = 0
-    transaction_count[key] = 0
-    warning_count[key] = 0
-
-total_transaction_count = 0
-
-for line in f:
-    c = line.strip().split(',')
-
-    if len(c) != 5:
-        print 'unknown number of columns: %d' % len(c)
-        print 'exiting'
-        exit(2)
-
-    if rampup_start is None:
-        rampup_start = long(c[0])
-
-    if c[1] == 'START':
-        rampup_end = long(c[0])
-        steadystate_start = long(c[0])
+    dataframe[key] = r.subset(steadystate, steadystate.rx('V2').ro == int(key))
+    transaction_count[key] = dataframe[key].nrow
+    if transaction_count[key] == 0:
+        rollback_count[key] = 0
+        invalid_count[key] = 0
+        warning_count[key] = 0
+        per90[key] = 0
+        average_rt[key] = 0
         continue
-
-    key = c[1]
-    status = int(c[2])
-    rt = float(c[3])
-
-    if key not in transaction_list:
-        print 'unknown transaction information: %s' % line
-        exit(3)
-
-    transaction_count[key] += 1
-    response_time[key].append(rt)
-    if status == 1:
-        rollback_count[key] += 1
-    elif status > 0:
-        warning_count[key] += 1
-    elif status < 0:
-        invalid_count[key] += 1
-    else:
-        error_count[key] += 1
-
-    if key != '10':
-        total_transaction_count += 1
-
-if rampup_end is None:
-    print 'START marker not found'
-    exit(3)
+    rollback_count[key] = r.subset(dataframe[key],
+                                   dataframe[key].rx('V3').ro == 1).nrow
+    invalid_count[key] = r.subset(dataframe[key],
+                                  dataframe[key].rx('V3').ro < 0).nrow
+    warning_count[key] = r.subset(dataframe[key],
+                                  dataframe[key].rx('V3').ro > 1).nrow
+    per90[key] = r.quantile(dataframe[key].rx('V4')[0], .9)[0]
+    average_rt[key] = r.mean(dataframe[key].rx('V4'))[0]
 
 transaction_name = dict()
 transaction_name[to] = 'Trade Order'
@@ -133,8 +101,6 @@ transaction_name[sd] = 'Security Detail'
 transaction_name[mf] = 'Market Feed'
 transaction_name[mw] = 'Market Watch'
 transaction_name[dm] = 'Data Maintenance'
-
-steadystate_end = long(c[0])
 
 print '%39s' % 'Response Time'
 print '%37s' % '(seconds)'
@@ -159,8 +125,8 @@ for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu]:
     print '%-17s %6.2f %7.3f:%7.3f %7d %7d %6.2f%% %7d %7d' % (
             transaction_name[key],
             mix_percentage,
-            average(response_time[key]),
-            percentile_90(response_time[key]),
+            average_rt[key],
+            per90[key],
             transaction_count[key],
             rollback_count[key],
             rollback_percentage,
@@ -175,8 +141,8 @@ except:
 print '%-17s %6s %7.3f:%7.3f %7d %7d %6.2f%% %7d %7d' % (
         transaction_name[dm],
         'N/A',
-        average(response_time[dm]),
-        percentile_90(response_time[dm]),
+        average_rt[dm],
+        per90[dm],
         transaction_count[dm],
         rollback_count[dm],
         rollback_percentage,
@@ -188,5 +154,6 @@ print '----------------- ------ --------------- ------- --------------- ' \
 duration = float(steadystate_end - steadystate_start)
 print '%0.2f trade-result transactions per second (trtps)' % \
         (float(transaction_count[tr]) / duration)
-print '%0.1f minute(s) to ramp up' % (float(rampup_end - rampup_start) / 60.0)
+print '%0.1f minute(s) to ramp up' % \
+        (float(steadystate_start - rampup_start) / 60.0)
 print '%0.1f minute steady state duration' % (duration / 60.0)
