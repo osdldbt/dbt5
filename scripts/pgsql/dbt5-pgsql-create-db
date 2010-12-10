@@ -16,7 +16,7 @@ usage()
 while getopts "d:hp:" OPT; do
 	case ${OPT} in
 	d)
-		DBNAME=${OPTARG}
+		DBT5DBNAME=${OPTARG}
 		;;
 	h)
 		usage
@@ -28,13 +28,13 @@ while getopts "d:hp:" OPT; do
 	esac
 done
 
-if [ -z ${PGDATA} ]; then
-	echo "PGDATA not defined."
+if [ -z ${DBT5PGDATA} ]; then
+	echo "DBT5PGDATA not defined."
 	exit 1
 fi
 
-if [ "${DBNAME}" = "x" ]; then
-	echo "DBNAME not defined."
+if [ "${DBT5DBNAME}" = "x" ]; then
+	echo "DBT5DBNAME not defined."
 	exit 1
 fi
 
@@ -44,13 +44,13 @@ fi
 
 # Create database
 echo "Creating database..."
-if [ -d ${PGDATA} ]; then
+if [ -d ${DBT5PGDATA} ]; then
 	echo "======================================="
-	echo "PGData directory ${PGDATA} already exists"
+	echo "PGData directory ${DBT5PGDATA} already exists"
 	echo "Skipping initdb"
 	echo "======================================="
 else
-	initdb -D ${PGDATA} --locale=C || exit 1
+	initdb -D ${DBT5PGDATA} --locale=C || exit 1
 fi
 
 if [ ! "x${PORT}" = "x" ]; then
@@ -62,9 +62,9 @@ fi
 # Give the database a few seconds to get going
 sleep 4
 
-createdb ${PORTOPT} -E SQL_ASCII ${DBNAME} || exit 1
+createdb ${PORTOPT} -E SQL_ASCII ${DBT5DBNAME} || exit 1
 # FIXME: Add a check for what version of PostgreSQL is being used and then
 # determine whether we need to run createland got plpgsql.
-#createlang ${PORTOPT} plpgsql ${DBNAME} || exit 1
+#createlang ${PORTOPT} plpgsql ${DBT5DBNAME} || exit 1
 
 exit 0

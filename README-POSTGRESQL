@@ -41,16 +41,16 @@ be set:
 export EGENDIR=~/dbt5/egen
 
 # Our database will be named dbt5
-DBNAME=dbt5; export DBNAME
+DBT5DBNAME=dbt5; export DBT5DBNAME
 
 # pgdata path.  Storage location for this instance of the database should be
 # within the working directory.  If you're going to mount a device, do it at
 # /mnt/dbt5.  For example:
-export PGDATA=/mnt/dbt5/pgdata
+export DBT5PGDATA=/mnt/dbt5/pgdata
 
 # Directory with filesystem mount points to be used for tablespaces.  This is
 # required only if using tablespaces.
-export TSDIR=/mnt/dbt5
+export DBT5TSDIR=/mnt/dbt5
 
 # Run a quick 60 second test.
     dbt5-run-workload -a pgsql -c 5000 -t 5000 -d 60 -u 1 -i ~/dbt5/egen \

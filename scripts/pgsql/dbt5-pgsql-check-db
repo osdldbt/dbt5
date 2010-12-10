@@ -8,8 +8,8 @@
 #               2006 Rilson Nascimento
 #
 
-if [ -z "${DBNAME}" ]; then
-	echo "DBNAME not defined."
+if [ -z "${DBT5DBNAME}" ]; then
+	echo "DBT5DBNAME not defined."
 	exit 1
 fi
 
@@ -25,7 +25,7 @@ if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
 fi
 
-PSQL="psql -d ${DBNAME} ${PORTARG} -q -t"
+PSQL="psql -d ${DBT5DBNAME} ${PORTARG} -q -t"
 
 # Load tables
 echo -n account_permission

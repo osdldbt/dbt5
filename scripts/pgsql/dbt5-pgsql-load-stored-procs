@@ -14,7 +14,7 @@
 while getopts "d:p:q" OPT; do
 	case ${OPT} in
 	d)
-		DBNAME=${OPTARG}
+		DBT5DBNAME=${OPTARG}
 		;;
 	p)
 		PORT=${OPTARG}
@@ -25,8 +25,8 @@ while getopts "d:p:q" OPT; do
 	esac
 done
 
-if [ ! "x${DBNAME}" = "x" ]; then
-	DBNAMEARG="-d ${DBNAME}"
+if [ ! "x${DBT5DBNAME}" = "x" ]; then
+	DBNAMEARG="-d ${DBT5DBNAME}"
 fi
 
 PSQL="psql ${PORTARG} -e ${DBNAMEARG}"

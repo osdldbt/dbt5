@@ -12,7 +12,7 @@ USE_TABLESPACES=0
 while getopts "d:p:t" OPT; do
 	case ${OPT} in
 	d)
-		DBNAME=${OPTARG}
+		DBT5DBNAME=${OPTARG}
 		;;
 	p)
 		PORT=${OPTARG}
@@ -23,8 +23,8 @@ while getopts "d:p:t" OPT; do
 	esac
 done
 
-if [ ! "x${DBNAME}" = "x" ]; then
-	DBNAMEARG="-d ${DBNAME}"
+if [ ! "x${DBT5DBNAME}" = "x" ]; then
+	DBNAMEARG="-d ${DBT5DBNAME}"
 fi
 
 if [ ! "x${PORT}" = "x" ]; then
@@ -32,61 +32,61 @@ if [ ! "x${PORT}" = "x" ]; then
 fi
 
 if [ ${USE_TABLESPACES} -eq 1 ]; then
-	if [ -z ${TSDIR} ]; then
-		echo "TSDIR not defined for tablespace path."
+	if [ -z ${DBT5TSDIR} ]; then
+		echo "DBT5TSDIR not defined for tablespace path."
 		exit 1
 	fi
-	TS_PK_ACCOUNT_PERMISSION_DIR="${TSDIR}/pk_account_permission/ts"
-	TS_PK_CUSTOMER_DIR="${TSDIR}/pk_customer/ts"
-	TS_PK_CUSTOMER_ACCOUNT_DIR="${TSDIR}/pk_customer_account/ts"
-	TS_PK_CUSTOMER_TAXRATE_DIR="${TSDIR}/pk_customer_taxrate/ts"
-	TS_PK_HOLDING_DIR="${TSDIR}/pk_holding/ts"
-	TS_PK_HOLDING_HISTORY_DIR="${TSDIR}/pk_holding_history/ts"
-	TS_PK_HOLDING_SUMMARY_DIR="${TSDIR}/pk_holding_summary/ts"
-	TS_PK_WATCH_ITEM_DIR="${TSDIR}/pk_watch_item/ts"
-	TS_PK_WATCH_LIST_DIR="${TSDIR}/pk_watch_list/ts"
-	TS_PK_BROKER_DIR="${TSDIR}/pk_broker/ts"
-	TS_PK_CASH_TRANSACTION_DIR="${TSDIR}/pk_cash_transaction/ts"
-	TS_PK_CHARGE_DIR="${TSDIR}/pk_charge/ts"
-	TS_PK_COMMISSION_RATE_DIR="${TSDIR}/pk_commission_rate/ts"
-	TS_PK_SETTLEMENT_DIR="${TSDIR}/pk_settlement/ts"
-	TS_PK_TRADE_DIR="${TSDIR}/pk_trade/ts"
-	TS_PK_TRADE_HISTORY_DIR="${TSDIR}/pk_trade_history/ts"
-	TS_PK_TRADE_REQUEST_DIR="${TSDIR}/pk_trade_request/ts"
-	TS_PK_TRADE_TYPE_DIR="${TSDIR}/pk_trade_type/ts"
-	TS_PK_COMPANY_DIR="${TSDIR}/pk_company/ts"
-	TS_PK_COMPANY_COMPETITOR_DIR="${TSDIR}/pk_company_competitor/ts"
-	TS_PK_DAILY_MARKET_DIR="${TSDIR}/pk_daily_market/ts"
-	TS_PK_EXCHANGE_DIR="${TSDIR}/pk_exchange/ts"
-	TS_PK_FINANCIAL_DIR="${TSDIR}/pk_financial/ts"
-	TS_PK_INDUSTRY_DIR="${TSDIR}/pk_industry/ts"
-	TS_PK_LAST_TRADE_DIR="${TSDIR}/pk_last_trade/ts"
-	TS_PK_NEWS_ITEM_DIR="${TSDIR}/pk_news_item/ts"
-	TS_PK_NEWS_XREF_DIR="${TSDIR}/pk_news_xref/ts"
-	TS_PK_SECTOR_DIR="${TSDIR}/pk_sector/ts"
-	TS_PK_SECURITY_DIR="${TSDIR}/pk_security/ts"
-	TS_PK_ADDRESS_DIR="${TSDIR}/pk_address/ts"
-	TS_PK_STATUS_TYPE_DIR="${TSDIR}/pk_status_type/ts"
-	TS_PK_TAXRATE_DIR="${TSDIR}/pk_taxrate/ts"
-	TS_PK_ZIP_CODE_DIR="${TSDIR}/pk_zip_code/ts"
+	TS_PK_ACCOUNT_PERMISSION_DIR="${DBT5TSDIR}/pk_account_permission/ts"
+	TS_PK_CUSTOMER_DIR="${DBT5TSDIR}/pk_customer/ts"
+	TS_PK_CUSTOMER_ACCOUNT_DIR="${DBT5TSDIR}/pk_customer_account/ts"
+	TS_PK_CUSTOMER_TAXRATE_DIR="${DBT5TSDIR}/pk_customer_taxrate/ts"
+	TS_PK_HOLDING_DIR="${DBT5TSDIR}/pk_holding/ts"
+	TS_PK_HOLDING_HISTORY_DIR="${DBT5TSDIR}/pk_holding_history/ts"
+	TS_PK_HOLDING_SUMMARY_DIR="${DBT5TSDIR}/pk_holding_summary/ts"
+	TS_PK_WATCH_ITEM_DIR="${DBT5TSDIR}/pk_watch_item/ts"
+	TS_PK_WATCH_LIST_DIR="${DBT5TSDIR}/pk_watch_list/ts"
+	TS_PK_BROKER_DIR="${DBT5TSDIR}/pk_broker/ts"
+	TS_PK_CASH_TRANSACTION_DIR="${DBT5TSDIR}/pk_cash_transaction/ts"
+	TS_PK_CHARGE_DIR="${DBT5TSDIR}/pk_charge/ts"
+	TS_PK_COMMISSION_RATE_DIR="${DBT5TSDIR}/pk_commission_rate/ts"
+	TS_PK_SETTLEMENT_DIR="${DBT5TSDIR}/pk_settlement/ts"
+	TS_PK_TRADE_DIR="${DBT5TSDIR}/pk_trade/ts"
+	TS_PK_TRADE_HISTORY_DIR="${DBT5TSDIR}/pk_trade_history/ts"
+	TS_PK_TRADE_REQUEST_DIR="${DBT5TSDIR}/pk_trade_request/ts"
+	TS_PK_TRADE_TYPE_DIR="${DBT5TSDIR}/pk_trade_type/ts"
+	TS_PK_COMPANY_DIR="${DBT5TSDIR}/pk_company/ts"
+	TS_PK_COMPANY_COMPETITOR_DIR="${DBT5TSDIR}/pk_company_competitor/ts"
+	TS_PK_DAILY_MARKET_DIR="${DBT5TSDIR}/pk_daily_market/ts"
+	TS_PK_EXCHANGE_DIR="${DBT5TSDIR}/pk_exchange/ts"
+	TS_PK_FINANCIAL_DIR="${DBT5TSDIR}/pk_financial/ts"
+	TS_PK_INDUSTRY_DIR="${DBT5TSDIR}/pk_industry/ts"
+	TS_PK_LAST_TRADE_DIR="${DBT5TSDIR}/pk_last_trade/ts"
+	TS_PK_NEWS_ITEM_DIR="${DBT5TSDIR}/pk_news_item/ts"
+	TS_PK_NEWS_XREF_DIR="${DBT5TSDIR}/pk_news_xref/ts"
+	TS_PK_SECTOR_DIR="${DBT5TSDIR}/pk_sector/ts"
+	TS_PK_SECURITY_DIR="${DBT5TSDIR}/pk_security/ts"
+	TS_PK_ADDRESS_DIR="${DBT5TSDIR}/pk_address/ts"
+	TS_PK_STATUS_TYPE_DIR="${DBT5TSDIR}/pk_status_type/ts"
+	TS_PK_TAXRATE_DIR="${DBT5TSDIR}/pk_taxrate/ts"
+	TS_PK_ZIP_CODE_DIR="${DBT5TSDIR}/pk_zip_code/ts"
 
-	TS_I_C_TAX_ID_DIR="${TSDIR}/i_c_tax_id/ts"
-	TS_I_CA_C_ID_DIR="${TSDIR}/i_ca_c_id/ts"
-	TS_I_WL_C_ID_DIR="${TSDIR}/i_wl_c_id/ts"
-	TS_I_DM_S_SYMB_DIR="${TSDIR}/i_dm_s_symb/ts"
-	TS_I_TR_S_SYMB_DIR="${TSDIR}/i_tr_s_symb/ts"
-	TS_I_T_ST_ID_DIR="${TSDIR}/i_t_st_id/ts"
-	TS_I_T_ST_ID_DIR="${TSDIR}/i_t_st_id/ts"
-	TS_I_T_CA_ID_DIR="${TSDIR}/i_t_ca_id/ts"
-	TS_I_CO_NAME_DIR="${TSDIR}/i_co_name/ts"
-	TS_I_SECURITY_DIR="${TSDIR}/i_security/ts"
-	TS_I_HOLDING_DIR="${TSDIR}/i_holding/ts"
-	TS_I_CHARGE_DIR="${TSDIR}/i_charge/ts"
+	TS_I_C_TAX_ID_DIR="${DBT5TSDIR}/i_c_tax_id/ts"
+	TS_I_CA_C_ID_DIR="${DBT5TSDIR}/i_ca_c_id/ts"
+	TS_I_WL_C_ID_DIR="${DBT5TSDIR}/i_wl_c_id/ts"
+	TS_I_DM_S_SYMB_DIR="${DBT5TSDIR}/i_dm_s_symb/ts"
+	TS_I_TR_S_SYMB_DIR="${DBT5TSDIR}/i_tr_s_symb/ts"
+	TS_I_T_ST_ID_DIR="${DBT5TSDIR}/i_t_st_id/ts"
+	TS_I_T_ST_ID_DIR="${DBT5TSDIR}/i_t_st_id/ts"
+	TS_I_T_CA_ID_DIR="${DBT5TSDIR}/i_t_ca_id/ts"
+	TS_I_CO_NAME_DIR="${DBT5TSDIR}/i_co_name/ts"
+	TS_I_SECURITY_DIR="${DBT5TSDIR}/i_security/ts"
+	TS_I_HOLDING_DIR="${DBT5TSDIR}/i_holding/ts"
+	TS_I_CHARGE_DIR="${DBT5TSDIR}/i_charge/ts"
 
 	#
 	# Creating 'ts' subdirectories because PostgreSQL doesn't like that
 	# 'lost+found' directory if a device was mounted at
-	# '${TSDIR}/warehouse'.
+	# '${DBT5TSDIR}/warehouse'.
 	#
 	mkdir -p ${TS_PK_ACCOUNT_PERMISSION_DIR} || exit 1
 	mkdir -p ${TS_PK_CUSTOMER_DIR} || exit 1

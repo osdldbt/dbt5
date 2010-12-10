@@ -13,7 +13,7 @@ OUTDIR="."
 while getopts "fo:p:" OPT; do
 	case ${OPT} in
 	f)
-		rm -f ${PGDATA}/postmaster.pid
+		rm -f ${DBT5PGDATA}/postmaster.pid
 		;;
 	o)
 		OUTDIR=${OPTARG}
@@ -24,12 +24,12 @@ while getopts "fo:p:" OPT; do
 	esac
 done
 
-if [ -z ${PGDATA} ]; then
-	echo "PGDATA not defined."
+if [ -z ${DBT5PGDATA} ]; then
+	echo "DBT5PGDATA not defined."
 	exit 1
 fi
 
-if [ -f ${PGDATA}/postmaster.pid ]; then
+if [ -f ${DBT5PGDATA}/postmaster.pid ]; then
 	echo "Database is already started."
 	exit 0
 fi
@@ -40,12 +40,12 @@ fi
 sleep 1
 
 if [ "x${PARAMETERS}" = "x" ]; then
-	pg_ctl -w -D ${PGDATA} -l ${OUTDIR}/${LOGFILE} start
+	pg_ctl -w -D ${DBT5PGDATA} -l ${OUTDIR}/${LOGFILE} start
 else
-	pg_ctl -w -D ${PGDATA} -o "${PARAMETERS}" -l ${OUTDIR}/${LOGFILE} start
+	pg_ctl -w -D ${DBT5PGDATA} -o "${PARAMETERS}" -l ${OUTDIR}/${LOGFILE} start
 fi
 
-if [ ! -f ${PGDATA}/postmaster.pid ]; then
+if [ ! -f ${DBT5PGDATA}/postmaster.pid ]; then
 	echo "database did not start correctly, check database log"
 	exit 1
 fi

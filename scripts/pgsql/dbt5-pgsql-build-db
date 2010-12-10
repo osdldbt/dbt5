@@ -57,7 +57,7 @@ while getopts "b:c:d:hi:l:p:rs:t:uw:" OPT; do
 		CUSTOMERS_INSTANCE=${OPTARG}
 		;;
 	d)
-		DBNAME=${OPTARG}
+		DBT5DBNAME=${OPTARG}
 		;;
 	e)
 		EGENDIR=${OPTARG}
@@ -106,9 +106,9 @@ else
 	fi
 fi
 
-if [ ! "x${DBNAME}" = "x" ]; then
-	DBNAMEARG="-d ${DBNAME}"
-	export PGDATABASE="${DBNAME}"
+if [ ! "x${DBT5DBNAME}" = "x" ]; then
+	DBNAMEARG="-d ${DBT5DBNAME}"
+	export PGDATABASE="${DBT5DBNAME}"
 fi
 
 if [ ! "x${PORT}" = "x" ]; then

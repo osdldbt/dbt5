@@ -19,7 +19,7 @@ explain() {
 while getopts "d:o:p:" opt; do
 	case ${opt} in
 	d)
-		DBNAME=${OPTARG}
+		DBT5DBNAME=${OPTARG}
 		;;
 	o)
 		OUTPUT_FILE=${OPTARG}
@@ -30,8 +30,8 @@ while getopts "d:o:p:" opt; do
 	esac
 done
 
-if [ ! "x${DBNAME}" = "x" ]; then
-	DBNAMEARG="-d ${DBNAME}"
+if [ ! "x${DBT5DBNAME}" = "x" ]; then
+	DBNAMEARG="-d ${DBT5DBNAME}"
 fi
 
 if [ ! "x${PORT}" = "x" ]; then

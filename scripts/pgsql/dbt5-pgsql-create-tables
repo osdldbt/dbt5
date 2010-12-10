@@ -12,7 +12,7 @@ USE_TABLESPACES=0
 while getopts "d:p:t" OPT; do
 	case ${OPT} in
 	d)
-		DBNAME=${OPTARG}
+		DBT5DBNAME=${OPTARG}
 		;;
 	p)
 		PORT=${OPTARG}
@@ -23,8 +23,8 @@ while getopts "d:p:t" OPT; do
 	esac
 done
 
-if [ ! "x${DBNAME}" = "x" ]; then
-	DBNAMEARG="-d ${DBNAME}"
+if [ ! "x${DBT5DBNAME}" = "x" ]; then
+	DBNAMEARG="-d ${DBT5DBNAME}"
 fi
 
 if [ ! "x${PORT}" = "x" ]; then
@@ -32,49 +32,49 @@ if [ ! "x${PORT}" = "x" ]; then
 fi
 
 if [ ${USE_TABLESPACES} -eq 1 ]; then
-	if [ -z ${TSDIR} ]; then
-		echo "TSDIR not defined for tablespace path."
+	if [ -z ${DBT5TSDIR} ]; then
+		echo "DBT5TSDIR not defined for tablespace path."
 		exit 1
 	fi
 
-	TS_ACCOUNT_PERMISSION_DIR=${TSDIR}/account_permission/ts
-	TS_CUSTOMER_DIR=${TSDIR}/customer/ts
-	TS_CUSTOMER_ACCOUNT_DIR=${TSDIR}/customer_account/ts
-	TS_CUSTOMER_TAXRATE_DIR=${TSDIR}/customer_taxrate/ts
-	TS_HOLDING_DIR=${TSDIR}/holding/ts
-	TS_HOLDING_HISTORY_DIR=${TSDIR}/holding_history/ts
-	TS_HOLDING_SUMMARY_DIR=${TSDIR}/holding_summary/ts
-	TS_WATCH_ITEM_DIR=${TSDIR}/watch_item/ts
-	TS_WATCH_LIST_DIR=${TSDIR}/watch_list/ts
-	TS_BROKER_DIR=${TSDIR}/broker/ts
-	TS_CASH_TRANSACTION_DIR=${TSDIR}/cash_transaction/ts
-	TS_CHARGE_DIR=${TSDIR}/charge/ts
-	TS_COMMISSION_RATE_DIR=${TSDIR}/commission_rate/ts
-	TS_SETTLEMENT_DIR=${TSDIR}/settlement/ts
-	TS_TRADE_DIR=${TSDIR}/trade/ts
-	TS_TRADE_HISTORY_DIR=${TSDIR}/trade_history/ts
-	TS_TRADE_REQUEST_DIR=${TSDIR}/trade_request/ts
-	TS_TRADE_TYPE_DIR=${TSDIR}/trade_type/ts
-	TS_COMPANY_DIR=${TSDIR}/company/ts
-	TS_COMPANY_COMPETITOR_DIR=${TSDIR}/company_competitor/ts
-	TS_DAILY_MARKET_DIR=${TSDIR}/daily_market/ts
-	TS_EXCHANGE_DIR=${TSDIR}/exchange/ts
-	TS_FINANCIAL_DIR=${TSDIR}/financial/ts
-	TS_INDUSTRY_DIR=${TSDIR}/industry/ts
-	TS_LAST_TRADE_DIR=${TSDIR}/last_trade/ts
-	TS_NEWS_ITEM_DIR=${TSDIR}/news_item/ts
-	TS_NEWS_XREF_DIR=${TSDIR}/news_xref/ts
-	TS_SECTOR_DIR=${TSDIR}/sector/ts
-	TS_SECURITY_DIR=${TSDIR}/security/ts
-	TS_ADDRESS_DIR=${TSDIR}/address/ts
-	TS_STATUS_TYPE_DIR=${TSDIR}/status_type/ts
-	TS_TAXRATE_DIR=${TSDIR}/taxrate/ts
-	TS_ZIP_CODE_DIR=${TSDIR}/zip_code/ts
+	TS_ACCOUNT_PERMISSION_DIR=${DBT5TSDIR}/account_permission/ts
+	TS_CUSTOMER_DIR=${DBT5TSDIR}/customer/ts
+	TS_CUSTOMER_ACCOUNT_DIR=${DBT5TSDIR}/customer_account/ts
+	TS_CUSTOMER_TAXRATE_DIR=${DBT5TSDIR}/customer_taxrate/ts
+	TS_HOLDING_DIR=${DBT5TSDIR}/holding/ts
+	TS_HOLDING_HISTORY_DIR=${DBT5TSDIR}/holding_history/ts
+	TS_HOLDING_SUMMARY_DIR=${DBT5TSDIR}/holding_summary/ts
+	TS_WATCH_ITEM_DIR=${DBT5TSDIR}/watch_item/ts
+	TS_WATCH_LIST_DIR=${DBT5TSDIR}/watch_list/ts
+	TS_BROKER_DIR=${DBT5TSDIR}/broker/ts
+	TS_CASH_TRANSACTION_DIR=${DBT5TSDIR}/cash_transaction/ts
+	TS_CHARGE_DIR=${DBT5TSDIR}/charge/ts
+	TS_COMMISSION_RATE_DIR=${DBT5TSDIR}/commission_rate/ts
+	TS_SETTLEMENT_DIR=${DBT5TSDIR}/settlement/ts
+	TS_TRADE_DIR=${DBT5TSDIR}/trade/ts
+	TS_TRADE_HISTORY_DIR=${DBT5TSDIR}/trade_history/ts
+	TS_TRADE_REQUEST_DIR=${DBT5TSDIR}/trade_request/ts
+	TS_TRADE_TYPE_DIR=${DBT5TSDIR}/trade_type/ts
+	TS_COMPANY_DIR=${DBT5TSDIR}/company/ts
+	TS_COMPANY_COMPETITOR_DIR=${DBT5TSDIR}/company_competitor/ts
+	TS_DAILY_MARKET_DIR=${DBT5TSDIR}/daily_market/ts
+	TS_EXCHANGE_DIR=${DBT5TSDIR}/exchange/ts
+	TS_FINANCIAL_DIR=${DBT5TSDIR}/financial/ts
+	TS_INDUSTRY_DIR=${DBT5TSDIR}/industry/ts
+	TS_LAST_TRADE_DIR=${DBT5TSDIR}/last_trade/ts
+	TS_NEWS_ITEM_DIR=${DBT5TSDIR}/news_item/ts
+	TS_NEWS_XREF_DIR=${DBT5TSDIR}/news_xref/ts
+	TS_SECTOR_DIR=${DBT5TSDIR}/sector/ts
+	TS_SECURITY_DIR=${DBT5TSDIR}/security/ts
+	TS_ADDRESS_DIR=${DBT5TSDIR}/address/ts
+	TS_STATUS_TYPE_DIR=${DBT5TSDIR}/status_type/ts
+	TS_TAXRATE_DIR=${DBT5TSDIR}/taxrate/ts
+	TS_ZIP_CODE_DIR=${DBT5TSDIR}/zip_code/ts
 
 	#
 	# Creating 'ts' subdirectories because PostgreSQL doesn't like that
 	# 'lost+found' directory if a device was mounted at
-	# '${TSDIR}/warehouse'.
+	# '${DBT5TSDIR}/warehouse'.
 	#
 	mkdir -p ${TS_ACCOUNT_PERMISSION_DIR} || exit 1
 	mkdir -p ${TS_CUSTOMER_DIR} || exit 1

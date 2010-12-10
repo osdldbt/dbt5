@@ -11,7 +11,7 @@
 while getopts "d:i:p:o:s:" opt; do
 	case ${opt} in
 	d)
-		DBNAME=${OPTARG}
+		DBT5DBNAME=${OPTARG}
 		;;
 	i)
 		ITERATIONS=${OPTARG}
@@ -28,8 +28,8 @@ while getopts "d:i:p:o:s:" opt; do
 	esac
 done
 
-if [ "x${DBNAME}" = "x" ]; then
-	echo "DBNAME not defined."
+if [ "x${DBT5DBNAME}" = "x" ]; then
+	echo "DBT5DBNAME not defined."
 	exit 1
 fi
 
@@ -37,8 +37,8 @@ if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
 fi
 
-PSQL="psql -t --no-align -e -d ${DBNAME} ${PORTARG}"
-PSQL2="psql -t --no-align -d ${DBNAME} ${PORTARG}"
+PSQL="psql -t --no-align -e -d ${DBT5DBNAME} ${PORTARG}"
+PSQL2="psql -t --no-align -d ${DBT5DBNAME} ${PORTARG}"
 
 # Get database version.
 pg_config --version >> ${OUTPUT_DIR}/readme.txt

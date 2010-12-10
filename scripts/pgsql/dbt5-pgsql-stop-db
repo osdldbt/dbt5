@@ -8,12 +8,12 @@
 #               2010 Mark Wong
 #
 
-if [ -z ${PGDATA} ]; then
-	echo "PGDATA not defined."
+if [ -z ${DBT5PGDATA} ]; then
+	echo "DBT5PGDATA not defined."
 	exit 1
 fi
 
 # We only need to stop the database if it's running.
-if [ -f ${PGDATA}/postmaster.pid ]; then
-	pg_ctl -w -D ${PGDATA} stop ${1}
+if [ -f ${DBT5PGDATA}/postmaster.pid ]; then
+	pg_ctl -w -D ${DBT5PGDATA} stop ${1}
 fi

@@ -15,8 +15,8 @@ while getopts "o:" opt; do
 	esac
 done
 
-if [ "x${DBNAME}" = "x" ]; then
-	echo "DBNAME not defined."
+if [ "x${DBT5DBNAME}" = "x" ]; then
+	echo "DBT5DBNAME not defined."
 	exit 1
 fi
 
@@ -25,7 +25,7 @@ if [ "x${OUTPUT}" = "x" ]; then
 	exit 1;
 fi
 
-_test=`pg_restore -v Fc -a -d ${DBNAME} ${OUTPUT} | grep OK`
+_test=`pg_restore -v Fc -a -d ${DBT5DBNAME} ${OUTPUT} | grep OK`
 if [ "$_test" != "" ]; then
 	echo "restore failed: $_test"
 	exit 1
