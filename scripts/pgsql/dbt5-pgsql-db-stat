@@ -37,7 +37,7 @@ if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
 fi
 
-PSQL="psql -t --no-align -e -d ${DBT5DBNAME} ${PORTARG}"
+PSQL="psql -t --no-align -d ${DBT5DBNAME} ${PORTARG}"
 PSQL2="psql -t --no-align -d ${DBT5DBNAME} ${PORTARG}"
 
 # Get database version.
@@ -70,29 +70,43 @@ dbt5-pgsql-db-plans ${PORTARG} -o ${OUTPUT_DIR}/plan0.out
 COUNTER=0
 
 while [ $COUNTER -lt $ITERATIONS ]; do
-	${PSQL} -c "SELECT relname, pid, mode, granted FROM pg_locks, pg_class WHERE relfilenode = relation ORDER BY relname;" >> $OUTPUT_DIR/lockstats.out &
-	${PSQL} -c "SELECT * FROM pg_stat_activity;" >> $OUTPUT_DIR/db_activity.out &
 	${PSQL} -c "
-SELECT TRANSACTION_TIMESTAMP(), datname, numbackends, xact_commit,
-       xact_rollback, blks_read, blks_hit, tup_returned, tup_fetched,
-       tup_inserted, tup_updated, tup_deleted
-FROM pg_stat_database;
-" >> $OUTPUT_DIR/pg_stat_databases.out &
+SELECT EXTRACT(EPOCH FROM TRANSACTION_TIMESTAMP()), relname, pid, mode, granted
+FROM pg_locks, pg_class
+WHERE relfilenode = relation
+ORDER BY relname
+;" >> $OUTPUT_DIR/lockstats.out &
+
 	${PSQL} -c "
-SELECT TRANSACTION_TIMESTAMP(), a.schemaname, a.relname, seq_scan, seq_tup_read,
-       idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd, n_tup_del, n_tup_hot_upd,
-       n_live_tup, n_dead_tup, heap_blks_read, heap_blks_hit, idx_blks_read,
-       idx_blks_hit, toast_blks_read, toast_blks_hit, tidx_blks_read,
-       tidx_blks_hit
+SELECT EXTRACT(EPOCH FROM TRANSACTION_TIMESTAMP()), datname, procpid, usesysid,
+       usename, application_name, client_addr, client_port, backend_start,
+       xact_start, query_start, waiting, current_query
+FROM pg_stat_activity
+;" >> $OUTPUT_DIR/db_activity.out &
+
+	${PSQL} -c "
+SELECT EXTRACT(EPOCH FROM TRANSACTION_TIMESTAMP()), datname, numbackends,
+       xact_commit, xact_rollback, blks_read, blks_hit, tup_returned,
+       tup_fetched, tup_inserted, tup_updated, tup_deleted
+FROM pg_stat_database
+;" >> $OUTPUT_DIR/pg_stat_databases.out &
+
+	${PSQL} -c "
+       seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd,
+       n_tup_del, n_tup_hot_upd, n_live_tup, n_dead_tup, heap_blks_read,
+       heap_blks_hit, idx_blks_read, idx_blks_hit, toast_blks_read,
+       toast_blks_hit, tidx_blks_read, tidx_blks_hit
 FROM pg_statio_all_tables a, pg_stat_all_tables b
-WHERE a.relid = b.relid;
-" >> $OUTPUT_DIR/pg_stat_tables.out &
+WHERE a.relid = b.relid
+;" >> $OUTPUT_DIR/pg_stat_tables.out &
+
 	${PSQL} -c "
-SELECT TRANSACTION_TIMESTAMP(), a.schemaname, a.relname, a.indexrelname,
-       idx_scan, idx_tup_read, idx_tup_fetch, idx_blks_read, idx_blks_hit
+SELECT EXTRACT(EPOCH FROM TRANSACTION_TIMESTAMP()), a.schemaname, a.relname,
+       a.indexrelname, idx_scan, idx_tup_read, idx_tup_fetch, idx_blks_read,
+       idx_blks_hit
 FROM pg_stat_all_indexes a, pg_statio_all_indexes b
-WHERE a.indexrelid = b.indexrelid;
-" >> $OUTPUT_DIR/pg_stat_indexes.out &
+WHERE a.indexrelid = b.indexrelid
+;" >> $OUTPUT_DIR/pg_stat_indexes.out &
 
 	COUNTER=`expr ${COUNTER} + 1`
 	sleep ${SAMPLE_LENGTH}
