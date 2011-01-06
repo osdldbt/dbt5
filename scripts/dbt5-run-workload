@@ -461,13 +461,18 @@ SLEEPYTIME=`expr ${SLEEP_RAMPUP} + ${DURATION}`
 SAMPLE_LENGTH=60
 ITERATIONS=`expr ${SLEEPYTIME} / ${SAMPLE_LENGTH}`
 ITERATIONS=`expr ${ITERATIONS} + 1`
-dbt5-sysstats --iter ${ITERATIONS} \
-		--sample ${SAMPLE_LENGTH} \
-		--outdir ${DRIVER_OUTPUT_DIR} > ${DRIVER_OUTPUT_DIR}/stats.out 2>&1 &
 if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+	dbt5-sysstats --iter ${ITERATIONS} \
+			--sample ${SAMPLE_LENGTH} \
+			--outdir ${DRIVER_OUTPUT_DIR} > ${DRIVER_OUTPUT_DIR}/stats.out 2>&1 &
+
 	${DB_COMMAND} dbt5-sysstats --iter ${ITERATIONS} \
 			--sample ${SAMPLE_LENGTH} \
 			--outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1 &
+else
+	dbt5-sysstats --iter ${ITERATIONS} \
+			--sample ${SAMPLE_LENGTH} \
+			--outdir ${DB_OUTPUT_DIR} > ${DRIVER_OUTPUT_DIR}/stats.out 2>&1 &
 fi
 ${DB_COMMAND} dbt5-${DBMS}-db-stat \
 		-o ${DB_OUTPUT_DIR} \
@@ -584,7 +589,6 @@ if [ $? -eq 0 ]; then
 else
 	SAR=true
 fi
-${SAR} -f ${DRIVER_OUTPUT_DIR}/sar_raw.out -A > ${DRIVER_OUTPUT_DIR}/sar.out
 if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	${DB_COMMAND} "${SAR2} which sar > /dev/null 2>&1"
 	if [ $? -eq 0 ]; then
@@ -592,7 +596,10 @@ if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	else
 		SAR2=true
 	fi
+	${SAR} -f ${DRIVER_OUTPUT_DIR}/sar_raw.out -A > ${DRIVER_OUTPUT_DIR}/sar.out
 	${DB_COMMAND} "${SAR2} -f ${DB_OUTPUT_DIR}/sar_raw.out -A > ${DB_OUTPUT_DIR}/sar.out"
+else
+	${SAR} -f ${DB_OUTPUT_DIR}/sar_raw.out -A > ${DRIVER_OUTPUT_DIR}/sar.out
 fi
 
 if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
