@@ -83,7 +83,7 @@ transaction_name[tc] = 'Trade Cleanup'
 
 print 'Generating transaction distribution charts...'
 for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu, dm, tc]:
-    system('dbt-plot-transaction-distribution "%s" %s %s %s/txn 12 %d' % \
+    system('dbt-plot-transaction-distribution "%s" %s %s %s/txn sec 12 %d' % \
             (transaction_name[key], key, mixfile, outdir, int(key) + 1))
 
 print 'Generating mpstat charts...'
