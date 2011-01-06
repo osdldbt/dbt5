@@ -351,6 +351,11 @@ if [ "x${USERS}" = "x" ]; then
 	exit 1
 fi
 
+if [ "x${ITD}" = "x" ]; then
+	usage "specify the number of initial trade days using -w #"
+	exit 1
+fi
+
 if [ "x${OUTPUT_DIR}" = "x" ]; then
 	usage "specify the location for results, directory must not exist, using -o <path>"
 	exit 1
