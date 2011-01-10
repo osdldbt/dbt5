@@ -190,7 +190,9 @@ PGresult *CDBConnection::exec(const char *sql)
 void CDBConnection::execute(const TBrokerVolumeFrame1Input *pIn,
 		TBrokerVolumeFrame1Output *pOut)
 {
-	enum bvf1 {i_broker_name=0, i_list_len, i_volume};
+	int i_broker_name;
+	int i_list_len;
+	int i_volume;
 
 	ostringstream osBrokers;
 	int i = 0;
@@ -206,6 +208,9 @@ void CDBConnection::execute(const TBrokerVolumeFrame1Input *pIn,
 			pIn->sector_name << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
+	i_broker_name = PQfnumber(res, "broker_name");
+	i_list_len = PQfnumber(res, "list_len");
+	i_volume = PQfnumber(res, "volume");
 
 	pOut->list_len = atoi(PQgetvalue(res, 0, i_list_len));
 
@@ -235,14 +240,33 @@ void CDBConnection::execute(const TBrokerVolumeFrame1Input *pIn,
 void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
 		TCustomerPositionFrame1Output *pOut)
 {
-	enum cpf1 {
-			i_cust_id=0, i_acct_id, i_acct_len, i_asset_total, i_c_ad_id,
-			i_c_area_1, i_c_area_2, i_c_area_3, i_c_ctry_1, i_c_ctry_2,
-			i_c_ctry_3, i_c_dob, i_c_email_1, i_c_email_2, i_c_ext_1,
-			i_c_ext_2, i_c_ext_3, i_c_f_name, i_c_gndr, i_c_l_name,
-			i_c_local_1, i_c_local_2, i_c_local_3, i_c_m_name, i_c_st_id,
-			i_c_tier, i_cash_bal
-	};
+	int i_cust_id;
+	int i_acct_id;
+	int i_acct_len;
+	int i_asset_total;
+	int i_c_ad_id;
+	int i_c_area_1;
+	int i_c_area_2;
+	int i_c_area_3;
+	int i_c_ctry_1;
+	int i_c_ctry_2;
+	int i_c_ctry_3;
+	int i_c_dob;
+	int i_c_email_1;
+	int i_c_email_2;
+	int i_c_ext_1;
+	int i_c_ext_2;
+	int i_c_ext_3;
+	int i_c_f_name;
+	int i_c_gndr;
+	int i_c_l_name;
+	int i_c_local_1;
+	int i_c_local_2;
+	int i_c_local_3;
+	int i_c_m_name;
+	int i_c_st_id;
+	int i_c_tier;
+	int i_cash_bal;
 
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM CustomerPositionFrame1(" <<
@@ -250,6 +274,33 @@ void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
 			pIn->tax_id << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
+	i_cust_id = PQfnumber(res, "cust_id");
+	i_acct_id = PQfnumber(res, "acct_id");
+	i_acct_len = PQfnumber(res, "acct_len");
+	i_asset_total = PQfnumber(res, "asset_total");
+	i_c_ad_id = PQfnumber(res, "c_ad_id");
+	i_c_area_1 = PQfnumber(res, "c_area_1");
+	i_c_area_2 = PQfnumber(res, "c_area_2");
+	i_c_area_3 = PQfnumber(res, "c_area_3");
+	i_c_ctry_1 = PQfnumber(res, "c_ctry_1");
+	i_c_ctry_2 = PQfnumber(res, "c_ctry_2");
+	i_c_ctry_3 = PQfnumber(res, "c_ctry_3");
+	i_c_dob = PQfnumber(res, "c_dob");
+	i_c_email_1 = PQfnumber(res, "c_email_1");
+	i_c_email_2 = PQfnumber(res, "c_email_2");
+	i_c_ext_1 = PQfnumber(res, "c_ext_1");
+	i_c_ext_2 = PQfnumber(res, "c_ext_2");
+	i_c_ext_3 = PQfnumber(res, "c_ext_3");
+	i_c_f_name = PQfnumber(res, "c_f_name");
+	i_c_gndr = PQfnumber(res, "c_gndr");
+	i_c_l_name = PQfnumber(res, "c_l_name");
+	i_c_local_1 = PQfnumber(res, "c_local_1");
+	i_c_local_2 = PQfnumber(res, "c_local_2");
+	i_c_local_3 = PQfnumber(res, "c_local_3");
+	i_c_m_name = PQfnumber(res, "c_m_name");
+	i_c_st_id = PQfnumber(res, "c_st_id");
+	i_c_tier = PQfnumber(res, "c_tier");
+	i_cash_bal = PQfnumber(res, "cash_bal");
 
 	pOut->acct_len = atoi(PQgetvalue(res, 0, i_acct_len));
 	pOut->cust_id = atol(PQgetvalue(res, 0, i_cust_id));
@@ -340,17 +391,25 @@ void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
 void CDBConnection::execute(const TCustomerPositionFrame2Input *pIn,
 		TCustomerPositionFrame2Output *pOut)
 {
-	enum cpf2 {
-		i_hist_dts=0, i_hist_len, i_qty, i_symbol,
-		i_trade_id, i_trade_status
-	};
+	int i_hist_dts;
+	int i_hist_len;
+	int i_qty;
+	int i_symbol;
+	int i_trade_id;
+	int i_trade_status;
 
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM CustomerPositionFrame2(" << pIn->acct_id << ")";
 
 	PGresult *res = exec(osSQL.str().c_str());
+	i_hist_dts = PQfnumber(res, "hist_dts");
+	i_hist_len = PQfnumber(res, "hist_len");
+	i_qty = PQfnumber(res, "qty");
+	i_symbol = PQfnumber(res, "symbol");
+	i_trade_id = PQfnumber(res, "trade_id");
+	i_trade_status = PQfnumber(res, "trade_status");
 
-	pOut->hist_len = atoi(PQgetvalue(res, 0, i_hist_len));;
+	pOut->hist_len = atoi(PQgetvalue(res, 0, i_hist_len));
 
 	vector<string> vAux;
 	vector<string>::iterator p;
@@ -430,8 +489,13 @@ void CDBConnection::execute(const TDataMaintenanceFrame1Input *pIn)
 void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 		TMarketFeedFrame1Output *pOut, CSendToMarketInterface *pMarketExchange)
 {
-	enum mff1 {i_num_updated, i_send_len, i_symbol,
-			i_trade_id, i_price_quote, i_trade_qty, i_trade_type};
+	int i_num_updated;
+	int i_send_len;
+	int i_symbol;
+	int i_trade_id;
+	int i_price_quote;
+	int i_trade_qty;
+	int i_trade_type;
 
 	ostringstream osSymbol, osPrice, osQty;
 
@@ -460,6 +524,13 @@ void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 			pIn->StatusAndTradeType.type_stop_loss << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
+	i_num_updated = PQfnumber(res, "num_updated");
+	i_send_len = PQfnumber(res, "send_len");
+	i_symbol = PQfnumber(res, "symbol");
+	i_trade_id = PQfnumber(res, "trade_id");
+	i_price_quote = PQfnumber(res, "price_quote");
+	i_trade_qty = PQfnumber(res, "trade_qty");
+	i_trade_type = PQfnumber(res, "trade_type");
 
 	pOut->send_len = atoi(PQgetvalue(res, 0, i_send_len));
 
@@ -528,18 +599,51 @@ void CDBConnection::execute(const TMarketWatchFrame1Input *pIn,
 void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 		TSecurityDetailFrame1Output *pOut)
 {
-	enum sdf1 {
-		i_s52_wk_high=0, i_s52_wk_high_date, i_s52_wk_low,
-		i_s52_wk_low_date, i_ceo_name, i_co_ad_cty, i_co_ad_div,
-		i_co_ad_line1, i_co_ad_line2, i_co_ad_town, i_co_ad_zip,
-		i_co_desc, i_co_name, i_co_st_id, i_cp_co_name, i_cp_in_name,
-		i_day, i_day_len, i_divid, i_ex_ad_cty, i_ex_ad_div,
-		i_ex_ad_line1, i_ex_ad_line2, i_ex_ad_town, i_ex_ad_zip,
-		i_ex_close, i_ex_date, i_ex_desc, i_ex_name, i_ex_num_symb,
-		i_ex_open, i_fin, i_fin_len, i_last_open, i_last_price,
-		i_last_vol, i_news, i_news_len, i_num_out, i_open_date,
-		i_pe_ratio, i_s_name, i_sp_rate, i_start_date, i_yield
-	};
+	int i_s52_wk_high;
+	int i_s52_wk_high_date;
+	int i_s52_wk_low;
+	int i_s52_wk_low_date;
+	int i_ceo_name;
+	int i_co_ad_cty;
+	int i_co_ad_div;
+	int i_co_ad_line1;
+	int i_co_ad_line2;
+	int i_co_ad_town;
+	int i_co_ad_zip;
+	int i_co_desc;
+	int i_co_name;
+	int i_co_st_id;
+	int i_cp_co_name;
+	int i_cp_in_name;
+	int i_day;
+	int i_day_len;
+	int i_divid;
+	int i_ex_ad_cty;
+	int i_ex_ad_div;
+	int i_ex_ad_line1;
+	int i_ex_ad_line2;
+	int i_ex_ad_town;
+	int i_ex_ad_zip;
+	int i_ex_close;
+	int i_ex_date;
+	int i_ex_desc;
+	int i_ex_name;
+	int i_ex_num_symb;
+	int i_ex_open;
+	int i_fin;
+	int i_fin_len;
+	int i_last_open;
+	int i_last_price;
+	int i_last_vol;
+	int i_news;
+	int i_news_len;
+	int i_num_out;
+	int i_open_date;
+	int i_pe_ratio;
+	int i_s_name;
+	int i_sp_rate;
+	int i_start_date;
+	int i_yield;
 
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM SecurityDetailFrame1(" <<
@@ -551,6 +655,51 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 			pIn->symbol << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
+	i_s52_wk_high = PQfnumber(res, "x52_wk_high");
+	i_s52_wk_high_date = PQfnumber(res, "x52_wk_high_date");
+	i_s52_wk_low = PQfnumber(res, "x52_wk_low");
+	i_s52_wk_low_date = PQfnumber(res, "x52_wk_low_date");
+	i_ceo_name = PQfnumber(res, "ceo_name");
+	i_co_ad_cty = PQfnumber(res, "co_ad_ctry");
+	i_co_ad_div = PQfnumber(res, "co_ad_div");
+	i_co_ad_line1 = PQfnumber(res, "co_ad_line1");
+	i_co_ad_line2 = PQfnumber(res, "co_ad_line2");
+	i_co_ad_town = PQfnumber(res, "co_ad_town");
+	i_co_ad_zip = PQfnumber(res, "co_ad_zip");
+	i_co_desc = PQfnumber(res, "co_desc");
+	i_co_name = PQfnumber(res, "co_name");
+	i_co_st_id = PQfnumber(res, "co_st_id");
+	i_cp_co_name = PQfnumber(res, "cp_co_name");
+	i_cp_in_name = PQfnumber(res, "cp_in_name");
+	i_day = PQfnumber(res, "day");
+	i_day_len = PQfnumber(res, "day_len");
+	i_divid = PQfnumber(res, "divid");
+	i_ex_ad_cty = PQfnumber(res, "ex_ad_ctry");
+	i_ex_ad_div = PQfnumber(res, "ex_ad_div");
+	i_ex_ad_line1 = PQfnumber(res, "ex_ad_line1");
+	i_ex_ad_line2 = PQfnumber(res, "ex_ad_line2");
+	i_ex_ad_town = PQfnumber(res, "ex_ad_town");
+	i_ex_ad_zip = PQfnumber(res, "ex_ad_zip");
+	i_ex_close = PQfnumber(res, "ex_close");
+	i_ex_date = PQfnumber(res, "ex_date");
+	i_ex_desc = PQfnumber(res, "ex_desc");
+	i_ex_name = PQfnumber(res, "ex_name");
+	i_ex_num_symb = PQfnumber(res, "ex_num_symb");
+	i_ex_open = PQfnumber(res, "ex_open");
+	i_fin = PQfnumber(res, "fin");
+	i_fin_len = PQfnumber(res, "fin_len");
+	i_last_open = PQfnumber(res, "last_open");
+	i_last_price = PQfnumber(res, "last_price");
+	i_last_vol = PQfnumber(res, "last_vol");
+	i_news = PQfnumber(res, "news");
+	i_news_len = PQfnumber(res, "news_len");
+	i_num_out = PQfnumber(res, "num_out");
+	i_open_date = PQfnumber(res, "open_date");
+	i_pe_ratio = PQfnumber(res, "pe_ratio");
+	i_s_name = PQfnumber(res, "s_name");
+	i_sp_rate = PQfnumber(res, "sp_rate");
+	i_start_date = PQfnumber(res, "start_date");
+	i_yield = PQfnumber(res, "yield");
 
 	pOut->fin_len = atoi(PQgetvalue(res, 0, i_fin_len));
 	pOut->day_len = atoi(PQgetvalue(res, 0, i_day_len));
@@ -766,14 +915,20 @@ void CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
 void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 		TTradeLookupFrame1Output *pOut)
 {
-	enum tlf1 {
-			i_bid_price=0, i_cash_transaction_amount,
-			i_cash_transaction_dts, i_cash_transaction_name, i_exec_name,
-			i_is_cash, i_is_market, i_num_found, i_settlement_amount,
-			i_settlement_cash_due_date, i_settlement_cash_type,
-			i_trade_history_dts, i_trade_history_status_id,
-			i_trade_price
-	};
+	int i_bid_price;
+	int i_cash_transaction_amount;
+	int i_cash_transaction_dts;
+	int i_cash_transaction_name;
+	int i_exec_name;
+	int i_is_cash;
+	int i_is_market;
+	int i_num_found;
+	int i_settlement_amount;
+	int i_settlement_cash_due_date;
+	int i_settlement_cash_type;
+	int i_trade_history_dts;
+	int i_trade_history_status_id;
+	int i_trade_price;
 
 	ostringstream osTrades;
 	int i = 0;
@@ -788,6 +943,20 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 			osTrades.str() << "}')";
 
 	PGresult *res = exec(osSQL.str().c_str());
+	i_bid_price = PQfnumber(res, "bid_price");
+	i_cash_transaction_amount = PQfnumber(res, "cash_transaction_amount");
+	i_cash_transaction_dts = PQfnumber(res, "cash_transaction_dts");
+	i_cash_transaction_name = PQfnumber(res, "cash_transaction_name");
+	i_exec_name = PQfnumber(res, "exec_name");
+	i_is_cash = PQfnumber(res, "is_cash");
+	i_is_market = PQfnumber(res, "is_market");
+	i_num_found = PQfnumber(res, "num_found");
+	i_settlement_amount = PQfnumber(res, "settlement_amount");
+	i_settlement_cash_due_date = PQfnumber(res, "settlement_cash_due_date");
+	i_settlement_cash_type = PQfnumber(res, "settlement_cash_type");
+	i_trade_history_dts = PQfnumber(res, "trade_history_dts");
+	i_trade_history_status_id = PQfnumber(res, "trade_history_status_id");
+	i_trade_price = PQfnumber(res, "trade_price");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
 
@@ -952,13 +1121,20 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 		TTradeLookupFrame2Output *pOut)
 {
-	enum tlf2 {
-			i_bid_price=0, i_cash_transaction_amount, i_cash_transaction_dts,
-			i_cash_transaction_name, i_exec_name, i_is_cash, i_num_found,
-			i_settlement_amount, i_settlement_cash_due_date,
-			i_settlement_cash_type, i_trade_history_dts,
-			i_trade_history_status_id, i_trade_list, i_trade_price
-	};
+	int i_bid_price;
+	int i_cash_transaction_amount;
+	int i_cash_transaction_dts;
+	int i_cash_transaction_name;
+	int i_exec_name;
+	int i_is_cash;
+	int i_num_found;
+	int i_settlement_amount;
+	int i_settlement_cash_due_date;
+	int i_settlement_cash_type;
+	int i_trade_history_dts;
+	int i_trade_history_status_id;
+	int i_trade_list;
+	int i_trade_price;
 
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeLookupFrame2(" <<
@@ -980,6 +1156,20 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 	PGresult *res = exec(osSQL.str().c_str());
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
+	i_bid_price = PQfnumber(res, "bid_price");
+	i_cash_transaction_amount = PQfnumber(res, "cash_transaction_amount");
+	i_cash_transaction_dts = PQfnumber(res, "cash_transaction_dts");
+	i_cash_transaction_name = PQfnumber(res, "cash_transaction_name");
+	i_exec_name = PQfnumber(res, "exec_name");
+	i_is_cash = PQfnumber(res, "is_cash");
+	i_num_found = PQfnumber(res, "num_found");
+	i_settlement_amount = PQfnumber(res, "settlement_amount");
+	i_settlement_cash_due_date = PQfnumber(res, "settlement_cash_due_date");
+	i_settlement_cash_type = PQfnumber(res, "settlement_cash_type");
+	i_trade_history_dts = PQfnumber(res, "trade_history_dts");
+	i_trade_history_status_id = PQfnumber(res, "trade_history_status_id");
+	i_trade_list = PQfnumber(res, "trade_list");
+	i_trade_price = PQfnumber(res, "trade_price");
 
 	vector<string> vAux;
 	vector<string>::iterator p;
@@ -1143,14 +1333,23 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 		TTradeLookupFrame3Output *pOut)
 {
-	enum tlf3 {
-			i_acct_id=0, i_cash_transaction_amount, i_cash_transaction_dts,
-			i_cash_transaction_name, i_exec_name, i_is_cash, i_num_found,
-			i_price, i_quantity, i_settlement_amount,
-			i_settlement_cash_due_date, i_settlement_cash_type,
-			i_trade_dts, i_trade_history_dts, i_trade_history_status_id,
-			i_trade_list, i_trade_type
-	};
+	int i_acct_id;
+	int i_cash_transaction_amount;
+	int i_cash_transaction_dts;
+	int i_cash_transaction_name;
+	int i_exec_name;
+	int i_is_cash;
+	int i_num_found;
+	int i_price;
+	int i_quantity;
+	int i_settlement_amount;
+	int i_settlement_cash_due_date;
+	int i_settlement_cash_type;
+	int i_trade_dts;
+	int i_trade_history_dts;
+	int i_trade_history_status_id;
+	int i_trade_list;
+	int i_trade_type;
 
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeLookupFrame3('" <<
@@ -1171,6 +1370,23 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 			pIn->symbol << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
+	i_acct_id = PQfnumber(res, "acct_id");
+	i_cash_transaction_amount = PQfnumber(res, "cash_transaction_amount");
+	i_cash_transaction_dts = PQfnumber(res, "cash_transaction_dts");
+	i_cash_transaction_name = PQfnumber(res, "cash_transaction_name");
+	i_exec_name = PQfnumber(res, "exec_name");
+	i_is_cash = PQfnumber(res, "is_cash");
+	i_num_found = PQfnumber(res, "num_found");
+	i_price = PQfnumber(res, "price");
+	i_quantity = PQfnumber(res, "quantity");
+	i_settlement_amount = PQfnumber(res, "settlement_amount");
+	i_settlement_cash_due_date = PQfnumber(res, "settlement_cash_due_date");
+	i_settlement_cash_type = PQfnumber(res, "settlement_cash_type");
+	i_trade_dts = PQfnumber(res, "trade_dts");
+	i_trade_history_dts = PQfnumber(res, "trade_history_dts");
+	i_trade_history_status_id = PQfnumber(res, "trade_history_status_id");
+	i_trade_list = PQfnumber(res, "trade_list");
+	i_trade_type = PQfnumber(res, "trade_type");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
 
@@ -1371,10 +1587,12 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 void CDBConnection::execute(const TTradeLookupFrame4Input *pIn,
 		TTradeLookupFrame4Output *pOut)
 {
-	enum tlf4 {
-			i_holding_history_id=0, i_holding_history_trade_id, i_num_found,
-			i_quantity_after, i_quantity_before, i_trade_id
-	};
+	int i_holding_history_id;
+	int i_holding_history_trade_id;
+	int i_num_found;
+	int i_quantity_after;
+	int i_quantity_before;
+	int i_trade_id;
 
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeLookupFrame4(" <<
@@ -1387,6 +1605,12 @@ void CDBConnection::execute(const TTradeLookupFrame4Input *pIn,
 			pIn->trade_dts.second << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
+	i_holding_history_id = PQfnumber(res, "holding_history_id");
+	i_holding_history_trade_id = PQfnumber(res, "holding_history_trade_id");
+	i_num_found = PQfnumber(res, "num_found");
+	i_quantity_after = PQfnumber(res, "quantity_after");
+	i_quantity_before = PQfnumber(res, "quantity_before");
+	i_trade_id = PQfnumber(res, "trade_id");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
 
@@ -1698,16 +1922,39 @@ void CDBConnection::execute(const TTradeResultFrame6Input *pIn,
 void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 		TTradeStatusFrame1Output *pOut)
 {
-	enum tsf1 {
-			i_broker_name=0, i_charge, i_cust_f_name, i_cust_l_name,
-			i_ex_name, i_exec_name, i_num_found, i_s_name, i_status_name,
-			i_symbol, i_trade_dts, i_trade_id, i_trade_qty, i_type_name
-	};
+	int i_broker_name;
+	int i_charge;
+	int i_cust_f_name;
+	int i_cust_l_name;
+	int i_ex_name;
+	int i_exec_name;
+	int i_num_found;
+	int i_s_name;
+	int i_status_name;
+	int i_symbol;
+	int i_trade_dts;
+	int i_trade_id;
+	int i_trade_qty;
+	int i_type_name;
 
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeStatusFrame1(" << pIn->acct_id << ")";
 
 	PGresult *res = exec(osSQL.str().c_str());
+	i_broker_name = PQfnumber(res, "broker_name");
+	i_charge = PQfnumber(res, "charge");
+	i_cust_f_name = PQfnumber(res, "cust_f_name");
+	i_cust_l_name = PQfnumber(res, "cust_l_name");
+	i_ex_name = PQfnumber(res, "ex_name");
+	i_exec_name = PQfnumber(res, "exec_name");
+	i_num_found = PQfnumber(res, "num_found");
+	i_s_name = PQfnumber(res, "s_name");
+	i_status_name = PQfnumber(res, "st_name");
+	i_symbol = PQfnumber(res, "symbol");
+	i_trade_dts = PQfnumber(res, "trade_dts");
+	i_trade_id = PQfnumber(res, "trade_id");
+	i_trade_qty = PQfnumber(res, "trade_qty");
+	i_type_name = PQfnumber(res, "type_name");
 
 	vector<string> vAux;
 	vector<string>::iterator p;
@@ -1828,14 +2075,21 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 		TTradeUpdateFrame1Output *pOut)
 {
-	enum tuf1 {
-			i_bid_price=0, i_cash_transaction_amount,
-			i_cash_transaction_dts, i_cash_transaction_name, i_exec_name,
-			i_is_cash, i_is_market, i_num_found, i_num_updated,
-			i_settlement_amount, i_settlement_cash_due_date,
-			i_settlement_cash_type, i_trade_history_dts,
-			i_trade_history_status_id, i_trade_price
-	};
+	int i_bid_price;
+	int i_cash_transaction_amount;
+	int i_cash_transaction_dts;
+	int i_cash_transaction_name;
+	int i_exec_name;
+	int i_is_cash;
+	int i_is_market;
+	int i_num_found;
+	int i_num_updated;
+	int i_settlement_amount;
+	int i_settlement_cash_due_date;
+	int i_settlement_cash_type;
+	int i_trade_history_dts;
+	int i_trade_history_status_id;
+	int i_trade_price;
 
 	ostringstream osTrades;
 	int i = 0;
@@ -1851,6 +2105,21 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 			osTrades.str() << "}')";
 
 	PGresult *res = exec(osSQL.str().c_str());
+	i_bid_price = PQfnumber(res, "bid_price");
+	i_cash_transaction_amount = PQfnumber(res, "cash_transaction_amount");
+	i_cash_transaction_dts = PQfnumber(res, "cash_transaction_dts");
+	i_cash_transaction_name = PQfnumber(res, "cash_transaction_name");
+	i_exec_name = PQfnumber(res, "exec_name");
+	i_is_cash = PQfnumber(res, "is_cash");
+	i_is_market = PQfnumber(res, "is_market");
+	i_num_found = PQfnumber(res, "num_found");
+	i_num_updated = PQfnumber(res, "num_updated");
+	i_settlement_amount = PQfnumber(res, "settlement_amount");
+	i_settlement_cash_due_date = PQfnumber(res, "settlement_cash_due_date");
+	i_settlement_cash_type = PQfnumber(res, "settlement_cash_type");
+	i_trade_history_dts = PQfnumber(res, "trade_history_dts");
+	i_trade_history_status_id = PQfnumber(res, "trade_history_status_id");
+	i_trade_price = PQfnumber(res, "trade_price");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
 
@@ -2032,14 +2301,21 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 		TTradeUpdateFrame2Output *pOut)
 {
-	enum tuf2 {
-			i_bid_price=0, i_cash_transaction_amount,
-			i_cash_transaction_dts, i_cash_transaction_name, i_exec_name,
-			i_is_cash, i_num_found, i_num_updated, i_settlement_amount,
-			i_settlement_cash_due_date, i_settlement_cash_type,
-			i_trade_history_dts, i_trade_history_status_id, i_trade_list,
-			i_trade_price
-	};
+	int i_bid_price;
+	int i_cash_transaction_amount;
+	int i_cash_transaction_dts;
+	int i_cash_transaction_name;
+	int i_exec_name;
+	int i_is_cash;
+	int i_num_found;
+	int i_num_updated;
+	int i_settlement_amount;
+	int i_settlement_cash_due_date;
+	int i_settlement_cash_type;
+	int i_trade_history_dts;
+	int i_trade_history_status_id;
+	int i_trade_list;
+	int i_trade_price;
 
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeUpdateFrame2(" <<
@@ -2060,6 +2336,21 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 			pIn->end_trade_dts.second << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
+	i_bid_price = PQfnumber(res, "bid_price");
+	i_cash_transaction_amount = PQfnumber(res, "cash_transaction_amount");
+	i_cash_transaction_dts = PQfnumber(res, "cash_transaction_dts");
+	i_cash_transaction_name = PQfnumber(res, "cash_transaction_name");
+	i_exec_name = PQfnumber(res, "exec_name");
+	i_is_cash = PQfnumber(res, "is_cash");
+	i_num_found = PQfnumber(res, "num_found");
+	i_num_updated = PQfnumber(res, "num_updated");
+	i_settlement_amount = PQfnumber(res, "settlement_amount");
+	i_settlement_cash_due_date = PQfnumber(res, "settlement_cash_due_date");
+	i_settlement_cash_type = PQfnumber(res, "settlement_cash_type");
+	i_trade_history_dts = PQfnumber(res, "trade_history_dts");
+	i_trade_history_status_id = PQfnumber(res, "trade_history_status_id");
+	i_trade_list = PQfnumber(res, "trade_list");
+	i_trade_price = PQfnumber(res, "trade_price");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
 
@@ -2243,15 +2534,26 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 		TTradeUpdateFrame3Output *pOut)
 {
-	enum tuf3 {
-			i_acct_id=0, i_cash_transaction_amount,
-			i_cash_transaction_dts, i_cash_transaction_name, i_exec_name,
-			i_is_cash, i_num_found, i_num_updated, i_price, i_quantity,
-			i_s_name, i_settlement_amount, i_settlement_cash_due_date,
-			i_settlement_cash_type, i_trade_dts,
-			i_trade_history_dts, i_trade_history_status_id, i_trade_list,
-			i_type_name, i_trade_type
-	};
+	int i_acct_id;
+	int i_cash_transaction_amount;
+	int i_cash_transaction_dts;
+	int i_cash_transaction_name;
+	int i_exec_name;
+	int i_is_cash;
+	int i_num_found;
+	int i_num_updated;
+	int i_price;
+	int i_quantity;
+	int i_s_name;
+	int i_settlement_amount;
+	int i_settlement_cash_due_date;
+	int i_settlement_cash_type;
+	int i_trade_dts;
+	int i_trade_history_dts;
+	int i_trade_history_status_id;
+	int i_trade_list;
+	int i_type_name;
+	int i_trade_type;
 
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeUpdateFrame3('" <<
@@ -2273,6 +2575,26 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 			pIn->symbol << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
+	i_acct_id = PQfnumber(res, "acct_id");
+	i_cash_transaction_amount = PQfnumber(res, "cash_transaction_amount");
+	i_cash_transaction_dts = PQfnumber(res, "cash_transaction_dts");
+	i_cash_transaction_name = PQfnumber(res, "cash_transaction_name");
+	i_exec_name = PQfnumber(res, "exec_name");
+	i_is_cash = PQfnumber(res, "is_cash");
+	i_num_found = PQfnumber(res, "num_found");
+	i_num_updated = PQfnumber(res, "num_updated");
+	i_price = PQfnumber(res, "price");
+	i_quantity = PQfnumber(res, "quantity");
+	i_s_name = PQfnumber(res, "s_name");
+	i_settlement_amount = PQfnumber(res, "settlement_amount");
+	i_settlement_cash_due_date = PQfnumber(res, "settlement_cash_due_date");
+	i_settlement_cash_type = PQfnumber(res, "settlement_cash_type");
+	i_trade_dts = PQfnumber(res, "trade_dts");
+	i_trade_history_dts = PQfnumber(res, "trade_history_dts");
+	i_trade_history_status_id = PQfnumber(res, "trade_history_status_id");
+	i_trade_list = PQfnumber(res, "trade_list");
+	i_type_name = PQfnumber(res, "type_name");
+	i_trade_type = PQfnumber(res, "trade_type");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
 
