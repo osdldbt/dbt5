@@ -92,6 +92,7 @@ FROM pg_stat_database
 ;" >> $OUTPUT_DIR/pg_stat_databases.out &
 
 	${PSQL} -c "
+SELECT EXTRACT(EPOCH FROM TRANSACTION_TIMESTAMP()), a.schemaname, a.relname,
        seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd,
        n_tup_del, n_tup_hot_upd, n_live_tup, n_dead_tup, heap_blks_read,
        heap_blks_hit, idx_blks_read, idx_blks_hit, toast_blks_read,
