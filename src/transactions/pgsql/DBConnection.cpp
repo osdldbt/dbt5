@@ -136,7 +136,10 @@ void CDBConnection::commit()
 
 char *CDBConnection::escape(string s)
 {
-	return PQescapeLiteral(m_Conn, s.c_str(), s.length());
+	char *esc = PQescapeLiteral(m_Conn, s.c_str(), s.length());
+	if (esc == NULL)
+		cerr << "ERROR: could not escape '" << s << "'" << endl;
+	return esc;
 }
 
 void CDBConnection::disconnect()
@@ -1687,14 +1690,15 @@ void CDBConnection::execute(const TTradeOrderFrame2Input *pIn,
 	ostringstream osSQL;
 	char *tmpstr;
 	osSQL << "SELECT * FROM TradeOrderFrame2(" <<
-			pIn->acct_id << ",'";
+			pIn->acct_id << ",";
 	tmpstr = escape(pIn->exec_f_name);
 	osSQL << tmpstr;
 	PQfreemem(tmpstr);
-	osSQL << "','";
+	osSQL << ",";
 	tmpstr = escape(pIn->exec_l_name);
+	osSQL << tmpstr;
 	PQfreemem(tmpstr);
-	osSQL << "','" << pIn->exec_tax_id<<"')";
+	osSQL << ",'" << pIn->exec_tax_id<<"')";
 
 	PGresult *res = exec(osSQL.str().c_str());
 
@@ -1722,10 +1726,11 @@ void CDBConnection::execute(const TTradeOrderFrame3Input *pIn,
 			pIn->tax_status << "::SMALLINT," <<
 			pIn->trade_qty << ",'" <<
 			pIn->trade_type_id << "'," <<
-			pIn->type_is_margin << "::SMALLINT,'";
+			pIn->type_is_margin << "::SMALLINT,";
 	tmpstr = escape(pIn->co_name);
+	osSQL << tmpstr;
 	PQfreemem(tmpstr);
-	osSQL << "'," <<
+	osSQL << "," <<
 			pIn->requested_price << ",'" <<
 			pIn->symbol << "')";
 
@@ -1759,10 +1764,11 @@ void CDBConnection::execute(const TTradeOrderFrame4Input *pIn,
 			pIn->acct_id << "," <<
 			pIn->broker_id << "," <<
 			pIn->charge_amount << "," <<
-			pIn->comm_amount << ",'";
+			pIn->comm_amount << ",";
 	tmpstr = escape(pIn->exec_name);
+	osSQL << tmpstr;
 	PQfreemem(tmpstr);
-	osSQL << "'," <<
+	osSQL << "," <<
 			pIn->is_cash << "::SMALLINT," <<
 			pIn->is_lifo << "::SMALLINT," <<
 			pIn->requested_price << ",'" <<
@@ -1899,9 +1905,11 @@ void CDBConnection::execute(const TTradeResultFrame6Input *pIn,
 			pIn->due_date.day << " " <<
 			pIn->due_date.hour << ":" <<
 			pIn->due_date.minute << ":" <<
-			pIn->due_date.second << "','";
+			pIn->due_date.second << "',";
 	tmpstr = escape(pIn->s_name);
-	osSQL << "', " <<
+	osSQL << tmpstr;
+	PQfreemem(tmpstr);
+	osSQL << ", " <<
 			pIn->se_amount << ",'" <<
 			pIn->trade_dts.year << "-" <<
 			pIn->trade_dts.month << "-" <<
