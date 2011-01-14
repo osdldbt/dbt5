@@ -8,33 +8,31 @@
 #
 
 import sys
-from math import fsum
 from os import makedirs, system
 from os.path import exists, realpath
-from re import match
+
+import rpy2.robjects as robjects
+from rpy2.robjects.vectors import DataFrame
 
 if len(sys.argv) != 3:
     print 'Create a plot the rate of transactions.'
-    print 'usage: %s <tag> <mix.log> <output directory>' % sys.argv[0]
+    print 'usage: %s <mix.log> <output directory>' % sys.argv[0]
     print
     print '    <mix.log> - full path to the mix.log file'
     print '    <output directory> - location to write output files'
     print
     print 'Will attempt to create <output directory> if it does not exist.'
-    exit(1)
+    sys.exit(1)
 
 infilename = sys.argv[1]
 outputdir = sys.argv[2]
 
-# Make sure we can oping the file to read in data.
-try:
-    f = open(infilename, 'r')
-except:
+# Make sure the input file exists.
+if not exists(infilename):
     print 'cannot open file: %s' % infilename
-    exit(1)
+    sys.exit(1)
 
 # Make sure we can open the files to write to.
-
 if not exists(outputdir):
     try:
         # FIXME: Don't know why makedirs sometimes fails.
@@ -42,25 +40,19 @@ if not exists(outputdir):
         system('mkdir -p %s' % outputdir)
     except:
         print 'cannot create directory "%s"' % outputdir
-        exit(2)
+        sys.exit(2)
 
 outputdir = realpath(outputdir)
 
-datafilename = 'transaction-rate.data'
-try:
-    d = open(outputdir + '/' + datafilename, 'w')
-except:
-    print 'cannot open file to write: %s/%s' % (outputdir, datafilename)
-    exit(3)
-    
-rfilename = 'transaction-rate.r'
-try:
-    r = open(outputdir + '/' + rfilename, 'w')
-except:
-    print 'cannot open file to write: %s/%s' % (outputdir, rfilename)
-    exit(4)
+r = robjects.r
 
-# Read in the data and write out the datafile for R.
+sample_length = 60
+
+df = DataFrame.from_csvfile(infilename, header=False)
+
+starttime = df[0][0]
+endtime = df[0][df.nrow - 1]
+iterations = r.ceiling((endtime - starttime) / sample_length)[0]
 
 to = '0'
 tr = '1'
@@ -74,58 +66,6 @@ mf = '8'
 mw = '9'
 dm = '10'
 tc = '11'
-
-response_time = dict()
-for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu, dm, tc]:
-    response_time[key] = list()
-
-start_ctime = None
-ctime1 = None
-ctime2 = None
-count = 1
-
-for line in f:
-    c = line.strip().split(',')
-
-    if len(c) != 4:
-        continue
-
-    if start_ctime is None:
-        start_ctime = long(c[0])
-        ctime1 = long(c[0])
-        ctime2 = long(c[0])
-
-    ctime2 = long(c[0])
-
-    m = match(r'(\d+)', c[1])
-    if m is None:
-        continue
-    key = m.group(1)
-    response_time[key].append(float(c[2]))
-
-    if (ctime2 - ctime1 + 1) >= 60:
-        d.write('%d' % count)
-        for key in [to, tr, tl, tu, ts, cp, bv, sd, mf, mw, dm, tc]:
-            rate = float(len(response_time[key])) / 60.0
-            d.write(' %f' % rate)
-            response_time[key] = list()
-        d.write('\n')
-        ctime1 = ctime2
-        count += 1
-
-# This should take care of the last minute of data since it won't be a full
-# minute.
-d.write('%d' % count)
-for key in [to, tr, tl, tu, ts, cp, bv, sd, mf, mw, dm, tc]:
-    rate = float(len(response_time[key])) / 60.0
-    d.write(' %f' % rate)
-    response_time[key] = list()
-d.write('\n')
-
-f.close()
-d.close()
-
-# Create the R file.
 
 transaction_name = dict()
 transaction_name[to] = 'Trade Order'
@@ -141,47 +81,55 @@ transaction_name[mw] = 'Market Watch'
 transaction_name[dm] = 'Data Maintenance'
 transaction_name[tc] = 'Trade Cleanup'
 
-column = dict()
-column[to] = 2
-column[tr] = 3
-column[tl] = 4
-column[tu] = 5
-column[ts] = 6
-column[cp] = 7
-column[bv] = 8
-column[sd] = 9
-column[mf] = 10
-column[mw] = 11
-column[dm] = 12
-column[tc] = 13
+j = 0
+for key in [to, tr, tl, tu, ts, cp, bv, sd, mf, mw, dm, tc]:
+    i = 0
 
-r.write('d <- read.table("%s", header = FALSE)\n' % datafilename)
+    # Create a list of data then pass it to R.
+    # TODO: Figure out how to append data to an R data frame instead of making
+    # Python lists and then generating the R data frame.  Then determine which
+    # way is better.
+    x = [0]
+    y = [0]
 
-for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu, dm, tc]:
-    r.write('bitmap("t%s-transaction-rate.png",\n' % key)
-    r.write('       type = "png16m",\n')
-    r.write('       units = "px",\n')
-    r.write('       width = 1280,\n')
-    r.write('       height = 800,\n')
-    r.write('       res = 150,\n')
-    r.write('       taa = 4,\n')
-    r.write('       gaa = 4)\n')
-    r.write('       color <- rainbow(12)\n')
-    r.write('xmax = max(d$V1)\n')
-    r.write('ymax = max(d$V%d)\n' % column[key])
-    r.write('plot(d$V1,\n')
-    r.write('     d$V%d,\n' % column[key])
-    r.write('     xlim = c(0,xmax),\n')
-    r.write('     ylim = c(0,ymax),\n')
-    r.write('     type = "b",\n')
-    r.write('     col = color[%s],\n' % (int(key) + 1))
-    r.write('     main = "%s Transaction Rate",\n' % \
-            transaction_name[key])
-    r.write('     xlab = "Elapsed Time (minutes)",\n')
-    r.write('     ylab = "Transactions per Second")\n')
-    r.write('grid(col = "gray")\n')
-    r.write('\n')
+    subset = r.subset(df, df.rx('V2').ro == key)
+    while i < iterations:
+        # Calculate 1 minute intervals starting from the first transaction
+        # response time.
+        istart = starttime + i * sample_length
+        iend = istart + sample_length
 
-r.close()
+        isubset = r.subset(subset, subset.rx('V1').ro >= istart)
+        if isubset.nrow == 0:
+            # Use 0 for the mean if there is no data.
+            y.append(0)
+        else:
+            isubset = r.subset(isubset, isubset.rx('V1').ro < iend)
 
-system('(cd %s && R --slave --no-save < %s)' % (outputdir, rfilename))
+            # Aggregate the mean response time per interval.
+            y.append(r.sum(isubset.rx('V4'))[0] / float(sample_length))
+
+        x.append(i + 1)
+
+        i += 1
+
+    # Set the data frame column names to default V1 and V2 values R would use
+    # for lack of better names.
+    data = {'V1': robjects.IntVector(x), 'V2': robjects.FloatVector(y)}
+    tmp_df = r['data.frame'](**data)
+
+    # Create the plots!
+    r.bitmap('%s/t%s-transaction-rate.png' % (outputdir, key),
+             type='png16m', units='px', width=1280, height=800, res=150, taa=4,
+             gaa=4)
+    xmax = r.max(tmp_df.rx(1))[0]
+    ymax = r.max(tmp_df.rx(2))[0]
+    color = r.rainbow(len(transaction_name))
+    r.plot(tmp_df[0], tmp_df[1], xlim=r.c(0, xmax), ylim=r.c(0, ymax),
+           type='b', col=color[j],
+           main='%s Transaction Rate' % transaction_name[key],
+           xlab='Elapsed Time (minutes)', ylab='Transactions per Second')
+    r.grid(col='gray')
+    r('dev.off()')
+
+    j += 1
