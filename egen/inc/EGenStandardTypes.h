@@ -151,6 +151,8 @@ typedef pthread_t       TThread;
 typedef pthread_attr_t  TThreadAttr;
 typedef pthread_mutex_t TMutex;
 
+#include <string.h>
+
 #endif // (__unix) || (_AIX)
 
 //////////////////////////////////////////////

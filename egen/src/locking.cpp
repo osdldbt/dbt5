@@ -44,7 +44,6 @@
 #include <cstdlib>
 #include <sys/time.h>
 
-using std::strerror;
 using std::exit;
 #endif
 

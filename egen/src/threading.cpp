@@ -44,7 +44,6 @@
 
 #include "../inc/error.h"
 
-using std::strerror;
 using std::exit;
 
 namespace TPCE
