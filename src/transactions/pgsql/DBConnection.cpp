@@ -1158,7 +1158,6 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 
 	PGresult *res = exec(osSQL.str().c_str());
 
-	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
 	i_bid_price = PQfnumber(res, "bid_price");
 	i_cash_transaction_amount = PQfnumber(res, "cash_transaction_amount");
 	i_cash_transaction_dts = PQfnumber(res, "cash_transaction_dts");
@@ -1173,6 +1172,8 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 	i_trade_history_status_id = PQfnumber(res, "trade_history_status_id");
 	i_trade_list = PQfnumber(res, "trade_list");
 	i_trade_price = PQfnumber(res, "trade_price");
+
+	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
 
 	vector<string> vAux;
 	vector<string>::iterator p;
