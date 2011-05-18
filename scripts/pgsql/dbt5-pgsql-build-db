@@ -59,7 +59,7 @@ while getopts "b:c:d:hi:l:p:rs:t:uw:" OPT; do
 	d)
 		DBT5DBNAME=${OPTARG}
 		;;
-	e)
+	i)
 		EGENDIR=${OPTARG}
 		;;
 	h)
