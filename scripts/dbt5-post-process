@@ -16,13 +16,13 @@ import rpy2.robjects as robjects
 from rpy2.robjects.vectors import DataFrame
 
 if len(sys.argv) != 2:
-    print 'usage: %s <mix.log>' % sys.argv[0]
+    print ( 'usage: %s <mix.log>' % sys.argv[0] )
     sys.exit(1)
 
 filename = sys.argv[1]
 
 if not os.path.exists(filename):
-    print 'cannot open file: %s' % filename
+    print ( 'cannot open file: %s' % filename )
     sys.exit(1)
 
 to = '0'
@@ -55,13 +55,13 @@ rampup_start = df[0][0]
 
 start_subset = r.subset(df, df.rx('V2').ro == "START")
 if start_subset.nrow == 0:
-    print 'START market not found in: %s' % filename
+    print ( 'START market not found in: %s' % filename )
     sys.exit(1)
 steadystate_start = start_subset[0][0]
 steadystate_end = df[0][df.nrow - 1]
 steadystate = r.subset(df, df.rx('V1').ro > steadystate_start)
 if steadystate.nrow == 0:
-    print 'No data was collected during the steady state portion of the test.'
+    print ( 'No data was collected during the steady state portion of the test.' )
     sys.exit(1)
 
 # Don't count the Data Maintenance transaction towards the total.
@@ -102,13 +102,13 @@ transaction_name[mf] = 'Market Feed'
 transaction_name[mw] = 'Market Watch'
 transaction_name[dm] = 'Data Maintenance'
 
-print '%39s' % 'Response Time'
-print '%37s' % '(seconds)'
-print '%-17s      %% %s:%5s %% %7s %15s %7s %7s' % (
+print ( '%39s' % 'Response Time' )
+print ( '%37s' % '(seconds)' )
+print ( '%-17s      %% %s:%5s %% %7s %15s %7s %7s' % (
         'Transaction', 'Average', '90th', 'Total', 'Rollbacks     %', 'Warning',
-        'Invalid')
-print '----------------- ------ --------------- ------- --------------- ' \
-        '------- -------'
+        'Invalid') )
+print ( '----------------- ------ --------------- ------- --------------- ' \
+        '------- -------' )
 for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu]:
     try:
         mix_percentage = float(transaction_count[key]) / \
@@ -122,7 +122,7 @@ for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu]:
     except:
         rollback_percentage = 0
 
-    print '%-17s %6.2f %7.3f:%7.3f %7d %7d %6.2f%% %7d %7d' % (
+    print ( '%-17s %6.2f %7.3f:%7.3f %7d %7d %6.2f%% %7d %7d' % (
             transaction_name[key],
             mix_percentage,
             average_rt[key],
@@ -131,14 +131,14 @@ for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu]:
             rollback_count[key],
             rollback_percentage,
             warning_count[key],
-            invalid_count[key])
+            invalid_count[key]) )
 try:
     rollback_percentage = float(rollback_count[dm]) / \
             float(transaction_count[dm]) * 100.0
 except:
     rollback_percentage = 0
 
-print '%-17s %6s %7.3f:%7.3f %7d %7d %6.2f%% %7d %7d' % (
+print ( '%-17s %6s %7.3f:%7.3f %7d %7d %6.2f%% %7d %7d' % (
         transaction_name[dm],
         'N/A',
         average_rt[dm],
@@ -147,13 +147,13 @@ print '%-17s %6s %7.3f:%7.3f %7d %7d %6.2f%% %7d %7d' % (
         rollback_count[dm],
         rollback_percentage,
         warning_count[dm],
-        invalid_count[dm])
-print '----------------- ------ --------------- ------- --------------- ' \
-        '------- -------'
+        invalid_count[dm]) )
+print ( '----------------- ------ --------------- ------- --------------- ' \
+        '------- -------' )
 
 duration = float(steadystate_end - steadystate_start)
-print '%0.2f trade-result transactions per second (trtps)' % \
-        (float(transaction_count[tr]) / duration)
-print '%0.1f minute(s) to ramp up' % \
-        (float(steadystate_start - rampup_start) / 60.0)
-print '%0.1f minute steady state duration' % (duration / 60.0)
+print ( '%0.2f trade-result transactions per second (trtps)' % \
+        (float(transaction_count[tr]) / duration) )
+print ( '%0.1f minute(s) to ramp up' % \
+        (float(steadystate_start - rampup_start) / 60.0) )
+print ( '%0.1f minute steady state duration' % (duration / 60.0) )

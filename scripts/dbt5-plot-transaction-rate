@@ -15,13 +15,13 @@ import rpy2.robjects as robjects
 from rpy2.robjects.vectors import DataFrame
 
 if len(sys.argv) != 3:
-    print 'Create a plot the rate of transactions.'
-    print 'usage: %s <mix.log> <output directory>' % sys.argv[0]
-    print
-    print '    <mix.log> - full path to the mix.log file'
-    print '    <output directory> - location to write output files'
-    print
-    print 'Will attempt to create <output directory> if it does not exist.'
+    print ( 'Create a plot the rate of transactions.' )
+    print ( 'usage: %s <mix.log> <output directory>' % sys.argv[0] )
+    print ( '' )
+    print ( '    <mix.log> - full path to the mix.log file' )
+    print ( '    <output directory> - location to write output files' )
+    print ( '' )
+    print ( 'Will attempt to create <output directory> if it does not exist.' )
     sys.exit(1)
 
 infilename = sys.argv[1]
@@ -29,7 +29,7 @@ outputdir = sys.argv[2]
 
 # Make sure the input file exists.
 if not exists(infilename):
-    print 'cannot open file: %s' % infilename
+    print ( 'cannot open file: %s' % infilename )
     sys.exit(1)
 
 # Make sure we can open the files to write to.
@@ -39,7 +39,7 @@ if not exists(outputdir):
         #makedirs(outputdir)
         system('mkdir -p %s' % outputdir)
     except:
-        print 'cannot create directory "%s"' % outputdir
+        print ( 'cannot create directory "%s"' % outputdir )
         sys.exit(2)
 
 outputdir = realpath(outputdir)

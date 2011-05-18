@@ -81,12 +81,12 @@ transaction_name[mw] = 'Market Watch'
 transaction_name[dm] = 'Data Maintenance'
 transaction_name[tc] = 'Trade Cleanup'
 
-print 'Generating transaction distribution charts...'
+print ( 'Generating transaction distribution charts...' )
 for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu, dm, tc]:
     system('dbt-plot-transaction-distribution "%s" %s %s %s/txn sec 12 %d' % \
             (transaction_name[key], key, mixfile, outdir, int(key) + 1))
 
-print 'Generating mpstat charts...'
+print ( 'Generating mpstat charts...' )
 mpstatfile = '%s/driver/mpstat.out' % indir
 if isfile(mpstatfile):
     system('dbt-plot-mpstat %s %s/driver/mpstat' % (mpstatfile, outdir))
@@ -95,7 +95,7 @@ mpstatfile = '%s/db/mpstat.out' % indir
 if isfile(mpstatfile):
     system('dbt-plot-mpstat %s %s/db/mpstat' % (mpstatfile, outdir))
 
-print 'Generating iostat charts...'
+print ( 'Generating iostat charts...' )
 iostatfile = '%s/driver/iostatx.out' % indir
 if isfile(mpstatfile):
     system('dbt-plot-iostat %s %s/driver/iostat %s' % \
@@ -106,7 +106,7 @@ if isfile(iostatfile):
     system('dbt-plot-iostat %s %s/db/iostat %s' % \
             (iostatfile, outdir, device_arg))
 
-print 'Generating vmstat charts...'
+print ( 'Generating vmstat charts...' )
 vmstatfile = '%s/driver/vmstat.out' % indir
 if isfile(vmstatfile):
     system('dbt-plot-vmstat %s %s/driver/vmstat' % (vmstatfile, outdir))
@@ -115,10 +115,10 @@ vmstatfile = '%s/db/vmstat.out' % indir
 if isfile(vmstatfile):
     system('dbt-plot-vmstat %s %s/db/vmstat' % (vmstatfile, outdir))
 
-print 'Generating transaction rate charts...'
+print ( 'Generating transaction rate charts...' )
 system('dbt5-plot-transaction-rate %s %s/txn' % (mixfile, outdir))
 
-print 'Generating database statistics charts...'
+print ( 'Generating database statistics charts...' )
 if dbms == 'pgsql':
     system('dbt-pgsql-plot-database-stats ' \
             '%s/db/pg_stat_databases.out %s %s/db' % (indir, dbname, outdir))
@@ -129,8 +129,8 @@ if dbms == 'pgsql':
     try:
         f = open('%s/db/table-list.txt' % indir)
     except:
-        print 'Cannot open table list to generate database table stats, ' \
-                'continuing...'
+        print ( 'Cannot open table list to generate database table stats, ' \
+                'continuing...' )
 
     if f is not None:
         for table in f:
@@ -142,8 +142,8 @@ if dbms == 'pgsql':
     try:
         f = open('%s/db/index-list.txt' % indir)
     except:
-        print 'Cannot open index list to generate database index stats, ' \
-                'continuing...'
+        print ( 'Cannot open index list to generate database index stats, ' \
+                'continuing...' )
 
     if f is not None:
         for index in f:
@@ -155,7 +155,7 @@ reportfile = '%s/index.html' % outdir
 try:
     h = open(reportfile, 'w')
 except:
-    print 'Cannot open file: %s' % reportfile
+    print ( 'Cannot open file: %s' % reportfile )
     exit(3)
 
 h.write('<html>\n')
