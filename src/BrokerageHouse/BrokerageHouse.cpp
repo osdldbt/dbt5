@@ -27,162 +27,164 @@
 
 void *workerThread(void *data)
 {
-	PThreadParameter pThrParam = reinterpret_cast<PThreadParameter>(data);
+	try {
+		PThreadParameter pThrParam = reinterpret_cast<PThreadParameter>(data);
 
-	CSocket sockDrv;
-	sockDrv.setSocketFd(pThrParam->iSockfd); // client socket
+		CSocket sockDrv;
+		sockDrv.setSocketFd(pThrParam->iSockfd); // client socket
 
-	PMsgDriverBrokerage pMessage = new TMsgDriverBrokerage;
-	memset(pMessage, 0, sizeof(TMsgDriverBrokerage)); // zero the structure
+		PMsgDriverBrokerage pMessage = new TMsgDriverBrokerage;
+		memset(pMessage, 0, sizeof(TMsgDriverBrokerage)); // zero the structure
 
-	TMsgBrokerageDriver Reply; // return message
-	INT32 iRet = 0; // transaction return code
-	CDBConnection *pDBConnection = NULL;
+		TMsgBrokerageDriver Reply; // return message
+		INT32 iRet = 0; // transaction return code
+		CDBConnection *pDBConnection = NULL;
 
-	// new database connection
-	pDBConnection = new CDBConnection(
-			pThrParam->pBrokerageHouse->m_szHost,
-			pThrParam->pBrokerageHouse->m_szDBName,
-			pThrParam->pBrokerageHouse->m_szDBPort);
-	pDBConnection->setBrokerageHouse(pThrParam->pBrokerageHouse);
-	CSendToMarket sendToMarket = CSendToMarket(
-			&(pThrParam->pBrokerageHouse->m_fLog));
-	CMarketFeedDB marketFeedDB(pDBConnection);
-	CMarketFeed marketFeed = CMarketFeed(&marketFeedDB, &sendToMarket);
-	CTradeOrderDB tradeOrderDB(pDBConnection);
-	CTradeOrder tradeOrder = CTradeOrder(&tradeOrderDB, &sendToMarket);
+		// new database connection
+		pDBConnection = new CDBConnection(
+				pThrParam->pBrokerageHouse->m_szHost,
+				pThrParam->pBrokerageHouse->m_szDBName,
+				pThrParam->pBrokerageHouse->m_szDBPort);
+		pDBConnection->setBrokerageHouse(pThrParam->pBrokerageHouse);
+		CSendToMarket sendToMarket = CSendToMarket(
+				&(pThrParam->pBrokerageHouse->m_fLog));
+		CMarketFeedDB marketFeedDB(pDBConnection);
+		CMarketFeed marketFeed = CMarketFeed(&marketFeedDB, &sendToMarket);
+		CTradeOrderDB tradeOrderDB(pDBConnection);
+		CTradeOrder tradeOrder = CTradeOrder(&tradeOrderDB, &sendToMarket);
 
-	// Initialize all classes that will be used to execute transactions.
-	CBrokerVolumeDB brokerVolumeDB(pDBConnection);
-	CBrokerVolume brokerVolume = CBrokerVolume(&brokerVolumeDB);
-	CCustomerPositionDB customerPositionDB(pDBConnection);
-	CCustomerPosition customerPosition = CCustomerPosition(&customerPositionDB);
-	CMarketWatchDB marketWatchDB(pDBConnection);
-	CMarketWatch marketWatch = CMarketWatch(&marketWatchDB);
-	CSecurityDetailDB securityDetailDB = CSecurityDetailDB(pDBConnection);
-	CSecurityDetail securityDetail = CSecurityDetail(&securityDetailDB);
-	CTradeLookupDB tradeLookupDB(pDBConnection);
-	CTradeLookup tradeLookup = CTradeLookup(&tradeLookupDB);
-	CTradeStatusDB tradeStatusDB(pDBConnection);
-	CTradeStatus tradeStatus = CTradeStatus(&tradeStatusDB);
-	CTradeUpdateDB tradeUpdateDB(pDBConnection);
-	CTradeUpdate tradeUpdate = CTradeUpdate(&tradeUpdateDB);
-	CDataMaintenanceDB dataMaintenanceDB(pDBConnection);
-	CDataMaintenance dataMaintenance = CDataMaintenance(&dataMaintenanceDB);
-	CTradeCleanupDB tradeCleanupDB(pDBConnection);
-	CTradeCleanup tradeCleanup = CTradeCleanup(&tradeCleanupDB);
-	CTradeResultDB tradeResultDB(pDBConnection);
-	CTradeResult tradeResult = CTradeResult(&tradeResultDB);
+		// Initialize all classes that will be used to execute transactions.
+		CBrokerVolumeDB brokerVolumeDB(pDBConnection);
+		CBrokerVolume brokerVolume = CBrokerVolume(&brokerVolumeDB);
+		CCustomerPositionDB customerPositionDB(pDBConnection);
+		CCustomerPosition customerPosition = CCustomerPosition(&customerPositionDB);
+		CMarketWatchDB marketWatchDB(pDBConnection);
+		CMarketWatch marketWatch = CMarketWatch(&marketWatchDB);
+		CSecurityDetailDB securityDetailDB = CSecurityDetailDB(pDBConnection);
+		CSecurityDetail securityDetail = CSecurityDetail(&securityDetailDB);
+		CTradeLookupDB tradeLookupDB(pDBConnection);
+		CTradeLookup tradeLookup = CTradeLookup(&tradeLookupDB);
+		CTradeStatusDB tradeStatusDB(pDBConnection);
+		CTradeStatus tradeStatus = CTradeStatus(&tradeStatusDB);
+		CTradeUpdateDB tradeUpdateDB(pDBConnection);
+		CTradeUpdate tradeUpdate = CTradeUpdate(&tradeUpdateDB);
+		CDataMaintenanceDB dataMaintenanceDB(pDBConnection);
+		CDataMaintenance dataMaintenance = CDataMaintenance(&dataMaintenanceDB);
+		CTradeCleanupDB tradeCleanupDB(pDBConnection);
+		CTradeCleanup tradeCleanup = CTradeCleanup(&tradeCleanupDB);
+		CTradeResultDB tradeResultDB(pDBConnection);
+		CTradeResult tradeResult = CTradeResult(&tradeResultDB);
 
-	do {
-		try {
-			sockDrv.dbt5Receive(reinterpret_cast<void *>(pMessage),
-					sizeof(TMsgDriverBrokerage));
-		} catch(CSocketErr *pErr) {
-			sockDrv.dbt5Disconnect();
+		do {
+			try {
+				sockDrv.dbt5Receive(reinterpret_cast<void *>(pMessage),
+						sizeof(TMsgDriverBrokerage));
+			} catch(CSocketErr *pErr) {
+				sockDrv.dbt5Disconnect();
 
-			ostringstream osErr;
-			osErr << "Error on Receive: " << pErr->ErrorText() <<
-					" at BrokerageHouse::workerThread" << endl;
-			pThrParam->pBrokerageHouse->logErrorMessage(osErr.str());
-			delete pErr;
+				ostringstream osErr;
+				osErr << "Error on Receive: " << pErr->ErrorText() <<
+						" at BrokerageHouse::workerThread" << endl;
+				pThrParam->pBrokerageHouse->logErrorMessage(osErr.str());
+				delete pErr;
 
-			// The socket has been closed, break and let this thread die.
-			break;
-		}
-
-		try {
-			//  Parse Txn type
-			switch (pMessage->TxnType) {
-			case BROKER_VOLUME:
-				iRet = pThrParam->pBrokerageHouse->RunBrokerVolume(
-						&(pMessage->TxnInput.BrokerVolumeTxnInput),
-						brokerVolume);
+				// The socket has been closed, break and let this thread die.
 				break;
-			case CUSTOMER_POSITION:
-				iRet = pThrParam->pBrokerageHouse->RunCustomerPosition(
-						&(pMessage->TxnInput.CustomerPositionTxnInput),
-						customerPosition);
-				break;
-			case MARKET_FEED:
-				iRet = pThrParam->pBrokerageHouse->RunMarketFeed(
-						&(pMessage->TxnInput.MarketFeedTxnInput), marketFeed);
-				break;
-			case MARKET_WATCH:
-				iRet = pThrParam->pBrokerageHouse->RunMarketWatch(
-						&(pMessage->TxnInput.MarketWatchTxnInput), marketWatch);
-				break;
-			case SECURITY_DETAIL:
-				iRet = pThrParam->pBrokerageHouse->RunSecurityDetail(
-						&(pMessage->TxnInput.SecurityDetailTxnInput),
-						securityDetail);
-				break;
-			case TRADE_LOOKUP:
-				iRet = pThrParam->pBrokerageHouse->RunTradeLookup(
-						&(pMessage->TxnInput.TradeLookupTxnInput), tradeLookup);
-				break;
-			case TRADE_ORDER:
-				iRet = pThrParam->pBrokerageHouse->RunTradeOrder(
-						&(pMessage->TxnInput.TradeOrderTxnInput), tradeOrder);
-				break;
-			case TRADE_RESULT:
-				iRet = pThrParam->pBrokerageHouse->RunTradeResult(
-						&(pMessage->TxnInput.TradeResultTxnInput), tradeResult);
-				break;
-			case TRADE_STATUS:
-				iRet = pThrParam->pBrokerageHouse->RunTradeStatus(
-						&(pMessage->TxnInput.TradeStatusTxnInput),
-						tradeStatus);
-				break;
-			case TRADE_UPDATE:
-				iRet = pThrParam->pBrokerageHouse->RunTradeUpdate(
-						&(pMessage->TxnInput.TradeUpdateTxnInput), tradeUpdate);
-				break;
-			case DATA_MAINTENANCE:
-				iRet = pThrParam->pBrokerageHouse->RunDataMaintenance(
-						&(pMessage->TxnInput.DataMaintenanceTxnInput),
-						dataMaintenance);
-				break;
-			case TRADE_CLEANUP:
-				iRet = pThrParam->pBrokerageHouse->RunTradeCleanup(
-						&(pMessage->TxnInput.TradeCleanupTxnInput),
-						tradeCleanup);
-				break;
-			default:
-				cout << "wrong txn type" << endl;
-				iRet = ERR_TYPE_WRONGTXN;
 			}
-		} catch (const char *str) {
-			ostringstream msg;
-			msg << time(NULL) << " " << (long long) pthread_self() << " " <<
-					szTransactionName[pMessage->TxnType] << endl;
-			pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
-			iRet = CBaseTxnErr::EXPECTED_ROLLBACK;
-		}
 
-		// send status to driver
-		Reply.iStatus = iRet;
-		try {
-			sockDrv.dbt5Send(reinterpret_cast<void *>(&Reply), sizeof(Reply));
-		} catch(CSocketErr *pErr) {
-			sockDrv.dbt5Disconnect();
+			try {
+				//  Parse Txn type
+				switch (pMessage->TxnType) {
+				case BROKER_VOLUME:
+					iRet = pThrParam->pBrokerageHouse->RunBrokerVolume(
+							&(pMessage->TxnInput.BrokerVolumeTxnInput),
+							brokerVolume);
+					break;
+				case CUSTOMER_POSITION:
+					iRet = pThrParam->pBrokerageHouse->RunCustomerPosition(
+							&(pMessage->TxnInput.CustomerPositionTxnInput),
+							customerPosition);
+					break;
+				case MARKET_FEED:
+					iRet = pThrParam->pBrokerageHouse->RunMarketFeed(
+							&(pMessage->TxnInput.MarketFeedTxnInput), marketFeed);
+					break;
+				case MARKET_WATCH:
+					iRet = pThrParam->pBrokerageHouse->RunMarketWatch(
+							&(pMessage->TxnInput.MarketWatchTxnInput), marketWatch);
+					break;
+				case SECURITY_DETAIL:
+					iRet = pThrParam->pBrokerageHouse->RunSecurityDetail(
+							&(pMessage->TxnInput.SecurityDetailTxnInput),
+							securityDetail);
+					break;
+				case TRADE_LOOKUP:
+					iRet = pThrParam->pBrokerageHouse->RunTradeLookup(
+							&(pMessage->TxnInput.TradeLookupTxnInput), tradeLookup);
+					break;
+				case TRADE_ORDER:
+					iRet = pThrParam->pBrokerageHouse->RunTradeOrder(
+							&(pMessage->TxnInput.TradeOrderTxnInput), tradeOrder);
+					break;
+				case TRADE_RESULT:
+					iRet = pThrParam->pBrokerageHouse->RunTradeResult(
+							&(pMessage->TxnInput.TradeResultTxnInput), tradeResult);
+					break;
+				case TRADE_STATUS:
+					iRet = pThrParam->pBrokerageHouse->RunTradeStatus(
+							&(pMessage->TxnInput.TradeStatusTxnInput),
+							tradeStatus);
+					break;
+				case TRADE_UPDATE:
+					iRet = pThrParam->pBrokerageHouse->RunTradeUpdate(
+							&(pMessage->TxnInput.TradeUpdateTxnInput), tradeUpdate);
+					break;
+				case DATA_MAINTENANCE:
+					iRet = pThrParam->pBrokerageHouse->RunDataMaintenance(
+							&(pMessage->TxnInput.DataMaintenanceTxnInput),
+							dataMaintenance);
+					break;
+				case TRADE_CLEANUP:
+					iRet = pThrParam->pBrokerageHouse->RunTradeCleanup(
+							&(pMessage->TxnInput.TradeCleanupTxnInput),
+							tradeCleanup);
+					break;
+				default:
+					cout << "wrong txn type" << endl;
+					iRet = ERR_TYPE_WRONGTXN;
+				}
+			} catch (const char *str) {
+				ostringstream msg;
+				msg << time(NULL) << " " << (long long) pthread_self() << " " <<
+						szTransactionName[pMessage->TxnType] << endl;
+				pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
+				iRet = CBaseTxnErr::EXPECTED_ROLLBACK;
+			}
 
-			ostringstream osErr;
-			osErr << "Error on Send: " << pErr->ErrorText() <<
-					" at BrokerageHouse::workerThread" << endl;
-			pThrParam->pBrokerageHouse->logErrorMessage(osErr.str());
-			delete pErr;
+			// send status to driver
+			Reply.iStatus = iRet;
+			try {
+				sockDrv.dbt5Send(reinterpret_cast<void *>(&Reply), sizeof(Reply));
+			} catch(CSocketErr *pErr) {
+				sockDrv.dbt5Disconnect();
 
-			// The socket has been closed, break and let this thread die.
-			break;
-		}
-	} while (true);
+				ostringstream osErr;
+				osErr << "Error on Send: " << pErr->ErrorText() <<
+						" at BrokerageHouse::workerThread" << endl;
+				pThrParam->pBrokerageHouse->logErrorMessage(osErr.str());
+				delete pErr;
 
-	delete pDBConnection; // close connection with the database
-	close(pThrParam->iSockfd); // close socket connection with the driver
-	delete pThrParam;
-	delete pMessage;
+				// The socket has been closed, break and let this thread die.
+				break;
+			}
+		} while (true);
 
+		delete pDBConnection; // close connection with the database
+		close(pThrParam->iSockfd); // close socket connection with the driver
+		delete pThrParam;
+		delete pMessage;
+	} catch (CSocketErr *err) {
+	}
 	return NULL;
 }
 

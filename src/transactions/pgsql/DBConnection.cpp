@@ -16,7 +16,7 @@
 
 // These are inlined function that should only be used here.
 
-bool inline check_count(int should, int is, char *file, int line) {
+bool inline check_count(int should, int is, const char *file, int line) {
 	if (should != is) {
 		cout << "*** array length (" << is <<
 				") does not match expections (" << should << "): " << file <<

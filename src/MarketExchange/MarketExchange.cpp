@@ -123,7 +123,6 @@ CMarketExchange::CMarketExchange(char *szFileLoc,
 CMarketExchange::~CMarketExchange()
 {
 	delete m_pCMEE;
-	delete m_pSecurities;
 	delete m_pCMEESUT;
 
 	m_fMix.close();
