@@ -57,7 +57,7 @@ public:
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
 		se_cash_due_date = next_record->SE_CASH_DUE_DATE;
-		fprintf(p, "%lld%c%s%c%s%c%.2f\n",
+		fprintf(p, "%" PRId64 "%c%s%c%s%c%.2f\n",
 				next_record->SE_T_ID, delimiter,
 				next_record->SE_CASH_TYPE, delimiter,
 				se_cash_due_date.ToStr(iDateTimeFmt), delimiter,

@@ -54,7 +54,7 @@ public:
 
 	// copy to the bound location inside this class first
 	virtual void WriteNextRecord(PT next_record) {
-		fprintf(p, "%s%c%lld\n",
+		fprintf(p, "%s%c%" PRId64 "\n",
 				next_record->CX_TX_ID, delimiter,
 				next_record->CX_C_ID);
 		// FIXME: Have blind faith that this row of data was built correctly.

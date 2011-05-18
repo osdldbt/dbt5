@@ -59,7 +59,7 @@ public:
 		fi_qtr_start_date = next_record->FI_QTR_START_DATE;
 
 		fprintf(p,
-				"%lld%c%d%c%d%c%s%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%.0f%c%.0f\n",
+				"%" PRId64 "%c%d%c%d%c%s%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%ld%c%ld\n",
 				next_record->FI_CO_ID, delimiter,
 				next_record->FI_YEAR, delimiter,
 				next_record->FI_QTR, delimiter,

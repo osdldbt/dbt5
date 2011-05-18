@@ -58,7 +58,7 @@ public:
 	virtual void WriteNextRecord(PT next_record) {
 		dm_date = next_record->DM_DATE;
 
-		fprintf(p, "%s%c%s%c%.2f%c%.2f%c%.2f%c%lld\n",
+		fprintf(p, "%s%c%s%c%.2f%c%.2f%c%.2f%c%" PRId64 "\n",
 				dm_date.ToStr(iDateTimeFmt), delimiter,
 				next_record->DM_S_SYMB, delimiter,
 				next_record->DM_CLOSE, delimiter,

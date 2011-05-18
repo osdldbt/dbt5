@@ -58,7 +58,7 @@ public:
 	virtual void WriteNextRecord(PT next_record) {
 		co_open_date = next_record->CO_OPEN_DATE;
 
-		fprintf(p, "%lld%c%s%c%s%c%s%c%s%c%s%c%lld%c%s%c%s\n",
+		fprintf(p, "%" PRId64 "%c%s%c%s%c%s%c%s%c%s%c%" PRId64 "%c%s%c%s\n",
 				next_record->CO_ID, delimiter,
 				next_record->CO_ST_ID, delimiter,
 				next_record->CO_NAME, delimiter,

@@ -59,7 +59,7 @@ public:
 		c_dob = next_record->C_DOB;
 
 		fprintf(p,
-				"%lld%c%s%c%s%c%s%c%s%c%s%c%c%c%d%c%s%c%lld%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s\n",
+				"%" PRId64 "%c%s%c%s%c%s%c%s%c%s%c%c%c%d%c%s%c%" PRId64 "%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s%c%s\n",
 				next_record->C_ID, delimiter,
 				next_record->C_TAX_ID, delimiter,
 				next_record->C_ST_ID, delimiter,
