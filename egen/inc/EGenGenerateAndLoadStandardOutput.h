@@ -65,7 +65,7 @@ public:
     */
     void OutputStart(string szMsg)
     {
-        printf(szMsg.c_str());
+        printf("%s", szMsg.c_str());
         fflush(stdout); // in case there is no newline character in szMsg
     }
 
@@ -80,7 +80,7 @@ public:
     */
     void OutputProgress(string szMsg)
     {
-        printf(szMsg.c_str());
+        printf("%s", szMsg.c_str());
         fflush(stdout); // in case there is no newline character in szMsg
     }
 
@@ -95,7 +95,7 @@ public:
     */
     void OutputComplete(string szMsg)
     {
-        printf(szMsg.c_str());
+        printf("%s", szMsg.c_str());
         fflush(stdout); // in case there is no newline character in szMsg
     }
 

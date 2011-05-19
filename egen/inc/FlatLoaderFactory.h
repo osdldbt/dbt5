@@ -52,7 +52,7 @@ class CFlatLoaderFactory : public CBaseLoaderFactory
     char                    m_szFullFileName[iMaxPath];
     FlatFileOutputModes     m_eOutputMode;  // overwrite/append
 
-    void SetFileName(char *szFileName)
+    void SetFileName(const char *szFileName)
     {
         snprintf(m_szFullFileName, sizeof(m_szFullFileName), "%s%s", m_szOutDir, szFileName);
     }
