@@ -115,7 +115,7 @@ void CPGSQLLoader<T>::Connect()
 {
 	// Open a pipe to psql.
 	p = popen(m_szConnectStr, "w");
-	if (pipe == NULL) {
+	if (p == NULL) {
 		cout << "error using psql" << endl;
 		exit(1);
 	}
