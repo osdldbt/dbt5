@@ -65,7 +65,7 @@ bool CBaseInterface::biDisconnect()
 // Connect to BrokerageHouse, send request, receive reply, and calculate RT
 bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 {
-	int length;
+	int length = 0;
 	TMsgBrokerageDriver Reply; // reply message from BrokerageHouse
 	memset(&Reply, 0, sizeof(Reply));
 
