@@ -51,7 +51,7 @@ private:
 	CDateTime h_dts;
 
 public:
-	CPGSQLHoldingLoad(char *szConnectStr, char *szTable = "holding")
+	CPGSQLHoldingLoad(const char *szConnectStr, const char *szTable = "holding")
 			: CPGSQLLoader<HOLDING_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

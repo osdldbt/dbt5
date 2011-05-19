@@ -51,7 +51,8 @@ private:
 	CDateTime ni_dts;
 
 public:
-	CPGSQLNewsItemLoad(char *szConnectStr, char *szTable = "news_item")
+	CPGSQLNewsItemLoad(const char *szConnectStr,
+			const char *szTable = "news_item")
 			: CPGSQLLoader<NEWS_ITEM_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

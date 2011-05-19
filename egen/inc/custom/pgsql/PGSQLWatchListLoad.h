@@ -48,7 +48,8 @@ namespace TPCE
 class CPGSQLWatchListLoad : public CPGSQLLoader<WATCH_LIST_ROW>
 {
 public:
-	CPGSQLWatchListLoad(char *szConnectStr, char *szTable = "watch_list")
+	CPGSQLWatchListLoad(const char *szConnectStr,
+			const char *szTable = "watch_list")
 			: CPGSQLLoader<WATCH_LIST_ROW>(szConnectStr, szTable) { };
 
 	//copy to the bound location inside this class first

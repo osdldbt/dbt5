@@ -51,7 +51,8 @@ private:
 	CDateTime dm_date;
 
 public:
-	CPGSQLDailyMarketLoad(char *szConnectStr, char *szTable = "daily_market")
+	CPGSQLDailyMarketLoad(const char *szConnectStr,
+			const char *szTable = "daily_market")
 			: CPGSQLLoader<DAILY_MARKET_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

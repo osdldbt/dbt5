@@ -48,7 +48,8 @@ namespace TPCE
 class CPGSQLNewsXRefLoad : public CPGSQLLoader<NEWS_XREF_ROW>
 {
 public:
-	CPGSQLNewsXRefLoad(char *szConnectStr, char *szTable = "news_xref")
+	CPGSQLNewsXRefLoad(const char *szConnectStr,
+			const char *szTable = "news_xref")
 			: CPGSQLLoader<NEWS_XREF_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

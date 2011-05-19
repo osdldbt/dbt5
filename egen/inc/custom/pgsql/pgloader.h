@@ -62,7 +62,7 @@ protected:
 public:
 	typedef const T *PT; // pointer to the table row
 
-	CPGSQLLoader(char *szConnectStr, char *szTable);
+	CPGSQLLoader(const char *szConnectStr, const char *szTable);
 	virtual ~CPGSQLLoader(void);
 
 	// resets to clean state; needed after FinishLoad to continue loading
@@ -82,7 +82,7 @@ public:
 // The constructor.
 //
 template <typename T>
-CPGSQLLoader<T>::CPGSQLLoader(char *szConnectStr, char *szTable)
+CPGSQLLoader<T>::CPGSQLLoader(const char *szConnectStr, const char *szTable)
 {
 	// FIXME: This may truncate if the szConnectStr is actually close to
 	// iConnectStrLen.

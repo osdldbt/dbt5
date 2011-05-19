@@ -48,7 +48,7 @@ namespace TPCE
 class CPGSQLSectorLoad : public CPGSQLLoader<SECTOR_ROW>
 {
 public:
-	CPGSQLSectorLoad(char *szConnectStr, char *szTable = "sector")
+	CPGSQLSectorLoad(const char *szConnectStr, const char *szTable = "sector")
 			: CPGSQLLoader<SECTOR_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

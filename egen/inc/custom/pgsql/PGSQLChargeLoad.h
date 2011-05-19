@@ -48,7 +48,7 @@ namespace TPCE
 class CPGSQLChargeLoad : public CPGSQLLoader<CHARGE_ROW>
 {
 public:
-	CPGSQLChargeLoad(char *szConnectStr, char *szTable = "charge")
+	CPGSQLChargeLoad(const char *szConnectStr, const char *szTable = "charge")
 			: CPGSQLLoader<CHARGE_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

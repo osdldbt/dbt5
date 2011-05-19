@@ -51,7 +51,7 @@ private:
 	CDateTime co_open_date;
 
 public:
-	CPGSQLCompanyLoad(char *szConnectStr, char *szTable = "company")
+	CPGSQLCompanyLoad(const char *szConnectStr, const char *szTable = "company")
 			: CPGSQLLoader<COMPANY_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

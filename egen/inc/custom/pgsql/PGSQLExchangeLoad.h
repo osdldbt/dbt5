@@ -48,7 +48,8 @@ namespace TPCE
 class CPGSQLExchangeLoad : public CPGSQLLoader<EXCHANGE_ROW>
 {
 public:
-	CPGSQLExchangeLoad(char *szConnectStr, char *szTable = "exchange")
+	CPGSQLExchangeLoad(const char *szConnectStr,
+			const char *szTable = "exchange")
 			: CPGSQLLoader<EXCHANGE_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

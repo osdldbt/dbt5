@@ -51,7 +51,8 @@ private:
 	CDateTime se_cash_due_date;
 
 public:
-	CPGSQLSettlementLoad(char *szConnectStr, char *szTable = "settlement")
+	CPGSQLSettlementLoad(const char *szConnectStr,
+			const char *szTable = "settlement")
 			: CPGSQLLoader<SETTLEMENT_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

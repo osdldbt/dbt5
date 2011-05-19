@@ -48,7 +48,7 @@ namespace TPCE
 class CPGSQLBrokerLoad : public CPGSQLLoader<BROKER_ROW>
 {
 public:
-	CPGSQLBrokerLoad(char *szConnectStr, char *szTable = "broker")
+	CPGSQLBrokerLoad(char *szConnectStr, const char *szTable = "broker")
 			: CPGSQLLoader<BROKER_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

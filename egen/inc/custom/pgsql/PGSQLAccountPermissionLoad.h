@@ -48,8 +48,8 @@ namespace TPCE
 class CPGSQLAccountPermissionLoad : public CPGSQLLoader<ACCOUNT_PERMISSION_ROW>
 {
 public:
-	CPGSQLAccountPermissionLoad(char *szConnectStr,
-			char *szTable = "account_permission")
+	CPGSQLAccountPermissionLoad(const char *szConnectStr,
+			const char *szTable = "account_permission")
 			: CPGSQLLoader<ACCOUNT_PERMISSION_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

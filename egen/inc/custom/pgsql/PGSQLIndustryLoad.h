@@ -48,7 +48,8 @@ namespace TPCE
 class CPGSQLIndustryLoad : public CPGSQLLoader<INDUSTRY_ROW>
 {
 public:
-	CPGSQLIndustryLoad(char *szConnectStr, char *szTable = "industry")
+	CPGSQLIndustryLoad(const char *szConnectStr,
+			const char *szTable = "industry")
 			: CPGSQLLoader<INDUSTRY_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

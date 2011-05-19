@@ -51,7 +51,8 @@ private:
 	CDateTime fi_qtr_start_date;
 
 public:
-	CPGSQLFinancialLoad(char *szConnectStr, char *szTable = "financial")
+	CPGSQLFinancialLoad(const char *szConnectStr,
+			const char *szTable = "financial")
 			: CPGSQLLoader<FINANCIAL_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

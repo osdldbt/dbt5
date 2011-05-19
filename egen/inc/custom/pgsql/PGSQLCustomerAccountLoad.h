@@ -48,8 +48,8 @@ namespace TPCE
 class CPGSQLCustomerAccountLoad : public CPGSQLLoader<CUSTOMER_ACCOUNT_ROW>
 {
 public:
-	CPGSQLCustomerAccountLoad(char *szConnectStr,
-			char *szTable = "customer_account")
+	CPGSQLCustomerAccountLoad(const char *szConnectStr,
+			const char *szTable = "customer_account")
 			: CPGSQLLoader<CUSTOMER_ACCOUNT_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

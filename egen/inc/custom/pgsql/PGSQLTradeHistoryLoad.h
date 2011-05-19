@@ -51,7 +51,8 @@ private:
 	CDateTime th_dts;
 
 public:
-	CPGSQLTradeHistoryLoad(char *szConnectStr, char *szTable = "trade_history")
+	CPGSQLTradeHistoryLoad(const char *szConnectStr,
+			const char *szTable = "trade_history")
 			: CPGSQLLoader<TRADE_HISTORY_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

@@ -48,7 +48,7 @@ namespace TPCE
 class CPGSQLTaxrateLoad : public CPGSQLLoader<TAXRATE_ROW>
 {
 public:
-	CPGSQLTaxrateLoad(char *szConnectStr, char *szTable = "taxrate")
+	CPGSQLTaxrateLoad(const char *szConnectStr, const char *szTable = "taxrate")
 			: CPGSQLLoader<TAXRATE_ROW>(szConnectStr, szTable) { };
 
 	//copy to the bound location inside this class first

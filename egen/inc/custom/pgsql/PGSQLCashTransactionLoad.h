@@ -50,8 +50,8 @@ class CPGSQLCashTransactionLoad : public CPGSQLLoader<CASH_TRANSACTION_ROW>
 private:
 	CDateTime ct_dts;
 public:
-	CPGSQLCashTransactionLoad(char *szConnectStr,
-			char *szTable = "cash_transaction")
+	CPGSQLCashTransactionLoad(const char *szConnectStr,
+			const char *szTable = "cash_transaction")
 			: CPGSQLLoader<CASH_TRANSACTION_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

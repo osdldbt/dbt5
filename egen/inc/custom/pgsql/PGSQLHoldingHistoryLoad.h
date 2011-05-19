@@ -48,8 +48,8 @@ namespace TPCE
 class CPGSQLHoldingHistoryLoad : public CPGSQLLoader<HOLDING_HISTORY_ROW>
 {
 public:
-	CPGSQLHoldingHistoryLoad(char *szConnectStr,
-			char *szTable = "holding_history")
+	CPGSQLHoldingHistoryLoad(const char *szConnectStr,
+			const char *szTable = "holding_history")
 			: CPGSQLLoader<HOLDING_HISTORY_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

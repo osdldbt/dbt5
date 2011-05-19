@@ -48,7 +48,8 @@ namespace TPCE
 class CPGSQLStatusTypeLoad : public CPGSQLLoader<STATUS_TYPE_ROW>
 {
 public:
-	CPGSQLStatusTypeLoad(char *szConnectStr, char *szTable = "status_type")
+	CPGSQLStatusTypeLoad(const char *szConnectStr,
+			const char *szTable = "status_type")
 			: CPGSQLLoader<STATUS_TYPE_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

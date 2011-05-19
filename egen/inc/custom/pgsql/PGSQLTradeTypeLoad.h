@@ -48,7 +48,8 @@ namespace TPCE
 class CPGSQLTradeTypeLoad : public CPGSQLLoader<TRADE_TYPE_ROW>
 {
 public:
-	CPGSQLTradeTypeLoad(char *szConnectStr, char *szTable = "trade_type")
+	CPGSQLTradeTypeLoad(const char *szConnectStr,
+			const char *szTable = "trade_type")
 			: CPGSQLLoader<TRADE_TYPE_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

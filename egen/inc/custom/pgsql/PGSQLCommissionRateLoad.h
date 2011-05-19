@@ -48,8 +48,8 @@ namespace TPCE
 class CPGSQLCommissionRateLoad : public CPGSQLLoader<COMMISSION_RATE_ROW>
 {
 public:
-	CPGSQLCommissionRateLoad(char *szConnectStr,
-			char *szTable = "commission_rate")
+	CPGSQLCommissionRateLoad(const char *szConnectStr,
+			const char *szTable = "commission_rate")
 			: CPGSQLLoader<COMMISSION_RATE_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

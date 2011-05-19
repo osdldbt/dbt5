@@ -48,8 +48,8 @@ namespace TPCE
 class CPGSQLCompanyCompetitorLoad : public CPGSQLLoader<COMPANY_COMPETITOR_ROW>
 {
 public:
-	CPGSQLCompanyCompetitorLoad(char *szConnectStr,
-			char *szTable = "company_competitor")
+	CPGSQLCompanyCompetitorLoad(const char *szConnectStr,
+			const char *szTable = "company_competitor")
 			: CPGSQLLoader<COMPANY_COMPETITOR_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

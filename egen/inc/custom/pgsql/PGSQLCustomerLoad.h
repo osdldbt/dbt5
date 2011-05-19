@@ -51,7 +51,8 @@ private:
 	CDateTime c_dob;
 
 public:
-	CPGSQLCustomerLoad(char *szConnectStr, char *szTable = "customer")
+	CPGSQLCustomerLoad(const char *szConnectStr,
+			const char *szTable = "customer")
 			: CPGSQLLoader<CUSTOMER_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

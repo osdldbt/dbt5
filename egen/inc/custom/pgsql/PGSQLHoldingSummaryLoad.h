@@ -44,8 +44,8 @@ namespace TPCE
 class CPGSQLHoldingSummaryLoad : public CPGSQLLoader<HOLDING_SUMMARY_ROW>
 {
 public:
-	CPGSQLHoldingSummaryLoad(char *szConnectStr,
-			char *szTable = "holding_summary")
+	CPGSQLHoldingSummaryLoad(const char *szConnectStr,
+			const char *szTable = "holding_summary")
 			: CPGSQLLoader<HOLDING_SUMMARY_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

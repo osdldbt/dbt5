@@ -54,7 +54,8 @@ private:
 	CDateTime s_52wk_low_date;
 
 public:
-	CPGSQLSecurityLoad(char *szConnectStr, char *szTable = "security")
+	CPGSQLSecurityLoad(const char *szConnectStr,
+			const char *szTable = "security")
 			: CPGSQLLoader<SECURITY_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first

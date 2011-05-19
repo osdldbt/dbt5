@@ -48,7 +48,8 @@ namespace TPCE
 class CPGSQLZipCodeLoad : public CPGSQLLoader<ZIP_CODE_ROW>
 {
 public:
-	CPGSQLZipCodeLoad(char *szConnectStr, char *szTable = "zip_code")
+	CPGSQLZipCodeLoad(const char *szConnectStr,
+			const char *szTable = "zip_code")
 			: CPGSQLLoader<ZIP_CODE_ROW>(szConnectStr, szTable) { };
 
 	// copy to the bound location inside this class first
