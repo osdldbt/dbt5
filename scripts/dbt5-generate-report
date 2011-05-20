@@ -54,16 +54,17 @@ device_arg = ''
 if options.devices:
     device_arg = options.devices
 
-to = '0'
-tr = '1'
-tl = '2'
-tu = '3'
+# Needs to match the definitions in inc/CETxnMixGenerator.h.
+sd = '0'
+bv = '1'
+cp = '2'
+mw = '3'
 ts = '4'
-cp = '5'
-bv = '6'
-sd = '7'
+tl = '5'
+to = '6'
+tu = '7'
 mf = '8'
-mw = '9'
+tr = '9'
 dm = '10'
 tc = '11'
 
@@ -82,8 +83,8 @@ transaction_name[dm] = 'Data Maintenance'
 transaction_name[tc] = 'Trade Cleanup'
 
 print ( 'Generating transaction distribution charts...' )
-for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu, dm, tc]:
-    system('dbt-plot-transaction-distribution "%s" %s %s %s/txn sec 12 %d' % \
+for key in [sd, bv, cp, mw, ts, tl, to, tu, mf, tr, dm, tc]:
+    system('dbt-plot-transaction-distribution "%s" %s %s %s/txn min 12 %d' % \
             (transaction_name[key], key, mixfile, outdir, int(key) + 1))
 
 print ( 'Generating mpstat charts...' )
@@ -97,7 +98,7 @@ if isfile(mpstatfile):
 
 print ( 'Generating iostat charts...' )
 iostatfile = '%s/driver/iostatx.out' % indir
-if isfile(mpstatfile):
+if isfile(iostatfile):
     system('dbt-plot-iostat %s %s/driver/iostat %s' % \
             (iostatfile, outdir, device_arg))
 
@@ -210,7 +211,7 @@ h.write('</tr>\n')
 h.write('</table>\n')
 h.write('</td>\n')
 h.write('<td>\n')
-chart = 'txn/t1-transaction-rate.png'
+chart = 'txn/t%s-transaction-rate.png' % tr
 h.write('<a href="%s"><img width="128" src="%s" height="96" />\n' % \
         (chart, chart))
 h.write('</td>\n')
@@ -243,8 +244,8 @@ h.write('<th>Response Time Distribution</th>\n')
 h.write('</tr>\n')
 
 count = 0
-for transaction in ['Order', 'Result', 'Lookup', 'Update', 'Status',
-        'Position', 'Broker', 'Security', 'Feed', 'Watch', 'Data']:
+for transaction in ['Security', 'Broker', 'Position', 'Watch', 'Status',
+        'Lookup', 'Order', 'Update', 'Feed', 'Result',  'Data']:
     cmd = 'grep %s %s/results.txt' % (transaction, indir)
     p = Popen(cmd.split(), stdout=PIPE)
     c = sub(':', ' ', p.communicate()[0])
@@ -339,5 +340,3 @@ h.write('</table>\n')
 
 h.write('</body>\n')
 h.write('</html>\n')
-
-system('cp -p %s/proc.out %s/driver/proc.txt' % (indir, outdir))

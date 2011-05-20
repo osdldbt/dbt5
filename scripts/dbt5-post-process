@@ -25,17 +25,19 @@ if not os.path.exists(filename):
     print ( 'cannot open file: %s' % filename )
     sys.exit(1)
 
-to = '0'
-tr = '1'
-tl = '2'
-tu = '3'
+# Needs to match the definitions in inc/CETxnMixGenerator.h.
+sd = '0'
+bv = '1'
+cp = '2'
+mw = '3'
 ts = '4'
-cp = '5'
-bv = '6'
-sd = '7'
+tl = '5'
+to = '6'
+tu = '7'
 mf = '8'
-mw = '9'
+tr = '9'
 dm = '10'
+tc = '11'
 
 dataframe = dict()
 transaction_count = dict()

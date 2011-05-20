@@ -54,16 +54,17 @@ starttime = df[0][0]
 endtime = df[0][df.nrow - 1]
 iterations = r.ceiling((endtime - starttime) / sample_length)[0]
 
-to = '0'
-tr = '1'
-tl = '2'
-tu = '3'
+# Needs to match the definitions in inc/CETxnMixGenerator.h.
+sd = '0'
+bv = '1'
+cp = '2'
+mw = '3'
 ts = '4'
-cp = '5'
-bv = '6'
-sd = '7'
+tl = '5'
+to = '6'
+tu = '7'
 mf = '8'
-mw = '9'
+tr = '9'
 dm = '10'
 tc = '11'
 
@@ -82,7 +83,7 @@ transaction_name[dm] = 'Data Maintenance'
 transaction_name[tc] = 'Trade Cleanup'
 
 j = 0
-for key in [to, tr, tl, tu, ts, cp, bv, sd, mf, mw, dm, tc]:
+for key in [sd, bv, cp, mw, ts, tl, to, tu, mf, tr, dm, tc]:
     i = 0
 
     # Create a list of data then pass it to R.
@@ -106,8 +107,9 @@ for key in [to, tr, tl, tu, ts, cp, bv, sd, mf, mw, dm, tc]:
         else:
             isubset = r.subset(isubset, isubset.rx('V1').ro < iend)
 
-            # Aggregate the mean response time per interval.
-            y.append(r.sum(isubset.rx('V4'))[0] / float(sample_length))
+            # Calculate the number of transaction per interval by counting
+            # them.
+            y.append(isubset.nrow / sample_length)
 
         x.append(i + 1)
 
