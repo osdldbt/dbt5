@@ -109,7 +109,7 @@ for key in [sd, bv, cp, mw, ts, tl, to, tu, mf, tr, dm, tc]:
 
             # Calculate the number of transaction per interval by counting
             # them.
-            y.append(isubset.nrow / sample_length)
+            y.append(float(isubset.nrow) / float(sample_length))
 
         x.append(i + 1)
 
