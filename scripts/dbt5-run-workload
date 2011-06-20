@@ -204,6 +204,7 @@ usage()
 	echo '       -n <database name. (default dbt5)>'
 	echo '       -o <result output dir>'
 	echo '       -p <database port number. (default 5432)>'
+	echo '       -q <event1,[event2,...]> (Linux perf events)'
 	echo '       -r <random number seed, invalidates test>'
 	echo '       -s <delay between starting threads in milliseconds (default 1000)>'
 	echo '       -t <customers total>'
@@ -234,9 +235,10 @@ SCALE_FACTOR=500
 SLEEPY=1000 # milliseconds
 USE_OPROFILE=0
 USE_READPROFILE=0
+USE_LINUX_PERF_EVENTS=0
 PACING_DELAY=0
 
-while getopts "a:b:c:d:f:h:i:l:n:o:rp:s:t:u:w:xyz:" opt; do
+while getopts "a:b:c:d:f:h:i:l:n:o:q:rp:s:t:u:w:xyz:" opt; do
 	case $opt in
 	a)
 		DBMS=${OPTARG}
@@ -279,6 +281,10 @@ while getopts "a:b:c:d:f:h:i:l:n:o:rp:s:t:u:w:xyz:" opt; do
 		# postmaster port
 		DB_PORT=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $DB_PORT
+		;;
+	q)
+		USE_LINUX_PERF_EVENTS=1
+		PERF_EVENTS=${OPTARG}
 		;;
 	r)
 		SEED=`echo $OPTARG | egrep "^[0-9]+$"`
@@ -528,6 +534,19 @@ if [ ${USE_OPROFILE} -eq 1 ]; then
 	fi
 fi
 
+if [ ${USE_LINUX_PERF_EVENTS} -eq 1 ]; then
+	PERF_ARGS="-a -g -s -o ${DB_OUTPUT_DIR}/perf.data sleep ${DURATION}"
+	PERF_RECORD="perf record -e ${PERF_EVENTS} ${PERF_ARGS}"
+	PERF_STAT="perf stat -e ${PERF_EVENTS} -a sleep ${DURATION} > ${DB_OUTPUT_DIR}/perf-stat.txt 2>&1"
+	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+		${DB_COMMAND} "${PERF_RECORD}" &
+		${DB_COMMAND} "${PERF_STAT}" &
+	else
+		${PERF_RECORD} &
+		${PERF_STAT} &
+	fi
+fi
+
 # Sleep for the duration of the run.
 do_sleep $DURATION
 
@@ -551,6 +570,30 @@ if [ ${USE_OPROFILE} -eq 1 ]; then
 	oprofile_collect ${DRIVER_OUTPUT_DIR}
 	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		oprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
+	fi
+fi
+
+if [ ${USE_LINUX_PERF_EVENTS} -eq 1 ]; then
+	PERF_CMD1="perf report --stdio -f -n -g flat,100 -i ${DB_OUTPUT_DIR}/perf.data > ${DB_OUTPUT_DIR}/perf-report.txt"
+	PERF_CMD2="perf report --stdio -f -n -i ${DB_OUTPUT_DIR}/perf.data > ${DB_OUTPUT_DIR}/perf-report-callgraph.txt"
+	PERF_CMD3="perf annotate --stdio -f -l -P -i ${DB_OUTPUT_DIR}/perf.data > ${DB_OUTPUT_DIR}/perf-annotate.txt"
+	PERF_CMD4="perf script -L -i ${DB_OUTPUT_DIR}/perf.data > ${DB_OUTPUT_DIR}/perf-script.txt"
+	# This might be too close to the end of the run, pad some sleep time in
+	# here otherwise there is not enough processor utilization available to do
+	# the reporting.
+	sleep 180
+	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+		${DB_COMMAND} "chmod 644 ${DB_OUTPUT_DIR}/perf.data"
+		${DB_COMMAND} "${PERF_CMD1}"
+		${DB_COMMAND} "${PERF_CMD2}"
+		${DB_COMMAND} "${PERF_CMD3}"
+		#${DB_COMMAND} "${PERF_CMD4}"
+	else
+		chmod 644 ${DB_OUTPUT_DIR}/perf.data
+		${PERF_CMD1}
+		${PERF_CMD2}
+		${PERF_CMD3}
+		#${PERF_CMD4}
 	fi
 fi
 
