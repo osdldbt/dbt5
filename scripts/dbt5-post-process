@@ -113,7 +113,8 @@ print ( '----------------- ------- --------------- ------- -------------- ' \
         '------- -------' )
 for key in [tr, bv, cp, mf, mw, sd, tl, to, ts, tu]:
     try:
-        mix_percentage = float(transaction_count[key]) / \
+        mix_percentage = \
+                float(transaction_count[key] - rollback_count[key]) / \
                 float(total_transaction_count) * 100.0
     except:
         mix_percentage = 0
@@ -155,7 +156,7 @@ print ( '----------------- ------- --------------- ------- -------------- ' \
 
 duration = float(steadystate_end - steadystate_start)
 print ( '%0.2f trade-result transactions per second (trtps)' % \
-        (float(transaction_count[tr]) / duration) )
+        (float(transaction_count[tr] - rollback_count[tr]) / duration) )
 print ( '%0.1f minute(s) to ramp up' % \
         (float(steadystate_start - rampup_start) / 60.0) )
 print ( '%0.1f minute steady state duration' % (duration / 60.0) )
