@@ -66,7 +66,7 @@ const double fFinancialEarningsMin = -300000000.00;
 const double fFinancialEarningsMax = 3000000000.00;
 
 const INT64 iFinancialOutBasicMin = 400000;
-const INT64 iFinancialOutBasicMax = 9500000000;
+const INT64 iFinancialOutBasicMax = 9500000000LLU;
 
 const double fFinancialInventMin = 0.00;
 const double fFinancialInventMax = 2000000000.00;
