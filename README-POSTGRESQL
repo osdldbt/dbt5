@@ -16,13 +16,13 @@ Building the kit:
 		cd egen/prj
 		make -f Makefile.pgsql
 
-	2. Build and install the C stored functions:
+	3. Build and install the C stored functions:
 
 		cd storedprocs/pgsql/c
 		make
 		make install
 
-	3. Make the rest of the kit:
+	4. Make the rest of the kit:
 
 		# At the top level of the tree
 		make
@@ -31,7 +31,7 @@ Building the kit:
 -----
 
 To build a small database (see README for notes on database size):
-	dbt5-pgsql-build-db -c 1000 -i 1000 -s 500 -w 1
+	dbt5-pgsql-build-db -c 1000 -s 500 -w 1
 
 -----
 
@@ -41,7 +41,7 @@ be set:
 export EGENDIR=~/dbt5/egen
 
 # Our database will be named dbt5
-DBT5DBNAME=dbt5; export DBT5DBNAME
+export DBT5DBNAME=dbt5
 
 # pgdata path.  Storage location for this instance of the database should be
 # within the working directory.  If you're going to mount a device, do it at
@@ -52,8 +52,8 @@ export DBT5PGDATA=/mnt/dbt5/pgdata
 # required only if using tablespaces.
 export DBT5TSDIR=/mnt/dbt5
 
-# Run a quick 60 second test.
-    dbt5-run-workload -a pgsql -c 5000 -t 5000 -d 60 -u 1 -i ~/dbt5/egen \
+# Run a quick 120 second (2 minute) test.
+    dbt5-run-workload -a pgsql -c 5000 -t 5000 -d 120 -u 1 \
 			-f 500 -w 300 -n dbt5 -o /tmp/results
 
 -----
