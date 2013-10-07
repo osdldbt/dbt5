@@ -2337,12 +2337,12 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 			pIn->end_trade_dts.second << "'," <<
 			pIn->max_trades << "," <<
 			pIn->max_updates << ",'" <<
-			pIn->end_trade_dts.year << "-" <<
-			pIn->end_trade_dts.month << "-" <<
-			pIn->end_trade_dts.day << " " <<
-			pIn->end_trade_dts.hour << ":" <<
-			pIn->end_trade_dts.minute << ":" <<
-			pIn->end_trade_dts.second << "')";
+			pIn->start_trade_dts.year << "-" <<
+			pIn->start_trade_dts.month << "-" <<
+			pIn->start_trade_dts.day << " " <<
+			pIn->start_trade_dts.hour << ":" <<
+			pIn->start_trade_dts.minute << ":" <<
+			pIn->start_trade_dts.second << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
 	i_bid_price = PQfnumber(res, "bid_price");
