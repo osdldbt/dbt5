@@ -670,7 +670,7 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 		values[i_cash_transaction_dts] =
 				(char *) palloc(((MAXDATELEN + 1) * 20 + 2) * sizeof(char));
 		values[i_cash_transaction_name] =
-				(char *) palloc(((CT_NAME_LEN + 1) * 20 + 2) * sizeof(char));
+				(char *) palloc(((CT_NAME_LEN + 3) * 20 + 2) * sizeof(char));
 		values[i_exec_name] = (char *) palloc(((T_EXEC_NAME_LEN + 3) * 20 +
 				2) * sizeof(char));
 		values[i_is_cash] =
@@ -899,6 +899,14 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 							SPI_getvalue(l_tuple, l_tupdesc, 2));
 				strcat(values[i_trade_history_status_id], "\"");
 			}
+                        for (j = SPI_processed; j < 3; j++) {
+                                if (j > 0) {
+                                        strcat(values[i_trade_history_dts], ",");
+                                        strcat(values[i_trade_history_status_id], ",");
+                                }
+                                strcat(values[i_trade_history_dts], "NULL");
+                                strcat(values[i_trade_history_status_id], "\"\"");
+                        }
 			strcat(values[i_trade_history_dts], "}");
 			strcat(values[i_trade_history_status_id], "}");
 		}
