@@ -171,7 +171,7 @@ Datum TradeCleanupFrame1(PG_FUNCTION_ARGS)
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 		ret = SPI_exec(sql, 0);
-		if (ret != SPI_OK_UPDATE) {
+		if (ret != SPI_OK_UPDATE_RETURNING) {
 			dump_tcf1_inputs(st_canceled_id, st_pending_id, st_submitted_id,
 					trade_id);
 			FAIL_FRAME(sql);
