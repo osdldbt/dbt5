@@ -762,11 +762,6 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 			strcat(values[i_trade_list], trade_list);
 			strcat(values[i_trade_price], SPI_getvalue(tuple, tupdesc, 5));
 
-			if (num_cash > 0) {
-				strcat(values[i_cash_transaction_amount], ",");
-				strcat(values[i_cash_transaction_dts], ",");
-				strcat(values[i_cash_transaction_name], ",");
-			}
 			if (num_updated < max_updates) {
 				char *old_cash_type;
 
@@ -853,6 +848,11 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 					l_tupdesc = SPI_tuptable->tupdesc;
 					l_tuptable = SPI_tuptable;
 					l_tuple = l_tuptable->vals[0];
+					if (num_cash > 0) {
+						strcat(values[i_cash_transaction_amount], ",");
+						strcat(values[i_cash_transaction_dts], ",");
+						strcat(values[i_cash_transaction_name], ",");
+					}
 					strcat(values[i_cash_transaction_amount],
 							SPI_getvalue(l_tuple, l_tupdesc, 1));
 					strcat(values[i_cash_transaction_dts],
