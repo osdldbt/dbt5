@@ -18,7 +18,7 @@ Building the kit:
 
 	3. Build and install the C stored functions:
 
-		cd storedprocs/pgsql/c
+		cd storedproc/pgsql/c
 		make
 		make install
 
