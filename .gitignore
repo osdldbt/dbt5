@@ -1,0 +1,14 @@
+*.swp
+*.so
+storedproc/pgsql/c/*.sql
+install_manifest.txt
+log
+CMakeCache.txt
+Makefile
+bin/
+cmake_install.cmake
+egen/*.log
+egen/bin/
+egen/lib/
+egen/obj/
+CMakeFiles/
