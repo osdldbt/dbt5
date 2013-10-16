@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #
 # This file is released under the terms of the Artistic License.
@@ -283,6 +283,12 @@ while getopts "a:b:c:d:f:h:i:l:n:o:q:rp:s:t:u:w:xyz:" opt; do
 		validate_parameter $opt $OPTARG $DB_PORT
 		;;
 	q)
+		SETTING=`cat /proc/sys/kernel/perf_event_paranoid`
+		if [ ! "x${SETTING}" = "x-1" ]; then
+			echo "/proc/sys/kernel/perf_event_paranoid should be -1 in order"
+			echo "to collect performance counters"
+			exit 1
+		fi
 		USE_LINUX_PERF_EVENTS=1
 		PERF_EVENTS=${OPTARG}
 		;;
@@ -537,7 +543,7 @@ fi
 if [ ${USE_LINUX_PERF_EVENTS} -eq 1 ]; then
 	PERF_ARGS="-a -g -s -o ${DB_OUTPUT_DIR}/perf.data sleep ${DURATION}"
 	PERF_RECORD="perf record -e ${PERF_EVENTS} ${PERF_ARGS}"
-	PERF_STAT="perf stat -e ${PERF_EVENTS} -a sleep ${DURATION} > ${DB_OUTPUT_DIR}/perf-stat.txt 2>&1"
+	PERF_STAT="perf stat -e ${PERF_EVENTS} -a -o ${DB_OUTPUT_DIR}/perf-stat.txt sleep ${DURATION}"
 	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 		${DB_COMMAND} "${PERF_RECORD}" &
 		${DB_COMMAND} "${PERF_STAT}" &
@@ -574,26 +580,24 @@ if [ ${USE_OPROFILE} -eq 1 ]; then
 fi
 
 if [ ${USE_LINUX_PERF_EVENTS} -eq 1 ]; then
-	PERF_CMD1="perf report --stdio -f -n -g flat,100 -i ${DB_OUTPUT_DIR}/perf.data > ${DB_OUTPUT_DIR}/perf-report.txt"
-	PERF_CMD2="perf report --stdio -f -n -i ${DB_OUTPUT_DIR}/perf.data > ${DB_OUTPUT_DIR}/perf-report-callgraph.txt"
-	PERF_CMD3="perf annotate --stdio -f -l -P -i ${DB_OUTPUT_DIR}/perf.data > ${DB_OUTPUT_DIR}/perf-annotate.txt"
-	PERF_CMD4="perf script -L -i ${DB_OUTPUT_DIR}/perf.data > ${DB_OUTPUT_DIR}/perf-script.txt"
+	PERF_CMD1="perf report --stdio -f -n -g flat,100 -i ${DB_OUTPUT_DIR}/perf.data"
+	PERF_CMD2="perf report --stdio -f -n -i ${DB_OUTPUT_DIR}/perf.data"
+	PERF_CMD3="perf annotate --stdio -f -l -P -i ${DB_OUTPUT_DIR}/perf.data"
+	PERF_CMD4="perf script -L -i ${DB_OUTPUT_DIR}/perf.data"
 	# This might be too close to the end of the run, pad some sleep time in
 	# here otherwise there is not enough processor utilization available to do
 	# the reporting.
 	sleep 180
 	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		${DB_COMMAND} "chmod 644 ${DB_OUTPUT_DIR}/perf.data"
-		${DB_COMMAND} "${PERF_CMD1}"
-		${DB_COMMAND} "${PERF_CMD2}"
-		${DB_COMMAND} "${PERF_CMD3}"
-		#${DB_COMMAND} "${PERF_CMD4}"
+		${DB_COMMAND} "${PERF_CMD1}" > ${DB_OUTPUT_DIR}/perf-report.txt"
+		${DB_COMMAND} "${PERF_CMD2}" > ${DB_OUTPUT_DIR}/perf-report-callgraph.txt"
+		${DB_COMMAND} "${PERF_CMD3}" > ${DB_OUTPUT_DIR}/perf-annotate.txt"
+		#${DB_COMMAND} "${PERF_CMD4}" > ${DB_OUTPUT_DIR}/perf-script.txt"
 	else
-		chmod 644 ${DB_OUTPUT_DIR}/perf.data
-		${PERF_CMD1}
-		${PERF_CMD2}
-		${PERF_CMD3}
-		#${PERF_CMD4}
+		eval "${PERF_CMD1}" > ${DB_OUTPUT_DIR}/perf-report.txt
+		eval "${PERF_CMD2}" > ${DB_OUTPUT_DIR}/perf-report-callgraph.txt
+		eval "${PERF_CMD3}" > ${DB_OUTPUT_DIR}/perf-annotate.txt
+		#eval "${PERF_CMD4}" > ${DB_OUTPUT_DIR}/perf-script.txt
 	fi
 fi
 
