@@ -19,54 +19,57 @@
 #include <utils/numeric.h>
 #include <utils/array.h>
 #include <utils/builtins.h>
+#include <catalog/pg_type.h>
 
 #include "frame.h"
+#include "dbt5common.h"
 
 #ifdef PG_MODULE_MAGIC
 PG_MODULE_MAGIC;
 #endif
 
-#define TUF1_1 \
+#ifdef DEBUG
+#define SQLTUF1_1 \
 		"SELECT t_exec_name\n" \
 		"FROM trade\n" \
 		"WHERE t_id = %ld"
 
-#define TUF1_2a \
+#define SQLTUF1_2a \
 		"SELECT REPLACE('%s', ' X ', ' ')"
 
-#define TUF1_2b \
+#define SQLTUF1_2b \
 		"SELECT REPLACE('%s', ' ', ' X ')"
 
-#define TUF1_3 \
+#define SQLTUF1_3 \
 		"UPDATE trade\n" \
 		"SET t_exec_name = '%s'\n" \
 		"WHERE t_id = %ld"
 
-#define TUF1_4 \
+#define SQLTUF1_4 \
 		"SELECT t_bid_price, t_exec_name, t_is_cash, tt_is_mrkt,\n" \
 		"       t_trade_price\n" \
 		"FROM trade, trade_type\n" \
 		"WHERE t_id = %ld\n" \
 		"  AND t_tt_id = tt_id"
 
-#define TUF1_5 \
+#define SQLTUF1_5 \
 		"SELECT se_amt, se_cash_due_date, se_cash_type\n" \
 		"FROM settlement\n" \
 		"WHERE se_t_id = %ld"
 
-#define TUF1_6 \
+#define SQLTUF1_6 \
 		"SELECT ct_amt, ct_dts, ct_name\n" \
 		"FROM cash_transaction\n" \
 		"WHERE ct_t_id = %ld"
 
-#define TUF1_7 \
+#define SQLTUF1_7 \
 		"SELECT th_dts, th_st_id\n" \
 		"FROM trade_history\n" \
 		"WHERE th_t_id = %ld\n" \
 		"ORDER BY th_dts\n" \
 		"LIMIT 3"
 
-#define TUF2_1 \
+#define SQLTUF2_1 \
 		"SELECT t_bid_price, t_exec_name, t_is_cash, t_id, t_trade_price\n" \
 		"FROM trade\n" \
 		"WHERE t_ca_id = %ld\n" \
@@ -75,34 +78,34 @@ PG_MODULE_MAGIC;
 		"ORDER BY t_dts ASC\n" \
 		"LIMIT %d"
 
-#define TUF2_2 \
+#define SQLTUF2_2 \
 		"SELECT se_cash_type\n" \
 		"FROM settlement\n" \
 		"WHERE se_t_id = %s"
 
-#define TUF2_3 \
+#define SQLTUF2_3 \
 		"UPDATE settlement\n" \
 		"SET se_cash_type = '%s'\n" \
 		"WHERE se_t_id = %s"
 
-#define TUF2_4 \
+#define SQLTUF2_4 \
 		"SELECT se_amt, se_cash_due_date, se_cash_type\n" \
 		"FROM settlement\n" \
 		"WHERE se_t_id = %s"
 
-#define TUF2_5 \
+#define SQLTUF2_5 \
 		"SELECT ct_amt, ct_dts, ct_name\n" \
 		"FROM cash_transaction\n" \
 		"WHERE ct_t_id = %s"
 
-#define TUF2_6 \
+#define SQLTUF2_6 \
 		"SELECT th_dts, th_st_id\n" \
 		"FROM trade_history\n" \
 		"WHERE th_t_id = %s\n" \
 		"ORDER BY th_dts\n" \
 		"LIMIT 3"
 
-#define TUF3_1 \
+#define SQLTUF3_1 \
 		"SELECT t_ca_id, t_exec_name, t_is_cash, t_trade_price, t_qty,\n" \
 		"       s_name, t_dts, t_id, t_tt_id, tt_name\n" \
 		"FROM trade, trade_type, security\n" \
@@ -114,21 +117,253 @@ PG_MODULE_MAGIC;
 		"ORDER BY t_dts ASC\n" \
 		"LIMIT %d"
 
-#define TUF3_2 TUF2_4
+#define SQLTUF3_2 SQLTUF2_4
 
-#define TUF3_3 \
+#define SQLTUF3_3 \
 		"SELECT ct_name\n" \
 		"FROM cash_transaction\n" \
 		"WHERE ct_t_id = %s"
 
-#define TUF3_4 \
+#define SQLTUF3_4 \
 		"UPDATE cash_transaction\n" \
 		"SET ct_name = e'%s'\n" \
 		"WHERE ct_t_id = %s"
 
-#define TUF3_5 TUF2_5
+#define SQLTUF3_5 SQLTUF2_5
 
-#define TUF3_6 TUF2_6
+#define SQLTUF3_6 SQLTUF2_6
+#endif /* End DEBUG */
+
+#define TUF1_1  TUF1_statements[0].plan
+#define TUF1_2a TUF1_statements[1].plan
+#define TUF1_2b TUF1_statements[2].plan
+#define TUF1_3  TUF1_statements[3].plan
+#define TUF1_4  TUF1_statements[4].plan
+#define TUF1_5  TUF1_statements[5].plan
+#define TUF1_6  TUF1_statements[6].plan
+#define TUF1_7  TUF1_statements[7].plan
+
+#define TUF2_1  TUF2_statements[0].plan
+#define TUF2_2  TUF2_statements[1].plan
+#define TUF2_3  TUF2_statements[2].plan
+#define TUF2_4  TUF2_statements[3].plan
+#define TUF2_5  TUF2_statements[4].plan
+#define TUF2_6  TUF2_statements[5].plan
+
+#define TUF3_1  TUF3_statements[0].plan
+#define TUF3_2  TUF3_statements[1].plan
+#define TUF3_3  TUF3_statements[2].plan
+#define TUF3_4  TUF3_statements[3].plan
+#define TUF3_5  TUF3_statements[4].plan
+#define TUF3_6  TUF3_statements[5].plan
+
+static cached_statement TUF1_statements[] = {
+
+	/* TUF1_1 */
+	{
+	"SELECT t_exec_name\n" \
+	"FROM trade\n" \
+	"WHERE t_id = $1",
+	1,
+	{ INT8OID }
+	},
+
+	/* TUF1_2a */
+	{
+	"SELECT REPLACE($1, ' X ', ' ')",
+	1,
+	{ TEXTOID }
+	},
+
+	/* TUF1_2b */
+	{
+	"SELECT REPLACE($1, ' ', ' X ')",
+	1,
+	{ TEXTOID }
+	},
+
+	/* TUF1_3 */
+	{
+	"UPDATE trade\n" \
+	"SET t_exec_name = $1\n" \
+	"WHERE t_id = $2",
+	2,
+	{ TEXTOID, INT8OID }
+	},
+
+	/* TUF1_4 */
+	{
+	"SELECT t_bid_price, t_exec_name, t_is_cash, tt_is_mrkt,\n" \
+	"       t_trade_price\n" \
+	"FROM trade, trade_type\n" \
+	"WHERE t_id = $1\n" \
+	"  AND t_tt_id = tt_id",
+	1,
+	{ INT8OID }
+	},
+
+	/* TUF1_5 */
+	{
+	"SELECT se_amt, se_cash_due_date, se_cash_type\n" \
+	"FROM settlement\n" \
+	"WHERE se_t_id = $1",
+	1,
+	{ INT8OID }
+	},
+
+	/* TUF1_6 */
+	{
+	"SELECT ct_amt, ct_dts, ct_name\n" \
+	"FROM cash_transaction\n" \
+	"WHERE ct_t_id = $1",
+	1,
+	{ INT8OID }
+	},
+
+	/* TUF1_7 */
+	{
+	"SELECT th_dts, th_st_id\n" \
+	"FROM trade_history\n" \
+	"WHERE th_t_id = $1\n" \
+	"ORDER BY th_dts\n" \
+	"LIMIT 3",
+	1,
+	{ INT8OID }
+	},
+
+	{ NULL }
+}; /* End TUF1_statments */
+
+static cached_statement TUF2_statements[] = {
+	/* TUF2_1 */
+	{
+	"SELECT t_bid_price, t_exec_name, t_is_cash, t_id, t_trade_price\n" \
+	"FROM trade\n" \
+	"WHERE t_ca_id = $1\n" \
+	"  AND t_dts >= $2\n" \
+	"  AND t_dts <= $3\n" \
+	"ORDER BY t_dts ASC\n" \
+	"LIMIT $4",
+	4,
+	{ INT8OID, TIMESTAMPOID, TIMESTAMPOID, INT4OID }
+	},
+
+	/* TUF2_2 */
+	{
+	"SELECT se_cash_type\n" \
+	"FROM settlement\n" \
+	"WHERE se_t_id = $1",
+	1,
+	{ INT8OID }
+	},
+
+	/* TUF2_3 */
+	{
+	"UPDATE settlement\n" \
+	"SET se_cash_type = $1\n" \
+	"WHERE se_t_id = $2",
+	2,
+	{ TEXTOID, INT8OID }
+	},
+
+	/* TUF2_4 */
+	{
+	"SELECT se_amt, se_cash_due_date, se_cash_type\n" \
+	"FROM settlement\n" \
+	"WHERE se_t_id = $1",
+	1,
+	{ INT8OID }
+	},
+
+	/* TUF2_5 */
+	{
+	"SELECT ct_amt, ct_dts, ct_name\n" \
+	"FROM cash_transaction\n" \
+	"WHERE ct_t_id = $1",
+	1,
+	{ INT8OID }
+	},
+
+	/* TUF2_6 */
+	{
+	"SELECT th_dts, th_st_id\n" \
+	"FROM trade_history\n" \
+	"WHERE th_t_id = $1\n" \
+	"ORDER BY th_dts\n" \
+	"LIMIT 3",
+	1,
+	{ INT8OID }
+	},
+
+	{ NULL }
+}; /* End TUF2_statements */
+
+static cached_statement TUF3_statements[] = {
+	/* TUF3_1 */
+	{
+	"SELECT t_ca_id, t_exec_name, t_is_cash, t_trade_price, t_qty,\n" \
+	"       s_name, t_dts, t_id, t_tt_id, tt_name\n" \
+	"FROM trade, trade_type, security\n" \
+	"WHERE t_s_symb = $1\n" \
+	"  AND t_dts >= $2\n" \
+	"  AND t_dts <= $3\n" \
+	"  AND tt_id = t_tt_id\n" \
+	"  AND s_symb = t_s_symb\n" \
+	"ORDER BY t_dts ASC\n" \
+	"LIMIT $4",
+	4,
+	{ TEXTOID, TIMESTAMPOID, TIMESTAMPOID, INT4OID }
+	},
+
+	/* TUF3_2 TUF2_4 */
+	{
+	"SELECT se_amt, se_cash_due_date, se_cash_type\n" \
+	"FROM settlement\n" \
+	"WHERE se_t_id = $1",
+	1,
+	{ INT8OID }
+	},
+
+	/* TUF3_3 */
+	{
+	"SELECT ct_name\n" \
+	"FROM cash_transaction\n" \
+	"WHERE ct_t_id = $1",
+	1,
+	{ INT8OID }
+	},
+
+	/* TUF3_4 */
+	{
+	"UPDATE cash_transaction\n" \
+	"SET ct_name = $1\n" \
+	"WHERE ct_t_id = $2",
+	2,
+	{ TEXTOID, INT8OID }
+	},
+
+	/* TUF3_5 TUF2_5 */
+	{
+	"SELECT ct_amt, ct_dts, ct_name\n" \
+	"FROM cash_transaction\n" \
+	"WHERE ct_t_id = $1",
+	1,
+	{ INT8OID }
+	},
+
+	/* TUF3_6 TUF2_6 */
+	{
+	"SELECT th_dts, th_st_id\n" \
+	"FROM trade_history\n" \
+	"WHERE th_t_id = $1\n" \
+	"ORDER BY th_dts\n" \
+	"LIMIT 3",
+	1,
+	{ INT8OID }
+	},
+
+	{ NULL }
+}; /* End TUF3_statements */
 
 /* Prototypes. */
 void dump_tuf1_inputs(int, int, long *);
@@ -223,8 +458,11 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 		TupleDesc tupdesc;
 		SPITupleTable *tuptable = NULL;
 		HeapTuple tuple = NULL;
-
+#ifdef DEBUG
 		char sql[2048];
+#endif
+		Datum args[2];
+		char nulls[2] = { ' ', ' ' };
 
 		int num_found = max_trades;
 		int num_updated = 0;
@@ -290,6 +528,7 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
 		SPI_connect();
+		plan_queries(TUF1_statements);
 
 		strcpy(values[i_bid_price], "{");
 		strcpy(values[i_exec_name], "{");
@@ -311,11 +550,12 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 			if (num_updated < max_updates) {
 				char *ex_name;
 
-				sprintf(sql, TUF1_1, trade_id[i]);
 #ifdef DEBUG
+				sprintf(sql, SQLTUF1_1, trade_id[i]);
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-				ret = SPI_exec(sql, 0);
+				args[0] = Int64GetDatum(trade_id[i]);
+				ret = SPI_execute_plan(TUF1_1, args, nulls, true, 0);
 				if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 					tupdesc = SPI_tuptable->tupdesc;
 					tuptable = SPI_tuptable;
@@ -327,39 +567,45 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 				elog(NOTICE, "ex_name = %s", ex_name);
-#endif /* DEBUG */
 
 				if (strstr(ex_name, " X ")) {
-					sprintf(sql, TUF1_2a, ex_name);
+					sprintf(sql, SQLTUF1_2a, ex_name);
 				} else {
-					sprintf(sql, TUF1_2b, ex_name);
+					sprintf(sql, SQLTUF1_2b, ex_name);
 				}
-#ifdef DEBUG
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-				ret = SPI_exec(sql, 0);
+				args[0] = CStringGetTextDatum(ex_name);
+				if (strstr(ex_name, " X ")) {
+					ret = SPI_execute_plan(TUF1_2a,
+							args, nulls, true, 0);
+				} else {
+					ret = SPI_execute_plan(TUF1_2b,
+							args, nulls, true, 0);
+				}
 				if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 					tupdesc = SPI_tuptable->tupdesc;
 					tuptable = SPI_tuptable;
 					tuple = tuptable->vals[0];
 					ex_name = SPI_getvalue(tuple, tupdesc, 1);
 				} else {
-					FAIL_FRAME_SET(&funcctx->max_calls, sql);
+					FAIL_FRAME_SET(&funcctx->max_calls,
+					strstr(ex_name, " X ")? TUF1_statements[1].sql:
+								TUF1_statements[2].sql);
 					dump_tuf1_inputs(max_trades, max_updates, trade_id);
 					continue;
 				}
 
 #ifdef DEBUG
 				elog(NOTICE, "ex_name = %s", ex_name);
-#endif /* DEBUG */
-
-				sprintf(sql, TUF1_3, ex_name, trade_id[i]);
-#ifdef DEBUG
+				sprintf(sql, SQLTUF1_3, ex_name, trade_id[i]);
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-				ret = SPI_exec(sql, 0);
+				args[1] = Int64GetDatum(trade_id[i]);
+				ret = SPI_execute_plan(TUF1_3, args, nulls, false, 0);
 				if (ret != SPI_OK_UPDATE) {
-					FAIL_FRAME_SET(&funcctx->max_calls, sql);
+					FAIL_FRAME_SET(&funcctx->max_calls,
+								TUF1_statements[4].sql);
 					dump_tuf1_inputs(max_trades, max_updates, trade_id);
 					continue;
 				}
@@ -367,13 +613,15 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				num_updated += SPI_processed;
 			}
 
-			sprintf(sql, TUF1_4, trade_id[i]);
 #ifdef DEBUG
+			sprintf(sql, SQLTUF1_4, trade_id[i]);
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-			ret = SPI_exec(sql, 0);
+			args[0] = Int64GetDatum(trade_id[i]);
+			ret = SPI_execute_plan(TUF1_4, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
-				FAIL_FRAME_SET(&funcctx->max_calls, sql);
+				FAIL_FRAME_SET(&funcctx->max_calls,
+							TUF1_statements[5].sql);
 				dump_tuf1_inputs(max_trades, max_updates, trade_id);
 				continue;
 			}
@@ -410,13 +658,14 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				num_updated4++;
 			}
 
-			sprintf(sql, TUF1_5, trade_id[i]);
 #ifdef DEBUG
+			sprintf(sql, SQLTUF1_5, trade_id[i]);
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-			ret = SPI_exec(sql, 0);
+			ret = SPI_execute_plan(TUF1_5, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
-				FAIL_FRAME_SET(&funcctx->max_calls, sql);
+				FAIL_FRAME_SET(&funcctx->max_calls,
+							TUF1_statements[6].sql);
 				dump_tuf1_inputs(max_trades, max_updates, trade_id);
 				continue;
 			}
@@ -450,11 +699,11 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 					strcat(values[i_cash_transaction_name], ",");
 				}
 
-				sprintf(sql, TUF1_6, trade_id[i]);
 #ifdef DEBUG
+				sprintf(sql, SQLTUF1_6, trade_id[i]);
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-				ret = SPI_exec(sql, 0);
+				ret = SPI_execute_plan(TUF1_6, args, nulls, true, 0);
 				if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 					tupdesc = SPI_tuptable->tupdesc;
 					tuptable = SPI_tuptable;
@@ -469,22 +718,24 @@ Datum TradeUpdateFrame1(PG_FUNCTION_ARGS)
 					strcat(values[i_cash_transaction_name], "\"");
 					++num_cash;
 				} else {
-					FAIL_FRAME_SET(&funcctx->max_calls, sql);
+					FAIL_FRAME_SET(&funcctx->max_calls,
+								TUF1_statements[7].sql);
 					dump_tuf1_inputs(max_trades, max_updates, trade_id);
 					continue;
 				}
 			}
 
-			sprintf(sql, TUF1_7, trade_id[i]);
 #ifdef DEBUG
+			sprintf(sql, SQLTUF1_7, trade_id[i]);
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-			ret = SPI_exec(sql, 0);
+			ret = SPI_execute_plan(TUF1_7, args, nulls, true, 0);
 			if (ret == SPI_OK_SELECT) {
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
 			} else {
-				FAIL_FRAME_SET(&funcctx->max_calls, sql);
+				FAIL_FRAME_SET(&funcctx->max_calls,
+							TUF1_statements[8].sql);
 				dump_tuf1_inputs(max_trades, max_updates, trade_id);
 				continue;
 			}
@@ -632,8 +883,11 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 		struct pg_tm tt, *tm = &tt;
 		fsec_t fsec;
 		char *tzn = NULL;
-
+#ifdef DEBUG
 		char sql[2048];
+#endif
+		Datum args[4];
+		char nulls[4] = { ' ', ' ', ' ', ' ' };
 
 		char end_trade_dts[MAXDATELEN + 1];
 		char start_trade_dts[MAXDATELEN + 1];
@@ -701,13 +955,17 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
 		SPI_connect();
-
-		sprintf(sql, TUF2_1, acct_id, start_trade_dts, end_trade_dts,
-				max_trades);
+		plan_queries(TUF2_statements);
 #ifdef DEBUG
+		sprintf(sql, SQLTUF2_1, acct_id, start_trade_dts, end_trade_dts,
+				max_trades);
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-		ret = SPI_exec(sql, 0);
+		args[0] = Int64GetDatum(acct_id);
+		args[1] = TimestampGetDatum(start_trade_dts_ts);
+		args[2] = TimestampGetDatum(end_trade_dts_ts);
+		args[3] = Int32GetDatum(max_trades);
+		ret = SPI_execute_plan(TUF2_1, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
@@ -765,18 +1023,20 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 			if (num_updated < max_updates) {
 				char *old_cash_type;
 
-				sprintf(sql, TUF2_2, trade_list);
 #ifdef DEBUG
+				sprintf(sql, SQLTUF2_2, trade_list);
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-				ret = SPI_exec(sql, 0);
+				args[0] = Int64GetDatum(atoll(trade_list));
+				ret = SPI_execute_plan(TUF2_2, args, nulls, true, 0);
 				if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 					l_tupdesc = SPI_tuptable->tupdesc;
 					l_tuptable = SPI_tuptable;
 					l_tuple = l_tuptable->vals[0];
 					old_cash_type = SPI_getvalue(l_tuple, l_tupdesc, 1);
 				} else {
-					FAIL_FRAME_SET(&funcctx->max_calls, sql);
+					FAIL_FRAME_SET(&funcctx->max_calls,
+								TUF2_statements[1].sql);
 					dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
 							max_updates, start_trade_dts);
 					continue;
@@ -800,13 +1060,16 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 					}
 				}
 
-				sprintf(sql, TUF2_3, cash_type, trade_list);
 #ifdef DEBUG
+				sprintf(sql, SQLTUF2_3, cash_type, trade_list);
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-				ret = SPI_exec(sql, 0);
+				args[0] = CStringGetTextDatum(cash_type);
+				args[1] = Int64GetDatum(atoll(trade_list));
+				ret = SPI_execute_plan(TUF2_3, args, nulls, false, 0);
 				if (ret != SPI_OK_UPDATE) {
-					FAIL_FRAME_SET(&funcctx->max_calls, sql);
+					FAIL_FRAME_SET(&funcctx->max_calls,
+								TUF2_statements[2].sql);
 					dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
 							max_updates, start_trade_dts);
 					continue;
@@ -814,11 +1077,12 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				num_updated += SPI_processed;
 			}
 
-			sprintf(sql, TUF2_4, trade_list);
 #ifdef DEBUG
+			sprintf(sql, SQLTUF2_4, trade_list);
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-			ret = SPI_exec(sql, 0);
+			args[0] = Int64GetDatum(atoll(trade_list));
+			ret = SPI_execute_plan(TUF2_4, args, nulls, true, 0);
 			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 				l_tupdesc = SPI_tuptable->tupdesc;
 				l_tuptable = SPI_tuptable;
@@ -832,18 +1096,19 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 						SPI_getvalue(l_tuple, l_tupdesc, 3));
 				strcat(values[i_settlement_cash_type], "\"");
 			} else {
-				FAIL_FRAME_SET(&funcctx->max_calls, sql);
+				FAIL_FRAME_SET(&funcctx->max_calls,
+							TUF2_statements[3].sql);
 				dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
 						max_updates, start_trade_dts);
 				continue;
 			}
 
 			if (is_cash_str[0] == 't') {
-				sprintf(sql, TUF2_5, trade_list);
 #ifdef DEBUG
+				sprintf(sql, SQLTUF2_5, trade_list);
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-				ret = SPI_exec(sql, 0);
+				ret = SPI_execute_plan(TUF2_5, args, nulls, true, 0);
 				if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 					l_tupdesc = SPI_tuptable->tupdesc;
 					l_tuptable = SPI_tuptable;
@@ -863,23 +1128,25 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 					strcat(values[i_cash_transaction_name], "\"");
 					++num_cash;
 				} else {
-					FAIL_FRAME_SET(&funcctx->max_calls, sql);
+					FAIL_FRAME_SET(&funcctx->max_calls,
+								TUF2_statements[4].sql);
 					dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
 							max_updates, start_trade_dts);
 					continue;
 				}
 			}
 
-			sprintf(sql, TUF2_6, trade_list);
 #ifdef DEBUG
+			sprintf(sql, SQLTUF2_6, trade_list);
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-			ret = SPI_exec(sql, 0);
+
+			ret = SPI_execute_plan(TUF2_6, args, nulls, true, 0);
 			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 				l_tupdesc = SPI_tuptable->tupdesc;
 				l_tuptable = SPI_tuptable;
 			} else {
-				FAIL_FRAME_SET(&funcctx->max_calls, sql);
+				FAIL_FRAME_SET(&funcctx->max_calls, TUF2_statements[5].sql);
 				dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
 						max_updates, start_trade_dts);
 				continue;
@@ -1021,8 +1288,11 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 		struct pg_tm tt, *tm = &tt;
 		fsec_t fsec;
 		char *tzn = NULL;
-
+#ifdef DEBUG
 		char sql[2048];
+#endif
+		Datum args[4];
+		char nulls[4] = { ' ', ' ', ' ', ' ' };
 
 		char symbol[S_SYMB_LEN + 1];
 		char end_trade_dts[MAXDATELEN + 1];
@@ -1103,13 +1373,17 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
 		SPI_connect();
-
-		sprintf(sql, TUF3_1, symbol, start_trade_dts, end_trade_dts,
-				max_trades);
+		plan_queries(TUF3_statements);
 #ifdef DEBUG
+		sprintf(sql, SQLTUF3_1, symbol, start_trade_dts, end_trade_dts,
+				max_trades);
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-		ret = SPI_exec(sql, 0);
+		args[0] = CStringGetTextDatum(symbol);
+		args[1] = TimestampGetDatum(start_trade_dts_ts);
+		args[2] = TimestampGetDatum(end_trade_dts_ts);
+		args[3] = Int32GetDatum(max_trades);
+		ret = SPI_execute_plan(TUF3_1, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
@@ -1199,11 +1473,12 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 			strcat(values[i_type_name], type_name);
 			strcat(values[i_type_name], "\"");
 
-			sprintf(sql, TUF3_2, trade_list);
 #ifdef DEBUG
+			sprintf(sql, SQLTUF3_2, trade_list);
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-			ret = SPI_exec(sql, 0);
+			args[0] = Int64GetDatum(atoll(trade_list));
+			ret = SPI_execute_plan(TUF3_2, args, nulls, true, 0);
 			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 				l_tupdesc = SPI_tuptable->tupdesc;
 				l_tuptable = SPI_tuptable;
@@ -1217,7 +1492,8 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 						SPI_getvalue(l_tuple, l_tupdesc, 3));
 				strcat(values[i_settlement_cash_type], "\"");
 			} else {
-				FAIL_FRAME_SET(&funcctx->max_calls, sql);
+				FAIL_FRAME_SET(&funcctx->max_calls,
+							TUF3_statements[1].sql);
 				dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
 						max_updates, start_trade_dts, symbol);
 				continue;
@@ -1225,18 +1501,19 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 
 			if (is_cash_str[0] == 't') {
 				if (num_updated < max_updates) {
-					sprintf(sql, TUF3_3, trade_list);
 #ifdef DEBUG
+					sprintf(sql, SQLTUF3_3, trade_list);
 					elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-					ret = SPI_exec(sql, 0);
+					ret = SPI_execute_plan(TUF3_3, args, nulls, true, 0);
 					if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 						l_tupdesc = SPI_tuptable->tupdesc;
 						l_tuptable = SPI_tuptable;
 						l_tuple = l_tuptable->vals[0];
 						old_ct_name = SPI_getvalue(l_tuple, l_tupdesc, 1);
 					} else {
-						FAIL_FRAME_SET(&funcctx->max_calls, sql);
+						FAIL_FRAME_SET(&funcctx->max_calls,
+									TUF3_statements[2].sql);
 						dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
 								max_updates, start_trade_dts, symbol);
 						continue;
@@ -1256,13 +1533,16 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 					}
 					ct_name_esc[k] = '\0';
 
-					sprintf(sql, TUF3_4, ct_name_esc, trade_list);
 #ifdef DEBUG
+					sprintf(sql, SQLTUF3_4, ct_name_esc, trade_list);
 					elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-					ret = SPI_exec(sql, 0);
+					args[0] = CStringGetTextDatum(ct_name_esc);
+					args[1] = Int64GetDatum(atoll(trade_list));
+					ret = SPI_execute_plan(TUF3_4, args, nulls, false, 0);
 					if (ret != SPI_OK_UPDATE) {
-						FAIL_FRAME_SET(&funcctx->max_calls, sql);
+						FAIL_FRAME_SET(&funcctx->max_calls,
+									TUF3_statements[3].sql);
 						dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
 								max_updates, start_trade_dts, symbol);
 						continue;
@@ -1274,11 +1554,11 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 					strcat(values[i_cash_transaction_dts], ",");
 					strcat(values[i_cash_transaction_name], ",");
 				}
-				sprintf(sql, TUF3_5, trade_list);
 #ifdef DEBUG
+				sprintf(sql, SQLTUF3_5, trade_list);
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-				ret = SPI_exec(sql, 0);
+				ret = SPI_execute_plan(TUF3_5, args, nulls, true, 0);
 				if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 					l_tupdesc = SPI_tuptable->tupdesc;
 					l_tuptable = SPI_tuptable;
@@ -1293,23 +1573,25 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 					strcat(values[i_cash_transaction_name], "\"");
 					++num_cash;
 				} else {
-					FAIL_FRAME_SET(&funcctx->max_calls, sql);
+					FAIL_FRAME_SET(&funcctx->max_calls,
+								TUF3_statements[4].sql);
 					dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
 							max_updates, start_trade_dts, symbol);
 					continue;
 				}
 			}
 
-			sprintf(sql, TUF3_6, trade_list);
 #ifdef DEBUG
+			sprintf(sql, SQLTUF3_6, trade_list);
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-			ret = SPI_exec(sql, 0);
+			ret = SPI_execute_plan(TUF3_6, args, nulls, true, 0);
 			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 				l_tupdesc = SPI_tuptable->tupdesc;
 				l_tuptable = SPI_tuptable;
 			} else {
-				FAIL_FRAME_SET(&funcctx->max_calls, sql);
+				FAIL_FRAME_SET(&funcctx->max_calls,
+							TUF3_statements[5].sql);
 				dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
 						max_updates, start_trade_dts, symbol);
 				continue;

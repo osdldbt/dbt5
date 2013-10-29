@@ -22,6 +22,7 @@
 #include <catalog/pg_type.h>
 
 #include "frame.h"
+#include "dbt5common.h"
 
 /*
  * Copied this out of the PostgreSQL backend code.  That probably means
@@ -40,14 +41,15 @@ typedef int16 NumericDigit;
  * The only reason we have the RETUNING clause here is so we can count how
  * many rows were updated.
  */
-#define MFF1_1 \
+#ifdef DEBUG
+#define SQLMFF1_1 \
 		"UPDATE last_trade\n" \
 		"SET    lt_price = %s,\n" \
 		"       lt_vol = lt_vol + %d,\n" \
 		"       lt_dts = now()\n" \
 		"WHERE  lt_s_symb = '%s';"
 
-#define MFF1_2 \
+#define SQLMFF1_2 \
 		"SELECT tr_t_id,\n" \
 		"       tr_bid_price,\n" \
 		"       tr_tt_id,\n" \
@@ -61,19 +63,86 @@ typedef int16 NumericDigit;
 		"             OR (tr_tt_id = '%s'\n" \
 		"                 AND tr_bid_price >= %s));"
 
-#define MFF1_3 \
+#define SQLMFF1_3 \
 		"UPDATE trade\n" \
 		"SET    t_dts = now(),\n" \
 		"       t_st_id = '%s'\n" \
 		"WHERE  t_id = %s;"
 
-#define MFF1_4 \
+#define SQLMFF1_4 \
 		"DELETE FROM trade_request\n" \
 		"WHERE  tr_t_id = %s;"
 
-#define MFF1_5 \
+#define SQLMFF1_5 \
 		"INSERT INTO trade_history(th_t_id, th_dts, th_st_id)\n" \
 		"VALUES (%s, now(), '%s');"
+#endif /* End DEBUG */
+
+#define MFF1_1 MFF1_statements[0].plan
+#define MFF1_2 MFF1_statements[1].plan
+#define MFF1_3 MFF1_statements[2].plan
+#define MFF1_4 MFF1_statements[3].plan
+#define MFF1_5 MFF1_statements[4].plan
+
+static cached_statement MFF1_statements[] = {
+	/* MFF1_1 */
+	{
+	"UPDATE last_trade\n" \
+	"SET    lt_price = $1,\n" \
+	"       lt_vol = lt_vol + $2,\n" \
+	"       lt_dts = now()\n" \
+	"WHERE  lt_s_symb = $3",
+	3,
+	{ FLOAT8OID, INT8OID, TEXTOID }
+	},
+
+	/* MFF1_2 */
+	{
+	"SELECT tr_t_id,\n" \
+	"       tr_bid_price,\n" \
+	"       tr_tt_id,\n" \
+	"       tr_qty\n" \
+	"FROM   trade_request\n" \
+	"WHERE  tr_s_symb = $1\n" \
+	"       AND ((tr_tt_id = $2\n" \
+	"             AND tr_bid_price >= $3)\n" \
+	"             OR (tr_tt_id = $4\n" \
+	"                 AND tr_bid_price <= $5)\n" \
+	"             OR (tr_tt_id = $6\n" \
+	"                 AND tr_bid_price >= $7))",
+	7,
+	{ TEXTOID, TEXTOID, FLOAT8OID, TEXTOID,
+		FLOAT8OID, TEXTOID, FLOAT8OID }
+	},
+
+	/* MFF1_3 */
+	{
+	"UPDATE trade\n" \
+	"SET    t_dts = now(),\n" \
+	"       t_st_id = $1\n" \
+	"WHERE  t_id = $2",
+	2,
+	{ TEXTOID, INT8OID }
+	},
+
+	/* MFF1_4 */
+	{
+	"DELETE FROM trade_request\n" \
+	"WHERE  tr_t_id = $1",
+	1,
+	{ INT8OID }
+	},
+
+	/* MFF1_5 */
+	{
+	"INSERT INTO trade_history(th_t_id, th_dts, th_st_id)\n" \
+	"VALUES ($1, now(), $2)",
+	2,
+	{ INT8OID, TEXTOID }
+	},
+
+	{ NULL }
+}; /*End of MFF1_statements */
 
 #ifdef PG_MODULE_MAGIC
 PG_MODULE_MAGIC;
@@ -200,8 +269,12 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		TupleDesc tupdesc;
 		SPITupleTable *tuptable = NULL;
 		HeapTuple tuple = NULL;
-
+#ifdef DEBUG
 		char sql[2048];
+#endif
+		Datum args[7];
+		char nulls[] = { ' ', ' ', ' ', ' ', ' ',
+						' ', ' ' };
 		char price_quote[S_PRICE_T_LEN + 1];
 		char status_submitted[ST_ID_LEN + 1];
 		char symbol[S_SYMB_LEN + 1];
@@ -276,6 +349,7 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
 		SPI_connect();
+		plan_queries(MFF1_statements);
 
 		k = 0;
 		strcpy(values[i_symbol], "{");
@@ -299,38 +373,44 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 				elog(NOTICE, "ERROR: BEGIN not ok = %d", ret);
 			}
 */
-
-			sprintf(sql, MFF1_1,
+#ifdef DEBUG
+			sprintf(sql, SQLMFF1_1,
 					DatumGetCString(DirectFunctionCall1(numeric_out,            
 							transdatums_pq[i])),
 					p_tq[i],
 					symbol);
-#ifdef DEBUG
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-			ret = SPI_exec(sql, 0);
+			args[0] = Float8GetDatum(atof(price_quote));
+			args[1] = Int64GetDatum(p_tq[i]);
+			args[2] = CStringGetTextDatum(symbol);
+			ret = SPI_execute_plan(MFF1_1, args, nulls, false, 0);
 			if (ret != SPI_OK_UPDATE) {
 				dump_mff1_inputs(price_quote_p, status_submitted_p, symbol_p,
 						trade_qty, type_limit_buy_p, type_limit_sell_p,
 						type_stop_loss_p);
-				FAIL_FRAME_SET(&funcctx->max_calls, sql);
+				FAIL_FRAME_SET(&funcctx->max_calls, MFF1_statements[0].sql);
 			}
 			num_updated += SPI_processed;
 #ifdef DEBUG
 			elog(NOTICE, "%d row(s) updated", num_updated);
-#endif /* DEBUG */
-
-			sprintf(sql, MFF1_2, symbol, type_stop_loss, price_quote,
+			sprintf(sql, SQLMFF1_2, symbol, type_stop_loss, price_quote,
 					type_limit_sell, price_quote, type_limit_buy, price_quote);
-#ifdef DEBUG
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-			ret = SPI_exec(sql, 0);
+			args[0] = CStringGetTextDatum(symbol);
+			args[1] = CStringGetTextDatum(type_stop_loss);
+			args[2] = Float8GetDatum(atof(price_quote));
+			args[3] = CStringGetTextDatum(type_stop_loss);
+			args[4] = args[2];
+			args[5] = CStringGetTextDatum(type_limit_buy);
+			args[6] = args[2];
+			ret = SPI_execute_plan(MFF1_2, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
 				dump_mff1_inputs(price_quote_p, status_submitted_p, symbol_p,
 						trade_qty, type_limit_buy_p, type_limit_sell_p,
 						type_stop_loss_p);
-				FAIL_FRAME_SET(&funcctx->max_calls, sql);
+				FAIL_FRAME_SET(&funcctx->max_calls, MFF1_statements[1].sql);
 				continue;
 			}
 #ifdef DEBUG
@@ -347,42 +427,41 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 				req_trade_qty = SPI_getvalue(tuple, tupdesc, 4);
 #ifdef DEBUG
 				elog(NOTICE, "trade_id = %s", trade_id);
-#endif /* DEBUG */
-
-				sprintf(sql, MFF1_3, status_submitted, trade_id);
-#ifdef DEBUG
+				sprintf(sql, SQLMFF1_3, status_submitted, trade_id);
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-				ret = SPI_exec(sql, 0);
+				args[0] = CStringGetTextDatum(status_submitted);
+				args[1] = Int64GetDatum(atoll(trade_id));
+				ret = SPI_execute_plan(MFF1_3, args, nulls, false, 0);
 				if (ret != SPI_OK_UPDATE) {
 					dump_mff1_inputs(price_quote_p, status_submitted_p,
 							symbol_p, trade_qty, type_limit_buy_p,
 							type_limit_sell_p, type_stop_loss_p);
-					FAIL_FRAME_SET(&funcctx->max_calls, sql);
+					FAIL_FRAME_SET(&funcctx->max_calls, MFF1_statements[2].sql);
 				}
-
-				sprintf(sql, MFF1_4, trade_id);
 #ifdef DEBUG
+				sprintf(sql, SQLMFF1_4, trade_id);
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-				ret = SPI_exec(sql, 0);
+				args[0] = Int64GetDatum(atoll(trade_id));
+				ret = SPI_execute_plan(MFF1_4, args, nulls, false, 0);
 				if (ret != SPI_OK_DELETE) {
 					dump_mff1_inputs(price_quote_p, status_submitted_p,
 							symbol_p, trade_qty, type_limit_buy_p,
 							type_limit_sell_p, type_stop_loss_p);
-					FAIL_FRAME_SET(&funcctx->max_calls, sql);
+					FAIL_FRAME_SET(&funcctx->max_calls, MFF1_statements[3].sql);
 				}
-
-				sprintf(sql, MFF1_5, trade_id, status_submitted);
 #ifdef DEBUG
+				sprintf(sql, SQLMFF1_5, trade_id, status_submitted);
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-				ret = SPI_exec(sql, 0);
+				args[1] = CStringGetTextDatum(status_submitted);
+				ret = SPI_execute_plan(MFF1_5, args, nulls, false, 0);
 				if (ret != SPI_OK_INSERT) {
 					dump_mff1_inputs(price_quote_p, status_submitted_p,
 							symbol_p, trade_qty, type_limit_buy_p,
 							type_limit_sell_p, type_stop_loss_p);
-					FAIL_FRAME_SET(&funcctx->max_calls, sql);
+					FAIL_FRAME_SET(&funcctx->max_calls, MFF1_statements[4].sql);
 				}
 				++rows_sent;
 #ifdef DEBUG

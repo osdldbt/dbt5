@@ -21,19 +21,21 @@
 #include <utils/date.h>
 #include <utils/builtins.h>
 #include <utils/datetime.h>
+#include <catalog/pg_type.h>
 
 #include "frame.h"
+#include "dbt5common.h"
 
 #define BAD_INPUT_DATA 1
-
-#define MWF1_1 \
+#ifdef DEBUG
+#define SQLMWF1_1 \
 		"SELECT wi_s_symb\n" \
 		"FROM   watch_item,\n" \
 		"       watch_list\n" \
 		"WHERE  wi_wl_id = wl_id\n" \
 		"       AND wl_c_id = %" PRIu64
 
-#define MWF1_2 \
+#define SQLMWF1_2 \
 		"SELECT s_symb\n" \
 		"FROM   industry,\n" \
 		"       company,\n" \
@@ -44,26 +46,103 @@
 		"                         AND %" PRIu64 "\n" \
 		"       AND s_co_id = co_id"
 
-#define MWF1_3 \
+#define SQLMWF1_3 \
 		"SELECT hs_s_symb\n" \
 		"FROM   holding_summary\n" \
 		"WHERE  hs_ca_id = %" PRIu64
 
-#define MWF1_4 \
+#define SQLMWF1_4 \
 		"SELECT lt_price\n" \
 		"FROM   last_trade\n" \
 		"WHERE  lt_s_symb = '%s'"
 
-#define MWF1_5 \
+#define SQLMWF1_5 \
 		"SELECT s_num_out\n" \
 		"FROM   security\n" \
 		"WHERE  s_symb = '%s'"
 
-#define MWF1_6 \
+#define SQLMWF1_6 \
 		"SELECT dm_close\n" \
 		"FROM   daily_market\n" \
 		"WHERE  dm_s_symb = '%s'\n" \
 		"       AND dm_date = '%s'"
+#endif /* End DEBUG */
+
+
+#define MWF1_1 MWF1_statements[0].plan
+#define MWF1_2 MWF1_statements[1].plan
+#define MWF1_3 MWF1_statements[2].plan
+#define MWF1_4 MWF1_statements[3].plan
+#define MWF1_5 MWF1_statements[4].plan
+#define MWF1_6 MWF1_statements[5].plan
+
+static cached_statement MWF1_statements[] = {
+
+	/* MWF1_1 */
+	{
+	"SELECT wi_s_symb\n" \
+	"FROM   watch_item,\n" \
+	"       watch_list\n" \
+	"WHERE  wi_wl_id = wl_id\n" \
+	"       AND wl_c_id = $1",
+	1,
+	{ INT8OID }
+	},
+
+	/* MWF1_2 */
+	{
+	"SELECT s_symb\n" \
+	"FROM   industry,\n" \
+	"       company,\n" \
+	"       security\n" \
+	"WHERE  in_name = $1\n" \
+	"       AND co_in_id = in_id\n" \
+	"       AND co_id BETWEEN $2\n" \
+	"                         AND $3\n" \
+	"       AND s_co_id = co_id",
+	3,
+	{ TEXTOID, INT8OID, INT8OID }
+	},
+
+	/* MWF1_3 */
+	{
+	"SELECT hs_s_symb\n" \
+	"FROM   holding_summary\n" \
+	"WHERE  hs_ca_id = $1",
+	1,
+	{ INT8OID }
+	},
+
+	/* MWF1_4 */
+	{
+	"SELECT lt_price\n" \
+	"FROM   last_trade\n" \
+	"WHERE  lt_s_symb = $1",
+	1,
+	{ TEXTOID }
+	},
+
+	/* MWF1_5 */
+	{
+	"SELECT s_num_out\n" \
+	"FROM   security\n" \
+	"WHERE  s_symb = $1",
+	1,
+	{ TEXTOID }
+	},
+
+	/* MWF1_6 */
+	{
+	"SELECT dm_close\n" \
+	"FROM   daily_market\n" \
+	"WHERE  dm_s_symb = $1\n" \
+	"       AND dm_date = $2",
+	2,
+	{ TEXTOID, DATEOID }
+	},
+
+	{ NULL }
+}; /* end MWF1_statements */
 
 #ifdef PG_MODULE_MAGIC
 PG_MODULE_MAGIC;
@@ -115,9 +194,12 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 
 	char buf[MAXDATELEN + 1];
 	char industry_name[IN_NAME_LEN + 1];
-
+#ifdef DEBUG
 	char sql[2048] = "";
-
+#endif
+	Datum args[3];
+	char nulls[3] = { ' ', ' ', ' ' };
+	int frame_index = 0;
 	j2date(start_date_p + POSTGRES_EPOCH_JDATE,
 	   &(tm->tm_year), &(tm->tm_mon), &(tm->tm_mday));
 	EncodeDateOnly(tm, DateStyle, buf);
@@ -131,24 +213,43 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 #endif
 
 	SPI_connect();
-
-	if (cust_id != 0) {
-		sprintf(sql, MWF1_1, cust_id);
-	} else if (industry_name[0] != '\0') {
-		sprintf(sql, MWF1_2, industry_name, starting_co_id, ending_co_id);
-	} else if (acct_id != 0) {
-		sprintf(sql, MWF1_3, acct_id);
-	} else {
-		status = BAD_INPUT_DATA;
-	}
+	plan_queries(MWF1_statements);
 #ifdef DEBUG
+	if (cust_id != 0) {
+		sprintf(sql, SQLMWF1_1, cust_id);
+	} else if (industry_name[0] != '\0') {
+		sprintf(sql, SQLMWF1_2, industry_name, starting_co_id, ending_co_id);
+	} else if (acct_id != 0) {
+		sprintf(sql, SQLMWF1_3, acct_id);
+	} else {
+		/* none */
+	}
 	elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-	ret = SPI_exec(sql, 0);
+	if (cust_id != 0) {
+		frame_index = 0;
+		args[0] = Int64GetDatum(cust_id);
+		ret = SPI_execute_plan(MWF1_1, args, nulls, true, 0);
+	} else if (industry_name[0] != '\0') {
+		frame_index = 1;
+		args[0] = CStringGetTextDatum(industry_name);
+		args[1] = Int64GetDatum(starting_co_id);
+		args[2] = Int64GetDatum(ending_co_id);
+		ret = SPI_execute_plan(MWF1_2, args, nulls, true, 0);
+	} else if (acct_id != 0) {
+		frame_index = 2;
+		args[1] = Int64GetDatum(acct_id);
+		ret = SPI_execute_plan(MWF1_2, args, nulls, true, 0);
+	} else {
+		//assign ret with NOT equl to SPI_OK_SELECT
+		//to log failed frame
+		ret = 0;
+		status = BAD_INPUT_DATA;
+	}
 	if (ret != SPI_OK_SELECT) {
 		dump_mwf1_inputs(acct_id, cust_id, ending_co_id, industry_name,
 				buf, starting_co_id);
-		FAIL_FRAME(sql);
+		FAIL_FRAME(MWF1_statements[frame_index].sql);
 	}
 
 	if (status != BAD_INPUT_DATA) {
@@ -170,17 +271,17 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 			symbol = SPI_getvalue(tuple, tupdesc, 1);
 #ifdef DEBUG
 			elog(NOTICE, "  symbol = '%s'", symbol);
-#endif /* DEBUG */
-
-			sprintf(sql, MWF1_4, symbol);
-#ifdef DEBUG
+			sprintf(sql, SQLMWF1_4, symbol);
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-			ret = SPI_exec(sql, 0);
+			frame_index = 3;
+			args[0] = CStringGetTextDatum(symbol);
+			ret = SPI_execute_plan(MWF1_4, args, nulls, true, 0);
+
 			if (ret != SPI_OK_SELECT || SPI_processed == 0) {
 				dump_mwf1_inputs(acct_id, cust_id, ending_co_id,
 						industry_name, buf, starting_co_id);
-				FAIL_FRAME(sql);
+				FAIL_FRAME(MWF1_statements[frame_index].sql);
 				continue;
 			}
 			tupdesc4 = SPI_tuptable->tupdesc;
@@ -190,16 +291,16 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 #ifdef DEBUG
 			elog(NOTICE, "  new_price  = %s", new_price);
 			elog(NOTICE, "  new_price  = %f", atof(new_price));
-#endif /* DEBUG */
-
-			sprintf(sql, MWF1_5, symbol);
-#ifdef DEBUG
+			sprintf(sql, SQLMWF1_5, symbol);
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-			ret = SPI_exec(sql, 0);
+			frame_index = 4;
+			args[0] = CStringGetTextDatum(symbol);
+			ret = SPI_execute_plan(MWF1_5, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
 				dump_mwf1_inputs(acct_id, cust_id, ending_co_id,
 						industry_name, buf, starting_co_id);
+				FAIL_FRAME(MWF1_statements[frame_index].sql);
 				elog(NOTICE, "ERROR: sql not ok = %d", ret);
 			}
 			tupdesc4 = SPI_tuptable->tupdesc;
@@ -208,17 +309,18 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 			s_num_out = SPI_getvalue(tuple4, tupdesc4, 1);
 #ifdef DEBUG
 			elog(NOTICE, "  s_num_out  = %s", s_num_out);
-#endif /* DEBUG */
-
-			sprintf(sql, MWF1_6, symbol, pstrdup(buf));
-#ifdef DEBUG
+			sprintf(sql, SQLMWF1_6, symbol, pstrdup(buf));
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-			ret = SPI_exec(sql, 0);
+			frame_index = 5;
+			args[0] = CStringGetTextDatum(symbol);
+			args[1] = DirectFunctionCall1(date_in,
+						CStringGetDatum(pstrdup(buf)));
+			ret = SPI_execute_plan(MWF1_6, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
 				dump_mwf1_inputs(acct_id, cust_id, ending_co_id,
 						industry_name, buf, starting_co_id);
-				FAIL_FRAME(sql);
+				FAIL_FRAME(MWF1_statements[frame_index].sql);
 			}
 
 			if (SPI_processed == 0) {

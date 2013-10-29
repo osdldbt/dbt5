@@ -18,15 +18,18 @@
 #include <utils/date.h>
 #include <utils/builtins.h>
 #include <utils/datetime.h>
+#include <catalog/pg_type.h>
 
 #include "frame.h"
+#include "dbt5common.h"
 
 /* FIXME: These values should be inherited from the egen headers. */
 #define MAX_COMP_LEN 3
 #define MAX_FIN_LEN 20
 #define MAX_NEWS_LEN 2
 
-#define SDF1_1 \
+#ifdef DEBUG
+#define SQLSDF1_1 \
 		"SELECT s_name,\n" \
 		"       co_id,\n" \
 		"       co_name,\n" \
@@ -77,7 +80,7 @@
 		"       AND ca.ad_zc_code = zca.zc_code\n" \
 		"       AND ea.ad_zc_code = zea.zc_code"
 
-#define SDF1_2 \
+#define SQLSDF1_2 \
 		"SELECT co_name,\n" \
 		"       in_name\n" \
 		"FROM   company_competitor,\n" \
@@ -88,7 +91,7 @@
 		"       AND in_id = cp_in_id\n" \
 		"LIMIT %d"
 
-#define SDF1_3 \
+#define SQLSDF1_3 \
 		"SELECT   fi_year,\n" \
 		"         fi_qtr,\n" \
 		"         fi_qtr_start_date,\n" \
@@ -108,7 +111,7 @@
 		"         fi_qtr\n" \
 		"LIMIT %d"
 
-#define SDF1_4 \
+#define SQLSDF1_4 \
 		"SELECT   dm_date,\n" \
 		"         dm_close,\n" \
 		"         dm_high,\n" \
@@ -120,14 +123,14 @@
 		"ORDER BY dm_date ASC\n" \
 		"LIMIT %d"
 
-#define SDF1_5 \
+#define SQLSDF1_5 \
 		"SELECT lt_price,\n" \
 		"       lt_open_price,\n" \
 		"       lt_vol\n" \
 		"FROM   last_trade\n" \
 		"WHERE  lt_s_symb = '%s'"
 
-#define SDF1_6 \
+#define SQLSDF1_6 \
 		"SELECT ni_item,\n" \
 		"       ni_dts,\n" \
 		"       ni_source,\n" \
@@ -140,7 +143,7 @@
 		"       AND nx_co_id = %s\n" \
 		"LIMIT %d"
 
-#define SDF1_7 \
+#define SQLSDF1_7 \
 		"SELECT '',\n" \
 		"       ni_dts,\n" \
 		"       ni_source,\n" \
@@ -152,6 +155,176 @@
 		"WHERE  ni_id = nx_ni_id\n" \
 		"       AND nx_co_id = %s\n" \
 		"LIMIT %d"
+#endif /* End DEBUG */
+
+
+#define SDF1_1 SDF1_statements[0].plan
+#define SDF1_2 SDF1_statements[1].plan
+#define SDF1_3 SDF1_statements[2].plan
+#define SDF1_4 SDF1_statements[3].plan
+#define SDF1_5 SDF1_statements[4].plan
+#define SDF1_6 SDF1_statements[5].plan
+#define SDF1_7 SDF1_statements[6].plan
+
+static cached_statement SDF1_statements[] = {
+
+	/* SDF1_1 */
+	{
+	"SELECT s_name,\n" \
+	"       co_id,\n" \
+	"       co_name,\n" \
+	"       co_sp_rate,\n" \
+	"       co_ceo,\n" \
+	"       co_desc,\n" \
+	"       co_open_date,\n" \
+	"       co_st_id,\n" \
+	"       ca.ad_line1,\n" \
+	"       ca.ad_line2,\n" \
+	"       zca.zc_town,\n" \
+	"       zca.zc_div,\n" \
+	"       ca.ad_zc_code,\n" \
+	"       ca.ad_ctry,\n" \
+	"       s_num_out,\n" \
+	"       s_start_date,\n" \
+	"       s_exch_date,\n" \
+	"       s_pe,\n" \
+	"       s_52wk_high,\n" \
+	"       s_52wk_high_date,\n" \
+	"       s_52wk_low,\n" \
+	"       s_52wk_low_date,\n" \
+	"       s_dividend,\n" \
+	"       s_yield,\n" \
+	"       zea.zc_div,\n" \
+	"       ea.ad_ctry,\n" \
+	"       ea.ad_line1,\n" \
+	"       ea.ad_line2,\n" \
+	"       zea.zc_town,\n" \
+	"       ea.ad_zc_code,\n" \
+	"       ex_close,\n" \
+	"       ex_desc,\n" \
+	"       ex_name,\n" \
+	"       ex_num_symb,\n" \
+	"       ex_open\n" \
+	"FROM   security,\n" \
+	"       company,\n" \
+	"       address ca,\n" \
+	"       address ea,\n" \
+	"       zip_code zca,\n" \
+	"       zip_code zea,\n" \
+	"       exchange\n" \
+	"WHERE  s_symb = $1\n" \
+	"       AND co_id = s_co_id\n" \
+	"       AND ca.ad_id = co_ad_id\n" \
+	"       AND ea.ad_id = ex_ad_id\n" \
+	"       AND ex_id = s_ex_id\n" \
+	"       AND ca.ad_zc_code = zca.zc_code\n" \
+	"       AND ea.ad_zc_code = zea.zc_code",
+	1,
+	{ TEXTOID }
+	},
+
+	/* SDF1_2 */
+	{
+	"SELECT co_name,\n" \
+	"       in_name\n" \
+	"FROM   company_competitor,\n" \
+	"       company,\n" \
+	"       industry\n" \
+	"WHERE  cp_co_id = $1\n" \
+	"       AND co_id = cp_comp_co_id\n" \
+	"       AND in_id = cp_in_id\n" \
+	"LIMIT $2",
+	2,
+	{ INT8OID, INT2OID }
+	},
+
+	/* SDF1_3 */
+	{
+	"SELECT   fi_year,\n" \
+	"         fi_qtr,\n" \
+	"         fi_qtr_start_date,\n" \
+	"         fi_revenue,\n" \
+	"         fi_net_earn,\n" \
+	"         fi_basic_eps,\n" \
+	"         fi_dilut_eps,\n" \
+	"         fi_margin,\n" \
+	"         fi_inventory,\n" \
+	"         fi_assets,\n" \
+	"         fi_liability,\n" \
+	"         fi_out_basic,\n" \
+	"         fi_out_dilut\n" \
+	"FROM     financial\n" \
+	"WHERE    fi_co_id = $1\n" \
+	"ORDER BY fi_year ASC,\n" \
+	"         fi_qtr\n" \
+	"LIMIT $2",
+	2,
+	{ INT8OID, INT2OID }
+	},
+
+	/* SDF1_4 */
+	{
+	"SELECT   dm_date,\n" \
+	"         dm_close,\n" \
+	"         dm_high,\n" \
+	"         dm_low,\n" \
+	"         dm_vol\n" \
+	"FROM     daily_market\n" \
+	"WHERE    dm_s_symb = $1\n" \
+	"         AND dm_date >= $2\n" \
+	"ORDER BY dm_date ASC\n" \
+	"LIMIT $3",
+	3,
+	{ TEXTOID, DATEOID, INT2OID }
+	},
+
+	/* SDF1_5 */
+	{
+	"SELECT lt_price,\n" \
+	"       lt_open_price,\n" \
+	"       lt_vol\n" \
+	"FROM   last_trade\n" \
+	"WHERE  lt_s_symb = $1",
+	1,
+	{ TEXTOID }
+	},
+
+	/* SDF1_6 */
+	{
+	"SELECT ni_item,\n" \
+	"       ni_dts,\n" \
+	"       ni_source,\n" \
+	"       ni_author,\n" \
+	"      '',\n" \
+	"      ''\n" \
+	"FROM   news_xref,\n" \
+	"       news_item\n" \
+	"WHERE  ni_id = nx_ni_id\n" \
+	"       AND nx_co_id = $1\n" \
+	"LIMIT $2",
+	2,
+	{ INT8OID, INT2OID }
+	},
+
+	/* SDF1_7 */
+	{
+	"SELECT '',\n" \
+	"       ni_dts,\n" \
+	"       ni_source,\n" \
+	"       ni_author,\n" \
+	"       ni_headline,\n" \
+	"       ni_summary\n" \
+	"FROM   news_xref,\n" \
+	"       news_item\n" \
+	"WHERE  ni_id = nx_ni_id\n" \
+	"       AND nx_co_id = $1\n" \
+	"LIMIT $2",
+	2,
+	{ INT8OID, INT2OID }
+	},
+
+	{ NULL }
+}; /* SDF1_statements */
 
 #ifdef PG_MODULE_MAGIC
 PG_MODULE_MAGIC;
@@ -215,10 +388,12 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		TupleDesc tupdesc;
 		SPITupleTable *tuptable = NULL;
 		HeapTuple tuple = NULL;
-
+#ifdef DEBUG
 		char sql[2048];
-
+#endif
 		char *co_id = NULL;
+		Datum args[3];
+		char nulls[3] = { ' ', ' ', ' ' };
 
 		strncpy(symbol, DatumGetCString(DirectFunctionCall1(textout,
 				PointerGetDatum(symbol_p))), S_SYMB_LEN);
@@ -263,12 +438,13 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
 		SPI_connect();
-
-		sprintf(sql, SDF1_1, symbol);
+		plan_queries(SDF1_statements);
 #ifdef DEBUG
+		sprintf(sql, SQLSDF1_1, symbol);
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-		ret = SPI_exec(sql, 0);
+		args[0] = CStringGetTextDatum(symbol);
+		ret = SPI_execute_plan(SDF1_1, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
@@ -311,14 +487,16 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			values[i_ex_open] = SPI_getvalue(tuple, tupdesc, 35);
 		} else {
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-			FAIL_FRAME_SET(&funcctx->max_calls, sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[0].sql);
 		}
 
-		sprintf(sql, SDF1_2, co_id, MAX_COMP_LEN);
 #ifdef DEBUG
+		sprintf(sql, SQLSDF1_2, co_id, MAX_COMP_LEN);
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-		ret = SPI_exec(sql, 0);
+		args[0] = Int64GetDatum(atoll(co_id));
+		args[1] = Int16GetDatum(MAX_COMP_LEN);
+		ret = SPI_execute_plan(SDF1_2, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
@@ -352,22 +530,24 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			strcat(values[i_cp_in_name], "}");
 		} else {
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-			FAIL_FRAME_SET(&funcctx->max_calls, sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[1].sql);
 			strcpy(values[i_cp_co_name], "{}");
 			strcpy(values[i_cp_in_name], "{}");
 		}
 
-		sprintf(sql, SDF1_3, co_id, MAX_FIN_LEN);
 #ifdef DEBUG
+		sprintf(sql, SQLSDF1_3, co_id, MAX_FIN_LEN);
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-		ret = SPI_exec(sql, 0);
+		args[0] = Int64GetDatum(atoll(co_id));
+		args[1] = Int16GetDatum(MAX_FIN_LEN);
+		ret = SPI_execute_plan(SDF1_3, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 		} else {
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-			FAIL_FRAME_SET(&funcctx->max_calls, sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[2].sql);
 		}
 		sprintf(values[i_fin_len], "%d", SPI_processed);
 		strcpy(values[i_fin], "{");
@@ -405,18 +585,21 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			strcat(values[i_fin], "}");
 		}
 		strcat(values[i_fin], "}");
-
-		sprintf(sql, SDF1_4, symbol, pstrdup(buf), max_rows_to_return);
 #ifdef DEBUG
+		sprintf(sql, SQLSDF1_4, symbol, pstrdup(buf), max_rows_to_return);
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-		ret = SPI_exec(sql, 0);
+		args[0] = CStringGetTextDatum(symbol);
+		args[1] = DirectFunctionCall1(date_in,
+						CStringGetDatum(pstrdup(buf)));
+		args[2] = Int16GetDatum(max_rows_to_return);
+		ret = SPI_execute_plan(SDF1_4, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 		} else {
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-			FAIL_FRAME_SET(&funcctx->max_calls, sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[3].sql);
 		}
 		sprintf(values[i_day_len], "%d", SPI_processed);
 		strcpy(values[i_day], "{");
@@ -439,11 +622,12 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		}
 		strcat(values[i_day], "}");
 
-		sprintf(sql, SDF1_5, symbol);
 #ifdef DEBUG
+		sprintf(sql, SQLSDF1_5, symbol);
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-		ret = SPI_exec(sql, 0);
+		args[0] = CStringGetTextDatum(symbol);
+		ret = SPI_execute_plan(SDF1_5, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
@@ -453,27 +637,34 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			values[i_last_vol] = SPI_getvalue(tuple, tupdesc, 3);
 		} else {
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-			FAIL_FRAME_SET(&funcctx->max_calls, sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[4].sql);
 			values[i_last_open] = NULL;
 			values[i_last_price] = NULL;
 			values[i_last_vol] = NULL;
 		}
-
-		if (access_lob_flag == true) {
-			sprintf(sql, SDF1_6, co_id, MAX_NEWS_LEN);
-		} else {
-			sprintf(sql, SDF1_7, co_id, MAX_NEWS_LEN);
-		}
 #ifdef DEBUG
+		if (access_lob_flag == true) {
+			sprintf(sql, SQLSDF1_6, co_id, MAX_NEWS_LEN);
+		} else {
+			sprintf(sql, SQLSDF1_7, co_id, MAX_NEWS_LEN);
+		}
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-		ret = SPI_exec(sql, 0);
+		args[0] = Int64GetDatum(atoll(co_id));
+		args[1] = Int16GetDatum(MAX_NEWS_LEN);
+
+		if (access_lob_flag == true) {
+			ret = SPI_execute_plan(SDF1_6, args, nulls, true, 0);
+		} else {
+			ret = SPI_execute_plan(SDF1_7, args, nulls, true, 0);
+		}
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 		} else {
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-			FAIL_FRAME_SET(&funcctx->max_calls, sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, access_lob_flag?
+					SDF1_statements[5].sql: SDF1_statements[6].sql);
 		}
 		sprintf(values[i_news_len], "%d", SPI_processed);
 		strcpy(values[i_news], "{");

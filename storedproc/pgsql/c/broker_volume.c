@@ -18,10 +18,13 @@
 #include <utils/array.h>
 #include <utils/builtins.h>
 #include <access/tupmacs.h>
+#include <catalog/pg_type.h>
 
 #include "frame.h"
+#include "dbt5common.h"
 
-#define BVF1_1 \
+#ifdef DEBUG
+#define SQLBVF1_1 \
 		"SELECT b_name, SUM(tr_qty * tr_bid_price)\n" \
 		"FROM trade_request, sector, industry, company, broker,\n" \
 		"     security\n" \
@@ -34,6 +37,32 @@
 		"  AND sc_name = '%s'\n" \
 		"GROUP BY b_name\n" \
 		"ORDER BY 2 DESC"
+#endif /* DEBUG END */
+
+#define BVF1_1 BVF1_statements[0].plan
+
+static cached_statement BVF1_statements[] =
+{
+	/* BVF1_1 */
+	{
+	"SELECT b_name, SUM(tr_qty * tr_bid_price)\n" \
+	"FROM trade_request, sector, industry, company, broker,\n" \
+	"     security\n" \
+	"WHERE tr_b_id = b_id\n" \
+	"  AND tr_s_symb = s_symb\n" \
+	"  AND s_co_id = co_id\n" \
+	"  AND co_in_id = in_id\n" \
+	"  AND sc_id = in_sc_id\n" \
+	"  AND b_name = ANY ($1)\n" \
+	"  AND sc_name = $2\n" \
+	"GROUP BY b_name\n" \
+	"ORDER BY 2 DESC",
+	2,
+	{ TEXTARRAYOID, TEXTOID }
+	},
+
+	{ NULL }
+};
 
 #ifdef PG_MODULE_MAGIC
 PG_MODULE_MAGIC;
@@ -113,9 +142,12 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		TupleDesc tupdesc;
 		SPITupleTable *tuptable = NULL;
 		HeapTuple tuple = NULL;
-
+#ifdef DEBUG
 		char sql[2048];
+#endif
 		char broker_list_array[(B_NAME_LEN + 3) * 40 + 5] = "'{";
+		Datum args[2];
+		char nulls[2] = { ' ', ' ' };
 
 		/*
 		 * Prepare a values array for building the returned tuple.
@@ -171,21 +203,23 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
 		SPI_connect();
-
-		sprintf(sql, BVF1_1, broker_list_array,
+		plan_queries(BVF1_statements);
+#ifdef DEBUG
+		sprintf(sql, SQLBVF1_1, broker_list_array,
 				DatumGetCString(DirectFunctionCall1(textout,
 				PointerGetDatum(sector_name_p))));
-#ifdef DEBUG
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-		ret = SPI_exec(sql, 0);
+		args[0] = PointerGetDatum(broker_list_p);
+		args[1] = PointerGetDatum(sector_name_p);
+		ret = SPI_execute_plan(BVF1_1, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 		} else {
 			dump_bvf1_inputs(broker_list_p, sector_name_p);
-			FAIL_FRAME_SET(&funcctx->max_calls, sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, BVF1_statements[0].sql);
 		}
 
 		sprintf(values[i_list_len], "%d", SPI_processed);

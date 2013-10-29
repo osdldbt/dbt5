@@ -16,14 +16,17 @@
 #include <funcapi.h> /* for returning set of rows in order_status */
 #include <utils/datetime.h>
 #include <utils/numeric.h>
+#include <catalog/pg_type.h>
 
 #include "frame.h"
+#include "dbt5common.h"
 
 #ifdef PG_MODULE_MAGIC
 PG_MODULE_MAGIC;
 #endif
 
-#define TSF1_1 \
+#ifdef DEBUG
+#define SQLTSF1_1 \
 		"SELECT t_id, t_dts, st_name, tt_name, t_s_symb, t_qty, \n" \
 		"       t_exec_name, t_chrg, s_name, ex_name\n" \
 		"FROM trade, status_type, trade_type, security, exchange\n" \
@@ -35,12 +38,48 @@ PG_MODULE_MAGIC;
 		"ORDER BY t_dts DESC\n" \
 		"LIMIT 50"
 
-#define TSF1_2 \
+#define SQLTSF1_2 \
 		"SELECT c_l_name, c_f_name, b_name\n" \
 		"FROM customer_account, customer, broker\n" \
 		"WHERE ca_id = %ld\n" \
 		"  AND c_id = ca_c_id\n" \
 		"  AND b_id = ca_b_id"
+#endif /* End DEBUG */
+
+#define TSF1_1 TSF1_statements[0].plan
+#define TSF1_2 TSF1_statements[1].plan
+
+static cached_statement TSF1_statements[] = {
+
+	/* TSF1_1 */
+	{
+	"SELECT t_id, t_dts, st_name, tt_name, t_s_symb, t_qty, \n" \
+	"       t_exec_name, t_chrg, s_name, ex_name\n" \
+	"FROM trade, status_type, trade_type, security, exchange\n" \
+	"WHERE t_ca_id = $1\n" \
+	"  AND st_id = t_st_id\n" \
+	"  AND tt_id = t_tt_id\n" \
+	"  AND s_symb = t_s_symb\n" \
+	"  AND ex_id = s_ex_id\n" \
+	"ORDER BY t_dts DESC\n" \
+	"LIMIT 50",
+	1,
+	{ INT8OID }
+	},
+
+	/* TSF1_2 */
+	{
+	"SELECT c_l_name, c_f_name, b_name\n" \
+	"FROM customer_account, customer, broker\n" \
+	"WHERE ca_id = $1\n" \
+	"  AND c_id = ca_c_id\n" \
+	"  AND b_id = ca_b_id",
+	1,
+	{ INT8OID }
+	},
+
+	{ NULL }
+}; /* End TSF1_statements */
 
 /* Prototypes. */
 void dump_tsf1_inputs(long);
@@ -84,9 +123,11 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 		TupleDesc tupdesc;
 		SPITupleTable *tuptable = NULL;
 		HeapTuple tuple = NULL;
-
+#ifdef DEBUG
 		char sql[2048];
-
+#endif
+		Datum args[1];
+		char nulls[1] = { ' ' };
 		/*
 		 * Prepare a values array for building the returned tuple.
 		 * This should be an array of C strings, which will
@@ -131,17 +172,18 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
 		SPI_connect();
-
-		sprintf(sql, TSF1_1, acct_id);
+		plan_queries(TSF1_statements);
 #ifdef DEBUG
+		sprintf(sql, SQLTSF1_1, acct_id);
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-		ret = SPI_exec(sql, 0);
+		args[0] = Int64GetDatum(acct_id);
+		ret = SPI_execute_plan(TSF1_1, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 		} else {
-			FAIL_FRAME_SET(&funcctx->max_calls, sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, TSF1_statements[0].sql);
 			dump_tsf1_inputs(acct_id);
 		}
 		sprintf(values[i_num_found], "%d", SPI_processed);
@@ -203,11 +245,11 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 		strcat(values[i_s_name], "}");
 		strcat(values[i_ex_name], "}");
 
-		sprintf(sql, TSF1_2, acct_id);
 #ifdef DEBUG
+		sprintf(sql, SQLTSF1_2, acct_id);
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-		ret = SPI_exec(sql, 0);
+		ret = SPI_execute_plan(TSF1_2, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
@@ -218,7 +260,7 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 				values[i_broker_name] = SPI_getvalue(tuple, tupdesc, 3);
 			}
 		} else {
-			FAIL_FRAME_SET(&funcctx->max_calls, sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, TSF1_statements[1].sql);
 			dump_tsf1_inputs(acct_id);
 		}
 		/* Build a tuple descriptor for our result type */
