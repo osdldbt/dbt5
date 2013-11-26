@@ -238,8 +238,8 @@ Datum MarketWatchFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(MWF1_2, args, nulls, true, 0);
 	} else if (acct_id != 0) {
 		frame_index = 2;
-		args[1] = Int64GetDatum(acct_id);
-		ret = SPI_execute_plan(MWF1_2, args, nulls, true, 0);
+		args[0] = Int64GetDatum(acct_id);
+		ret = SPI_execute_plan(MWF1_3, args, nulls, true, 0);
 	} else {
 		//assign ret with NOT equl to SPI_OK_SELECT
 		//to log failed frame
