@@ -800,12 +800,11 @@ Datum TradeLookupFrame2(PG_FUNCTION_ARGS)
 		char *is_cash_str;
 
 		if (timestamp2tm(end_trade_dts_ts, NULL, tm, &fsec, NULL, NULL) == 0) {
-			EncodeDateTime(tm, fsec, NULL, &tzn, USE_ISO_DATES, end_trade_dts);
+			EncodeDateTimeM(tm, fsec, tzn, end_trade_dts);
 		}
 		if (timestamp2tm(start_trade_dts_ts, NULL, tm, &fsec, NULL,
 				NULL) == 0) {
-			EncodeDateTime(tm, fsec, NULL, &tzn, USE_ISO_DATES,
-					start_trade_dts);
+			EncodeDateTimeM(tm, fsec, tzn, start_trade_dts);
 		}
 
 #ifdef DEBUG
@@ -1145,12 +1144,12 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 		char *is_cash_str;
 
 		if (timestamp2tm(end_trade_dts_ts, NULL, tm, &fsec, NULL, NULL) == 0) {
-			EncodeDateTime(tm, fsec, NULL, &tzn, USE_ISO_DATES, end_trade_dts);
+			EncodeDateTimeM(tm, fsec, tzn, end_trade_dts);
+
 		}
 		if (timestamp2tm(start_trade_dts_ts, NULL, tm, &fsec, NULL,
 				NULL) == 0) {
-			EncodeDateTime(tm, fsec, NULL, &tzn, USE_ISO_DATES,
-					start_trade_dts);
+			EncodeDateTimeM(tm, fsec, tzn, start_trade_dts);
 		}
 		strcpy(symbol, DatumGetCString(DirectFunctionCall1(textout,
 				PointerGetDatum(symbol_p))));
@@ -1490,8 +1489,7 @@ Datum TradeLookupFrame4(PG_FUNCTION_ARGS)
 
 		if (timestamp2tm(start_trade_dts_ts, NULL, tm, &fsec, NULL,
 				NULL) == 0) {
-			EncodeDateTime(tm, fsec, NULL, &tzn, USE_ISO_DATES,
-					start_trade_dts);
+			EncodeDateTimeM(tm, fsec, tzn, start_trade_dts);
 		}
 
 #ifdef DEBUG

@@ -902,7 +902,7 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 		SPI_connect();
 		plan_queries(TRF2_statements);
 
-		strncpy(sql, "SELECT now()", 13);
+		strncpy(sql, "SELECT now()::timestamp(0)", 27);
 #ifdef DEBUG
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
@@ -1698,7 +1698,7 @@ Datum TradeResultFrame5(PG_FUNCTION_ARGS)
 			numeric_float8_no_overflow, PointerGetDatum(trade_price_num)));
 
 	if (timestamp2tm(trade_dts_ts, NULL, tm, &fsec, NULL, NULL) == 0) {
-		EncodeDateTime(tm, fsec, NULL, &tzn, USE_ISO_DATES, trade_dts);
+		EncodeDateTimeM(tm, fsec, tzn, trade_dts);
 	}
 
 
@@ -1820,10 +1820,10 @@ Datum TradeResultFrame6(PG_FUNCTION_ARGS)
 	type_name[TT_NAME_LEN] = '\0';
 
 	if (timestamp2tm(due_date_ts, NULL, tm, &fsec, NULL, NULL) == 0) {
-		EncodeDateTime(tm, fsec, NULL, &tzn, USE_ISO_DATES, due_date);
+		EncodeDateTimeM(tm, fsec, tzn, due_date);
 	}
 	if (timestamp2tm(trade_dts_ts, NULL, tm, &fsec, NULL, NULL) == 0) {
-		EncodeDateTime(tm, fsec, NULL, &tzn, USE_ISO_DATES, trade_dts);
+		EncodeDateTimeM(tm, fsec, tzn, trade_dts);
 	}
 
 #ifdef DEBUG

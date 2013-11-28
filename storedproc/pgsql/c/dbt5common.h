@@ -10,6 +10,14 @@
 #ifndef _DBT5COMMON_H_
 #define _DBT5COMMON_H_
 
+#if PG_VERSION_NUM >= 90200
+#define EncodeDateTimeM(tm, fsec, tzn, dts) \
+	EncodeDateTime(tm, fsec, false, 0, tzn, USE_ISO_DATES, dts);
+#else
+#define EncodeDateTimeM(tm, fsec, tzn, dts) \
+	EncodeDateTime(tm, fsec, NULL, &tzn, USE_ISO_DATES, dts);
+#endif
+
 /*  PostgreSQL < 8.4 didn't have this handy macro */
 #ifndef CStringGetTextDatum
 #define CStringGetTextDatum(s) DirectFunctionCall1(textin, PointerGetDatum(s))

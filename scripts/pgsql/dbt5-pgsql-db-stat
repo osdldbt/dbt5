@@ -45,6 +45,10 @@ pg_config --version >> ${OUTPUT_DIR}/readme.txt
 PQXX_VERSION=`pkg-config --modversion libpqxx`
 echo "libpqxx ${PQXX_VERSION}" >> ${OUTPUT_DIR}/readme.txt
 
+#Get postgres version to conditionally execute specific version queries
+PG_CONFIG_HEADER=`pg_config --includedir`/pg_config.h
+PG_VERSION_NUM=`grep 'PG_VERSION_NUM' $PG_CONFIG_HEADER | sed 's/[^0-9]//g'`
+
 # Get database parameters.
 ${PSQL} -c "show all" > ${OUTPUT_DIR}/param.out
 
@@ -77,13 +81,23 @@ WHERE relfilenode = relation
 ORDER BY relname
 ;" >> $OUTPUT_DIR/lockstats.out &
 
+if [ $PG_VERSION_NUM -ge 90200 ]; then
+
+	${PSQL} -c "
+SELECT EXTRACT(EPOCH FROM TRANSACTION_TIMESTAMP()), datname, pid, usesysid,
+       usename, application_name, client_addr, client_port, backend_start,
+       xact_start, query_start, waiting, query
+FROM pg_stat_activity
+;" >> $OUTPUT_DIR/db_activity.out &
+
+else
 	${PSQL} -c "
 SELECT EXTRACT(EPOCH FROM TRANSACTION_TIMESTAMP()), datname, procpid, usesysid,
        usename, application_name, client_addr, client_port, backend_start,
        xact_start, query_start, waiting, current_query
 FROM pg_stat_activity
 ;" >> $OUTPUT_DIR/db_activity.out &
-
+fi
 	${PSQL} -c "
 SELECT EXTRACT(EPOCH FROM TRANSACTION_TIMESTAMP()), datname, numbackends,
        xact_commit, xact_rollback, blks_read, blks_hit, tup_returned,
