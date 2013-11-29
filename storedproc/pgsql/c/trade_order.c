@@ -864,7 +864,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 			sprintf(sql, SQLTOF3_1a, co_name_esc);
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-			args[0] = CStringGetTextDatum(co_name_esc);
+			args[0] = PointerGetDatum(co_name_p);
 
 			ret = SPI_execute_plan(TOF3_1a, args, nulls, true, 0);
 			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
