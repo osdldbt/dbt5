@@ -1556,6 +1556,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 				sprintf(sql, SQLTUF3_5, trade_list);
 				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
+				args[0] = Int64GetDatum(atoll(trade_list));
 				ret = SPI_execute_plan(TUF3_5, args, nulls, true, 0);
 				if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 					l_tupdesc = SPI_tuptable->tupdesc;
@@ -1583,6 +1584,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 			sprintf(sql, SQLTUF3_6, trade_list);
 			elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
+			args[0] = Int64GetDatum(atoll(trade_list));
 			ret = SPI_execute_plan(TUF3_6, args, nulls, true, 0);
 			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 				l_tupdesc = SPI_tuptable->tupdesc;

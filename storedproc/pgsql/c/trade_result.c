@@ -1253,7 +1253,6 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 						args[0] = Int32GetDatum(hold_qty + needed_qty);
 						args[1] = Int64GetDatum(hold_id);
 						ret = SPI_execute_plan(TRF2_5a, args, nulls, false, 0);
-						ret = SPI_exec(sql, 0);
 						if (ret != SPI_OK_UPDATE) {
 							FAIL_FRAME_SET(&funcctx->max_calls,
 										TRF2_statements[6].sql);
