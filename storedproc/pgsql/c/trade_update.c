@@ -1133,6 +1133,16 @@ Datum TradeUpdateFrame2(PG_FUNCTION_ARGS)
 							max_updates, start_trade_dts);
 					continue;
 				}
+			} else {
+					if (num_cash > 0) {
+						strcat(values[i_cash_transaction_amount], ",");
+						strcat(values[i_cash_transaction_dts], ",");
+						strcat(values[i_cash_transaction_name], ",");
+					}
+					strcat(values[i_cash_transaction_amount], "0");
+					strcat(values[i_cash_transaction_dts], "1970-1-1 0:0:0");
+					strcat(values[i_cash_transaction_name], "\"\"");
+					++num_cash;
 			}
 
 #ifdef DEBUG
@@ -1254,7 +1264,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 
 	int i;
 	int j;
-	int k = 0;
+	int k;
 
 	char **values = NULL;
 
@@ -1524,10 +1534,10 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 						sprintf(ct_name, "%s %s shares of %s", type_name,
 								quantity, s_name);
 					}
-					for (i = 0; i < CT_NAME_LEN || ct_name[i] != '\0'; i++) {
-						if (ct_name[i] == '\'')
+					for (j = 0, k = 0; j < CT_NAME_LEN || ct_name[j] != '\0'; j++, k++) {
+						if (ct_name[j] == '\'')
 							ct_name_esc[k++] = '\\';
-						ct_name_esc[k++] = ct_name[i];
+						ct_name_esc[k] = ct_name[j];
 					}
 					ct_name_esc[k] = '\0';
 
@@ -1545,6 +1555,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 								max_updates, start_trade_dts, symbol);
 						continue;
 					}
+					num_updated += SPI_processed;
 				}
 
 				if (num_cash > 0) {

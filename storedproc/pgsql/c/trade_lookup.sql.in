@@ -79,6 +79,7 @@ CREATE OR REPLACE FUNCTION TradeLookupFrame4 (
 		OUT holding_history_id BIGINT[],
 		OUT holding_history_trade_id BIGINT[],
 		OUT num_found INTEGER,
+		OUT num_trades_found INTEGER,
 		OUT quantity_after INTEGER[],
 		OUT quantity_before INTEGER[],
 		OUT trade_id BIGINT)

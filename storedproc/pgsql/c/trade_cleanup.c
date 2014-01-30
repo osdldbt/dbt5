@@ -157,7 +157,7 @@ Datum TradeCleanupFrame1(PG_FUNCTION_ARGS)
 	char sql[2048];
 #endif
 	int status = 0;
-	int i;
+	int i, n;
 	char *tr_t_id;
 	Datum args[2];
 	char nulls[] = { ' ', ' ' };
@@ -188,7 +188,8 @@ Datum TradeCleanupFrame1(PG_FUNCTION_ARGS)
 		FAIL_FRAME(TCF1_statements[0].sql);
 	}
 
-	for (i = 0; i < SPI_processed; i++) {
+	n = SPI_processed;
+	for (i = 0; i < n; i++) {
 		tuple = tuptable->vals[i];
 		tr_t_id = SPI_getvalue(tuple, tupdesc, 1);
 #ifdef DEBUG
@@ -202,16 +203,6 @@ Datum TradeCleanupFrame1(PG_FUNCTION_ARGS)
 			dump_tcf1_inputs(st_canceled_id, st_pending_id, st_submitted_id,
 					trade_id);
 			FAIL_FRAME(TCF1_statements[1].sql);
-		}
-
-#ifdef DEBUG
-		elog(NOTICE, "SQL\n%s", SQLTCF1_3);
-#endif /* DEBUG */
-		ret = SPI_execute_plan(TCF1_3, NULL, nulls, false, 0);
-		if (ret != SPI_OK_DELETE) {
-			dump_tcf1_inputs(st_canceled_id, st_pending_id, st_submitted_id,
-					trade_id);
-			FAIL_FRAME(TCF1_statements[2].sql);
 		}
 	}
 
@@ -231,7 +222,8 @@ Datum TradeCleanupFrame1(PG_FUNCTION_ARGS)
 		FAIL_FRAME(TCF1_statements[3].sql);
 	}
 
-	for (i = 0; i < SPI_processed; i++) {
+	n = SPI_processed;
+	for (i = 0; i < n; i++) {
 		char *t_id;
 
 		tuple = tuptable->vals[i];
@@ -260,6 +252,16 @@ Datum TradeCleanupFrame1(PG_FUNCTION_ARGS)
 					trade_id);
 			FAIL_FRAME(TCF1_statements[5].sql);
 		}
+	}
+
+#ifdef DEBUG
+	elog(NOTICE, "SQL\n%s", SQLTCF1_3);
+#endif /* DEBUG */
+	ret = SPI_execute_plan(TCF1_3, NULL, nulls, false, 0);
+	if (ret != SPI_OK_DELETE) {
+		dump_tcf1_inputs(st_canceled_id, st_pending_id, st_submitted_id,
+				trade_id);
+		FAIL_FRAME(TCF1_statements[2].sql);
 	}
 
 	SPI_finish();

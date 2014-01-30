@@ -1214,8 +1214,8 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 		elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
 		args[0] = CStringGetTextDatum(symbol);
-		args[1] = TimestampGetDatum(start_trade_dts);
-		args[2] = TimestampGetDatum(end_trade_dts);
+		args[1] = TimestampGetDatum(start_trade_dts_ts);
+		args[2] = TimestampGetDatum(end_trade_dts_ts);
 		args[3] = Int32GetDatum(max_trades);
 		ret = SPI_execute_plan(TLF3_1, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT) {
@@ -1461,7 +1461,7 @@ Datum TradeLookupFrame4(PG_FUNCTION_ARGS)
 	char **values = NULL;
 	enum tlf4 {
 			i_holding_history_id=0, i_holding_history_trade_id, i_num_found,
-			i_quantity_after, i_quantity_before, i_trade_id
+			i_num_trades_found, i_quantity_after, i_quantity_before, i_trade_id
 	};
 
 	/* Stuff done only on the first call of the function. */
@@ -1479,6 +1479,7 @@ Datum TradeLookupFrame4(PG_FUNCTION_ARGS)
 		char sql[2048];
 #endif
 		int num_found_count = 0;
+		int num_trades_found_count = 0;
 		Datum args[2];
 		char nulls[2] = {' ', ' ' };
 
@@ -1501,12 +1502,13 @@ Datum TradeLookupFrame4(PG_FUNCTION_ARGS)
 		 * This should be an array of C strings, which will
 		 * be processed later by the type input functions.
 		 */
-		values = (char **) palloc(sizeof(char *) * 6);
+		values = (char **) palloc(sizeof(char *) * 7);
 		values[i_holding_history_id] =
 				(char *) palloc(((TRADE_T_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_holding_history_trade_id] =
 				(char *) palloc(((TRADE_T_LEN + 1) * 20 + 2) * sizeof(char));
 		values[i_num_found] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
+		values[i_num_trades_found] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
 		values[i_quantity_after] = (char *) palloc(((S_QTY_T_LEN + 1) * 20 +
 				2) * sizeof(char));
 		values[i_quantity_before] = (char *) palloc(((S_QTY_T_LEN + 1) * 20 +
@@ -1541,6 +1543,7 @@ Datum TradeLookupFrame4(PG_FUNCTION_ARGS)
 			dump_tlf4_inputs(acct_id, start_trade_dts);
 			FAIL_FRAME_SET(&funcctx->max_calls, TLF4_statements[0].sql);
 		}
+		num_trades_found_count = SPI_processed;
 
 		if (values[i_trade_id] != NULL) {
 #ifdef DEBUG
@@ -1557,13 +1560,15 @@ Datum TradeLookupFrame4(PG_FUNCTION_ARGS)
 				FAIL_FRAME_SET(&funcctx->max_calls,
 							TLF4_statements[1].sql);
 			}
+			num_found_count = SPI_processed;
 		} else
 			num_found_count = 0;
 
-		num_found_count = SPI_processed;
 		sprintf(values[i_num_found], "%d", num_found_count);
+		sprintf(values[i_num_trades_found], "%d", num_trades_found_count);
 #ifdef DEBUG
 		elog(NOTICE, "num_found = %d", num_found_count);
+		elog(NOTICE, "num_found = %d", num_trades_found_count);
 #endif /* DEBUG */
 
 		strcpy(values[i_holding_history_id], "{");
@@ -1622,7 +1627,7 @@ Datum TradeLookupFrame4(PG_FUNCTION_ARGS)
 		Datum result;
 
 #ifdef DEBUG                                                                    
-		for (i = 0; i < 6; i++) {
+		for (i = 0; i < 7; i++) {
 			elog(NOTICE, "TLF4 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */

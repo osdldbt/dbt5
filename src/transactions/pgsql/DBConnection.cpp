@@ -535,6 +535,7 @@ void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 	i_trade_qty = PQfnumber(res, "trade_qty");
 	i_trade_type = PQfnumber(res, "trade_type");
 
+	pOut->num_updated = atoi(PQgetvalue(res, 0, i_num_updated));
 	pOut->send_len = atoi(PQgetvalue(res, 0, i_send_len));
 
 	vector<string> v1;
@@ -1594,6 +1595,7 @@ void CDBConnection::execute(const TTradeLookupFrame4Input *pIn,
 	int i_holding_history_id;
 	int i_holding_history_trade_id;
 	int i_num_found;
+	int i_num_trades_found;
 	int i_quantity_after;
 	int i_quantity_before;
 	int i_trade_id;
@@ -1612,11 +1614,13 @@ void CDBConnection::execute(const TTradeLookupFrame4Input *pIn,
 	i_holding_history_id = PQfnumber(res, "holding_history_id");
 	i_holding_history_trade_id = PQfnumber(res, "holding_history_trade_id");
 	i_num_found = PQfnumber(res, "num_found");
+	i_num_trades_found = PQfnumber(res, "num_trades_found");
 	i_quantity_after = PQfnumber(res, "quantity_after");
 	i_quantity_before = PQfnumber(res, "quantity_before");
 	i_trade_id = PQfnumber(res, "trade_id");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
+	pOut->num_trades_found = atoi(PQgetvalue(res, 0, i_num_trades_found));
 
 	vector<string> vAux;
 	vector<string>::iterator p;

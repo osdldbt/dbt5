@@ -22,7 +22,9 @@ void *TradeResultAsync(void *data)
 			sizeof(request.TxnInput.TradeResultTxnInput));
 
 	// communicate with the SUT and log response time
+	pThrParam->pCMEESUT->m_SocketLock.lock();
 	pThrParam->pCMEESUT->talkToSUT(&request);
+	pThrParam->pCMEESUT->m_SocketLock.unlock();
 
 	delete pThrParam;
 	return NULL;
@@ -98,7 +100,9 @@ void *MarketFeedAsync(void* data)
 			sizeof(request.TxnInput.MarketFeedTxnInput));
 
 	// communicate with the SUT and log response time
+	pThrParam->pCMEESUT->m_SocketLock.lock();
 	pThrParam->pCMEESUT->talkToSUT(&request);
+	pThrParam->pCMEESUT->m_SocketLock.unlock();
 
 	delete pThrParam;
 	return NULL;

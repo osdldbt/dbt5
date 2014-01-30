@@ -28,8 +28,10 @@ public:
 	CMEESUT(char *addr, const int iListenPort, ofstream *pflog, ofstream *pfmix,
 			CMutex *pLogLock, CMutex *pMixLock) :
 			CBaseInterface(addr, iListenPort, pflog, pfmix, pLogLock,
-			pMixLock) {};
+			pMixLock) , m_SocketLock() {};
 	~CMEESUT() {};
+
+	CMutex m_SocketLock;
 
 	// return whether it was successful
 	virtual bool TradeResult(PTradeResultTxnInput);

@@ -23,16 +23,16 @@ const int iMarketExchangePort = 30010;
 
 // Transaction Names
 static const char szTransactionName[12][18] = {
-		"TRADE_ORDER",
-		"TRADE_RESULT",
-		"TRADE_LOOKUP",
-		"TRADE_UPDATE",
-		"TRADE_STATUS",
-		"CUSTOMER_POSITION",
-		"BROKER_VOLUME",
 		"SECURITY_DETAIL",
-		"MARKET_FEED",
+		"BROKER_VOLUME",
+		"CUSTOMER_POSITION",
 		"MARKET_WATCH",
+		"TRADE_STATUS",
+		"TRADE_LOOKUP",
+		"TRADE_ORDER",
+		"TRADE_UPDATE",
+		"MARKET_FEED",
+		"TRADE_RESULT",
 		"DATA_MAINTENANCE",
 		"TRADE_CLEANUP"};
 

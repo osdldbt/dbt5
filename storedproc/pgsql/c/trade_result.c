@@ -629,6 +629,7 @@ Datum TradeResultFrame1(PG_FUNCTION_ARGS)
 	AttInMetadata *attinmeta;
 	int call_cntr;
 	int max_calls;
+	int num_found = 0;
 
 #ifdef DEBUG
 	int i;
@@ -687,6 +688,7 @@ Datum TradeResultFrame1(PG_FUNCTION_ARGS)
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
+			num_found = SPI_processed;
 			if (SPI_processed > 0) {
 				tuple = tuptable->vals[0];
 				values[i_acct_id] = SPI_getvalue(tuple, tupdesc, 1);
@@ -771,7 +773,7 @@ Datum TradeResultFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME_SET(&funcctx->max_calls, TRF1_statements[0].sql);
 		}
 
-		sprintf(values[i_num_found], "%d", SPI_processed);
+		sprintf(values[i_num_found], "%d", num_found);
 
 		/* Build a tuple descriptor for our result type */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
@@ -832,7 +834,7 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 	int call_cntr;
 	int max_calls;
 
-	int i;
+	int i, n;
 
 	char **values = NULL;
 
@@ -1006,7 +1008,8 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 				i = 0;
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
-				while (needed_qty > 0 && i < SPI_processed) {
+				n = SPI_processed;
+				while (needed_qty > 0 && i < n) {
 					long hold_id;
 					int hold_qty;
 					double hold_price;
@@ -1216,7 +1219,8 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
 				i = 0;
-				while (needed_qty > 0 && i < SPI_processed) {
+				n = SPI_processed;
+				while (needed_qty > 0 && i < n) {
 					long hold_id;
 					int hold_qty;
 					double hold_price;

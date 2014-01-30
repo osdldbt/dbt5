@@ -477,6 +477,9 @@ void CBrokerageHouse::dumpInputData(PTradeUpdateTxnInput pTxnInput)
 INT32 CBrokerageHouse::RunBrokerVolume(PBrokerVolumeTxnInput pTxnInput,
 		CBrokerVolume &brokerVolume)
 {
+	TBrokerVolumeTxnOutput bvOutput;
+	memset(&bvOutput, 0, sizeof(TBrokerVolumeTxnOutput));
+
 	try {
 		brokerVolume.DoTxn(pTxnInput, &bvOutput);
 	} catch (const exception &e) {
@@ -497,6 +500,9 @@ INT32 CBrokerageHouse::RunBrokerVolume(PBrokerVolumeTxnInput pTxnInput,
 INT32 CBrokerageHouse::RunCustomerPosition(PCustomerPositionTxnInput pTxnInput,
 		CCustomerPosition &customerPosition)
 {
+	TCustomerPositionTxnOutput cpOutput;
+	memset(&cpOutput, 0, sizeof(TCustomerPositionTxnOutput));
+
 	try {
 		customerPosition.DoTxn(pTxnInput, &cpOutput);
 	} catch (const exception &e) {
@@ -517,6 +523,9 @@ INT32 CBrokerageHouse::RunCustomerPosition(PCustomerPositionTxnInput pTxnInput,
 INT32 CBrokerageHouse::RunDataMaintenance(PDataMaintenanceTxnInput pTxnInput,
 		CDataMaintenance &dataMaintenance)
 {
+	TDataMaintenanceTxnOutput dmOutput;
+	memset(&dmOutput, 0, sizeof(TDataMaintenanceTxnOutput));
+
 	try {
 		dataMaintenance.DoTxn(pTxnInput, &dmOutput);
 	} catch (const exception &e) {
@@ -537,6 +546,9 @@ INT32 CBrokerageHouse::RunDataMaintenance(PDataMaintenanceTxnInput pTxnInput,
 INT32 CBrokerageHouse::RunTradeCleanup(PTradeCleanupTxnInput pTxnInput,
 		CTradeCleanup &tradeCleanup)
 {
+	TTradeCleanupTxnOutput tcOutput;
+	memset(&tcOutput, 0, sizeof(TTradeCleanupTxnOutput));
+
 	try {
 		tradeCleanup.DoTxn(pTxnInput, &tcOutput);
 	} catch (const exception &e) {
@@ -557,6 +569,9 @@ INT32 CBrokerageHouse::RunTradeCleanup(PTradeCleanupTxnInput pTxnInput,
 INT32 CBrokerageHouse::RunMarketFeed(PMarketFeedTxnInput pTxnInput,
 		CMarketFeed &marketFeed)
 {
+	TMarketFeedTxnOutput mfOutput;
+	memset(&mfOutput, 0, sizeof(TMarketFeedTxnOutput));
+
 	try {
 		marketFeed.DoTxn(pTxnInput, &mfOutput);
 	} catch (const exception &e) {
@@ -577,6 +592,9 @@ INT32 CBrokerageHouse::RunMarketFeed(PMarketFeedTxnInput pTxnInput,
 INT32 CBrokerageHouse::RunMarketWatch(PMarketWatchTxnInput pTxnInput,
 		CMarketWatch &marketWatch)
 {
+	TMarketWatchTxnOutput mwOutput;
+	memset(&mwOutput, 0, sizeof(TMarketWatchTxnOutput));
+
 	try {
 		marketWatch.DoTxn(pTxnInput, &mwOutput);
 	} catch (const exception &e) {
@@ -597,6 +615,9 @@ INT32 CBrokerageHouse::RunMarketWatch(PMarketWatchTxnInput pTxnInput,
 INT32 CBrokerageHouse::RunSecurityDetail(PSecurityDetailTxnInput pTxnInput,
 		CSecurityDetail &securityDetail)
 {
+	TSecurityDetailTxnOutput sdOutput;
+	memset(&sdOutput, 0, sizeof(TSecurityDetailTxnOutput));
+
 	try {
 		securityDetail.DoTxn(pTxnInput, &sdOutput);
 	} catch (const exception &e) {
@@ -617,6 +638,9 @@ INT32 CBrokerageHouse::RunSecurityDetail(PSecurityDetailTxnInput pTxnInput,
 INT32 CBrokerageHouse::RunTradeLookup(PTradeLookupTxnInput pTxnInput,
 		CTradeLookup &tradeLookup)
 {
+	TTradeLookupTxnOutput tlOutput;
+	memset(&tlOutput, 0, sizeof(TTradeLookupTxnOutput));
+
 	try {
 		tradeLookup.DoTxn(pTxnInput, &tlOutput);
 	} catch (const exception &e) {
@@ -637,12 +661,17 @@ INT32 CBrokerageHouse::RunTradeLookup(PTradeLookupTxnInput pTxnInput,
 INT32 CBrokerageHouse::RunTradeOrder(PTradeOrderTxnInput pTxnInput,
 		CTradeOrder &tradeOrder)
 {
+	TTradeOrderTxnOutput toOutput;
+	memset(&toOutput, 0, sizeof(TTradeOrderTxnOutput));
+
 	try {
 		tradeOrder.DoTxn(pTxnInput, &toOutput);
 	} catch (const exception &e) {
 		toOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
-	if (toOutput.status != CBaseTxnErr::SUCCESS) {
+
+	if (toOutput.status != CBaseTxnErr::SUCCESS && 
+	    !(toOutput.status == CBaseTxnErr::EXPECTED_ROLLBACK && pTxnInput->roll_it_back)) {
 		ostringstream msg;
 		msg << __FILE__ << " " << __LINE__ << " " << toOutput.status << endl;
 		logErrorMessage(msg.str(), false);
@@ -655,6 +684,9 @@ INT32 CBrokerageHouse::RunTradeOrder(PTradeOrderTxnInput pTxnInput,
 INT32 CBrokerageHouse::RunTradeResult(PTradeResultTxnInput pTxnInput,
 		CTradeResult &tradeResult)
 {
+	TTradeResultTxnOutput trOutput;
+	memset(&trOutput, 0, sizeof(TTradeResultTxnOutput));
+
 	try {
 		tradeResult.DoTxn(pTxnInput, &trOutput);
 	} catch (const exception &e) {
@@ -675,6 +707,9 @@ INT32 CBrokerageHouse::RunTradeResult(PTradeResultTxnInput pTxnInput,
 INT32 CBrokerageHouse::RunTradeStatus(PTradeStatusTxnInput pTxnInput,
 		CTradeStatus &tradeStatus)
 {
+	TTradeStatusTxnOutput tsOutput;
+	memset(&tsOutput, 0, sizeof(TTradeStatusTxnOutput));
+
 	try {
 		tradeStatus.DoTxn(pTxnInput, &tsOutput);
 	} catch (const exception &e) {
@@ -695,6 +730,9 @@ INT32 CBrokerageHouse::RunTradeStatus(PTradeStatusTxnInput pTxnInput,
 INT32 CBrokerageHouse::RunTradeUpdate(PTradeUpdateTxnInput pTxnInput,
 		CTradeUpdate &tradeUpdate)
 {
+	TTradeUpdateTxnOutput tuOutput;
+	memset(&tuOutput, 0, sizeof(TTradeUpdateTxnOutput));
+
 	try {
 		tradeUpdate.DoTxn(pTxnInput, &tuOutput);
 	} catch (const exception &e) {

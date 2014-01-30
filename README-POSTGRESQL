@@ -31,7 +31,7 @@ Building the kit:
 -----
 
 To build a small database (see README for notes on database size):
-	dbt5-pgsql-build-db -c 1000 -s 500 -w 1
+	dbt5-pgsql-build-db -c 1000 -t 1000 -s 500 -w 1
 
 -----
 

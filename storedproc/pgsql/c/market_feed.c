@@ -19,6 +19,7 @@
 #include <utils/builtins.h>
 #include <utils/lsyscache.h>
 #include <utils/numeric.h>
+#include <access/tupmacs.h>
 #include <catalog/pg_type.h>
 
 #include "frame.h"
@@ -226,7 +227,7 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 	int call_cntr;
 	int max_calls;
 
-	int i, j, k;
+	int i, j, n;
 	int num_updated = 0;
 	int rows_sent;
 	int send_len = 0;
@@ -351,7 +352,6 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 		SPI_connect();
 		plan_queries(MFF1_statements);
 
-		k = 0;
 		strcpy(values[i_symbol], "{");
 		strcpy(values[i_trade_id], "{");
 		strcpy(values[i_price_quote], "{");
@@ -401,7 +401,7 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 			args[0] = CStringGetTextDatum(symbol);
 			args[1] = CStringGetTextDatum(type_stop_loss);
 			args[2] = Float8GetDatum(atof(price_quote));
-			args[3] = CStringGetTextDatum(type_stop_loss);
+			args[3] = CStringGetTextDatum(type_limit_sell);
 			args[4] = args[2];
 			args[5] = CStringGetTextDatum(type_limit_buy);
 			args[6] = args[2];
@@ -419,7 +419,8 @@ Datum MarketFeedFrame1(PG_FUNCTION_ARGS)
 
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
-			for (j = 0; j < SPI_processed; j++, k++) {
+			n = SPI_processed;
+			for (j = 0; j < n; j++) {
 				tuple = tuptable->vals[j];
 				trade_id = SPI_getvalue(tuple, tupdesc, 1);
 				req_price_quote = SPI_getvalue(tuple, tupdesc, 2);

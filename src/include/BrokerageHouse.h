@@ -46,19 +46,6 @@ private:
 	char m_szDBName[iMaxDBName + 1]; // database name
 	char m_szDBPort[iMaxPort + 1]; // PostgreSQL postmaster port
 
-	TBrokerVolumeTxnOutput bvOutput;
-	TCustomerPositionTxnOutput cpOutput;
-	TDataMaintenanceTxnOutput dmOutput;
-	TTradeCleanupTxnOutput tcOutput;
-	TMarketFeedTxnOutput mfOutput;
-	TMarketWatchTxnOutput mwOutput;
-	TSecurityDetailTxnOutput sdOutput;
-	TTradeLookupTxnOutput tlOutput;
-	TTradeOrderTxnOutput toOutput;
-	TTradeResultTxnOutput trOutput;
-	TTradeStatusTxnOutput tsOutput;
-	TTradeUpdateTxnOutput tuOutput;
-
 	friend void entryWorkerThread(void *); // entry point for worker thread
 
 	void dumpInputData(PBrokerVolumeTxnInput);
