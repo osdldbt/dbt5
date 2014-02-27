@@ -1305,60 +1305,60 @@ Datum TradeResultFrame2(PG_FUNCTION_ARGS)
 						needed_qty = needed_qty - hold_qty;
 					}
 				}
+			}
 
-				/*
-				 * Buy Trade:
-				 * If needed_qty > 0, then the customer has covered all
-				 * previous Short Sells and the customer is buying new
-				 * holdings.  A new HOLDING record will be created with
-				 * H_QTY set to the number of needed shares.
-				 */
+			/*
+			 * Buy Trade:
+			 * If needed_qty > 0, then the customer has covered all
+			 * previous Short Sells and the customer is buying new
+			 * holdings.  A new HOLDING record will be created with
+			 * H_QTY set to the number of needed shares.
+			 */
 
-				if (needed_qty > 0) {
+			if (needed_qty > 0) {
 #ifdef DEBUG
-					sprintf(sql, SQLTRF2_4a, trade_id, trade_id, 0, needed_qty);
-					elog(NOTICE, "SQL\n%s", sql);
+				sprintf(sql, SQLTRF2_4a, trade_id, trade_id, 0, needed_qty);
+				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-					args[0] = Int64GetDatum(trade_id);
-					args[1] = Int64GetDatum(trade_id);
-					args[2] = Int32GetDatum(0);
-					args[3] = Int32GetDatum(needed_qty);
-					ret = SPI_execute_plan(TRF2_4a, args, nulls, false, 0);
-					if (ret != SPI_OK_INSERT) {
-						FAIL_FRAME_SET(&funcctx->max_calls, TRF2_statements[5].sql);
-						dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-								trade_id, trade_price, trade_qty, type_is_sell);
-					}
+				args[0] = Int64GetDatum(trade_id);
+				args[1] = Int64GetDatum(trade_id);
+				args[2] = Int32GetDatum(0);
+				args[3] = Int32GetDatum(needed_qty);
+				ret = SPI_execute_plan(TRF2_4a, args, nulls, false, 0);
+				if (ret != SPI_OK_INSERT) {
+					FAIL_FRAME_SET(&funcctx->max_calls, TRF2_statements[5].sql);
+					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
+							trade_id, trade_price, trade_qty, type_is_sell);
+				}
 #ifdef DEBUG
-					sprintf(sql, SQLTRF2_7a, trade_id, acct_id, symbol,
-							values[i_trade_dts], trade_price, needed_qty);
-					elog(NOTICE, "SQL\n%s", sql);
+				sprintf(sql, SQLTRF2_7a, trade_id, acct_id, symbol,
+						values[i_trade_dts], trade_price, needed_qty);
+				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-					args[0] = Int64GetDatum(trade_id);
-					args[1] = Int64GetDatum(acct_id);
-					args[2] = CStringGetTextDatum(symbol);
-					args[3] = TimestampGetDatum(values[i_trade_dts]);
-					args[4] = Float8GetDatum(trade_price);
-					args[5] = Int32GetDatum(needed_qty);
-					ret = SPI_execute_plan(TRF2_7a, args, nulls, false, 0);
-					if (ret != SPI_OK_INSERT) {
-						dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-								trade_id, trade_price, trade_qty, type_is_sell);
-						FAIL_FRAME_SET(&funcctx->max_calls, TRF2_statements[7].sql);
-					}
-				} else if ((-1 * hs_qty) == trade_qty) {
+				args[0] = Int64GetDatum(trade_id);
+				args[1] = Int64GetDatum(acct_id);
+				args[2] = CStringGetTextDatum(symbol);
+				args[3] = TimestampGetDatum(values[i_trade_dts]);
+				args[4] = Float8GetDatum(trade_price);
+				args[5] = Int32GetDatum(needed_qty);
+				ret = SPI_execute_plan(TRF2_7a, args, nulls, false, 0);
+				if (ret != SPI_OK_INSERT) {
+					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
+							trade_id, trade_price, trade_qty, type_is_sell);
+					FAIL_FRAME_SET(&funcctx->max_calls, TRF2_statements[7].sql);
+				}
+			} else if ((-1 * hs_qty) == trade_qty) {
 #ifdef DEBUG
-					sprintf(sql, SQLTRF2_7b, acct_id, symbol);
-					elog(NOTICE, "SQL\n%s", sql);
+				sprintf(sql, SQLTRF2_7b, acct_id, symbol);
+				elog(NOTICE, "SQL\n%s", sql);
 #endif /* DEBUG */
-					args[0] = Int64GetDatum(acct_id);
-					args[1] = CStringGetTextDatum(symbol);
-					ret = SPI_execute_plan(TRF2_7b, args, nulls, false, 0);
-					if (ret != SPI_OK_DELETE) {
-						dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-								trade_id, trade_price, trade_qty, type_is_sell);
-						FAIL_FRAME_SET(&funcctx->max_calls, TRF2_statements[9].sql);
-					}
+				args[0] = Int64GetDatum(acct_id);
+				args[1] = CStringGetTextDatum(symbol);
+				ret = SPI_execute_plan(TRF2_7b, args, nulls, false, 0);
+				if (ret != SPI_OK_DELETE) {
+					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
+							trade_id, trade_price, trade_qty, type_is_sell);
+					FAIL_FRAME_SET(&funcctx->max_calls, TRF2_statements[9].sql);
 				}
 			}
 		}
