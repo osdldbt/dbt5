@@ -121,7 +121,8 @@ CDBConnection::~CDBConnection()
 
 void CDBConnection::begin()
 {
-	PQexec(m_Conn, "BEGIN;");
+	PGresult *res = PQexec(m_Conn, "BEGIN;");
+	PQclear(res);
 }
 
 void CDBConnection::connect()
@@ -131,7 +132,8 @@ void CDBConnection::connect()
 
 void CDBConnection::commit()
 {
-	PQexec(m_Conn, "COMMIT;");
+	PGresult *res = PQexec(m_Conn, "COMMIT;");
+	PQclear(res);
 }
 
 char *CDBConnection::escape(string s)
@@ -238,6 +240,7 @@ void CDBConnection::execute(const TBrokerVolumeFrame1Input *pIn,
 	}
 	check_count(pOut->list_len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
@@ -389,6 +392,7 @@ void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
 	}
 	check_count(pOut->acct_len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TCustomerPositionFrame2Input *pIn,
@@ -470,6 +474,7 @@ void CDBConnection::execute(const TCustomerPositionFrame2Input *pIn,
 	}
 	check_count(pOut->hist_len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TDataMaintenanceFrame1Input *pIn)
@@ -485,9 +490,9 @@ void CDBConnection::execute(const TDataMaintenanceFrame1Input *pIn)
 			pIn->tx_id << "', " <<
 			pIn->vol_incr << ")";
 
-	exec(osSQL.str().c_str());
+	PGresult *res = exec(osSQL.str().c_str());
+	PQclear(res);
 }
-
 
 void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 		TMarketFeedFrame1Output *pOut, CSendToMarketInterface *pMarketExchange)
@@ -579,6 +584,7 @@ void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 		++i;
 	}
 	check_count(pOut->send_len, i, __FILE__, __LINE__);
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TMarketWatchFrame1Input *pIn,
@@ -598,6 +604,7 @@ void CDBConnection::execute(const TMarketWatchFrame1Input *pIn,
 	PGresult *res = exec(osSQL.str().c_str());
 
 	pOut->pct_change = atof(PQgetvalue(res, 0, 0));
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
@@ -902,6 +909,7 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 			&pOut->start_date.month,
 			&pOut->start_date.day);
 	pOut->yield = atof(PQgetvalue(res, 0, i_yield));
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
@@ -913,7 +921,8 @@ void CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
 			pIn->st_submitted_id << "'," <<
 			pIn->start_trade_id << ")";
 
-	exec(osSQL.str().c_str());
+	PGresult *res = exec(osSQL.str().c_str());
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
@@ -1120,6 +1129,7 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
@@ -1333,6 +1343,7 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
@@ -1587,6 +1598,7 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeLookupFrame4Input *pIn,
@@ -1662,6 +1674,7 @@ void CDBConnection::execute(const TTradeLookupFrame4Input *pIn,
 	vAux.clear();
 
 	pOut->trade_id = atol(PQgetvalue(res, 0, i_trade_id));
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeOrderFrame1Input *pIn,
@@ -1687,6 +1700,7 @@ void CDBConnection::execute(const TTradeOrderFrame1Input *pIn,
 	strncpy(pOut->tax_id, PQgetvalue(res, 0, 8), cTAX_ID_len);
 	pOut->tax_id[cTAX_ID_len] = '\0';
 	pOut->tax_status = atoi(PQgetvalue(res, 0, 9));
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeOrderFrame2Input *pIn,
@@ -1713,6 +1727,7 @@ void CDBConnection::execute(const TTradeOrderFrame2Input *pIn,
 	} else {
 		pOut->ap_acl[0] = '\0';
 	}
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeOrderFrame3Input *pIn,
@@ -1758,6 +1773,7 @@ void CDBConnection::execute(const TTradeOrderFrame3Input *pIn,
 	pOut->tax_amount = atof(PQgetvalue(res, 0, 11));
 	pOut->type_is_market = (PQgetvalue(res, 0, 12)[0] == 't' ? 1 : 0);
 	pOut->type_is_sell = (PQgetvalue(res, 0, 13)[0] == 't' ? 1 : 0);
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeOrderFrame4Input *pIn,
@@ -1786,6 +1802,7 @@ void CDBConnection::execute(const TTradeOrderFrame4Input *pIn,
 	PGresult *res = exec(osSQL.str().c_str());
 
 	pOut->trade_id = atol(PQgetvalue(res, 0, 0));
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeResultFrame1Input *pIn,
@@ -1811,6 +1828,7 @@ void CDBConnection::execute(const TTradeResultFrame1Input *pIn,
 	pOut->type_is_sell = atoi(PQgetvalue(res, 0, 10));
 	strncpy(pOut->type_name, PQgetvalue(res, 0, 11), cTT_NAME_len);
 	pOut->type_name[cTT_NAME_len] = '\0';
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeResultFrame2Input *pIn,
@@ -1841,6 +1859,7 @@ void CDBConnection::execute(const TTradeResultFrame2Input *pIn,
 			&pOut->trade_dts.hour,
 			&pOut->trade_dts.minute,
 			&pOut->trade_dts.second);
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeResultFrame3Input *pIn,
@@ -1856,6 +1875,7 @@ void CDBConnection::execute(const TTradeResultFrame3Input *pIn,
 	PGresult *res = exec(osSQL.str().c_str());
 
 	pOut->tax_amount = atof(PQgetvalue(res, 0, 0));
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeResultFrame4Input *pIn,
@@ -1873,6 +1893,7 @@ void CDBConnection::execute(const TTradeResultFrame4Input *pIn,
 	pOut->comm_rate = atof(PQgetvalue(res, 0, 0));
 	strncpy(pOut->s_name, PQgetvalue(res, 0, 1), cS_NAME_len);
 	pOut->s_name[cS_NAME_len] = '\0';
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeResultFrame5Input *pIn)
@@ -1895,7 +1916,8 @@ void CDBConnection::execute(const TTradeResultFrame5Input *pIn)
 	// the Transaction Isolation section for dealing with serialization
 	// failures.  These serialization failures can occur with REPEATABLE READS
 	// or SERIALIZABLE.
-	exec(osSQL.str().c_str());
+	PGresult *res = exec(osSQL.str().c_str());
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeResultFrame6Input *pIn,
@@ -1930,6 +1952,7 @@ void CDBConnection::execute(const TTradeResultFrame6Input *pIn,
 	PGresult *res = exec(osSQL.str().c_str());
 
 	pOut->acct_bal = atof(PQgetvalue(res, 0, 0));
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
@@ -2083,6 +2106,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 	}
 	check_count(len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
@@ -2309,6 +2333,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
@@ -2542,6 +2567,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
+	PQclear(res);
 }
 
 void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
@@ -2822,6 +2848,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
+	PQclear(res);
 }
 
 void CDBConnection::reconnect()
@@ -2832,7 +2859,8 @@ void CDBConnection::reconnect()
 
 void CDBConnection::rollback()
 {
-	PQexec(m_Conn, "ROLLBACK;");
+	PGresult *res = PQexec(m_Conn, "ROLLBACK;");
+	PQclear(res);
 }
 
 void CDBConnection::setBrokerageHouse(CBrokerageHouse *bh)
@@ -2842,20 +2870,24 @@ void CDBConnection::setBrokerageHouse(CBrokerageHouse *bh)
 
 void CDBConnection::setReadCommitted()
 {
-	PQexec(m_Conn, "SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
+	PGresult *res = PQexec(m_Conn, "SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
+	PQclear(res);
 }
 
 void CDBConnection::setReadUncommitted()
 {
-	PQexec(m_Conn, "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;");
+	PGresult *res = PQexec(m_Conn, "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;");
+	PQclear(res);
 }
 
 void CDBConnection::setRepeatableRead()
 {
-	PQexec(m_Conn, "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;");
+	PGresult *res = PQexec(m_Conn, "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;");
+	PQclear(res);
 }
 
 void CDBConnection::setSerializable()
 {
-	PQexec(m_Conn, "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
+	PGresult *res = PQexec(m_Conn, "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
+	PQclear(res);
 }
