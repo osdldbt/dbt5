@@ -1,0 +1,34 @@
+From dbt5-base
+
+RUN yum -y install epel-release
+RUN yum -y update
+RUN yum -y install R
+
+ARG PGVERSION=${PGVERSION}
+
+WORKDIR /tmp
+RUN curl -OL https://ftp.postgresql.org/pub/source/v${PGVERSION}/postgresql-${PGVERSION}.tar.gz
+RUN tar -C /usr/local/src -xvf postgresql-${PGVERSION}.tar.gz
+WORKDIR /usr/local/src/postgresql-${PGVERSION}
+RUN ./configure --prefix /usr
+RUN make install
+
+COPY . /usr/local/src/dbt5
+
+# Install DBT-5 for PostgreSQL.
+ARG PKG_CONFIG_PATH="/usr/lib/pkgconfig"
+WORKDIR /usr/local/src/dbt5
+RUN make -f Makefile.cmake release
+RUN (cd builds/release && make install)
+
+# Build TPC-E tools.
+ARG EGENDIR="/usr/local/src/dbt5/egen"
+WORKDIR ${EGENDIR}/prj
+RUN make -f Makefile.pgsql
+
+RUN groupadd postgres
+RUN useradd -g postgres postgres
+RUN chown -R postgres:postgres ${EGENDIR}
+
+RUN echo "/usr/lib" > /etc/ld.so.conf.d/dbt5.conf
+RUN ldconfig
