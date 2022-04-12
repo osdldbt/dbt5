@@ -5,6 +5,7 @@ vX.Y.Z
 - Replace libpqxx with libpq
 - Fix PostgreSQL stored procedure bugs
 - Fix egen compiler warnings
+- Update cmake files
 
 v0.1.0
 

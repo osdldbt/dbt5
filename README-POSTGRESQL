@@ -2,30 +2,27 @@ Building the kit:
 
 	Requirements:
 
-		* cmake 2.4 or newer is required to configure the Makefiles
+		* cmake 2.8.12 or newer is required to configure the Makefiles
 		* Developed against Postgresql 8.4 and newer.  May work with older
 		  versions but not quite tested.
 		* pqxx 2.6.0.  Maybe work with older versions but not quite tested.
 
-	1. Configure:
-
-		cmake CMakeLists.txt -DDBMS=pgsql
-
-	2. Build EGen:
+	1. Build EGen:
 
 		cd egen/prj
 		make -f Makefile.pgsql
 
-	3. Build and install the C stored functions:
+	2. Build and install the C stored functions:
 
 		cd storedproc/pgsql/c
 		make
 		make install
 
-	4. Make the rest of the kit:
+	3. Make the rest of the kit:
 
 		# At the top level of the tree
-		make
+		make -f Makefile.cmake release
+		cd builds/release
 		make install
 
 -----

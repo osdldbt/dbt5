@@ -18,6 +18,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "CThreadErr.h"
 #include "MiscConsts.h"

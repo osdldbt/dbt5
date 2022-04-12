@@ -1,14 +1,21 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12)
 PROJECT(dbt5 CXX)
+
+set (PROJECT_VERSION_MAJOR 0)
+set (PROJECT_VERSION_MINOR 1)
+set (PROJECT_VERSION_PATCH 0)
+
+set (PROJECT_VERSION
+     ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})
 
 #
 # Defining binaries so to minimized typoes.
 #
 
-SET(DBT5_BROKERAGE_HOUSE bin/BrokerageHouseMain)
-SET(DBT5_DRIVER bin/DriverMain)
-SET(DBT5_MARKET_EXCHANGE bin/MarketExchangeMain)
-SET(DBT5_TEST_TXN bin/TestTxn)
+SET(DBT5_BROKERAGE_HOUSE BrokerageHouseMain)
+SET(DBT5_DRIVER DriverMain)
+SET(DBT5_MARKET_EXCHANGE MarketExchangeMain)
+SET(DBT5_TEST_TXN TestTxn)
 
 #
 # Check for large file support by using 'getconf'.
@@ -25,55 +32,12 @@ IF (GETCONF_FOUND)
             OUTPUT_STRIP_TRAILING_WHITESPACE)
 ENDIF (GETCONF_FOUND)
 
-IF (DBMS STREQUAL "pgsql")
-    #
-    # Create PostgreSQL specific configuration.
-    #
-
-    FIND_PROGRAM(PG_CONFIG pg_config)
-
-    IF (PG_CONFIG)
-       SET(PG_CONFIG_FOUND TRUE)
-    ENDIF (PG_CONFIG)
-
-    IF (PG_CONFIG_FOUND)
-        MESSAGE(STATUS "Found pg_config for PostgreSQL: ${PG_CONFIG}")
-
-        EXECUTE_PROCESS(COMMAND ${PG_CONFIG} --includedir OUTPUT_VARIABLE
-                PG_INCLUDEDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-        EXECUTE_PROCESS(COMMAND ${PG_CONFIG} --libdir OUTPUT_VARIABLE
-                PG_LIBDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-        SET(DBCFLAGS "-DLIBPQ -I${PG_INCLUDEDIR}")
-
-        SET(DB_LIBS "-L${PG_LIBDIR} -lpq")
-
-        SET(DB_SCRIPTS scripts/pgsql/dbt5-pgsql-start-db
-                       scripts/pgsql/dbt5-pgsql-create-indexes
-                       scripts/pgsql/dbt5-pgsql-create-tables
-                       scripts/pgsql/dbt5-pgsql-drop-tables
-                       scripts/pgsql/dbt5-pgsql-restore-db
-                       scripts/pgsql/dbt5-pgsql-load-stored-procs
-                       scripts/pgsql/dbt5-pgsql-backup-db
-                       scripts/pgsql/dbt5-pgsql-db-plans
-                       scripts/pgsql/dbt5-pgsql-drop-db
-                       scripts/pgsql/dbt5-pgsql-check-db
-                       scripts/pgsql/dbt5-pgsql-db-stat
-                       scripts/pgsql/dbt5-pgsql-stop-db
-                       scripts/pgsql/dbt5-pgsql-create-db
-                       scripts/pgsql/dbt5-pgsql-build-db)
-    ENDIF (PG_CONFIG_FOUND)
-ELSE (NOT DEFINED DBMS)
-    MESSAGE(FATAL_ERROR "Need to specify -DDBMS=pgsql")
-
-ENDIF (DBMS STREQUAL "pgsql")
-
 #
 # Defining commonly used paths.
 #
 
-SET(EGENINC egen/inc)
-SET(EGENSRC egen/src)
+SET(EGENINC "${CMAKE_HOME_DIRECTORY}/egen/inc")
+SET(EGENSRC "${CMAKE_HOME_DIRECTORY}/egen/src")
 
 SET(TXN src/transactions)
 SET(INTF src/interfaces)
@@ -82,11 +46,41 @@ SET(BH src/BrokerageHouse)
 SET(CE src/Driver)
 SET(ME src/MarketExchange)
 
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(LIBPQ libpq)
+if (LIBPQ_FOUND)
+    set (DBCFLAGS "${DBCFLAGS} -DHAVE_LIBPQ ${LIBPQ_CFLAGS}")
+
+    set (DB_SOURCE
+         ${DB_SOURCE}
+         ${TXN}/pgsql/DBConnection.cpp
+    )
+
+    set (DB_SCRIPTS
+         ${DB_SCRIPTS}
+         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-start-db
+         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-create-indexes
+         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-create-tables
+         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-drop-tables
+         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-restore-db
+         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-load-stored-procs
+         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-backup-db
+         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-db-plans
+         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-drop-db
+         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-check-db
+         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-db-stat
+         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-stop-db
+         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-create-db
+         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-build-db
+    )
+endif (LIBPQ_FOUND)
+
 #
 # Defining common groups of source files.
 #
 
-SET(TXN_SOURCE ${TXN}/${DBMS}/DBConnection.cpp
+SET(TXN_SOURCE ${DB_SOURCE}
                ${TXN}/TxnBaseDB.cpp
                ${TXN}/MarketFeedDB.cpp
                ${TXN}/TradeCleanupDB.cpp
@@ -202,39 +196,108 @@ ADD_EXECUTABLE(${DBT5_TEST_TXN}
                   src/TestTransactions/TestTxn.cpp)
 
 #
-# Set compiler flags.
-#
-
-SET(CMAKE_CXX_FLAGS "-g -Wall -I${EGENINC} -Isrc/include ${LFS_CFLAGS}")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_FORMAT_MACROS")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
-# FIXME: How to set this for just ${TXN}/${DBMS}/DBConnection.cpp?
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${DBCFLAGS}")
-
-#
 # Set linker flags.
 #
 
-SET_TARGET_PROPERTIES(${DBT5_BROKERAGE_HOUSE} PROPERTIES LINK_FLAGS
-        "${DB_LIBS} -lpthread")
-SET_TARGET_PROPERTIES(${DBT5_DRIVER} PROPERTIES LINK_FLAGS "-lpthread")
-SET_TARGET_PROPERTIES(${DBT5_MARKET_EXCHANGE} PROPERTIES LINK_FLAGS "-lpthread")
-SET_TARGET_PROPERTIES(${DBT5_TEST_TXN} PROPERTIES LINK_FLAGS
-        "${DB_LIBS} -lpthread")
+target_link_libraries (${DBT5_BROKERAGE_HOUSE} -lpthread)
+target_link_libraries (${DBT5_DRIVER} -lpthread)
+target_link_libraries (${DBT5_MARKET_EXCHANGE} -lpthread)
+target_link_libraries (${DBT5_TEST_TXN} -lpthread)
+
+if (LIBPQ_FOUND)
+    target_link_libraries (${DBT5_BROKERAGE_HOUSE} ${LIBPQ_LDFLAGS})
+    target_link_libraries (${DBT5_TEST_TXN} ${LIBPQ_LDFLAGS})
+endif (LIBPQ_FOUND)
+
+#
+# Set compiler flags.
+#
+
+set (CMAKE_CXX_FLAGS_DEBUG "-g -Wall")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${EGENINC} ${LFS_CFLAGS}")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_HOME_DIRECTORY}/src/include")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_FORMAT_MACROS")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
+
+set_source_files_properties(
+    ${DB_SOURCE}
+    src/interfaces/DMSUTtest.cpp
+    src/interfaces/MEESUTtest.cpp
+    src/interfaces/TxnHarnessSendToMarketTest.cpp
+    src/transactions/BrokerVolumeDB.cpp
+    src/transactions/CustomerPositionDB.cpp
+    src/transactions/DataMaintenanceDB.cpp
+    src/transactions/MarketFeedDB.cpp
+    src/transactions/MarketWatchDB.cpp
+    src/transactions/SecurityDetailDB.cpp
+    src/transactions/TradeCleanupDB.cpp
+    src/transactions/TradeUpdateDB.cpp
+    src/transactions/TradeLookupDB.cpp
+    src/transactions/TradeResultDB.cpp
+    src/transactions/TradeOrderDB.cpp
+    src/transactions/TradeStatusDB.cpp
+    src/transactions/TxnBaseDB.cpp
+    src/BrokerageHouse/BrokerageHouse.cpp
+    src/TestTransactions/TestTxn.cpp
+    COMPILE_FLAGS "${DBCFLAGS}"
+)
 
 #
 # Install rules.
 #
 
-INSTALL(PROGRAMS ${DBT5_BROKERAGE_HOUSE}
-                 ${DBT5_DRIVER}
-                 ${DBT5_MARKET_EXCHANGE}
-                 ${DBT5_TEST_TXN}
-                 scripts/dbt5-post-process
-                 scripts/dbt5-sysstats
-                 scripts/dbt5-get-os-info
-                 scripts/dbt5-run-workload
-                 scripts/dbt5-plot-transaction-rate
-                 scripts/dbt5-generate-report
-                 ${DB_SCRIPTS}
-        DESTINATION "/bin")
+install (PROGRAMS
+         ${CMAKE_BINARY_DIR}/${DBT5_BROKERAGE_HOUSE}
+         ${CMAKE_BINARY_DIR}/${DBT5_DRIVER}
+         ${CMAKE_BINARY_DIR}/${DBT5_MARKET_EXCHANGE}
+         ${CMAKE_BINARY_DIR}/${DBT5_TEST_TXN}
+         ${CMAKE_SOURCE_DIR}/scripts/dbt5-post-process
+         ${CMAKE_SOURCE_DIR}/scripts/dbt5-sysstats
+         ${CMAKE_SOURCE_DIR}/scripts/dbt5-get-os-info
+         ${CMAKE_SOURCE_DIR}/scripts/dbt5-run-workload
+         ${CMAKE_SOURCE_DIR}/scripts/dbt5-plot-transaction-rate
+         ${CMAKE_SOURCE_DIR}/scripts/dbt5-generate-report
+         ${DB_SCRIPTS}
+         DESTINATION "/bin")
+
+SET(CPACK_CMAKE_GENERATOR "Unix Makefiles")
+SET(CPACK_GENERATOR "TXZ;TZIP")
+
+SET(CPACK_PACKAGE_NAME "dbt5")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Database Test 5")
+SET(CPACK_PACKAGE_VENDOR "osdldbt")
+
+SET(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+SET(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}")
+
+SET(CPACK_INSTALL_CMAKE_PROJECTS "")
+
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "README")
+SET(CPACK_RESOURCE_FILE_LICENSE "LICENSE")
+
+set (CPACK_SOURCE_IGNORE_FILES
+     "\\\\.bz2\\$;\\\\.gz\\$;\\\\.xz\\$;\\\\.Z\\$;\\\\.zip\\$"
+)
+set (CPACK_SOURCE_IGNORE_FILES
+     "${CPACK_SOURCE_IGNORE_FILES};/CMakeCache\\\\.txt\\$"
+)
+set (CPACK_SOURCE_IGNORE_FILES
+     "${CPACK_SOURCE_IGNORE_FILES};/CMakeFiles/"
+)
+set (CPACK_SOURCE_IGNORE_FILES
+     "${CPACK_SOURCE_IGNORE_FILES};/cmake_install\\\\.cmake\\$"
+)
+set (CPACK_SOURCE_IGNORE_FILES
+     "${CPACK_SOURCE_IGNORE_FILES};/CPackConfig\\\\.cmake\\$"
+)
+set (CPACK_SOURCE_IGNORE_FILES
+     "${CPACK_SOURCE_IGNORE_FILES};/\\\\.gitignore\\$"
+)
+set (CPACK_SOURCE_IGNORE_FILES
+     "${CPACK_SOURCE_IGNORE_FILES};/\\\\_CPack\\\\_Packages/"
+)
+set (CPACK_SOURCE_IGNORE_FILES
+     "${CPACK_SOURCE_IGNORE_FILES};/CPackSourceConfig\\\\.cmake\\$"
+)
+
+include (CPack)

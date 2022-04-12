@@ -1,14 +1,24 @@
+# vim
 *.swp
 *.so
-storedproc/pgsql/c/*.sql
+tags
+
+.vscode
+
+# cmake
 install_manifest.txt
 log
 CMakeCache.txt
 Makefile
 bin/
 cmake_install.cmake
+CMakeFiles/
+builds/
+
+# PostgreSQL
+storedproc/pgsql/c/*.sql
+
 egen/*.log
 egen/bin/
 egen/lib/
 egen/obj/
-CMakeFiles/
