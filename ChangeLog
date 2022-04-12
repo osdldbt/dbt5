@@ -1,0 +1,11 @@
+vX.Y.Z
+
+- Fix transaction rate calculation
+- Fix various scripting bugs
+- Replace libpqxx with libpq
+- Fix PostgreSQL stored procedure bugs
+- Fix egen compiler warnings
+
+v0.1.0
+
+- Initial release, currently only for PostgreSQL
