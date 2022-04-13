@@ -1,0 +1,55 @@
+From dbt5-base
+
+ARG PGVERSION=${PGVERSION}
+
+WORKDIR /tmp
+RUN curl -OL https://ftp.postgresql.org/pub/source/v${PGVERSION}/postgresql-${PGVERSION}.tar.gz
+RUN tar -C /usr/local/src -xvf postgresql-${PGVERSION}.tar.gz
+WORKDIR /usr/local/src/postgresql-${PGVERSION}
+RUN ./configure --prefix /usr
+RUN make install
+
+COPY . /usr/local/src/dbt5
+
+# Install DBT-5 for PostgreSQL.
+ARG PKG_CONFIG_PATH="/usr/lib/pkgconfig"
+WORKDIR /usr/local/src/dbt5
+RUN make -f Makefile.cmake release
+RUN (cd builds/release && make install)
+
+# Build TPC-E tools.
+ARG EGENDIR="/usr/local/src/dbt5/egen"
+WORKDIR ${EGENDIR}/prj
+RUN make -f Makefile.pgsql
+
+ARG DBMS=pgsql
+ENV PATH="/usr/pgsql-${PGVERSION}/bin:$PATH"
+
+# Install DBT-5 PostgreSQL user defined C functions.
+WORKDIR /usr/local/src/dbt5/storedproc/pgsql/c
+RUN if [ "x${DBMS}" = "xpgsql" ]; then make USE_PGXS=1 install; fi
+
+RUN groupadd postgres
+RUN useradd -g postgres postgres
+
+RUN chmod 777 /opt
+RUN chown -R postgres:postgres ${EGENDIR}
+
+USER postgres
+
+ARG DBT5DBNAME="dbt5"
+ARG DBT5PGDATA="/opt/pgdata"
+ARG PGHOST="/tmp"
+ARG SCALE=500
+WORKDIR /tmp
+RUN  if [ "x${DBMS}" = "xpgsql" ]; then \
+             dbt5-pgsql-build-db -c 5000 -t 5000 -s $SCALE -w 300 -- \
+                     -p "-c unix_socket_directories='/tmp'" && \
+                     dbt5-pgsql-stop-db; \
+     fi
+RUN  if [ "x${DBMS}" = "xpgsql" ]; then \
+            echo "host all all 0.0.0.0/0 trust" >> /opt/pgdata/pg_hba.conf; \
+        fi
+RUN  if [ "x${DBMS}" = "xpgsql" ]; then \
+             echo "host all all ::/0 trust" >> /opt/pgdata/pg_hba.conf; \
+     fi

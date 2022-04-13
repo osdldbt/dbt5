@@ -1,0 +1,57 @@
+#!/bin/sh
+
+# Build a Docker image with the DBT-5 database created.
+
+which docker > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "docker not in path"
+	exit 1
+fi
+
+SCALE=500
+DBMS="pgsql"
+PGVERSION=10
+
+if [ $# -ge 1 ]; then
+	SCALE=$1
+fi
+
+if [ $# -ge 2 ]; then
+	DBMS=$2
+fi
+
+if [ $# -ge 3 ]; then
+	PGVERSION=$3
+else
+	which jq > /dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		PGORG="https://www.postgresql.org/versions.json"
+		PGVERSION=$(curl -s $PGORG | jq -r 'sort | .[] | "\(.major).\(.latestMinor)"' | tail -n 1)
+	fi
+fi
+
+echo "Using PostgreSQL Major Version $PGVERSION"
+
+TOPDIR=`dirname $0`
+
+# Use the return code from `docker inspect` to determine if the docker image
+# needs to be created.
+docker inspect dbt5-base > /dev/null
+if [ $? -ne 0 ]; then
+	${TOPDIR}/prepare-image || exit 1
+fi
+
+TOPDIR="${TOPDIR}/.."
+docker build -t dbt5-database-${DBMS}-${SCALE}s \
+		--build-arg PGVERSION=$PGVERSION \
+		--build-arg DBMS=$DBMS \
+		--build-arg SCALE=$SCALE \
+		--shm-size=256m \
+		-f Dockerfile.database $TOPDIR
+if [ $? -ne 0 ]; then
+	echo "usage: $0 [SCALE [DBMS [DBMSVER]]]"
+	echo
+	echo "DBMS options: (default: pgsql)"
+	echo "  pgsql"
+	exit 1
+fi

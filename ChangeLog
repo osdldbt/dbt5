@@ -6,6 +6,7 @@ vX.Y.Z
 - Fix PostgreSQL stored procedure bugs
 - Fix egen compiler warnings
 - Update cmake files
+- Add Docker scripts to build database
 
 v0.1.0
 

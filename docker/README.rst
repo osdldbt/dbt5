@@ -5,10 +5,13 @@ get a complete 2-tier environment up and running.
 The quickest way to try out the kit is to run::
 
     # Prepare containers.
+    docker/start-database
     docker/build-driver
 
 Description of all the helper scripts:
 
+* `build-database` - Build a Docker image, by default with the minimal valid
+                     scale factor.
 * `build-driver` - Build a Docker image that can be used to test and use the
                      driver components.
 * `compile-dbt5` - Simply attempt to compile the local source code in a known
