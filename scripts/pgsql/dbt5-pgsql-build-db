@@ -1,10 +1,10 @@
 #!/bin/sh
-
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2005-2010 Mark Wong & Open Source Development Labs, Inc.
+# Copyright (C) 2005-2010 Open Source Development Labs, Inc.
+#               2005-2022 Mark Wong
 #
 
 usage()
@@ -141,10 +141,40 @@ dbt5-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG} || exit 1
 dbt5-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG} || exit 1
 dbt5-pgsql-load-stored-procs ${PORTARG} || exit 1
 psql ${PORTARG} -e ${DBNAMEARG} -c "SELECT setseed(0);" || exit 1
-#
-# VACUUM FULL ANALYZE: Build optimizer statistics for newly-created
-# tables. The VACUUM FULL is probably unnecessary; we want to scan the
-# heap and update the commit-hint bits on each new tuple, but a regular
-# VACUUM ought to suffice for that.
-#
-vacuumdb ${PORTARG} -z -f ${DBNAMEARG} || exit 1
+
+# Set the number of vacuumdb jobs to 1 (no parallelism) and let see
+# if the system can support a greater value.
+VACUUM_JOBS=1
+# Based on server version, enable vaccumdb parallelism if that version
+# is greater than or equal to 9.5.
+PG_VERSION_NUM=$(psql $PORTARG -At -d $DBT5DBNAME -c "SHOW server_version_num")
+PG_VERSION_NUM=$(( $PG_VERSION_NUM + 0 ))
+if [ $PG_VERSION_NUM -ge 95000 ]; then
+	# Set default vacuum jobs to 33 because this is the number of tables
+	# present in the database. Setting the number of job to a value
+	# greater than 9 won't bring any additional benefit.
+	VACUUM_JOBS=33
+	# If the number of CPUs is less than 9, then we set the vacuum job
+	# number to that number of CPUs.
+	if [ -f "/proc/stat" ]; then
+		CPUS=$(grep cpu /proc/stat | wc -l)
+		CPUS=$(( $CPUS - 1 ))
+		if [ $CPUS -lt $VACUUM_JOBS ]; then
+			VACUUM_JOBS=$CPUS
+		fi
+	fi
+fi
+
+# VACUUM FULL ANALYZE: Build optimizer statistics for newly-created tables. A
+# VACUUM FULL is probably unnecessary; we want to scan the heap and update the
+# commit-hint bits on each new tuple, but a regular VACUUM ought to suffice for
+# that.
+
+VACUUM_OPTS="-z -F"
+
+# Use vacuumdb's -j option only if VACUUM_JOBS is greater than 1.
+if [ $VACUUM_JOBS -gt 1 ]; then
+	VACUUM_OPTS+=" -j $VACUUM_JOBS"
+fi
+
+vacuumdb $PORTARG $VACUUM_OPTS -d $DBT5DBNAME || exit 1

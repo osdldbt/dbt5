@@ -7,6 +7,8 @@ vX.Y.Z
 - Fix egen compiler warnings
 - Update cmake files
 - Add Docker scripts to build database
+- Update PostgreSQL build script set vacuum parallelism based on available
+  processors and to perform a regular vacuum, instead of a full vacuum
 
 v0.1.0
 
