@@ -29,7 +29,7 @@ PG_MODULE_MAGIC;
 
 #define USE_ISO_DATES 1
 #define MAXDATEFIELDS 25
-#define MAXDATELEN 63
+#define MYMAXDATELEN 63
 
 #ifdef DEBUG
 #define SQLTLF1_1 \
@@ -447,7 +447,7 @@ Datum TradeLookupFrame1(PG_FUNCTION_ARGS)
 				max_trades + 2) * sizeof(char));
 		values[i_cash_transaction_amount] = (char *) palloc(((VALUE_T_LEN +
 				1) * max_trades + 2) * sizeof(char));
-		values[i_cash_transaction_dts] = (char *) palloc(((MAXDATELEN + 1) *
+		values[i_cash_transaction_dts] = (char *) palloc(((MYMAXDATELEN + 1) *
 				max_trades + 2) * sizeof(char));
 		values[i_cash_transaction_name] = (char *) palloc(((CT_NAME_LEN + 3) *
 				max_trades + 2) * sizeof(char));
@@ -460,11 +460,11 @@ Datum TradeLookupFrame1(PG_FUNCTION_ARGS)
 		values[i_num_found] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
 		values[i_settlement_amount] = (char *) palloc(((VALUE_T_LEN + 1) *
 				max_trades + 2) * sizeof(char));
-		values[i_settlement_cash_due_date] = (char *) palloc(((MAXDATELEN +
+		values[i_settlement_cash_due_date] = (char *) palloc(((MYMAXDATELEN +
 				1) * max_trades + 2) * sizeof(char));
 		values[i_settlement_cash_type] = (char *) palloc(((SE_CASH_TYPE_LEN +
 				1) * max_trades + 2) * sizeof(char));
-		values[i_trade_history_dts] = (char *) palloc((((MAXDATELEN + 1) *
+		values[i_trade_history_dts] = (char *) palloc((((MYMAXDATELEN + 1) *
 				max_trades + 3) * 3 + 2) * sizeof(char));
 		values[i_trade_history_status_id] = (char *) palloc((((ST_ID_LEN + 3) *
 				max_trades + 3) * 3 + 2) * sizeof(char));
@@ -780,8 +780,8 @@ Datum TradeLookupFrame2(PG_FUNCTION_ARGS)
 		struct pg_tm tt, *tm = &tt;
 		fsec_t fsec;
 		char *tzn = NULL;
-		char end_trade_dts[MAXDATELEN + 1];
-		char start_trade_dts[MAXDATELEN + 1];
+		char end_trade_dts[MYMAXDATELEN + 1];
+		char start_trade_dts[MYMAXDATELEN + 1];
 #ifdef DEBUG
 		char sql[2048];
 #endif
@@ -821,7 +821,7 @@ Datum TradeLookupFrame2(PG_FUNCTION_ARGS)
 				max_trades + 2) * sizeof(char));
 		values[i_cash_transaction_amount] = (char *) palloc(((VALUE_T_LEN +
 				1) * max_trades + 2) * sizeof(char));
-		values[i_cash_transaction_dts] = (char *) palloc(((MAXDATELEN + 1) *
+		values[i_cash_transaction_dts] = (char *) palloc(((MYMAXDATELEN + 1) *
 				max_trades + 2) * sizeof(char));
 		values[i_cash_transaction_name] = (char *) palloc(((CT_NAME_LEN +
 				3) * max_trades + 2) * sizeof(char));
@@ -832,11 +832,11 @@ Datum TradeLookupFrame2(PG_FUNCTION_ARGS)
 		values[i_num_found] = (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
 		values[i_settlement_amount] = (char *) palloc(((VALUE_T_LEN + 1) *
 				max_trades + 2) * sizeof(char));
-		values[i_settlement_cash_due_date] = (char *) palloc(((MAXDATELEN +
+		values[i_settlement_cash_due_date] = (char *) palloc(((MYMAXDATELEN +
 				1) * max_trades + 2) * sizeof(char));
 		values[i_settlement_cash_type] = (char *) palloc(((SE_CASH_TYPE_LEN +
 				1) * max_trades + 2) * sizeof(char));
-		values[i_trade_history_dts] = (char *) palloc((((MAXDATELEN + 1) *
+		values[i_trade_history_dts] = (char *) palloc((((MYMAXDATELEN + 1) *
 				max_trades + 3) * 3 + 2) * sizeof(char));
 		values[i_trade_history_status_id] = (char *) palloc((((ST_ID_LEN +
 				3) * max_trades + 3) * 3 + 2) * sizeof(char));
@@ -1124,8 +1124,8 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 		struct pg_tm tt, *tm = &tt;
 		fsec_t fsec;
 		char *tzn = NULL;
-		char end_trade_dts[MAXDATELEN + 1];
-		char start_trade_dts[MAXDATELEN + 1];
+		char end_trade_dts[MYMAXDATELEN + 1];
+		char start_trade_dts[MYMAXDATELEN + 1];
 #ifdef DEBUG
 		char sql[2048];
 #endif
@@ -1169,7 +1169,7 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 				2) * sizeof(char));
 		values[i_cash_transaction_amount] = (char *) palloc(((VALUE_T_LEN +
 				1) * max_trades + 2) * sizeof(char));
-		values[i_cash_transaction_dts] = (char *) palloc(((MAXDATELEN + 1) *
+		values[i_cash_transaction_dts] = (char *) palloc(((MYMAXDATELEN + 1) *
 				max_trades + 2) * sizeof(char));
 		values[i_cash_transaction_name] = (char *) palloc(((CT_NAME_LEN + 3) *
 				max_trades + 2) * sizeof(char));
@@ -1184,13 +1184,13 @@ Datum TradeLookupFrame3(PG_FUNCTION_ARGS)
 				2) * sizeof(char));
 		values[i_settlement_amount] = (char *) palloc(((VALUE_T_LEN + 1) *
 				max_trades + 2) * sizeof(char));
-		values[i_settlement_cash_due_date] = (char *) palloc(((MAXDATELEN +
+		values[i_settlement_cash_due_date] = (char *) palloc(((MYMAXDATELEN +
 				1) * max_trades + 2) * sizeof(char));
 		values[i_settlement_cash_type] = (char *) palloc(((SE_CASH_TYPE_LEN +
 				3) * max_trades + 2) * sizeof(char));
-		values[i_trade_dts] = (char *) palloc(((MAXDATELEN * 3 + 4) *
+		values[i_trade_dts] = (char *) palloc(((MYMAXDATELEN * 3 + 4) *
 				max_trades + max_trades + 2) * sizeof(char));
-		values[i_trade_history_dts] = (char *) palloc(((MAXDATELEN * 3 + 4) *
+		values[i_trade_history_dts] = (char *) palloc(((MYMAXDATELEN * 3 + 4) *
 				max_trades + max_trades + 2) * sizeof(char));
 		values[i_trade_history_status_id] = (char *) palloc(((ST_ID_LEN + 3) *
 				max_trades * 3 + 2) * sizeof(char));
@@ -1474,7 +1474,7 @@ Datum TradeLookupFrame4(PG_FUNCTION_ARGS)
 		struct pg_tm tt, *tm = &tt;
 		fsec_t fsec;
 		char *tzn = NULL;
-		char start_trade_dts[MAXDATELEN + 1];
+		char start_trade_dts[MYMAXDATELEN + 1];
 #ifdef DEBUG
 		char sql[2048];
 #endif

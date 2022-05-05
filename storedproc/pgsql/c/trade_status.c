@@ -9,6 +9,7 @@
 
 #include <sys/types.h>
 #include <unistd.h>
+#include <inttypes.h>
 #include <postgres.h>
 #include <fmgr.h>
 #include <executor/spi.h> /* this should include most necessary APIs */
@@ -186,7 +187,7 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME_SET(&funcctx->max_calls, TSF1_statements[0].sql);
 			dump_tsf1_inputs(acct_id);
 		}
-		sprintf(values[i_num_found], "%d", SPI_processed);
+		sprintf(values[i_num_found], "%" PRId64, SPI_processed);
 		strcpy(values[i_trade_id], "{");
 		strcpy(values[i_trade_dts], "{");
 		strcpy(values[i_status_name], "{");

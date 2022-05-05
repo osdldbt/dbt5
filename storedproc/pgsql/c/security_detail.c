@@ -9,6 +9,7 @@
 
 #include <sys/types.h>
 #include <unistd.h>
+#include <inttypes.h>
 #include <postgres.h>
 #include <fmgr.h>
 #include <executor/spi.h> /* this should include most necessary APIs */
@@ -549,7 +550,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[2].sql);
 		}
-		sprintf(values[i_fin_len], "%d", SPI_processed);
+		sprintf(values[i_fin_len], "%" PRId64, SPI_processed);
 		strcpy(values[i_fin], "{");
 		for (i = 0; i < SPI_processed; i++) {
 			tuple = tuptable->vals[i];
@@ -601,7 +602,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[3].sql);
 		}
-		sprintf(values[i_day_len], "%d", SPI_processed);
+		sprintf(values[i_day_len], "%" PRId64, SPI_processed);
 		strcpy(values[i_day], "{");
 		for (i = 0; i < SPI_processed; i++) {
 			tuple = tuptable->vals[i];
@@ -666,7 +667,7 @@ Datum SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME_SET(&funcctx->max_calls, access_lob_flag?
 					SDF1_statements[5].sql: SDF1_statements[6].sql);
 		}
-		sprintf(values[i_news_len], "%d", SPI_processed);
+		sprintf(values[i_news_len], "%" PRId64, SPI_processed);
 		strcpy(values[i_news], "{");
 		for (i = 0; i < SPI_processed; i++) {
 			tuple = tuptable->vals[i];

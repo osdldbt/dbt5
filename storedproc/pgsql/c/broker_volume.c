@@ -9,6 +9,7 @@
 
 #include <sys/types.h>
 #include <unistd.h>
+#include <inttypes.h>
 #include <postgres.h>
 #include <fmgr.h>
 #include <executor/spi.h> /* this should include most necessary APIs */
@@ -222,7 +223,7 @@ Datum BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME_SET(&funcctx->max_calls, BVF1_statements[0].sql);
 		}
 
-		sprintf(values[i_list_len], "%d", SPI_processed);
+		sprintf(values[i_list_len], "%" PRId64, SPI_processed);
 		values[i_broker_name] = (char *) palloc(((B_NAME_LEN + 2) *
 				(SPI_processed + 1) + 3) * sizeof(char));
 		values[i_volume] = (char *) palloc((INTEGER_LEN *

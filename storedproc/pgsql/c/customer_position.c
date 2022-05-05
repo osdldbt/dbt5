@@ -339,7 +339,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		args[0] = Int64GetDatum(cust_id);
 		ret = SPI_execute_plan(CPF1_3, args, nulls, true, 0);
-		sprintf(values[i_acct_len], "%d", SPI_processed);
+		sprintf(values[i_acct_len], "%" PRId64, SPI_processed);
 #ifdef DEBUG
 		elog(NOTICE, "%d row(s) returned from CPF1_3.", SPI_processed);
 #endif /* DEBUG */
@@ -493,7 +493,7 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		args[0] = Int64GetDatum(acct_id);
 		ret = SPI_execute_plan(CPF2_1, args, nulls, true, 0);
-		sprintf(values[i_hist_len], "%d", SPI_processed);
+		sprintf(values[i_hist_len], "%" PRId64, SPI_processed);
 #ifdef DEBUG
 		elog(NOTICE, "%d row(s) returned.", SPI_processed);
 #endif /* DEBUG */

@@ -158,7 +158,7 @@ Datum TradeCleanupFrame1(PG_FUNCTION_ARGS)
 #endif
 	int status = 0;
 	int i, n;
-	char *tr_t_id;
+	char *tr_t_id = NULL;
 	Datum args[2];
 	char nulls[] = { ' ', ' ' };
 
