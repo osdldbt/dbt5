@@ -1,0 +1,24 @@
+#!/bin/sh
+
+which docker > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "docker not in path"
+	exit 1
+fi
+
+if [ $# -ge 1 ]; then
+	DIR=$1
+fi
+
+LENGTH=120
+if [ $# -ge 2 ]; then
+	LENGTH=$2
+fi
+
+DOCKER_NAME="dbt5-driver-0"
+EGENDIR="/usr/local/src/dbt5/egen"
+OUTDIR="/tmp/${DIR}"
+docker exec -u postgres:postgres -it $DOCKER_NAME \
+		/bin/sh -c "mkdir -p $OUTDIR ; \
+		DriverMain -c 5000 -t 5000 -f 500 -w 300 -d $LENGTH -y 100 -u 1 -n 0 \
+				-i ${EGENDIR}/flat_in -o ${OUTDIR}"

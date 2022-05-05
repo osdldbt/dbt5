@@ -1,0 +1,16 @@
+#!/bin/sh
+
+which docker > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "docker not in path"
+	exit 1
+fi
+
+if [ $# -ge 1 ]; then
+	DBADDR=$1
+fi
+
+DOCKER_NAME="dbt5-driver-0"
+
+docker exec -u postgres:postgres -it $DOCKER_NAME \
+		BrokerageHouseMain -h $DBADDR -d dbt5 -o /tmp

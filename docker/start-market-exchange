@@ -1,0 +1,13 @@
+#!/bin/sh
+
+which docker > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+	echo "docker not in path"
+	exit 1
+fi
+
+DOCKER_NAME="dbt5-driver-0"
+EGENDIR="/usr/local/src/dbt5/egen"
+docker exec -u postgres:postgres -it $DOCKER_NAME \
+		MarketExchangeMain -c 5000 -t 5000 \
+		-i ${EGENDIR}/flat_in -o /tmp
