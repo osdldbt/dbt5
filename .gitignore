@@ -1,6 +1,8 @@
+*.o
+*.so
+
 # vim
 *.swp
-*.so
 tags
 
 .vscode
