@@ -1534,7 +1534,7 @@ Datum TradeUpdateFrame3(PG_FUNCTION_ARGS)
 						sprintf(ct_name, "%s %s shares of %s", type_name,
 								quantity, s_name);
 					}
-					for (j = 0, k = 0; j < CT_NAME_LEN || ct_name[j] != '\0'; j++, k++) {
+					for (j = 0, k = 0; j < CT_NAME_LEN && ct_name[j] != '\0'; j++, k++) {
 						if (ct_name[j] == '\'')
 							ct_name_esc[k++] = '\\';
 						ct_name_esc[k] = ct_name[j];

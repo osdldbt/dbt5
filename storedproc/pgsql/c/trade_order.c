@@ -853,7 +853,7 @@ Datum TradeOrderFrame3(PG_FUNCTION_ARGS)
 		plan_queries(TOF3_statements);
 
 		if (strlen(symbol) == 0) {
-			for (i = 0; i < CO_NAME_LEN || co_name[i] != '\0'; i++) {
+			for (i = 0; i < CO_NAME_LEN && co_name[i] != '\0'; i++) {
 				if (co_name[i] == '\'')
 					co_name_esc[k++] = '\\';
 				co_name_esc[k++] = co_name[i];
