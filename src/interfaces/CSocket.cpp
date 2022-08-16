@@ -9,7 +9,9 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <sstream>
 #include <unistd.h>
+#include <stdexcept>
 
 #include "CSocket.h"
 #include "CThreadErr.h"
@@ -59,7 +61,11 @@ void CSocket::dbt5Connect()
 	errno = 0;
 	m_sockfd = socket(AF_INET, SOCK_STREAM, resolveProto("tcp"));
 	if (m_sockfd == -1) {
-		throwError(CSocketErr::ERR_SOCKET_CREATE);
+		std::stringstream foo;
+		foo << "errno: " << errno;
+		throw std::runtime_error(foo.str().c_str());
+
+		/* throwError(CSocketErr::ERR_SOCKET_CREATE); */
 	}
 
 	struct sockaddr_in sa;
@@ -108,8 +114,11 @@ int CSocket::dbt5Receive(void *data, int length)
 	char *szData = NULL;
 	do {
 		errno = 0;
-		received = recv(m_sockfd, data, remaining, 0);
-		if (received == -1) {
+		received = recv(m_sockfd, data, remaining, MSG_WAITALL);
+		if (received == -1 && errno == EAGAIN) {
+			received = 0;
+		}
+		else if (received == -1) {
 			throwError(CSocketErr::ERR_SOCKET_RECV);
 		} else if (received == 0) {
 			throwError(CSocketErr::ERR_SOCKET_CLOSED);
@@ -173,6 +182,12 @@ void CSocket::dbt5Listen(const int port)
 	if (m_listenfd < 0) {
 		throwError(CSocketErr::ERR_SOCKET_CREATE);
 	}
+
+	const int enable = 1;
+	if (setsockopt(m_listenfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+		throwError(CSocketErr::ERR_SOCKET_BIND);
+	if (setsockopt(m_listenfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0)
+		throwError(CSocketErr::ERR_SOCKET_BIND);
 
 	bzero(&sa, sizeof(sa));
 	sa.sin_family = AF_INET;

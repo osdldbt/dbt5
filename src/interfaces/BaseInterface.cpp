@@ -37,7 +37,12 @@ bool CBaseInterface::biConnect()
 	try {
 		sock->dbt5Connect();
 		return true;
-	} catch(CSocketErr *pErr) {
+	}
+	catch(std::runtime_error& err) {
+		logErrorMessage(err.what());
+		return false;
+	}
+	catch(CSocketErr *pErr) {
 		ostringstream osErr;
 		osErr << "Error: " << pErr->ErrorText() <<
 				" at CBaseInterface::talkToSUT " << endl;

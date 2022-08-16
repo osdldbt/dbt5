@@ -78,6 +78,16 @@ void *workerThread(void *data)
 			try {
 				sockDrv.dbt5Receive(reinterpret_cast<void *>(pMessage),
 						sizeof(TMsgDriverBrokerage));
+			} catch(std::runtime_error& err) {
+				sockDrv.dbt5Disconnect();
+
+				ostringstream osErr;
+				osErr << "Error on Receive: " << err.what() <<
+						" at BrokerageHouse::workerThread" << endl;
+				pThrParam->pBrokerageHouse->logErrorMessage(osErr.str());
+
+				// The socket has been closed, break and let this thread die.
+				break;
 			} catch(CSocketErr *pErr) {
 				sockDrv.dbt5Disconnect();
 
