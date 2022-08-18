@@ -168,7 +168,9 @@ CDriver::~CDriver()
 // RunTest
 void CDriver::runTest(int iSleep, int iTestDuration)
 {
-	g_tid = (pthread_t*) malloc(sizeof(pthread_t) * iUsers);
+	// Create enough space for all of the users plus an additional thread for
+    // data maintenance.
+	g_tid = (pthread_t*) malloc(sizeof(pthread_t) * (iUsers + 1));
 
 	// before starting the test run Trade-Cleanup transaction
 	cout << endl <<
