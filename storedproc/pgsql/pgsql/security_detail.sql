@@ -4,147 +4,213 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Security Detail transaction
- * -------------------------
- * This transaction returns all available information related to a given
- * security.
- * 
- *
- * Based on TPC-E Standard Specification Draft Revision 0.32.2e Clause 3.3.8.
+ * Based on TPC-E Standard Specification Revision 1.14.0
  */
 
-/*
- * Frame 1
- * Get all details about the security
- */
+CREATE TYPE SECURITY_DETAIL_DAY
+AS (
+    _date DATE
+  , close S_PRICE_T
+  , high S_PRICE_T
+  , low S_PRICE_T
+  , vol S_PRICE_T
+);
 
+CREATE TYPE SECURITY_DETAIL_FIN
+AS (
+    year INTEGER
+  , qtr SMALLINT
+  , start_date DATE
+  , rev FIN_AGG_T
+  , net_earn FIN_AGG_T
+  , basic_eps VALUE_T
+  , dilut_eps VALUE_T
+  , margin VALUE_T
+  , invent FIN_AGG_T
+  , assets FIN_AGG_T
+  , liab FIN_AGG_T
+  , out_basic S_COUNT_T
+  , out_dilut S_COUNT_T
+);
+
+CREATE TYPE SECURITY_DETAIL_NEWS
+AS (
+    item BYTEA
+  , dts TIMESTAMP
+  , src VARCHAR(30)
+  , auth VARCHAR(30)
+  , headline VARCHAR(80)
+  , summary VARCHAR(255)
+);
+
+-- Clause 3.3.5.3
 CREATE OR REPLACE FUNCTION SecurityDetailFrame1 (
 						IN access_lob_flag	smallint,
 						IN max_rows_to_return	integer,
 						IN start_day		timestamp,
-						IN symbol		char(15)) RETURNS record AS $$
+    IN symbol VARCHAR(15)
+  , OUT x52_wk_high DOUBLE PRECISION
+  , OUT x52_wk_high_date DATE
+  , OUT x52_wk_low DOUBLE PRECISION
+  , OUT x52_wk_low_date DATE
+  , OUT ceo_name VARCHAR(60)
+  , OUT co_ad_ctry VARCHAR(80)
+  , OUT co_ad_div VARCHAR(80)
+  , OUT co_ad_line1 VARCHAR(80)
+  , OUT co_ad_line2 VARCHAR(80)
+  , OUT co_ad_town VARCHAR(80)
+  , OUT co_ad_zip VARCHAR(12)
+  , OUT co_desc VARCHAR(150)
+  , OUT co_name VARCHAR(60)
+  , OUT co_st_id VARCHAR(4)
+  , OUT cp_co_name VARCHAR(60)[3]
+  , OUT cp_in_name VARCHAR(50)[3]
+  , OUT day SECURITY_DETAIL_DAY[20]
+  , OUT day_len INTEGER
+  , OUT divid DOUBLE PRECISION
+  , OUT ex_ad_ctry VARCHAR(80)
+  , OUT ex_ad_div VARCHAR(80)
+  , OUT ex_ad_line1 VARCHAR(80)
+  , OUT ex_ad_line2 VARCHAR(80)
+  , OUT ex_ad_town VARCHAR(80)
+  , OUT ex_ad_zip VARCHAR(12)
+  , OUT ex_close INTEGER
+  , OUT ex_date DATE
+  , OUT ex_desc VARCHAR(150)
+  , OUT ex_name VARCHAR(100)
+  , OUT ex_num_symb INTEGER
+  , OUT ex_open INTEGER
+  , OUT fin SECURITY_DETAIL_FIN[20]
+  , OUT fin_len INTEGER
+  , OUT last_open DOUBLE PRECISION
+  , OUT last_price DOUBLE PRECISION
+  , OUT last_vol INTEGER
+  , OUT news SECURITY_DETAIL_NEWS[2]
+  , OUT news_len INTEGER
+  , OUT num_out BIGINT
+  , OUT open_date DATE
+  , OUT pe_ratio FLOAT
+  , OUT s_name VARCHAR(70)
+  , OUT sp_rate VARCHAR(4)
+  , OUT start_date DATE
+  , OUT yield DOUBLE PRECISION
+) RETURNS RECORD AS $$
+<<sdf1>>
 DECLARE
-	-- output parameters
-	cp_co_name	text;
-	cp_in_name	text;
-	fin_year	text;
-	fin_qtr		text;
-	fin_start_year	text;
-	fin_start_month	text;
-	fin_start_day	text;
-	fin_start_hour	text;
-	fin_start_min	text;
-	fin_start_sec	text;
-	fin_rev		text;
-	fin_net_earn	text;
-	fin_basic_eps	text;
-	fin_dilut_eps	text;
-	fin_margin	text;
-	fin_invent	text;
-	fin_assets	text;
-	fin_liab	text;
-	fin_out_basic	text;
-	fin_out_dilut	text;
-	day_date_year	text;
-	day_date_month	text;
-	day_date_day	text;
-	day_date_hour	text;
-	day_date_minute	text;
-	day_date_second	text;
-	day_close	text;
-	day_high	text;
-	day_low		text;
-	day_vol		text;
-	news_it		text;
-	news_year	text;
-	news_month	text;
-	news_day	text;
-	news_hour	text;
-	news_minute	text;
-	news_second	text;
-	news_src	text;
-	news_auth	text;
-	news_headline	text;
-	news_summary	text;
-	last_price	S_PRICE_T;
-	last_open	S_PRICE_T;
-	last_vol	S_COUNT_T;
-	fin_len		integer;
-	day_len		integer;
-	news_len	integer;
+    co_id IDENT_T;
+    co_name VARCHAR(60);
+    exch_date DATE;
 
 	-- variables
-	comp_id		IDENT_T;
 	rs		RECORD;
 	i		integer;
+    sdd SECURITY_DETAIL_DAY;
+    sdf SECURITY_DETAIL_FIN;
+    sdn SECURITY_DETAIL_NEWS;
 BEGIN
-	-- initialize text variables
-	cp_co_name = '';
-	cp_in_name = '';
-	fin_year = '';
-	fin_qtr = '';
-	fin_start_year = '';
-	fin_start_month = '';
-	fin_start_day = '';
-	fin_start_hour = '';
-	fin_start_min = '';
-	fin_start_sec = '';
-	fin_rev = '';
-	fin_net_earn = '';
-	fin_basic_eps = '';
-	fin_dilut_eps = '';
-	fin_margin = '';
-	fin_invent = '';
-	fin_assets = '';
-	fin_liab = '';
-	fin_out_basic = '';
-	fin_out_dilut = '';
-	day_date_year = '';
-	day_date_month = '';
-	day_date_day = '';
-	day_date_hour = '';
-	day_date_minute = '';
-	day_date_second = '';
-	day_close = '';
-	day_high = '';
-	day_low	 = '';
-	day_vol	 = '';
-	news_it	 = '';
-	news_year = '';
-	news_month = '';
-	news_day = '';
-	news_hour = '';
-	news_minute = '';
-	news_second = '';
-	news_src = '';
-	news_auth = '';
-	news_headline = '';
-	news_summary = '';
-
-	-- get company id from symbol
-
-	SELECT	CO_ID
-	INTO	comp_id
-	FROM	SECURITY,
-		COMPANY
-	WHERE	S_SYMB = symbol AND
-		S_CO_ID = CO_ID;
+    SELECT security.s_name
+         , company.co_id
+         , company.co_name
+         , company.co_sp_rate
+         , company.co_ceo
+         , company.co_desc
+         , company.co_open_date
+         , company.co_st_id
+         , ca.ad_line1
+         , ca.ad_line2
+         , zca.zc_town
+         , zca.zc_div
+         , ca.ad_zc_code
+         , ca.ad_ctry
+         , s_num_out
+         , s_start_date
+         , s_exch_date
+         , s_pe
+         , s_52wk_high
+         , s_52wk_high_date
+         , s_52wk_low
+         , s_52wk_low_date
+         , s_dividend
+         , s_yield
+         , zea.zc_div
+         , ea.ad_ctry
+         , ea.ad_line1
+         , ea.ad_line2
+         , zea.zc_town
+         , ea.ad_zc_code
+         , exchange.ex_close
+         , exchange.ex_desc
+         , exchange.ex_name
+         , exchange.ex_num_symb
+         , exchange.ex_open
+    INTO s_name
+       , sdf1.co_id
+       , co_name
+       , sp_rate
+       , ceo_name
+       , co_desc
+       , open_date
+       , co_st_id
+       , co_ad_line1
+       , co_ad_line2
+       , co_ad_town
+       , co_ad_div
+       , co_ad_zip
+       , co_ad_ctry
+       , num_out
+       , start_date
+       , exch_date
+       , pe_ratio
+       , x52_wk_high
+       , x52_wk_high_date
+       , x52_wk_low
+       , x52_wk_low_date
+       , divid
+       , yield
+       , ex_ad_div
+       , ex_ad_ctry
+       , ex_ad_line1
+       , ex_ad_line2
+       , ex_ad_town
+       , ex_ad_zip
+       , ex_close
+       , ex_desc
+       , ex_name
+       , ex_num_symb
+       , ex_open
+    FROM security
+       , company
+       , address ca
+       , address ea
+       , zip_code zca
+       , zip_code zea
+       , exchange
+    WHERE s_symb = symbol
+      AND company.co_id = s_co_id
+      AND ca.ad_id = co_ad_id
+      AND ea.ad_id = exchange.ex_ad_id
+      AND exchange.ex_id = s_ex_id
+      AND ca.ad_zc_code = zca.zc_code
+      AND ea.ad_zc_code = zea.zc_code
+    ;
 
 	-- Should return max_comp_len rows
 
+    i := 0;
 	FOR rs IN
-		SELECT	CO_NAME,
+        SELECT company.co_name,
 			IN_NAME
 		FROM	COMPANY_COMPETITOR,
 			COMPANY,
 			INDUSTRY
-		WHERE	CP_CO_ID = comp_id AND
-			CO_ID = CP_COMP_CO_ID AND
+        WHERE cp_co_id = sdf1.co_id
+          AND company.co_id = CP_COMP_CO_ID AND
 			IN_ID = CP_IN_ID
 		LIMIT 3
 	LOOP
-		cp_co_name = cp_co_name || '|' || rs.CO_NAME;
-		cp_in_name = cp_in_name || '|' || rs.IN_NAME;
+        i := i + 1;
+		cp_co_name[i] = rs.co_name;
+		cp_in_name[i] = rs.in_name;
 	END LOOP;
 
 	-- Should return max_fin_len rows
@@ -153,12 +219,7 @@ BEGIN
 	FOR rs IN
 		SELECT	FI_YEAR,
 			FI_QTR,
-			extract(year from FI_QTR_START_DATE) as year,
-			extract(month from FI_QTR_START_DATE) as month,
-			extract(day from FI_QTR_START_DATE) as day,
-			extract(hour from FI_QTR_START_DATE) as hour,
-			extract(minute from FI_QTR_START_DATE) as minute,
-			extract(second from FI_QTR_START_DATE) as second,
+			fi_qtr_start_date,
 			FI_REVENUE,
 			FI_NET_EARN,
 			FI_BASIC_EPS,
@@ -170,29 +231,25 @@ BEGIN
 			FI_OUT_BASIC,
 			FI_OUT_DILUT
 		FROM	FINANCIAL
-		WHERE	FI_CO_ID = comp_id
+        WHERE FI_CO_ID = sdf1.co_id
 		ORDER BY FI_YEAR asc, FI_QTR
 		LIMIT 20
 	LOOP
-		fin_year = fin_year || '|' || rs.FI_YEAR;
-		fin_qtr = fin_qtr || '|' || rs.FI_QTR;
-		fin_start_year = fin_start_year || '|' || rs.year;
-		fin_start_month = fin_start_month || '|' || rs.month;
-		fin_start_day = fin_start_day || '|' || rs.day;
-		fin_start_hour = fin_start_hour || '|' || rs.hour;
-		fin_start_min = fin_start_min || '|' || rs.minute;
-		fin_start_sec = fin_start_sec || '|' || rs.second;
-		fin_rev = fin_rev || '|' || rs.FI_REVENUE;
-		fin_net_earn = fin_net_earn || '|' || rs.FI_NET_EARN;
-		fin_basic_eps = fin_basic_eps || '|' || rs.FI_BASIC_EPS;
-		fin_dilut_eps = fin_dilut_eps || '|' || rs.FI_DILUT_EPS;
-		fin_margin = fin_margin || '|' || rs.FI_MARGIN;
-		fin_invent = fin_invent || '|' || rs.FI_INVENTORY;
-		fin_assets = fin_assets || '|' || rs.FI_ASSETS;
-		fin_liab = fin_liab || '|' || rs.FI_LIABILITY;
-		fin_out_basic = fin_out_basic || '|' || rs.FI_OUT_BASIC;
-		fin_out_dilut = fin_out_dilut || '|' || rs.FI_OUT_DILUT;
 		i = i + 1;
+        sdf = fin[i];
+        sdf.year := rs.fi_year;
+        sdf.qtr := rs.fi_qtr;
+        sdf.start_date := rs.fi_qtr_start_date;
+        sdf.rev := rs.fi_revenue;
+        sdf.net_earn := rs.fi_net_earn;
+        sdf.basic_eps := rs.fi_basic_eps;
+        sdf.dilut_eps := rs.fi_dilut_eps;
+        sdf.margin := rs.fi_margin;
+        sdf.invent := rs.fi_inventory;
+        sdf.assets := rs.fi_assets;
+        sdf.liab := rs.fi_liability;
+        sdf.out_basic := rs.fi_out_basic;
+        sdf.out_dilut := rs.fi_out_dilut;
 	END LOOP;
 
 	fin_len = i;
@@ -201,12 +258,7 @@ BEGIN
 	
 	i = 0;
 	FOR rs IN
-		SELECT	extract(year from DM_DATE) as year,
-			extract(month from DM_DATE) as month,
-			extract(day from DM_DATE) as day,
-			extract(hour from DM_DATE) as hour,
-			extract(minute from DM_DATE) as minute,
-			extract(second from DM_DATE) as second,
+        SELECT dm_date,
 			DM_CLOSE,
 			DM_HIGH,
 			DM_LOW,
@@ -217,17 +269,13 @@ BEGIN
 		ORDER BY DM_DATE asc
 		LIMIT max_rows_to_return
 	LOOP
-		day_date_year = day_date_year || '|' || rs.year;
-		day_date_month = day_date_month || '|' || rs.month;
-		day_date_day = day_date_day || '|' || rs.day;
-		day_date_hour = day_date_hour || '|' || rs.hour;
-		day_date_minute = day_date_minute || '|' || rs.minute;
-		day_date_second = day_date_second || '|' || rs.second;
-		day_close = day_close || '|' || rs.DM_CLOSE;
-		day_high = day_high || '|' || rs.DM_HIGH;
-		day_low = day_low || '|' || rs.DM_LOW;
-		day_vol = day_vol || '|' || rs.DM_VOL;
 		i = i + 1;
+        sdd = day[i];
+        sdd._date := rs.dm_date;
+        sdd.close := rs.dm_close;
+        sdd.high := rs.dm_high;
+        sdd.low := rs.dm_low;
+        sdd.vol := rs.dm_vol;
 	END LOOP;
 
 	day_len = i;
@@ -239,8 +287,7 @@ BEGIN
 		last_open,
 		last_vol
 	FROM	LAST_TRADE
-	WHERE	LT_S_SYMB = symbol
-	LIMIT max_rows_to_return;
+    WHERE lt_s_symb = symbol;
 	
 	-- Should return max_news_len rows
 	
@@ -248,41 +295,27 @@ BEGIN
 	IF access_lob_flag = 1 THEN
 		FOR rs IN
 			SELECT	NI_ITEM,
-				extract(year from NI_DTS) as year,
-				extract(month from NI_DTS) as month,
-				extract(day from NI_DTS) as day,
-				extract(hour from NI_DTS) as hour,
-				extract(minute from NI_DTS) as minute,
-				extract(second from NI_DTS) as second,
+                ni_dts,
 				NI_SOURCE,
 				NI_AUTHOR
 			FROM	NEWS_XREF,
 				NEWS_ITEM
 			WHERE	NI_ID = NX_NI_ID AND
-				NX_CO_ID = comp_id
+                  NX_CO_ID = sdf1.co_id
 			LIMIT 2
 		LOOP
-			news_it = news_it || '|' || rs.NI_ITEM;
-			news_year = news_year || '|' || rs.year;
-			news_month = news_month || '|' || rs.month;
-			news_day = news_day || '|' || rs.day;
-			news_hour = news_hour || '|' || rs.hour;
-			news_minute = news_minute || '|' || rs.minute;
-			news_second = news_second || '|' || rs.second;
-			news_src = news_src || '|' || rs.NI_SOURCE;
-			news_auth = news_auth || '|' || rs.NI_AUTHOR;
-			news_headline = news_headline || '|' || '';
-			news_summary = news_summary || '|' || '';
 			i = i + 1;
+            sdn = news[i];
+            sdn.item := rs.ni_item;
+            sdn.dts := rs.ni_dts;
+            sdn.src := rs.ni_source;
+            sdn.auth := rs.ni_author;
+            sdn.headline := '';
+            sdn.summary := '';
 		END LOOP;
 	ELSE
 		FOR rs IN
-			SELECT	extract(year from NI_DTS) as year,
-				extract(month from NI_DTS) as month,
-				extract(day from NI_DTS) as day,
-				extract(hour from NI_DTS) as hour,
-				extract(minute from NI_DTS) as minute,
-				extract(second from NI_DTS) as second,
+            SELECT ni_dts,
 				NI_SOURCE,
 				NI_AUTHOR,
 				NI_HEADLINE,
@@ -290,149 +323,20 @@ BEGIN
 			FROM	NEWS_XREF,
 				NEWS_ITEM
 			WHERE	NI_ID = NX_NI_ID AND
-				NX_CO_ID = comp_id
+                  NX_CO_ID = sdf1.co_id
 			LIMIT 2
 		LOOP
-			news_it = news_it || '|' || '';
-			news_year = news_year || '|' || rs.year;
-			news_month = news_month || '|' || rs.month;
-			news_day = news_day || '|' || rs.day;
-			news_hour = news_hour || '|' || rs.hour;
-			news_minute = news_minute || '|' || rs.minute;
-			news_second = news_second || '|' || rs.second;
-			news_src = news_src || '|' || rs.NI_SOURCE;
-			news_auth = news_auth || '|' || rs.NI_AUTHOR;
-			news_headline = news_headline || '|' || rs.NI_HEADLINE;
-			news_summary = news_summary || '|' || rs.NI_SUMMARY;
 			i = i + 1;
+            sdn = news[i];
+            sdn.item := '';
+            sdn.dts := rs.ni_dts;
+            sdn.src := rs.ni_source;
+            sdn.auth := rs.ni_author;
+            sdn.headline := rs.ni_headline;
+            sdn.summary := rs.ni_summary;
 		END LOOP;
 	END IF;
 	
 	news_len = i;
-
-	SELECT	fin_len,
-		day_len,
-		news_len,
-		cp_co_name,
-		cp_in_name,
-		fin_year,
-		fin_qtr,
-		fin_start_year,
-		fin_start_month,
-		fin_start_day,
-		fin_start_hour,
-		fin_start_min,
-		fin_start_sec,
-		fin_rev,
-		fin_net_earn,
-		fin_basic_eps,
-		fin_dilut_eps,
-		fin_margin,
-		fin_invent,
-		fin_assets,
-		fin_liab,
-		fin_out_basic,
-		fin_out_dilut,
-		day_date_year,
-		day_date_month,
-		day_date_day,
-		day_date_hour,
-		day_date_minute,
-		day_date_second,
-		day_close,
-		day_high,
-		day_low,
-		day_vol,
-		news_it,
-		news_year,
-		news_month,
-		news_day,
-		news_hour,
-		news_minute,
-		news_second,
-		news_src,
-		news_auth,
-		news_headline,
-		news_summary,
-		last_price,
-		last_open,
-		last_vol,
-		S_NAME,
-		CO_ID,
-		CO_NAME,
-		CO_SP_RATE,
-		CO_CEO,
-		CO_DESC,
-		extract(year from CO_OPEN_DATE) as year,
-		extract(month from CO_OPEN_DATE) as month,
-		extract(day from CO_OPEN_DATE) as day,
-		extract(hour from CO_OPEN_DATE) as hour,
-		extract(minute from CO_OPEN_DATE) as minute,
-		extract(second from CO_OPEN_DATE) as second,
-		CO_ST_ID,
-		CA.AD_LINE1,
-		CA.AD_LINE2,
-		ZCA.ZC_TOWN,
-		ZCA.ZC_DIV,
-		CA.AD_ZC_CODE,
-		CA.AD_CTRY,
-		S_NUM_OUT,
-		extract(year from S_START_DATE) as year,
-		extract(month from S_START_DATE) as month,
-		extract(day from S_START_DATE) as day,
-		extract(hour from S_START_DATE) as hour,
-		extract(minute from S_START_DATE) as minute,
-		extract(second from S_START_DATE) as second,
-		extract(year from S_EXCH_DATE) as year,
-		extract(month from S_EXCH_DATE) as month,
-		extract(day from S_EXCH_DATE) as day,
-		extract(hour from S_EXCH_DATE) as hour,
-		extract(minute from S_EXCH_DATE) as minute,
-		extract(second from S_EXCH_DATE) as second,
-		S_PE,
-		S_52WK_HIGH,
-		extract(year from S_52WK_HIGH_DATE) as year,
-		extract(month from S_52WK_HIGH_DATE) as month,
-		extract(day from S_52WK_HIGH_DATE) as day,
-		extract(hour from S_52WK_HIGH_DATE) as hour,
-		extract(minute from S_52WK_HIGH_DATE) as minute,
-		extract(second from S_52WK_HIGH_DATE) as second,
-		S_52WK_LOW,
-		extract(year from S_52WK_LOW_DATE) as year,
-		extract(month from S_52WK_LOW_DATE) as month,
-		extract(day from S_52WK_LOW_DATE) as day,
-		extract(hour from S_52WK_LOW_DATE) as hour,
-		extract(minute from S_52WK_LOW_DATE) as minute,
-		extract(second from S_52WK_LOW_DATE) as second,
-		S_DIVIDEND,
-		S_YIELD,
-		ZEA.ZC_DIV,
-		EA.AD_CTRY,
-		EA.AD_LINE1,
-		EA.AD_LINE2,
-		ZEA.ZC_TOWN,
-		EA.AD_ZC_CODE,
-		EX_CLOSE,
-		EX_DESC,
-		EX_NAME,
-		EX_NUM_SYMB,
-		EX_OPEN
-	INTO	rs
-	FROM	SECURITY,
-		COMPANY,
-		ADDRESS CA,
-		ADDRESS EA,
-		ZIP_CODE ZCA,
-		ZIP_CODE ZEA,
-		EXCHANGE
-	WHERE	S_SYMB = symbol AND
-		CO_ID = S_CO_ID AND
-		CA.AD_ID = CO_AD_ID AND
-		EA.AD_ID = EX_AD_ID AND
-		EX_ID = S_EX_ID AND
-		ca.ad_zc_code = zca.zc_code AND
-		ea.ad_zc_code = zea.zc_code;
-
-	RETURN rs;
 END;
 $$ LANGUAGE 'plpgsql';

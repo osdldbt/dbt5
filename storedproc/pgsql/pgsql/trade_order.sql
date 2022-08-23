@@ -4,36 +4,25 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Trade Order transaction
- * ------------------------
- * The Trade Order transaction is designed to emulate the process of ordering
- * the trade, buy or sell, of a security by a Customer, Broker, or authorized
- * third-party.
- *
- * Based on TPC-E Standard Specification Draft Revision 0.32.2e Clause 3.3.1.
+ * Based on TPC-E Standard Specification Revision 1.14.0
  */
 
-/*
- * Frame 1
- * Responsible for retrieving information about the customer, customer account,
- * and its broker
- */
-
-CREATE OR REPLACE FUNCTION TradeOrderFrame1 (IN acct_id IDENT_T)
-		RETURNS record AS $$
+-- 3.3.7.3
+CREATE OR REPLACE FUNCTION TradeOrderFrame1 (
+    IN acct_id IDENT_T
+  , OUT acct_name VARCHAR(50)
+  , OUT broker_id IDENT_T
+  , OUT broker_name VARCHAR(100)
+  , OUT cust_f_name VARCHAR(30)
+  , OUT cust_id IDENT_T
+  , OUT cust_l_name VARCHAR(30)
+  , OUT cust_tier SMALLINT
+  , OUT num_found INTEGER
+  , OUT tax_id VARCHAR(20)
+  , OUT tax_status SMALLINT
+) RETURNS RECORD AS $$
 DECLARE
-	-- output parameters
-	acct_name	varchar;
-	broker_name	varchar;
-	cust_f_name	varchar;
-	cust_id		IDENT_T;
-	cust_l_name	varchar;
-	cust_tier	smallint;
-	tax_id		varchar;
-	tax_status	smallint;
-
 	-- variables
-	broker_id 	IDENT_T;
 	rs 		RECORD;
 BEGIN
 	-- Get account, customer, and broker information
@@ -47,6 +36,8 @@ BEGIN
 		tax_status
 	FROM	CUSTOMER_ACCOUNT
 	WHERE	CA_ID = acct_id;
+
+    GET DIAGNOSTICS num_found = ROW_COUNT;
 
 	SELECT	C_F_NAME,
 		C_L_NAME,
@@ -63,62 +54,29 @@ BEGIN
 	INTO	broker_name
 	FROM	BROKER
 	WHERE	B_ID=broker_id;
-
-	SELECT	acct_name,
-		broker_name,
-		cust_f_name,
-		cust_id,
-		cust_l_name,
-		cust_tier,
-		tax_id,
-		tax_status
-	INTO	rs;
-
-	RETURN rs;
 END;
 $$ LANGUAGE 'plpgsql';
 
-
-/*
- * Frame 2
- * Responsible for validating the executor's permission to order trades for the
- * specified customer account
- */
-
+-- Clause 3.3.7.4
 CREATE OR REPLACE FUNCTION TradeOrderFrame2(
 				IN acct_id 	IDENT_T, 
-				IN exec_f_name	varchar,
-				IN exec_l_name	varchar,
-				IN exec_tax_id	varchar) RETURNS smallint AS $$
-DECLARE
-	permission_cnt integer;
-	bad_permission smallint;
+    IN exec_f_name VARCHAR(30)
+  , IN exec_l_name VARCHAR(30)
+  , IN exec_tax_id VARCHAR(20)
+  , OUT ap_acl VARCHAR(4)
+) RETURNS VARCHAR(4) AS $$
 BEGIN
-	SELECT	COUNT(*)
-	INTO	permission_cnt
-	FROM	ACCOUNT_PERMISSION
-	WHERE	AP_CA_ID = acct_id AND
-		AP_F_NAME = exec_f_name AND
-		AP_L_NAME = exec_l_name AND
-		AP_TAX_ID = exec_tax_id;
-
-	IF permission_cnt = 0 THEN
-		bad_permission = 1;
-	ELSE
-		bad_permission = 0;
-	END IF;
-
-	RETURN	bad_permission;
+    SELECT account_permission.ap_acl
+    INTO TradeOrderFrame2.ap_acl
+    FROM account_permission
+    WHERE ap_ca_id = acct_id
+      AND ap_f_name = exec_f_name
+      AND ap_l_name = exec_l_name
+      AND ap_tax_id = exec_tax_id;
 END;
 $$ LANGUAGE 'plpgsql';
 
-
-/*
- * Frame 3
- * Responsible for estimating the overall impact of executing the requested
- * trade
- */
-
+-- 3.3.7.5
 CREATE OR REPLACE FUNCTION TradeOrderFrame3(
 				IN acct_id		IDENT_T,
 				IN cust_id		IDENT_T,
@@ -130,96 +88,104 @@ CREATE OR REPLACE FUNCTION TradeOrderFrame3(
 				IN tax_status		smallint,
 				IN trade_qty		S_QTY_T,
 				IN trade_type_id	char(3),
-				IN type_is_margin	smallint,
-				IN company_name		varchar,
-				IN requested_price	S_PRICE_T,
-				IN symbol		varchar) RETURNS record AS $$
+				IN type_is_margin	smallint
+  , INOUT co_name VARCHAR(60)
+  , INOUT requested_price S_PRICE_T
+  , INOUT symbol VARCHAR(15)
+  , OUT buy_value BALANCE_T
+  , OUT charge_amount VALUE_T
+  , OUT comm_rate S_PRICE_T
+  , OUT acct_assets VALUE_T
+  , OUT market_price S_PRICE_T
+  , OUT s_name VARCHAR(70)
+  , OUT sell_value BALANCE_T
+  , OUT status_id CHAR(4)
+  , OUT tax_amount VALUE_T
+  , OUT type_is_market SMALLINT
+  , OUT type_is_sell SMALLINT
+) RETURNS RECORD AS $$
+<<tof3>>
 DECLARE
 	-- output parameters
-	comp_name	varchar;
 	required_price	S_PRICE_T;	
-	symb_name	varchar;
-	buy_value	BALANCE_T;
-	charge_amount	VALUE_T;
-	comm_rate	S_PRICE_T;
-	cust_assets	BALANCE_T;
-	market_price	S_PRICE_T;
-	sec_name	varchar;
-	sell_value	BALANCE_T;
-	status_id	char(4);
-	tax_amount	VALUE_T;
-	type_is_market	smallint;
-	type_is_sell	smallint;
 
 	-- variables
-	comp_id		IDENT_T;
+    co_id IDENT_T;
 	exch_id		char(6);
 	tax_rates	S_PRICE_T;
 	acct_bal	BALANCE_T;
 	hold_assets	S_PRICE_T;
-	rs		RECORD;
 
 	-- Local frame variables used when estimating impact of this trade on
 	-- any current holdings of the same security.
 	hold_price	S_PRICE_T;
 	hold_qty	S_QTY_T;
 	needed_qty	S_QTY_T;
-	holdsum_qty	S_QTY_T;
+    hs_qty S_QTY_T;
 
 	-- cursor
 	hold_list	refcursor;
+
+    tmp_type_is_market BOOLEAN;
+    tmp_type_is_sell BOOLEAN;
 BEGIN
-	required_price = requested_price;
-	symb_name = symbol;
-	comp_name = company_name;
-
 	-- Get information on the security
-	IF symb_name = '' THEN
-
-		comp_id := 0;
-		SELECT	CO_ID
-		INTO	comp_id
+    IF symbol = '' THEN
+        SELECT company.co_id
+        INTO co_id
 		FROM	COMPANY 
-		WHERE	CO_NAME = comp_name;
+        WHERE company.co_name = TradeOrderFrame3.co_name;
 
 		SELECT	S_EX_ID,
-			S_NAME,
+               security.s_name,
 			S_SYMB
 		INTO	exch_id,
-			sec_name,
-			symb_name
+             s_name
+           , symbol
 		FROM	SECURITY
-		WHERE	S_CO_ID = comp_id AND
+        WHERE s_co_id = co_id AND
 			S_ISSUE = issue;
 	ELSE
 		SELECT	S_CO_ID,
 			S_EX_ID,
-			S_NAME
-		INTO	comp_id,
+               security.s_name
+		INTO co_id,
 			exch_id,
-			sec_name
+             TradeOrderFrame3.s_name
 		FROM	SECURITY
-		WHERE	S_SYMB = symb_name;
+        WHERE S_SYMB = symbol;
 		
-		SELECT	CO_NAME
-		INTO	comp_name
+		SELECT company.co_name
+        INTO TradeOrderFrame3.co_name
 		FROM	COMPANY
-		WHERE	CO_ID = comp_id;
+        WHERE company.co_id = tof3.co_id;
 	END IF;
 
 	-- Get current pricing information for the security
 	SELECT 	LT_PRICE
 	INTO	market_price
 	FROM	LAST_TRADE
-	WHERE	LT_S_SYMB = symb_name;
+    WHERE LT_S_SYMB = symbol;
 	
 	-- Set trade characteristics based on the type of trade.
 	SELECT	TT_IS_MRKT,
 		TT_IS_SELL
-	INTO	type_is_market,
-		type_is_sell
+    INTO tmp_type_is_market
+      , tmp_type_is_sell
 	FROM	TRADE_TYPE
 	WHERE	TT_ID = trade_type_id;
+
+    IF tmp_type_is_market THEN
+        type_is_market := 1;
+    ELSE
+        type_is_market := 0;
+    END IF;
+
+    IF tmp_type_is_sell THEN
+        type_is_sell := 1;
+    ELSE
+        type_is_sell := 0;
+    END IF;
 
 	-- If this is a limit-order, then the requested_price was passed in to us,
     -- but
@@ -234,17 +200,21 @@ BEGIN
 	sell_value = 0.0;
 	needed_qty = trade_qty;
 
-	SELECT	HS_QTY
-	INTO	holdsum_qty
+    SELECT coalesce(holding_summary.hs_qty, 0)
+    INTO hs_qty
 	FROM	HOLDING_SUMMARY
 	WHERE	HS_CA_ID = acct_id AND
-		HS_S_SYMB = symb_name;
+          HS_S_SYMB = symbol;
 
-	IF type_is_sell THEN
+    IF hs_qty IS NULL THEN
+        hs_qty := 0;
+    END IF;
+
+	IF tmp_type_is_sell THEN
 	-- This is a sell transaction, so estimate the impact to any currently held
 	-- long postions in the security.
 	--
-		IF holdsum_qty > 0 THEN
+        IF hs_qty > 0 THEN
 			IF is_lifo THEN
 				-- Estimates will be based on closing most recently acquired
 				-- holdings
@@ -254,7 +224,7 @@ BEGIN
 					H_PRICE
 				FROM	HOLDING
 				WHERE	H_CA_ID = acct_id AND
-					H_S_SYMB = symb_name
+                      H_S_SYMB = symbol
 				ORDER BY H_DTS DESC;
 			ELSE
 				-- Estimates will be based on closing oldest holdings
@@ -264,7 +234,7 @@ BEGIN
 					H_PRICE
 				FROM	HOLDING
 				WHERE	H_CA_ID = acct_id AND
-					H_S_SYMB = symb_name
+                      H_S_SYMB = symbol
 				ORDER BY H_DTS ASC;
 			END IF;
 
@@ -308,7 +278,7 @@ BEGIN
 		-- negative H_QTY holdings. Short postions will be covered before
 		-- opening a long postion in this security.
 
-		IF holdsum_qty < 0 THEN  -- Existing short position to buy
+        IF hs_qty < 0 THEN  -- Existing short position to buy
 
 			IF is_lifo THEN
 				-- Estimates will be based on closing most recently acquired
@@ -320,7 +290,7 @@ BEGIN
 					H_PRICE
 				FROM	HOLDING
 				WHERE	H_CA_ID = acct_id AND
-					H_S_SYMB = symb_name
+                      H_S_SYMB = symbol
 				ORDER BY H_DTS DESC;
 			ELSE
 				-- Estimates will be based on closing oldest holdings
@@ -331,7 +301,7 @@ BEGIN
 					H_PRICE
 				FROM	HOLDING
 				WHERE	H_CA_ID = acct_id AND
-					H_S_SYMB = symb_name
+                      H_S_SYMB = symbol
 				ORDER BY H_DTS ASC;
 			END IF;
 
@@ -408,6 +378,10 @@ BEGIN
 		CR_FROM_QTY <= trade_qty AND
 		CR_TO_QTY >= trade_qty;
 
+    IF comm_rate IS NULL THEN
+        comm_rate = 0;
+    END IF;
+
 	SELECT	CH_CHRG
 	INTO	charge_amount
 	FROM	CHARGE
@@ -415,16 +389,16 @@ BEGIN
 		CH_TT_ID = trade_type_id;
 
 	-- Compute assets on margin trades
-	cust_assets = 0.0;
+    acct_assets = 0.0;
 
-	IF type_is_margin THEN
+	IF type_is_margin = 1 THEN
 		SELECT	CA_BAL
 		INTO	acct_bal
 		FROM	CUSTOMER_ACCOUNT
 		WHERE	CA_ID = acct_id;
 
 		-- Should return 0 or 1 row
-		SELECT	sum(HS_QTY * LT_PRICE)
+        SELECT sum(holding_summary.hs_qty * lt_price)
 		INTO	hold_assets
 		FROM	HOLDING_SUMMARY,
 			LAST_TRADE
@@ -432,49 +406,25 @@ BEGIN
 			LT_S_SYMB = HS_S_SYMB;
 
 		IF hold_assets is NULL THEN /* account currently has no holdings */
-			cust_assets = acct_bal;
+            acct_assets = acct_bal;
 		ELSE
-			cust_assets = hold_assets + acct_bal;
+            acct_assets = hold_assets + acct_bal;
 		END IF;
 	END IF;
 
 	-- Set the status for this trade
-	IF type_is_market THEN
+	IF tmp_type_is_market THEN
 		status_id = st_submitted_id;
 	ELSE
 		status_id = st_pending_id;
 	END IF;
-
-	-- Return output parameters
-	SELECT	comp_name,
-		required_price,
-		symb_name,
-		buy_value,
-		charge_amount,
-		comm_rate,
-		cust_assets,
-		market_price,
-		sec_name,
-		sell_value,
-		status_id,
-		tax_amount,
-		type_is_market,
-		type_is_sell
-	INTO	rs;
-
-	RETURN	rs;
 END;
 $$ LANGUAGE 'plpgsql';
 
-
-/*
- * Frame 4
- * Responsible for for creating an audit trail record of the order 
- * and assigning a unique trade ID to it.
- */
-
+-- Clause 3.3.7.6
 CREATE OR REPLACE FUNCTION TradeOrderFrame4(
 				IN acct_id            IDENT_T,
+    IN broker_id IDENT_T,
 				IN charge_amount      VALUE_T,
 				IN comm_amount        VALUE_T,
 				IN exec_name          char(64),
@@ -485,15 +435,30 @@ CREATE OR REPLACE FUNCTION TradeOrderFrame4(
 				IN symbol             varchar(15),
 				IN trade_qty          S_QTY_T,
 				IN trade_type_id      char(3),
-				IN type_is_market     smallint) RETURNS TRADE_T AS $$
+				IN type_is_market     smallint
+  , OUT trade_id TRADE_T
+) RETURNS TRADE_T AS $$
 DECLARE
 	-- variables
 	now_dts		timestamp;
-	trade_id	TRADE_T;
+    tmp_is_cash BOOLEAN;
+    tmp_is_lifo BOOLEAN;
 BEGIN
 	-- Get the timestamp
 	SELECT	NOW()
 	INTO	now_dts;
+
+    IF is_cash = 1 THEN
+        tmp_is_cash := TRUE;
+    ELSE
+        tmp_is_cash := FALSE;
+    END IF;
+
+    IF is_lifo = 1 THEN
+        tmp_is_lifo := TRUE;
+    ELSE
+        tmp_is_lifo := FALSE;
+    END IF;
 
 	-- Record trade information in TRADE table.
 	INSERT INTO TRADE (
@@ -501,12 +466,10 @@ BEGIN
 			T_S_SYMB, T_QTY, T_BID_PRICE, T_CA_ID, T_EXEC_NAME,
 			T_TRADE_PRICE, T_CHRG, T_COMM, T_TAX, T_LIFO)
 	VALUES 		(nextval('seq_trade_id'), now_dts, status_id, trade_type_id, 
-			is_cash, symbol, trade_qty, requested_price, acct_id, 
-			exec_name, NULL, charge_amount, comm_amount, 0, is_lifo);
-
-	-- Get the just generated trade id
-	SELECT currval('seq_trade_id')
-	INTO trade_id;
+           tmp_is_cash, symbol, trade_qty, requested_price, acct_id,
+           exec_name, NULL, charge_amount, comm_amount, 0, tmp_is_lifo)
+    RETURNING T_ID
+    INTO trade_id;
 
 	-- Record pending trade information in TRADE_REQUEST table if this trade
 	-- is a limit trade
@@ -514,17 +477,14 @@ BEGIN
 	IF type_is_market = 0 THEN
 		INSERT INTO TRADE_REQUEST (
 					TR_T_ID, TR_TT_ID, TR_S_SYMB,
-					TR_QTY, TR_BID_PRICE, TR_CA_ID)
+            TR_QTY, TR_BID_PRICE, TR_B_ID)
 		VALUES 			(trade_id, trade_type_id, symbol,
-					trade_qty, requested_price, acct_id);
+            trade_qty, requested_price, broker_id);
 	END IF;
 
 	-- Record trade information in TRADE_HISTORY table.
 	INSERT INTO TRADE_HISTORY (
 				TH_T_ID, TH_DTS, TH_ST_ID)
 	VALUES (trade_id, now_dts, status_id);
-
-	-- Return trade_id generated by SUT
-	RETURN trade_id;
 END;
 $$ LANGUAGE 'plpgsql';

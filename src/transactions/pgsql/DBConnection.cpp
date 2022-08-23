@@ -25,6 +25,15 @@ bool inline check_count(int should, int is, const char *file, int line) {
 	return true;
 }
 
+int inline get_col_num(PGresult *res, const char *col_name)
+{
+	int col_num = PQfnumber(res, col_name);
+	if (col_num == -1) {
+		cerr << "ERROR: column " << col_name << " not found" << endl;
+		exit(1);
+	}
+	return col_num;
+}
 
 // Array Tokenizer
 void inline TokenizeArray(const string& str2, vector<string>& tokens)
@@ -194,10 +203,6 @@ PGresult *CDBConnection::exec(const char *sql)
 void CDBConnection::execute(const TBrokerVolumeFrame1Input *pIn,
 		TBrokerVolumeFrame1Output *pOut)
 {
-	int i_broker_name;
-	int i_list_len;
-	int i_volume;
-
 	ostringstream osBrokers;
 	int i = 0;
 	osBrokers << pIn->broker_list[i];
@@ -212,9 +217,9 @@ void CDBConnection::execute(const TBrokerVolumeFrame1Input *pIn,
 			pIn->sector_name << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
-	i_broker_name = PQfnumber(res, "broker_name");
-	i_list_len = PQfnumber(res, "list_len");
-	i_volume = PQfnumber(res, "volume");
+	int i_broker_name = get_col_num(res, "broker_name");
+	int i_list_len = get_col_num(res, "list_len");
+	int i_volume = get_col_num(res, "volume");
 
 	pOut->list_len = atoi(PQgetvalue(res, 0, i_list_len));
 
@@ -245,67 +250,39 @@ void CDBConnection::execute(const TBrokerVolumeFrame1Input *pIn,
 void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
 		TCustomerPositionFrame1Output *pOut)
 {
-	int i_cust_id;
-	int i_acct_id;
-	int i_acct_len;
-	int i_asset_total;
-	int i_c_ad_id;
-	int i_c_area_1;
-	int i_c_area_2;
-	int i_c_area_3;
-	int i_c_ctry_1;
-	int i_c_ctry_2;
-	int i_c_ctry_3;
-	int i_c_dob;
-	int i_c_email_1;
-	int i_c_email_2;
-	int i_c_ext_1;
-	int i_c_ext_2;
-	int i_c_ext_3;
-	int i_c_f_name;
-	int i_c_gndr;
-	int i_c_l_name;
-	int i_c_local_1;
-	int i_c_local_2;
-	int i_c_local_3;
-	int i_c_m_name;
-	int i_c_st_id;
-	int i_c_tier;
-	int i_cash_bal;
-
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM CustomerPositionFrame1(" <<
 			pIn->cust_id << ",'" <<
 			pIn->tax_id << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
-	i_cust_id = PQfnumber(res, "cust_id");
-	i_acct_id = PQfnumber(res, "acct_id");
-	i_acct_len = PQfnumber(res, "acct_len");
-	i_asset_total = PQfnumber(res, "asset_total");
-	i_c_ad_id = PQfnumber(res, "c_ad_id");
-	i_c_area_1 = PQfnumber(res, "c_area_1");
-	i_c_area_2 = PQfnumber(res, "c_area_2");
-	i_c_area_3 = PQfnumber(res, "c_area_3");
-	i_c_ctry_1 = PQfnumber(res, "c_ctry_1");
-	i_c_ctry_2 = PQfnumber(res, "c_ctry_2");
-	i_c_ctry_3 = PQfnumber(res, "c_ctry_3");
-	i_c_dob = PQfnumber(res, "c_dob");
-	i_c_email_1 = PQfnumber(res, "c_email_1");
-	i_c_email_2 = PQfnumber(res, "c_email_2");
-	i_c_ext_1 = PQfnumber(res, "c_ext_1");
-	i_c_ext_2 = PQfnumber(res, "c_ext_2");
-	i_c_ext_3 = PQfnumber(res, "c_ext_3");
-	i_c_f_name = PQfnumber(res, "c_f_name");
-	i_c_gndr = PQfnumber(res, "c_gndr");
-	i_c_l_name = PQfnumber(res, "c_l_name");
-	i_c_local_1 = PQfnumber(res, "c_local_1");
-	i_c_local_2 = PQfnumber(res, "c_local_2");
-	i_c_local_3 = PQfnumber(res, "c_local_3");
-	i_c_m_name = PQfnumber(res, "c_m_name");
-	i_c_st_id = PQfnumber(res, "c_st_id");
-	i_c_tier = PQfnumber(res, "c_tier");
-	i_cash_bal = PQfnumber(res, "cash_bal");
+	int i_cust_id = get_col_num(res, "cust_id");
+	int i_acct_id = get_col_num(res, "acct_id");
+	int i_acct_len = get_col_num(res, "acct_len");
+	int i_asset_total = get_col_num(res, "asset_total");
+	int i_c_ad_id = get_col_num(res, "c_ad_id");
+	int i_c_area_1 = get_col_num(res, "c_area_1");
+	int i_c_area_2 = get_col_num(res, "c_area_2");
+	int i_c_area_3 = get_col_num(res, "c_area_3");
+	int i_c_ctry_1 = get_col_num(res, "c_ctry_1");
+	int i_c_ctry_2 = get_col_num(res, "c_ctry_2");
+	int i_c_ctry_3 = get_col_num(res, "c_ctry_3");
+	int i_c_dob = get_col_num(res, "c_dob");
+	int i_c_email_1 = get_col_num(res, "c_email_1");
+	int i_c_email_2 = get_col_num(res, "c_email_2");
+	int i_c_ext_1 = get_col_num(res, "c_ext_1");
+	int i_c_ext_2 = get_col_num(res, "c_ext_2");
+	int i_c_ext_3 = get_col_num(res, "c_ext_3");
+	int i_c_f_name = get_col_num(res, "c_f_name");
+	int i_c_gndr = get_col_num(res, "c_gndr");
+	int i_c_l_name = get_col_num(res, "c_l_name");
+	int i_c_local_1 = get_col_num(res, "c_local_1");
+	int i_c_local_2 = get_col_num(res, "c_local_2");
+	int i_c_local_3 = get_col_num(res, "c_local_3");
+	int i_c_m_name = get_col_num(res, "c_m_name");
+	int i_c_st_id = get_col_num(res, "c_st_id");
+	int i_c_tier = get_col_num(res, "c_tier");
+	int i_cash_bal = get_col_num(res, "cash_bal");
 
 	pOut->acct_len = atoi(PQgetvalue(res, 0, i_acct_len));
 	pOut->cust_id = atol(PQgetvalue(res, 0, i_cust_id));
@@ -397,23 +374,16 @@ void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
 void CDBConnection::execute(const TCustomerPositionFrame2Input *pIn,
 		TCustomerPositionFrame2Output *pOut)
 {
-	int i_hist_dts;
-	int i_hist_len;
-	int i_qty;
-	int i_symbol;
-	int i_trade_id;
-	int i_trade_status;
-
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM CustomerPositionFrame2(" << pIn->acct_id << ")";
 
 	PGresult *res = exec(osSQL.str().c_str());
-	i_hist_dts = PQfnumber(res, "hist_dts");
-	i_hist_len = PQfnumber(res, "hist_len");
-	i_qty = PQfnumber(res, "qty");
-	i_symbol = PQfnumber(res, "symbol");
-	i_trade_id = PQfnumber(res, "trade_id");
-	i_trade_status = PQfnumber(res, "trade_status");
+	int i_hist_dts = get_col_num(res, "hist_dts");
+	int i_hist_len = get_col_num(res, "hist_len");
+	int i_qty = get_col_num(res, "qty");
+	int i_symbol = get_col_num(res, "symbol");
+	int i_trade_id = get_col_num(res, "trade_id");
+	int i_trade_status = get_col_num(res, "trade_status");
 
 	pOut->hist_len = atoi(PQgetvalue(res, 0, i_hist_len));
 
@@ -496,14 +466,6 @@ void CDBConnection::execute(const TDataMaintenanceFrame1Input *pIn)
 void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 		TMarketFeedFrame1Output *pOut, CSendToMarketInterface *pMarketExchange)
 {
-	int i_num_updated;
-	int i_send_len;
-	int i_symbol;
-	int i_trade_id;
-	int i_price_quote;
-	int i_trade_qty;
-	int i_trade_type;
-
 	ostringstream osSymbol, osPrice, osQty;
 
 	for (unsigned int i = 0;
@@ -531,13 +493,13 @@ void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 			pIn->StatusAndTradeType.type_stop_loss << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
-	i_num_updated = PQfnumber(res, "num_updated");
-	i_send_len = PQfnumber(res, "send_len");
-	i_symbol = PQfnumber(res, "symbol");
-	i_trade_id = PQfnumber(res, "trade_id");
-	i_price_quote = PQfnumber(res, "price_quote");
-	i_trade_qty = PQfnumber(res, "trade_qty");
-	i_trade_type = PQfnumber(res, "trade_type");
+	int i_num_updated = get_col_num(res, "num_updated");
+	int i_send_len = get_col_num(res, "send_len");
+	int i_symbol = get_col_num(res, "req_trade_symbol");
+	int i_trade_id = get_col_num(res, "req_trade_id");
+	int i_price_quote = get_col_num(res, "req_price_quote");
+	int i_trade_qty = get_col_num(res, "req_trade_qty");
+	int i_trade_type = get_col_num(res, "req_trade_type");
 
 	pOut->num_updated = atoi(PQgetvalue(res, 0, i_num_updated));
 	pOut->send_len = atoi(PQgetvalue(res, 0, i_send_len));
@@ -609,55 +571,9 @@ void CDBConnection::execute(const TMarketWatchFrame1Input *pIn,
 void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 		TSecurityDetailFrame1Output *pOut)
 {
-	int i_s52_wk_high;
-	int i_s52_wk_high_date;
-	int i_s52_wk_low;
-	int i_s52_wk_low_date;
-	int i_ceo_name;
-	int i_co_ad_cty;
-	int i_co_ad_div;
-	int i_co_ad_line1;
-	int i_co_ad_line2;
-	int i_co_ad_town;
-	int i_co_ad_zip;
-	int i_co_desc;
-	int i_co_name;
-	int i_co_st_id;
-	int i_cp_co_name;
-	int i_cp_in_name;
-	int i_day;
-	int i_day_len;
-	int i_divid;
-	int i_ex_ad_cty;
-	int i_ex_ad_div;
-	int i_ex_ad_line1;
-	int i_ex_ad_line2;
-	int i_ex_ad_town;
-	int i_ex_ad_zip;
-	int i_ex_close;
-	int i_ex_date;
-	int i_ex_desc;
-	int i_ex_name;
-	int i_ex_num_symb;
-	int i_ex_open;
-	int i_fin;
-	int i_fin_len;
-	int i_last_open;
-	int i_last_price;
-	int i_last_vol;
-	int i_news;
-	int i_news_len;
-	int i_num_out;
-	int i_open_date;
-	int i_pe_ratio;
-	int i_s_name;
-	int i_sp_rate;
-	int i_start_date;
-	int i_yield;
-
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM SecurityDetailFrame1(" <<
-			(pIn->access_lob_flag == 0 ? "false" : "true") << "," <<
+			pIn->access_lob_flag << "::SMALLINT," <<
 			pIn->max_rows_to_return << ",'" <<
 			pIn->start_day.year << "-" <<
 			pIn->start_day.month << "-" <<
@@ -665,51 +581,51 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 			pIn->symbol << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
-	i_s52_wk_high = PQfnumber(res, "x52_wk_high");
-	i_s52_wk_high_date = PQfnumber(res, "x52_wk_high_date");
-	i_s52_wk_low = PQfnumber(res, "x52_wk_low");
-	i_s52_wk_low_date = PQfnumber(res, "x52_wk_low_date");
-	i_ceo_name = PQfnumber(res, "ceo_name");
-	i_co_ad_cty = PQfnumber(res, "co_ad_ctry");
-	i_co_ad_div = PQfnumber(res, "co_ad_div");
-	i_co_ad_line1 = PQfnumber(res, "co_ad_line1");
-	i_co_ad_line2 = PQfnumber(res, "co_ad_line2");
-	i_co_ad_town = PQfnumber(res, "co_ad_town");
-	i_co_ad_zip = PQfnumber(res, "co_ad_zip");
-	i_co_desc = PQfnumber(res, "co_desc");
-	i_co_name = PQfnumber(res, "co_name");
-	i_co_st_id = PQfnumber(res, "co_st_id");
-	i_cp_co_name = PQfnumber(res, "cp_co_name");
-	i_cp_in_name = PQfnumber(res, "cp_in_name");
-	i_day = PQfnumber(res, "day");
-	i_day_len = PQfnumber(res, "day_len");
-	i_divid = PQfnumber(res, "divid");
-	i_ex_ad_cty = PQfnumber(res, "ex_ad_ctry");
-	i_ex_ad_div = PQfnumber(res, "ex_ad_div");
-	i_ex_ad_line1 = PQfnumber(res, "ex_ad_line1");
-	i_ex_ad_line2 = PQfnumber(res, "ex_ad_line2");
-	i_ex_ad_town = PQfnumber(res, "ex_ad_town");
-	i_ex_ad_zip = PQfnumber(res, "ex_ad_zip");
-	i_ex_close = PQfnumber(res, "ex_close");
-	i_ex_date = PQfnumber(res, "ex_date");
-	i_ex_desc = PQfnumber(res, "ex_desc");
-	i_ex_name = PQfnumber(res, "ex_name");
-	i_ex_num_symb = PQfnumber(res, "ex_num_symb");
-	i_ex_open = PQfnumber(res, "ex_open");
-	i_fin = PQfnumber(res, "fin");
-	i_fin_len = PQfnumber(res, "fin_len");
-	i_last_open = PQfnumber(res, "last_open");
-	i_last_price = PQfnumber(res, "last_price");
-	i_last_vol = PQfnumber(res, "last_vol");
-	i_news = PQfnumber(res, "news");
-	i_news_len = PQfnumber(res, "news_len");
-	i_num_out = PQfnumber(res, "num_out");
-	i_open_date = PQfnumber(res, "open_date");
-	i_pe_ratio = PQfnumber(res, "pe_ratio");
-	i_s_name = PQfnumber(res, "s_name");
-	i_sp_rate = PQfnumber(res, "sp_rate");
-	i_start_date = PQfnumber(res, "start_date");
-	i_yield = PQfnumber(res, "yield");
+	int i_s52_wk_high = get_col_num(res, "x52_wk_high");
+	int i_s52_wk_high_date = get_col_num(res, "x52_wk_high_date");
+	int i_s52_wk_low = get_col_num(res, "x52_wk_low");
+	int i_s52_wk_low_date = get_col_num(res, "x52_wk_low_date");
+	int i_ceo_name = get_col_num(res, "ceo_name");
+	int i_co_ad_cty = get_col_num(res, "co_ad_ctry");
+	int i_co_ad_div = get_col_num(res, "co_ad_div");
+	int i_co_ad_line1 = get_col_num(res, "co_ad_line1");
+	int i_co_ad_line2 = get_col_num(res, "co_ad_line2");
+	int i_co_ad_town = get_col_num(res, "co_ad_town");
+	int i_co_ad_zip = get_col_num(res, "co_ad_zip");
+	int i_co_desc = get_col_num(res, "co_desc");
+	int i_co_name = get_col_num(res, "co_name");
+	int i_co_st_id = get_col_num(res, "co_st_id");
+	int i_cp_co_name = get_col_num(res, "cp_co_name");
+	int i_cp_in_name = get_col_num(res, "cp_in_name");
+	int i_day = get_col_num(res, "day");
+	int i_day_len = get_col_num(res, "day_len");
+	int i_divid = get_col_num(res, "divid");
+	int i_ex_ad_cty = get_col_num(res, "ex_ad_ctry");
+	int i_ex_ad_div = get_col_num(res, "ex_ad_div");
+	int i_ex_ad_line1 = get_col_num(res, "ex_ad_line1");
+	int i_ex_ad_line2 = get_col_num(res, "ex_ad_line2");
+	int i_ex_ad_town = get_col_num(res, "ex_ad_town");
+	int i_ex_ad_zip = get_col_num(res, "ex_ad_zip");
+	int i_ex_close = get_col_num(res, "ex_close");
+	int i_ex_date = get_col_num(res, "ex_date");
+	int i_ex_desc = get_col_num(res, "ex_desc");
+	int i_ex_name = get_col_num(res, "ex_name");
+	int i_ex_num_symb = get_col_num(res, "ex_num_symb");
+	int i_ex_open = get_col_num(res, "ex_open");
+	int i_fin = get_col_num(res, "fin");
+	int i_fin_len = get_col_num(res, "fin_len");
+	int i_last_open = get_col_num(res, "last_open");
+	int i_last_price = get_col_num(res, "last_price");
+	int i_last_vol = get_col_num(res, "last_vol");
+	int i_news = get_col_num(res, "news");
+	int i_news_len = get_col_num(res, "news_len");
+	int i_num_out = get_col_num(res, "num_out");
+	int i_open_date = get_col_num(res, "open_date");
+	int i_pe_ratio = get_col_num(res, "pe_ratio");
+	int i_s_name = get_col_num(res, "s_name");
+	int i_sp_rate = get_col_num(res, "sp_rate");
+	int i_start_date = get_col_num(res, "start_date");
+	int i_yield = get_col_num(res, "yield");
 
 	pOut->fin_len = atoi(PQgetvalue(res, 0, i_fin_len));
 	pOut->day_len = atoi(PQgetvalue(res, 0, i_day_len));
@@ -927,21 +843,6 @@ void CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
 void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 		TTradeLookupFrame1Output *pOut)
 {
-	int i_bid_price;
-	int i_cash_transaction_amount;
-	int i_cash_transaction_dts;
-	int i_cash_transaction_name;
-	int i_exec_name;
-	int i_is_cash;
-	int i_is_market;
-	int i_num_found;
-	int i_settlement_amount;
-	int i_settlement_cash_due_date;
-	int i_settlement_cash_type;
-	int i_trade_history_dts;
-	int i_trade_history_status_id;
-	int i_trade_price;
-
 	ostringstream osTrades;
 	int i = 0;
 	osTrades << pIn->trade_id[i];
@@ -955,20 +856,20 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 			osTrades.str() << "}')";
 
 	PGresult *res = exec(osSQL.str().c_str());
-	i_bid_price = PQfnumber(res, "bid_price");
-	i_cash_transaction_amount = PQfnumber(res, "cash_transaction_amount");
-	i_cash_transaction_dts = PQfnumber(res, "cash_transaction_dts");
-	i_cash_transaction_name = PQfnumber(res, "cash_transaction_name");
-	i_exec_name = PQfnumber(res, "exec_name");
-	i_is_cash = PQfnumber(res, "is_cash");
-	i_is_market = PQfnumber(res, "is_market");
-	i_num_found = PQfnumber(res, "num_found");
-	i_settlement_amount = PQfnumber(res, "settlement_amount");
-	i_settlement_cash_due_date = PQfnumber(res, "settlement_cash_due_date");
-	i_settlement_cash_type = PQfnumber(res, "settlement_cash_type");
-	i_trade_history_dts = PQfnumber(res, "trade_history_dts");
-	i_trade_history_status_id = PQfnumber(res, "trade_history_status_id");
-	i_trade_price = PQfnumber(res, "trade_price");
+	int i_bid_price = get_col_num(res, "bid_price");
+	int i_cash_transaction_amount = get_col_num(res, "cash_transaction_amount");
+	int i_cash_transaction_dts = get_col_num(res, "cash_transaction_dts");
+	int i_cash_transaction_name = get_col_num(res, "cash_transaction_name");
+	int i_exec_name = get_col_num(res, "exec_name");
+	int i_is_cash = get_col_num(res, "is_cash");
+	int i_is_market = get_col_num(res, "is_market");
+	int i_num_found = get_col_num(res, "num_found");
+	int i_settlement_amount = get_col_num(res, "settlement_amount");
+	int i_settlement_cash_due_date = get_col_num(res, "settlement_cash_due_date");
+	int i_settlement_cash_type = get_col_num(res, "settlement_cash_type");
+	int i_trade_history_dts = get_col_num(res, "trade_history_dts");
+	int i_trade_history_status_id = get_col_num(res, "trade_history_status_id");
+	int i_trade_price = get_col_num(res, "trade_price");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
 
@@ -1134,21 +1035,6 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 		TTradeLookupFrame2Output *pOut)
 {
-	int i_bid_price;
-	int i_cash_transaction_amount;
-	int i_cash_transaction_dts;
-	int i_cash_transaction_name;
-	int i_exec_name;
-	int i_is_cash;
-	int i_num_found;
-	int i_settlement_amount;
-	int i_settlement_cash_due_date;
-	int i_settlement_cash_type;
-	int i_trade_history_dts;
-	int i_trade_history_status_id;
-	int i_trade_list;
-	int i_trade_price;
-
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeLookupFrame2(" <<
 			pIn->acct_id << ",'" <<
@@ -1157,31 +1043,31 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 			pIn->end_trade_dts.day << " " <<
 			pIn->end_trade_dts.hour << ":" <<
 			pIn->end_trade_dts.minute << ":" <<
-			pIn->end_trade_dts.second << "'," <<
+			pIn->end_trade_dts.second << "'::TIMESTAMP," <<
 			pIn->max_trades << ",'" <<
 			pIn->start_trade_dts.year << "-" <<
 			pIn->start_trade_dts.month << "-" <<
 			pIn->start_trade_dts.day << " " <<
 			pIn->start_trade_dts.hour << ":" <<
 			pIn->start_trade_dts.minute << ":" <<
-			pIn->start_trade_dts.second << "')";
+			pIn->start_trade_dts.second << "'::TIMESTAMP)";
 
 	PGresult *res = exec(osSQL.str().c_str());
 
-	i_bid_price = PQfnumber(res, "bid_price");
-	i_cash_transaction_amount = PQfnumber(res, "cash_transaction_amount");
-	i_cash_transaction_dts = PQfnumber(res, "cash_transaction_dts");
-	i_cash_transaction_name = PQfnumber(res, "cash_transaction_name");
-	i_exec_name = PQfnumber(res, "exec_name");
-	i_is_cash = PQfnumber(res, "is_cash");
-	i_num_found = PQfnumber(res, "num_found");
-	i_settlement_amount = PQfnumber(res, "settlement_amount");
-	i_settlement_cash_due_date = PQfnumber(res, "settlement_cash_due_date");
-	i_settlement_cash_type = PQfnumber(res, "settlement_cash_type");
-	i_trade_history_dts = PQfnumber(res, "trade_history_dts");
-	i_trade_history_status_id = PQfnumber(res, "trade_history_status_id");
-	i_trade_list = PQfnumber(res, "trade_list");
-	i_trade_price = PQfnumber(res, "trade_price");
+	int i_bid_price = get_col_num(res, "bid_price");
+	int i_cash_transaction_amount = get_col_num(res, "cash_transaction_amount");
+	int i_cash_transaction_dts = get_col_num(res, "cash_transaction_dts");
+	int i_cash_transaction_name = get_col_num(res, "cash_transaction_name");
+	int i_exec_name = get_col_num(res, "exec_name");
+	int i_is_cash = get_col_num(res, "is_cash");
+	int i_num_found = get_col_num(res, "num_found");
+	int i_settlement_amount = get_col_num(res, "settlement_amount");
+	int i_settlement_cash_due_date = get_col_num(res, "settlement_cash_due_date");
+	int i_settlement_cash_type = get_col_num(res, "settlement_cash_type");
+	int i_trade_history_dts = get_col_num(res, "trade_history_dts");
+	int i_trade_history_status_id = get_col_num(res, "trade_history_status_id");
+	int i_trade_list = get_col_num(res, "trade_list");
+	int i_trade_price = get_col_num(res, "trade_price");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
 
@@ -1348,24 +1234,6 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 		TTradeLookupFrame3Output *pOut)
 {
-	int i_acct_id;
-	int i_cash_transaction_amount;
-	int i_cash_transaction_dts;
-	int i_cash_transaction_name;
-	int i_exec_name;
-	int i_is_cash;
-	int i_num_found;
-	int i_price;
-	int i_quantity;
-	int i_settlement_amount;
-	int i_settlement_cash_due_date;
-	int i_settlement_cash_type;
-	int i_trade_dts;
-	int i_trade_history_dts;
-	int i_trade_history_status_id;
-	int i_trade_list;
-	int i_trade_type;
-
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeLookupFrame3('" <<
 			pIn->end_trade_dts.year << "-" <<
@@ -1385,23 +1253,23 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 			pIn->symbol << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
-	i_acct_id = PQfnumber(res, "acct_id");
-	i_cash_transaction_amount = PQfnumber(res, "cash_transaction_amount");
-	i_cash_transaction_dts = PQfnumber(res, "cash_transaction_dts");
-	i_cash_transaction_name = PQfnumber(res, "cash_transaction_name");
-	i_exec_name = PQfnumber(res, "exec_name");
-	i_is_cash = PQfnumber(res, "is_cash");
-	i_num_found = PQfnumber(res, "num_found");
-	i_price = PQfnumber(res, "price");
-	i_quantity = PQfnumber(res, "quantity");
-	i_settlement_amount = PQfnumber(res, "settlement_amount");
-	i_settlement_cash_due_date = PQfnumber(res, "settlement_cash_due_date");
-	i_settlement_cash_type = PQfnumber(res, "settlement_cash_type");
-	i_trade_dts = PQfnumber(res, "trade_dts");
-	i_trade_history_dts = PQfnumber(res, "trade_history_dts");
-	i_trade_history_status_id = PQfnumber(res, "trade_history_status_id");
-	i_trade_list = PQfnumber(res, "trade_list");
-	i_trade_type = PQfnumber(res, "trade_type");
+	int i_acct_id = get_col_num(res, "acct_id");
+	int i_cash_transaction_amount = get_col_num(res, "cash_transaction_amount");
+	int i_cash_transaction_dts = get_col_num(res, "cash_transaction_dts");
+	int i_cash_transaction_name = get_col_num(res, "cash_transaction_name");
+	int i_exec_name = get_col_num(res, "exec_name");
+	int i_is_cash = get_col_num(res, "is_cash");
+	int i_num_found = get_col_num(res, "num_found");
+	int i_price = get_col_num(res, "price");
+	int i_quantity = get_col_num(res, "quantity");
+	int i_settlement_amount = get_col_num(res, "settlement_amount");
+	int i_settlement_cash_due_date = get_col_num(res, "settlement_cash_due_date");
+	int i_settlement_cash_type = get_col_num(res, "settlement_cash_type");
+	int i_trade_dts = get_col_num(res, "trade_dts");
+	int i_trade_history_dts = get_col_num(res, "trade_history_dts");
+	int i_trade_history_status_id = get_col_num(res, "trade_history_status_id");
+	int i_trade_list = get_col_num(res, "trade_list");
+	int i_trade_type = get_col_num(res, "trade_type");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
 
@@ -1603,14 +1471,6 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 void CDBConnection::execute(const TTradeLookupFrame4Input *pIn,
 		TTradeLookupFrame4Output *pOut)
 {
-	int i_holding_history_id;
-	int i_holding_history_trade_id;
-	int i_num_found;
-	int i_num_trades_found;
-	int i_quantity_after;
-	int i_quantity_before;
-	int i_trade_id;
-
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeLookupFrame4(" <<
 			pIn->acct_id << ",'" <<
@@ -1622,13 +1482,13 @@ void CDBConnection::execute(const TTradeLookupFrame4Input *pIn,
 			pIn->trade_dts.second << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
-	i_holding_history_id = PQfnumber(res, "holding_history_id");
-	i_holding_history_trade_id = PQfnumber(res, "holding_history_trade_id");
-	i_num_found = PQfnumber(res, "num_found");
-	i_num_trades_found = PQfnumber(res, "num_trades_found");
-	i_quantity_after = PQfnumber(res, "quantity_after");
-	i_quantity_before = PQfnumber(res, "quantity_before");
-	i_trade_id = PQfnumber(res, "trade_id");
+	int i_holding_history_id = get_col_num(res, "holding_history_id");
+	int i_holding_history_trade_id = get_col_num(res, "holding_history_trade_id");
+	int i_num_found = get_col_num(res, "num_found");
+	int i_num_trades_found = get_col_num(res, "num_trades_found");
+	int i_quantity_after = get_col_num(res, "quantity_after");
+	int i_quantity_before = get_col_num(res, "quantity_before");
+	int i_trade_id = get_col_num(res, "trade_id");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
 	pOut->num_trades_found = atoi(PQgetvalue(res, 0, i_num_trades_found));
@@ -1683,22 +1543,32 @@ void CDBConnection::execute(const TTradeOrderFrame1Input *pIn,
 	osSQL << "SELECT * FROM TradeOrderFrame1(" << pIn->acct_id << ")";
 
 	PGresult *res = exec(osSQL.str().c_str());
+	int i_acct_name = get_col_num(res, "acct_name");
+	int i_broker_id = get_col_num(res, "broker_id");
+	int i_broker_name = get_col_num(res, "broker_name");
+	int i_cust_f_name = get_col_num(res, "cust_f_name");
+	int i_cust_id = get_col_num(res, "cust_id");
+	int i_cust_l_name = get_col_num(res, "cust_l_name");
+	int i_cust_tier = get_col_num(res, "cust_tier");
+	int i_num_found = get_col_num(res, "num_found");
+	int i_tax_id = get_col_num(res, "tax_id");
+	int i_tax_status = get_col_num(res, "tax_status");
 
-	strncpy(pOut->acct_name, PQgetvalue(res, 0, 0), cCA_NAME_len);
+	strncpy(pOut->acct_name, PQgetvalue(res, 0, i_acct_name), cCA_NAME_len);
 	pOut->acct_name[cCA_NAME_len] ='\0';
-	pOut->broker_id = atol(PQgetvalue(res, 0, 1));
-	strncpy(pOut->broker_name, PQgetvalue(res, 0, 2), cB_NAME_len);
+	pOut->broker_id = atol(PQgetvalue(res, 0, i_broker_id));
+	strncpy(pOut->broker_name, PQgetvalue(res, 0, i_broker_name), cB_NAME_len);
 	pOut->broker_name[cB_NAME_len]  ='\0';
-	strncpy(pOut->cust_f_name, PQgetvalue(res, 0, 3), cF_NAME_len);
+	strncpy(pOut->cust_f_name, PQgetvalue(res, 0, i_cust_f_name), cF_NAME_len);
 	pOut->cust_f_name[cF_NAME_len] = '\0';
-	pOut->cust_id = atol(PQgetvalue(res, 0, 4));
-	strncpy(pOut->cust_l_name, PQgetvalue(res, 0, 5), cL_NAME_len);
+	pOut->cust_id = atol(PQgetvalue(res, 0, i_cust_id));
+	strncpy(pOut->cust_l_name, PQgetvalue(res, 0, i_cust_l_name), cL_NAME_len);
 	pOut->cust_l_name[cL_NAME_len] = '\0';
-	pOut->cust_tier = atoi(PQgetvalue(res, 0, 6));
-	pOut->num_found = atoi(PQgetvalue(res, 0, 7));
-	strncpy(pOut->tax_id, PQgetvalue(res, 0, 8), cTAX_ID_len);
+	pOut->cust_tier = atoi(PQgetvalue(res, 0, i_cust_tier));
+	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
+	strncpy(pOut->tax_id, PQgetvalue(res, 0, i_tax_id), cTAX_ID_len);
 	pOut->tax_id[cTAX_ID_len] = '\0';
-	pOut->tax_status = atoi(PQgetvalue(res, 0, 9));
+	pOut->tax_status = atoi(PQgetvalue(res, 0, i_tax_status));
 	PQclear(res);
 }
 
@@ -1754,24 +1624,38 @@ void CDBConnection::execute(const TTradeOrderFrame3Input *pIn,
 			pIn->symbol << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
+	int i_co_name = get_col_num(res, "co_name");
+	int i_requested_price = get_col_num(res, "requested_price");
+	int i_symbol = get_col_num(res, "symbol");
+	int i_buy_value = get_col_num(res, "buy_value");
+	int i_charge_amount = get_col_num(res, "charge_amount");
+	int i_comm_rate = get_col_num(res, "comm_rate");
+	int i_acct_assets = get_col_num(res, "acct_assets");
+	int i_market_price = get_col_num(res, "market_price");
+	int i_s_name = get_col_num(res, "s_name");
+	int i_sell_value = get_col_num(res, "sell_value");
+	int i_status_id = get_col_num(res, "status_id");
+	int i_tax_amount = get_col_num(res, "tax_amount");
+	int i_type_is_market = get_col_num(res, "type_is_market");
+	int i_type_is_sell = get_col_num(res, "type_is_sell");
 
-	strncpy(pOut->co_name, PQgetvalue(res, 0, 0), cCO_NAME_len);
-	pOut->requested_price = atof(PQgetvalue(res, 0, 1));
-	strncpy(pOut->symbol, PQgetvalue(res, 0, 2), cSYMBOL_len);
+	strncpy(pOut->co_name, PQgetvalue(res, 0, i_co_name), cCO_NAME_len);
+	pOut->requested_price = atof(PQgetvalue(res, 0, i_requested_price));
+	strncpy(pOut->symbol, PQgetvalue(res, 0, i_symbol), cSYMBOL_len);
 	pOut->symbol[cSYMBOL_len] = '\0';
-	pOut->buy_value = atof(PQgetvalue(res, 0, 3));
-	pOut->charge_amount = atof(PQgetvalue(res, 0, 4));
-	pOut->comm_rate = atof(PQgetvalue(res, 0, 5));
-	pOut->acct_assets = atof(PQgetvalue(res, 0, 6));
-	pOut->market_price = atof(PQgetvalue(res, 0, 7));
-	strncpy(pOut->s_name, PQgetvalue(res, 0, 8), cS_NAME_len);
+	pOut->buy_value = atof(PQgetvalue(res, 0, i_buy_value));
+	pOut->charge_amount = atof(PQgetvalue(res, 0, i_charge_amount));
+	pOut->comm_rate = atof(PQgetvalue(res, 0, i_comm_rate));
+	pOut->acct_assets = atof(PQgetvalue(res, 0, i_acct_assets));
+	pOut->market_price = atof(PQgetvalue(res, 0, i_market_price));
+	strncpy(pOut->s_name, PQgetvalue(res, 0, i_s_name), cS_NAME_len);
 	pOut->s_name[cS_NAME_len] = '\0';
-	pOut->sell_value = atof(PQgetvalue(res, 0, 9));
-	strncpy(pOut->status_id, PQgetvalue(res, 0, 10), cTH_ST_ID_len);
+	pOut->sell_value = atof(PQgetvalue(res, 0, i_sell_value));
+	strncpy(pOut->status_id, PQgetvalue(res, 0, i_status_id), cTH_ST_ID_len);
 	pOut->status_id[cTH_ST_ID_len] = '\0';
-	pOut->tax_amount = atof(PQgetvalue(res, 0, 11));
-	pOut->type_is_market = (PQgetvalue(res, 0, 12)[0] == 't' ? 1 : 0);
-	pOut->type_is_sell = (PQgetvalue(res, 0, 13)[0] == 't' ? 1 : 0);
+	pOut->tax_amount = atof(PQgetvalue(res, 0, i_tax_amount));
+	pOut->type_is_market = atoi(PQgetvalue(res, 0, i_type_is_market));
+	pOut->type_is_sell = atoi(PQgetvalue(res, 0, i_type_is_sell));
 	PQclear(res);
 }
 
@@ -1811,21 +1695,33 @@ void CDBConnection::execute(const TTradeResultFrame1Input *pIn,
 	osSQL << "SELECT * FROM TradeResultFrame1(" << pIn->trade_id << ")";
 
 	PGresult *res = exec(osSQL.str().c_str());
+	int i_acct_id = get_col_num(res, "acct_id");
+	int i_charge = get_col_num(res, "charge");
+	int i_hs_qty = get_col_num(res, "hs_qty");
+	int i_is_lifo = get_col_num(res, "is_lifo");
+	int i_num_found = get_col_num(res, "num_found");
+	int i_symbol = get_col_num(res, "symbol");
+	int i_trade_is_cash = get_col_num(res, "trade_is_cash");
+	int i_trade_qty = get_col_num(res, "trade_qty");
+	int i_type_id = get_col_num(res, "type_id");
+	int i_type_is_market = get_col_num(res, "type_is_market");
+	int i_type_is_sell = get_col_num(res, "type_is_sell");
+	int i_type_name = get_col_num(res, "type_name");
 
-	pOut->acct_id = atol(PQgetvalue(res, 0, 0));
-	pOut->charge = atof(PQgetvalue(res, 0, 1));
-	pOut->hs_qty = atoi(PQgetvalue(res, 0, 2));
-	pOut->is_lifo = atoi(PQgetvalue(res, 0, 3));
-	pOut->num_found = atoi(PQgetvalue(res, 0, 4));
-	strncpy(pOut->symbol, PQgetvalue(res, 0, 5), cSYMBOL_len);
+	pOut->acct_id = atol(PQgetvalue(res, 0, i_acct_id));
+	pOut->charge = atof(PQgetvalue(res, 0, i_charge));
+	pOut->hs_qty = atoi(PQgetvalue(res, 0, i_hs_qty));
+	pOut->is_lifo = atoi(PQgetvalue(res, 0, i_is_lifo));
+	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
+	strncpy(pOut->symbol, PQgetvalue(res, 0, i_symbol), cSYMBOL_len);
 	pOut->symbol[cSYMBOL_len] = '\0';
-	pOut->trade_is_cash = atoi(PQgetvalue(res, 0, 6));
-	pOut->trade_qty = atoi(PQgetvalue(res, 0, 7));
-	strncpy(pOut->type_id, PQgetvalue(res, 0, 8), cTT_ID_len);
+	pOut->trade_is_cash = atoi(PQgetvalue(res, 0, i_trade_is_cash));
+	pOut->trade_qty = atoi(PQgetvalue(res, 0, i_trade_qty));
+	strncpy(pOut->type_id, PQgetvalue(res, 0, i_type_id), cTT_ID_len);
 	pOut->type_id[cTT_ID_len] = '\0';
-	pOut->type_is_market = atoi(PQgetvalue(res, 0, 9));
-	pOut->type_is_sell = atoi(PQgetvalue(res, 0, 10));
-	strncpy(pOut->type_name, PQgetvalue(res, 0, 11), cTT_NAME_len);
+	pOut->type_is_market = atoi(PQgetvalue(res, 0, i_type_is_market));
+	pOut->type_is_sell = atoi(PQgetvalue(res, 0, i_type_is_sell));
+	strncpy(pOut->type_name, PQgetvalue(res, 0, i_type_name), cTT_NAME_len);
 	pOut->type_name[cTT_NAME_len] = '\0';
 	PQclear(res);
 }
@@ -1957,39 +1853,24 @@ void CDBConnection::execute(const TTradeResultFrame6Input *pIn,
 void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 		TTradeStatusFrame1Output *pOut)
 {
-	int i_broker_name;
-	int i_charge;
-	int i_cust_f_name;
-	int i_cust_l_name;
-	int i_ex_name;
-	int i_exec_name;
-	int i_num_found;
-	int i_s_name;
-	int i_status_name;
-	int i_symbol;
-	int i_trade_dts;
-	int i_trade_id;
-	int i_trade_qty;
-	int i_type_name;
-
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeStatusFrame1(" << pIn->acct_id << ")";
 
 	PGresult *res = exec(osSQL.str().c_str());
-	i_broker_name = PQfnumber(res, "broker_name");
-	i_charge = PQfnumber(res, "charge");
-	i_cust_f_name = PQfnumber(res, "cust_f_name");
-	i_cust_l_name = PQfnumber(res, "cust_l_name");
-	i_ex_name = PQfnumber(res, "ex_name");
-	i_exec_name = PQfnumber(res, "exec_name");
-	i_num_found = PQfnumber(res, "num_found");
-	i_s_name = PQfnumber(res, "s_name");
-	i_status_name = PQfnumber(res, "st_name");
-	i_symbol = PQfnumber(res, "symbol");
-	i_trade_dts = PQfnumber(res, "trade_dts");
-	i_trade_id = PQfnumber(res, "trade_id");
-	i_trade_qty = PQfnumber(res, "trade_qty");
-	i_type_name = PQfnumber(res, "type_name");
+	int i_broker_name = get_col_num(res, "broker_name");
+	int i_charge = get_col_num(res, "charge");
+	int i_cust_f_name = get_col_num(res, "cust_f_name");
+	int i_cust_l_name = get_col_num(res, "cust_l_name");
+	int i_ex_name = get_col_num(res, "ex_name");
+	int i_exec_name = get_col_num(res, "exec_name");
+	int i_num_found = get_col_num(res, "num_found");
+	int i_s_name = get_col_num(res, "s_name");
+	int i_status_name = get_col_num(res, "status_name");
+	int i_symbol = get_col_num(res, "symbol");
+	int i_trade_dts = get_col_num(res, "trade_dts");
+	int i_trade_id = get_col_num(res, "trade_id");
+	int i_trade_qty = get_col_num(res, "trade_qty");
+	int i_type_name = get_col_num(res, "type_name");
 
 	vector<string> vAux;
 	vector<string>::iterator p;
@@ -2111,22 +1992,6 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 		TTradeUpdateFrame1Output *pOut)
 {
-	int i_bid_price;
-	int i_cash_transaction_amount;
-	int i_cash_transaction_dts;
-	int i_cash_transaction_name;
-	int i_exec_name;
-	int i_is_cash;
-	int i_is_market;
-	int i_num_found;
-	int i_num_updated;
-	int i_settlement_amount;
-	int i_settlement_cash_due_date;
-	int i_settlement_cash_type;
-	int i_trade_history_dts;
-	int i_trade_history_status_id;
-	int i_trade_price;
-
 	ostringstream osTrades;
 	int i = 0;
 	osTrades << pIn->trade_id[i];
@@ -2141,21 +2006,21 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 			osTrades.str() << "}')";
 
 	PGresult *res = exec(osSQL.str().c_str());
-	i_bid_price = PQfnumber(res, "bid_price");
-	i_cash_transaction_amount = PQfnumber(res, "cash_transaction_amount");
-	i_cash_transaction_dts = PQfnumber(res, "cash_transaction_dts");
-	i_cash_transaction_name = PQfnumber(res, "cash_transaction_name");
-	i_exec_name = PQfnumber(res, "exec_name");
-	i_is_cash = PQfnumber(res, "is_cash");
-	i_is_market = PQfnumber(res, "is_market");
-	i_num_found = PQfnumber(res, "num_found");
-	i_num_updated = PQfnumber(res, "num_updated");
-	i_settlement_amount = PQfnumber(res, "settlement_amount");
-	i_settlement_cash_due_date = PQfnumber(res, "settlement_cash_due_date");
-	i_settlement_cash_type = PQfnumber(res, "settlement_cash_type");
-	i_trade_history_dts = PQfnumber(res, "trade_history_dts");
-	i_trade_history_status_id = PQfnumber(res, "trade_history_status_id");
-	i_trade_price = PQfnumber(res, "trade_price");
+	int i_bid_price = get_col_num(res, "bid_price");
+	int i_cash_transaction_amount = get_col_num(res, "cash_transaction_amount");
+	int i_cash_transaction_dts = get_col_num(res, "cash_transaction_dts");
+	int i_cash_transaction_name = get_col_num(res, "cash_transaction_name");
+	int i_exec_name = get_col_num(res, "exec_name");
+	int i_is_cash = get_col_num(res, "is_cash");
+	int i_is_market = get_col_num(res, "is_market");
+	int i_num_found = get_col_num(res, "num_found");
+	int i_num_updated = get_col_num(res, "num_updated");
+	int i_settlement_amount = get_col_num(res, "settlement_amount");
+	int i_settlement_cash_due_date = get_col_num(res, "settlement_cash_due_date");
+	int i_settlement_cash_type = get_col_num(res, "settlement_cash_type");
+	int i_trade_history_dts = get_col_num(res, "trade_history_dts");
+	int i_trade_history_status_id = get_col_num(res, "trade_history_status_id");
+	int i_trade_price = get_col_num(res, "trade_price");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
 
@@ -2338,22 +2203,6 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 		TTradeUpdateFrame2Output *pOut)
 {
-	int i_bid_price;
-	int i_cash_transaction_amount;
-	int i_cash_transaction_dts;
-	int i_cash_transaction_name;
-	int i_exec_name;
-	int i_is_cash;
-	int i_num_found;
-	int i_num_updated;
-	int i_settlement_amount;
-	int i_settlement_cash_due_date;
-	int i_settlement_cash_type;
-	int i_trade_history_dts;
-	int i_trade_history_status_id;
-	int i_trade_list;
-	int i_trade_price;
-
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeUpdateFrame2(" <<
 			pIn->acct_id << ",'" <<
@@ -2362,7 +2211,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 			pIn->end_trade_dts.day << " " <<
 			pIn->end_trade_dts.hour << ":" <<
 			pIn->end_trade_dts.minute << ":" <<
-			pIn->end_trade_dts.second << "'," <<
+			pIn->end_trade_dts.second << "'::TIMESTAMP," <<
 			pIn->max_trades << "," <<
 			pIn->max_updates << ",'" <<
 			pIn->start_trade_dts.year << "-" <<
@@ -2370,24 +2219,24 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 			pIn->start_trade_dts.day << " " <<
 			pIn->start_trade_dts.hour << ":" <<
 			pIn->start_trade_dts.minute << ":" <<
-			pIn->start_trade_dts.second << "')";
+			pIn->start_trade_dts.second << "'::TIMESTAMP)";
 
 	PGresult *res = exec(osSQL.str().c_str());
-	i_bid_price = PQfnumber(res, "bid_price");
-	i_cash_transaction_amount = PQfnumber(res, "cash_transaction_amount");
-	i_cash_transaction_dts = PQfnumber(res, "cash_transaction_dts");
-	i_cash_transaction_name = PQfnumber(res, "cash_transaction_name");
-	i_exec_name = PQfnumber(res, "exec_name");
-	i_is_cash = PQfnumber(res, "is_cash");
-	i_num_found = PQfnumber(res, "num_found");
-	i_num_updated = PQfnumber(res, "num_updated");
-	i_settlement_amount = PQfnumber(res, "settlement_amount");
-	i_settlement_cash_due_date = PQfnumber(res, "settlement_cash_due_date");
-	i_settlement_cash_type = PQfnumber(res, "settlement_cash_type");
-	i_trade_history_dts = PQfnumber(res, "trade_history_dts");
-	i_trade_history_status_id = PQfnumber(res, "trade_history_status_id");
-	i_trade_list = PQfnumber(res, "trade_list");
-	i_trade_price = PQfnumber(res, "trade_price");
+	int i_bid_price = get_col_num(res, "bid_price");
+	int i_cash_transaction_amount = get_col_num(res, "cash_transaction_amount");
+	int i_cash_transaction_dts = get_col_num(res, "cash_transaction_dts");
+	int i_cash_transaction_name = get_col_num(res, "cash_transaction_name");
+	int i_exec_name = get_col_num(res, "exec_name");
+	int i_is_cash = get_col_num(res, "is_cash");
+	int i_num_found = get_col_num(res, "num_found");
+	int i_num_updated = get_col_num(res, "num_updated");
+	int i_settlement_amount = get_col_num(res, "settlement_amount");
+	int i_settlement_cash_due_date = get_col_num(res, "settlement_cash_due_date");
+	int i_settlement_cash_type = get_col_num(res, "settlement_cash_type");
+	int i_trade_history_dts = get_col_num(res, "trade_history_dts");
+	int i_trade_history_status_id = get_col_num(res, "trade_history_status_id");
+	int i_trade_list = get_col_num(res, "trade_list");
+	int i_trade_price = get_col_num(res, "trade_price");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
 
@@ -2572,27 +2421,6 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 		TTradeUpdateFrame3Output *pOut)
 {
-	int i_acct_id;
-	int i_cash_transaction_amount;
-	int i_cash_transaction_dts;
-	int i_cash_transaction_name;
-	int i_exec_name;
-	int i_is_cash;
-	int i_num_found;
-	int i_num_updated;
-	int i_price;
-	int i_quantity;
-	int i_s_name;
-	int i_settlement_amount;
-	int i_settlement_cash_due_date;
-	int i_settlement_cash_type;
-	int i_trade_dts;
-	int i_trade_history_dts;
-	int i_trade_history_status_id;
-	int i_trade_list;
-	int i_type_name;
-	int i_trade_type;
-
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeUpdateFrame3('" <<
 			pIn->end_trade_dts.year << "-" <<
@@ -2613,26 +2441,26 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 			pIn->symbol << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
-	i_acct_id = PQfnumber(res, "acct_id");
-	i_cash_transaction_amount = PQfnumber(res, "cash_transaction_amount");
-	i_cash_transaction_dts = PQfnumber(res, "cash_transaction_dts");
-	i_cash_transaction_name = PQfnumber(res, "cash_transaction_name");
-	i_exec_name = PQfnumber(res, "exec_name");
-	i_is_cash = PQfnumber(res, "is_cash");
-	i_num_found = PQfnumber(res, "num_found");
-	i_num_updated = PQfnumber(res, "num_updated");
-	i_price = PQfnumber(res, "price");
-	i_quantity = PQfnumber(res, "quantity");
-	i_s_name = PQfnumber(res, "s_name");
-	i_settlement_amount = PQfnumber(res, "settlement_amount");
-	i_settlement_cash_due_date = PQfnumber(res, "settlement_cash_due_date");
-	i_settlement_cash_type = PQfnumber(res, "settlement_cash_type");
-	i_trade_dts = PQfnumber(res, "trade_dts");
-	i_trade_history_dts = PQfnumber(res, "trade_history_dts");
-	i_trade_history_status_id = PQfnumber(res, "trade_history_status_id");
-	i_trade_list = PQfnumber(res, "trade_list");
-	i_type_name = PQfnumber(res, "type_name");
-	i_trade_type = PQfnumber(res, "trade_type");
+	int i_acct_id = get_col_num(res, "acct_id");
+	int i_cash_transaction_amount = get_col_num(res, "cash_transaction_amount");
+	int i_cash_transaction_dts = get_col_num(res, "cash_transaction_dts");
+	int i_cash_transaction_name = get_col_num(res, "cash_transaction_name");
+	int i_exec_name = get_col_num(res, "exec_name");
+	int i_is_cash = get_col_num(res, "is_cash");
+	int i_num_found = get_col_num(res, "num_found");
+	int i_num_updated = get_col_num(res, "num_updated");
+	int i_price = get_col_num(res, "price");
+	int i_quantity = get_col_num(res, "quantity");
+	int i_s_name = get_col_num(res, "s_name");
+	int i_settlement_amount = get_col_num(res, "settlement_amount");
+	int i_settlement_cash_due_date = get_col_num(res, "settlement_cash_due_date");
+	int i_settlement_cash_type = get_col_num(res, "settlement_cash_type");
+	int i_trade_dts = get_col_num(res, "trade_dts");
+	int i_trade_history_dts = get_col_num(res, "trade_history_dts");
+	int i_trade_history_status_id = get_col_num(res, "trade_history_status_id");
+	int i_trade_list = get_col_num(res, "trade_list");
+	int i_type_name = get_col_num(res, "type_name");
+	int i_trade_type = get_col_num(res, "trade_type");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
 

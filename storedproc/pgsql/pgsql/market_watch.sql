@@ -4,48 +4,38 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Market Watch transaction
- * -------------------------
- * This transaction calculates the percentage change in value of the market
- * capitalization of collection of securities at yesterday’s closing price
- * compared to the current market price for that collection of securities.
- * 
- *
- * Based on TPC-E Standard Specification Draft Revision 0.32.2e Clause 3.3.10.
+ * Based on TPC-E Standard Specification Revision 1.14.0
  */
 
-/*
- * Frame 1
- * Build list of securities and compute percentage
- */
-
+-- Clause 3.3.4.3
 CREATE OR REPLACE FUNCTION MarketWatchFrame1 (
 						IN acct_id		IDENT_T,
 						IN cust_id		IDENT_T,
 						IN ending_co_id 	IDENT_T,
-						IN industry_name	varchar,
-						IN starting_co_id 	IDENT_T) RETURNS record AS $$
+    IN industry_name VARCHAR(50)
+  , IN start_date DATE
+  , IN starting_co_id IDENT_T
+  , OUT pct_change DOUBLE PRECISION
+) RETURNS DOUBLE PRECISION AS $$
 DECLARE
 	-- variables
-	rs		RECORD;
-	old_mkt_cap	double precision;
-	new_mkt_cap	double precision;
-	pct_change	double precision;
+    old_mkt_cap DOUBLE PRECISION;
+    new_mkt_cap DOUBLE PRECISION;
 	symbol		char(15);
 	sec_num_out	S_COUNT_T;
-	old_price	S_PRICE_T;
-	new_price	S_PRICE_T;
+    old_price DOUBLE PRECISION;
+    new_price DOUBLE PRECISION;
 
 	-- cursor
 	stock_list	refcursor;
 BEGIN
 	IF cust_id != 0 THEN
 		OPEN	stock_list FOR
-		SELECT	distinct WI_S_SYMB
-		FROM	WATCH_ITEM
-		WHERE	WI_WL_ID in (SELECT WL_ID
-					FROM WATCH_LIST
-					WHERE WL_C_ID = cust_id);
+            SELECT WI_S_SYMB
+            FROM watch_item
+               , watch_list
+            WHERE wi_wl_id = wl_id
+              AND wl_c_id = cust_id;
 	ELSIF industry_name != '' THEN
 		OPEN stock_list FOR
 		SELECT	S_SYMB
@@ -62,9 +52,8 @@ BEGIN
 		FROM	HOLDING_SUMMARY
 		WHERE	HS_CA_ID = acct_id;
 	ELSE
-		SELECT	-1::smallint, 0.0  -- status fail, pct_change
-		INTO	rs;
-		RETURN rs;
+        pct_change = 0.0;
+        RETURN;
 	END IF;
 
 	old_mkt_cap = 0.0;
@@ -108,10 +97,6 @@ BEGIN
 	END IF;
 	
 	CLOSE stock_list;
-
-	SELECT	0::smallint, pct_change	-- status ok, pct_change
-	INTO	rs;
-	RETURN	rs;
 END;
 $$ LANGUAGE 'plpgsql';
 

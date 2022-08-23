@@ -4,35 +4,26 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Trade Result transaction
- * ------------------------
- * The Trade-Result transaction represents the completion of a stock market
- * trade.
- *
- * Based on TPC-E Standard Specification Draft Revision 0.32.2e Clause 3.3.2.
+ * Based on TPC-E Standard Specification Revision 1.14.0
  */
 
-/*
- * Frame 1
- * responsible for retrieving information about the customer and its trade.
- */
-
-CREATE OR REPLACE FUNCTION TradeResultFrame1 (IN trade_id TRADE_T)
-		RETURNS record AS $$
+-- 3.3.8.3
+CREATE OR REPLACE FUNCTION TradeResultFrame1 (
+    IN trade_id TRADE_T
+  , OUT acct_id IDENT_T
+  , OUT charge VALUE_T
+  , OUT hs_qty S_QTY_T
+  , OUT is_lifo SMALLINT
+  , OUT num_found INTEGER
+  , OUT symbol CHAR(15)
+  , OUT trade_is_cash SMALLINT
+  , OUT trade_qty S_QTY_T
+  , OUT type_id CHAR(3)
+  , OUT type_is_market SMALLINT
+  , OUT type_is_sell SMALLINT
+  , OUT type_name CHAR(12)
+) RETURNS RECORD AS $$
 DECLARE
-	-- output parameters
-	acct_id		IDENT_T;
-	charge		VALUE_T;
-	holdsum_qty	S_QTY_T;
-	is_lifo		smallint;
-	symbol		char(15);
-	trade_is_cash	smallint;
-	trade_qty	S_QTY_T;
-	type_id		char(3);
-	type_is_market	smallint;	
-	type_is_sell	smallint;
-	type_name	char(12);
-
 	-- variables
 	rs RECORD;
 BEGIN
@@ -41,8 +32,8 @@ BEGIN
 		T_S_SYMB,
 		T_QTY,
 		T_CHRG,
-		T_LIFO,
-		T_IS_CASH
+		CASE WHEN T_LIFO THEN 1 ELSE 0 END,
+		CASE WHEN T_IS_CASH THEN 1 ELSE 0 END
 	INTO	acct_id,
 		type_id,
 		symbol,
@@ -53,68 +44,47 @@ BEGIN
 	FROM	TRADE
 	WHERE	T_ID = trade_id;
 
+    GET DIAGNOSTICS num_found = ROW_COUNT;
+
 	SELECT	TT_NAME,
-		TT_IS_SELL,
-		TT_IS_MRKT
+		CASE WHEN TT_IS_SELL THEN 1 ELSE 0 END,
+		CASE WHEN TT_IS_MRKT THEN 1 ELSE 0 END
 	INTO	type_name,
 		type_is_sell,
 		type_is_market
 	FROM	TRADE_TYPE
 	WHERE	TT_ID = type_id;
 
-	SELECT	HS_QTY
-	INTO	holdsum_qty
+    SELECT holding_summary.HS_QTY
+    INTO TradeResultFrame1.hs_qty
 	FROM	HOLDING_SUMMARY
 	WHERE	HS_CA_ID = acct_id AND
 		HS_S_SYMB = symbol;
 
-	IF holdsum_qty is NULL THEN -- no prior holdings exist
-		holdsum_qty = 0;
+    IF TradeResultFrame1.hs_qty is NULL THEN -- no prior holdings exist
+        TradeResultFrame1.hs_qty = 0;
 	END IF;
-
-	-- return data
-	SELECT	acct_id,
-		charge,
-		holdsum_qty,
-		is_lifo,
-		symbol,
-		trade_is_cash,
-		trade_qty,
-		type_id,
-		type_is_market,
-		type_is_sell,
-		type_name
-	INTO	rs;
-
-	RETURN	rs;
 END;
 $$ LANGUAGE 'plpgsql';
 
-
-/*
- * Frame 2
- * responsible for modifying the customer's holdings to reflect the result
- * of a buy or a sell trade.
- */
-
+-- Clause 3.3.8.4
 CREATE OR REPLACE FUNCTION TradeResultFrame2(
 				IN acct_id	IDENT_T,
-				IN holdsum_qty	S_QTY_T,
+    IN hs_qty S_QTY_T,
 				IN is_lifo	smallint,
 				IN symbol	char(15),
 				IN trade_id	TRADE_T,
 				IN trade_price	S_PRICE_T,
 				IN trade_qty	S_QTY_T,
-				IN type_is_sell	smallint) RETURNS record AS $$
+				IN type_is_sell	smallint
+  , OUT broker_id IDENT_T
+  , OUT buy_value NUMERIC(12,2)
+  , OUT cust_id IDENT_T
+  , OUT sell_value NUMERIC(12,2)
+  , OUT tax_status SMALLINT
+  , OUT trade_dts TIMESTAMP
+) RETURNS record AS $$
 DECLARE
-	-- output parameters
-	broker_id	IDENT_T;
-	buy_value	numeric(12,2);
-	cust_id		IDENT_T;
-	sell_value	numeric(12,2);
-	tax_status	smallint;
-	trade_dts	timestamp;
-
 	-- variables
 	hold_id		IDENT_T;
 	hold_price	S_PRICE_T;
@@ -146,17 +116,16 @@ BEGIN
 	-- Determine if sell or buy order
 	IF type_is_sell THEN 
 
-		IF holdsum_qty = 0 THEN
+        IF TradeResultFrame2.hs_qty = 0 THEN
 			-- no prior holdings exist, but one will be inserted
 			INSERT INTO	HOLDING_SUMMARY (
 						HS_CA_ID,
 						HS_S_SYMB,
-						HS_QTY)
+                        HS_QTY)
 			VALUES 		(acct_id, symbol, (-1)*trade_qty);
-		ELSE
-			IF holdsum_qty != trade_qty THEN
+        ELSE IF TradeResultFrame2.hs_qty != trade_qty THEN
 				UPDATE	HOLDING_SUMMARY
-				SET	HS_QTY = (holdsum_qty::integer - trade_qty::integer)
+            SET	HS_QTY = (TradeResultFrame2.hs_qty::integer - trade_qty::integer)
 				WHERE	HS_CA_ID = acct_id AND
 					HS_S_SYMB = symbol;
 			END IF;
@@ -164,7 +133,7 @@ BEGIN
 
 		-- Sell Trade:
 		-- First look for existing holdings, H_QTY > 0
-		IF holdsum_qty > 0 THEN
+        IF TradeResultFrame2.hs_qty > 0 THEN
 
 			IF is_lifo THEN
 				-- Could return 0, 1 or many rows
@@ -272,8 +241,7 @@ BEGIN
 						trade_dts, -- H_DTS
 						trade_price, -- H_PRICE
 						(-1) * needed_qty); -- * H_QTY
-		ELSE
-			IF holdsum_qty = trade_qty THEN
+        ELSE IF TradeResultFrame2.hs_qty = trade_qty THEN
 				DELETE FROM	HOLDING_SUMMARY
 				WHERE		HS_CA_ID = acct_id AND
 						HS_S_SYMB = symbol;
@@ -282,19 +250,19 @@ BEGIN
 
 	ELSE -- The trade is a BUY
 
-		IF holdsum_qty = 0 THEN
+        IF TradeResultFrame2.hs_qty = 0 THEN
 			-- no prior holdings exist, but one will be inserted
 			INSERT INTO	HOLDING_SUMMARY (
 						HS_CA_ID,
 						HS_S_SYMB,
-						HS_QTY)
+                        HS_QTY)
 			VALUES (		acct_id,
 						symbol,
 						trade_qty);
-		ELSE -- holdsum_qty != 0
-			IF -holdsum_qty != trade_qty THEN
+		ELSE -- TradeResultFrame2.hs_qty != 0
+			IF -TradeResultFrame2.hs_qty != trade_qty THEN
 				UPDATE	HOLDING_SUMMARY
-				SET	HS_QTY = holdsum_qty + trade_qty
+                SET	HS_QTY = TradeResultFrame2.hs_qty + trade_qty
 				WHERE	HS_CA_ID = acct_id AND
 					HS_S_SYMB = symbol;
 			END IF;
@@ -305,7 +273,7 @@ BEGIN
 		-- which indicates a previous short sell. The buy trade
 		-- will cover the short sell.
 
-		IF holdsum_qty < 0 THEN
+		IF TradeResultFrame2.hs_qty < 0 THEN
 			IF is_lifo THEN
 				-- Could return 0, 1 or many rows
 				OPEN 	hold_list FOR
@@ -411,8 +379,7 @@ BEGIN
 						trade_dts, -- H_DTS
 						trade_price, -- H_PRICE
 						needed_qty); -- H_QTY
-		ELSE
-			IF (-holdsum_qty = trade_qty) THEN
+        ELSE IF (-TradeResultFrame2.hs_qty = trade_qty) THEN
 				DELETE FROM	HOLDING_SUMMARY
 				WHERE		HS_CA_ID = acct_id AND
 						HS_S_SYMB = symbol;
@@ -420,45 +387,23 @@ BEGIN
 		END IF;
 
 	END IF;
-
-	-- Return output parameters
-	SELECT	broker_id,
-		buy_value,
-		cust_id,
-		sell_value,
-		tax_status,
-		extract(year from trade_dts),
-		extract(month from trade_dts),
-		extract(day from trade_dts),
-		extract(hour from trade_dts),
-		extract(minute from trade_dts),
-		extract(second from trade_dts)
-	INTO	rs;
-	RETURN rs;
 END;
 $$ LANGUAGE 'plpgsql';
 
-
-/*
- * Frame 3
- * Responsible for computing the amount of tax due by the customer as a result
- * of the trade
- * 
- */
-
+-- Clause 3.3.8.5
 CREATE OR REPLACE FUNCTION TradeResultFrame3(
-				IN buy_value	numeric(12,2),
+    IN buy_value VALUE_T,
 				IN cust_id	IDENT_T,
-				IN sell_value	numeric(12,2),
+    IN sell_value VALUE_T,
 				IN trade_id	TRADE_T,
-				IN tax_amnt	VALUE_T) RETURNS VALUE_T AS $$
+    OUT tax_amount VALUE_T
+)
+RETURNS VALUE_T AS $$
 DECLARE
 	-- Local Frame variables
-	tax_rates	S_PRICE_T;
+    tax_rates	VALUE_T;
 	tax_amount	VALUE_T;
 BEGIN
-	tax_amount = tax_amnt;
-
 	SELECT	sum(TX_RATE)
 	INTO	tax_rates
 	FROM	TAXRATE
@@ -471,39 +416,28 @@ BEGIN
 	UPDATE	TRADE
 	SET	T_TAX = tax_amount
 	WHERE	T_ID = trade_id;
-
-	RETURN tax_amount;
 END;
 $$ LANGUAGE 'plpgsql';
 
-
-/*
- * Frame 4
- * responsible for computing the commission for the broker who executed the
- * trade.
- * 
- */
-
+-- Clause 3.3.8.6
 CREATE OR REPLACE FUNCTION TradeResultFrame4(
 				IN cust_id	IDENT_T,
 				IN symbol	char(15),
 				IN trade_qty	S_QTY_T,
-				IN type_id	char(3)) RETURNS record AS $$
+    IN type_id CHAR(3)
+  , OUT comm_rate NUMERIC(5,2)
+  , OUT s_name VARCHAR
+) RETURNS RECORD AS $$
 DECLARE
 	-- Local Frame variables
 	cust_tier	smallint;
 	sec_ex_id	char(6);
 	rs		RECORD;
-
-	-- output parameters
-	comm_rate	numeric(5,2);
-	sec_name	varchar;
-	
 BEGIN
 	SELECT	S_EX_ID,
-		S_NAME
+           security.S_NAME
 	INTO	sec_ex_id,
-		sec_name
+         TradeResultFrame4.s_name
 	FROM	SECURITY
 	WHERE	S_SYMB = symbol;
 
@@ -522,26 +456,13 @@ BEGIN
 		CR_FROM_QTY <= trade_qty AND
 		CR_TO_QTY >= trade_qty
 	LIMIT 1;
-
-	SELECT	comm_rate,
-		sec_name
-	INTO	rs;
-	
-	RETURN rs;
 END;
 $$ LANGUAGE 'plpgsql';
 
-
-/*
- * Frame 5
- * responsible for recording the result of the trade and the broker's
- * commission.
- * 
- */
-
+-- Clause 3.3.8.7
 CREATE OR REPLACE FUNCTION TradeResultFrame5(
 				IN broker_id		IDENT_T,
-				IN comm_amount		numeric(5,2),
+    IN comm_amount VALUE_T,
 				IN st_completed_id	char(4),
 				IN trade_dts		timestamp,
 				IN trade_id		IDENT_T,
@@ -571,29 +492,22 @@ BEGIN
 END;
 $$ LANGUAGE 'plpgsql';
 
-
-/*
- * Frame 6
- * responsible for settling the trade.
- * 
- */
-
+-- Clause 3.3.8.8
 CREATE OR REPLACE FUNCTION TradeResultFrame6(
 				IN acct_id		IDENT_T,
 				IN due_date		timestamp,
-				IN s_name		varchar,
+	IN s_name VARCHAR(70),
 				IN se_amount		VALUE_T,
 				IN trade_dts		timestamp,
 				IN trade_id		IDENT_T,
 				IN trade_is_cash	smallint,
 				IN trade_qty		S_QTY_T,
-				IN type_name		char(12)) RETURNS BALANCE_T AS $$
+				IN type_name		char(12)
+  , OUT acct_bal BALANCE_T
+) RETURNS BALANCE_T AS $$
 DECLARE
 	-- Local Frame Variables
 	cash_type	char(40);
-
-	-- output parameter
-	acct_bal		BALANCE_T;
 BEGIN
 	IF trade_is_cash THEN
 		cash_type = 'Cash Account';
@@ -618,7 +532,5 @@ BEGIN
 	INTO	acct_bal
 	FROM	CUSTOMER_ACCOUNT
 	WHERE	CA_ID = acct_id;
-
-	RETURN	acct_bal;
 END;
 $$ LANGUAGE 'plpgsql';

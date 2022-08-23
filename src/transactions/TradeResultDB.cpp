@@ -33,6 +33,7 @@ void CTradeResultDB::DoTradeResultFrame1(
 			pid << " -- charge: " << pOut->charge << endl <<
 			pid << " -- hs_qty: " << pOut->hs_qty << endl <<
 			pid << " -- is_lifo: " << pOut->is_lifo << endl <<
+			pid << " -- num_found: " << pOut->num_found << endl <<
 			pid << " -- symbol: " << pOut->symbol << endl <<
 			pid << " -- trade_is_cash: " << pOut->trade_is_cash << endl <<
 			pid << " -- trade_qty: " << pOut->trade_qty << endl <<

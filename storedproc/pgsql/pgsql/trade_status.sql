@@ -4,65 +4,45 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Trade Status transaction
- * ------------------------
- * This transaction returns the status of fifty trades. A list of all trades
- * for a given customer's account is retrieved and the fifty most recently
- * placed trades are selected.
- *
- * Based on TPC-E Standard Specification Draft Revision 0.32.2c Clause 3.3.5.
+ * Based on TPC-E Standard Specification Revision 1.14.0
  */
 
-
-/*
- * Frame 1
- * responsible for retrieving information on the 50 most recent trades
- */
-
-CREATE OR REPLACE FUNCTION TradeStatusFrame1 (IN acct_id IDENT_T)
-		RETURNS SETOF record AS $$
+-- Clause 3.3.9.3
+CREATE OR REPLACE FUNCTION TradeStatusFrame1 (
+    IN acct_id IDENT_T
+  , OUT broker_name VARCHAR
+  , OUT charge VALUE_T[50]
+  , OUT cust_l_name VARCHAR(30)
+  , OUT cust_f_name VARCHAR(30)
+  , OUT ex_name VARCHAR(100)[50]
+  , OUT exec_name VARCHAR(64)[50]
+  , OUT num_found INTEGER
+  , OUT s_name VARCHAR(70)[50]
+  , OUT status_name VARCHAR(10)[50]
+  , OUT symbol VARCHAR(15)[50]
+  , OUT trade_dts TIMESTAMP[50]
+  , OUT trade_id TRADE_T[50]
+  , OUT trade_qty S_QTY_T[50]
+  , OUT type_name VARCHAR(12)[50]
+) RETURNS RECORD AS $$
 DECLARE
-	-- output parameters
-	cust_l_name VARCHAR;
-	cust_f_name VARCHAR;
-	broker_name VARCHAR;
-
 	-- variables
 	rs RECORD;
+    i INTEGER;
 BEGIN
 	-- Only want 50 rows, the 50 most recent trades for this customer account
-	SELECT	C_L_NAME,
-		C_F_NAME,
-		B_NAME
-	INTO 	cust_l_name,
-		cust_f_name,
-		broker_name
-	FROM	CUSTOMER_ACCOUNT,
-		CUSTOMER,
-		BROKER
-	WHERE	CA_ID = acct_id AND
-		C_ID = CA_C_ID AND
-		B_ID = CA_B_ID;
-
+    i := 0;
 	FOR rs IN
-		SELECT	cust_l_name,
-			cust_f_name,
-			broker_name,
-			T_CHRG,
-			T_EXEC_NAME,
-			EX_NAME,
-			S_NAME,
-			ST_NAME,
-			T_S_SYMB,
-			extract(year from T_DTS),
-			extract(month from T_DTS),
-			extract(day from T_DTS),
-			extract(hour from T_DTS),
-			extract(minute from T_DTS),
-			extract(second from T_DTS),
-			T_ID,
-			T_QTY,
-			TT_NAME 
+        SELECT t_id
+             , t_dts
+             , st_name
+             , tt_name
+             , t_s_symb
+             , t_qty
+             , t_exec_name
+             , t_chrg
+             , security.s_name
+             , exchange.ex_name
 		FROM	TRADE,
 			STATUS_TYPE,
 			TRADE_TYPE,
@@ -76,7 +56,31 @@ BEGIN
 		ORDER BY T_DTS desc
 		LIMIT 50
 	LOOP
-		RETURN NEXT rs;
+        i := i + 1;
+        trade_id[i] := rs.t_id;
+        trade_dts[i] := rs.t_dts;
+        status_name[i] := rs.st_name;
+        type_name[i] := rs.tt_name;
+        symbol[i] := rs.t_s_symb;
+        trade_qty[i] := rs.t_qty;
+        exec_name[i] := rs.t_exec_name;
+        charge[i] := rs.t_chrg;
+        s_name[i] := rs.s_name;
+        ex_name[i] := rs.ex_name;
 	END LOOP;
+    num_found := i;
+
+	SELECT	C_L_NAME,
+		C_F_NAME,
+		B_NAME
+	INTO 	cust_l_name,
+		cust_f_name,
+		broker_name
+	FROM	CUSTOMER_ACCOUNT,
+		CUSTOMER,
+		BROKER
+	WHERE	CA_ID = acct_id AND
+		C_ID = CA_C_ID AND
+		B_ID = CA_B_ID;
 END;
 $$ LANGUAGE 'plpgsql';

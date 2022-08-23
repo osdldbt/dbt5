@@ -9,7 +9,7 @@
  * This transaction is used to cancel any pending or submitted trades that are
  * left in the database from a previous Test Run.
  *
- * Based on TPC-E Standard Specification Draft Revision 0.32.2e Clause 3.3.12.
+ * Based on TPC-E Standard Specification Revision 1.14.0 Clause 3.3.12.
  */
 
 /*
@@ -48,7 +48,8 @@ BEGIN
 		now_dts = now();
 
 		INSERT INTO TRADE_HISTORY (TH_T_ID, TH_DTS, TH_ST_ID)
-		VALUES (tr_trade_id, now_dts, st_submitted_id);
+		VALUES (tr_trade_id, now_dts, st_submitted_id)
+        ON CONFLICT DO NOTHING;
 
 		UPDATE	TRADE
 		SET	T_ST_ID = st_canceled_id,
@@ -56,7 +57,8 @@ BEGIN
 		WHERE	T_ID = tr_trade_id;
 
 		INSERT INTO TRADE_HISTORY (TH_T_ID, TH_DTS, TH_ST_ID)
-		VALUES (tr_trade_id, now_dts, st_canceled_id);
+		VALUES (tr_trade_id, now_dts, st_canceled_id)
+        ON CONFLICT DO NOTHING;
 
 		FETCH	pending_list
 		INTO	tr_trade_id;
@@ -89,7 +91,8 @@ BEGIN
 		WHERE	T_ID = trade_id;
 
 		INSERT INTO TRADE_HISTORY (TH_T_ID, TH_DTS, TH_ST_ID)
-		VALUES (trade_id, now_dts, st_canceled_id);
+		VALUES (trade_id, now_dts, st_canceled_id)
+        ON CONFLICT DO NOTHING;
 
 		FETCH	submit_list
 		INTO	trade_id;

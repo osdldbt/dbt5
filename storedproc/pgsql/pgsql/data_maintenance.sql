@@ -4,26 +4,20 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Data Maintenance transaction
- * -------------------------
- * The intent of the transaction is to modify data tables that would not
- * otherwise be written to by the benchmark.
- * 
- *
- * Based on TPC-E Standard Specification Revision 1.3.0.
+ * Based on TPC-E Standard Specification Revision 1.14.0.
  */
 
+-- Clause 3.3.11.3
 CREATE OR REPLACE FUNCTION DataMaintenanceFrame1 (
-		IN in_acct_id IDENT_T,
-		IN in_c_id IDENT_T,
-		IN in_co_id IDENT_T,
+    IN acct_id IDENT_T
+  , IN c_id IDENT_T
+  , IN co_id IDENT_T,
 		IN day_of_month INTEGER,
 		IN symbol VARCHAR(15),
-		IN table_name VARCHAR(18),
-		IN in_tx_id VARCHAR(4),
-		IN vol_incr INTEGER,
-		OUT status INTEGER)
-RETURNS INTEGER AS $$
+    IN table_name VARCHAR(18)
+  , IN tx_id VARCHAR(4)
+  , IN vol_incr INTEGER
+) RETURNS INTEGER AS $$
 DECLARE
 	-- variables
 	rowcount	integer;
@@ -41,7 +35,6 @@ DECLARE
 
 	old_tax_rate VARCHAR(3);
 	new_tax_rate VARCHAR(3);
-	tax_num INTEGER;
 
 	tax_name VARCHAR(50);
 	pos INTEGER;
@@ -52,26 +45,28 @@ BEGIN
 	IF table_name = 'ACCOUNT_PERMISSION' THEN
 		-- ACCOUNT_PERMISSION
 		-- Update the AP_ACL to “1111” or “0011” in rows for
-		-- an account of in_acct_id.
+		-- an account of acct_id.
 
 		acl = NULL;
 
 		SELECT AP_ACL
 		INTO acl
 		FROM ACCOUNT_PERMISSION
-		WHERE AP_CA_ID = in_acct_id
+        WHERE AP_CA_ID = acct_id
 		ORDER BY ap_acl DESC
 		LIMIT 1;
 
 		IF acl != '1111' THEN
 			UPDATE ACCOUNT_PERMISSION
 			SET AP_ACL = '1111'
-			WHERE AP_CA_ID = custacct_id;
+			WHERE AP_CA_ID = custacct_id
+              AND AP_ACL = acl;
 		ELSE
 			-- ACL is “1111” change it to '0011'
 			UPDATE ACCOUNT_PERMISSION
 			SET AP_ACL = '0011'
-			WHERE AP_CA_ID = custacct_id;
+			WHERE AP_CA_ID = custacct_id
+              AND AP_ACL = acl;
 		END IF;
 	ELSIF table_name = 'ADDRESS' THEN
 		-- ADDRESS
@@ -81,18 +76,18 @@ BEGIN
 		line2 = NULL;
 		addr_id = 0;
 
-		IF in_c_id != 0 THEN
+        IF DataMaintenanceFrame1.c_id != 0 THEN
 			SELECT ad_line2, ad_id
 			INTO line2, addr_id 
 			FROM address, customer
 			WHERE ad_id = c_ad_id
-			  AND c_id = in_c_id;
+              AND customer.c_id = DataMaintenanceFrame1.c_id;
 		ELSE
 			SELECT ad_line2, ad_id
 			INTO line2, addr_id 
 			FROM address, company
 			WHERE ad_id = co_ad_id
-			  AND co_id = in_co_id;
+              AND company.co_id = DataMaintenanceFrame1.co_id;
 		END IF;
 
 		IF line2 != 'Apt. 10C' THEN
@@ -115,16 +110,16 @@ BEGIN
 		SELECT	CO_SP_RATE
 		INTO	sprate
 		FROM	COMPANY
-		WHERE	CO_ID = in_co_id;
+        WHERE company.co_id = DataMaintenanceFrame1.co_id;
 
 		IF sprate != 'ABA' THEN
 			UPDATE	COMPANY
 			SET	CO_SP_RATE = 'ABA'
-			WHERE	CO_ID = in_co_id;
+            WHERE company.co_id = DataMaintenanceFrame1.co_id;
 		ELSE
 			UPDATE	COMPANY
 			SET	CO_SP_RATE = 'AAA'
-			WHERE	CO_ID = in_co_id;
+            WHERE company.co_id = DataMaintenanceFrame1.co_id;
 		END IF;
 
 	ELSIF table_name = 'CUSTOMER' THEN
@@ -141,7 +136,7 @@ BEGIN
 		SELECT	C_EMAIL_2
 		INTO	email2
 		FROM	CUSTOMER
-		WHERE	C_ID = in_c_id;
+        WHERE customer.c_id = DataMaintenanceFrame1.c_id;
 
 		len = char_length(email2);
 		len = len - lenMindspring;
@@ -149,12 +144,12 @@ BEGIN
 		IF len > 0 AND substring(email2 from len + 1 for lenMindspring) = '@mindspring.com' THEN
 			UPDATE	CUSTOMER
 			SET	C_EMAIL_2 = substring(C_EMAIL_2 from 1 for position('@' in C_EMAIL_2)) || 'earthlink.com'
-			WHERE	C_ID = in_c_id;
+            WHERE customer.c_id = DataMaintenanceFrame1.c_id;
 		ELSE
 			-- set to @mindspring.com
 			UPDATE	CUSTOMER
 			SET	C_EMAIL_2 = substring(C_EMAIL_2 from 1 for position('@' in C_EMAIL_2) ) || 'mindspring.com'
-			WHERE	C_ID = in_c_id;
+            WHERE customer.c_id = DataMaintenanceFrame1.c_id;
 		END IF;
 
 	ELSIF table_name = 'CUSTOMER_TAXRATE' THEN
@@ -171,7 +166,7 @@ BEGIN
 		SELECT cx_tx_id
 		INTO old_tax_rate
 		FROM customer_taxrate
-		WHERE cx_c_id = in_c_id
+        WHERE cx_c_id = DataMaintenanceFrame1.c_id
 		  AND (cx_tx_id LIKE 'US%' OR cx_tx_id LIKE 'CN%');
 
 		IF (substring(old_tax_rate FROM 1 FOR 2) = 'US') THEN
@@ -200,14 +195,14 @@ BEGIN
 
 		UPDATE customer_taxrate
 		SET cx_tx_id = new_tax_rate
-		WHERE cx_c_id = in_c_id
+        WHERE cx_c_id = DataMaintenanceFrame1.c_id
 		  AND cx_tx_id = old_tax_rate;
 	ELSIF table_name = 'DAILY_MARKET' THEN
 		--- DAILY_MARKET
 		UPDATE daily_market
 		SET dm_vol = dm_vol + vol_incr
 		WHERE dm_s_symb = symbol
-		  AND SUBSTRING(DM_DATE FROM 6 FOR 2) = day_of_month;
+          AND substring(dm_date::TEXT FROM 6 FOR 2)::INTEGER = day_of_month;
 	ELSIF table_name = 'EXCHANGE' THEN
 		--- EXCHANGE
 		--- Other than the table_name, no additional
@@ -231,8 +226,7 @@ BEGIN
 			SET	EX_DESC = EX_DESC || ' LAST UPDATED ' || now();
 		ELSE
 			UPDATE	EXCHANGE
-			SET	EX_DESC = substring(EX_DESC from 1 for char_length(EX_DESC) - char_length(now())) || now();
-			--SET	EX_DESC = substring(EX_DESC,1,len(EX_DESC)-len(getdatetime())) + getdatetime();
+            SET ex_desc = substring(ex_desc FROM 1 FOR char_length(ex_desc) - char_length(now()::TEXT)) || now();
 		END IF;
 
 	ELSIF table_name = 'FINANCIAL' THEN
@@ -248,17 +242,17 @@ BEGIN
 		SELECT	count(*)
 		INTO	rowcount
 		FROM	FINANCIAL
-		WHERE	FI_CO_ID = in_co_id AND
-			substring(FI_QTR_START_DATE from 9 for 2)::smallint = 1;
+        WHERE fi_co_id = DataMaintenanceFrame1.co_id
+          AND substring(fi_qtr_start_date::TEXT FROM 9 FOR 2)::SMALLINT = 1;
 
 		IF rowcount > 0 THEN
 			UPDATE	FINANCIAL
 			SET	FI_QTR_START_DATE = FI_QTR_START_DATE + interval '1 day'
-			WHERE	FI_CO_ID = in_co_id;
+            WHERE fi_co_id = DataMaintenanceFrame1.co_id;
 		ELSE
 			UPDATE	FINANCIAL
 			SET	FI_QTR_START_DATE = FI_QTR_START_DATE - interval '1 day'
-			WHERE	FI_CO_ID = in_co_id;
+            WHERE fi_co_id = DataMaintenanceFrame1.co_id;
 		END IF;
 
 	ELSIF table_name = 'NEWS_ITEM' THEN
@@ -269,8 +263,9 @@ BEGIN
 		UPDATE news_item
 		SET ni_dts = ni_dts + INTERVAL '1 day'
 		WHERE ni_id = (SELECT nx_ni_id
-		               FROM news_xref
-		               WHERE nx_co_id = in_co_id);
+                       FROM news_xref
+                       WHERE nx_co_id = DataMaintenanceFrame1.co_id
+                       LIMIT 1);
 	ELSIF table_name = 'SECURITY' THEN
 		-- SECURITY
 		-- Update a security identified symbol, increment
@@ -293,7 +288,7 @@ BEGIN
 		SELECT	TX_NAME
 		INTO	tax_name
 		FROM	TAXRATE
-		WHERE	TX_ID = in_tx_id;
+        WHERE taxrate.tx_id = DataMaintenanceFrame1.tx_id;
 
 		pos = POSITION(' Tax ' IN tax_name);
 		IF (pos != 0) THEN
@@ -304,12 +299,12 @@ BEGIN
 
 		UPDATE taxrate
 		SET tx_name = tax_name
-		WHERE tx_id = in_tx_id;
+        WHERE taxrate.tx_id = DataMaintenanceFrame1.tx_id;
 	ELSIF table_name = 'WATCH_ITEM' THEN
 		SELECT COUNT(*)
 		INTO rowcount
 		FROM watch_item, watch_list
-		WHERE wl_c_id = in_c_id
+        WHERE wl_c_id = DataMaintenanceFrame1.c_id
 		  AND wi_wl_id = wl_id;
 
 		rowcount := (rowcount + 1) / 2;
@@ -318,7 +313,7 @@ BEGIN
 		INTO old_symbol
 		FROM (SELECT wi_s_symb
 		      FROM watch_item, watch_list
-		      WHERE wl_c_id = in_c_id
+              WHERE wl_c_id = DataMaintenanceFrame1.c_id
 		        AND wi_wl_id = wl_id
 		      ORDER BY wi_s_symb ASC) AS something
 		OFFSET rowcount
@@ -328,20 +323,20 @@ BEGIN
 		INTO new_symbol
 		FROM security
 		WHERE s_symb > old_symbol
-		  AND s_symb NOT IN (SELECT wl_s_symb
+          AND s_symb NOT IN (SELECT wi_s_symb
 		                     FROM watch_item, watch_list
-                             WHERE wl_c_id = in_c_id
+                             WHERE wl_c_id = DataMaintenanceFrame1.c_id
 		                       AND wi_wl_id = wl_id)
 		ORDER BY s_symb ASC
 		LIMIT 1;
 
 		UPDATE watch_item
 		SET wi_s_symb = new_symbol
-		WHERE wl_c_id = in_c_id
+        FROM watch_list
+        WHERE wl_c_id = DataMaintenanceFrame1.c_id
 		  AND wi_wl_id = wl_id
 		  AND wi_s_symb = old_symbol;
 	END IF;
-	status := 0;
-	RETURN;
+	RETURN 0;
 END;
 $$ LANGUAGE 'plpgsql';
