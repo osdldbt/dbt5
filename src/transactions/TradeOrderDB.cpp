@@ -33,6 +33,7 @@ void CTradeOrderDB::DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
 			pid << " -- cust_id: " << pOut->cust_id << endl <<
 			pid << " -- cust_l_name: " << pOut->cust_l_name << endl <<
 			pid << " -- cust_tier: " << pOut->cust_tier << endl <<
+			pid << " -- num_found: " << pOut->num_found << endl <<
 			pid << " -- tax_id: " << pOut->tax_id << endl <<
 			pid << " -- tax_status: " << pOut->tax_status << endl;
 	cout << pid << " >>> TOF1" << endl;

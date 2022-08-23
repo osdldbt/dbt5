@@ -124,14 +124,20 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 	cout << pid << " <<< TUF2" << endl;
 	cout << pid << " - Trade Update Frame 2 (input)" << endl <<
 			pid << " -- acct_id: " << pIn->acct_id << endl <<
-			pid << " -- max_trades: " << pIn->max_trades << endl <<
-			pid << " -- max_updates: " << pIn->max_updates << endl <<
-			pid << " -- trade_dts: " << pIn->end_trade_dts.year << "-" <<
+			pid << " -- end_trade_dts: " << pIn->end_trade_dts.year << "-" <<
 					pIn->end_trade_dts.month << "-" <<
 					pIn->end_trade_dts.day << " " <<
 					pIn->end_trade_dts.hour << ":" <<
 					pIn->end_trade_dts.minute << ":" <<
-					pIn->end_trade_dts.second << endl;
+					pIn->end_trade_dts.second << endl <<
+			pid << " -- max_trades: " << pIn->max_trades << endl <<
+			pid << " -- max_updates: " << pIn->max_updates << endl <<
+			pid << " -- start_trade_dts: " << pIn->start_trade_dts.year << "-" <<
+					pIn->start_trade_dts.month << "-" <<
+					pIn->start_trade_dts.day << " " <<
+					pIn->start_trade_dts.hour << ":" <<
+					pIn->start_trade_dts.minute << ":" <<
+					pIn->start_trade_dts.second << endl;
 #endif // DEBUG
 
 	startTransaction();
@@ -231,10 +237,16 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
 	pthread_t pid = pthread_self();
 	cout << pid << " <<< TUF3" << endl;
 	cout << pid << " - Trade Update Frame 3 (input)" << endl <<
+			pid << " -- end_trade_dts: " << pIn->end_trade_dts.year << "-" <<
+					pIn->end_trade_dts.month << "-" <<
+					pIn->end_trade_dts.day << " " <<
+					pIn->end_trade_dts.hour << ":" <<
+					pIn->end_trade_dts.minute << ":" <<
+					pIn->end_trade_dts.second << endl <<
 			pid << " -- max_acct_id: " << pIn->max_acct_id << endl <<
 			pid << " -- max_trades: " << pIn->max_trades << endl <<
 			pid << " -- max_updates: " << pIn->max_updates << endl <<
-			pid << " -- trade_dts: " << pIn->start_trade_dts.year << "-" <<
+			pid << " -- start_trade_dts: " << pIn->start_trade_dts.year << "-" <<
 					pIn->start_trade_dts.month << "-" <<
 					pIn->start_trade_dts.day << " " <<
 					pIn->start_trade_dts.hour << ":" <<

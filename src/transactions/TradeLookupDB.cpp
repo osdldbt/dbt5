@@ -229,14 +229,20 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 	pthread_t pid = pthread_self();
 	cout << pid << " <<< TLF3" << endl;
 	cout << pid << " - Trade Lookup Frame 3 (input)" << endl <<
-			pid << " -- max_acct_id: " << pIn->max_acct_id << endl <<
-			pid << " -- max_trades: " << pIn->max_trades << endl <<
 			pid << " -- trade_dts: " << pIn->end_trade_dts.year << "-" <<
 					pIn->end_trade_dts.month << "-" <<
 					pIn->end_trade_dts.day << " " <<
 					pIn->end_trade_dts.hour << ":" <<
 					pIn->end_trade_dts.minute << ":" <<
 					pIn->end_trade_dts.second << endl <<
+			pid << " -- max_acct_id: " << pIn->max_acct_id << endl <<
+			pid << " -- max_trades: " << pIn->max_trades << endl <<
+			pid << " -- trade_dts: " << pIn->start_trade_dts.year << "-" <<
+					pIn->start_trade_dts.month << "-" <<
+					pIn->start_trade_dts.day << " " <<
+					pIn->start_trade_dts.hour << ":" <<
+					pIn->start_trade_dts.minute << ":" <<
+					pIn->start_trade_dts.second << endl <<
 			pid << " -- symbol: " << pIn->symbol << endl;
 #endif // DEBUG
 
@@ -353,9 +359,10 @@ void CTradeLookupDB::DoTradeLookupFrame4(const TTradeLookupFrame4Input *pIn,
 	cout << pid << " <<< TLF4" << endl;
 	cout << pid << " - Trade Lookup Frame 4 (input)" << endl <<
 			pid << " -- acct_id: " << pIn->acct_id << endl <<
-			pid << " -- trade_dts: " << pIn->trade_dts.year << "-" <<
-					pIn->trade_dts.month << "-" << pIn->trade_dts.day <<
-					" " << pIn->trade_dts.hour << ":" <<
+			pid << " -- start_trade_dts: " << pIn->trade_dts.year << "-" <<
+					pIn->trade_dts.month << "-" <<
+					pIn->trade_dts.day << " " <<
+					pIn->trade_dts.hour << ":" <<
 					pIn->trade_dts.minute << ":" <<
 					pIn->trade_dts.second << endl;
 #endif //DEBUG
@@ -372,11 +379,12 @@ void CTradeLookupDB::DoTradeLookupFrame4(const TTradeLookupFrame4Input *pIn,
 					pOut->trade_info[0].holding_history_id << endl <<
 			pid << " -- holding_history_trade_id[0]: " <<
 					pOut->trade_info[0].holding_history_trade_id << endl <<
+			pid << " -- num_found: " << pOut->num_found << endl <<
+			pid << " -- num_trades_found: " << pOut->num_trades_found << endl <<
 			pid << " -- quantity_before[0]: " <<
 					pOut->trade_info[0].quantity_before << endl <<
 			pid << " -- quantity_after[0]: " <<
 					pOut->trade_info[0].quantity_after << endl <<
-			pid << " -- num_found: " << pOut->num_found << endl <<
 			pid << " -- trade_id: " << pOut->trade_id << endl;
 	cout << pid << " >>> TLF4" << endl;
 #endif //DEBUG

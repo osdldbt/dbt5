@@ -19,12 +19,12 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 	cout << pid << " <<< SDF1" << endl;
 	cout << pid << " - Security Detail Frame 1 (input)" << endl <<
 			pid << " -- access_lob_flag: " << pIn->access_lob_flag << endl <<
+			pid << " -- max_rows_to_return: " << pIn->max_rows_to_return <<
+					endl <<
 			pid << " -- start_day: " << pIn->start_day.year << "-" <<
 					pIn->start_day.month << "-" << pIn->start_day.day << " " <<
 					pIn->start_day.hour << ":" << pIn->start_day.minute <<
 					":" << pIn->start_day.second << endl <<
-			pid << " -- max_rows_to_return: " << pIn->max_rows_to_return <<
-					endl <<
 			pid << " -- symbol: "<<pIn->symbol<<endl;
 #endif // DEBUG
 
