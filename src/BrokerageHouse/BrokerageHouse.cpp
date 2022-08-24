@@ -91,6 +91,11 @@ void *workerThread(void *data)
 			} catch(CSocketErr *pErr) {
 				sockDrv.dbt5Disconnect();
 
+				if (pErr->getAction() == CSocketErr::ERR_SOCKET_CLOSED) {
+					delete pErr;
+					break;
+				}
+
 				ostringstream osErr;
 				osErr << "Error on Receive: " << pErr->ErrorText() <<
 						" at BrokerageHouse::workerThread" << endl;

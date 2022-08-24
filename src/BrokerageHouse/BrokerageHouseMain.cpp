@@ -108,7 +108,8 @@ int main(int argc, char *argv[])
 
 	CBrokerageHouse	BrokerageHouse(szHost, szDBName, szDBPort, iListenPort,
 			outputDirectory);
-	cout << "Brokerage House opened for business, waiting traders..." << endl;
+	cout << "Brokerage House opened for business, waiting for traders..."
+			<< endl;
 	try {
 		BrokerageHouse.startListener();
 	} catch (CBaseErr *pErr) {

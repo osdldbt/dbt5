@@ -79,6 +79,7 @@ void CSocket::dbt5Connect()
 	if ((inet_pton(AF_INET, address, &sa.sin_addr)) <= 0) {
 		struct hostent *he;
 		if ((he = gethostbyname(address)) == NULL) {
+			dbt5Disconnect();
 			throwError(CSocketErr::ERR_SOCKET_HOSTBYNAME);
 		}
 		memcpy(&sa.sin_addr, he->h_addr_list[0], he->h_length);
@@ -96,6 +97,7 @@ void CSocket::dbt5Connect()
 		sleep(1);
 	}
 	if (ok == false) {
+		dbt5Disconnect();
 		throwError(CSocketErr::ERR_SOCKET_CONNECT);
 	}
 }

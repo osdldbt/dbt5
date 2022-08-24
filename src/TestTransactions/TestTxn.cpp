@@ -566,5 +566,7 @@ int main(int argc, char* argv[])
 		return 3;
 	}
 
+	delete m_pCCESUT;
+
 	return 0;
 }

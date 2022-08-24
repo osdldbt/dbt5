@@ -30,6 +30,11 @@ void *MarketWorkerThread(void* data)
 		} catch(CSocketErr *pErr) {
 			sockDrv.dbt5Disconnect(); // close connection
 
+			if (pErr->getAction() == CSocketErr::ERR_SOCKET_CLOSED) {
+				delete pErr;
+				break;
+			}
+
 			ostringstream osErr;
 			osErr << time(NULL) <<
 					" Trade Request not submitted to Market Exchange" << endl <<
