@@ -47,7 +47,8 @@ void Usage()
 	cout << "  where" << endl;
 	cout << "   Option               Description" << endl;
 	cout << "   =========            ========================" << endl;
-	cout << "   -b address           Address of BrokerageHouseMain" << endl;
+	cout << "   -b address           Address of Brokerage House." << endl;
+	cout << "                        Connect to database directly if not used." << endl;
 	cout << "   -c number            Customer count (default 5000)" << endl;
 	cout << "   -f number            Number of customers for 1 TRTPS (default 500)" << endl;
 	cout << "   -h host              Hostname of database server" << endl;
@@ -57,7 +58,7 @@ void Usage()
 	cout << "                        Optional if testing BrokerageHouseMain" <<
 			endl;
 	cout << "   -p number            database listener port" << endl;
-	cout << "   -r number            optional random number" << endl;
+	cout << "   -r number            seed random number generator" << endl;
 	cout << "   -t letter            Transaction type" << endl;
 	cout << "                        A - TRADE_ORDER" << endl;
 	cout << "                            TRADE_RESULT" << endl;
@@ -427,17 +428,6 @@ void TradeCleanup(CDM* pCDM)
 	pCDM->DoCleanupTxn();
 }
 
-// Auto Random number generator
-unsigned int AutoRng()
-{
-	struct timeval tv;
-	struct tm ltr;
-	gettimeofday(&tv, NULL);
-	struct tm* lt = localtime_r(&tv.tv_sec, &ltr);
-	return (((lt->tm_hour * MinutesPerHour + lt->tm_min) * SecondsPerMinute +
-			lt->tm_sec) * MsPerSecond + tv.tv_usec / 1000);
-}
-
 // main
 int main(int argc, char* argv[])
 {
@@ -490,12 +480,10 @@ int main(int argc, char* argv[])
 				&m_DriverCETxnSettings);
 	
 		if (Seed == 0) 
-		{
-			srand(AutoRng());
-			Seed = rand();
-		}
+			Seed = m_TxnInputGenerator.GetRNGSeed();
+		else
+			m_TxnInputGenerator.SetRNGSeed( Seed );
 		cout<<"Seed: "<<Seed<<endl<<endl;
-		m_TxnInputGenerator.SetRNGSeed( Seed );
 
 		// Initialize DM - Data Maintenance class
 		// DM is used by Data-Maintenance and Trade-Cleanup transactions
