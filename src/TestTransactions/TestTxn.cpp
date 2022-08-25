@@ -202,7 +202,7 @@ bool ParseCommandLine( int argc, char *argv[] )
 }
 
 // Trade Order
-void TradeOrder(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+INT32 TradeOrder(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 {
 	// SendToMarket test class that can call Trade-Result and Market-Feed 
 	// via the MEE - Market Exchange Emulator when type_is_market = 1. 
@@ -232,11 +232,13 @@ void TradeOrder(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	} else {
 		m_TradeOrder.DoTxn(&m_TradeOrderTxnInput, &m_TradeOrderTxnOutput);
 	}
+
+	return m_TradeOrderTxnOutput.status;
 }
 
 
 // Trade Status
-void TradeStatus(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+INT32 TradeStatus(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 {
 	// trade status harness code (TPC provided)
 	// this class uses our implementation of CTradeStatusDB class
@@ -256,11 +258,13 @@ void TradeStatus(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	} else {
 		m_TradeStatus.DoTxn(&m_TradeStatusTxnInput, &m_TradeStatusTxnOutput);
 	}
+
+	return m_TradeStatusTxnOutput.status;
 }
 
 
 // Trade Lookup
-void TradeLookup(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+INT32 TradeLookup(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 {
 	// trade lookup harness code (TPC provided)
 	// this class uses our implementation of CTradeLookupDB class
@@ -280,11 +284,13 @@ void TradeLookup(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	} else {
 		m_TradeLookup.DoTxn(&m_TradeLookupTxnInput, &m_TradeLookupTxnOutput);
 	}
+
+	return m_TradeLookupTxnOutput.status;
 }
 
 
 // Trade Update
-void TradeUpdate(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+INT32 TradeUpdate(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 {
 	// trade update harness code (TPC provided)
 	// this class uses our implementation of CTradeUpdateDB class
@@ -304,11 +310,13 @@ void TradeUpdate(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	} else {
 		m_TradeUpdate.DoTxn(&m_TradeUpdateTxnInput, &m_TradeUpdateTxnOutput);
 	}
+
+	return m_TradeUpdateTxnOutput.status;
 }
 
 
 // Customer Position
-void CustomerPosition(CDBConnection* pConn,
+INT32 CustomerPosition(CDBConnection* pConn,
 		CCETxnInputGenerator* pTxnInputGenerator)
 {
 	// customer position harness code (TPC provided)
@@ -331,11 +339,13 @@ void CustomerPosition(CDBConnection* pConn,
 		m_CustomerPosition.DoTxn(&m_CustomerPositionTxnInput,
 				&m_CustomerPositionTxnOutput);
 	}
+
+	return m_CustomerPositionTxnOutput.status;
 }
 
 
 // Broker Volume
-void BrokerVolume(CDBConnection* pConn,
+INT32 BrokerVolume(CDBConnection* pConn,
 		CCETxnInputGenerator* pTxnInputGenerator)
 {
 	// Broker Volume harness code (TPC provided)
@@ -356,11 +366,13 @@ void BrokerVolume(CDBConnection* pConn,
 	} else {
 		m_BrokerVolume.DoTxn(&m_BrokerVolumeTxnInput, &m_BrokerVolumeTxnOutput);
 	}
+
+	return m_BrokerVolumeTxnOutput.status;
 }
 
 
 // Security Detail
-void SecurityDetail(CDBConnection* pConn,
+INT32 SecurityDetail(CDBConnection* pConn,
 		CCETxnInputGenerator* pTxnInputGenerator)
 {
 	// Security Detail harness code (TPC provided)
@@ -382,11 +394,13 @@ void SecurityDetail(CDBConnection* pConn,
 		m_SecurityDetail.DoTxn(&m_SecurityDetailTxnInput,
 				&m_SecurityDetailTxnOutput);
 	}
+
+	return m_SecurityDetailTxnOutput.status;
 }
 
 
 // Market Watch
-void MarketWatch(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+INT32 MarketWatch(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 {
 	// Market Watch harness code (TPC provided)
 	// this class uses our implementation of CMarketWatchDB class
@@ -406,6 +420,8 @@ void MarketWatch(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	} else {
 		m_MarketWatch.DoTxn(&m_MarketWatchTxnInput, &m_MarketWatchTxnOutput);
 	}
+
+	return m_MarketWatchTxnOutput.status;
 }
 
 
@@ -496,40 +512,41 @@ int main(int argc, char* argv[])
 		CDateTime StartTime;
 
 		//  Parse Txn type
+		INT32 status = 0;
 		switch ( TxnType ) 
 		{
 		case TRADE_ORDER:
 			cout << "=== Testing Trade Order, Trade Result and Market Feed ==="
 					<< endl << endl;
-			TradeOrder( &m_Conn, &m_TxnInputGenerator );
+			status = TradeOrder( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case TRADE_LOOKUP:
 			cout << "=== Testing Trade Lookup ===" << endl << endl;
-			TradeLookup( &m_Conn, &m_TxnInputGenerator );
+			status = TradeLookup( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case TRADE_UPDATE:
 			cout << "=== Testing Trade Update ===" << endl << endl;
-			TradeUpdate( &m_Conn, &m_TxnInputGenerator );
+			status = TradeUpdate( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case TRADE_STATUS:
 			cout << "=== Testing Trade Status ===" << endl << endl;
-			TradeStatus( &m_Conn, &m_TxnInputGenerator );
+			status = TradeStatus( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case CUSTOMER_POSITION:
 			cout << "=== Testing Customer Position ===" << endl << endl;
-			CustomerPosition( &m_Conn, &m_TxnInputGenerator );
+			status = CustomerPosition( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case BROKER_VOLUME:
 			cout << "=== Testing Broker Volume ===" << endl << endl;
-			BrokerVolume( &m_Conn, &m_TxnInputGenerator );
+			status = BrokerVolume( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case SECURITY_DETAIL:
 			cout << "=== Testing Security Detail ===" << endl << endl;
-			SecurityDetail( &m_Conn, &m_TxnInputGenerator );
+			status = SecurityDetail( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case MARKET_WATCH:
 			cout << "=== Testing Market Watch ===" << endl << endl;
-			MarketWatch( &m_Conn, &m_TxnInputGenerator );
+			status = MarketWatch( &m_Conn, &m_TxnInputGenerator );
 			break;
 		case DATA_MAINTENANCE:
 			cout << "=== Testing Data Maintenance ===" << endl << endl;
@@ -552,6 +569,7 @@ int main(int argc, char* argv[])
 		TxnTime.Set(0);	// clear time
 		TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
 
+		cout << "Txn Status = " << status << endl;
 		cout << "Txn Response Time = " << (TxnTime.MSec()/1000.0) << endl;
 	} catch (CBaseErr *pErr) {
 		cout << "Error " << pErr->ErrorNum() << ": " << pErr->ErrorText();
