@@ -20,7 +20,7 @@ The quickest way to try out the kit is to run::
 
     # Open a new terminal to start the driver for a 2 minute (120 seconds) test
     # and save the results in /tmp/results.  Note /tmp not needed.
-    docker/run-rest results 120
+    docker/run-test results 120
 
     # In the previous terminal where we ran "docker run", process results.
     dbt5-post-process /tmp/results/ce_mix.log
