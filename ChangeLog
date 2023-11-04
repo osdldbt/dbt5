@@ -9,6 +9,7 @@ vX.Y.X (YYYY-MM-DD)
 - Add Docker scripts to build database
 - Update PostgreSQL build script set vacuum parallelism based on available
   processors and to perform a regular vacuum, instead of a full vacuum
+- Removed TPC-E Tools code per TPC EULA
 
 v0.1.0 (2010-04-10)
 

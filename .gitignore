@@ -20,7 +20,4 @@ builds/
 # PostgreSQL
 storedproc/pgsql/c/*.sql
 
-egen/*.log
-egen/bin/
-egen/lib/
-egen/obj/
+egen/
