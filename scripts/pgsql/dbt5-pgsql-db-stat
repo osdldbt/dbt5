@@ -4,8 +4,7 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2002-2006 Open Source Development Labs, Inc.
-#               2002-2010 Mark Wong
+# Copyright The DBT-5 Authors
 #
 
 while getopts "d:i:p:o:s:" opt; do

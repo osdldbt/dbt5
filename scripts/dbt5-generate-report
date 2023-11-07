@@ -3,8 +3,7 @@
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
 #
-# Copyright (C) 2010 Mark Wong & Open Source Development Labs, Inc.
-#               2006 Rilson Nascimento
+# Copyright The DBT-5 Authors
 #
 
 # Because of the massive number of arguments we could have, use long-style only

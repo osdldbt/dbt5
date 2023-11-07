@@ -2,8 +2,7 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2006 Rilson Nascimento
- *               2010 Mark Wong
+ * Copyright The DBT-5 Authors
  *
  * executable that opens the Brokerage House to business
  * 25 July 2006

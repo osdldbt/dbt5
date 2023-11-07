@@ -2,7 +2,7 @@
  * This file is released under the terms of the Artistic License.  Please see
  * the file LICENSE, included in this package, for details.
  *
- * Copyright (C) 2006-2010 Rilson Nascimento
+ * Copyright The DBT-5 Authors
  *
  * 07 July 2006
  */
