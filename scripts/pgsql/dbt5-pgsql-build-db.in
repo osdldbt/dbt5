@@ -46,6 +46,7 @@ load_table()
 	EOF
 }
 
+MODE="CUSTOM"
 REBUILD_DB=0
 PRIVILEGED=0
 
@@ -147,14 +148,62 @@ fi
 # FIXME: Find a way to pass arguments to psql using EGen's -p flag, which
 # apparently doesn't like arguments to have dashes (-) in them.
 eval "dbt5-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG}" || exit 1
-${EGENLOADER} \
-		-i ${EGENDIR}/flat_in \
-		-b ${STARTING_CUSTOMER_ID} \
-		-l CUSTOM \
-		-f ${SCALE_FACTOR} \
-		-w ${ITD} \
-		-c ${CUSTOMERS_INSTANCE} \
-		-t ${CUSTOMERS_TOTAL} || exit 1
+if [ "${MODE}" = "CUSTOM" ]; then
+	${EGENLOADER} \
+			-i ${EGENDIR}/flat_in \
+			-b ${STARTING_CUSTOMER_ID} \
+			-l ${MODE} \
+			-f ${SCALE_FACTOR} \
+			-w ${ITD} \
+			-c ${CUSTOMERS_INSTANCE} \
+			-t ${CUSTOMERS_TOTAL} || exit 1
+elif [ "${MODE}" = "FLAT" ]; then
+	${EGENLOADER} \
+			-i ${EGENDIR}/flat_in \
+			-o ${EGENDIR}/flat_out \
+			-b ${STARTING_CUSTOMER_ID} \
+			-l ${MODE} \
+			-f ${SCALE_FACTOR} \
+			-w ${ITD} \
+			-c ${CUSTOMERS_INSTANCE} \
+			-t ${CUSTOMERS_TOTAL} || exit 1
+	load_table account_permission AccountPermission.txt &
+	load_table address Address.txt &
+	load_table broker Broker.txt &
+	load_table cash_transaction CashTransaction.txt &
+	load_table charge Charge.txt &
+	load_table commission_rate CommissionRate.txt &
+	load_table company Company.txt &
+	load_table company_competitor CompanyCompetitor.txt &
+	load_table customer Customer.txt &
+	load_table customer_account CustomerAccount.txt &
+	load_table customer_taxrate CustomerTaxrate.txt &
+	load_table daily_market DailyMarket.txt &
+	load_table exchange Exchange.txt &
+	load_table financial Financial.txt &
+	load_table holding_history HoldingHistory.txt &
+	load_table holding_summary HoldingSummary.txt &
+	load_table holding Holding.txt &
+	load_table industry Industry.txt &
+	load_table last_trade LastTrade.txt &
+	load_table news_item NewsItem.txt &
+	load_table news_xref NewsXRef.txt &
+	load_table sector Sector.txt &
+	load_table security Security.txt &
+	load_table settlement Settlement.txt &
+	load_table status_type StatusType.txt &
+	load_table taxrate TaxRate.txt &
+	load_table trade_history TradeHistory.txt &
+	load_table trade Trade.txt &
+	load_table trade_type TradeType.txt &
+	load_table watch_item WatchItem.txt &
+	load_table watch_list WatchList.txt &
+	load_table zip_code ZipCode.txt &
+	wait
+else
+	echo "ERROR: unknown load type: ${MODE}"
+	exit 1
+fi
 eval "dbt5-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG}" || exit 1
 eval "dbt5-pgsql-load-stored-procs ${PORTARG}" || exit 1
 eval "${PSQL} -c \"SELECT setseed(0);\"" || exit 1
