@@ -1,0 +1,185 @@
+Index: dbt5/egen/prj/Makefile
+===================================================================
+--- dbt5.orig/egen/prj/Makefile
++++ dbt5/egen/prj/Makefile
+@@ -23,7 +23,7 @@
+ #ARFLAGS=
+ 
+ # Application specific defines
+-APPDEFINES=-DCOMPILE_FLAT_FILE_LOAD
++APPDEFINES=-DCOMPILE_CUSTOM_LOAD
+ 
+ # Directory for source files
+ SRC = ../src
+@@ -210,10 +210,59 @@ EGenValidate_src =		EGenValidate.cpp str
+ EGenValidate_obj =		$(EGenValidate_src:.cpp=.o)
+ 
+ 
++DBT5Base_src =			BaseInterface.cpp
++
++DBT5Base_obj =			$(DBT5Base_src:.cpp=.o)
++
++
++DBT5Brokerage_src=		BrokerageHouse.cpp TxnHarnessSendToMarket.cpp
++
++DBT5Brokerage_obj =		$(DBT5Brokerage_src:.cpp=.o)
++
++
++DBT5Customer_src =		CESUT.cpp
++
++DBT5Customer_obj =		$(DBT5Customer_src:.cpp=.o)
++
++
++DBT5Postgres_src =		DBConnection.cpp
++
++DBT5Postgres_obj =		$(DBT5Postgres_src:.cpp=.o)
++
++
++DBT5Socket_src =		CSocket.cpp
++
++DBT5Socket_obj =		$(DBT5Socket_src:.cpp=.o)
++
++
++DBT5Transaction_src =		BrokerVolumeDB.cpp CustomerPositionDB.cpp DataMaintenanceDB.cpp MarketFeedDB.cpp MarketWatchDB.cpp SecurityDetailDB.cpp TradeCleanupDB.cpp TradeLookupDB.cpp TradeOrderDB.cpp TradeResultDB.cpp TradeStatusDB.cpp TradeUpdateDB.cpp TxnBaseDB.cpp
++
++DBT5Transaction_obj =		$(DBT5Transaction_src:.cpp=.o)
++
++
++EGenDriver_src =		Driver.cpp DriverMain.cpp Customer.cpp DMSUT.cpp
++
++EGenDriver_obj =		$(EGenDriver_src:.cpp=.o)
++
++
++EGenDriverMEE_src =		MEESUT.cpp MarketExchange.cpp MarketExchangeMain.cpp
++
++EGenDriverMEE_obj =		$(EGenDriverMEE_src:.cpp=.o)
++
++
++BrokerageHouse_src =		BrokerageHouseMain.cpp
++
++BrokerageHouse_obj =		$(BrokerageHouse_src:.cpp=.o)
++
++
++TestTxn_src =			DMSUTtest.cpp MEESUTtest.cpp TestTxn.cpp TxnHarnessSendToMarketTest.cpp 
++
++TestTxn_obj =			$(TestTxn_src:.cpp=.o)
++
+ # Using pattern rules that were defined earlier. 
+ # All options are specified through the variables.
+ 
+-all:				EGenDriverLib EGenLoader EGenValidate
++all:				EGenDriverLib EGenLoader EGenValidate EGenDriverMEE BrokerageHouse EGenDriver TestTxn
+ 
+ EGenLoader:			EGenUtilities \
+ 				EGenInputFiles \
+@@ -249,6 +298,88 @@ EGenValidate:			EGenDriverLib \
+ 	cd $(PRJ); \
+ 	ls -al $(EXE)
+ 
++EGenDriverMEE:			EGenDriverLib \
++				EGenUtilities \
++				$(DBT5Base_obj) \
++				$(DBT5Socket_obj) \
++				$(EGenDriverMEE_obj)
++	cd $(OBJ); \
++	$(CXX) 	$(LDFLAGS) \
++				$(DBT5Base_obj) \
++				$(DBT5Socket_obj) \
++				$(EGenDriverMEE_obj) \
++				$(EGenUtilities_obj) \
++				$(LIB)/$(EGenDriverLib_lib) \
++				$(LIBS) \
++				-o $(EXE)/$@; \
++	cd $(PRJ); \
++	ls -l $(EXE)
++
++BrokerageHouse:			EGenDriverLib \
++				EGenUtilities \
++				$(BrokerageHouse_obj) \
++				$(DBT5Brokerage_obj) \
++				$(DBT5Postgres_obj) \
++				$(DBT5Socket_obj) \
++				$(DBT5Transaction_obj)
++	cd $(OBJ); \
++	$(CXX) 	$(LDFLAGS) \
++				$(BrokerageHouse_obj) \
++				$(DBT5Brokerage_obj) \
++				$(DBT5Postgres_obj) \
++				$(DBT5Socket_obj) \
++				$(DBT5Transaction_obj) \
++				$(EGenUtilities_obj) \
++				$(LIB)/$(EGenDriverLib_lib) \
++				$(LIBS) \
++				-o $(EXE)/$@; \
++	cd $(PRJ); \
++	ls -l $(EXE)
++
++EGenDriver:			EGenDriverLib \
++				EGenUtilities \
++				$(DBT5Base_obj) \
++				$(DBT5Customer_obj) \
++				$(DBT5Socket_obj) \
++				$(EGenDriver_obj)
++	cd $(OBJ); \
++	$(CXX) 	$(LDFLAGS) \
++				$(DBT5Base_obj) \
++				$(DBT5Socket_obj) \
++				$(DBT5Customer_obj) \
++				$(EGenDriver_obj) \
++				$(EGenUtilities_obj) \
++				$(LIB)/$(EGenDriverLib_lib) \
++				$(LIBS) \
++				-o $(EXE)/$@; \
++	cd $(PRJ); \
++	ls -l $(EXE)
++
++TestTxn:			EGenDriverLib \
++				EGenUtilities \
++				$(DBT5Base_obj) \
++				$(DBT5Brokerage_obj) \
++				$(DBT5Customer_obj) \
++				$(DBT5Postgres_obj) \
++				$(DBT5Socket_obj) \
++				$(DBT5Transaction_obj) \
++				$(TestTxn_obj)
++	cd $(OBJ); \
++	$(CXX) 	$(LDFLAGS) \
++				$(DBT5Base_obj) \
++				$(DBT5Brokerage_obj) \
++				$(DBT5Customer_obj) \
++				$(DBT5Postgres_obj) \
++				$(DBT5Socket_obj) \
++				$(DBT5Transaction_obj) \
++				$(EGenUtilities_obj) \
++				$(TestTxn_obj) \
++				$(LIB)/$(EGenDriverLib_lib) \
++				$(LIBS) \
++				-o $(EXE)/$@; \
++	cd $(PRJ); \
++	ls -l $(EXE)
++
+ EGenDriverLib:			EGenDriverCELib \
+ 				EGenDriverDMLib \
+ 				EGenDriverMEELib \
+@@ -298,9 +429,19 @@ clean:
+ 				$(FlatFileLoader_obj) \
+ 				$(EGenGenerateAndLoad_obj) \
+ 				$(EGenValidate_obj) \
+-				$(EGenLoader_obj); \
++				$(EGenLoader_obj) \
++				$(DBT5Base_obj) \
++				$(DBT5Brokerage_obj) \
++				$(DBT5Customer_obj) \
++				$(DBT5Postgres_obj) \
++				$(DBT5Socket_obj) \
++				$(DBT5Transaction_obj) \
++				$(EGenDriver_obj) \
++				$(EGenDriverMEE_obj) \
++				$(BrokerageHouse_obj) \
++				$(TextTxn_obj); \
+ 	cd $(LIB); \
+ 	rm -f			$(EGenDriverLib_lib); \
+ 	cd $(EXE); \
+-	rm -f			EGenLoader EGenValidate; \
++	rm -f			EGenLoader EGenValidate EGenDriverMEE BrokerageHouse DriverMain TestTxn; \
+ 	cd $(PRJ)

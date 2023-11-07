@@ -1,0 +1,112 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+
+usage()
+{
+	cat << EOF
+$(basename "${0}") is the Database Test 5 (DBT-5) TPC-E Tools builder
+
+Usage:
+  $(basename "${0}") [OPTION] DIRECTORY
+
+Options:
+  --build-only   Do not patch TPC-E Tools before building
+  --include-dir=DIRECTORY
+                 DIRECTORY of any custom code to build with TPC-E Tools
+  --patch-dir=DIRECTORY
+                 DIRECTORY of patches to apply to TPC-E Tools, overrides
+                 PATCHDIR environment variable, default /usr/share/dbt5/patches
+  -V, --version  output version information, then exit
+  -?, --help     show this help, then exit
+
+@HOMEPAGE@
+EOF
+}
+
+errormsg() {
+	printf "ERROR: %s, try \"%s --help\" " "${1}" "$(basename "${0}")"
+	echo "for more information."
+}
+
+PATCH=1
+INCLUDEDIR="-I/usr/local/include/dbt5"
+
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(--build-only)
+		PATCH=0
+		;;
+	(--include-dir)
+		shift
+		INCLUDEDIR="-I$(realpath "${1}")"
+		;;
+	(--include-dir=?*)
+		INCLUDEDIR="-I$(realpath "${1#*--include-dir=}")"
+		;;
+	(--patch-dir)
+		shift
+		PATCHDIR="$(realpath "${1}")"
+		;;
+	(--patch-dir=?*)
+		PATCHDIR="$(realpath "${1#*--patch-dir=}")"
+		;;
+	(-V | --version)
+		echo "$(basename "${0}") (Database Test 5) v@PROJECT_VERSION@"
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
+	esac
+	shift
+done
+
+if [ $# -eq 0 ]; then
+	errormsg "missing DIRECTORY command line parameter"
+	exit 1
+fi
+EGENDIR="$(realpath "${1}")"
+shift
+
+if [ ${PATCH} -eq 1 ]; then
+	if [ "${PATCHDIR}" = "" ]; then
+		PATCHDIR="/usr/share/dbt5/patches"
+	fi
+
+	SERIESFILE="${PATCHDIR}/series"
+	if [ ! -f "${SERIESFILE}" ]; then
+		errormsg "missing 'series' file in '${PATCHDIR}'"
+		exit 1
+	fi
+fi
+
+if [ ${PATCH} -eq 1 ]; then
+	cd "${EGENDIR}" || \
+			(echo "ERROR: cannot enter directory ${EGENDIR}" && exit 1)
+	while IFS= read -r PATCHFILE; do
+		patch -s -p2 < "${PATCHDIR}/${PATCHFILE}" || \
+				(echo "ERROR: cannot apply patch ${PATCHFILE}" && exit 1)
+	done < "${SERIESFILE}"
+fi
+
+(cd "${EGENDIR}/prj" && \
+		make -s -f "Makefile" clean && \
+		CCFLAGS="-std=c++98 -ansi -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D_LARGEFILE64_SOURCE -DPGSQL -I${EGENDIR} ${INCLUDEDIR}" \
+		LDFLAGS="-lpthread" \
+		make -s -f "Makefile") \
+		|| (echo "ERROR: cannot build egen" && exit 1)

@@ -17,6 +17,7 @@ set (
     "Database Test 5 (DBT-5) project page: https://github.com/osdldbt/dbt5"
 )
 
+add_subdirectory (man)
 add_subdirectory (scripts)
 
 #

@@ -1,0 +1,36 @@
+Index: dbt5/egen/TestHarness/EGenTest/inc/EGenTestSuites_stdafx.h
+===================================================================
+--- dbt5.orig/egen/TestHarness/EGenTest/inc/EGenTestSuites_stdafx.h
++++ dbt5/egen/TestHarness/EGenTest/inc/EGenTestSuites_stdafx.h
+@@ -148,15 +148,15 @@
+ 
+ //  Include current code being tested. It is included under TPCE (unchanged) namespace.
+ //
+-#include "../../../inc/EGenUtilities_stdafx.h"
+-#include "../../../inc/EGenTables_stdafx.h"
+-//#include "../../../inc/EGenBaseLoader_stdafx.h"
+-#include "../../../inc/EGenGenerateAndLoadBaseOutput.h"
+-#include "../../../inc/EGenGenerateAndLoadStandardOutput.h"
+-#include "../../../inc/DriverParamSettings.h"
+-#include "../../../inc/EGenLogger.h"
+-#include "../../../inc/CE.h"
+-#include "../../../inc/DM.h"
++#include "../../Reference/inc/EGenUtilities_stdafx.h"
++#include "../../Reference/inc/EGenTables_stdafx.h"
++//#include "../../Reference/inc/EGenBaseLoader_stdafx.h"
++#include "../../Reference/inc/EGenGenerateAndLoadBaseOutput.h"
++#include "../../Reference/inc/EGenGenerateAndLoadStandardOutput.h"
++#include "../../Reference/inc/DriverParamSettings.h"
++#include "../../Reference/inc/EGenLogger.h"
++#include "../../Reference/inc/CE.h"
++#include "../../Reference/inc/DM.h"
+ 
+ ///////////////////////////////////////////////////
+ //  Include EGen Test code.
+@@ -170,4 +170,4 @@
+ #include "EGenTestSuiteTwo.h"
+ 
+ 
+-#endif // EGEN_TEST_SUITES_STDAFX_H
+\ No newline at end of file
++#endif // EGEN_TEST_SUITES_STDAFX_H

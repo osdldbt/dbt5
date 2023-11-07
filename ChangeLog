@@ -10,6 +10,7 @@ vX.Y.X (YYYY-MM-DD)
 - Update PostgreSQL build script set vacuum parallelism based on available
   processors and to perform a regular vacuum, instead of a full vacuum
 - Removed TPC-E Tools code per TPC EULA
+- Add build-egen script to build TPC-E Tools with sponsored code
 
 v0.1.0 (2010-04-10)
 
