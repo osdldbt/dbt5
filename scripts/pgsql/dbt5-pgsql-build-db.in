@@ -1,4 +1,5 @@
 #!/bin/sh
+@SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -38,7 +39,15 @@ usage()
 	echo "        Initial trade days (business days) to populate" 
 }
 
+load_table()
+{
+	eval "${PSQL}" <<- EOF
+		COPY ${1} FROM '${EGENDIR}/flat_out/${2}' USING DELIMITERS '|';
+	EOF
+}
+
 REBUILD_DB=0
+PRIVILEGED=0
 
 # These are minimum values defined by the specification.
 CUSTOMERS_INSTANCE=5000
@@ -59,7 +68,7 @@ while getopts "b:c:d:hi:l:p:rs:t:uw:" OPT; do
 		DBT5DBNAME=${OPTARG}
 		;;
 	i)
-		EGENDIR=${OPTARG}
+		EGENDIR=$(realpath "${OPTARG}")
 		;;
 	h)
 		usage
@@ -115,38 +124,47 @@ if [ ! "x${PORT}" = "x" ]; then
 	export PGPORT="${PORT}"
 fi
 
-if [ ${REBUILD_DB} -eq 1 ]; then
+PSQL="psql -X ${PORTARG} -e ${DBNAMEARG}"
+
+if [ ${PRIVILEGED} -eq 1 ] && [ ${REBUILD_DB} -eq 1 ]; then
 	echo "Restarting the database to reset database parameters..."
 	dbt5-pgsql-stop-db
 	dbt5-pgsql-start-db -p "${PARAMETERS}" || exit 1
-	dbt5-pgsql-drop-db ${PORTARG}
+	eval dbt5-pgsql-drop-db ${PORTARG}
 fi
 
-dbt5-pgsql-create-db ${PORTARG} || exit 1
+eval "dbt5-pgsql-create-db ${PORTARG}" || exit 1
 
-#
-# Stop and restart the database so we get the parameters we want when we start
-# loading the database.
-#
-dbt5-pgsql-stop-db
-dbt5-pgsql-start-db -p "${PARAMETERS}" || exit 1
+if [ ${PRIVILEGED} -eq 1 ]; then
+	#
+	# Stop and restart the database so we get the parameters we want when we
+	# start loading the database.
+	#
+	dbt5-pgsql-stop-db
+	dbt5-pgsql-start-db -p "${PARAMETERS}" || exit 1
+fi
 
 # FIXME: Find a way to pass arguments to psql using EGen's -p flag, which
 # apparently doesn't like arguments to have dashes (-) in them.
-dbt5-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG} || exit 1
-(cd ${EGENDIR} && \
-		${EGENLOADER} -b ${STARTING_CUSTOMER_ID} -l CUSTOM -f ${SCALE_FACTOR} \
-		-w ${ITD} -c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL}) || exit 1
-dbt5-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG} || exit 1
-dbt5-pgsql-load-stored-procs ${PORTARG} || exit 1
-psql ${PORTARG} -e ${DBNAMEARG} -c "SELECT setseed(0);" || exit 1
+eval "dbt5-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG}" || exit 1
+${EGENLOADER} \
+		-i ${EGENDIR}/flat_in \
+		-b ${STARTING_CUSTOMER_ID} \
+		-l CUSTOM \
+		-f ${SCALE_FACTOR} \
+		-w ${ITD} \
+		-c ${CUSTOMERS_INSTANCE} \
+		-t ${CUSTOMERS_TOTAL} || exit 1
+eval "dbt5-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG}" || exit 1
+eval "dbt5-pgsql-load-stored-procs ${PORTARG}" || exit 1
+eval "${PSQL} -c \"SELECT setseed(0);\"" || exit 1
 
 # Set the number of vacuumdb jobs to 1 (no parallelism) and let see
 # if the system can support a greater value.
 VACUUM_JOBS=1
 # Based on server version, enable vaccumdb parallelism if that version
 # is greater than or equal to 9.5.
-PG_VERSION_NUM=$(psql $PORTARG -At -d $DBT5DBNAME -c "SHOW server_version_num")
+PG_VERSION_NUM=$(eval "psql -X -At ${DBNAMEARG} -c \"SHOW server_version_num\"")
 PG_VERSION_NUM=$(( $PG_VERSION_NUM + 0 ))
 if [ $PG_VERSION_NUM -ge 95000 ]; then
 	# Set default vacuum jobs to 33 because this is the number of tables
@@ -176,4 +194,4 @@ if [ $VACUUM_JOBS -gt 1 ]; then
 	VACUUM_OPTS+=" -j $VACUUM_JOBS"
 fi
 
-vacuumdb $PORTARG $VACUUM_OPTS -d $DBT5DBNAME || exit 1
+eval "vacuumdb $PORTARG $VACUUM_OPTS -d $DBT5DBNAME" || exit 1

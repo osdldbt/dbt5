@@ -1,0 +1,71 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+
+usage()
+{
+	echo "usage: create-db -h"
+	echo "usage: create-db [-p port]"
+}
+
+PRIVILEGED=0
+
+while getopts "d:hp:" OPT; do
+	case ${OPT} in
+	d)
+		DBT5DBNAME=${OPTARG}
+		;;
+	h)
+		usage
+		exit 0
+		;;
+	p)
+		PORT=${OPTARG}
+		;;
+	esac
+done
+
+if [ ${PRIVILEGED} -eq 1 ] && [ -z ${DBT5PGDATA} ]; then
+	echo "DBT5PGDATA not defined."
+	exit 1
+fi
+
+if [ "${DBT5DBNAME}" = "x" ]; then
+	echo "DBT5DBNAME not defined."
+	exit 1
+fi
+
+if [ ! "x${PORT}" = "x" ]; then
+	PORTOPT="-p ${PORT}"
+fi
+
+if [ ${PRIVILEGED} -eq 1 ]; then
+	# Create database
+	echo "Creating database..."
+	if [ -d ${DBT5PGDATA} ]; then
+		echo "======================================="
+		echo "PGData directory ${DBT5PGDATA} already exists"
+		echo "Skipping initdb"
+		echo "======================================="
+	else
+		initdb -D ${DBT5PGDATA} --locale=C || exit 1
+	fi
+
+	if [ ! "x${PORT}" = "x" ]; then
+		dbt5-pgsql-start-db -p "-c port=${PORT}"
+	else
+		dbt5-pgsql-start-db
+	fi
+
+	# Give the database a few seconds to get going
+	sleep 4
+fi
+
+createdb ${PORTOPT} ${DBT5DBNAME} || exit 1
+
+exit 0

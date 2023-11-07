@@ -72,19 +72,14 @@ if (LIBPQ_FOUND)
     set (DB_SCRIPTS
          ${DB_SCRIPTS}
          ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-start-db
-         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-create-indexes
-         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-create-tables
          ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-drop-tables
          ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-restore-db
-         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-load-stored-procs
          ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-backup-db
          ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-db-plans
          ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-drop-db
          ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-check-db
          ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-db-stat
          ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-stop-db
-         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-create-db
-         ${CMAKE_SOURCE_DIR}/scripts/pgsql/dbt5-pgsql-build-db
     )
 endif (LIBPQ_FOUND)
 
