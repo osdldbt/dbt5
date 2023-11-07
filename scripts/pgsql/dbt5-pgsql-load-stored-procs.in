@@ -1,0 +1,65 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+
+DBNAMEARG=""
+SHAREDIR="/usr/local/share/dbt5/postgresql"
+TYPE="plpgsql"
+
+while getopts "d:i:p:t:" OPT; do
+	case ${OPT} in
+	d)
+		DBNAMEARG="-d ${OPTARG}"
+		;;
+	i)
+		SHAREDIR="${OPTARG}"
+		;;
+	p)
+		PORTARG="-p ${OPTARG}"
+		;;
+	t)
+		type="${OPTARG}"
+		;;
+	esac
+done
+
+PSQL="psql -X ${PORTARG} -e ${DBNAMEARG}"
+
+if [ "${TYPE}" = "c" ]; then
+	if [ "${SHAREDIR}" = "" ]; then
+		SHAREDIR="$(pg_config --sharedir)"
+	fi
+	eval "${PSQL} -f ${SHAREDIR}/contrib/broker_volume.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/contrib/customer_position.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/contrib/data_maintenance.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/contrib/market_feed.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/contrib/market_watch.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/contrib/security_detail.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/contrib/trade_cleanup.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/contrib/trade_lookup.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/contrib/trade_order.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/contrib/trade_result.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/contrib/trade_status.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/contrib/trade_update.sql" || exit 1
+elif [ "${TYPE}" = "plpgsql" ]; then
+	eval "${PSQL} -f ${SHAREDIR}/broker_volume.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/customer_position.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/data_maintenance.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/market_feed.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/market_watch.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/security_detail.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/trade_cleanup.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/trade_lookup.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/trade_order.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/trade_result.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/trade_status.sql" || exit 1
+	eval "${PSQL} -f ${SHAREDIR}/trade_update.sql" || exit 1
+else
+	echo "unknown stored function type: ${TYPE}"
+	exit 2
+fi

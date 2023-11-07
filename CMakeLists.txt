@@ -8,6 +8,17 @@ set (PROJECT_VERSION_PATCH 0)
 set (PROJECT_VERSION
      ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set (SHELLOPTIONS "set -x")
+endif ()
+
+set (
+    HOMEPAGE
+    "Database Test 5 (DBT-5) project page: https://github.com/osdldbt/dbt5"
+)
+
+add_subdirectory (scripts)
+
 #
 # Defining binaries so to minimized typoes.
 #
