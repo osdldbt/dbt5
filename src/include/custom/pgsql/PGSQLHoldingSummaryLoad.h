@@ -48,12 +48,11 @@ public:
 			const char *szTable = "holding_summary")
 			: CPGSQLLoader<HOLDING_SUMMARY_ROW>(szConnectStr, szTable) { };
 
-	// copy to the bound location inside this class first
-	virtual void WriteNextRecord(PT next_record) {
+	void WriteNextRecord(const HOLDING_SUMMARY_ROW &next_record) {
 		fprintf(p, "%" PRId64 "%c%s%c%d\n",
-				next_record->HS_CA_ID, delimiter,
-				next_record->HS_S_SYMB, delimiter,
-				next_record->HS_QTY);
+				next_record.HS_CA_ID, delimiter,
+				next_record.HS_S_SYMB, delimiter,
+				next_record.HS_QTY);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;
 	}

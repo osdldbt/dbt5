@@ -55,26 +55,25 @@ public:
 			const char *szTable = "financial")
 			: CPGSQLLoader<FINANCIAL_ROW>(szConnectStr, szTable) { };
 
-	// copy to the bound location inside this class first
-	virtual void WriteNextRecord(PT next_record) {
-		fi_qtr_start_date = next_record->FI_QTR_START_DATE;
+	void WriteNextRecord(const FINANCIAL_ROW &next_record) {
+		fi_qtr_start_date = next_record.FI_QTR_START_DATE;
 
 		fprintf(p,
 				"%" PRId64 "%c%d%c%d%c%s%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%.2f%c%ld%c%ld\n",
-				next_record->FI_CO_ID, delimiter,
-				next_record->FI_YEAR, delimiter,
-				next_record->FI_QTR, delimiter,
+				next_record.FI_CO_ID, delimiter,
+				next_record.FI_YEAR, delimiter,
+				next_record.FI_QTR, delimiter,
 				fi_qtr_start_date.ToStr(iDateTimeFmt), delimiter,
-				next_record->FI_REVENUE, delimiter,
-				next_record->FI_NET_EARN, delimiter,
-				next_record->FI_BASIC_EPS, delimiter,
-				next_record->FI_DILUT_EPS, delimiter,
-				next_record->FI_MARGIN, delimiter,
-				next_record->FI_INVENTORY, delimiter,
-				next_record->FI_ASSETS, delimiter,
-				next_record->FI_LIABILITY, delimiter,
-				next_record->FI_OUT_BASIC, delimiter,
-				next_record->FI_OUT_DILUT);
+				next_record.FI_REVENUE, delimiter,
+				next_record.FI_NET_EARN, delimiter,
+				next_record.FI_BASIC_EPS, delimiter,
+				next_record.FI_DILUT_EPS, delimiter,
+				next_record.FI_MARGIN, delimiter,
+				next_record.FI_INVENTORY, delimiter,
+				next_record.FI_ASSETS, delimiter,
+				next_record.FI_LIABILITY, delimiter,
+				next_record.FI_OUT_BASIC, delimiter,
+				next_record.FI_OUT_DILUT);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;
 	}

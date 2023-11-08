@@ -45,18 +45,17 @@
 namespace TPCE
 {
 
-class CPGSQLTaxrateLoad : public CPGSQLLoader<TAXRATE_ROW>
+class CPGSQLTaxrateLoad : public CPGSQLLoader<TAX_RATE_ROW>
 {
 public:
 	CPGSQLTaxrateLoad(const char *szConnectStr, const char *szTable = "taxrate")
-			: CPGSQLLoader<TAXRATE_ROW>(szConnectStr, szTable) { };
+			: CPGSQLLoader<TAX_RATE_ROW>(szConnectStr, szTable) { };
 
-	//copy to the bound location inside this class first
-	virtual void WriteNextRecord(PT next_record) {
+	void WriteNextRecord(const TAX_RATE_ROW &next_record) {
 		fprintf(p, "%s%c%s%c%.5f\n",
-				next_record->TX_ID, delimiter,
-				next_record->TX_NAME, delimiter,
-				next_record->TX_RATE);
+				next_record.TX_ID, delimiter,
+				next_record.TX_NAME, delimiter,
+				next_record.TX_RATE);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;
 	}

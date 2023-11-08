@@ -63,6 +63,9 @@ public:
         strncpy(szConnectStr, szLoaderParms, iConnectStrLen);
 	}
 
+	// Destructor
+	virtual ~CCustomLoaderFactory() {};
+
 	// Functions to create loader classes for individual tables.
 
 	virtual CBaseLoader<ACCOUNT_PERMISSION_ROW>
@@ -167,7 +170,7 @@ public:
 		return new CPGSQLStatusTypeLoad(szConnectStr);
 	};
 
-	virtual CBaseLoader<TAXRATE_ROW> *CreateTaxrateLoader() {
+	virtual CBaseLoader<TAX_RATE_ROW> *CreateTaxRateLoader() {
 		return new CPGSQLTaxrateLoad(szConnectStr);
 	};
 

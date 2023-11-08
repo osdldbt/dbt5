@@ -55,17 +55,16 @@ public:
 			const char *szTable = "news_item")
 			: CPGSQLLoader<NEWS_ITEM_ROW>(szConnectStr, szTable) { };
 
-	// copy to the bound location inside this class first
-	virtual void WriteNextRecord(PT next_record) {
-		ni_dts = next_record->NI_DTS;
+	void WriteNextRecord(const NEWS_ITEM_ROW &next_record) {
+		ni_dts = next_record.NI_DTS;
 		fprintf(p, "%" PRId64 "%c%s%c%s%c%s%c%s%c%s%c%s\n",
-				next_record->NI_ID, delimiter,
-				next_record->NI_HEADLINE, delimiter,
-				next_record->NI_SUMMARY, delimiter,
-				next_record->NI_ITEM, delimiter,
+				next_record.NI_ID, delimiter,
+				next_record.NI_HEADLINE, delimiter,
+				next_record.NI_SUMMARY, delimiter,
+				next_record.NI_ITEM, delimiter,
 				ni_dts.ToStr(iDateTimeFmt), delimiter,
-				next_record->NI_SOURCE, delimiter,
-				next_record->NI_AUTHOR);
+				next_record.NI_SOURCE, delimiter,
+				next_record.NI_AUTHOR);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;
 	};

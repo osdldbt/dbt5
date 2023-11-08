@@ -54,27 +54,26 @@ public:
 	CPGSQLTradeLoad(const char *szConnectStr, const char *szTable = "trade")
 			: CPGSQLLoader<TRADE_ROW>(szConnectStr, szTable) { };
 
-	// copy to the bound location inside this class first
-	virtual void WriteNextRecord(PT next_record) {
-		t_dts = next_record->T_DTS;
+	void WriteNextRecord(const TRADE_ROW &next_record) {
+		t_dts = next_record.T_DTS;
 
 		fprintf(p,
 				"%" PRId64 "%c%s%c%s%c%s%c%d%c%s%c%d%c%.2f%c%" PRId64 "%c%s%c%.2f%c%.2f%c%.2f%c%.2f%c%d\n",
-				next_record->T_ID, delimiter,
+				next_record.T_ID, delimiter,
 				t_dts.ToStr(iDateTimeFmt), delimiter,
-				next_record->T_ST_ID, delimiter,
-				next_record->T_TT_ID, delimiter,
-				next_record->T_IS_CASH, delimiter,
-				next_record->T_S_SYMB, delimiter,
-				next_record->T_QTY, delimiter,
-				next_record->T_BID_PRICE, delimiter,
-				next_record->T_CA_ID, delimiter,
-				next_record->T_EXEC_NAME, delimiter,
-				next_record->T_TRADE_PRICE, delimiter,
-				next_record->T_CHRG, delimiter,
-				next_record->T_COMM, delimiter,
-				next_record->T_TAX, delimiter,
-				next_record->T_LIFO);
+				next_record.T_ST_ID, delimiter,
+				next_record.T_TT_ID, delimiter,
+				next_record.T_IS_CASH, delimiter,
+				next_record.T_S_SYMB, delimiter,
+				next_record.T_QTY, delimiter,
+				next_record.T_BID_PRICE, delimiter,
+				next_record.T_CA_ID, delimiter,
+				next_record.T_EXEC_NAME, delimiter,
+				next_record.T_TRADE_PRICE, delimiter,
+				next_record.T_CHRG, delimiter,
+				next_record.T_COMM, delimiter,
+				next_record.T_TAX, delimiter,
+				next_record.T_LIFO);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;
 	}

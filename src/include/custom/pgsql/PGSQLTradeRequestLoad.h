@@ -52,15 +52,14 @@ public:
 			const char *szTable = "trade_request")
 			: CPGSQLLoader<TRADE_REQUEST_ROW>(szConnectStr, szTable) { };
 
-	// copy to the bound location inside this class first
-	virtual void WriteNextRecord(PT next_record) {
+	void WriteNextRecord(const TRADE_REQUEST_ROW &next_record) {
 		fprintf(p, "%" PRId64 "%c%s%c%s%c%d%c%.2f%c%" PRId64 "\n",
-				next_record->TR_T_ID, delimiter,
-				next_record->TR_TT_ID, delimiter,
-				next_record->TR_S_SYMB, delimiter,
-				next_record->TR_QTY, delimiter,
-				next_record->TR_BID_PRICE, delimiter,
-				next_record->TR_B_ID);
+				next_record.TR_T_ID, delimiter,
+				next_record.TR_TT_ID, delimiter,
+				next_record.TR_S_SYMB, delimiter,
+				next_record.TR_QTY, delimiter,
+				next_record.TR_BID_PRICE, delimiter,
+				next_record.TR_B_ID);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;
 	}

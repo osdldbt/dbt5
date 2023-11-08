@@ -52,11 +52,10 @@ public:
 			const char *szTable = "watch_list")
 			: CPGSQLLoader<WATCH_LIST_ROW>(szConnectStr, szTable) { };
 
-	//copy to the bound location inside this class first
-	virtual void WriteNextRecord(PT next_record) {
+	void WriteNextRecord(const WATCH_LIST_ROW &next_record) {
 		fprintf(p, "%" PRId64 "%c%" PRId64 "\n",
-				next_record->WL_ID, delimiter,
-				next_record->WL_C_ID);
+				next_record.WL_ID, delimiter,
+				next_record.WL_C_ID);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;
 	}

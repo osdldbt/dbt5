@@ -75,7 +75,9 @@ public:
 	// disconnect - should not throw any exceptions (to put into the destructor)
 	void Disconnect();
 
-	virtual void WriteNextRecord(PT next_record) = 0; // pure virtual function
+	virtual void WriteNextRecord(const T& next_record) {
+		printf("pgloader - const ref\n");
+	};
 };
 
 //

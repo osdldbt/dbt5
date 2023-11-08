@@ -52,14 +52,13 @@ public:
 			const char *szTable = "account_permission")
 			: CPGSQLLoader<ACCOUNT_PERMISSION_ROW>(szConnectStr, szTable) { };
 
-	// copy to the bound location inside this class first
-	virtual void WriteNextRecord(PT next_record) {
+	void WriteNextRecord(const ACCOUNT_PERMISSION_ROW &next_record) {
 		fprintf(p, "%" PRId64 "%c%s%c%s%c%s%c%s\n",
-				next_record->AP_CA_ID, delimiter,
-				next_record->AP_ACL, delimiter,
-				next_record->AP_TAX_ID, delimiter,
-				next_record->AP_L_NAME, delimiter,
-				next_record->AP_F_NAME);
+				next_record.AP_CA_ID, delimiter,
+				next_record.AP_ACL, delimiter,
+				next_record.AP_TAX_ID, delimiter,
+				next_record.AP_L_NAME, delimiter,
+				next_record.AP_F_NAME);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;
 	}
