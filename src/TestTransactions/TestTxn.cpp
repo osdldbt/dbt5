@@ -479,9 +479,8 @@ int main(int argc, char* argv[])
 		CLogFormatTab fmt;
 		CEGenLogger log(eDriverEGenLoader, 0, "TxnTest.log", &fmt);
 	
-		CInputFiles	inputFiles;
-		inputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount,
-				iConfiguredCustomerCount, szInDir);
+	const DataFileManager inputFiles(szInDir, iConfiguredCustomerCount,
+			iActiveCustomerCount, TPCE::DataFileManager::IMMEDIATE_LOAD);
 	
 		TDriverCETxnSettings	m_DriverCETxnSettings;
 	
@@ -506,8 +505,7 @@ int main(int argc, char* argv[])
 				iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades,
 				1 );
 
-		CDateTime	StartTime, EndTime, TxnTime;	// to time the transaction
-		StartTime.SetToCurrent();
+		CDateTime StartTime;
 
 		//  Parse Txn type
 		switch ( TxnType ) 
@@ -559,9 +557,10 @@ int main(int argc, char* argv[])
 		}
 
 		// record txn end time
-		EndTime.SetToCurrent();
+		CDateTime EndTime;
 
 		// calculate txn response time
+		CDateTime TxnTime;
 		TxnTime.Set(0);	// clear time
 		TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
 

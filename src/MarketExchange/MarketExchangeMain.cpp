@@ -101,7 +101,7 @@ void parse_command_line(int argc, char *argv[])
 		default:
 			usage();
 			cout << endl << "Error: Unrecognized option: " << sp << endl;
-			exit(ERROR_BAD_OPTION);
+			exit(1);
 		}
 	}
 }
@@ -125,10 +125,12 @@ int main(int argc, char *argv[])
 	cout << "Brokerage House address: " << szBHaddr << endl;
 	cout << "Brokerage House port: " << iBHlistenPort << endl;
 
+	const DataFileManager inputFiles(szFileLoc, iConfiguredCustomerCount,
+			iActiveCustomerCount, TPCE::DataFileManager::IMMEDIATE_LOAD);
 	try {
-		CMarketExchange MarketExchange(szFileLoc, iConfiguredCustomerCount,
-				iActiveCustomerCount, iListenPort, szBHaddr, iBHlistenPort,
-				outputDirectory);
+		CMarketExchange MarketExchange(inputFiles, (char *) &szFileLoc,
+				iConfiguredCustomerCount, iActiveCustomerCount, iListenPort,
+				szBHaddr, iBHlistenPort, outputDirectory);
 		cout << "Market Exchange started, waiting for trade requests..." <<
 				endl;
 

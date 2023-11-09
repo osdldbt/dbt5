@@ -17,24 +17,12 @@ pthread_t *g_tid = NULL;
 int stop_time = 0;
 
 // Constructor
-CDriver::CDriver(char *szInDir,
+CDriver::CDriver(const DataFileManager& inputFiles, char *szInDir,
 		TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
 		INT32 iScaleFactor, INT32 iDaysOfInitialTrades, UINT32 iSeed,
 		char *szBHaddr, int iBHlistenPort, int iUsers, int iPacingDelay,
 		char *outputDirectory)
 {
-	char filename[iMaxPath + 1];
-	snprintf(filename, iMaxPath, "%s/Driver.log", outputDirectory);
-	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
-	m_pDriverCETxnSettings = new TDriverCETxnSettings;
-	m_InputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount,
-			iActiveCustomerCount, szInDir);
-
-	snprintf(filename, iMaxPath, "%s/Driver_Error.log", outputDirectory);
-	m_fLog.open(filename, ios::out);
-	snprintf(filename, iMaxPath, "%s/%s", outputDirectory, CE_MIX_LOG_NAME);
-	m_fMix.open(filename, ios::out);
-
 	strncpy(this->szInDir, szInDir, iMaxPath);
 	this->szInDir[iMaxPath] = '\0';
 	this->iConfiguredCustomerCount = iConfiguredCustomerCount;
@@ -49,20 +37,32 @@ CDriver::CDriver(char *szInDir,
 	this->iPacingDelay = iPacingDelay;
 	strncpy(this->outputDirectory, outputDirectory, iMaxPath);
 	this->outputDirectory[iMaxPath] = '\0';
-	//
+
+	char filename[iMaxPath + 1];
+	snprintf(filename, iMaxPath, "%s/Driver.log", outputDirectory);
+	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
+	m_pDriverCETxnSettings = new TDriverCETxnSettings;
+
+	snprintf(filename, iMaxPath, "%s/Driver_Error.log", outputDirectory);
+	m_fLog.open(filename, ios::out);
+	snprintf(filename, iMaxPath, "%s/%s", outputDirectory, CE_MIX_LOG_NAME);
+	m_fMix.open(filename, ios::out);
+
+	cout << "initializing data maintenance..." << endl;
+
 	// initialize DMSUT interface
 	m_pCDMSUT = new CDMSUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix,
 			&m_LogLock, &m_MixLock);
 
 	// initialize DM - Data Maintenance
 	if (iSeed == 0) {
-		m_pCDM = new CDM(m_pCDMSUT, m_pLog, m_InputFiles,
+		m_pCDM = new CDM(m_pCDMSUT, m_pLog, inputFiles,
 				iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
 				iDaysOfInitialTrades, pthread_self());
 	} else {
 		// Specifying the random number generator seed is considered an
 		// invalid run.
-		m_pCDM = new CDM(m_pCDMSUT, m_pLog, m_InputFiles,
+		m_pCDM = new CDM(m_pCDMSUT, m_pLog, inputFiles,
 				iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
 				iDaysOfInitialTrades, pthread_self(), iSeed);
 	}
@@ -81,7 +81,11 @@ void *customerWorkerThread(void *data)
 	ts.tv_nsec = (long) (pThrParam->pDriver->iPacingDelay % 1000) *
 			1000000;
 
-	customer = new CCustomer(pThrParam->pDriver->szInDir,
+	const DataFileManager inputFiles(pThrParam->pDriver->szInDir,
+			pThrParam->pDriver->iConfiguredCustomerCount,
+			pThrParam->pDriver->iActiveCustomerCount,
+			TPCE::DataFileManager::IMMEDIATE_LOAD);
+	customer = new CCustomer(inputFiles, pThrParam->pDriver->szInDir,
 			pThrParam->pDriver->iConfiguredCustomerCount,
 			pThrParam->pDriver->iActiveCustomerCount,
 			pThrParam->pDriver->iScaleFactor,
@@ -185,7 +189,6 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 	stop_time = time(NULL) + iTestDuration + threads_start_time;
 
 	CDateTime dtAux;
-	dtAux.SetToCurrent();
 
 	cout << "Test is starting at " << dtAux.ToStr(02) << endl <<
 			"Estimated duration of ramp-up: " << threads_start_time <<
@@ -199,11 +202,10 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 	// start thread that runs the Data Maintenance transaction
 	entryDMWorkerThread(this);
 
-	// parameter for the new thread
-	PCustomerThreadParam pThrParam;
-
 	for (int i = 1; i <= iUsers; i++) {
-		pThrParam = new TCustomerThreadParam;
+		// parameter for the new thread
+		PCustomerThreadParam pThrParam = new TCustomerThreadParam;
+
 		// zero the structure
 		memset(pThrParam, 0, sizeof(TCustomerThreadParam));
 		pThrParam->pDriver = this;

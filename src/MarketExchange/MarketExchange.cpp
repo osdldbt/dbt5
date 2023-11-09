@@ -90,10 +90,10 @@ void EntryMarketWorkerThread(void *data)
 }
 
 // Constructor
-CMarketExchange::CMarketExchange(char *szFileLoc,
-		TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
-		int iListenPort, char *szBHaddr, int iBHlistenPort,
-		char *outputDirectory)
+CMarketExchange::CMarketExchange(const DataFileManager &inputFiles,
+		char *szFileLoc, TIdent iConfiguredCustomerCount,
+		TIdent iActiveCustomerCount, int iListenPort, char *szBHaddr,
+		int iBHlistenPort, char *outputDirectory)
 : m_iListenPort(iListenPort)
 {
 	char filename[iMaxPath + 1];
@@ -111,9 +111,6 @@ CMarketExchange::CMarketExchange(char *szFileLoc,
 			&m_LogLock, &m_MixLock);
 
 	// Initialize MEE
-	CInputFiles inputFiles;
-	inputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount,
-			iActiveCustomerCount, szFileLoc);
 	m_pCMEE = new CMEE(0, m_pCMEESUT, m_pLog, inputFiles, 1);
 	m_pCMEE->SetBaseTime();
 }

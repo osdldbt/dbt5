@@ -12,7 +12,7 @@
 #include "CE.h"
 
 // Constructor
-CCustomer::CCustomer(char *szInDir,
+CCustomer::CCustomer(const DataFileManager &inputFiles, char *szInDir,
 		TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
 		INT32 iScaleFactor, INT32 iDaysOfInitialTrades, UINT32 iSeed,
 		char *szBHaddr, int iBHlistenPort, int iUsers, int iPacingDelay,
@@ -24,8 +24,6 @@ CCustomer::CCustomer(char *szInDir,
 			(long long) pthread_self());
 	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
 	m_pDriverCETxnSettings = new TDriverCETxnSettings;
-	m_InputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount,
-			iActiveCustomerCount, szInDir);
 
 	snprintf(filename, iMaxPath, "%s/Customer_Error_%lld.log", outputDirectory,
 			(long long) pthread_self());
@@ -37,14 +35,14 @@ CCustomer::CCustomer(char *szInDir,
 
 	// initialize CE - Customer Emulator
 	if (iSeed == 0) {
-		m_pCCE = new CCE(m_pCCESUT, m_pLog, m_InputFiles,
+		m_pCCE = new CCE(m_pCCESUT, m_pLog, inputFiles,
 				iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
 				iDaysOfInitialTrades, pthread_self(), m_pDriverCETxnSettings);
 	} else {
 		// Specifying the random number generator seed is considered an
 		// invalid run.
 		// FIXME: Allow the TxnMixRNGSeed and TxnInputRGNSeed to be set.
-		m_pCCE = new CCE(m_pCCESUT, m_pLog, m_InputFiles,
+		m_pCCE = new CCE(m_pCCESUT, m_pLog, inputFiles,
 				iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
 				iDaysOfInitialTrades, pthread_self(), iSeed, iSeed,
 				m_pDriverCETxnSettings);

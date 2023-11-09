@@ -12,7 +12,6 @@
 #define CUSTOMER_H
 
 #include "EGenLogger.h"
-#include "InputFlatFilesStructure.h"
 #include "locking.h"
 
 #include "CESUT.h"
@@ -24,7 +23,6 @@ class CCustomer
 	int m_iPacingDelay;
 	CLogFormatTab m_fmt;
 	CEGenLogger *m_pLog;
-	CInputFiles m_InputFiles;
 	CCESUT * m_pCCESUT;
 	CCE * m_pCCE;
 	PDriverCETxnSettings m_pDriverCETxnSettings;
@@ -41,7 +39,7 @@ private:
 	friend void *DMWorkerThread(void *);
 	friend void EntryDMWorkerThread(CCustomer *);
 public:
-	CCustomer(char *szInDir, TIdent iConfiguredCustomerCount,
+	CCustomer(const DataFileManager &, char *szInDir, TIdent iConfiguredCustomerCount,
 			TIdent iActiveCustomerCount, INT32 iScaleFactor,
 			INT32 iDaysOfInitialTrades, UINT32 UniqueId, char *szBHaddr,
 			int iBHlistenPort, int iUsers, int iPacingDelay,

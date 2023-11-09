@@ -13,7 +13,6 @@
 
 #include "EGenLogFormatterTab.h"
 #include "EGenLogger.h"
-#include "SecurityFile.h"
 #include "locking.h"
 
 #include "CSocket.h"
@@ -41,7 +40,8 @@ private:
 public:
 	CMEE *m_pCMEE;
 
-	CMarketExchange(char *, TIdent, TIdent, int, char *, int, char *);
+	CMarketExchange(const DataFileManager &, char *, TIdent, TIdent, int,
+			char *, int, char *);
 	~CMarketExchange();
 
 	void logErrorMessage(const string);

@@ -68,11 +68,9 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 	TMsgBrokerageDriver Reply; // reply message from BrokerageHouse
 	memset(&Reply, 0, sizeof(Reply));
 
-	CDateTime StartTime, EndTime, TxnTime; // to time the transaction
-
 	// record txn start time -- please, see TPC-E specification clause
 	// 6.2.1.3
-	StartTime.SetToCurrent();
+	CDateTime StartTime; // to time the transaction
 
 	// send and wait for response
 	try {
@@ -110,9 +108,10 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 	}
 
 	// record txn end time
-	EndTime.SetToCurrent();
+	CDateTime EndTime;
 
 	// calculate txn response time
+	CDateTime TxnTime;
 	TxnTime.Set(0); // clear time
 	TxnTime.Add(0, (int) ((EndTime - StartTime) * MsPerSecond)); // add ms
 

@@ -35,9 +35,8 @@ bool CSendToMarketTest::SendToMarket(TTradeRequest &trade_mes)
 	// Initialize MEE - Market Exchange Emulator class
 	CMEESUTtest m_CMEESUT(NULL, iConfiguredCustomerCount, iActiveCustomerCount,
 			szInDir);
-	CInputFiles inputFiles;
-	inputFiles.Initialize(eDriverEGenLoader, iConfiguredCustomerCount,
-			iActiveCustomerCount, szInDir);
+	const DataFileManager inputFiles(szInDir, iConfiguredCustomerCount,
+			iActiveCustomerCount, TPCE::DataFileManager::IMMEDIATE_LOAD);
 
 	CMEE m_CMEE(0, &m_CMEESUT, &log, inputFiles, 1);
 	m_CMEE.SetBaseTime();

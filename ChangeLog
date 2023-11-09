@@ -11,6 +11,7 @@ vX.Y.X (YYYY-MM-DD)
   processors and to perform a regular vacuum, instead of a full vacuum
 - Removed TPC-E Tools code per TPC EULA
 - Add build-egen script to build TPC-E Tools with sponsored code
+- Updated for TPC-E Tools v1.14.0
 
 v0.1.0 (2010-04-10)
 

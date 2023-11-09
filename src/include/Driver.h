@@ -13,7 +13,6 @@
 
 #include "EGenLogFormatterTab.h"
 #include "EGenLogger.h"
-#include "InputFlatFilesStructure.h"
 #include "DMSUT.h"
 #include "locking.h"
 
@@ -24,7 +23,6 @@ class CDriver
 private:
 	CLogFormatTab m_fmt;
 	CEGenLogger *m_pLog;
-	CInputFiles m_InputFiles;
 	PDriverCETxnSettings m_pDriverCETxnSettings;
 	CMutex m_LogLock;
 	ofstream m_fLog; // error log file
@@ -55,7 +53,7 @@ public:
 	CDMSUT *m_pCDMSUT;
 	CDM *m_pCDM;
 
-	CDriver(char *, TIdent, TIdent, INT32, INT32, UINT32, char *, int, int,
+	CDriver(const DataFileManager&, char *, TIdent, TIdent, INT32, INT32, UINT32, char *, int, int,
 			int, char *);
 	~CDriver();
 

@@ -139,7 +139,7 @@ void parse_command_line(int argc, char *argv[])
 		default:
 			usage();
 			cout << endl << "Error: Unrecognized option: " << sp << endl;
-			exit (ERROR_BAD_OPTION);
+			exit (1);
 		}
 	}
 
@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
 
 	// Validate parameters
 	if (!ValidateParameters()) {
-		return ERROR_INVALID_OPTION_VALUE; // exit returning a non-zero code
+		return 2; // exit returning a non-zero code
 	}
 
 	// Let the user know what settings will be used.
@@ -245,7 +245,9 @@ int main(int argc, char *argv[])
 	cout << "Unique ID (seed): " << iSeed << endl;
 
 	try {
-		CDriver Driver(szInDir, iConfiguredCustomerCount,
+		const DataFileManager inputFiles(szInDir, iConfiguredCustomerCount,
+				iActiveCustomerCount, TPCE::DataFileManager::IMMEDIATE_LOAD);
+		CDriver Driver(inputFiles, szInDir, iConfiguredCustomerCount,
 				iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades,
 				iSeed, szBHaddr, iBHListenerPort, iUsers, iPacingDelay,
 				outputDirectory);
