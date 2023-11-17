@@ -17,6 +17,7 @@ Usage:
 
 Options:
   --build-only   Do not patch TPC-E Tools before building
+  --debug        Build with -DDEBUG
   --include-dir=DIRECTORY
                  DIRECTORY of any custom code to build with TPC-E Tools
   --patch-dir=DIRECTORY
@@ -34,14 +35,19 @@ errormsg() {
 	echo "for more information."
 }
 
+DEBUGFLAG=""
 PATCH=1
 INCLUDEDIR="-I/usr/local/include/dbt5"
+SOURCEDIR="/usr/local/share/dbt5"
 
 # Custom argument handling for hopefully most portability.
 while [ "${#}" -gt 0 ] ; do
 	case "${1}" in
 	(--build-only)
 		PATCH=0
+		;;
+	(--debug)
+		DEBUGFLAG="-DDEBUG"
 		;;
 	(--include-dir)
 		shift
@@ -56,6 +62,13 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--patch-dir=?*)
 		PATCHDIR="$(realpath "${1#*--patch-dir=}")"
+		;;
+	(--source-dir)
+		shift
+		SOURCEDIR="$(realpath "${1}")"
+		;;
+	(--source-dir=?*)
+		SOURCEDIR="$(realpath "${1#*--source-dir=}")"
 		;;
 	(-V | --version)
 		echo "$(basename "${0}") (Database Test 5) v@PROJECT_VERSION@"
@@ -82,6 +95,26 @@ if [ $# -eq 0 ]; then
 fi
 EGENDIR="$(realpath "${1}")"
 shift
+EGENOBJDIR="${EGENDIR}/obj"
+
+cp -pr \
+		${SOURCEDIR}/interfaces \
+		${SOURCEDIR}/MarketExchange \
+		${SOURCEDIR}/transactions \
+		${SOURCEDIR}/BrokerageHouse \
+		${SOURCEDIR}/Driver \
+		${SOURCEDIR}/Customer \
+		${SOURCEDIR}/TestTransactions \
+		${EGENDIR}/src/ || exit 1
+mkdir -p \
+		${EGENOBJDIR}/interfaces \
+		${EGENOBJDIR}/MarketExchange \
+		${EGENOBJDIR}/transactions \
+		${EGENOBJDIR}/transactions/pgsql \
+		${EGENOBJDIR}/BrokerageHouse \
+		${EGENOBJDIR}/Driver \
+		${EGENOBJDIR}/Customer \
+		${EGENOBJDIR}/TestTransactions || exit 1
 
 if [ ${PATCH} -eq 1 ]; then
 	if [ "${PATCHDIR}" = "" ]; then
@@ -105,8 +138,8 @@ if [ ${PATCH} -eq 1 ]; then
 fi
 
 (cd "${EGENDIR}/prj" && \
-		make -s -f "Makefile" clean && \
-		CCFLAGS="-std=c++98 -ansi -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D_LARGEFILE64_SOURCE -DPGSQL -I${EGENDIR} ${INCLUDEDIR}" \
-		LDFLAGS="-lpthread" \
-		make -s -f "Makefile") \
+		make -f Makefile clean && \
+		CCFLAGS="-D__unix -g -std=c++98 -ansi ${DEBUGFLAG} -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D_LARGEFILE64_SOURCE -DCOMPILE_CUSTOM_LOAD -DPGSQL -I${EGENDIR}/inc ${INCLUDEDIR} -I${EGENDIR}/Utilities/inc" \
+		LDFLAGS="-lpthread -lpq" \
+		make -j$(nproc) -f Makefile) \
 		|| (echo "ERROR: cannot build egen" && exit 1)

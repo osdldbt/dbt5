@@ -7,7 +7,7 @@ clean:
 	-rm -rf builds
 
 debug:
-	cmake -H. -Bbuilds/debug -DCMAKE_BUILD_TYPE=Debug
+	cmake -H. -Bbuilds/debug -DCMAKE_BUILD_TYPE=Debug -DDBMS=$(DBMS)
 	cd builds/debug && make
 
 package:
