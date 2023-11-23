@@ -20,23 +20,15 @@ set (
 add_subdirectory (man)
 add_subdirectory (scripts)
 
-IF (DBMS STREQUAL "pgsql")
-    #
-    # Create PostgreSQL specific configuration.
-    #
-
-    set (DB_SCRIPTS scripts/pgsql/dbt5-pgsql-start-db
-                    scripts/pgsql/dbt5-pgsql-drop-tables
-                    scripts/pgsql/dbt5-pgsql-restore-db
-                    scripts/pgsql/dbt5-pgsql-backup-db
-                    scripts/pgsql/dbt5-pgsql-db-plans
-                    scripts/pgsql/dbt5-pgsql-drop-db
-                    scripts/pgsql/dbt5-pgsql-check-db
-                    scripts/pgsql/dbt5-pgsql-db-stat
-                    scripts/pgsql/dbt5-pgsql-stop-db)
-ELSE (NOT DEFINED DBMS)
-    MESSAGE(FATAL_ERROR "Need to specify -DDBMS=pgsql")
-ENDIF (DBMS STREQUAL "pgsql")
+set (PGSQL_SCRIPTS scripts/pgsql/dbt5-pgsql-start-db
+                   scripts/pgsql/dbt5-pgsql-drop-tables
+                   scripts/pgsql/dbt5-pgsql-restore-db
+                   scripts/pgsql/dbt5-pgsql-backup-db
+                   scripts/pgsql/dbt5-pgsql-db-plans
+                   scripts/pgsql/dbt5-pgsql-drop-db
+                   scripts/pgsql/dbt5-pgsql-check-db
+                   scripts/pgsql/dbt5-pgsql-db-stat
+                   scripts/pgsql/dbt5-pgsql-stop-db)
 
 #
 # Install rules.
@@ -48,7 +40,7 @@ INSTALL(PROGRAMS scripts/dbt5-post-process
                  scripts/dbt5-run-workload
                  scripts/dbt5-plot-transaction-rate
                  scripts/dbt5-generate-report
-                 ${DB_SCRIPTS}
+                 ${PGSQL_SCRIPTS}
         DESTINATION "/bin")
 
 SET(CPACK_CMAKE_GENERATOR "Unix Makefiles")
