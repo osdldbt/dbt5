@@ -1,0 +1,311 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+
+usage() {
+	NAME="$(basename ${0})"
+	cat << EOF
+${NAME} is the DBT-5 transaction log analyzer.
+
+Usage:
+  ${NAME} mee_mix.log ce_mix.log ...
+EOF
+}
+
+cleanup() {
+	rm -rf "${TMPDIR}"
+}
+
+txnname() {
+	TXN=${1}
+
+	if [ "${TXN}" = "0" ]; then
+		echo "Security Detail"
+	elif [ "${TXN}" = "1" ]; then
+		echo "Broker Volume"
+	elif [ "${TXN}" = "2" ]; then
+		echo "Customer Position"
+	elif [ "${TXN}" = "3" ]; then
+		echo "Market Watch"
+	elif [ "${TXN}" = "4" ]; then
+		echo "Trade Status"
+	elif [ "${TXN}" = "5" ]; then
+		echo "Trade Lookup"
+	elif [ "${TXN}" = "6" ]; then
+		echo "Trade Order"
+	elif [ "${TXN}" = "7" ]; then
+		echo "Trade Update"
+	elif [ "${TXN}" = "8" ]; then
+		echo "Market Feed"
+	elif [ "${TXN}" = "9" ]; then
+		echo "Trade Result"
+	elif [ "${TXN}" = "10" ]; then
+		echo "Data Maintenance"
+	fi
+}
+
+if [ ${#} -lt 1 ]; then
+	usage
+	exit 1
+fi
+
+trap cleanup INT QUIT ABRT TERM
+
+VERBOSE=0
+
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-v | --verbose)
+		VERBOSE=1
+		;;
+	(-V | --version)
+		echo "dbt5 (Database Test 5) v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
+	esac
+	shift
+done
+
+SQLOPTIONS=""
+if [ ${VERBOSE} -eq 1 ]; then
+	SQLOPTIONS="@SQLITEOPTIONS@"
+fi
+
+TMPDIR="$(mktemp -d)"
+
+DBFILE="${TMPDIR}/dbt5.db"
+
+sqlite3 "${DBFILE}" << EOF
+${SQLOPTIONS}
+CREATE TABLE mix(
+    "time" INTEGER
+  , "txn" TEXT
+  , "code" INTEGER
+  , "response" REAL
+  , "id" TEXT
+);
+EOF
+
+for FILE in ${@}; do
+	sqlite3 "${DBFILE}" <<- EOF
+		${SQLOPTIONS}
+		.mode csv
+		.import ${FILE} mix
+	EOF
+done
+
+sqlite3 "${DBFILE}" <<- EOF
+${SQLOPTIONS}
+CREATE INDEX mix_time_txn_start
+ON mix (time)
+WHERE txn = 'START';
+EOF
+
+TIME0=$(sqlite3 "${DBFILE}" "SELECT min(time) FROM mix;")
+STARTTIME=$(sqlite3 \
+		"${DBFILE}" "SELECT max(time) FROM mix WHERE txn = 'START';")
+ENDTIME=$(sqlite3 "${DBFILE}" "SELECT max(time) FROM mix;")
+DURATION="$(sqlite3 "${DBFILE}" "SELECT (${ENDTIME} - ${STARTTIME}) / 60.0;")"
+
+TXNTOTAL="$(sqlite3 "${DBFILE}" <<- EOF
+SELECT count(time)
+FROM mix
+WHERE time > ${STARTTIME};
+EOF
+)"
+
+TXNDATA="$(sqlite3 "${DBFILE}" <<- EOF
+SELECT txn
+     , count(time)
+     , 100.0 * count(time) / ${TXNTOTAL}
+     , min(response)
+     , avg(response)
+     , max(response)
+FROM mix
+WHERE time > ${STARTTIME}
+GROUP BY txn
+ORDER BY txn;
+EOF
+)"
+
+TXNDATAR="$(sqlite3 "${DBFILE}" <<- EOF
+SELECT txn
+     , count(time)
+FROM mix
+WHERE time > ${STARTTIME}
+  AND code = 1
+GROUP BY txn
+ORDER BY txn;
+EOF
+)"
+
+TXNDATAI="$(sqlite3 "${DBFILE}" <<- EOF
+SELECT txn
+     , count(time)
+FROM mix
+WHERE time > ${STARTTIME}
+  AND code < 0
+GROUP BY txn
+ORDER BY txn;
+EOF
+)"
+
+TXNDATAW="$(sqlite3 "${DBFILE}" <<- EOF
+SELECT txn
+     , count(time)
+FROM mix
+WHERE time > ${STARTTIME}
+  AND code > 1
+GROUP BY txn
+ORDER BY txn;
+EOF
+)"
+
+TXNLINE="$(echo "${TXNDATA}" | grep -o "^9|\S*")"
+if [ "${TXNLINE}" = "" ]; then
+	METRIC="N/A"
+else
+	TRCOUNT="$(echo "${TXNLINE}" | cut -d "|" -f 2)"
+	METRIC="$(sqlite3 "${DBFILE}" "SELECT ${TRCOUNT}.0 / ${DURATION};")"
+	METRIC="$(printf "%.2f" "${METRIC}")"
+fi
+
+cat << EOF
+==========================================  ==================================
+EOF
+
+printf "%s: %15s trtps  %s: %12d\n" \
+		"Reported Throughput" "${METRIC}" "Configured Customers" 0
+
+cat << EOF
+==========================================  ==================================
+
+==================  ==========  ==========  ==========  ==========
+Response Times (s)     Minimum     Average  90th %tile     Maximum
+==================  ==========  ==========  ==========  ==========
+EOF
+
+for TXN in 1 2 8 3 0 5 6 9 4 7 10; do
+	TXNLINE="$(echo "${TXNDATA}" | grep -o "^${TXN}|\S*")"
+
+	if [ "${TXNLINE}" = "" ]; then
+		TXNCOUNT=0
+		MINRESPONSE=0
+		AVGRESPONSE=0
+		MAXRESPONSE=0
+	else
+		TXNCOUNT="$(echo "${TXNLINE}" | cut -d "|" -f 2)"
+		MINRESPONSE="$(echo "${TXNLINE}" | cut -d "|" -f 4)"
+		AVGRESPONSE="$(echo "${TXNLINE}" | cut -d "|" -f 5)"
+		MAXRESPONSE="$(echo "${TXNLINE}" | cut -d "|" -f 6)"
+	fi
+
+	TXNNAME="$(txnname ${TXN})"
+	if [ "${TXN}" = "10" ]; then
+		printf "%18s  %10.2f  %10.2f  %10s  %10.2f\n" \
+				"${TXNNAME}" "${MINRESPONSE}" "${AVGRESPONSE}" "N/A" \
+				"${MAXRESPONSE}"
+	else
+		Q90RESP=$(sqlite3 "${DBFILE}" <<- EOF
+			SELECT response
+			FROM mix
+			WHERE txn = '${TXN}'
+			  AND time > ${STARTTIME}
+			ORDER BY response ASC
+			LIMIT 1
+			OFFSET ${TXNCOUNT} * 9 / 10;
+		EOF
+		)
+
+		printf "%18s  %10.2f  %10.2f  %10.2f  %10.2f\n" \
+				"${TXNNAME}" "${MINRESPONSE}" "${AVGRESPONSE}" "${Q90RESP}" \
+				 "${MAXRESPONSE}"
+	fi
+done
+
+cat << EOF
+==================  ==========  ==========  ==========  ==========
+
+==================  ==========  ==========  ==========  ==========  ==========
+   Transaction Mix   Txn Count   Mix %tile  Rollbacks     Warnings     Invalid
+==================  ==========  ==========  ==========  ==========  ==========
+EOF
+
+for TXN in 1 2 8 3 0 5 6 9 4 7 10; do
+	TXNLINE="$(echo "${TXNDATA}" | grep -o "^${TXN}|\S*")"
+	TXNLINER="$(echo "${TXNDATAR}" | grep -o "^${TXN}|\S*")"
+	TXNLINEI="$(echo "${TXNDATAI}" | grep -o "^${TXN}|\S*")"
+	TXNLINEW="$(echo "${TXNDATAW}" | grep -o "^${TXN}|\S*")"
+
+	if [ "${TXNLINE}" = "" ]; then
+		TXNCOUNT=0
+		TXNPER=0
+	else
+		TXNCOUNT="$(echo "${TXNLINE}" | cut -d "|" -f 2)"
+		TXNPER="$(echo "${TXNLINE}"| cut -d "|" -f 3)"
+	fi
+	if [ "${TXNLINER}" = "" ]; then
+		TXNCOUNTR=0
+	else
+		TXNCOUNTR="$(echo "${TXNLINER}" | cut -d "|" -f 2)"
+	fi
+	if [ "${TXNLINEI}" = "" ]; then
+		TXNCOUNTI=0
+	else
+		TXNCOUNTI="$(echo "${TXNLINEI}" | cut -d "|" -f 2)"
+	fi
+	if [ "${TXNLINEW}" = "" ]; then
+		TXNCOUNTW=0
+	else
+		TXNCOUNTW="$(echo "${TXNLINEW}" | cut -d "|" -f 2)"
+	fi
+
+	TXNNAME="$(txnname ${TXN})"
+	if [ "${TXN}" = "10" ]; then
+		printf "%18s  %10d  %10s  %10d  %10d  %10d\n" \
+				"${TXNNAME}" "${TXNCOUNT}" "N/A" "${TXNCOUNTR}"  \
+				"${TXNCOUNTW}" "${TXNCOUNTI}"
+	else
+		printf "%18s  %10d  %10.3f  %10d  %10d  %10d\n" "${TXNNAME}" \
+				"${TXNCOUNT}" "${TXNPER}" "${TXNCOUNTR}" \
+				"${TXNCOUNTW}" "${TXNCOUNTI}"
+	fi
+done
+
+cat << EOF
+==================  ==========  ==========  ==========  ==========  ==========
+
+==================================================================  ==========
+Test Duration and Timings
+==================================================================  ==========
+EOF
+
+RAMPUP=$(sqlite3 "${DBFILE}" "SELECT (${STARTTIME}.0 - ${TIME0}.0) / 60.0;")
+printf "%66s  %10.1f\n" "Ramp-up Time (minutes)" "${RAMPUP}"
+printf "%66s  %10.1f\n" "Measurement Interval (minutes)" "${DURATION}"
+printf "%66s  %10d\n" \
+		"Total Number of Transactions Completed in Measurement Interval" \
+		"${TXNTOTAL}"
+cat << EOF
+==================================================================  ==========
+EOF
+
+exit 0

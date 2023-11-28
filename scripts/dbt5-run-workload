@@ -600,17 +600,13 @@ if [ ${USE_LINUX_PERF_EVENTS} -eq 1 ]; then
 	fi
 fi
 
-MIXFILE="$DRIVER_OUTPUT_DIR/mix.log"
-# sort and merge emulators mix files into mix.log
-sort -t "," -k 1 ${DRIVER_OUTPUT_DIR}/ce_mix.log \
-		${MEE_OUTPUT_DIR}/mee_mix.log -o ${MIXFILE}
-
 # Run some post processing analyses.
 echo
 echo "4. Run Post processing analyses"
 
 RESULTSFILE="${OUTPUT_DIR}/results.txt"
-dbt5-post-process ${MIXFILE} > ${RESULTSFILE}
+dbt5-post-process ${DRIVER_OUTPUT_DIR}/ce_mix.log \
+		${MEE_OUTPUT_DIR}/mee_mix.log > ${RESULTSFILE}
 
 # Servers don't go away by themselves like the driver does, so kill it.
 echo "Killing Servers..."

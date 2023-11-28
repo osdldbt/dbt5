@@ -12,6 +12,7 @@ vX.Y.X (YYYY-MM-DD)
 - Removed TPC-E Tools code per TPC EULA
 - Add build-egen script to build TPC-E Tools with sponsored code
 - Updated for TPC-E Tools v1.14.0
+- Refactor post-processing script to use sqlite
 
 v0.1.0 (2010-04-10)
 
