@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 	const DataFileManager inputFiles(szFileLoc, iConfiguredCustomerCount,
 			iActiveCustomerCount, TPCE::DataFileManager::IMMEDIATE_LOAD);
 	try {
-		CMarketExchange MarketExchange(inputFiles, (char *) &szFileLoc,
+		CMarketExchange MarketExchange(inputFiles, (char *) &szFileLoc, 1,
 				iConfiguredCustomerCount, iActiveCustomerCount, iListenPort,
 				szBHaddr, iBHlistenPort, outputDirectory);
 		cout << "Market Exchange started, waiting for trade requests..." <<

@@ -22,6 +22,7 @@ using namespace TPCE;
 class CMarketExchange
 {
 private:
+	UINT32 m_UniqueId;
 	int m_iListenPort;
 	CSocket m_Socket;
 	CLogFormatTab m_fmt;
@@ -40,8 +41,7 @@ private:
 public:
 	CMEE *m_pCMEE;
 
-	CMarketExchange(const DataFileManager &, char *, TIdent, TIdent, int,
-			char *, int, char *);
+	CMarketExchange(const DataFileManager &, char *, UINT32, TIdent, TIdent, int, char *, int, char *);
 	~CMarketExchange();
 
 	void logErrorMessage(const string);

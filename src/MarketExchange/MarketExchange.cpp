@@ -96,10 +96,10 @@ void EntryMarketWorkerThread(void *data)
 
 // Constructor
 CMarketExchange::CMarketExchange(const DataFileManager &inputFiles,
-		char *szFileLoc, TIdent iConfiguredCustomerCount,
+		char *szFileLoc, UINT32 UniqueId, TIdent iConfiguredCustomerCount,
 		TIdent iActiveCustomerCount, int iListenPort, char *szBHaddr,
 		int iBHlistenPort, char *outputDirectory)
-: m_iListenPort(iListenPort)
+: m_UniqueId(UniqueId), m_iListenPort(iListenPort)
 {
 	char filename[iMaxPath + 1];
 	snprintf(filename, iMaxPath, "%s/MarketExchange.log", outputDirectory);
@@ -116,7 +116,7 @@ CMarketExchange::CMarketExchange(const DataFileManager &inputFiles,
 			&m_LogLock, &m_MixLock);
 
 	// Initialize MEE
-	m_pCMEE = new CMEE(0, m_pCMEESUT, m_pLog, inputFiles, 1);
+	m_pCMEE = new CMEE(0, m_pCMEESUT, m_pLog, inputFiles, UniqueId);
 	m_pCMEE->SetBaseTime();
 }
 
