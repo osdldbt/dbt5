@@ -1,0 +1,8 @@
+add_subdirectory (BrokerageHouse)
+add_subdirectory (Customer)
+add_subdirectory (Driver)
+add_subdirectory (include)
+add_subdirectory (interfaces)
+add_subdirectory (MarketExchange)
+add_subdirectory (TestTransactions)
+add_subdirectory (transactions)

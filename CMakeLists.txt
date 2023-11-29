@@ -17,8 +17,12 @@ set (
     "Database Test 5 (DBT-5) project page: https://github.com/osdldbt/dbt5"
 )
 
+add_subdirectory (appimage)
+add_subdirectory (patches)
 add_subdirectory (man)
 add_subdirectory (scripts)
+add_subdirectory (src)
+add_subdirectory (storedproc)
 
 set (PGSQL_SCRIPTS scripts/pgsql/dbt5-pgsql-start-db
                    scripts/pgsql/dbt5-pgsql-drop-tables
@@ -41,7 +45,7 @@ INSTALL(PROGRAMS scripts/dbt5-post-process
                  scripts/dbt5-plot-transaction-rate
                  scripts/dbt5-generate-report
                  ${PGSQL_SCRIPTS}
-        DESTINATION "/bin")
+        DESTINATION "bin")
 
 SET(CPACK_CMAKE_GENERATOR "Unix Makefiles")
 SET(CPACK_GENERATOR "TXZ;TZIP")
@@ -84,3 +88,18 @@ set (CPACK_SOURCE_IGNORE_FILES
 )
 
 include (CPack)
+
+set (APPIMAGE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/appimage)
+
+add_custom_target(appimage-podman
+    COMMAND cp -aLr /usr/local/AppDir .
+    COMMAND cp -aL ${CMAKE_BINARY_DIR}/AppRun AppDir
+    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt5.desktop AppDir
+    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt5.svg AppDir
+    COMMAND mkdir -p AppDir/usr/share/metainfo
+    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt5.appdata.xml
+            AppDir/usr/share/metainfo
+    COMMAND mkdir -p AppDir/usr/lib
+    COMMAND VERSION=${PROJECT_VERSION} /usr/local/squashfs-root/AppRun
+            --comp=xz AppDir
+)

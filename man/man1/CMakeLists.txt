@@ -4,6 +4,10 @@ execute_process(
 )
 
 configure_file(
+    dbt5.1.rst.in
+    ${CMAKE_BINARY_DIR}/man/man1/dbt5.1.rst
+)
+configure_file(
     dbt5-build-egen.1.rst.in
     ${CMAKE_BINARY_DIR}/man/man1/dbt5-build-egen.1.rst
 )
@@ -12,6 +16,10 @@ configure_file(
     ${CMAKE_BINARY_DIR}/man/man1/dbt5-post-process.1.rst
 )
 
+execute_process(
+    COMMAND rst2man.py ${CMAKE_BINARY_DIR}/man/man1/dbt5.1.rst
+    OUTPUT_FILE ${CMAKE_BINARY_DIR}/man/man1/dbt5.1
+)
 execute_process(
     COMMAND rst2man.py ${CMAKE_BINARY_DIR}/man/man1/dbt5-build-egen.1.rst
     OUTPUT_FILE ${CMAKE_BINARY_DIR}/man/man1/dbt5-build-egen.1
@@ -22,7 +30,8 @@ execute_process(
 )
 
 install(
-    FILES ${CMAKE_BINARY_DIR}/man/man1/dbt5-build-egen.1
+    FILES ${CMAKE_BINARY_DIR}/man/man1/dbt5.1
+          ${CMAKE_BINARY_DIR}/man/man1/dbt5-build-egen.1
           ${CMAKE_BINARY_DIR}/man/man1/dbt5-post-process.1
     DESTINATION "share/man/man1"
 )

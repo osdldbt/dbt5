@@ -32,3 +32,8 @@ EXAMPLES
 ========
 
     dbt5-post-process mee_mix.log ce_mix.log
+
+SEE ALSO
+========
+
+**dbt5**\ (1)

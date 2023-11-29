@@ -1,0 +1,128 @@
+# Build an environment for creating an AppImage.
+
+# Use a distro with an old libc to maximize support on as many linux distros as
+# possible for x86_64 and aarch64.
+FROM ubuntu:14.04
+
+ARG ARCH
+
+RUN apt-get -qq -y update && \
+    apt-get -qq -y dist-upgrade && \
+    apt-get -qq -y install bison \
+                   bzip2 \
+                   curl \
+                   file \
+                   flex \
+                   gcc \
+                   libcairo2-dev \
+                   libev-dev \
+                   libffi-dev \
+                   libpango1.0-dev \
+                   make \
+                   wget \
+                   xz-utils \
+                   zlib1g-dev && \
+    apt-get -qq -y clean && \
+    apt-get -qq -y autoclean
+
+RUN mkdir -p /usr/local/AppDir/usr/bin
+
+# Install tools for making flame graphs
+
+RUN curl -o /usr/local/AppDir/usr/bin/stackcollapse-perf.pl -SsOL \
+         https://raw.githubusercontent.com/brendangregg/FlameGraph/master/stackcollapse-perf.pl && \
+    curl -o /usr/local/AppDir/usr/bin/flamegraph.pl -SsOL \
+         https://raw.githubusercontent.com/brendangregg/FlameGraph/master/flamegraph.pl && \
+	chmod +x /usr/local/AppDir/usr/bin/stackcollapse-perf.pl \
+             /usr/local/AppDir/usr/bin/flamegraph.pl
+
+ARG OPENSSLVER="1.1.1s"
+RUN wget -O /tmp/openssl-${OPENSSLVER}.tar.gz -q --no-check-certificate \
+         https://www.openssl.org/source/openssl-${OPENSSLVER}.tar.gz && \
+    tar -C /usr/local/src -xf /tmp/openssl-${OPENSSLVER}.tar.gz
+WORKDIR /usr/local/src/openssl-${OPENSSLVER}
+RUN ./config -fPIC shared && \
+    make -s -j$(nproc) && \
+    make -s install && \
+    ldconfig
+
+ARG PYTHONVER="3.11.1"
+RUN curl -o /tmp/Python-${PYTHONVER}.tgz -SsOL \
+         https://www.python.org/ftp/python/${PYTHONVER}/Python-${PYTHONVER}.tgz && \
+    tar -C /usr/local/src -xf /tmp/Python-${PYTHONVER}.tgz
+WORKDIR /usr/local/src/Python-${PYTHONVER}
+RUN ./configure --silent --prefix=/usr/local/AppDir/usr \
+                --with-openssl-rpath=/usr/local/lib && \
+    make -s -j$(nproc) && \
+    make -s install && \
+    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/python3.11 && \
+    /usr/local/AppDir/usr/bin/pip3 install docutils && \
+    sed -i '1s/^.*$/#!\/usr\/bin\/env python3/' /usr/local/AppDir/usr/bin/rst2html5.py
+
+ARG CMAKEVER="3.7.2"
+RUN curl -o /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz -SsOL \
+         https://github.com/Kitware/CMake/releases/download/v${CMAKEVER}/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz && \
+    tar -C /usr --strip-components=1 \
+        -xf /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz
+
+# Install DBT Tools
+
+ARG DBTTOOLSVER="0.5.0"
+RUN curl -o /tmp/v${DBTTOOLSVER}.tar.gz -SsOL \
+         https://github.com/osdldbt/dbttools/archive/refs/tags/v${DBTTOOLSVER}.tar.gz && \
+    tar -C /usr/local/src -xf /tmp/v${DBTTOOLSVER}.tar.gz
+WORKDIR /usr/local/src/dbttools-${DBTTOOLSVER}
+RUN cmake -H. -Bbuilds/release -DCMAKE_INSTALL_PREFIX=/usr && \
+    (cd builds/release && make -s install DESTDIR=/usr/local/AppDir) && \
+    rm -f /tmp/v${DBTTOOLSVER}.tar.gz
+
+ARG PERLVER="5.36.0"
+RUN wget -O /tmp/perl-${PERLVER}.tar.gz -q --no-check-certificate \
+         https://www.cpan.org/src/5.0/perl-${PERLVER}.tar.gz && \
+    tar -C /usr/local/src -xf /tmp/perl-${PERLVER}.tar.gz
+WORKDIR /usr/local/src/perl-${PERLVER}
+RUN ./configure.gnu --quiet --silent --prefix=/usr/local/AppDir/usr && \
+    make -s -j $(nproc) install && \
+    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/perl
+
+ARG SQLITE3VER=3410200
+RUN wget -O /tmp/sqlite-autoconf-${SQLITE3VER}.tar.gz -q --no-check-certificate \
+         https://www.sqlite.org/2023/sqlite-autoconf-${SQLITE3VER}.tar.gz && \
+    tar -C /usr/local/src -xf /tmp/sqlite-autoconf-${SQLITE3VER}.tar.gz
+WORKDIR /usr/local/src/sqlite-autoconf-${SQLITE3VER}
+RUN ./configure --quiet --silent --prefix=/usr/local/AppDir/usr && \
+    make -s -j $(nproc) install && \
+    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/sqlite3
+
+ARG GNUPLOTVER="5.4.6"
+RUN wget -O /tmp/gnuplot-${GNUPLOTVER}.tar.gz -q --no-check-certificate \
+         https://sourceforge.net/projects/gnuplot/files/gnuplot/5.4.6/gnuplot-5.4.6.tar.gz/download && \
+    tar -C /usr/local/src -xf /tmp/gnuplot-${GNUPLOTVER}.tar.gz
+WORKDIR /usr/local/src/gnuplot-${GNUPLOTVER}
+RUN ./configure -q --prefix=/usr/local/AppDir/usr && \
+    make -s -j$(nproc) install && \
+    sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/gnuplot
+
+ARG TSTOOLSVER="0.7.1"
+RUN curl -o /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz -SsOL \
+         https://gitlab.com/touchstone/touchstone-tools/-/archive/v${TSTOOLSVER}/touchstone-tools-v{TSTOOLSVER}.tar.gz && \
+    mkdir -p /usr/local/src/touchstone-tools-v${TSTOOLSVER} && \
+    tar -C /usr/local/src/touchstone-tools-v${TSTOOLSVER} \
+        --strip-components=1 \
+        -xf /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz
+WORKDIR /usr/local/src/touchstone-tools-v${TSTOOLSVER}
+RUN cmake -H. -Bbuilds/release -DCMAKE_INSTALL_PREFIX=/usr && \
+    (cd builds/release && make -s install DESTDIR=/usr/local/AppDir) && \
+    rm -f /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz
+
+WORKDIR /usr/local
+RUN curl -SsOL \
+         https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-${ARCH}.AppImage && \
+    chmod +x appimagetool-${ARCH}.AppImage && \
+    ./appimagetool-${ARCH}.AppImage --appimage-extract && \
+    chmod 0755 squashfs-root && \
+    chmod 0755 squashfs-root/usr && \
+    chmod 0755 squashfs-root/usr/bin && \
+    chmod 0755 squashfs-root/usr/lib && \
+    chmod 0755 squashfs-root/usr/lib/appimagekit && \
+    chmod 0755 squashfs-root/usr/share

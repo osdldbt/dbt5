@@ -1,0 +1,36 @@
+install (FILES pgloader.h
+               PGSQLAccountPermissionLoad.h
+               PGSQLAddressLoad.h
+               PGSQLBrokerLoad.h
+               PGSQLCashTransactionLoad.h
+               PGSQLChargeLoad.h
+               PGSQLCommissionRateLoad.h
+               PGSQLCompanyCompetitorLoad.h
+               PGSQLCompanyLoad.h
+               PGSQLCustomerAccountLoad.h
+               PGSQLCustomerLoad.h
+               PGSQLCustomerTaxrateLoad.h
+               PGSQLDailyMarketLoad.h
+               PGSQLExchangeLoad.h
+               PGSQLFinancialLoad.h
+               PGSQLHoldingHistoryLoad.h
+               PGSQLHoldingLoad.h
+               PGSQLHoldingSummaryLoad.h
+               PGSQLIndustryLoad.h
+               PGSQLLastTradeLoad.h
+               PGSQLLoad.h
+               PGSQLNewsItemLoad.h
+               PGSQLNewsXRefLoad.h
+               PGSQLSectorLoad.h
+               PGSQLSecurityLoad.h
+               PGSQLSettlementLoad.h
+               PGSQLStatusTypeLoad.h
+               PGSQLTaxrateLoad.h
+               PGSQLTradeHistoryLoad.h
+               PGSQLTradeLoad.h
+               PGSQLTradeRequestLoad.h
+               PGSQLTradeTypeLoad.h
+               PGSQLWatchItemLoad.h
+               PGSQLWatchListLoad.h
+               PGSQLZipCodeLoad.h
+         DESTINATION "include/dbt5/custom/pgsql")

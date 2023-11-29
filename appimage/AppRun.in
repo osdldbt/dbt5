@@ -1,0 +1,94 @@
+#!/bin/sh
+@SHELLOPTIONS@
+
+usage() {
+	cat << EOF
+Database Test 5 (DBT-5) wrapped up in an AppImage.
+
+Usage:
+  $(basename "${ARGV0}") COMMAND [OPTION]
+
+Options:
+  The OPTION choices are depdent on the COMMAND specified.  The -h flag will
+  display the available options.
+
+Help command:
+  man   This COMMAND will display the man page for any of the general commands
+        below when given as its OPTION.  (Note: man pages are not available for
+		all available commands, yet.)
+
+Commands:
+$(find "${APPDIR}/usr/bin" -maxdepth 1 -type f -name "dbt5-*" -printf "%f\n" | sed -e "s/dbt5-/  /")
+
+
+@HOMEPAGE@
+EOF
+}
+
+if [ $# -eq 0 ]; then
+	usage
+	exit 1
+fi
+
+VERBOSE=0
+VERSION=0
+
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(man)
+		if [ "${MANPATH}" = "" ]; then
+			export MANPATH="${APPDIR}/usr/share/man"
+		else
+			export MANPATH="${APPDIR}/usr/share/man:${MANPATH}"
+		fi
+		man "dbt5-${2}"
+		exit $?
+		;;
+	(--verbose)
+		VERBOSE=1
+		;;
+	(-V | --version)
+		VERSION=1
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${ARGV0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${ARGV0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
+	esac
+	shift
+done
+
+if [ $VERSION -eq 1 ]; then
+	if [ $VERBOSE -eq 1 ]; then
+		"${APPDIR}/usr/bin/dbt5" --version --verbose
+	else
+		"${APPDIR}/usr/bin/dbt5" --version
+	fi
+	exit 0
+fi
+
+export PATH="${APPDIR}/usr/bin:${PATH}"
+
+if [ "$PGHOST" = "" ]; then
+	export PGHOST="/tmp,/var/run/postgresql"
+fi
+
+COMMAND="${APPDIR}/usr/bin/dbt5-${1}"
+
+if [ ! -f "$COMMAND" ]; then
+	echo "COMMAND '${1}' not found, run '$(basename "${ARGV0}")' without arguments for usage."
+	exit 1
+fi
+
+shift
+
+$COMMAND "$@"

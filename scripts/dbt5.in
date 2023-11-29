@@ -1,0 +1,125 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+
+usage() {
+	cat << EOF
+Database Test 5 (DBT-5)
+
+Usage:
+  $(basename "${0}") [COMMAND] [OPTION]
+
+Options:
+  The OPTION choices are depdent on the COMMAND specified.  The -? flag will
+  display the available options.
+
+  Without a COMMAND, the OPTION choices are:
+
+  --verbose      output versions of additional programs used by DBT-5 when used
+                 with -V or --version OPTION
+  -V, --version  output version information, then exit
+  -?, --help     show this help, then exit
+
+Commands:
+$(find "$(dirname "${0}")" -maxdepth 1 -type f -name "dbt5-*" -printf "%f\n" \
+		| sort | sed -e "s/dbt5-/  /")
+
+@HOMEPAGE@
+EOF
+}
+
+display_version()
+{
+	NAME=$1
+	FLAG=$2
+	if ! which "${NAME}" > /dev/null 2>&1; then
+		echo "$NAME not found"
+		return
+	fi
+	CMD="$(which "${NAME}") ${FLAG}"
+	echo ""
+	echo "${CMD}"
+	eval "${CMD}"
+}
+
+version()
+{
+	echo "$(basename "${0}") (Database Test 5) v@PROJECT_VERSION@"
+
+	if [ $VERBOSE -eq 0 ]; then
+		return
+	fi
+
+	display_version collectd -h
+	display_version gnuplot --version
+	display_version pandoc --version
+	display_version perl --version
+	display_version psql --version
+	display_version python --version
+	display_version R --version
+	RST2HTML5="rst2html5.py"
+	if ! which "${NAME}" > /dev/null 2>&1; then
+		RST2HTML5="rst2html5"
+	fi
+	display_version $RST2HTML5 --version
+	display_version sar -V
+	display_version sqlite3 --version
+}
+
+if [ $# -eq 0 ]; then
+	usage
+	exit 1
+fi
+
+VERSION=0
+VERBOSE=0
+
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(--verbose)
+		VERBOSE=1
+		;;
+	(-V | --version)
+		VERSION=1
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
+	esac
+	shift
+done
+
+if [ $VERSION -eq 1 ]; then
+	version
+	exit 0
+fi
+
+if [ "$PGHOST" = "" ]; then
+	export PGHOST="/tmp,/var/run/postgresql"
+fi
+
+COMMAND="dbt5-${1}"
+
+if ! which "${COMMAND}" > /dev/null 2>&1; then
+	echo "COMMAND '${1}' not found, run '$(basename "${0}")' without arguments for usage."
+	exit 1
+fi
+
+shift
+
+$COMMAND "$@"

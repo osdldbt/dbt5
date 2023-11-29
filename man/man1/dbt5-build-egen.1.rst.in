@@ -51,3 +51,8 @@ building::
     cd /tmp/egen
     unzip /path/to/*-tpc-e-tool.zip
     dbt5-build-egen /tmp/egen
+
+SEE ALSO
+========
+
+**dbt5**\ (1)

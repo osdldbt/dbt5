@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+	<id>dbt5</id>
+	<metadata_license>Artistic-2.0</metadata_license>
+	<project_license>Artistic-2.0</project_license>
+	<name>DBT-5</name>
+	<summary>
+        Database Test 5 TPC Benchmark (TM) E Fair Use Implementation
+    </summary>
+	<description>
+		<p>
+			Database Test 5 (DBT-5) is a TPC Benchmark (TM) E (TPC-E) Fair Use
+            Implementation.  This AppImage may have limitations based on which
+			database management system is being tested.  See documentation for
+			more details.
+        </p>
+	</description>
+	<launchable type="desktop-id">dbt5.desktop</launchable>
+	<url type="homepage">https://github.com/osdldbt/dbt5</url>
+	<provides>
+		<id>dbt5.desktop</id>
+	</provides>
+</component>

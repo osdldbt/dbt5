@@ -13,6 +13,7 @@ vX.Y.X (YYYY-MM-DD)
 - Add build-egen script to build TPC-E Tools with sponsored code
 - Updated for TPC-E Tools v1.14.0
 - Refactor post-processing script to use sqlite
+- Add scripts to create an AppImage
 
 v0.1.0 (2010-04-10)
 
