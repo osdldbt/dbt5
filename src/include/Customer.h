@@ -19,7 +19,7 @@ using namespace TPCE;
 
 class CCustomer
 {
-	int m_iUsers;
+	UINT32 m_UniqueId;
 	int m_iPacingDelay;
 	CLogFormatTab m_fmt;
 	CEGenLogger *m_pLog;
@@ -40,8 +40,8 @@ private:
 public:
 	CCustomer(const DataFileManager &, char *szInDir, TIdent iConfiguredCustomerCount,
 			TIdent iActiveCustomerCount, INT32 iScaleFactor,
-			INT32 iDaysOfInitialTrades, UINT32 UniqueId, char *szBHaddr,
-			int iBHlistenPort, int iUsers, int iPacingDelay,
+			INT32 iDaysOfInitialTrades, UINT32 iSeed, char *szBHaddr,
+			int iBHlistenPort, UINT32 UniqueId, int iPacingDelay,
 			char *outputDirectory, ofstream *m_fMix, CMutex *m_MixLock);
 	~CCustomer();
 

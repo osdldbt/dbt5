@@ -32,7 +32,7 @@ private:
 
 	friend void *customerWorkerThread(void *);
 	// entry point for driver worker thread
-	friend void entryCustomerWorkerThread(void *, int);
+	friend void entryCustomerWorkerThread(void *);
 
 	friend void *dmWorkerThread(void *);
 	friend void entryDMWorkerThread(CDriver *);
@@ -63,6 +63,7 @@ public:
 //parameter structure for the threads
 typedef struct TCustomerThreadParam
 {
+	UINT32 UniqueId;
 	CDriver *pDriver;
 } *PCustomerThreadParam;
 

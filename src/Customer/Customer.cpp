@@ -15,9 +15,9 @@
 CCustomer::CCustomer(const DataFileManager &inputFiles, char *szInDir,
 		TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
 		INT32 iScaleFactor, INT32 iDaysOfInitialTrades, UINT32 iSeed,
-		char *szBHaddr, int iBHlistenPort, int iUsers, int iPacingDelay,
+		char *szBHaddr, int iBHlistenPort, UINT32 UniqueId, int iPacingDelay,
 		char *outputDirectory, ofstream *m_fMix, CMutex *m_MixLock)
-: m_iUsers(iUsers), m_iPacingDelay(iPacingDelay)
+: m_UniqueId(UniqueId), m_iPacingDelay(iPacingDelay)
 {
 	char filename[iMaxPath + 1];
 	snprintf(filename, iMaxPath, "%s/Customer_%lld.log", outputDirectory,
@@ -36,14 +36,14 @@ CCustomer::CCustomer(const DataFileManager &inputFiles, char *szInDir,
 	if (iSeed == 0) {
 		m_pCCE = new CCE(m_pCCESUT, m_pLog, inputFiles,
 				iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
-				iDaysOfInitialTrades, pthread_self());
+				iDaysOfInitialTrades, UniqueId);
 	} else {
 		// Specifying the random number generator seed is considered an
 		// invalid run.
 		// FIXME: Allow the TxnMixRNGSeed and TxnInputRGNSeed to be set.
 		m_pCCE = new CCE(m_pCCESUT, m_pLog, inputFiles,
 				iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
-				iDaysOfInitialTrades, pthread_self(), iSeed, iSeed);
+				iDaysOfInitialTrades, UniqueId, iSeed, iSeed);
 	}
 }
 

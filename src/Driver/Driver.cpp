@@ -93,7 +93,7 @@ void *customerWorkerThread(void *data)
 			pThrParam->pDriver->iSeed,
 			pThrParam->pDriver->szBHaddr,
 			pThrParam->pDriver->iBHlistenPort,
-			pThrParam->pDriver->iUsers,
+			pThrParam->UniqueId,
 			pThrParam->pDriver->iPacingDelay,
 			pThrParam->pDriver->outputDirectory,
 			&pThrParam->pDriver->m_fMix,
@@ -122,7 +122,7 @@ void *customerWorkerThread(void *data)
 }
 
 // entry point for worker thread
-void entryCustomerWorkerThread(void* data, int iThrNumber)
+void entryCustomerWorkerThread(void* data)
 {
 	PCustomerThreadParam pThrParam =
 			reinterpret_cast<PCustomerThreadParam>(data);
@@ -136,7 +136,7 @@ void entryCustomerWorkerThread(void* data, int iThrNumber)
 		}
 
 		// create the thread in the joinable state
-		status = pthread_create(&g_tid[iThrNumber], &threadAttribute,
+		status = pthread_create(&g_tid[pThrParam->UniqueId], &threadAttribute,
 				&customerWorkerThread, data);
 
 		if (status != 0) {
@@ -144,9 +144,9 @@ void entryCustomerWorkerThread(void* data, int iThrNumber)
 		}
 	} catch(CThreadErr *pErr) {
 		ostringstream osErr;
-		osErr << "Thread " << iThrNumber << " didn't spawn correctly" << endl <<
-				endl << "Error: " << pErr->ErrorText() <<
-				" at EntryCustomerWorkerThread" << endl;
+		osErr << "Thread " << pThrParam->UniqueId <<
+				" didn't spawn correctly" << endl << endl << "Error: " <<
+				pErr->ErrorText() << " at EntryCustomerWorkerThread" << endl;
 		pThrParam->pDriver->logErrorMessage(osErr.str());
 		delete pErr;
 	}
@@ -210,9 +210,10 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 
 		// zero the structure
 		memset(pThrParam, 0, sizeof(TCustomerThreadParam));
+		pThrParam->UniqueId = i;
 		pThrParam->pDriver = this;
 
-		entryCustomerWorkerThread(reinterpret_cast<void *>(pThrParam), i);
+		entryCustomerWorkerThread(reinterpret_cast<void *>(pThrParam));
 
 		// Sleep for between starting terminals
 		while (nanosleep(&ts, &rem) == -1) {
