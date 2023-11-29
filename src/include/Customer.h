@@ -25,7 +25,6 @@ class CCustomer
 	CEGenLogger *m_pLog;
 	CCESUT * m_pCCESUT;
 	CCE * m_pCCE;
-	PDriverCETxnSettings m_pDriverCETxnSettings;
 	CMutex m_LogLock;
 	ofstream m_fLog; // error log file
 

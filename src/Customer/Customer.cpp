@@ -23,7 +23,6 @@ CCustomer::CCustomer(const DataFileManager &inputFiles, char *szInDir,
 	snprintf(filename, iMaxPath, "%s/Customer_%lld.log", outputDirectory,
 			(long long) pthread_self());
 	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
-	m_pDriverCETxnSettings = new TDriverCETxnSettings;
 
 	snprintf(filename, iMaxPath, "%s/Customer_Error_%lld.log", outputDirectory,
 			(long long) pthread_self());
@@ -37,15 +36,14 @@ CCustomer::CCustomer(const DataFileManager &inputFiles, char *szInDir,
 	if (iSeed == 0) {
 		m_pCCE = new CCE(m_pCCESUT, m_pLog, inputFiles,
 				iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
-				iDaysOfInitialTrades, pthread_self(), m_pDriverCETxnSettings);
+				iDaysOfInitialTrades, pthread_self());
 	} else {
 		// Specifying the random number generator seed is considered an
 		// invalid run.
 		// FIXME: Allow the TxnMixRNGSeed and TxnInputRGNSeed to be set.
 		m_pCCE = new CCE(m_pCCESUT, m_pLog, inputFiles,
 				iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
-				iDaysOfInitialTrades, pthread_self(), iSeed, iSeed,
-				m_pDriverCETxnSettings);
+				iDaysOfInitialTrades, pthread_self(), iSeed, iSeed);
 	}
 }
 
@@ -57,7 +55,6 @@ CCustomer::~CCustomer()
 
 	m_fLog.close();
 
-	delete m_pDriverCETxnSettings;
 	delete m_pLog;
 }
 
