@@ -14,6 +14,7 @@ vX.Y.X (YYYY-MM-DD)
 - Updated for TPC-E Tools v1.14.0
 - Refactor post-processing script to use sqlite
 - Add scripts to create an AppImage
+- Convert README files to ReStructuredText
 
 v0.1.0 (2010-04-10)
 

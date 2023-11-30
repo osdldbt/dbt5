@@ -12,6 +12,7 @@ install_manifest.txt
 log
 CMakeCache.txt
 Makefile
+!/doc/Makefile
 bin/
 cmake_install.cmake
 CMakeFiles/
@@ -19,5 +20,11 @@ builds/
 
 # PostgreSQL
 storedproc/pgsql/c/*.sql
+
+# quilt
+.pc
+
+doc/html
+doc/pdf
 
 egen/

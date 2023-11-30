@@ -1,0 +1,12 @@
+The documentation is written in reStructuredText
+(https://docutils.sourceforge.io/rst.html).  It can simply be read as text, or
+HTML or a PDF can be generated.  Docutils (https://docutils.sourceforge.io/) is
+used to generate the HTML and pandoc (https://pandoc.org/) is used to convert
+that HTML to a pdf.
+
+An example Makefile is provided.
+
+Examples:
+
+    make html
+    make pdf
