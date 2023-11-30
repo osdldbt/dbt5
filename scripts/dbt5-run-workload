@@ -37,150 +37,50 @@ make_directories()
 	${COMMAND} mkdir -p ${DB_OUTPUT_DIR}
 }
 
-oprofile_annotate()
+stat_collection()
 {
-	COMMAND=""
-	DIR=${1}
-	HOST=${2}
-	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
-	else
-		HOST=`hostname`
+	if [ $STATS -ne 1 ]; then
+		return
 	fi
-	echo "oprofile is annotating source: ${HOST}"
-	if [ -n "${COMMAND}" ]; then
-		${COMMAND} "sudo opannotate --source --assembly > ${DIR}/oprofile/assembly.txt" > /dev/null 2>&1
-	else
-		sudo opannotate --source --assembly > ${DIR}/oprofile/assembly.txt > /dev/null 2>&1
-	fi
-	${COMMAND} sudo opannotate --source --output-dir=${DIR}/oprofile/annotate > /dev/null 2>&1
-}
 
-oprofile_collect()
-{
-	COMMAND=""
-	DIR=${1}
-	HOST=${2}
-	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
-	else
-		HOST=`hostname`
-	fi
-	${COMMAND} mkdir -p ${DIR}/oprofile/
-	${COMMAND} mkdir -p ${DIR}/oprofile/annotate
-	#
-	# I don't think we need any output dumped to the terminal.
-	#
-	echo "oprofile is dumping data: ${HOST}"
-	${COMMAND} sudo opcontrol --dump
-	if [ -n "${COMMAND}" ]; then
-		${COMMAND} "sudo opreport -l -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/oprofile/oprofile.txt > /dev/null 2>&1"
-		${COMMAND} "sudo opreport -l -c -p /lib/modules/`${COMMAND} uname -r` -o ${DIR}/oprofile/callgraph.txt > /dev/null 2>&1"
-	else
-		sudo opreport -l -p /lib/modules/`uname -r` \
-				-o ${DIR}/oprofile/oprofile.txt > /dev/null 2>&1
-		sudo opreport -l -c -p /lib/modules/`uname -r` \
-				-o ${DIR}/oprofile/callgraph.txt > /dev/null 2>&1
-	fi
-	${COMMAND} sudo opcontrol --stop
-}
+	ARGS=$1
 
-oprofile_reset()
-{
-	COMMAND=""
-	HOST=${1}
-	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
-	else
-		HOST=`hostname`
+	# If the this is a 1-tier test, system stats will be saved only in the db
+	# directory.
+	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+		which ts ts-profile > /dev/null 2>&1
+		RC=$?
+		if [ $RC -gt 1 ]; then
+			printf "WARNING: touchstone tools not found for driver system "
+			echo "stats collection"
+		else
+			eval "ts sysstat -o ${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat ${ARGS} &"
+		fi
 	fi
-	echo "reseting oprofile counters: ${HOST}"
-	${COMMAND} sudo opcontrol --reset
-}
 
-oprofile_stop()
-{
-	COMMAND=""
-	HOST=${1}
-	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
-	else
-		HOST=`hostname`
+	# Don't collect system stats from the database system if the database
+	# is a service.
+	HOSTNAME=$(eval "${DB_COMMAND} hostname")
+	if [ $DBAAS -eq 0 ]; then
+		eval "${DB_COMMAND} which ts ts-sysstat" > /dev/null 2>&1
+		RC=$?
+		if [ $RC -gt 1 ]; then
+			printf "WARNING: touchstone tools not found for system stats "
+			printf "collection on %s\n" "${HOSTNAME}"
+		else
+			eval "${DB_COMMAND} ts sysstat \
+					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+		fi
 	fi
-	echo "stopping oprofile daemon: ${HOST}"
-	${COMMAND} sudo opcontrol --shutdown
-}
 
-readprofile_collect()
-{
-	COMMAND=""
-	DIR=${1}
-	HOST=${2}
-	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
+	eval "${DB_COMMAND} which ts ts-${DBMS}-stat" > /dev/null 2>&1
+	RC=$?
+	if [ $RC -gt 1 ]; then
+		printf "WARNING: touchstone tools not found for database stats "
+		printf "collection for RDBMS %s on system %s\n" "${DBMS}" "${HOSTNAME}"
 	else
-		HOST=`hostname`
-	fi
-	echo "collecting readprofile data: ${HOST}"
-	PROFILE=${DIR}/readprofile.txt
-	if [ -n "${COMMAND}" ]; then
-		${COMMAND} "/usr/sbin/readprofile -n -m /boot/System.map-`${COMMAND} uname -r` > ${PROFILE}"
-		${COMMAND} "cat ${PROFILE} | sort -n -r -k1 > ${DIR}/readprofile_ticks.txt"
-		${COMMAND} "cat ${PROFILE} | sort -n -r -k3 > ${DIR}/readprofile_load.txt"
-	else
-		/usr/sbin/readprofile -n \
-				-m /boot/System.map-`${COMMAND} uname -r` > ${PROFILE}
-		cat ${PROFILE} | sort -n -r -k1 > ${DIR}/readprofile_ticks.txt
-		cat ${PROFILE} | sort -n -r -k3 > ${DIR}/readprofile_load.txt
-	fi
-}
-
-oprofile_init()
-{
-	COMMAND=""
-	HOST=${1}
-	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
-	else
-		HOST=`hostname`
-	fi
-	echo "starting oprofile: ${HOST}"
-	${COMMAND} sudo opcontrol \
-			--vmlinux=/usr/src/linux-`${COMMAND} uname -r`/vmlinux -c 100
-	sleep 1
-	START_ARGS=""
-	MACHINE=`${COMMAND} uname -m`
-	if [ "x${MACHINE}" = "xppc64" ]; then
-		#
-		# Oprofile fails to work on ppc64 because the defaults settings
-		# are invalid on this platform.  Why isn't it smart enough to
-		# have valid default setting depending on arch?
-		#
-		START_ARGS="-e CYCLES:150000:0:1:1"
-	elif [ "x${MACHINE}" = "x86_64" ]; then
-		# Some core 2 procs need a more requent sample otherwise the counters
-		# will overflow.
-		START_ARGS="-e CPU_CLK_UNHALTED:90000:0:1:1"
-	fi
-	${COMMAND} sudo opcontrol --start-daemon ${START_ARGS}
-	sleep 1
-	${COMMAND} sudo opcontrol --start
-}
-
-readprofile_clear()
-{
-	COMMAND=""
-	HOST=${1}
-	if [ -n "${HOST}" ]; then
-		COMMAND="ssh ${HOST}"
-	else
-		HOST=`hostname`
-	fi
-	echo "clearing readprofile data: ${HOST}"
-	if [ -n "${COMMAND}" ]; then
-		${COMMAND} "sudo /usr/sbin/readprofile -r"
-	else
-		sudo /usr/sbin/readprofile -r
+		eval "${DB_COMMAND} ts ${DBMS}-stat \
+				-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${DBSTATARGS} ${ARGS} &"
 	fi
 }
 
@@ -203,13 +103,11 @@ usage()
 	echo '       -n <database name. (default dbt5)>'
 	echo '       -o <result output dir>'
 	echo '       -p <database port number. (default 5432)>'
-	echo '       -q <event1,[event2,...]> (Linux perf events)'
 	echo '       -r <random number seed, invalidates test>'
 	echo '       -s <delay between starting threads in milliseconds (default 1000)>'
+	echo '       -S collect system stats and profile'
 	echo '       -t <customers total>'
 	echo '       -w <initial trade days. (default 300)>'
-	echo '       -x (oprofile)'
-	echo '       -y (readprofile)'
 	echo '       -z <comment describing this test run>'
 	echo ''
 	echo 'Example: sh run_workload.sh -c 1000 -t 300 -u 3 -i 10'
@@ -232,12 +130,10 @@ fi
 
 SCALE_FACTOR=500
 SLEEPY=1000 # milliseconds
-USE_OPROFILE=0
-USE_READPROFILE=0
-USE_LINUX_PERF_EVENTS=0
+STATS=0
 PACING_DELAY=0
 
-while getopts "a:b:c:d:f:h:i:l:n:o:q:rp:s:t:u:w:xyz:" opt; do
+while getopts "a:b:c:d:f:h:i:l:n:o:rp:s:St:u:w:z:" opt; do
 	case $opt in
 	a)
 		DBMS=${OPTARG}
@@ -281,16 +177,6 @@ while getopts "a:b:c:d:f:h:i:l:n:o:q:rp:s:t:u:w:xyz:" opt; do
 		DB_PORT=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $DB_PORT
 		;;
-	q)
-		SETTING=`cat /proc/sys/kernel/perf_event_paranoid`
-		if [ ! "x${SETTING}" = "x-1" ]; then
-			echo "/proc/sys/kernel/perf_event_paranoid should be -1 in order"
-			echo "to collect performance counters"
-			exit 1
-		fi
-		USE_LINUX_PERF_EVENTS=1
-		PERF_EVENTS=${OPTARG}
-		;;
 	r)
 		SEED=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $SEED
@@ -298,6 +184,9 @@ while getopts "a:b:c:d:f:h:i:l:n:o:q:rp:s:t:u:w:xyz:" opt; do
 	s)
 		SLEEPY=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $SLEEPY
+		;;
+	S)
+		STATS=1
 		;;
 	t)
 		# Configured customer count
@@ -312,12 +201,6 @@ while getopts "a:b:c:d:f:h:i:l:n:o:q:rp:s:t:u:w:xyz:" opt; do
 		# intial trade days
 		ITD=`echo $OPTARG | egrep "^[0-9]+$"`
 		validate_parameter $opt $OPTARG $ITD
-		;;
-	x)
-		USE_OPROFILE=1
-		;;
-	y)
-		USE_READPROFILE=1
 		;;
 	z)
 		COMMENT=$OPTARG
@@ -477,32 +360,9 @@ SLEEPYTIME=`expr ${SLEEP_RAMPUP} + ${DURATION}`
 SAMPLE_LENGTH=60
 ITERATIONS=`expr ${SLEEPYTIME} / ${SAMPLE_LENGTH}`
 ITERATIONS=`expr ${ITERATIONS} + 1`
-if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-	dbt5-sysstats --iter ${ITERATIONS} \
-			--sample ${SAMPLE_LENGTH} \
-			--outdir ${DRIVER_OUTPUT_DIR} > ${DRIVER_OUTPUT_DIR}/stats.out 2>&1 &
 
-	${DB_COMMAND} dbt5-sysstats --iter ${ITERATIONS} \
-			--sample ${SAMPLE_LENGTH} \
-			--outdir ${DB_OUTPUT_DIR} > ${DB_OUTPUT_DIR}/stats.out 2>&1 &
-else
-	dbt5-sysstats --iter ${ITERATIONS} \
-			--sample ${SAMPLE_LENGTH} \
-			--outdir ${DB_OUTPUT_DIR} > ${DRIVER_OUTPUT_DIR}/stats.out 2>&1 &
-fi
-${DB_COMMAND} dbt5-${DBMS}-db-stat \
-		-o ${DB_OUTPUT_DIR} \
-		-i ${ITERATIONS} \
-		${DB_PORT_ARG} \
-		-s ${SAMPLE_LENGTH} > ${DB_OUTPUT_DIR}/dbstats.out 2>&1 &
-
-# Initialize oprofile before we start the driver.
-if [ ${USE_OPROFILE} -eq 1 ]; then
-	oprofile_init
-	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		oprofile_init ${DB_HOSTNAME}
-	fi
-fi
+# Start stats collection
+stat_collection
 
 #
 # Start the Customer Driver.
@@ -521,84 +381,16 @@ echo "Results will be written to: $OUTPUT_DIR"
 
 do_sleep ${SLEEP_RAMPUP}
 
-# Clear the readprofile data after the driver ramps up.
-if [ ${USE_READPROFILE} -eq 1 ]; then
-    if [ -f /proc/profile ]; then
-	    readprofile_clear
-    fi
-    if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "${DB_HOSTNAME}" = "xlocalhost" ]; then
-	    readprofile_clear ${DB_HOSTNAME}
-    fi
-fi
-
-# Reset the oprofile counters after the driver ramps up.
-if [ ${USE_OPROFILE} -eq 1 ]; then
-	oprofile_reset
-	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		oprofile_reset ${DB_HOSTNAME}
-	fi
-fi
-
-if [ ${USE_LINUX_PERF_EVENTS} -eq 1 ]; then
-	PERF_ARGS="-a -g -s -o ${DB_OUTPUT_DIR}/perf.data sleep ${DURATION}"
-	PERF_RECORD="perf record -e ${PERF_EVENTS} ${PERF_ARGS}"
-	PERF_STAT="perf stat -e ${PERF_EVENTS} -a -o ${DB_OUTPUT_DIR}/perf-stat.txt sleep ${DURATION}"
-	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		${DB_COMMAND} "${PERF_RECORD}" &
-		${DB_COMMAND} "${PERF_STAT}" &
-	else
-		${PERF_RECORD} &
-		${PERF_STAT} &
-	fi
-fi
-
 # Sleep for the duration of the run.
 do_sleep $DURATION
+
+# Stop stats collection.
+stat_collection -s
 
 # Wait for DriverMain to exit
 #if [ -n ${DCMPID} ]; then
 	#wait ${DCMPID}
 #fi
-
-# Collect profile data.
-if [ ${USE_READPROFILE} -eq 1 ]; then
-    if [ -f /proc/profile ]; then
-	    readprofile_collect ${OUTPUT_DIR}
-    fi
-    if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-	    readprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
-    fi
-fi
-
-# Collect oprofile data.
-if [ ${USE_OPROFILE} -eq 1 ]; then
-	oprofile_collect ${DRIVER_OUTPUT_DIR}
-	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		oprofile_collect ${DB_OUTPUT_DIR} ${DB_HOSTNAME}
-	fi
-fi
-
-if [ ${USE_LINUX_PERF_EVENTS} -eq 1 ]; then
-	PERF_CMD1="perf report --stdio -f -n -g flat,100 -i ${DB_OUTPUT_DIR}/perf.data"
-	PERF_CMD2="perf report --stdio -f -n -i ${DB_OUTPUT_DIR}/perf.data"
-	PERF_CMD3="perf annotate --stdio -f -l -P -i ${DB_OUTPUT_DIR}/perf.data"
-	PERF_CMD4="perf script -L -i ${DB_OUTPUT_DIR}/perf.data"
-	# This might be too close to the end of the run, pad some sleep time in
-	# here otherwise there is not enough processor utilization available to do
-	# the reporting.
-	sleep 180
-	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		${DB_COMMAND} "${PERF_CMD1}" > ${DB_OUTPUT_DIR}/perf-report.txt"
-		${DB_COMMAND} "${PERF_CMD2}" > ${DB_OUTPUT_DIR}/perf-report-callgraph.txt"
-		${DB_COMMAND} "${PERF_CMD3}" > ${DB_OUTPUT_DIR}/perf-annotate.txt"
-		#${DB_COMMAND} "${PERF_CMD4}" > ${DB_OUTPUT_DIR}/perf-script.txt"
-	else
-		eval "${PERF_CMD1}" > ${DB_OUTPUT_DIR}/perf-report.txt
-		eval "${PERF_CMD2}" > ${DB_OUTPUT_DIR}/perf-report-callgraph.txt
-		eval "${PERF_CMD3}" > ${DB_OUTPUT_DIR}/perf-annotate.txt
-		#eval "${PERF_CMD4}" > ${DB_OUTPUT_DIR}/perf-script.txt
-	fi
-fi
 
 # Run some post processing analyses.
 echo
@@ -613,41 +405,6 @@ echo "Killing Servers..."
 killall BrokerageHouseMain MarketExchangeMain DriverMain 2> /dev/null
 
 ${DB_COMMAND} dbt5-${DBMS}-stop-db
-
-if [ ${USE_OPROFILE} -eq 1 ]; then
-	oprofile_annotate ${DRIVER_OUTPUT_DIR} &
-	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		oprofile_annotate ${DB_OUTPUT_DIR} ${DB_HOSTNAME} &
-	fi
-	wait
-fi
-
-if [ ${USE_OPROFILE} -eq 1 ]; then
-	oprofile_stop
-	if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		oprofile_stop ${DB_HOSTNAME}
-	fi
-fi
-
-
-which sar > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-	SAR=sar
-else
-	SAR=true
-fi
-if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-	${DB_COMMAND} "${SAR2} which sar > /dev/null 2>&1"
-	if [ $? -eq 0 ]; then
-		SAR2=sar
-	else
-		SAR2=true
-	fi
-	${SAR} -f ${DRIVER_OUTPUT_DIR}/sar_raw.out -A > ${DRIVER_OUTPUT_DIR}/sar.out
-	${DB_COMMAND} "${SAR2} -f ${DB_OUTPUT_DIR}/sar_raw.out -A > ${DB_OUTPUT_DIR}/sar.out"
-else
-	${SAR} -f ${DB_OUTPUT_DIR}/sar_raw.out -A > ${DRIVER_OUTPUT_DIR}/sar.out
-fi
 
 if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	rsync -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \

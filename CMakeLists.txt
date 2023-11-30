@@ -38,9 +38,7 @@ set (PGSQL_SCRIPTS scripts/pgsql/dbt5-pgsql-start-db
 # Install rules.
 #
 
-INSTALL(PROGRAMS scripts/dbt5-post-process
-                 scripts/dbt5-sysstats
-                 scripts/dbt5-get-os-info
+INSTALL(PROGRAMS scripts/dbt5-get-os-info
                  scripts/dbt5-run-workload
                  scripts/dbt5-plot-transaction-rate
                  scripts/dbt5-generate-report
