@@ -11,6 +11,11 @@ DBNAMEARG=""
 SHAREDIR="/usr/local/share/dbt5/postgresql"
 TYPE="plpgsql"
 
+# Special case to override defaults if in an AppImage environment.
+if [ ! "${APPDIR}" = "" ]; then
+	SHAREDIR="${APPDIR}/usr/share/dbt5/postgresql"
+fi
+
 while getopts "d:i:p:t:" OPT; do
 	case ${OPT} in
 	d)

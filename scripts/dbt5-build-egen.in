@@ -40,6 +40,13 @@ PATCH=1
 INCLUDEDIR="-I/usr/local/include/dbt5"
 SOURCEDIR="/usr/local/share/dbt5"
 
+# Special case to override defaults if in an AppImage environment.
+if [ ! "${APPDIR}" = "" ]; then
+	INCLUDEDIR="-I${APPDIR}/usr/include/dbt5"
+	SOURCEDIR="${APPDIR}/usr/share/dbt5/src"
+	PATCHDIR="${APPDIR}/usr/share/dbt5/patches"
+fi
+
 # Custom argument handling for hopefully most portability.
 while [ "${#}" -gt 0 ] ; do
 	case "${1}" in
