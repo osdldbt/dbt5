@@ -107,6 +107,7 @@ General options:
   -i PATH        PATH to TPC-E Tools
   -l DELAY       pacing DELAY in seconds, default ${PACING_DELAY}
   -n NAME        database name, default ${DB_NAME}
+  --privileged   run tests as a privileged database user
   -p PORT        database PORT number
   -r SEED        random number SEED, using this invalidates test
   --stats        collect system stats and profile
@@ -143,6 +144,7 @@ SCALE_FACTOR=500
 SLEEPY=1000 # milliseconds
 STATS=0
 PACING_DELAY=0
+PRIVILEGED=0
 USERS=1
 
 if [ $# -eq 0 ]; then
@@ -364,12 +366,16 @@ else
 	dbt5-get-os-info -o ${DB_OUTPUT_DIR}
 fi
 
-# Restart database.
-${DB_COMMAND} dbt5-${DBMS}-stop-db
-if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-	${DB_COMMAND} "dbt5-${DBMS}-start-db -p \"${DB_PARAMS}\" -o ${DB_OUTPUT_DIR}" || exit 1
-else
-	dbt5-${DBMS}-start-db -p "${DB_PARAMS}" -o ${DB_OUTPUT_DIR} || exit 1
+if [ "${PRIVILEGED}" -eq 1 ]; then
+	# Restart database.
+	eval "${DB_COMMAND} dbt5-${DBMS}-stop-db"
+	if [ ! "x${DB_HOSTNAME}" = "x" ] && \
+			[ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
+		eval "${DB_COMMAND} dbt5-${DBMS}-start-db -p \"${DB_PARAMS}\" \
+				-o ${DB_OUTPUT_DIR}" || exit 1
+	else
+		dbt5-${DBMS}-start-db -p "${DB_PARAMS}" -o ${DB_OUTPUT_DIR} || exit 1
+	fi
 fi
 
 echo ""
@@ -459,7 +465,9 @@ dbt5-post-process ${DRIVER_OUTPUT_DIR}/ce_mix.log \
 echo "Killing Servers..."
 killall BrokerageHouseMain MarketExchangeMain DriverMain 2> /dev/null
 
-${DB_COMMAND} dbt5-${DBMS}-stop-db
+if [ "${PRIVILEGED}" -eq 1 ]; then
+	${DB_COMMAND} dbt5-${DBMS}-stop-db
+fi
 
 if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 	rsync -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
