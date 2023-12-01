@@ -1,15 +1,15 @@
-vX.Y.Z
+vX.Y.X (YYYY-MM-DD)
 
 - Fix transaction rate calculation
 - Fix various scripting bugs
-- Replace libpqxx with libpq
+- Replace libpqxx code with libpq code
 - Fix PostgreSQL stored procedure bugs
 - Fix egen compiler warnings
-- Update cmake files
+- Update cmake files, add CPack rule to create source packages
 - Add Docker scripts to build database
 - Update PostgreSQL build script set vacuum parallelism based on available
   processors and to perform a regular vacuum, instead of a full vacuum
 
-v0.1.0
+v0.1.0 (2010-04-10)
 
-- Initial release, currently only for PostgreSQL
+- Initial release, currently only for PostgreSQL and TPC-E Tools v1.10.0
