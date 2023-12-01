@@ -1,5 +1,5 @@
 #!/bin/bash
-
+@SHELLOPTIONS@
 #
 # This file is released under the terms of the Artistic License.
 # Please see the file LICENSE, included in this package, for details.
@@ -91,28 +91,39 @@ usage()
 		echo "error: $1"
 	fi
 
-	echo ''
-	echo 'usage: run_workload.sh -c <number of customers> -d <duration of test> -u <number of users>'
-	echo 'other options:'
-	echo '       -a <pgsql>'
-	echo '       -b <database parameters>'
-	echo '       -f <scale factor. (default 500)>'
-	echo '       -h <database host name. (default localhost)>'
-	echo '       -i <egen_path>'
-	echo '       -l <pacing delay. (default 0)>'
-	echo '       -n <database name. (default dbt5)>'
-	echo '       -o <result output dir>'
-	echo '       -p <database port number. (default 5432)>'
-	echo '       -r <random number seed, invalidates test>'
-	echo '       -s <delay between starting threads in milliseconds (default 1000)>'
-	echo '       -S collect system stats and profile'
-	echo '       -t <customers total>'
-	echo '       -w <initial trade days. (default 300)>'
-	echo '       -z <comment describing this test run>'
-	echo ''
-	echo 'Example: sh run_workload.sh -c 1000 -t 300 -u 3 -i 10'
-	echo 'Test will be run for 300 seconds with 3 users, on a 1000 customers database with 10 initial trade days, and seed 5'
-	echo ''
+	cat << EOF
+$(basename "${0}") is the Database Test 5 (DBT-5) workload runner
+
+Usage:
+  $(basename "${0}") [OPTIONS] DBMS DIRECTORY
+
+General options:
+  -b PARAMETERS  database PARAMETERS
+  -c CUSTOMERS   active CUSTOMERS, default ${CUSTOMERS_INSTANCE}
+  -d SECONDS     test duration in SECONDS
+  -f SCALE_FACTOR
+                 default ${SCALE_FACTOR}
+  -h HOSTNAME    database hostname, default localhost
+  -i PATH        PATH to TPC-E Tools
+  -l DELAY       pacing DELAY in seconds, default ${PACING_DELAY}
+  -n NAME        database name, default ${DB_NAME}
+  -p PORT        database PORT number
+  -r SEED        random number SEED, using this invalidates test
+  --stats        collect system stats and profile
+  -s DELAY       DELAY between starting threads in milliseconds,
+                 default ${SLEEPY}
+  -t CUSTOMERS   total CUSTOMERS, default ${CUSTOMERS_TOTAL}
+  -u USERS       number of USERS to emulate, default ${USERS}
+  -w DAYS        initial trade DAYS, default ${ITD}
+  -z COMMENT     COMMENT describing this test run
+
+DBMS options are:
+  pgsql      PostgreSQL
+
+DIRECTORY is the path to save test results.
+
+@HOMEPAGE@
+EOF
 }
 
 validate_parameter()
@@ -123,94 +134,138 @@ validate_parameter()
 	fi
 }
 
+DB_NAME="dbt5"
+DBAAS=0
+CUSTOMERS_INSTANCE=5000
+CUSTOMERS_TOTAL=5000
+ITD=300
+SCALE_FACTOR=500
+SLEEPY=1000 # milliseconds
+STATS=0
+PACING_DELAY=0
+USERS=1
+
 if [ $# -eq 0 ]; then
 	usage
 	exit 1
 fi
 
-SCALE_FACTOR=500
-SLEEPY=1000 # milliseconds
-STATS=0
-PACING_DELAY=0
-
-while getopts "a:b:c:d:f:h:i:l:n:o:rp:s:St:u:w:z:" opt; do
-	case $opt in
-	a)
-		DBMS=${OPTARG}
-		export DATABASE=${DBMS}
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-b)
+		shift
+		DB_PARAMS="${1}"
 		;;
-	b)
-		DB_PARAMS=$OPTARG
-		;;
-	c)
+	(-c)
+		shift
 		# Configured customer count
-		CUSTOMERS_INSTANCE=`echo $OPTARG | egrep "^[0-9]+$"`
-		validate_parameter $opt $OPTARG $CUSTOMERS_INSTANCE
+		CUSTOMERS_INSTANCE="$(echo "${1}" | grep -E "^[0-9]+$")"
+		validate_parameter "c" "${1}" "${CUSTOMERS_INSTANCE}"
 		;;
-	d)
+	(-d)
+		shift
 		# duration of the test
-		DURATION=`echo $OPTARG | egrep "^[0-9]+$"`
-		validate_parameter $opt $OPTARG $DURATION
+		DURATION="$(echo "${1}" | grep -E "^[0-9]+$")"
+		validate_parameter "d" "${1}" "${DURATION}"
 		;;
-	f)
-		SCALE_FACTOR=`echo $OPTARG | egrep "^[0-9]+$"`
-		validate_parameter $opt $OPTARG $SCALE_FACTOR
+	(-f)
+		shift
+		SCALE_FACTOR=$(echo "${1}" | grep -E "^[0-9]+$")
+		validate_parameter "f" "${1}" "${SCALE_FACTOR}"
 		;;
-	h)
-		DB_HOSTNAME=$OPTARG
+	(-h)
+		shift
+		DB_HOSTNAME="${1}"
 		;;
-	i)
-		EGENDIR=${OPTARG}
+	(-i)
+		shift
+		EGENDIR="${1}"
 		;;
-	l)
-		PACING_DELAY=`echo $OPTARG | egrep "^[0-9]+$"`
-		validate_parameter $opt $OPTARG $PACING_DELAY
+	(-l)
+		shift
+		PACING_DELAY="$(echo "${1}" | grep -E "^[0-9]+$")"
+		validate_parameter "l" "${1}" "${PACING_DELAY}"
 		;;
-	n)
-		DB_NAME=$OPTARG
+	(-n)
+		shift
+		DB_NAME="${1}"
 		;;
-	o)
-		OUTPUT_DIR=${OPTARG}
-		;;
-	p)
+	(-p)
+		shift
 		# postmaster port
-		DB_PORT=`echo $OPTARG | egrep "^[0-9]+$"`
-		validate_parameter $opt $OPTARG $DB_PORT
+		DB_PORT="$(echo "${1}" | grep -E "^[0-9]+$")"
+		validate_parameter "p" "${1}" "${DB_PORT}"
 		;;
-	r)
-		SEED=`echo $OPTARG | egrep "^[0-9]+$"`
-		validate_parameter $opt $OPTARG $SEED
+	(-r)
+		shift
+		SEED="$(echo "${1}" | grep -E "^[0-9]+$")"
+		validate_parameter "r" "${1}" "${SEED}"
 		;;
-	s)
-		SLEEPY=`echo $OPTARG | egrep "^[0-9]+$"`
-		validate_parameter $opt $OPTARG $SLEEPY
-		;;
-	S)
+	(--stats)
 		STATS=1
 		;;
-	t)
+	(-s)
+		shift
+		SLEEPY="$(echo "${1}" | grep -E "^[0-9]+$")"
+		validate_parameter "s" "${1}" "${SLEEPY}"
+		;;
+	(-t)
+		shift
 		# Configured customer count
-		CUSTOMERS_TOTAL=`echo $OPTARG | egrep "^[0-9]+$"`
-		validate_parameter $opt $OPTARG $CUSTOMERS_TOTAL
+		CUSTOMERS_TOTAL="$(echo "${1}" | grep -E "^[0-9]+$")"
+		validate_parameter "t" "${1}" "${CUSTOMERS_TOTAL}"
 		;;
-	u)
-		USERS=`echo $OPTARG | egrep "^[0-9]+$"`
-		validate_parameter $opt $OPTARG $USERS
+	(-u)
+		shift
+		USERS="$(echo "${1}" | grep -E "^[0-9]+$")"
+		validate_parameter "u" "${1}" "${USERS}"
 		;;
-	w)
+	(-V | --version)
+		echo "dbt5 (Database Test 5) v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-w)
+		shift
 		# intial trade days
-		ITD=`echo $OPTARG | egrep "^[0-9]+$"`
-		validate_parameter $opt $OPTARG $ITD
+		ITD=$(echo "${1}" | grep -E "^[0-9]+$")
+		validate_parameter "w" "${1}" "${ITD}"
 		;;
-	z)
-		COMMENT=$OPTARG
+	(-z)
+		shift
+		COMMENT="${1}"
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
 		;;
 	esac
+	shift
 done
+
+DBMS="${1}"
+case "${DBMS}" in
+(pgsql)
+	export PGDATABASE="${DB_NAME}"
+	;;
+esac
+shift
+
+
+OUTPUT_DIR="${1}"
+shift
 
 # Check parameters.
 
-if [ "x${EGENDIR}}" = "x" ]; then
+if [ "${EGENDIR}" = "" ]; then
 	usage "specify path to EGen using -i <path>"
 	exit 1
 fi
@@ -338,8 +393,8 @@ echo "Results can be found in: ${OUTPUT_DIR}"
 #
 echo
 echo "1. Starting Brokerage House server"
-BrokerageHouseMain ${DB_HOSTNAME_ARG} -d ${DB_NAME} ${DB_PORT_ARG} \
-		-o ${BH_OUTPUT_DIR} > ${BH_OUTPUT_DIR}/bh.out 2>&1 &
+eval "${EGENDIR}/bin/BrokerageHouseMain ${DB_HOSTNAME_ARG} -d ${DB_NAME} \
+		${DB_PORT_ARG} -o ${BH_OUTPUT_DIR} > ${BH_OUTPUT_DIR}/bh.out 2>&1" &
 
 do_sleep 1
 
@@ -348,9 +403,9 @@ do_sleep 1
 #
 echo
 echo "2. Starting Market Exchange server"
-MarketExchangeMain -c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} \
-		-i ${EGENDIR}/flat_in \
-		-o ${MEE_OUTPUT_DIR} > ${MEE_OUTPUT_DIR}/mee.out 2>&1 &
+eval "${EGENDIR}/bin/MarketExchangeMain -c ${CUSTOMERS_INSTANCE} \
+		-t ${CUSTOMERS_TOTAL} -i ${EGENDIR}/flat_in -o ${MEE_OUTPUT_DIR} \
+		> ${MEE_OUTPUT_DIR}/mee.out 2>&1" &
 
 # Start collecting data before we start the test.
 SLEEP_RAMPUP=`expr ${USERS} + 1`
@@ -371,11 +426,11 @@ stat_collection
 echo
 echo "3. Starting Customer driver: ${USERS} user(s)"
 echo "   1 user starting every ${SLEEPY} milliseconds..."
-DriverMain -c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} \
-		-f ${SCALE_FACTOR} -w ${ITD} -d ${DURATION} -y ${SLEEPY} \
-		-u ${USERS} -n ${PACING_DELAY} ${SEEDARG} \
-		-i ${EGENDIR}/flat_in \
-		-o ${DRIVER_OUTPUT_DIR} > ${DRIVER_OUTPUT_DIR}/driver.out 2>&1 &
+eval "${EGENDIR}/bin/DriverMain -c ${CUSTOMERS_INSTANCE} \
+		-t ${CUSTOMERS_TOTAL} -f ${SCALE_FACTOR} -w ${ITD} -d ${DURATION} \
+		-y ${SLEEPY} -u ${USERS} -n ${PACING_DELAY} ${SEEDARG} \
+		-i ${EGENDIR}/flat_in -o ${DRIVER_OUTPUT_DIR} \
+		> ${DRIVER_OUTPUT_DIR}/driver.out 2>&1" &
 DCMPID=`ps -C DriverMain -o pid=`
 echo "Results will be written to: $OUTPUT_DIR"
 

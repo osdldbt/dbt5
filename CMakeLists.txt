@@ -39,7 +39,6 @@ set (PGSQL_SCRIPTS scripts/pgsql/dbt5-pgsql-start-db
 #
 
 INSTALL(PROGRAMS scripts/dbt5-get-os-info
-                 scripts/dbt5-run-workload
                  scripts/dbt5-plot-transaction-rate
                  scripts/dbt5-generate-report
                  ${PGSQL_SCRIPTS}

@@ -1,0 +1,68 @@
+==========
+ dbt5-run
+==========
+
+---------------
+Database Test 5
+---------------
+
+:Date: @MANDATE@
+:Manual section: 1
+:Manual group: Database Test 5 @PROJECT_VERSION@ Documentation
+:Version: Database Test 5 @PROJECT_VERSION@
+
+SYNOPSIS
+========
+
+**dbt5-run** [option...] dbms directory
+
+DESCRIPTION
+===========
+
+**dbt5-run** is a wrapper script that helps execute a test.  It is intended to
+be an easier way to execute the DBT-5 workload than running the individual
+components by hand, but does not provide all of the flexibility that can be
+achieved by running the individual components by hand.  It additionally aids in
+collecting operating system and database statistics as well as capturing
+software profiles if the user so desires.
+
+OPTIONS
+=======
+
+-b PARAMETERS  Database *parameters*.
+-c CUSTOMERS  Active *customers*, default 5000.
+-d SECONDS  Test duration in *seconds*.
+-f SCALE_FACTOR  Default 500.
+--help  This usage message.  Or **-?**.
+-h HOSTNAME  Database *hostname*, default localhost.
+-i PATH  *path* to TPC-E Tools.
+-l DELAY  Pacing *delay* in seconds, default 0.
+-n NAME  Database *name*, default dbt5.
+--privileged  Run test as a privileged database user.
+-p PORT  Database *port* number.
+-r SEED  Random number *seed*, using this invalidates test.
+--stats  Collect system stats and profile.
+-s DELAY  *delay* between starting threads in milliseconds, default 1000.
+-t CUSTOMERS  Total *customers*, default 5000.
+-u USERS  Number of *users* to emulate, default 1.
+-V, --version  output version information, then exit
+-w DAYS  Initial trade *days*, default 300.
+-z COMMENT  *comment* describing this test run.
+
+*dbms* options are:
+
+* pgsql  PostgreSQL
+
+*directory* is the path to save test results.
+
+EXAMPLES
+========
+
+Run a quick 120 second (2 minute) test with 1 user::
+
+    dbt5 run -d 120 pgsql /tmp/results
+
+SEE ALSO
+========
+
+**dbt5**\ (1)

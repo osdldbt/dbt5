@@ -28,4 +28,4 @@ Run a Test
 
 Run a quick 120 second (2 minute) test with 1 user::
 
-    dbt5 run-workload -a pgsql -d 120 -u 1 -n dbt5 -o /tmp/results
+    dbt5 run -d 120 pgsql /tmp/results
