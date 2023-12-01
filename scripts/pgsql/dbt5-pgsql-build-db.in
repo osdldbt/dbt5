@@ -18,7 +18,7 @@ usage()
 	echo "    -c <integer>"
 	echo "        Number of customers for this instance"
 	echo "    -d <dbname>"
-	echo "        PGDATABASE name"
+	echo "        PGDATABASE name, default ${DBT5DBNAME}"
 	echo "    -h"
 	echo "        this help"
 	echo "    -i <path>"
@@ -53,6 +53,7 @@ PRIVILEGED=0
 # These are minimum values defined by the specification.
 CUSTOMERS_INSTANCE=5000
 CUSTOMERS_TOTAL=5000
+DBT5DBNAME="dbt5"
 SCALE_FACTOR=500
 STARTING_CUSTOMER_ID=1
 ITD=300
