@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 		}
 		cout << endl;
 		return 1;
-	} catch (std::bad_alloc err) {
+	} catch (std::bad_alloc const&) {
 		// operator new will throw std::bad_alloc exception if there is not
 		// sufficient memory for the request.
 		cout << "*** Out of memory ***" << endl;

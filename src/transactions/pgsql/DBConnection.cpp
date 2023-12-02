@@ -542,6 +542,9 @@ void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 
 		bSent = pMarketExchange->SendToMarketFromFrame(
 				m_TriggeredLimitOrders);
+		if (!bSent) {
+			cout << "WARNING: SendToMarketFromFrame() returned failure but continuing..." << endl;
+		}
 		++i;
 	}
 	check_count(pOut->send_len, i, __FILE__, __LINE__);

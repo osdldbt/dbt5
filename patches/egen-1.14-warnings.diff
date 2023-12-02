@@ -1,0 +1,213 @@
+Index: dbt5/egen/inc/DriverParamSettings.h
+===================================================================
+--- dbt5.orig/egen/inc/DriverParamSettings.h
++++ dbt5/egen/inc/DriverParamSettings.h
+@@ -116,7 +116,7 @@ public:
+         try {
+             CheckValid();
+             return true;
+-        } catch(CCheckErr) {
++        } catch(CCheckErr const&) {
+             throw;
+             return false;
+         }
+@@ -127,7 +127,7 @@ public:
+         try {
+             CheckCompliant();
+             return true;
+-        } catch(CCheckErr) {
++        } catch(CCheckErr const&) {
+             throw;
+             return false;
+         }
+@@ -178,7 +178,7 @@ public:
+         try {
+             CheckValid();
+             return true;
+-        } catch(CCheckErr) {
++        } catch(CCheckErr const&) {
+             throw;
+             return false;
+         }
+@@ -188,7 +188,7 @@ public:
+         try {
+             CheckCompliant();
+             return true;
+-        } catch(CCheckErr) {
++        } catch(CCheckErr const&) {
+             throw;
+             return false;
+         }
+@@ -1119,7 +1119,7 @@ typedef struct TDriverCETxnSettings
+         try {
+             CheckValid();
+             return true;
+-        } catch(CCheckErr) {
++        } catch(CCheckErr const&) {
+             throw;
+             return false;
+         }
+@@ -1129,7 +1129,7 @@ typedef struct TDriverCETxnSettings
+         try {
+             CheckCompliant();
+             return true;
+-        } catch(CCheckErr) {
++        } catch(CCheckErr const&) {
+             throw;
+             return false;
+         }
+Index: dbt5/egen/inc/TxnHarnessStructs.h
+===================================================================
+--- dbt5.orig/egen/inc/TxnHarnessStructs.h
++++ dbt5/egen/inc/TxnHarnessStructs.h
+@@ -850,7 +850,7 @@ public:
+         BufferFiller::Clear( &start_date, sizeof( start_date ));
+         BufferFiller::Clear( day, sizeof( day ));
+         BufferFiller::Clear( fin, sizeof( fin ));
+-        for( int ii = 0; ii < sizeof(news)/sizeof(news[0]); ++ii)
++        for( long unsigned int ii = 0; ii < sizeof(news)/sizeof(news[0]); ++ii)
+         {
+             news[ii].Clear();
+         }
+Index: dbt5/egen/Utilities/src/EGenVersion.cpp
+===================================================================
+--- dbt5.orig/egen/Utilities/src/EGenVersion.cpp
++++ dbt5/egen/Utilities/src/EGenVersion.cpp
+@@ -116,7 +116,7 @@ void PrintEGenVersion()
+ //
+ void GetEGenVersionUpdateTimestamp(char* szOutput, size_t iOutputBufferLen)
+ {
+-    std::strncpy(szOutput, __DATE__" "__TIME__, iOutputBufferLen);
++    std::strncpy(szOutput, __DATE__ " " __TIME__, iOutputBufferLen);
+ }
+ 
+ }   // namespace TPC-E
+Index: dbt5/egen/src/EGenLoader.cpp
+===================================================================
+--- dbt5.orig/egen/src/EGenLoader.cpp
++++ dbt5/egen/src/EGenLoader.cpp
+@@ -176,7 +176,7 @@ char  *vp;
+      */
+     switch ( *sp ) {
+       case 'b':
+-        sscanf(vp, "%"PRId64, &iStartFromCustomer);
++        sscanf(vp, "%" PRId64, &iStartFromCustomer);
+         if (iStartFromCustomer <= 0)
+         {   // set back to default
+             // either number parsing was unsuccessful
+@@ -185,10 +185,10 @@ char  *vp;
+         }
+         break;
+       case 'c':
+-        sscanf(vp, "%"PRId64, &iCustomerCount);
++        sscanf(vp, "%" PRId64, &iCustomerCount);
+         break;
+       case 't':
+-        sscanf(vp, "%"PRId64, &iTotalCustomerCount);
++        sscanf(vp, "%" PRId64, &iTotalCustomerCount);
+         break;
+       case 'f':
+         iScaleFactor = (UINT) atoi( vp );
+Index: dbt5/egen/inc/TableTemplate.h
+===================================================================
+--- dbt5.orig/egen/inc/TableTemplate.h
++++ dbt5/egen/inc/TableTemplate.h
+@@ -141,7 +141,7 @@ public:
+     *   RETURNS:
+     *           none.
+     */
+-    void ClearRecord() { memset(&m_row, 0, sizeof(m_row)); }
++    void ClearRecord() { }
+ };
+ 
+ }   // namespace TPCE
+Index: dbt5/egen/src/MEETickerTape.cpp
+===================================================================
+--- dbt5.orig/egen/src/MEETickerTape.cpp
++++ dbt5/egen/src/MEETickerTape.cpp
+@@ -88,10 +88,10 @@ CMEETickerTape::CMEETickerTape( CMEESUTI
+     , m_BatchDuplicates( 0 )
+     , m_rnd( RNGSeedBaseMEETickerTape )
+     , m_Enabled( true )
+-    , m_pBaseTime( pBaseTime )
+-    , m_pCurrentTime( pCurrentTime )
+     , m_StatusType( dfm.StatusTypeDataFile())
+     , m_TradeType( dfm.TradeTypeDataFile())
++    , m_pBaseTime( pBaseTime )
++    , m_pCurrentTime( pCurrentTime )
+ {
+     Initialize();
+ }
+@@ -104,10 +104,10 @@ CMEETickerTape::CMEETickerTape( CMEESUTI
+     , m_BatchDuplicates( 0 )
+     , m_rnd( RNGSeed )
+     , m_Enabled( true )
+-    , m_pBaseTime( pBaseTime )
+-    , m_pCurrentTime( pCurrentTime )
+     , m_StatusType( dfm.StatusTypeDataFile())
+     , m_TradeType( dfm.TradeTypeDataFile())
++    , m_pBaseTime( pBaseTime )
++    , m_pCurrentTime( pCurrentTime )
+ {
+     Initialize();
+ }
+Index: dbt5/egen/Utilities/src/locking.cpp
+===================================================================
+--- dbt5.orig/egen/Utilities/src/locking.cpp
++++ dbt5/egen/Utilities/src/locking.cpp
+@@ -110,7 +110,6 @@ CMutex::~CMutex()
+     if (rc != 0) {
+         std::ostringstream strm;
+         strm << "pthread_mutex_destroy error: " << strerror(rc) << "(" << rc << ")";
+-        throw std::runtime_error(strm.str());
+     }
+ }
+ 
+Index: dbt5/egen/src/TradeGen.cpp
+===================================================================
+--- dbt5.orig/egen/src/TradeGen.cpp
++++ dbt5/egen/src/TradeGen.cpp
+@@ -134,13 +134,6 @@ CTradeGen::CTradeGen(const DataFileManag
+     m_pCustomerHoldings = new THoldingList[ m_iLoadUnitAccountCount ]
+     [ iMaxSecuritiesPerAccount ];
+ 
+-    // Clear row structures
+-    //
+-    memset(&m_NewTrade, 0, sizeof(m_NewTrade));
+-    memset(&m_TradeRow, 0, sizeof(m_TradeRow));
+-    memset(&m_HoldingRow, 0, sizeof(m_HoldingRow));
+-    memset(&m_HoldingSummaryRow, 0, sizeof(m_HoldingSummaryRow));
+-
+     // Position trade id at the proper start of the sequence
+     //
+     m_iCurrentTradeId = (TTrade)m_iHoursOfInitialTrades * SecondsPerHour
+@@ -239,12 +232,6 @@ bool CTradeGen::InitNextLoadUnit()
+ 
+     m_MEESecurity.Init( 0, NULL, NULL, m_fMeanInTheMoneySubmissionDelay );
+ 
+-    // Clear row structures.
+-    //
+-    memset(&m_TradeRow, 0, sizeof(m_TradeRow));
+-    memset(&m_HoldingRow, 0, sizeof(m_HoldingRow));
+-    memset(&m_HoldingSummaryRow, 0, sizeof(m_HoldingSummaryRow));
+-
+     return m_iCurrentLoadUnit < (m_iCustomerCount / m_iLoadUnitSize);
+ }
+ 
+Index: dbt5/egen/inc/FixedTable.h
+===================================================================
+--- dbt5.orig/egen/inc/FixedTable.h
++++ dbt5/egen/inc/FixedTable.h
+@@ -49,10 +49,10 @@ class FixedTable
+ protected:
+     const DataFileT & df;
+     TableRowT tableRow;
+-    int recordIdx;
++    unsigned int recordIdx;
+ 
+ public:
+-    FixedTable(const DataFileT & dataFile) : df(dataFile), tableRow(), recordIdx(-1)
++    FixedTable(const DataFileT & dataFile) : df(dataFile), tableRow(), recordIdx(0)
+     {
+     }
+ 

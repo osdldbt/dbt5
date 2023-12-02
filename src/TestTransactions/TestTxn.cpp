@@ -131,7 +131,7 @@ bool ParseCommandLine( int argc, char *argv[] )
 					"'." << endl;
 			break;
 		case 'c':
-			sscanf(vp, "%"PRId64, &iConfiguredCustomerCount);
+			sscanf(vp, "%" PRId64, &iConfiguredCustomerCount);
 			break;
 		case 'f':
 			iScaleFactor = atoi(vp);
