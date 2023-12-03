@@ -43,7 +43,8 @@ public:
 	char *escape(string);
 	void disconnect();
 
-	PGresult *exec(const char *);
+	PGresult *exec(const char *, int, const Oid *, const char * const *, const
+			int *, const int *, int);
 
 	void execute(const TBrokerVolumeFrame1Input *,
 			TBrokerVolumeFrame1Output *);

@@ -157,7 +157,10 @@ void CDBConnection::disconnect()
 	PQfinish(m_Conn);
 }
 
-PGresult *CDBConnection::exec(const char *sql)
+PGresult *CDBConnection::exec(const char *sql, int nParams=0,
+		const Oid *paramTypes=NULL, const char * const *paramValues=NULL,
+		const int *paramLengths=NULL, const int *paramFormats=NULL,
+		int resultFormat=0)
 {
 	// FIXME: Handle serialization errors.
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
@@ -165,7 +168,8 @@ PGresult *CDBConnection::exec(const char *sql)
 	// failures.  These serialization failures can occur with REPEATABLE READS
 	// or SERIALIZABLE.
 
-	PGresult *res = PQexec(m_Conn, sql);
+	PGresult *res = PQexecParams(m_Conn, sql, nParams, paramTypes, paramValues,
+			paramLengths, paramFormats, resultFormat);
 	ExecStatusType status = PQresultStatus(res);
 
 	ostringstream msg;
