@@ -106,6 +106,7 @@ void *customerWorkerThread(void *data)
 			if (errno == EINTR) {
 				memcpy(&ts, &rem, sizeof(timespec));
 			} else {
+				ostringstream osErr;
 				osErr << "pacing delay time invalid " << ts.tv_sec << " s "
 						<< ts.tv_nsec << " ns" << endl;
 				pThrParam->pDriver->logErrorMessage(osErr.str());
@@ -114,8 +115,7 @@ void *customerWorkerThread(void *data)
 		}
 	} while (time(NULL) < stop_time);
 
-	osErr << "User thread # " << pthread_self() << " terminated." << endl;
-	pThrParam->pDriver->logErrorMessage(osErr.str());
+	cout << "User thread # " << pthread_self() << " terminated." << endl;
 
 	delete pThrParam;
 	return NULL;
@@ -143,12 +143,10 @@ void entryCustomerWorkerThread(void* data)
 			throw new CThreadErr( CThreadErr::ERR_THREAD_CREATE );
 		}
 	} catch(CThreadErr *pErr) {
-		ostringstream osErr;
-		osErr << "Thread " << pThrParam->UniqueId <<
+		cerr << "Thread " << pThrParam->UniqueId <<
 				" didn't spawn correctly" << endl << endl << "Error: " <<
 				pErr->ErrorText() << " at EntryCustomerWorkerThread" << endl;
-		pThrParam->pDriver->logErrorMessage(osErr.str());
-		delete pErr;
+		exit(1);
 	}
 }
 
@@ -292,14 +290,10 @@ void entryDMWorkerThread(CDriver *ptr)
 		pthread_create(&g_tid[0], &threadAttribute, &dmWorkerThread,
 				reinterpret_cast<void *>(pThrParam));
 
-		pThrParam->pDriver->logErrorMessage(
-				">> Data-Maintenance thread started.\n");
+		cout << ">> Data-Maintenance thread started." << endl;
 	} catch(CThreadErr *pErr) {
-		ostringstream msg;
-		msg << "Data-Maintenance thread not created successfully, exiting..." <<
-				endl;
-		pThrParam->pDriver->logErrorMessage(msg.str());
-		delete pErr;
+		cerr << "Data-Maintenance thread not created successfully, exiting..."
+				<< endl;
 		exit(1);
 	}
 }
