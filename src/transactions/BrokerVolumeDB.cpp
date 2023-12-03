@@ -14,7 +14,7 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 		TBrokerVolumeFrame1Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	int i;
 	cout << pid << " <<< BVF1" << endl;
 	cout << pid << " - Broker Volume Frame 1 (input)" << endl;

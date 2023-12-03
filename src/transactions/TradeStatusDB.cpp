@@ -14,7 +14,7 @@ void CTradeStatusDB::DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
 		TTradeStatusFrame1Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< TSF1" << endl;
 	cout << pid << " - Trade Status Frame 1 (input)" << endl <<
 			pid << " -- acct_id: " << pIn->acct_id << endl;

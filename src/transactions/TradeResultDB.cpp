@@ -15,7 +15,7 @@ void CTradeResultDB::DoTradeResultFrame1(
 		TTradeResultFrame1Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< TRF1" << endl;
 	cout << pid << " - Trade Result Frame 1 (input)" << endl <<
 			pid << " -- trade_id: " << pIn->trade_id << endl;
@@ -51,7 +51,7 @@ void CTradeResultDB::DoTradeResultFrame2(
 		TTradeResultFrame2Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< TRF2" << endl;
 	cout << pid << " - Trade Result Frame 2 (input)" << endl <<
 			pid << " -- acct_id: " << pIn->acct_id << endl <<
@@ -89,7 +89,7 @@ void CTradeResultDB::DoTradeResultFrame3(
 		TTradeResultFrame3Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< TRF3" << endl;
 	cout << pid << " --Trade Result Frame 3 (input)" << endl <<
 			pid << " -- buy_value: " << pIn->buy_value << endl <<
@@ -113,7 +113,7 @@ void CTradeResultDB::DoTradeResultFrame4(
 		TTradeResultFrame4Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< TRF4" << endl;
 	cout << pid << " - Trade Result Frame 4 (input)" << endl <<
 			pid << " -- cust_id: " << pIn->cust_id << endl <<
@@ -136,7 +136,7 @@ void CTradeResultDB::DoTradeResultFrame4(
 void CTradeResultDB::DoTradeResultFrame5(const TTradeResultFrame5Input *pIn)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< TRF5" << endl;
 	cout << pid << " - Trade Result Frame 5 (input)" << endl <<
 			pid << " -- broker_id: " << pIn->broker_id << endl <<
@@ -166,7 +166,7 @@ void CTradeResultDB::DoTradeResultFrame6(
 		TTradeResultFrame6Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< TRF6" << endl;
 	cout << pid << " - Trade Result Frame 6 (input)" << endl <<
 			pid << " -- acct_id: " << pIn->acct_id << endl <<

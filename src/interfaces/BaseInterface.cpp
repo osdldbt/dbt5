@@ -7,6 +7,9 @@
  * 13 August 2006
  */
 
+#include <unistd.h>
+#include <sys/syscall.h>
+
 #include "BaseInterface.h"
 #include "DBT5Consts.h"
 
@@ -85,8 +88,9 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 		sock->dbt5Reconnect();
 		logResponseTime(-1, 0, -1);
 
+		pid_t pid = syscall(SYS_gettid);
 		ostringstream msg;
-		msg << time(NULL) << " " << (long long) pthread_self() << " " <<
+		msg << time(NULL) << " " << pid << " " <<
 				szTransactionName[pRequest->TxnType] << ": " << endl <<
 				"Error sending " << length << " bytes of data" << endl <<
 				pErr->ErrorText() << endl;
@@ -100,8 +104,9 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 	} catch(CSocketErr *pErr) {
 		logResponseTime(-1, 0, -2);
 
+		pid_t pid = syscall(SYS_gettid);
 		ostringstream msg;
-		msg << time(NULL) << " " << (long long) pthread_self() << " " <<
+		msg << time(NULL) << " " << pid << " " <<
 				szTransactionName[pRequest->TxnType] << ": " << endl <<
 				"Error receiving " << length << " bytes of data" << endl <<
 				pErr->ErrorText() << endl;
@@ -131,9 +136,10 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 // Log Transaction Response Times
 void CBaseInterface::logResponseTime(int iStatus, int iTxnType, double dRT)
 {
+	pid_t pid = syscall(SYS_gettid);
 	m_pMixLock->lock();
 	*(m_pfMix) << (long long) time(NULL) << "," << iTxnType << "," <<
-			iStatus << "," << dRT << "," << (long long) pthread_self() << endl;
+			iStatus << "," << dRT << "," << pid << endl;
 	m_pfMix->flush();
 	m_pMixLock->unlock();
 }

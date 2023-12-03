@@ -14,7 +14,7 @@ void CMarketWatchDB::DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
 		TMarketWatchFrame1Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< MWF1" << endl;
 	cout << pid << " - Market Watch Frame 1 (input)" << endl <<
 			pid << " -- acct_id: " << pIn->acct_id << endl <<

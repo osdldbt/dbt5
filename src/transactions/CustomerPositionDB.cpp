@@ -15,7 +15,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame1(
 		TCustomerPositionFrame1Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< CPF1" << endl;
 	cout << pid << " - Customer Position Frame 1 (input)" << endl <<
 			pid << " -- cust_id: " << pIn->cust_id << endl <<
@@ -74,7 +74,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 		TCustomerPositionFrame2Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< CPF2" << endl;
 	cout << pid << " - Customer Position Frame 2 (input)" << endl <<
 			pid << " -- cust_id: " << pIn->acct_id << endl;
@@ -109,7 +109,7 @@ void CCustomerPositionDB::DoCustomerPositionFrame2(
 void CCustomerPositionDB::DoCustomerPositionFrame3()
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< CPF3" << endl;
 #endif
 

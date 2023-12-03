@@ -12,6 +12,8 @@
 #define DB_CONNECTION_H
 
 #include <libpq-fe.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 
 #include "TxnHarnessStructs.h"
 #include "TxnHarnessSendToMarket.h"

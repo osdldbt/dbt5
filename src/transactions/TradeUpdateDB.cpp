@@ -14,7 +14,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
 		TTradeUpdateFrame1Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	int i;
 	cout << pid << " <<< TUF1" << endl;
 	cout << pid << " - Trade Update Frame 1 (input)" << endl <<
@@ -120,7 +120,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
 		TTradeUpdateFrame2Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< TUF2" << endl;
 	cout << pid << " - Trade Update Frame 2 (input)" << endl <<
 			pid << " -- acct_id: " << pIn->acct_id << endl <<
@@ -234,7 +234,7 @@ void CTradeUpdateDB::DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
 		TTradeUpdateFrame3Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< TUF3" << endl;
 	cout << pid << " - Trade Update Frame 3 (input)" << endl <<
 			pid << " -- end_trade_dts: " << pIn->end_trade_dts.year << "-" <<

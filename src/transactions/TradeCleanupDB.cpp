@@ -13,7 +13,7 @@
 void CTradeCleanupDB::DoTradeCleanupFrame1(const TTradeCleanupFrame1Input *pIn)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " - Trade Cleanup Frame 1 (input)" << endl <<
 			pid << " -- st_canceled_id: " << pIn->st_canceled_id << endl <<
 			pid << " -- st_pending_id: " << pIn->st_pending_id << endl <<

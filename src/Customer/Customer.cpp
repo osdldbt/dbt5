@@ -7,6 +7,9 @@
  * 03 August 2006
  */
 
+#include <unistd.h>
+#include <sys/syscall.h>
+
 #include "Customer.h"
 
 #include "CE.h"
@@ -19,13 +22,13 @@ CCustomer::CCustomer(const DataFileManager &inputFiles, char *szInDir,
 		char *outputDirectory, ofstream *m_fMix, CMutex *m_MixLock)
 : m_UniqueId(UniqueId), m_iPacingDelay(iPacingDelay)
 {
+	pid_t pid = syscall(SYS_gettid);
 	char filename[iMaxPath + 1];
-	snprintf(filename, iMaxPath, "%s/Customer_%lld.log", outputDirectory,
-			(long long) pthread_self());
+	snprintf(filename, iMaxPath, "%s/Customer_%lld.log", outputDirectory, pid);
 	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
 
 	snprintf(filename, iMaxPath, "%s/Customer_Error_%lld.log", outputDirectory,
-			(long long) pthread_self());
+			pid);
 	m_fLog.open(filename, ios::out);
 
 	// initialize CESUT interface

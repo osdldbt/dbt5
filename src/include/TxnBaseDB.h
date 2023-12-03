@@ -11,6 +11,9 @@
 #ifndef TXN_BASE_DB_H
 #define TXN_BASE_DB_H
 
+#include <unistd.h>
+#include <sys/syscall.h>
+
 #include <string>
 using namespace std;
 

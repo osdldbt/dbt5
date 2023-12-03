@@ -14,7 +14,7 @@ void CTradeLookupDB::DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
 		TTradeLookupFrame1Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	int i;
 	cout << pid << " <<< TLF1" << endl;
 	cout << pid << " - Trade Lookup Frame 1 (input)" << endl <<
@@ -118,7 +118,7 @@ void CTradeLookupDB::DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
 		TTradeLookupFrame2Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< TLF2" << endl;
 	cout << pid << " - Trade Lookup Frame 2 (input)" << endl <<
 			pid << " -- acct_id: " << pIn->acct_id << endl <<
@@ -226,7 +226,7 @@ void CTradeLookupDB::DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
 		TTradeLookupFrame3Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< TLF3" << endl;
 	cout << pid << " - Trade Lookup Frame 3 (input)" << endl <<
 			pid << " -- trade_dts: " << pIn->end_trade_dts.year << "-" <<
@@ -355,7 +355,7 @@ void CTradeLookupDB::DoTradeLookupFrame4(const TTradeLookupFrame4Input *pIn,
 		TTradeLookupFrame4Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< TLF4" << endl;
 	cout << pid << " - Trade Lookup Frame 4 (input)" << endl <<
 			pid << " -- acct_id: " << pIn->acct_id << endl <<

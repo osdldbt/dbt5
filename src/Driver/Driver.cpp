@@ -7,6 +7,9 @@
  * 03 August 2006
  */
 
+#include <unistd.h>
+#include <sys/syscall.h>
+
 #include "DM.h"
 
 #include "Driver.h"
@@ -55,16 +58,17 @@ CDriver::CDriver(const DataFileManager& inputFiles, char *szInDir,
 			&m_LogLock, &m_MixLock);
 
 	// initialize DM - Data Maintenance
+	pid_t pid = syscall(SYS_gettid);
 	if (iSeed == 0) {
 		m_pCDM = new CDM(m_pCDMSUT, m_pLog, inputFiles,
 				iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
-				iDaysOfInitialTrades, pthread_self());
+				iDaysOfInitialTrades, pid);
 	} else {
 		// Specifying the random number generator seed is considered an
 		// invalid run.
 		m_pCDM = new CDM(m_pCDMSUT, m_pLog, inputFiles,
 				iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
-				iDaysOfInitialTrades, pthread_self(), iSeed);
+				iDaysOfInitialTrades, pid, iSeed);
 	}
 }
 
@@ -115,7 +119,8 @@ void *customerWorkerThread(void *data)
 		}
 	} while (time(NULL) < stop_time);
 
-	cout << "User thread # " << pthread_self() << " terminated." << endl;
+	pid_t pid = syscall(SYS_gettid);
+	cout << "User thread # " << pid << " terminated." << endl;
 
 	delete pThrParam;
 	return NULL;
@@ -228,9 +233,9 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 	}
 
 	// mark end of ramp-up
+	pid_t pid = syscall(SYS_gettid);
 	m_MixLock.lock();
-	m_fMix << (int) time(NULL) << ",START,,," <<
-			(long long) pthread_self() << endl;
+	m_fMix << (int) time(NULL) << ",START,,," << pid << endl;
 	m_MixLock.unlock();
 
 	logErrorMessage(">> End of ramp-up.\n\n");

@@ -117,7 +117,8 @@ CDBConnection::CDBConnection(const char *szHost, const char *szDBName,
 		strcat(szConnectStr, szDBPort);
 	}
 
-	sprintf(name, "%d", (int) pthread_self());
+	pid_t pid = syscall(SYS_gettid);
+	snprintf(name, sizeof(name), "%d", pid);
 	m_Conn = PQconnectdb(szConnectStr);
 }
 
@@ -172,20 +173,19 @@ PGresult *CDBConnection::exec(const char *sql, int nParams=0,
 			paramLengths, paramFormats, resultFormat);
 	ExecStatusType status = PQresultStatus(res);
 
+	pid_t pid = syscall(SYS_gettid);
 	ostringstream msg;
 	switch (status) {
 	case PGRES_FATAL_ERROR:
-		msg << time(NULL) << " " << pthread_self() << endl <<
-				"SQL: " << sql << endl <<
+		msg << time(NULL) << " " << pid << endl << "SQL: " << sql << endl <<
 				PQresultErrorMessage(res) << endl;
 		rollback();
 		throw msg.str().c_str();
 		break;
 	case PGRES_TUPLES_OK:
 		if (PQntuples(res) == 0) {
-			msg << time(NULL) << " " << pthread_self() << endl <<
-					"SQL: " << sql << endl <<
-					"NO RESULTS" << endl;
+			msg << time(NULL) << " " << pid << endl << "SQL: " << sql <<
+					endl << "NO RESULTS" << endl;
 			rollback();
 			throw msg.str().c_str();
 		}

@@ -15,7 +15,7 @@ void CSecurityDetailDB::DoSecurityDetailFrame1(
 		TSecurityDetailFrame1Output *pOut)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< SDF1" << endl;
 	cout << pid << " - Security Detail Frame 1 (input)" << endl <<
 			pid << " -- access_lob_flag: " << pIn->access_lob_flag << endl <<

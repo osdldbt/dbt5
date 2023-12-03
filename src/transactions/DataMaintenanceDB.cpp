@@ -14,7 +14,7 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 		const TDataMaintenanceFrame1Input *pIn)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< DMF1" << endl;
 	cout << pid << " - Data Maintenance Frame 1 (input)" << endl <<
 			pid << " -- c_id: " << pIn->c_id << endl <<

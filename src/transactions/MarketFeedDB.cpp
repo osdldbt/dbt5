@@ -16,7 +16,7 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 		CSendToMarketInterface *pMarketExchange)
 {
 #ifdef DEBUG
-	pthread_t pid = pthread_self();
+	pid_t pid = syscall(SYS_gettid);
 	cout << pid << " <<< MFF1" << endl;
 	cout << pid << " - Market Feed Frame 1 (input)" << endl <<
 			pid << " -- max_feed_len: " << max_feed_len << endl <<
