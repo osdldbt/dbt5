@@ -49,7 +49,6 @@ public:
 	int iUsers;
 	int iPacingDelay;
 	char outputDirectory[iMaxPath + 1];
-	CMutex m_MixLock;
 	CDMSUT *m_pCDMSUT;
 	CDM *m_pCDM;
 

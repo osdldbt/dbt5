@@ -88,7 +88,7 @@ private:
 	friend void *workerThread(void *);
 
 public:
-	CBrokerageHouse(const char *, const char *, const char *, const int,
+	CBrokerageHouse(const char[], const char *, const char *, const int,
 				char *);
 	~CBrokerageHouse();
 

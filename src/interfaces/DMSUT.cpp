@@ -10,9 +10,8 @@
 #include "DMSUT.h"
 
 // constructor
-CDMSUT::CDMSUT(char *addr, const int iListenPort, ofstream *pflog,
-		ofstream *pfmix, CMutex *pLogLock, CMutex *pMixLock)
-: CBaseInterface(addr, iListenPort, pflog, pfmix, pLogLock, pMixLock)
+CDMSUT::CDMSUT(char *outputDirectory, char *addr, const int iListenPort):
+		CBaseInterface("dm", outputDirectory, addr, iListenPort)
 {
 }
 

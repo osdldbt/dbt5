@@ -25,12 +25,8 @@ class CCustomer
 	CEGenLogger *m_pLog;
 	CCESUT * m_pCCESUT;
 	CCE * m_pCCE;
-	CMutex m_LogLock;
-	ofstream m_fLog; // error log file
 
 private:
-	void LogErrorMessage(const string);
-
 	friend void *CustomerWorkerThread(void *);
 	// entry point for driver worker thread
 	friend void EntryCustomerWorkerThread(void *, int);
@@ -42,7 +38,7 @@ public:
 			TIdent iActiveCustomerCount, INT32 iScaleFactor,
 			INT32 iDaysOfInitialTrades, UINT32 iSeed, char *szBHaddr,
 			int iBHlistenPort, UINT32 UniqueId, int iPacingDelay,
-			char *outputDirectory, ofstream *m_fMix, CMutex *m_MixLock);
+			char *outputDirectory);
 	~CCustomer();
 
 	void DoTxn();

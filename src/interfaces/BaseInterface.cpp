@@ -13,18 +13,26 @@
 #include "BaseInterface.h"
 #include "DBT5Consts.h"
 
-CBaseInterface::CBaseInterface(char *addr, const int iListenPort,
-		ofstream *pflog, ofstream *pfmix, CMutex *pLogLock,
-		CMutex *pMixLock)
-: m_szBHAddress(addr),
-  m_iBHlistenPort(iListenPort),
-  m_pLogLock(pLogLock),
-  m_pMixLock(pMixLock),
-  m_pfLog(pflog),
-  m_pfMix(pfmix)
+CBaseInterface::CBaseInterface(const char type[3], char *outputDirectory,
+		char *addr, const int iListenPort): m_szBHAddress(addr),
+				m_iBHlistenPort(iListenPort)
 {
+	m_pid = syscall(SYS_gettid);
+
 	sock = new CSocket(m_szBHAddress, m_iBHlistenPort);
 	biConnect();
+
+	char filename[iMaxPath + 1];
+
+	memset(filename, 0, sizeof(filename));
+	snprintf(filename, iMaxPath, "%s/mix-%s-%d.log", outputDirectory, type,
+			m_pid);
+	m_fMix.open(filename, ios::out);
+
+	memset(filename, 0, sizeof(filename));
+	snprintf(filename, iMaxPath, "%s/error-%s-%d.log", outputDirectory, type,
+			m_pid);
+	m_fLog.open(filename, ios::out);
 }
 
 // destructor
@@ -32,6 +40,8 @@ CBaseInterface::~CBaseInterface()
 {
 	biDisconnect();
 	delete sock;
+
+	m_fMix.close();
 }
 
 // connect to BrokerageHouse
@@ -88,9 +98,8 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 		sock->dbt5Reconnect();
 		logResponseTime(-1, 0, -1);
 
-		pid_t pid = syscall(SYS_gettid);
 		ostringstream msg;
-		msg << time(NULL) << " " << pid << " " <<
+		msg << time(NULL) << " " << m_pid << " " <<
 				szTransactionName[pRequest->TxnType] << ": " << endl <<
 				"Error sending " << length << " bytes of data" << endl <<
 				pErr->ErrorText() << endl;
@@ -104,9 +113,8 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 	} catch(CSocketErr *pErr) {
 		logResponseTime(-1, 0, -2);
 
-		pid_t pid = syscall(SYS_gettid);
 		ostringstream msg;
-		msg << time(NULL) << " " << pid << " " <<
+		msg << time(NULL) << " " << m_pid << " " <<
 				szTransactionName[pRequest->TxnType] << ": " << endl <<
 				"Error receiving " << length << " bytes of data" << endl <<
 				pErr->ErrorText() << endl;
@@ -136,20 +144,15 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 // Log Transaction Response Times
 void CBaseInterface::logResponseTime(int iStatus, int iTxnType, double dRT)
 {
-	pid_t pid = syscall(SYS_gettid);
-	m_pMixLock->lock();
-	*(m_pfMix) << (long long) time(NULL) << "," << iTxnType << "," <<
-			iStatus << "," << dRT << "," << pid << endl;
-	m_pfMix->flush();
-	m_pMixLock->unlock();
+	m_fMix << (long long) time(NULL) << "," << iTxnType << "," <<
+			iStatus << "," << dRT << "," << m_pid << endl;
+	m_fMix.flush();
 }
 
 // logErrorMessage
 void CBaseInterface::logErrorMessage(const string sErr)
 {
-	m_pLogLock->lock();
-	cout << sErr;
-	*(m_pfLog) << sErr;
-	m_pfLog->flush();
-	m_pLogLock->unlock();
+	cerr << sErr;
+	m_fLog << sErr;
+	m_fLog.flush();
 }

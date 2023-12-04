@@ -25,10 +25,9 @@ private:
 	TMarketFeedTxnInput m_MarketFeedTxnInput;
 
 public:
-	CMEESUT(char *addr, const int iListenPort, ofstream *pflog, ofstream *pfmix,
-			CMutex *pLogLock, CMutex *pMixLock) :
-			CBaseInterface(addr, iListenPort, pflog, pfmix, pLogLock,
-			pMixLock) , m_SocketLock() {};
+	CMEESUT(char *outputDirectory, char *addr, const int iListenPort):
+			CBaseInterface("me", outputDirectory, addr, iListenPort),
+					m_SocketLock() {};
 	~CMEESUT() {};
 
 	CMutex m_SocketLock;

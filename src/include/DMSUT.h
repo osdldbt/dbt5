@@ -20,7 +20,7 @@ using namespace TPCE;
 class CDMSUT : public CDMSUTInterface, public CBaseInterface
 {
 public:
-	CDMSUT(char *, const int, ofstream *, ofstream *, CMutex *, CMutex *);
+	CDMSUT(char *, char *, const int);
 	~CDMSUT(void);
 
 	// return whether it was successful

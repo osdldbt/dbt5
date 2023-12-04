@@ -19,9 +19,7 @@ using namespace TPCE;
 #define ERR_TYPE_THREAD		14		// thread error
 #define ERR_TYPE_PQXX		15		// libpqxx error
 #define ERR_TYPE_WRONGTXN	16		// wrong txn type
-#define ERROR_LOG_NAME 		"error.log"
-#define CE_MIX_LOG_NAME		"ce_mix.log"
-#define MEE_MIX_LOG_NAME	"mee_mix.log"
+#define CE_MIX_LOG_NAME		"mix-dr.log"
 
 class CSocketErr : public CBaseErr
 {

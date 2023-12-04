@@ -35,11 +35,9 @@ void *MarketWorkerThread(void* data)
 				break;
 			}
 
-			ostringstream osErr;
-			osErr << time(NULL) <<
-					" Trade Request not submitted to Market Exchange" << endl <<
-					"Error: "<<pErr->ErrorText() << endl;
-			pThrParam->pMarketExchange->logErrorMessage(osErr.str());
+			cerr << time(NULL) <<
+					" Trade Request not submitted to Market Exchange" <<
+					endl << "Error: "<<pErr->ErrorText() << endl;
 			delete pErr;
 
 			// The socket is closed, break and let this thread die.
@@ -85,11 +83,9 @@ void EntryMarketWorkerThread(void *data)
 		// close recently accepted connection, to release threads
 		close(pThrParam->iSockfd);
 
-		ostringstream osErr;
-		osErr << "Error: " << pErr->ErrorText() <<
+		cerr << "Error: " << pErr->ErrorText() <<
 			" at MarketExchange::entryMarketWorkerThread" << endl <<
 			"accepted socket connection closed" << endl;
-		pThrParam->pMarketExchange->logErrorMessage(osErr.str());
 		delete pErr;
 	}
 }
@@ -105,15 +101,8 @@ CMarketExchange::CMarketExchange(const DataFileManager &inputFiles,
 	snprintf(filename, iMaxPath, "%s/MarketExchange.log", outputDirectory);
 	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
 
-	snprintf(filename, iMaxPath, "%s/MarketExchange_Error.log",
-			outputDirectory);
-	m_fLog.open(filename, ios::out);
-	snprintf(filename, iMaxPath, "%s/%s", outputDirectory, MEE_MIX_LOG_NAME);
-	m_fMix.open(filename, ios::out);
-
 	// Initialize MEESUT
-	m_pCMEESUT = new CMEESUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix,
-			&m_LogLock, &m_MixLock);
+	m_pCMEESUT = new CMEESUT(outputDirectory, szBHaddr, iBHlistenPort);
 
 	// Initialize MEE
 	m_pCMEE = new CMEE(0, m_pCMEESUT, m_pLog, inputFiles, UniqueId);
@@ -125,10 +114,6 @@ CMarketExchange::~CMarketExchange()
 {
 	delete m_pCMEE;
 	delete m_pCMEESUT;
-
-	m_fMix.close();
-	m_fLog.close();
-
 	delete m_pLog;
 }
 
@@ -155,21 +140,10 @@ void CMarketExchange::startListener(void)
 			// call entry point
 			EntryMarketWorkerThread(reinterpret_cast<void*>(pThrParam));
 		} catch(CSocketErr *pErr) {
-			ostringstream osErr;
-			osErr << "Problem to accept socket connection" << endl <<
+			cerr << "Problem to accept socket connection" << endl <<
 					"Error: " << pErr->ErrorText() << " at " <<
 					"MarketExchange::startListener" << endl;
-			logErrorMessage(osErr.str());
 			delete pErr;
 		}
 	}
-}
-
-void CMarketExchange::logErrorMessage(const string sErr)
-{
-	m_LogLock.lock();
-	cout << sErr;
-	m_fLog << sErr;
-	m_fLog.flush();
-	m_LogLock.unlock();
 }

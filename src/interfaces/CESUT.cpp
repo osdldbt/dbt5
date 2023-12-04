@@ -10,9 +10,8 @@
 #include "CESUT.h"
 
 // Constructor
-CCESUT::CCESUT(char* addr, const int iListenPort, ofstream* pflog,
-		ofstream* pfmix, CMutex* pLogLock, CMutex* pMixLock)
-: CBaseInterface(addr, iListenPort, pflog, pfmix, pLogLock, pMixLock)
+CCESUT::CCESUT(char *outputDirectory, char* addr, const int iListenPort):
+		CBaseInterface("ce", outputDirectory, addr, iListenPort)
 {
 }
 

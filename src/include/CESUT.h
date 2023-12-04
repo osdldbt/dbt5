@@ -22,8 +22,7 @@ class CCESUT : public CCESUTInterface, public CBaseInterface
 {
 public:
 
-	CCESUT(char* addr, const int iListenPort, ofstream* pflog, ofstream* pfmix,
-			CMutex* pLogLock, CMutex* pMixLock);
+	CCESUT(char *, char *, const int);
 	~CCESUT(void);
 
 	// return whether it was successful

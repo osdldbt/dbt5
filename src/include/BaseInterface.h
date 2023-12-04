@@ -25,19 +25,18 @@ protected:
 
 	char *m_szBHAddress;
 	int m_iBHlistenPort;
-	CMutex *m_pLogLock;
-	CMutex *m_pMixLock;
-	ofstream *m_pfLog; // error log file
-	ofstream *m_pfMix; // mix log file
 
 private:
 	CSocket	*sock;
+	pid_t m_pid;
+	ofstream m_fLog; // error log file
+	ofstream m_fMix; // mix log file
+
 	void logResponseTime(int, int, double);
 	
 public:
 
-	CBaseInterface(char *, const int, ofstream *, ofstream *, CMutex *,
-			CMutex *);
+	CBaseInterface(const char *, char *, char *, const int);
 	~CBaseInterface(void);
 	bool biConnect();
 	bool biDisconnect();

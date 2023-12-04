@@ -451,6 +451,7 @@ int main(int argc, char* argv[])
 	ofstream m_fMix;
 	CMutex m_LogLock;
 	CMutex m_MixLock;
+	char outputDirectory[2] = ".";
 
 	if (!ParseCommandLine(argc, argv))
 	{
@@ -472,8 +473,7 @@ int main(int argc, char* argv[])
 	if (strlen(szBHaddr) != 0) {
 		m_fLog.open("test.log", ios::out);
 		m_fMix.open("test-mix.log", ios::out);
-		m_pCCESUT = new CCESUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix,
-				&m_LogLock, &m_MixLock);
+		m_pCCESUT = new CCESUT(outputDirectory, szBHaddr, iBHlistenPort);
 	}
 
 	try {
@@ -483,7 +483,7 @@ int main(int argc, char* argv[])
 		// initialize Input Generator
 		//
 		CLogFormatTab fmt;
-		CEGenLogger log(eDriverEGenLoader, 0, "TxnTest.log", &fmt);
+		CEGenLogger log(eDriverEGenLoader, 0, "TestTxn.log", &fmt);
 	
 	const DataFileManager inputFiles(szInDir, iConfiguredCustomerCount,
 			iActiveCustomerCount, TPCE::DataFileManager::IMMEDIATE_LOAD);

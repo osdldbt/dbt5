@@ -54,8 +54,7 @@ CDriver::CDriver(const DataFileManager& inputFiles, char *szInDir,
 	cout << "initializing data maintenance..." << endl;
 
 	// initialize DMSUT interface
-	m_pCDMSUT = new CDMSUT(szBHaddr, iBHlistenPort, &m_fLog, &m_fMix,
-			&m_LogLock, &m_MixLock);
+	m_pCDMSUT = new CDMSUT(outputDirectory, szBHaddr, iBHlistenPort);
 
 	// initialize DM - Data Maintenance
 	pid_t pid = syscall(SYS_gettid);
@@ -99,9 +98,7 @@ void *customerWorkerThread(void *data)
 			pThrParam->pDriver->iBHlistenPort,
 			pThrParam->UniqueId,
 			pThrParam->pDriver->iPacingDelay,
-			pThrParam->pDriver->outputDirectory,
-			&pThrParam->pDriver->m_fMix,
-			&pThrParam->pDriver->m_MixLock);
+			pThrParam->pDriver->outputDirectory);
 	do {
 		customer->DoTxn();
 
@@ -161,7 +158,6 @@ CDriver::~CDriver()
 	delete m_pCDM;
 	delete m_pCDMSUT;
 
-	m_fMix.close();
 	m_fLog.close();
 
 	delete m_pDriverCETxnSettings;
@@ -202,7 +198,7 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 	dtAux.AddMinutes((iTestDuration + threads_start_time)/60);
 	cout << "Estimated end time " << dtAux.ToStr(02) << endl;
 
-	logErrorMessage(">> Start of ramp-up.\n");
+	cout << ">> Start of ramp-up." << endl;
 
 	// start thread that runs the Data Maintenance transaction
 	entryDMWorkerThread(this);
@@ -212,7 +208,6 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 		PCustomerThreadParam pThrParam = new TCustomerThreadParam;
 
 		// zero the structure
-		memset(pThrParam, 0, sizeof(TCustomerThreadParam));
 		pThrParam->UniqueId = i;
 		pThrParam->pDriver = this;
 
@@ -234,11 +229,9 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 
 	// mark end of ramp-up
 	pid_t pid = syscall(SYS_gettid);
-	m_MixLock.lock();
 	m_fMix << (int) time(NULL) << ",START,,," << pid << endl;
-	m_MixLock.unlock();
 
-	logErrorMessage(">> End of ramp-up.\n\n");
+	cout << ">> End of ramp-up." << endl;
 
 	// wait until all threads quit
 	// 0 represents the Data-Maintenance thread
@@ -272,7 +265,7 @@ void *dmWorkerThread(void *data)
 			sleep(remaining);
 	} while (end_time < stop_time);
 
-	pThrParam->pDriver->logErrorMessage("Data-Maintenance thread stopped.\n");
+	cout << "Data-Maintenance thread stopped." << endl;
 	delete pThrParam;
 
 	return NULL;
@@ -282,7 +275,6 @@ void *dmWorkerThread(void *data)
 void entryDMWorkerThread(CDriver *ptr)
 {
 	PCustomerThreadParam pThrParam = new TCustomerThreadParam;
-	memset(pThrParam, 0, sizeof(TCustomerThreadParam)); // zero the structure
 	pThrParam->pDriver = ptr;
 
 	pthread_attr_t threadAttribute; // thread attribute

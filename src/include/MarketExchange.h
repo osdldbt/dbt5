@@ -29,10 +29,6 @@ private:
 	CEGenLogger *m_pLog;
 	CMEESUT *m_pCMEESUT;
 	CSecurityFile *m_pSecurities;
-	CMutex m_LogLock;
-	CMutex m_MixLock;
-	ofstream m_fLog; // error log file
-	ofstream m_fMix; // mix log file
 
 	friend void *marketWorkerThread(void *);
 	// entry point for driver worker thread
@@ -44,7 +40,6 @@ public:
 	CMarketExchange(const DataFileManager &, char *, UINT32, TIdent, TIdent, int, char *, int, char *);
 	~CMarketExchange();
 
-	void logErrorMessage(const string);
 	void startListener(void);
 };
 
