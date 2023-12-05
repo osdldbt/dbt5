@@ -17,7 +17,6 @@ Usage:
 
 Options:
   --build-only   Do not patch TPC-E Tools before building
-  --debug        Build with -DDEBUG
   --include-dir=DIRECTORY
                  DIRECTORY of any custom code to build with TPC-E Tools
   --patch-dir=DIRECTORY
@@ -35,7 +34,6 @@ errormsg() {
 	echo "for more information."
 }
 
-DEBUGFLAG=""
 PATCH=1
 INCLUDEDIR="-I/usr/local/include/dbt5"
 SOURCEDIR="/usr/local/share/dbt5"
@@ -52,9 +50,6 @@ while [ "${#}" -gt 0 ] ; do
 	case "${1}" in
 	(--build-only)
 		PATCH=0
-		;;
-	(--debug)
-		DEBUGFLAG="-DDEBUG"
 		;;
 	(--include-dir)
 		shift
@@ -146,7 +141,7 @@ fi
 
 (cd "${EGENDIR}/prj" && \
 		make -f Makefile clean && \
-		CCFLAGS="-Wall -D__unix -g -std=c++98 -ansi ${DEBUGFLAG} -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D_LARGEFILE64_SOURCE -DCOMPILE_CUSTOM_LOAD -DPGSQL -I${EGENDIR}/inc ${INCLUDEDIR} -I${EGENDIR}/Utilities/inc" \
+		CCFLAGS="-Wall -D__unix -g -std=c++98 -ansi -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D_LARGEFILE64_SOURCE -DCOMPILE_CUSTOM_LOAD -DPGSQL -I${EGENDIR}/inc ${INCLUDEDIR} -I${EGENDIR}/Utilities/inc" \
 		LDFLAGS="-lpthread -lpq" \
 		make -j$(nproc) -f Makefile) \
 		|| (echo "ERROR: cannot build egen" && exit 1)

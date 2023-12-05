@@ -17,8 +17,12 @@ using namespace TPCE;
  
 class CBrokerVolumeDB : public CTxnBaseDB, public CBrokerVolumeDBInterface
 {
+private:
+	bool m_Verbose;
+	pid_t m_pid;
+
 public:
-	CBrokerVolumeDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	CBrokerVolumeDB(CDBConnection *, bool);
 	~CBrokerVolumeDB() {};
 
 	virtual void DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,

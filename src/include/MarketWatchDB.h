@@ -16,8 +16,12 @@
  
 class CMarketWatchDB : public CTxnBaseDB, public CMarketWatchDBInterface
 {
+private:
+	bool m_Verbose;
+	pid_t m_pid;
+
 public:
-	CMarketWatchDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	CMarketWatchDB(CDBConnection *, bool);
 	~CMarketWatchDB() {};
 
 	virtual void DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,

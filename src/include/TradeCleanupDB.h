@@ -16,8 +16,12 @@
  
 class CTradeCleanupDB : public CTxnBaseDB, public CTradeCleanupDBInterface
 {
+private:
+	bool m_Verbose;
+	pid_t m_pid;
+
 public:
-	CTradeCleanupDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	CTradeCleanupDB(CDBConnection *, bool);
 	~CTradeCleanupDB() {};
 
 	virtual void DoTradeCleanupFrame1(const TTradeCleanupFrame1Input *pIn);

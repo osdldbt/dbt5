@@ -18,8 +18,12 @@ using namespace TPCE;
 
 class CTradeLookupDB : public CTxnBaseDB, public CTradeLookupDBInterface
 {
+private:
+	bool m_Verbose;
+	pid_t m_pid;
+
 public:
-	CTradeLookupDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	CTradeLookupDB(CDBConnection *, bool);
 	~CTradeLookupDB() {};
 
 	virtual void DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,

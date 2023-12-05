@@ -10,25 +10,30 @@
 
 #include "MarketFeedDB.h"
 
+CMarketFeedDB::CMarketFeedDB(CDBConnection *pDBConn, bool verbose=false):
+		CTxnBaseDB(pDBConn), m_Verbose(verbose)
+{
+	m_pid = syscall(SYS_gettid);
+}
+
 // Call Market Feed Frame 1
 void CMarketFeedDB::DoMarketFeedFrame1(
 		const TMarketFeedFrame1Input *pIn, TMarketFeedFrame1Output *pOut,
 		CSendToMarketInterface *pMarketExchange)
 {
-#ifdef DEBUG
-	pid_t pid = syscall(SYS_gettid);
-	cout << pid << " <<< MFF1" << endl;
-	cout << pid << " - Market Feed Frame 1 (input)" << endl <<
-			pid << " -- max_feed_len: " << max_feed_len << endl <<
-			pid << " -- status_submitted: " <<
-					pIn->StatusAndTradeType.status_submitted << endl <<
-			pid << " -- type_limit_buy: " <<
-					pIn->StatusAndTradeType.type_limit_buy << endl <<
-			pid << " -- type_limit_sell: " <<
-					pIn->StatusAndTradeType.type_limit_sell << endl <<
-			pid << " -- type_stop_loss: " <<
-					pIn->StatusAndTradeType.type_stop_loss << endl;
-#endif // DEBUG
+	if (m_Verbose) {
+		cout << m_pid << " <<< MFF1" << endl <<
+				m_pid << " - Market Feed Frame 1 (input)" << endl <<
+				m_pid << " -- max_feed_len: " << max_feed_len << endl <<
+				m_pid << " -- status_submitted: " <<
+						pIn->StatusAndTradeType.status_submitted << endl <<
+				m_pid << " -- type_limit_buy: " <<
+						pIn->StatusAndTradeType.type_limit_buy << endl <<
+				m_pid << " -- type_limit_sell: " <<
+						pIn->StatusAndTradeType.type_limit_sell << endl <<
+				m_pid << " -- type_stop_loss: " <<
+						pIn->StatusAndTradeType.type_stop_loss << endl;
+	}
 
 	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
@@ -36,9 +41,9 @@ void CMarketFeedDB::DoMarketFeedFrame1(
 	execute(pIn, pOut, pMarketExchange);
 	commitTransaction();
 	
-#ifdef DEBUG
-	cout << pid << " - Market Feed Frame 1 (output)" << endl <<
-			pid << " -- send_len: " << pOut->send_len << endl <<
-	cout << pid << " >>> MFF1" << endl;
-#endif // DEBUG
+	if (m_Verbose) {
+		cout << m_pid << " - Market Feed Frame 1 (output)" << endl <<
+				m_pid << " -- send_len: " << pOut->send_len << endl <<
+				m_pid << " >>> MFF1" << endl;
+	}
 }

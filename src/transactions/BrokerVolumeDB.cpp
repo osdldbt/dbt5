@@ -9,20 +9,24 @@
 
 #include "BrokerVolumeDB.h"
 
+CBrokerVolumeDB::CBrokerVolumeDB(CDBConnection *pDBConn, bool verbose=false)
+		: CTxnBaseDB(pDBConn), m_Verbose(verbose)
+{
+	m_pid = syscall(SYS_gettid);
+}
+
 // Call Broker Volume Frame 1
 void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 		TBrokerVolumeFrame1Output *pOut)
 {
-#ifdef DEBUG
-	pid_t pid = syscall(SYS_gettid);
-	int i;
-	cout << pid << " <<< BVF1" << endl;
-	cout << pid << " - Broker Volume Frame 1 (input)" << endl;
-	for (i = 0; i < max_broker_list_len; i++)
-		cout << pid << " -- broker_list[" << i << "]: " <<
-				pIn->broker_list[i] << endl;
-	cout << pid << " -- sector name: " << pIn->sector_name << endl;
-#endif // DEBUG
+	if (m_Verbose) {
+		cout << m_pid << " <<< BVF1" << endl <<
+				m_pid << " - Broker Volume Frame 1 (input)" << endl;
+		for (int i = 0; i < max_broker_list_len; i++)
+			cout << m_pid << " -- broker_list[" << i << "]: " <<
+					pIn->broker_list[i] << endl;
+		cout << m_pid << " -- sector name: " << pIn->sector_name << endl;
+	}
 
 	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
@@ -30,14 +34,15 @@ void CBrokerVolumeDB::DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input *pIn,
 	execute(pIn, pOut);
 	commitTransaction();
 
-#ifdef DEBUG
-	cout << pid << " - Broker Volume Frame 1 (output)" << endl <<
-			pid << " -- list_len: " << pOut->list_len << endl;
-	for (i = 0; i < pOut->list_len; i ++) {
-		cout << pid << " -- broker_name[" << i << "]: " <<
-						pOut->broker_name[i] << endl <<
-				pid << " -- volume[" << i << "]: " << pOut->volume[i] << endl;
+	if (m_Verbose) {
+		cout << m_pid << " - Broker Volume Frame 1 (output)" << endl <<
+				m_pid << " -- list_len: " << pOut->list_len << endl;
+		for (int i = 0; i < pOut->list_len; i ++) {
+			cout << m_pid << " -- broker_name[" << i << "]: " <<
+							pOut->broker_name[i] << endl <<
+					m_pid << " -- volume[" << i << "]: " <<
+							pOut->volume[i] << endl;
+		}
+		cout << m_pid << " >>> BVF1" << endl;
 	}
-	cout << pid << " >>> BVF1" << endl;
-#endif // DEBUG
 }

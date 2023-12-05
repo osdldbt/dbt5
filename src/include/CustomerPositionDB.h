@@ -19,8 +19,12 @@ using namespace TPCE;
 class CCustomerPositionDB : public CTxnBaseDB,
 		public CCustomerPositionDBInterface
 {
+private:
+	bool m_Verbose;
+	pid_t m_pid;
+
 public:
-	CCustomerPositionDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	CCustomerPositionDB(CDBConnection *, bool);
 	~CCustomerPositionDB() {};
 
 	virtual void DoCustomerPositionFrame1(

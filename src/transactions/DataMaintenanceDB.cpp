@@ -9,22 +9,27 @@
 
 #include "DataMaintenanceDB.h"
 
+CDataMaintenanceDB::CDataMaintenanceDB(CDBConnection *pDBConn,
+		bool verbose=false): CTxnBaseDB(pDBConn), m_Verbose(verbose)
+{
+	m_pid = syscall(SYS_gettid);
+}
+
 // Call Data Maintenance Frame 1
 void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 		const TDataMaintenanceFrame1Input *pIn)
 {
-#ifdef DEBUG
-	pid_t pid = syscall(SYS_gettid);
-	cout << pid << " <<< DMF1" << endl;
-	cout << pid << " - Data Maintenance Frame 1 (input)" << endl <<
-			pid << " -- c_id: " << pIn->c_id << endl <<
-			pid << " -- co_id: " << pIn->co_id << endl <<
-			pid << " -- day_of_month: " << pIn->day_of_month << endl <<
-			pid << " -- symbol: " << pIn->symbol << endl <<
-			pid << " -- table_name: " << pIn->table_name << endl <<
-			pid << " -- tx_id name: " << pIn->tx_id << endl <<
-			pid << " -- vol_incr: " << pIn->vol_incr << endl;
-#endif // DEBUG
+	if (m_Verbose) {
+		cout << m_pid << " <<< DMF1" << endl <<
+				m_pid << " - Data Maintenance Frame 1 (input)" << endl <<
+				m_pid << " -- c_id: " << pIn->c_id << endl <<
+				m_pid << " -- co_id: " << pIn->co_id << endl <<
+				m_pid << " -- day_of_month: " << pIn->day_of_month << endl <<
+				m_pid << " -- symbol: " << pIn->symbol << endl <<
+				m_pid << " -- table_name: " << pIn->table_name << endl <<
+				m_pid << " -- tx_id name: " << pIn->tx_id << endl <<
+				m_pid << " -- vol_incr: " << pIn->vol_incr << endl;
+	}
 
 	startTransaction();
 	// Isolation level required by Clause 7.4.1.3
@@ -32,8 +37,8 @@ void CDataMaintenanceDB::DoDataMaintenanceFrame1(
 	execute(pIn);
 	commitTransaction();
 
-#ifdef DEBUG
-	cout << pid << " - Data Maintenance Frame 1 (output)" << endl;
-	cout << pid << " >>> DMF1" << endl;
-#endif // DEBUG
+	if (m_Verbose) {
+		cout << m_pid << " - Data Maintenance Frame 1 (output)" << endl <<
+				m_pid << " >>> DMF1" << endl;
+	}
 }

@@ -13,6 +13,7 @@
 
 // Establish defaults for command line option
 int iListenPort = iBrokerageHousePort;
+bool verbose = false;
 
 char szHost[iMaxHostname + 1] = "";
 char szDBName[iMaxDBName + 1] = "";
@@ -30,6 +31,7 @@ void usage()
  	printf("   -l integer  %-9d  Socket listen port\n", iListenPort);
  	cout << "   -o string   .          Output directory" << endl;
  	cout << "   -p integer             Database port" << endl;
+	cout << "   -v                     Verbose output" << endl;
 	cout << endl;
 }
 
@@ -84,6 +86,9 @@ void parse_command_line(int argc, char *argv[])
 		case 'l':
 			iListenPort = atoi(vp);
 			break;
+		case 'v':
+			verbose = true;
+			break;
 		default:
 			usage();
 			cout << endl << "Error: Unrecognized option: " << sp << endl;
@@ -107,7 +112,7 @@ int main(int argc, char *argv[])
 	cout << "Database name: " << szDBName << endl;
 
 	CBrokerageHouse	BrokerageHouse(szHost, szDBName, szDBPort, iListenPort,
-			outputDirectory);
+			outputDirectory, verbose);
 	cout << "Brokerage House opened for business, waiting for traders..."
 			<< endl;
 	try {

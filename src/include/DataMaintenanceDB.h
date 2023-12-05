@@ -16,8 +16,12 @@
  
 class CDataMaintenanceDB : public CTxnBaseDB, public CDataMaintenanceDBInterface
 {
+private:
+	bool m_Verbose;
+	pid_t m_pid;
+
 public:
-	CDataMaintenanceDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	CDataMaintenanceDB(CDBConnection *, bool);
 	~CDataMaintenanceDB() {};
 
 	void DoDataMaintenanceFrame1(const TDataMaintenanceFrame1Input *pIn);

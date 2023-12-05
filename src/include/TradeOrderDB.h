@@ -18,8 +18,12 @@ using namespace TPCE;
 
 class CTradeOrderDB : public CTxnBaseDB, public CTradeOrderDBInterface
 {
+private:
+	bool m_Verbose;
+	pid_t m_pid;
+
 public:
-	CTradeOrderDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	CTradeOrderDB(CDBConnection *, bool);
 	~CTradeOrderDB() {};
 
 	virtual void DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,

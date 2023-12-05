@@ -16,8 +16,12 @@
 
 class CMarketFeedDB : public CTxnBaseDB, public CMarketFeedDBInterface
 {
+private:
+	bool m_Verbose;
+	pid_t m_pid;
+
 public:
-	CMarketFeedDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	CMarketFeedDB(CDBConnection *, bool);
 	~CMarketFeedDB() {};
 
 	virtual void DoMarketFeedFrame1(const TMarketFeedFrame1Input *pIn,

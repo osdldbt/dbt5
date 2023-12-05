@@ -212,7 +212,7 @@ INT32 TradeOrder(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 
 	// trade order harness code (TPC provided)
 	// this class uses our implementation of CTradeOrderDB class
-	CTradeOrderDB m_TradeOrderDB(pConn);
+	CTradeOrderDB m_TradeOrderDB(pConn, true);
 	CTradeOrder m_TradeOrder(&m_TradeOrderDB, &m_pSendToMarket);
 
 	// trade order input/output parameters
@@ -242,7 +242,7 @@ INT32 TradeStatus(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator
 {
 	// trade status harness code (TPC provided)
 	// this class uses our implementation of CTradeStatusDB class
-	CTradeStatusDB m_TradeStatusDB(pConn);
+	CTradeStatusDB m_TradeStatusDB(pConn, true);
 	CTradeStatus m_TradeStatus(&m_TradeStatusDB);
 
 	// trade status input/output parameters
@@ -268,7 +268,7 @@ INT32 TradeLookup(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator
 {
 	// trade lookup harness code (TPC provided)
 	// this class uses our implementation of CTradeLookupDB class
-	CTradeLookupDB m_TradeLookupDB(pConn);
+	CTradeLookupDB m_TradeLookupDB(pConn, true);
 	CTradeLookup m_TradeLookup(&m_TradeLookupDB);
 
 	// trade lookup input/output parameters
@@ -294,7 +294,7 @@ INT32 TradeUpdate(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator
 {
 	// trade update harness code (TPC provided)
 	// this class uses our implementation of CTradeUpdateDB class
-	CTradeUpdateDB m_TradeUpdateDB(pConn);
+	CTradeUpdateDB m_TradeUpdateDB(pConn, true);
 	CTradeUpdate m_TradeUpdate(&m_TradeUpdateDB);
 
 	// trade update input/output parameters
@@ -321,7 +321,7 @@ INT32 CustomerPosition(CDBConnection* pConn,
 {
 	// customer position harness code (TPC provided)
 	// this class uses our implementation of CCustomerPositionDB class
-	CCustomerPositionDB m_CustomerPositionDB(pConn);
+	CCustomerPositionDB m_CustomerPositionDB(pConn, true);
 	CCustomerPosition m_CustomerPosition(&m_CustomerPositionDB);
 
 	// customer position input/output parameters
@@ -350,7 +350,7 @@ INT32 BrokerVolume(CDBConnection* pConn,
 {
 	// Broker Volume harness code (TPC provided)
 	// this class uses our implementation of CBrokerVolumeDB class
-	CBrokerVolumeDB m_BrokerVolumeDB(pConn);
+	CBrokerVolumeDB m_BrokerVolumeDB(pConn, true);
 	CBrokerVolume m_BrokerVolume(&m_BrokerVolumeDB);
 
 	// broker volume input/output parameters
@@ -377,7 +377,7 @@ INT32 SecurityDetail(CDBConnection* pConn,
 {
 	// Security Detail harness code (TPC provided)
 	// this class uses our implementation of CSecurityDetailDB class
-	CSecurityDetailDB m_SecurityDetailDB(pConn);
+	CSecurityDetailDB m_SecurityDetailDB(pConn, true);
 	CSecurityDetail m_SecurityDetail(&m_SecurityDetailDB);
 
 	// security detail input/output parameters
@@ -404,7 +404,7 @@ INT32 MarketWatch(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator
 {
 	// Market Watch harness code (TPC provided)
 	// this class uses our implementation of CMarketWatchDB class
-	CMarketWatchDB m_MarketWatchDB(pConn);
+	CMarketWatchDB m_MarketWatchDB(pConn, true);
 	CMarketWatch m_MarketWatch(&m_MarketWatchDB);
 
 	// Market Watch input/output parameters

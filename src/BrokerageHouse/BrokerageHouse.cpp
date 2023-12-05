@@ -47,31 +47,43 @@ void *workerThread(void *data)
 		pDBConnection->setBrokerageHouse(pThrParam->pBrokerageHouse);
 		CSendToMarket sendToMarket = CSendToMarket(
 				&(pThrParam->pBrokerageHouse->m_fLog));
-		CMarketFeedDB marketFeedDB(pDBConnection);
+		CMarketFeedDB marketFeedDB(pDBConnection,
+				pThrParam->pBrokerageHouse->verbose());
 		CMarketFeed marketFeed = CMarketFeed(&marketFeedDB, &sendToMarket);
-		CTradeOrderDB tradeOrderDB(pDBConnection);
+		CTradeOrderDB tradeOrderDB(pDBConnection,
+				pThrParam->pBrokerageHouse->verbose());
 		CTradeOrder tradeOrder = CTradeOrder(&tradeOrderDB, &sendToMarket);
 
 		// Initialize all classes that will be used to execute transactions.
-		CBrokerVolumeDB brokerVolumeDB(pDBConnection);
+		CBrokerVolumeDB brokerVolumeDB(pDBConnection,
+				pThrParam->pBrokerageHouse->verbose());
 		CBrokerVolume brokerVolume = CBrokerVolume(&brokerVolumeDB);
-		CCustomerPositionDB customerPositionDB(pDBConnection);
+		CCustomerPositionDB customerPositionDB(pDBConnection,
+				pThrParam->pBrokerageHouse->verbose());
 		CCustomerPosition customerPosition = CCustomerPosition(&customerPositionDB);
-		CMarketWatchDB marketWatchDB(pDBConnection);
+		CMarketWatchDB marketWatchDB(pDBConnection,
+				pThrParam->pBrokerageHouse->verbose());
 		CMarketWatch marketWatch = CMarketWatch(&marketWatchDB);
-		CSecurityDetailDB securityDetailDB = CSecurityDetailDB(pDBConnection);
+		CSecurityDetailDB securityDetailDB = CSecurityDetailDB(pDBConnection,
+				pThrParam->pBrokerageHouse->verbose());
 		CSecurityDetail securityDetail = CSecurityDetail(&securityDetailDB);
-		CTradeLookupDB tradeLookupDB(pDBConnection);
+		CTradeLookupDB tradeLookupDB(pDBConnection,
+				pThrParam->pBrokerageHouse->verbose());
 		CTradeLookup tradeLookup = CTradeLookup(&tradeLookupDB);
-		CTradeStatusDB tradeStatusDB(pDBConnection);
+		CTradeStatusDB tradeStatusDB(pDBConnection,
+				pThrParam->pBrokerageHouse->verbose());
 		CTradeStatus tradeStatus = CTradeStatus(&tradeStatusDB);
-		CTradeUpdateDB tradeUpdateDB(pDBConnection);
+		CTradeUpdateDB tradeUpdateDB(pDBConnection,
+				pThrParam->pBrokerageHouse->verbose());
 		CTradeUpdate tradeUpdate = CTradeUpdate(&tradeUpdateDB);
-		CDataMaintenanceDB dataMaintenanceDB(pDBConnection);
+		CDataMaintenanceDB dataMaintenanceDB(pDBConnection,
+				pThrParam->pBrokerageHouse->verbose());
 		CDataMaintenance dataMaintenance = CDataMaintenance(&dataMaintenanceDB);
-		CTradeCleanupDB tradeCleanupDB(pDBConnection);
+		CTradeCleanupDB tradeCleanupDB(pDBConnection,
+				pThrParam->pBrokerageHouse->verbose());
 		CTradeCleanup tradeCleanup = CTradeCleanup(&tradeCleanupDB);
-		CTradeResultDB tradeResultDB(pDBConnection);
+		CTradeResultDB tradeResultDB(pDBConnection,
+				pThrParam->pBrokerageHouse->verbose());
 		CTradeResult tradeResult = CTradeResult(&tradeResultDB);
 
 		do {
@@ -254,8 +266,9 @@ void entryWorkerThread(void *data)
 
 // Constructor
 CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName,
-		const char *szDBPort, const int iListenPort, char *outputDirectory)
-: m_iListenPort(iListenPort)
+		const char *szDBPort, const int iListenPort, char *outputDirectory,
+		bool verbose=false)
+: m_iListenPort(iListenPort), m_Verbose(verbose)
 {
 	strncpy(m_szHost, szHost, iMaxHostname);
 	m_szHost[iMaxHostname] = '\0';
@@ -813,4 +826,9 @@ void CBrokerageHouse::logErrorMessage(const string sErr, bool bScreen)
 	m_fLog << sErr;
 	m_fLog.flush();
 	m_LogLock.unlock();
+}
+
+bool CBrokerageHouse::verbose()
+{
+	return m_Verbose;
 }

@@ -16,8 +16,12 @@
  
 class CSecurityDetailDB : public CTxnBaseDB, public CSecurityDetailDBInterface
 {
+private:
+	bool m_Verbose;
+	pid_t m_pid;
+
 public:
-	CSecurityDetailDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	CSecurityDetailDB(CDBConnection *, bool);
 	~CSecurityDetailDB() {};
 
 	virtual void DoSecurityDetailFrame1(const TSecurityDetailFrame1Input *pIn,

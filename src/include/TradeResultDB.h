@@ -18,8 +18,12 @@ using namespace TPCE;
 
 class CTradeResultDB : public CTxnBaseDB, public CTradeResultDBInterface
 {
+private:
+	bool m_Verbose;
+	pid_t m_pid;
+
 public:
-	CTradeResultDB(CDBConnection *pDBConn) : CTxnBaseDB(pDBConn) {};
+	CTradeResultDB(CDBConnection *, bool);
 	~CTradeResultDB() {};
 
 	virtual void DoTradeResultFrame1(const TTradeResultFrame1Input *pIn,

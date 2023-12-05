@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Add verbose flag (-v) to BrokerageHouseMain to output frame inputs/outputs
+
 v0.2.0 (2023-12-07)
 
 - Fix transaction rate calculation

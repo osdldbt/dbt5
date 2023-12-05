@@ -45,6 +45,8 @@ private:
 	char m_szDBName[iMaxDBName + 1]; // database name
 	char m_szDBPort[iMaxPort + 1]; // PostgreSQL postmaster port
 
+	bool m_Verbose;
+
 	friend void entryWorkerThread(void *); // entry point for worker thread
 
 	void dumpInputData(PBrokerVolumeTxnInput);
@@ -89,12 +91,13 @@ private:
 
 public:
 	CBrokerageHouse(const char[], const char *, const char *, const int,
-				char *);
+				char *, bool);
 	~CBrokerageHouse();
 
 	void logErrorMessage(const string sErr, bool bScreen = true);
 
 	void startListener(void);
+	bool verbose();
 };
 
 //parameter structure for the threads
