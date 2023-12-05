@@ -118,6 +118,8 @@ void *workerThread(void *data)
 					iRet = pThrParam->pBrokerageHouse->RunCustomerPosition(
 							&(pMessage->TxnInput.CustomerPositionTxnInput),
 							customerPosition);
+					if (iRet != 0)
+						pDBConnection->rollback();
 					break;
 				case MARKET_FEED:
 					iRet = pThrParam->pBrokerageHouse->RunMarketFeed(
@@ -139,10 +141,14 @@ void *workerThread(void *data)
 				case TRADE_ORDER:
 					iRet = pThrParam->pBrokerageHouse->RunTradeOrder(
 							&(pMessage->TxnInput.TradeOrderTxnInput), tradeOrder);
+					if (iRet != 0)
+						pDBConnection->rollback();
 					break;
 				case TRADE_RESULT:
 					iRet = pThrParam->pBrokerageHouse->RunTradeResult(
 							&(pMessage->TxnInput.TradeResultTxnInput), tradeResult);
+					if (iRet != 0)
+						pDBConnection->rollback();
 					break;
 				case TRADE_STATUS:
 					iRet = pThrParam->pBrokerageHouse->RunTradeStatus(
