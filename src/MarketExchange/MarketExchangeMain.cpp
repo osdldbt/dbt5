@@ -20,6 +20,8 @@ TIdent iConfiguredCustomerCount = iDefaultCustomerCount;
 // total number of customers in the database
 TIdent iActiveCustomerCount = iDefaultCustomerCount;
 
+bool verbose = false;
+
 // EGen flat_ing directory location
 char szFileLoc[iMaxPath + 1];
 // path to output files
@@ -43,6 +45,7 @@ void usage()
 			iActiveCustomerCount);
 	printf("   -p integer  %-10d  Brokerage House listen port\n",
 			iBHlistenPort);
+	cout << "   -v                      Verbose output" << endl;
 }
 
 // Parse command line
@@ -98,6 +101,9 @@ void parse_command_line(int argc, char *argv[])
 		case 't':
 			iConfiguredCustomerCount = atol(vp);
 			break;
+		case 'v':
+			verbose = true;
+			break;
 		default:
 			usage();
 			cout << endl << "Error: Unrecognized option: " << sp << endl;
@@ -128,9 +134,9 @@ int main(int argc, char *argv[])
 	const DataFileManager inputFiles(szFileLoc, iConfiguredCustomerCount,
 			iActiveCustomerCount, TPCE::DataFileManager::IMMEDIATE_LOAD);
 	try {
-		CMarketExchange MarketExchange(inputFiles, (char *) &szFileLoc, 1,
+		CMarketExchange MarketExchange(inputFiles, szFileLoc, 1,
 				iConfiguredCustomerCount, iActiveCustomerCount, iListenPort,
-				szBHaddr, iBHlistenPort, outputDirectory);
+				szBHaddr, iBHlistenPort, outputDirectory, verbose);
 		cout << "Market Exchange started, waiting for trade requests..." <<
 				endl;
 

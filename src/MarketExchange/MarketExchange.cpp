@@ -24,6 +24,16 @@ void *MarketWorkerThread(void* data)
 		try {
 			sockDrv.dbt5Receive(reinterpret_cast<void*>(pMessage),
 					sizeof(TTradeRequest));
+
+			if (pThrParam->pMarketExchange->verbose()) {
+				cout << "TTradeRequest" << endl <<
+						"  price_quote: " << pMessage->price_quote << endl <<
+						"  trade_id: " << pMessage->trade_id << endl <<
+						"  trade_qty: " << pMessage->trade_qty << endl <<
+						"  eAction: " << pMessage->eAction << endl <<
+						"  symbol: " << pMessage->symbol << endl <<
+						"  trade_type_id: " << pMessage->trade_type_id << endl;
+			}
 	
 			// submit trade request
 			pThrParam->pMarketExchange->m_pCMEE->SubmitTradeRequest(pMessage);
@@ -94,8 +104,8 @@ void EntryMarketWorkerThread(void *data)
 CMarketExchange::CMarketExchange(const DataFileManager &inputFiles,
 		char *szFileLoc, UINT32 UniqueId, TIdent iConfiguredCustomerCount,
 		TIdent iActiveCustomerCount, int iListenPort, char *szBHaddr,
-		int iBHlistenPort, char *outputDirectory)
-: m_UniqueId(UniqueId), m_iListenPort(iListenPort)
+		int iBHlistenPort, char *outputDirectory, bool verbose=false)
+: m_UniqueId(UniqueId), m_iListenPort(iListenPort), m_Verbose(verbose)
 {
 	char filename[iMaxPath + 1];
 	snprintf(filename, iMaxPath, "%s/MarketExchange.log", outputDirectory);
@@ -146,4 +156,9 @@ void CMarketExchange::startListener(void)
 			delete pErr;
 		}
 	}
+}
+
+bool CMarketExchange::verbose()
+{
+	return m_Verbose;
 }

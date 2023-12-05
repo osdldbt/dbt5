@@ -29,6 +29,7 @@ private:
 	CEGenLogger *m_pLog;
 	CMEESUT *m_pCMEESUT;
 	CSecurityFile *m_pSecurities;
+	bool m_Verbose;
 
 	friend void *marketWorkerThread(void *);
 	// entry point for driver worker thread
@@ -37,10 +38,12 @@ private:
 public:
 	CMEE *m_pCMEE;
 
-	CMarketExchange(const DataFileManager &, char *, UINT32, TIdent, TIdent, int, char *, int, char *);
+	CMarketExchange(const DataFileManager &, char *, UINT32, TIdent, TIdent,
+			int, char *, int, char *, bool);
 	~CMarketExchange();
 
 	void startListener(void);
+	bool verbose();
 };
 
 //parameter structure for the threads
