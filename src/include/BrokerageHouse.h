@@ -45,6 +45,8 @@ private:
 	char m_szDBName[iMaxDBName + 1]; // database name
 	char m_szDBPort[iMaxPort + 1]; // PostgreSQL postmaster port
 
+	char m_errorLogFilename[iMaxPath + 1];
+
 	bool m_Verbose;
 
 	friend void entryWorkerThread(void *); // entry point for worker thread
@@ -95,6 +97,7 @@ public:
 	~CBrokerageHouse();
 
 	void logErrorMessage(const string sErr, bool bScreen = true);
+	char *errorLogFilename();
 
 	void startListener(void);
 	bool verbose();
