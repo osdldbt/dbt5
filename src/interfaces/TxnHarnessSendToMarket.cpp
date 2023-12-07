@@ -9,13 +9,13 @@
 
 #include "TxnHarnessSendToMarket.h"
 
-CSendToMarket::CSendToMarket(ofstream* pfile, int MEport)
-: m_pfLog(pfile), m_MEport(MEport)
+CSendToMarket::CSendToMarket(ofstream* pfile, char *addr,
+		int MEport=iMarketExchangePort): m_pfLog(pfile), m_MEport(MEport)
 {
-	// FIXME: This addr needs to be configurable.
-	char addr[iMaxHostname + 1];
-	strncpy(addr, "localhost", iMaxHostname);
-	m_Socket = new CSocket(addr, m_MEport);
+	if (addr != NULL)
+		m_Socket = new CSocket(addr, m_MEport);
+	else
+		m_Socket = new CSocket((char *) "localhost", m_MEport);
 	m_Socket->dbt5Connect();
 }
 

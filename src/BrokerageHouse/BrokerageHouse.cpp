@@ -46,7 +46,8 @@ void *workerThread(void *data)
 				pThrParam->pBrokerageHouse->m_szDBPort);
 		pDBConnection->setBrokerageHouse(pThrParam->pBrokerageHouse);
 		CSendToMarket sendToMarket = CSendToMarket(
-				&(pThrParam->pBrokerageHouse->m_fLog));
+				&(pThrParam->pBrokerageHouse->m_fLog), pThrParam->m_szMEEHost,
+				atoi(pThrParam->m_szMEEPort));
 		CMarketFeedDB marketFeedDB(pDBConnection,
 				pThrParam->pBrokerageHouse->verbose());
 		CMarketFeed marketFeed = CMarketFeed(&marketFeedDB, &sendToMarket);
@@ -271,8 +272,8 @@ void entryWorkerThread(void *data)
 
 // Constructor
 CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName,
-		const char *szDBPort, const int iListenPort, char *outputDirectory,
-		bool verbose=false)
+		const char *szDBPort, const char *szMEEHost, const char *szMEEPort,
+		const int iListenPort, char *outputDirectory, bool verbose=false)
 : m_iListenPort(iListenPort), m_Verbose(verbose)
 {
 	strncpy(m_szHost, szHost, iMaxHostname);
@@ -281,6 +282,11 @@ CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName,
 	m_szDBName[iMaxDBName] = '\0';
 	strncpy(m_szDBPort, szDBPort, iMaxPort);
 	m_szDBPort[iMaxPort] = '\0';
+
+	strncpy(m_szMEEHost, szMEEHost, iMaxHostname);
+	m_szMEEHost[iMaxHostname] = '\0';
+	strncpy(m_szMEEPort, szMEEPort, iMaxPort);
+	m_szMEEPort[iMaxPort] = '\0';
 
 	snprintf(m_errorLogFilename, iMaxPath, "%s/BrokerageHouse_Error.log",
 			outputDirectory);
@@ -948,6 +954,10 @@ void CBrokerageHouse::startListener(void)
 
 			pThrParam->iSockfd = acc_socket;
 			pThrParam->pBrokerageHouse = this;
+			strncpy(pThrParam->m_szMEEHost, m_szMEEHost, iMaxHostname);
+			pThrParam->m_szMEEHost[iMaxHostname] = '\0';
+			strncpy(pThrParam->m_szMEEPort, m_szMEEPort, iMaxPort);
+			pThrParam->m_szMEEPort[iMaxPort] = '\0';
 
 			// call entry point
 			entryWorkerThread(reinterpret_cast<void *>(pThrParam));

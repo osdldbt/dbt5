@@ -45,6 +45,9 @@ private:
 	char m_szDBName[iMaxDBName + 1]; // database name
 	char m_szDBPort[iMaxPort + 1]; // PostgreSQL postmaster port
 
+	char m_szMEEHost[iMaxHostname + 1];
+	char m_szMEEPort[iMaxPort + 1];
+
 	char m_errorLogFilename[iMaxPath + 1];
 
 	bool m_Verbose;
@@ -92,8 +95,8 @@ private:
 	friend void *workerThread(void *);
 
 public:
-	CBrokerageHouse(const char[], const char *, const char *, const int,
-				char *, bool);
+	CBrokerageHouse(const char[], const char *, const char *, const char *,
+				const char *, const int, char *, bool);
 	~CBrokerageHouse();
 
 	void logErrorMessage(const string sErr, bool bScreen = true);
@@ -108,6 +111,8 @@ typedef struct TThreadParameter
 {
 	CBrokerageHouse* pBrokerageHouse;
 	int iSockfd;
+	char m_szMEEHost[iMaxHostname + 1];
+	char m_szMEEPort[iMaxPort + 1];
 } *PThreadParameter;
 
 #endif // BROKERAGE_HOUSE_H

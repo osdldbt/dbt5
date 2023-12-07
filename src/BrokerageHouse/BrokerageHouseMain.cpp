@@ -18,6 +18,8 @@ bool verbose = false;
 char szHost[iMaxHostname + 1] = "";
 char szDBName[iMaxDBName + 1] = "";
 char szDBPort[iMaxPort + 1] = "";
+char szMEEHost[iMaxHostname + 1] = "localhost";
+char szMEEPort[iMaxPort + 1] = "";
 char outputDirectory[iMaxPath + 1] = ".";
 
 // shows program usage
@@ -29,6 +31,9 @@ void usage()
 	cout << "   -d string              Database name" << endl;
  	cout << "   -h string   localhost  Database server" << endl;
  	printf("   -l integer  %-9d  Socket listen port\n", iListenPort);
+	printf("   -m string   %9s  Market Exchange Emulator hostname\n",
+			szMEEHost);
+	printf("   -M integer  %9s  Market Exchange Emulator port\n", szMEEPort);
  	cout << "   -o string   .          Output directory" << endl;
  	cout << "   -p integer             Database port" << endl;
 	cout << "   -v                     Verbose output" << endl;
@@ -75,6 +80,14 @@ void parse_command_line(int argc, char *argv[])
 			strncpy(szHost, vp, iMaxHostname);
 			szHost[iMaxHostname] = '\0';
 			break;
+		case 'm':
+			strncpy(szMEEHost, vp, iMaxHostname);
+			szMEEHost[iMaxHostname] = '\0';
+			break;
+		case 'M': // Postmaster port
+			strncpy(szMEEPort, vp, iMaxPort);
+			szMEEPort[iMaxPort] = '\0';
+			break;
 		case 'o': // output directory
 			strncpy(outputDirectory, vp, iMaxPath);
 			outputDirectory[iMaxPath] = '\0';
@@ -99,6 +112,8 @@ void parse_command_line(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
+	snprintf(szMEEPort, iMaxPort, "%d", iMarketExchangePort);
+
 	cout << "dbt5 - Brokerage House" << endl;
 	cout << "Listening on port: " << iListenPort << endl << endl;
 
@@ -106,13 +121,17 @@ int main(int argc, char *argv[])
 	parse_command_line(argc, argv);
 
 	// Let the user know what settings will be used.
-	cout << "Using the following database settings:" << endl;
-	cout << "Host: " << szHost << endl;
-	cout << "Database port: " << szDBPort << endl;
-	cout << "Database name: " << szDBName << endl;
+	cout << "Using the following database settings:" << endl <<
+			"  Database hostname: " << szHost << endl <<
+			"  Database port: " << szDBPort << endl <<
+			"  Database name: " << szDBName << endl;
 
-	CBrokerageHouse	BrokerageHouse(szHost, szDBName, szDBPort, iListenPort,
-			outputDirectory, verbose);
+	cout << "Using the following Market Exchange Emulator settings:" << endl <<
+			"  Hostname: " << szMEEHost << endl <<
+			"  Port: " << szMEEPort << endl;
+
+	CBrokerageHouse	BrokerageHouse(szHost, szDBName, szDBPort, szMEEHost,
+			szMEEPort, iListenPort, outputDirectory, verbose);
 	cout << "Brokerage House opened for business, waiting for traders..."
 			<< endl;
 	try {
