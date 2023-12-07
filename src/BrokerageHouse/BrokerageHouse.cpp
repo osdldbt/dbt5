@@ -304,7 +304,7 @@ void CBrokerageHouse::dumpInputData(PBrokerVolumeTxnInput pTxnInput)
 		msg << pid << " sector_name[" << i << "] = " <<
 				pTxnInput->sector_name[i] << endl;
 	}
-	logErrorMessage(msg.str(), false);
+	logErrorMessage(msg.str(), m_Verbose);
 }
 
 void CBrokerageHouse::dumpInputData(PCustomerPositionTxnInput pTxnInput)
@@ -315,7 +315,7 @@ void CBrokerageHouse::dumpInputData(PCustomerPositionTxnInput pTxnInput)
 			pid << " cust_id = " << pTxnInput->cust_id << endl <<
 			pid << " get_history = " << pTxnInput->get_history << endl <<
 			pid << " tax_id = " << pTxnInput->tax_id << endl;
-	logErrorMessage(msg.str(), false);
+	logErrorMessage(msg.str(), m_Verbose);
 }
 
 void CBrokerageHouse::dumpInputData(PDataMaintenanceTxnInput pTxnInput)
@@ -330,7 +330,7 @@ void CBrokerageHouse::dumpInputData(PDataMaintenanceTxnInput pTxnInput)
 			pid << " symbol = " << pTxnInput->symbol << endl <<
 			pid << " table_name = " << pTxnInput->table_name << endl <<
 			pid << " tx_id = " << pTxnInput->tx_id << endl;
-	logErrorMessage(msg.str(), false);
+	logErrorMessage(msg.str(), m_Verbose);
 }
 
 void CBrokerageHouse::dumpInputData(PTradeCleanupTxnInput pTxnInput)
@@ -341,7 +341,7 @@ void CBrokerageHouse::dumpInputData(PTradeCleanupTxnInput pTxnInput)
 			pid << " st_canceled_id = " << pTxnInput->st_canceled_id << endl <<
 			pid << " st_pending_id = " << pTxnInput->st_pending_id << endl <<
 			pid << " st_submitted_id = " << pTxnInput->st_submitted_id << endl;
-	logErrorMessage(msg.str(), false);
+	logErrorMessage(msg.str(), m_Verbose);
 }
 
 void CBrokerageHouse::dumpInputData(PMarketWatchTxnInput pTxnInput)
@@ -360,7 +360,7 @@ void CBrokerageHouse::dumpInputData(PMarketWatchTxnInput pTxnInput)
 					pTxnInput->start_day.second << "." <<
 					pTxnInput->start_day.fraction << endl <<
 			pid << " industry_name = " << pTxnInput->industry_name << endl;
-	logErrorMessage(msg.str(), false);
+	logErrorMessage(msg.str(), m_Verbose);
 }
 
 void CBrokerageHouse::dumpInputData(PMarketFeedTxnInput pTxnInput)
@@ -385,7 +385,7 @@ void CBrokerageHouse::dumpInputData(PMarketFeedTxnInput pTxnInput)
 				pid << " Entries[" << i << "].symbol = " <<
 						pTxnInput->Entries[i].symbol << endl;
 	}
-	logErrorMessage(msg.str(), false);
+	logErrorMessage(msg.str(), m_Verbose);
 }
 
 void CBrokerageHouse::dumpInputData(PSecurityDetailTxnInput pTxnInput)
@@ -404,7 +404,7 @@ void CBrokerageHouse::dumpInputData(PSecurityDetailTxnInput pTxnInput)
 					pTxnInput->start_day.second << "." <<
 					pTxnInput->start_day.fraction << endl <<
 			pid << " symbol = " << pTxnInput->symbol << endl;
-	logErrorMessage(msg.str(), false);
+	logErrorMessage(msg.str(), m_Verbose);
 }
 
 void CBrokerageHouse::dumpInputData(PTradeStatusTxnInput pTxnInput)
@@ -412,7 +412,7 @@ void CBrokerageHouse::dumpInputData(PTradeStatusTxnInput pTxnInput)
 	pid_t pid = syscall(SYS_gettid);
 	ostringstream msg;
 	msg << pid << " acct_id = " << pTxnInput->acct_id << endl;
-	logErrorMessage(msg.str(), false);
+	logErrorMessage(msg.str(), m_Verbose);
 }
 
 void CBrokerageHouse::dumpInputData(PTradeLookupTxnInput pTxnInput)
@@ -443,7 +443,7 @@ void CBrokerageHouse::dumpInputData(PTradeLookupTxnInput pTxnInput)
 					pTxnInput->start_trade_dts.second << "." <<
 					pTxnInput->start_trade_dts.fraction << endl <<
 			pid << " symbol = " << pTxnInput->symbol << endl;
-	logErrorMessage(msg.str(), false);
+	logErrorMessage(msg.str(), m_Verbose);
 }
 
 void CBrokerageHouse::dumpInputData(PTradeOrderTxnInput pTxnInput)
@@ -467,7 +467,7 @@ void CBrokerageHouse::dumpInputData(PTradeOrderTxnInput pTxnInput)
 					endl <<
 			pid << " symbol = " << pTxnInput->symbol << endl <<
 			pid << " trade_type_id = " << pTxnInput->trade_type_id << endl;
-	logErrorMessage(msg.str(), false);
+	logErrorMessage(msg.str(), m_Verbose);
 }
 
 void CBrokerageHouse::dumpInputData(PTradeResultTxnInput pTxnInput)
@@ -476,7 +476,7 @@ void CBrokerageHouse::dumpInputData(PTradeResultTxnInput pTxnInput)
 	ostringstream msg;
 	msg << pid << " trade_price = " << pTxnInput->trade_price << endl <<
 			pid << " trade_id = " << pTxnInput->trade_id << endl;
-	logErrorMessage(msg.str(), false);
+	logErrorMessage(msg.str(), m_Verbose);
 }
 
 void CBrokerageHouse::dumpInputData(PTradeUpdateTxnInput pTxnInput)
@@ -508,7 +508,7 @@ void CBrokerageHouse::dumpInputData(PTradeUpdateTxnInput pTxnInput)
 					pTxnInput->start_trade_dts.second << "." <<
 					pTxnInput->start_trade_dts.fraction << endl <<
 			pid << " symbol = " << pTxnInput->symbol << endl;
-	logErrorMessage(msg.str(), false);
+	logErrorMessage(msg.str(), m_Verbose);
 }
 
 // Run Broker Volume transaction
@@ -521,7 +521,7 @@ INT32 CBrokerageHouse::RunBrokerVolume(PBrokerVolumeTxnInput pTxnInput,
 	try {
 		brokerVolume.DoTxn(pTxnInput, &bvOutput);
 	} catch (const exception &e) {
-		logErrorMessage("BV EXCEPTION\n", false);
+		logErrorMessage("BV EXCEPTION\n", m_Verbose);
 		bvOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -536,7 +536,7 @@ INT32 CBrokerageHouse::RunBrokerVolume(PBrokerVolumeTxnInput pTxnInput,
 					endl;
 			break;
 		}
-		logErrorMessage(msg.str(), false);
+		logErrorMessage(msg.str(), m_Verbose);
 		dumpInputData(pTxnInput);
 	}
 	return bvOutput.status;
@@ -552,7 +552,7 @@ INT32 CBrokerageHouse::RunCustomerPosition(PCustomerPositionTxnInput pTxnInput,
 	try {
 		customerPosition.DoTxn(pTxnInput, &cpOutput);
 	} catch (const exception &e) {
-		logErrorMessage("CP EXCEPTION\n", false);
+		logErrorMessage("CP EXCEPTION\n", m_Verbose);
 		cpOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -570,7 +570,7 @@ INT32 CBrokerageHouse::RunCustomerPosition(PCustomerPositionTxnInput pTxnInput,
 					endl;
 			break;
 		}
-		logErrorMessage(msg.str(), false);
+		logErrorMessage(msg.str(), m_Verbose);
 		dumpInputData(pTxnInput);
 	}
 	return cpOutput.status;
@@ -586,14 +586,14 @@ INT32 CBrokerageHouse::RunDataMaintenance(PDataMaintenanceTxnInput pTxnInput,
 	try {
 		dataMaintenance.DoTxn(pTxnInput, &dmOutput);
 	} catch (const exception &e) {
-		logErrorMessage("DM EXCEPTION\n", false);
+		logErrorMessage("DM EXCEPTION\n", m_Verbose);
 		dmOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
 	if (dmOutput.status != CBaseTxnErr::SUCCESS) {
 		ostringstream msg;
 		msg << __FILE__ << " " << __LINE__ << " " << dmOutput.status << endl;
-		logErrorMessage(msg.str(), false);
+		logErrorMessage(msg.str(), m_Verbose);
 		dumpInputData(pTxnInput);
 	}
 	return dmOutput.status;
@@ -609,14 +609,14 @@ INT32 CBrokerageHouse::RunTradeCleanup(PTradeCleanupTxnInput pTxnInput,
 	try {
 		tradeCleanup.DoTxn(pTxnInput, &tcOutput);
 	} catch (const exception &e) {
-		logErrorMessage("TC EXCEPTION\n", false);
+		logErrorMessage("TC EXCEPTION\n", m_Verbose);
 		tcOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
 	if (tcOutput.status != CBaseTxnErr::SUCCESS) {
 		ostringstream msg;
 		msg << __FILE__ << " " << __LINE__ << " " << tcOutput.status << endl;
-		logErrorMessage(msg.str(), false);
+		logErrorMessage(msg.str(), m_Verbose);
 		dumpInputData(pTxnInput);
 	}
 	return tcOutput.status;
@@ -632,7 +632,7 @@ INT32 CBrokerageHouse::RunMarketFeed(PMarketFeedTxnInput pTxnInput,
 	try {
 		marketFeed.DoTxn(pTxnInput, &mfOutput);
 	} catch (const exception &e) {
-		logErrorMessage("MF EXCEPTION\n", false);
+		logErrorMessage("MF EXCEPTION\n", m_Verbose);
 		mfOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -646,7 +646,7 @@ INT32 CBrokerageHouse::RunMarketFeed(PMarketFeedTxnInput pTxnInput,
 					endl;
 			break;
 		}
-		logErrorMessage(msg.str(), false);
+		logErrorMessage(msg.str(), m_Verbose);
 		dumpInputData(pTxnInput);
 	}
 	return mfOutput.status;
@@ -662,7 +662,7 @@ INT32 CBrokerageHouse::RunMarketWatch(PMarketWatchTxnInput pTxnInput,
 	try {
 		marketWatch.DoTxn(pTxnInput, &mwOutput);
 	} catch (const exception &e) {
-		logErrorMessage("MW EXCEPTION\n", false);
+		logErrorMessage("MW EXCEPTION\n", m_Verbose);
 		mwOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -677,7 +677,7 @@ INT32 CBrokerageHouse::RunMarketWatch(PMarketWatchTxnInput pTxnInput,
 					endl;
 			break;
 		}
-		logErrorMessage(msg.str(), false);
+		logErrorMessage(msg.str(), m_Verbose);
 		dumpInputData(pTxnInput);
 	}
 	return mwOutput.status;
@@ -693,7 +693,7 @@ INT32 CBrokerageHouse::RunSecurityDetail(PSecurityDetailTxnInput pTxnInput,
 	try {
 		securityDetail.DoTxn(pTxnInput, &sdOutput);
 	} catch (const exception &e) {
-		logErrorMessage("SD EXCEPTION\n", false);
+		logErrorMessage("SD EXCEPTION\n", m_Verbose);
 		sdOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -714,7 +714,7 @@ INT32 CBrokerageHouse::RunSecurityDetail(PSecurityDetailTxnInput pTxnInput,
 			msg << pid << " news_len != max_news_len" << endl;
 			break;
 		}
-		logErrorMessage(msg.str(), false);
+		logErrorMessage(msg.str(), m_Verbose);
 		dumpInputData(pTxnInput);
 	}
 	return sdOutput.status;
@@ -730,7 +730,7 @@ INT32 CBrokerageHouse::RunTradeLookup(PTradeLookupTxnInput pTxnInput,
 	try {
 		tradeLookup.DoTxn(pTxnInput, &tlOutput);
 	} catch (const exception &e) {
-		logErrorMessage("TL EXCEPTION\n", false);
+		logErrorMessage("TL EXCEPTION\n", m_Verbose);
 		tlOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -766,7 +766,7 @@ INT32 CBrokerageHouse::RunTradeLookup(PTradeLookupTxnInput pTxnInput,
 			msg << pid << " (num_found < 1) or (num_found > 20)" << endl;
 			break;
 		}
-		logErrorMessage(msg.str(), false);
+		logErrorMessage(msg.str(), m_Verbose);
 		dumpInputData(pTxnInput);
 	}
 	return tlOutput.status;
@@ -807,7 +807,7 @@ INT32 CBrokerageHouse::RunTradeOrder(PTradeOrderTxnInput pTxnInput,
 			msg << pid << " charge_amount == 0.00" << endl;
 			break;
 		}
-		logErrorMessage(msg.str(), false);
+		logErrorMessage(msg.str(), m_Verbose);
 		dumpInputData(pTxnInput);
 	}
 	return toOutput.status;
@@ -823,7 +823,7 @@ INT32 CBrokerageHouse::RunTradeResult(PTradeResultTxnInput pTxnInput,
 	try {
 		tradeResult.DoTxn(pTxnInput, &trOutput);
 	} catch (const exception &e) {
-		logErrorMessage("TR EXCEPTION\n", false);
+		logErrorMessage("TR EXCEPTION\n", m_Verbose);
 		trOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -842,7 +842,7 @@ INT32 CBrokerageHouse::RunTradeResult(PTradeResultTxnInput pTxnInput,
 			msg << pid << " comm_rate <= 0.00" << endl;
 			break;
 		}
-		logErrorMessage(msg.str(), false);
+		logErrorMessage(msg.str(), m_Verbose);
 		dumpInputData(pTxnInput);
 	}
 	return trOutput.status;
@@ -858,7 +858,7 @@ INT32 CBrokerageHouse::RunTradeStatus(PTradeStatusTxnInput pTxnInput,
 	try {
 		tradeStatus.DoTxn(pTxnInput, &tsOutput);
 	} catch (const exception &e) {
-		logErrorMessage("TS EXCEPTION\n", false);
+		logErrorMessage("TS EXCEPTION\n", m_Verbose);
 		tsOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -871,7 +871,7 @@ INT32 CBrokerageHouse::RunTradeStatus(PTradeStatusTxnInput pTxnInput,
 			msg << pid << " num_found <> max_trade_status_len" << endl;
 			break;
 		}
-		logErrorMessage(msg.str(), false);
+		logErrorMessage(msg.str(), m_Verbose);
 		dumpInputData(pTxnInput);
 	}
 	return tsOutput.status;
@@ -887,7 +887,7 @@ INT32 CBrokerageHouse::RunTradeUpdate(PTradeUpdateTxnInput pTxnInput,
 	try {
 		tradeUpdate.DoTxn(pTxnInput, &tuOutput);
 	} catch (const exception &e) {
-		logErrorMessage("TU EXCEPTION\n", false);
+		logErrorMessage("TU EXCEPTION\n", m_Verbose);
 		tuOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -923,7 +923,7 @@ INT32 CBrokerageHouse::RunTradeUpdate(PTradeUpdateTxnInput pTxnInput,
 			msg << pid << " num_updated == 0" << endl;
 			break;
 		}
-		logErrorMessage(msg.str(), false);
+		logErrorMessage(msg.str(), m_Verbose);
 		dumpInputData(pTxnInput);
 	}
 	return tuOutput.status;
