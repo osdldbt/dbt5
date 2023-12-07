@@ -1,4 +1,4 @@
-vX.Y.X (YYYY-MM-DD)
+v0.2.0 (2023-12-07)
 
 - Fix transaction rate calculation
 - Fix various scripting bugs
