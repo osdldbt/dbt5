@@ -1,0 +1,87 @@
+============
+ dbt5-build
+============
+
+---------------
+Database Test 2
+---------------
+
+:Date: @MANDATE@
+:Manual section: 1
+:Manual group: Database Test 5 @PROJECT_VERSION@ Documentation
+:Version: Database Test 5 @PROJECT_VERSION@
+
+SYNOPSIS
+========
+
+**dbt5-build** [option...] dbms [dbname]
+
+DESCRIPTION
+===========
+
+**dbt5-build** is a wrapper script that helps create a database, create tables,
+load data, and create indexes with minimal input from the user.
+
+OPTIONS
+=======
+
+-b POSITION  Beginning customer ordinal *position*, default 1.
+-c CUSTOMERS  Number of *customers* for this instance, default 5000.
+--db-host ADDRESS  *address* of database system.
+--db-port PORT  Database listening *port* number.
+--db-user USER  Database *user*.
+-f SCALE_FACTOR  Customer per Trade Result transactions per second, default
+        500.
+--privileged  Run test as a privileged operating system and database user.
+--tpcetools=EGENHOME  *egenhome* is the directory location of the TPC-E Tools
+-t CUSTOMERS  Number of *customers* total in the database, default 5000.
+-w DAYS  Number of *days* of initial trades to populate, default 300.
+--help  This usage message.  Or **-?**.
+-V, --version  Output version information, then exit.
+
+PostgreSQL specific options:
+
+--db-parameters OPTIONS  GUC command line *options* to pass to **postgres**.
+        This is intended for privileged users that can start and stop the
+        **postgres** backend while passing parameter options directly to
+        **postgres**.
+
+*dbms* options are:
+
+* pgsql  PostgreSQL
+
+*dbname* is "dbt5" by default.
+
+NOTES
+=====
+
+Running database specific build scripts manually may provide more advanced
+controls for options including, but not limited to, using tablespaces,
+selecting the type of stored functions or procedures to use, and possibly other
+database administrative tasks.
+
+The default values for instance customers, total customers, scale factor, and
+initial trade days are the minimum valid values per benchmark specification.
+The instance customers and total customers can be any multiple of 1000.  The
+scale factor and number of days of initial trades can be as low as 1.  This
+allows smaller database to be created but if any of these values are specified
+to be smaller than the defaults then there will be a significantly higher
+number of occurrences of transactions throwing invalid transaction or warning
+codes.
+
+EXAMPLES
+========
+
+A simple example of building a default sized 5000 customer database with a
+scale factor of 500 and 300 days of initial trades using the default "dbt5"
+database name with PostgreSQL::
+
+    dbt5 build pgsql
+
+See documentation in the *doc* directory of the source repository or online at
+https://osdldbt.github.io/dbt5/ for more information.
+
+SEE ALSO
+========
+
+**dbt5**\ (1), **dbt5-build-egen**\ (1)

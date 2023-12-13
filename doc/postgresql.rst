@@ -21,7 +21,7 @@ Build the Database
 
 To build the minimum sized database in a database `dbt5`::
 
-    dbt5 pgsql-build-db -i /tmp/egen
+    dbt5 build --tpcetools=/tmp/egen pgsql
 
 Run a Test
 ----------

@@ -45,4 +45,4 @@ https://osdldbt.github.io/dbt5/ for more information.
 SEE ALSO
 ========
 
-**dbt5-build-egen**\ (1), **dbt5-post-process**\ (1)
+**dbt5-build**\ (1), **dbt5-build-egen**\ (1), **dbt5-post-process**\ (1)

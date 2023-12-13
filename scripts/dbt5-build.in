@@ -1,0 +1,181 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+
+usage() {
+	cat << EOF
+$(basename "${0}") is the Database Test 5 (DBT-5) database builder.
+
+Usage:
+  $(basename "${0}") [OPTION] DBMS [DBNAME]
+
+Options:
+  -b POSITION    beginning customer ordinal POSITION, default ${POSITION}
+  -c CUSTOMERS   number of CUSTOMERS for this instance, default ${INSTANCE_CUSTOMERS}
+  --db-host ADDRESS
+                 ADDRESS of database system
+  --db-port PORT
+                 database listening PORT number
+  --db-user USER
+                 database USER
+  --tpcetools=EGENHOME
+                 EGENHOME is the directory location of the TPC-E Tools
+  -f SCALE_FACTOR
+                 customer per Trade Result transactions per second, default ${SCALE_FACTOR}
+  --privileged   run test as a privileged operating system and database user
+  -t CUSTOMERS   number of CUSTOMERS total in the database, default ${TOTAL_CUSTOMERS}
+  -V, --version  output version information, then exit
+  -w DAYS        number of DAYS of initial trades to populate, default ${DAYS}
+  -?, --help     show this help, then exit
+
+PostgreSQL specific options:
+  --db-parameters OPTIONS
+                 GUC command line OPTIONS to pass to postgresql, when
+                 privileged
+
+DBMS options are:
+  pgsql      PostgreSQL
+
+DBNAME is "${DBNAME}" by default.
+
+@HOMEPAGE@
+EOF
+}
+
+BUILDARGS=""
+DAYS=300
+DBNAME="dbt5"
+POSITION=1
+INSTANCE_CUSTOMERS=5000
+SCALE_FACTOR=500
+TOTAL_CUSTOMERS=5000
+
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-b)
+		shift
+		POSITION="${1}"
+		BUILDARGS="${BUILDARGS} -b ${POSITION}"
+		;;
+	(-c)
+		shift
+		INSTANCE_CUSTOMERS="${1}"
+		BUILDARGS="${BUILDARGS} -t ${INSTANCE_CUSTOMERS}"
+		;;
+	(--db-host)
+		shift
+		DB_HOSTNAME="${1}"
+		;;
+	(--db-host=?*)
+		DB_HOSTNAME="${1#*--db-host=}"
+		;;
+	(--db-parameters)
+		shift
+		DB_PARAMS="${1}"
+		;;
+	(--db-parameters=?*)
+		DB_PARAMS="${1#*--db-parameters=}"
+		;;
+	(--db-port)
+		shift
+		DB_PORT="${1}"
+		;;
+	(--db-port=?*)
+		DB_PORT="${1#*--db-port=}"
+		;;
+	(--db-user)
+		shift
+		DB_USER="${1}"
+		;;
+	(--db-user=?*)
+		DB_USER="${1#*--db-user=}"
+		;;
+	(-f)
+		shift
+		SCALE_FACTOR="${1}"
+		BUILDARGS="${BUILDARGS} -s ${SCALE_FACTOR}"
+		;;
+	(--privileged)
+		BUILDARGS="${BUILDARGS} -U"
+		;;
+	(--tpcetools=?*)
+		EGENHOME="${1#*--tpcetools=}"
+		BUILDARGS="${BUILDARGS} -i ${EGENHOME}"
+		;;
+	(-t)
+		shift
+		TOTAL_CUSTOMERS="${1}"
+		BUILDARGS="${BUILDARGS} -t ${TOTAL_CUSTOMERS}"
+		;;
+	(-V | --version)
+		echo "$(basename "${0}") v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-w)
+		shift
+		DAYS="${1}"
+		BUILDARGS="${BUILDARGS} -w ${DAYS}"
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
+	esac
+	shift
+done
+
+# Check for required arguments.
+
+if [ "${EGENHOME}" = "" ]; then
+	printf "Specify EGENHOME (--tpcetools) directory, try \"%s -?\" " \
+			"$(basename "${0}")" 1>&2
+	echo "for more information." 1>&2
+	exit 1
+fi
+
+if [ $# -eq 0 ]; then
+	printf "Specify which DBMS system to test, try \"%s --help\" " \
+			"$(basename "${0}")"
+	echo "for more information."
+	exit 1
+fi
+
+DBMS=$1
+shift
+
+if [ $# -ne 0 ]; then
+	DBNAME=$1
+fi
+
+# Build up BUILDARGS based on command line parameters.
+
+if [ "${DBMS}" = "pgsql" ]; then
+	if [ ! "${DB_HOSTNAME}" = "" ]; then
+		export PGHOST="${DB_HOSTNAME}"
+	fi
+	if [ ! "${DB_PARAMS}" = "" ]; then
+		BUILDARGS="${BUILDARGS} -p \"${DB_PARAMS}\""
+	fi
+	if [ ! "${DB_PORT}" = "" ]; then
+		BUILDARGS="${BUILDARGS} -l ${DB_PORT}"
+	fi
+	if [ ! "${DB_USER}" = "" ]; then
+		export PGUSER="${DB_USER}"
+	fi
+fi
+
+eval "dbt5 ${DBMS}-build-db -i ${EGENHOME} -d ${DBNAME} ${BUILDARGS}"

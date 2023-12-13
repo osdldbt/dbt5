@@ -7,6 +7,12 @@ configure_file(
 )
 
 configure_file(
+    dbt5-build.in
+    ${CMAKE_BINARY_DIR}/dbt5-build
+    @ONLY
+)
+
+configure_file(
     dbt5-build-egen.in
     ${CMAKE_BINARY_DIR}/dbt5-build-egen
     @ONLY
@@ -26,6 +32,7 @@ configure_file(
 
 install (
     PROGRAMS ${CMAKE_BINARY_DIR}/dbt5
+             ${CMAKE_BINARY_DIR}/dbt5-build
              ${CMAKE_BINARY_DIR}/dbt5-build-egen
              ${CMAKE_BINARY_DIR}/dbt5-post-process
              ${CMAKE_BINARY_DIR}/dbt5-run
