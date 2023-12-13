@@ -49,9 +49,9 @@ public:
 			: CPGSQLLoader<HOLDING_SUMMARY_ROW>(szConnectStr, szTable) { };
 
 	void WriteNextRecord(const HOLDING_SUMMARY_ROW &next_record) {
-		fprintf(p, "%" PRId64 "%c%s%c%d\n",
-				next_record.HS_CA_ID, delimiter,
-				next_record.HS_S_SYMB, delimiter,
+		fprintf(p, "%" PRId64 "|%s|%d\n",
+				next_record.HS_CA_ID,
+				next_record.HS_S_SYMB,
 				next_record.HS_QTY);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;

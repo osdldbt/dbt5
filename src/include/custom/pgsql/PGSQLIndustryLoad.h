@@ -53,9 +53,9 @@ public:
 			: CPGSQLLoader<INDUSTRY_ROW>(szConnectStr, szTable) { };
 
 	 void WriteNextRecord(const INDUSTRY_ROW &next_record) {
-		fprintf(p, "%s%c%s%c%s\n",
-				next_record.IN_ID, delimiter,
-				next_record.IN_NAME, delimiter,
+		fprintf(p, "%s|%s|%s\n",
+				next_record.IN_ID,
+				next_record.IN_NAME,
 				next_record.IN_SC_ID);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;

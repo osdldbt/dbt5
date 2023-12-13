@@ -53,8 +53,8 @@ public:
 			: CPGSQLLoader<CUSTOMER_TAXRATE_ROW>(szConnectStr, szTable) { };
 
 	void WriteNextRecord(const CUSTOMER_TAXRATE_ROW &next_record) {
-		fprintf(p, "%s%c%" PRId64 "\n",
-				next_record.CX_TX_ID, delimiter,
+		fprintf(p, "%s|%" PRId64 "\n",
+				next_record.CX_TX_ID,
 				next_record.CX_C_ID);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;

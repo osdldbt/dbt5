@@ -46,7 +46,6 @@ namespace TPCE
 {
 const int iDateTimeFmt = 11;
 const int iConnectStrLen = 256;
-const char delimiter = '|';
 
 //
 // PGSQLLoader class.
@@ -134,8 +133,8 @@ void CPGSQLLoader<T>::Connect()
 	while (fgetc(p) != EOF) ;
 
 	fprintf(p,
-			"COPY %s FROM STDIN WITH (DELIMITER '%c', FREEZE TRUE, NULL '');\n",
-			m_szTable, delimiter);
+			"COPY %s FROM STDIN WITH (DELIMITER '|', FREEZE TRUE, NULL '');\n",
+			m_szTable);
 	// FIXME: Have blind faith that COPY started correctly.
 	while (fgetc(p) != EOF) ;
 }

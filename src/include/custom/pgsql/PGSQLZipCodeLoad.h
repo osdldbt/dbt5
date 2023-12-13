@@ -53,9 +53,9 @@ public:
 			: CPGSQLLoader<ZIP_CODE_ROW>(szConnectStr, szTable) { };
 
 	void WriteNextRecord(const ZIP_CODE_ROW &next_record) {
-		fprintf(p, "%s%c%s%c%s\n",
-				next_record.ZC_CODE, delimiter,
-				next_record.ZC_TOWN, delimiter,
+		fprintf(p, "%s|%s|%s\n",
+				next_record.ZC_CODE,
+				next_record.ZC_TOWN,
 				next_record.ZC_DIV);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;

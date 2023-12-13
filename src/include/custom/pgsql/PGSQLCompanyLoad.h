@@ -57,15 +57,15 @@ public:
 	void WriteNextRecord(const COMPANY_ROW &next_record) {
 		co_open_date = next_record.CO_OPEN_DATE;
 
-		fprintf(p, "%" PRId64 "%c%s%c%s%c%s%c%s%c%s%c%" PRId64 "%c%s%c%s\n",
-				next_record.CO_ID, delimiter,
-				next_record.CO_ST_ID, delimiter,
-				next_record.CO_NAME, delimiter,
-				next_record.CO_IN_ID, delimiter,
-				next_record.CO_SP_RATE, delimiter,
-				next_record.CO_CEO, delimiter,
-				next_record.CO_AD_ID, delimiter,
-				next_record.CO_DESC, delimiter,
+		fprintf(p, "%" PRId64 "|%s|%s|%s|%s|%s|%" PRId64 "|%s|%s\n",
+				next_record.CO_ID,
+				next_record.CO_ST_ID,
+				next_record.CO_NAME,
+				next_record.CO_IN_ID,
+				next_record.CO_SP_RATE,
+				next_record.CO_CEO,
+				next_record.CO_AD_ID,
+				next_record.CO_DESC,
 				co_open_date.ToStr(iDateTimeFmt));
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;

@@ -53,8 +53,8 @@ public:
 			: CPGSQLLoader<WATCH_LIST_ROW>(szConnectStr, szTable) { };
 
 	void WriteNextRecord(const WATCH_LIST_ROW &next_record) {
-		fprintf(p, "%" PRId64 "%c%" PRId64 "\n",
-				next_record.WL_ID, delimiter,
+		fprintf(p, "%" PRId64 "|%" PRId64 "\n",
+				next_record.WL_ID,
 				next_record.WL_C_ID);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;

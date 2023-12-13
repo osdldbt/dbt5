@@ -52,9 +52,9 @@ public:
 			: CPGSQLLoader<CHARGE_ROW>(szConnectStr, szTable) { };
 
 	void WriteNextRecord(const CHARGE_ROW &next_record) {
-		fprintf(p, "%s%c%d%c%.2f\n",
-				next_record.CH_TT_ID, delimiter,
-				next_record.CH_C_TIER, delimiter,
+		fprintf(p, "%s|%d|%.2f\n",
+				next_record.CH_TT_ID,
+				next_record.CH_C_TIER,
 				next_record.CH_CHRG);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;

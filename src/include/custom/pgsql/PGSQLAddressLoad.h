@@ -52,11 +52,11 @@ public:
 			: CPGSQLLoader<ADDRESS_ROW>(szConnectStr, szTable) { };
 
 	void WriteNextRecord(const ADDRESS_ROW &next_record) {
-		fprintf(p, "%" PRId64 "%c%s%c%s%c%s%c%s\n",
-				next_record.AD_ID, delimiter,
-				next_record.AD_LINE1, delimiter,
-				next_record.AD_LINE2, delimiter,
-				next_record.AD_ZC_CODE, delimiter,
+		fprintf(p, "%" PRId64 "|%s|%s|%s|%s\n",
+				next_record.AD_ID,
+				next_record.AD_LINE1,
+				next_record.AD_LINE2,
+				next_record.AD_ZC_CODE,
 				next_record.AD_CTRY);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;

@@ -52,9 +52,9 @@ public:
 			: CPGSQLLoader<TAX_RATE_ROW>(szConnectStr, szTable) { };
 
 	void WriteNextRecord(const TAX_RATE_ROW &next_record) {
-		fprintf(p, "%s%c%s%c%.5f\n",
-				next_record.TX_ID, delimiter,
-				next_record.TX_NAME, delimiter,
+		fprintf(p, "%s|%s|%.5f\n",
+				next_record.TX_ID,
+				next_record.TX_NAME,
 				next_record.TX_RATE);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;

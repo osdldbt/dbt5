@@ -53,12 +53,12 @@ public:
 			: CPGSQLLoader<CUSTOMER_ACCOUNT_ROW>(szConnectStr, szTable) { };
 
 	void WriteNextRecord(const CUSTOMER_ACCOUNT_ROW &next_record) {
-		fprintf(p, "%" PRId64 "%c%" PRId64 "%c%" PRId64 "%c%s%c%d%c%.2f\n",
-				next_record.CA_ID, delimiter,
-				next_record.CA_B_ID, delimiter,
-				next_record.CA_C_ID, delimiter,
-				next_record.CA_NAME, delimiter,
-				next_record.CA_TAX_ST, delimiter,
+		fprintf(p, "%" PRId64 "|%" PRId64 "|%" PRId64 "|%s|%d|%.2f\n",
+				next_record.CA_ID,
+				next_record.CA_B_ID,
+				next_record.CA_C_ID,
+				next_record.CA_NAME,
+				next_record.CA_TAX_ST,
 				next_record.CA_BAL);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;

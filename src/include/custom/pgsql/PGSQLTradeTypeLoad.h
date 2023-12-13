@@ -53,10 +53,10 @@ public:
 			: CPGSQLLoader<TRADE_TYPE_ROW>(szConnectStr, szTable) { };
 
 	void WriteNextRecord(const TRADE_TYPE_ROW &next_record) {
-		fprintf(p, "%s%c%s%c%s%c%s\n",
-				next_record.TT_ID, delimiter,
-				next_record.TT_NAME, delimiter,
-				next_record.TT_IS_SELL ? "TRUE" : "FALSE" , delimiter,
+		fprintf(p, "%s|%s|%s|%s\n",
+				next_record.TT_ID,
+				next_record.TT_NAME,
+				next_record.TT_IS_SELL ? "TRUE" : "FALSE",
 				next_record.TT_IS_MRKT ? "TRUE" : "FALSE");
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;

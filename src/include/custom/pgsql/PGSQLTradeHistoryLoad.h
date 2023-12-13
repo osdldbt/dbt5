@@ -58,9 +58,9 @@ public:
 	void WriteNextRecord(const TRADE_HISTORY_ROW &next_record) {
 		th_dts = next_record.TH_DTS;
 
-		fprintf(p, "%" PRId64 "%c%s%c%s\n",
-				next_record.TH_T_ID, delimiter,
-				th_dts.ToStr(iDateTimeFmt), delimiter,
+		fprintf(p, "%" PRId64 "|%s|%s\n",
+				next_record.TH_T_ID,
+				th_dts.ToStr(iDateTimeFmt),
 				next_record.TH_ST_ID);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF) ;
