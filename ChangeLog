@@ -4,6 +4,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Add -U flag to pgsql-build-db to enable database creation from by privileged
   operating system user
 - Add high level database "build" script
+- psql: update custom loading header files to TRUNCATE the table and set FREEZE
+  to true in the COPY command to improve its performance
 
 v0.2.0 (2023-12-07)
 

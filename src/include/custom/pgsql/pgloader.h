@@ -129,7 +129,12 @@ void CPGSQLLoader<T>::Connect()
 	fprintf(p, "BEGIN;\n");
 	while (fgetc(p) != EOF) ;
 
-	fprintf(p, "COPY %s FROM STDIN DELIMITER '%c' NULL '';\n",
+	fprintf(p, "TRUNCATE %s;\n", m_szTable);
+	// FIXME: Have blind faith that TRUNCATE ran correctly.
+	while (fgetc(p) != EOF) ;
+
+	fprintf(p,
+			"COPY %s FROM STDIN WITH (DELIMITER '%c', FREEZE TRUE, NULL '');\n",
 			m_szTable, delimiter);
 	// FIXME: Have blind faith that COPY started correctly.
 	while (fgetc(p) != EOF) ;
