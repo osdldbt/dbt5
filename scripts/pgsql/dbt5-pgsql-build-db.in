@@ -58,7 +58,7 @@ SCALE_FACTOR=500
 STARTING_CUSTOMER_ID=1
 ITD=300
 
-while getopts "b:c:d:hi:l:p:rs:t:uw:" OPT; do
+while getopts "b:c:d:hi:l:p:rs:t:Uuw:" OPT; do
 	case ${OPT} in
 	b)
 		STARTING_CUSTOMER_ID=${OPTARG}
@@ -93,6 +93,9 @@ while getopts "b:c:d:hi:l:p:rs:t:uw:" OPT; do
 		;;
 	u)
 		TABLESPACES_FLAG="-t"
+		;;
+	U)
+		PRIVILEGED=1
 		;;
 	w)
 		ITD=${OPTARG}
