@@ -57,3 +57,8 @@ void CCustomer::DoTxn()
 {
 	m_pCCE->DoTxn();
 }
+
+void CCustomer::LogStopTime()
+{
+	m_pCCESUT->logStopTime();
+}

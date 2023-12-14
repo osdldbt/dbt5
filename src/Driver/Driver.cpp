@@ -116,6 +116,8 @@ void *customerWorkerThread(void *data)
 		}
 	} while (time(NULL) < stop_time);
 
+	customer->LogStopTime();
+
 	pid_t pid = syscall(SYS_gettid);
 	cout << "User thread # " << pid << " terminated." << endl;
 
@@ -264,6 +266,8 @@ void *dmWorkerThread(void *data)
 		if (end_time < stop_time && remaining > 0)
 			sleep(remaining);
 	} while (end_time < stop_time);
+
+	pThrParam->pDriver->m_pCDMSUT->logStopTime();
 
 	cout << "Data-Maintenance thread stopped." << endl;
 	delete pThrParam;

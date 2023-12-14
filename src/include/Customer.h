@@ -43,6 +43,7 @@ public:
 
 	void DoTxn();
 	void RunTest(int, int);
+	void LogStopTime();
 };
 
 #endif // CUSTOMER_H

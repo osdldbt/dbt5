@@ -117,12 +117,15 @@ ${SQLOPTIONS}
 CREATE INDEX mix_time_txn_start
 ON mix (time)
 WHERE txn = 'START';
+CREATE INDEX mix_time_txn_start
+ON mix (time)
+WHERE txn = 'STOP';
 EOF
 
 TIME0=$(sqlite3 "${DBFILE}" "SELECT min(time) FROM mix;")
 STARTTIME=$(sqlite3 \
 		"${DBFILE}" "SELECT max(time) FROM mix WHERE txn = 'START';")
-ENDTIME=$(sqlite3 "${DBFILE}" "SELECT max(time) FROM mix;")
+ENDTIME=$(sqlite3 "${DBFILE}" "SELECT min(time) FROM mix WHERE txn = 'STOP';")
 DURATION="$(sqlite3 "${DBFILE}" "SELECT (${ENDTIME} - ${STARTTIME}) / 60.0;")"
 
 TXNTOTAL="$(sqlite3 "${DBFILE}" <<- EOF
@@ -141,6 +144,7 @@ SELECT txn
      , max(response)
 FROM mix
 WHERE time > ${STARTTIME}
+  AND time < ${ENDTIME}
 GROUP BY txn
 ORDER BY txn;
 EOF
@@ -151,6 +155,7 @@ SELECT txn
      , count(time)
 FROM mix
 WHERE time > ${STARTTIME}
+  AND time < ${ENDTIME}
   AND code = 1
 GROUP BY txn
 ORDER BY txn;
@@ -162,6 +167,7 @@ SELECT txn
      , count(time)
 FROM mix
 WHERE time > ${STARTTIME}
+  AND time < ${ENDTIME}
   AND code < 0
 GROUP BY txn
 ORDER BY txn;
@@ -173,6 +179,7 @@ SELECT txn
      , count(time)
 FROM mix
 WHERE time > ${STARTTIME}
+  AND time < ${ENDTIME}
   AND code > 1
 GROUP BY txn
 ORDER BY txn;
@@ -229,6 +236,7 @@ for TXN in 1 2 8 3 0 5 6 9 4 7 10; do
 			FROM mix
 			WHERE txn = '${TXN}'
 			  AND time > ${STARTTIME}
+			  AND time < ${ENDTIME}
 			ORDER BY response ASC
 			LIMIT 1
 			OFFSET ${TXNCOUNT} * 9 / 10;

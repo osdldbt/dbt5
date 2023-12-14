@@ -40,6 +40,8 @@ public:
 	~CBaseInterface(void);
 	bool biConnect();
 	bool biDisconnect();
+
+	void logStopTime();
 };
 
 #endif // BASE_INTERFACE_H

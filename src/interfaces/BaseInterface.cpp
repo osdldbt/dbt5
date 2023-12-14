@@ -156,3 +156,9 @@ void CBaseInterface::logErrorMessage(const string sErr)
 	m_fLog << sErr;
 	m_fLog.flush();
 }
+
+void CBaseInterface::logStopTime()
+{
+	m_fMix << time(NULL) << ",STOP,,," << m_pid << endl;
+	m_fMix.flush();
+}
