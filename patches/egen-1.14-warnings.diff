@@ -108,19 +108,6 @@ Index: dbt5/egen/src/EGenLoader.cpp
          break;
        case 'f':
          iScaleFactor = (UINT) atoi( vp );
-Index: dbt5/egen/inc/TableTemplate.h
-===================================================================
---- dbt5.orig/egen/inc/TableTemplate.h
-+++ dbt5/egen/inc/TableTemplate.h
-@@ -141,7 +141,7 @@ public:
-     *   RETURNS:
-     *           none.
-     */
--    void ClearRecord() { memset(&m_row, 0, sizeof(m_row)); }
-+    void ClearRecord() { }
- };
- 
- }   // namespace TPCE
 Index: dbt5/egen/src/MEETickerTape.cpp
 ===================================================================
 --- dbt5.orig/egen/src/MEETickerTape.cpp
@@ -167,33 +154,34 @@ Index: dbt5/egen/src/TradeGen.cpp
 ===================================================================
 --- dbt5.orig/egen/src/TradeGen.cpp
 +++ dbt5/egen/src/TradeGen.cpp
-@@ -134,13 +134,6 @@ CTradeGen::CTradeGen(const DataFileManag
-     m_pCustomerHoldings = new THoldingList[ m_iLoadUnitAccountCount ]
-     [ iMaxSecuritiesPerAccount ];
+@@ -136,10 +136,10 @@ CTradeGen::CTradeGen(const DataFileManag
  
--    // Clear row structures
--    //
+     // Clear row structures
+     //
 -    memset(&m_NewTrade, 0, sizeof(m_NewTrade));
 -    memset(&m_TradeRow, 0, sizeof(m_TradeRow));
 -    memset(&m_HoldingRow, 0, sizeof(m_HoldingRow));
 -    memset(&m_HoldingSummaryRow, 0, sizeof(m_HoldingSummaryRow));
--
++    memset((void *) &m_NewTrade, 0, sizeof(m_NewTrade));
++    memset((void *) &m_TradeRow, 0, sizeof(m_TradeRow));
++    memset((void *) &m_HoldingRow, 0, sizeof(m_HoldingRow));
++    memset((void *) &m_HoldingSummaryRow, 0, sizeof(m_HoldingSummaryRow));
+ 
      // Position trade id at the proper start of the sequence
      //
-     m_iCurrentTradeId = (TTrade)m_iHoursOfInitialTrades * SecondsPerHour
-@@ -239,12 +232,6 @@ bool CTradeGen::InitNextLoadUnit()
+@@ -241,9 +241,9 @@ bool CTradeGen::InitNextLoadUnit()
  
-     m_MEESecurity.Init( 0, NULL, NULL, m_fMeanInTheMoneySubmissionDelay );
- 
--    // Clear row structures.
--    //
+     // Clear row structures.
+     //
 -    memset(&m_TradeRow, 0, sizeof(m_TradeRow));
 -    memset(&m_HoldingRow, 0, sizeof(m_HoldingRow));
 -    memset(&m_HoldingSummaryRow, 0, sizeof(m_HoldingSummaryRow));
--
++    memset((void *) &m_TradeRow, 0, sizeof(m_TradeRow));
++    memset((void *) &m_HoldingRow, 0, sizeof(m_HoldingRow));
++    memset((void *) &m_HoldingSummaryRow, 0, sizeof(m_HoldingSummaryRow));
+ 
      return m_iCurrentLoadUnit < (m_iCustomerCount / m_iLoadUnitSize);
  }
- 
 Index: dbt5/egen/inc/FixedTable.h
 ===================================================================
 --- dbt5.orig/egen/inc/FixedTable.h
@@ -211,3 +199,16 @@ Index: dbt5/egen/inc/FixedTable.h
      {
      }
  
+Index: dbt5/egen/inc/TableTemplate.h
+===================================================================
+--- dbt5.orig/egen/inc/TableTemplate.h
++++ dbt5/egen/inc/TableTemplate.h
+@@ -141,7 +141,7 @@ public:
+     *   RETURNS:
+     *           none.
+     */
+-    void ClearRecord() { memset(&m_row, 0, sizeof(m_row)); }
++    void ClearRecord() { memset((void *) &m_row, 0, sizeof(m_row)); }
+ };
+ 
+ }   // namespace TPCE

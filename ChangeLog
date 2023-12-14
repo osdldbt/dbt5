@@ -6,6 +6,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Add high level database "build" script
 - psql: update custom loading header files to TRUNCATE the table and set FREEZE
   to true in the COPY command to improve its performance
+- Fix memory clearing in TPC-E Tools bugs introduced by warnings patch
 
 v0.2.0 (2023-12-07)
 
