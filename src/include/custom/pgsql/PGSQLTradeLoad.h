@@ -78,7 +78,7 @@ public:
 		while (fgetc(p) != EOF) ;
 	}
 
-	virtual void FinishLoad() {
+	void FinishLoad() {
 		// FIXME: Can't we call the parent class's FinishLoad to do the COMMIT?
 		// End of the COPY.
 		fprintf(p, "\\.\n");

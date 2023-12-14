@@ -24,9 +24,8 @@ public:
 	CMarketFeedDB(CDBConnection *, bool);
 	~CMarketFeedDB() {};
 
-	virtual void DoMarketFeedFrame1(const TMarketFeedFrame1Input *pIn,
-			TMarketFeedFrame1Output *pOut,
-			CSendToMarketInterface *pSendToMarket);
+	void DoMarketFeedFrame1(const TMarketFeedFrame1Input*,
+			TMarketFeedFrame1Output*, CSendToMarketInterface*);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

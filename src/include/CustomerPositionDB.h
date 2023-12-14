@@ -27,13 +27,11 @@ public:
 	CCustomerPositionDB(CDBConnection *, bool);
 	~CCustomerPositionDB() {};
 
-	virtual void DoCustomerPositionFrame1(
-			const TCustomerPositionFrame1Input *pIn,
-			TCustomerPositionFrame1Output *pOut);
-	virtual void DoCustomerPositionFrame2(
-			const TCustomerPositionFrame2Input *pIn,
-			TCustomerPositionFrame2Output *pOut);
-	virtual void DoCustomerPositionFrame3();
+	void DoCustomerPositionFrame1(const TCustomerPositionFrame1Input*,
+			TCustomerPositionFrame1Output*);
+	void DoCustomerPositionFrame2(const TCustomerPositionFrame2Input*,
+			TCustomerPositionFrame2Output*);
+	void DoCustomerPositionFrame3();
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

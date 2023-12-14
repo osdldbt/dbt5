@@ -27,8 +27,8 @@ public:
 
 	~CTradeStatusDB() {};
 
-	virtual void DoTradeStatusFrame1(const TTradeStatusFrame1Input *pIn,
-			TTradeStatusFrame1Output *pOut);
+	void DoTradeStatusFrame1(const TTradeStatusFrame1Input*,
+			TTradeStatusFrame1Output*);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

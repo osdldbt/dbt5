@@ -53,10 +53,8 @@ public:
 	CDMSUTtest(CDBConnection *);
 	~CDMSUTtest();
 
-	// return whether it was successful
-	virtual bool DataMaintenance(PDataMaintenanceTxnInput);
-	// return whether it was successful
-	virtual bool TradeCleanup(PTradeCleanupTxnInput);
+	bool DataMaintenance(PDataMaintenanceTxnInput);
+	bool TradeCleanup(PTradeCleanupTxnInput);
 };
 
 #endif	// DM_SUT_TEST_H

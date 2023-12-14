@@ -66,7 +66,7 @@ public:
 	Action getAction() { return m_eAction; };
 	int ErrorType() { return ERR_TYPE_SOCKET; };
 
-	virtual const char *ErrorText() const
+	const char* ErrorText() const
 	{
 		static	char *szErrMsg[15] = {
 			(char*)"Can't accept client connection",
@@ -118,7 +118,7 @@ public:
 	
 	int ErrorType() { return ERR_TYPE_THREAD; };
 
-	virtual const char *ErrorText() const
+	const char* ErrorText() const
 	{
 		static	char *szErrMsg[4] = {
 			(char*)"pthread_attr_init failed",

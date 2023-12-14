@@ -26,16 +26,16 @@ public:
 	CTradeOrderDB(CDBConnection *, bool);
 	~CTradeOrderDB() {};
 
-	virtual void DoTradeOrderFrame1(const TTradeOrderFrame1Input *pIn,
-			TTradeOrderFrame1Output *pOut);
-	virtual void DoTradeOrderFrame2(const TTradeOrderFrame2Input *pIn,
-			TTradeOrderFrame2Output *pOut);
-	virtual void DoTradeOrderFrame3(const TTradeOrderFrame3Input *pIn,
-			TTradeOrderFrame3Output *pOut);
-	virtual void DoTradeOrderFrame4(const TTradeOrderFrame4Input *pIn,
-			TTradeOrderFrame4Output *pOut);
-	virtual void DoTradeOrderFrame5();
-	virtual void DoTradeOrderFrame6();
+	void DoTradeOrderFrame1(const TTradeOrderFrame1Input*,
+			TTradeOrderFrame1Output*);
+	void DoTradeOrderFrame2(const TTradeOrderFrame2Input*,
+			TTradeOrderFrame2Output*);
+	void DoTradeOrderFrame3(const TTradeOrderFrame3Input*,
+			TTradeOrderFrame3Output*);
+	void DoTradeOrderFrame4(const TTradeOrderFrame4Input*,
+			TTradeOrderFrame4Output*);
+	void DoTradeOrderFrame5();
+	void DoTradeOrderFrame6();
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

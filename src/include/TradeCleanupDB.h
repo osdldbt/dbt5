@@ -24,7 +24,7 @@ public:
 	CTradeCleanupDB(CDBConnection *, bool);
 	~CTradeCleanupDB() {};
 
-	virtual void DoTradeCleanupFrame1(const TTradeCleanupFrame1Input *pIn);
+	void DoTradeCleanupFrame1(const TTradeCleanupFrame1Input*);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

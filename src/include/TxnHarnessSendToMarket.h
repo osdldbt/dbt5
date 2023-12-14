@@ -29,7 +29,7 @@ public:
 	CSendToMarket(ofstream *, char *, int);
 	~CSendToMarket();
 
-	virtual bool SendToMarket(TTradeRequest &);
+	bool SendToMarket(TTradeRequest &);
 };
 
 #endif	// TXN_HARNESS_SENDTOMARKET_H

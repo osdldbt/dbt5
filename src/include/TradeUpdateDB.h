@@ -26,12 +26,12 @@ public:
 	CTradeUpdateDB(CDBConnection *, bool);
 	~CTradeUpdateDB() {};
 
-	virtual void DoTradeUpdateFrame1(const TTradeUpdateFrame1Input *pIn,
-			TTradeUpdateFrame1Output *pOut);
-	virtual void DoTradeUpdateFrame2(const TTradeUpdateFrame2Input *pIn,
-			TTradeUpdateFrame2Output *pOut);
-	virtual void DoTradeUpdateFrame3(const TTradeUpdateFrame3Input *pIn,
-			TTradeUpdateFrame3Output *pOut);
+	void DoTradeUpdateFrame1(const TTradeUpdateFrame1Input*,
+			TTradeUpdateFrame1Output*);
+	void DoTradeUpdateFrame2(const TTradeUpdateFrame2Input*,
+			TTradeUpdateFrame2Output*);
+	void DoTradeUpdateFrame3(const TTradeUpdateFrame3Input*,
+			TTradeUpdateFrame3Output*);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

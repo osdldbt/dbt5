@@ -34,10 +34,8 @@ public:
 	};
 	~CMEESUTtest() { };
 
-	// return whether it was successful
-	virtual bool TradeResult(PTradeResultTxnInput);
-	// return whether it was successful
-	virtual bool MarketFeed( PMarketFeedTxnInput);
+	bool TradeResult(PTradeResultTxnInput);
+	bool MarketFeed(PMarketFeedTxnInput);
 	
 	friend void *TradeResultAsync(void *);
 	friend bool RunTradeResultAsync(CMEESUTtest *);

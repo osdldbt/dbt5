@@ -24,8 +24,8 @@ public:
 	CMarketWatchDB(CDBConnection *, bool);
 	~CMarketWatchDB() {};
 
-	virtual void DoMarketWatchFrame1(const TMarketWatchFrame1Input *pIn,
-			TMarketWatchFrame1Output *pOut);
+	void DoMarketWatchFrame1(const TMarketWatchFrame1Input*,
+			TMarketWatchFrame1Output*);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

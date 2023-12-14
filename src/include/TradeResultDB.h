@@ -26,17 +26,17 @@ public:
 	CTradeResultDB(CDBConnection *, bool);
 	~CTradeResultDB() {};
 
-	virtual void DoTradeResultFrame1(const TTradeResultFrame1Input *pIn,
-			TTradeResultFrame1Output *pOut);
-	virtual void DoTradeResultFrame2(const TTradeResultFrame2Input *pIn,
-			TTradeResultFrame2Output *pOut);
-	virtual void DoTradeResultFrame3(const TTradeResultFrame3Input *pIn,
-			TTradeResultFrame3Output *pOut);
-	virtual void DoTradeResultFrame4(const TTradeResultFrame4Input *pIn,
-			TTradeResultFrame4Output *pOut);
-	virtual void DoTradeResultFrame5(const TTradeResultFrame5Input *pIn);
-	virtual void DoTradeResultFrame6(const TTradeResultFrame6Input *pIn,
-			TTradeResultFrame6Output *pOut);
+	void DoTradeResultFrame1(const TTradeResultFrame1Input*,
+			TTradeResultFrame1Output*);
+	void DoTradeResultFrame2(const TTradeResultFrame2Input*,
+			TTradeResultFrame2Output*);
+	void DoTradeResultFrame3(const TTradeResultFrame3Input*,
+			TTradeResultFrame3Output*);
+	void DoTradeResultFrame4(const TTradeResultFrame4Input*,
+			TTradeResultFrame4Output*);
+	void DoTradeResultFrame5(const TTradeResultFrame5Input*);
+	void DoTradeResultFrame6(const TTradeResultFrame6Input*,
+			TTradeResultFrame6Output*);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

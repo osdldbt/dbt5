@@ -26,14 +26,14 @@ public:
 	CTradeLookupDB(CDBConnection *, bool);
 	~CTradeLookupDB() {};
 
-	virtual void DoTradeLookupFrame1(const TTradeLookupFrame1Input *pIn,
-			TTradeLookupFrame1Output *pOut);
-	virtual void DoTradeLookupFrame2(const TTradeLookupFrame2Input *pIn,
-			TTradeLookupFrame2Output *pOut);
-	virtual void DoTradeLookupFrame3(const TTradeLookupFrame3Input *pIn,
-			TTradeLookupFrame3Output *pOut);
-	virtual void DoTradeLookupFrame4(const TTradeLookupFrame4Input *pIn,
-			TTradeLookupFrame4Output *pOut);
+	void DoTradeLookupFrame1(const TTradeLookupFrame1Input*,
+			TTradeLookupFrame1Output*);
+	void DoTradeLookupFrame2(const TTradeLookupFrame2Input*,
+			TTradeLookupFrame2Output*);
+	void DoTradeLookupFrame3(const TTradeLookupFrame3Input*,
+			TTradeLookupFrame3Output*);
+	void DoTradeLookupFrame4(const TTradeLookupFrame4Input*,
+			TTradeLookupFrame4Output*);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation

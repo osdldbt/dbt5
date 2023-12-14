@@ -23,10 +23,8 @@ public:
 	CDMSUT(char *, char *, const int);
 	~CDMSUT(void);
 
-	// return whether it was successful
-	virtual bool DataMaintenance(PDataMaintenanceTxnInput pTxnInput);
-	// return whether it was successful
-	virtual bool TradeCleanup(PTradeCleanupTxnInput pTxnInput);
+	bool DataMaintenance(PDataMaintenanceTxnInput);
+	bool TradeCleanup(PTradeCleanupTxnInput);
 };
 
 #endif // DM_SUT_H

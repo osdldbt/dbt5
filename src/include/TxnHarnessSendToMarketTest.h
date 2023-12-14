@@ -21,7 +21,7 @@ public:
 	CSendToMarketTest(TIdent, TIdent, char *);
 	~CSendToMarketTest();
 
-	virtual bool SendToMarket(TTradeRequest &);
+	bool SendToMarket(TTradeRequest &);
 
 private:
 	TIdent iConfiguredCustomerCount;

@@ -62,19 +62,19 @@ public:
 	typedef const T *PT; // pointer to the table row
 
 	CPGSQLLoader(const char *szConnectStr, const char *szTable);
-	virtual ~CPGSQLLoader(void);
+	~CPGSQLLoader(void);
 
 	// resets to clean state; needed after FinishLoad to continue loading
-	virtual void Init();
+	void Init();
 
-	virtual void Commit(); // commit rows sent so far
-	virtual void FinishLoad(); // finish load
+	void Commit(); // commit rows sent so far
+	void FinishLoad(); // finish load
 	void Connect(); // connect to PostgreSQL
 
 	// disconnect - should not throw any exceptions (to put into the destructor)
 	void Disconnect();
 
-	virtual void WriteNextRecord(const T& next_record) {
+	void WriteNextRecord(const T &next_record) {
 		printf("pgloader - const ref\n");
 	};
 };
