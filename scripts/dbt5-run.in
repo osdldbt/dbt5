@@ -457,9 +457,10 @@ stat_collection -s
 echo
 echo "4. Run Post processing analyses"
 
-RESULTSFILE="${OUTPUT_DIR}/results.txt"
-dbt5-post-process "${DRIVER_OUTPUT_DIR}/mix-*.log" \
-		"${MEE_OUTPUT_DIR}/mix-*.log" > "${RESULTSFILE}"
+RESULTSFILE="${OUTPUT_DIR}/summary.rst"
+dbt5-post-process --customers="${TOTAL_CUSTOMERS}" \
+		"${DRIVER_OUTPUT_DIR}/mix-*.log" "${MEE_OUTPUT_DIR}/mix-*.log" \
+		> "${RESULTSFILE}"
 
 # Servers don't go away by themselves like the driver does, so kill it.
 echo "Killing Servers..."
