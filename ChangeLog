@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.3.0 (2023-12-15)
 
 - Add verbose flag (-v) to BrokerageHouseMain to output frame inputs/outputs
 - Add -U flag to pgsql-build-db to enable database creation from by privileged

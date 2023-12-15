@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12)
 PROJECT(dbt5 NONE)
 
 set (PROJECT_VERSION_MAJOR 0)
-set (PROJECT_VERSION_MINOR 2)
+set (PROJECT_VERSION_MINOR 3)
 set (PROJECT_VERSION_PATCH 0)
 
 set (PROJECT_VERSION
@@ -40,7 +40,6 @@ set (PGSQL_SCRIPTS scripts/pgsql/dbt5-pgsql-start-db
 
 INSTALL(PROGRAMS scripts/dbt5-get-os-info
                  scripts/dbt5-plot-transaction-rate
-                 scripts/dbt5-generate-report
                  ${PGSQL_SCRIPTS}
         DESTINATION "bin")
 
