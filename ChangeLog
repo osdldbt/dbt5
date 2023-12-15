@@ -8,6 +8,8 @@ vX.Y.Z (YYYY-MM-DD)
   to true in the COPY command to improve its performance
 - Fix memory clearing in TPC-E Tools bugs introduced by warnings patch
 - Log when driver threads terminate to better calculate steady state duration
+- Refactor and rename generate-report to simply "report" as a POSIX shell
+  script that can create reStructuredText, HTML and PDF reports
 
 v0.2.0 (2023-12-07)
 

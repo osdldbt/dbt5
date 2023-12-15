@@ -1,0 +1,544 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+
+usage()
+{
+	cat << EOF
+$(basename "${0}") is the Database Test 5 (DBT-5) report generator
+
+Usage:
+  $(basename "${0}") [OPTIONS] DIRECTORY
+
+General options:
+  -V, --version  output version information, then exit
+  -?, --help     show this help, then exit
+
+@HOMEPAGE@
+EOF
+}
+
+error() {
+	echo "ERROR: ${*}"
+	exit 1
+}
+
+warning() {
+	echo "WARNING: ${*}"
+}
+
+create_stat_page()
+{
+	TITLE="${1}"
+	TAG="${2}"
+	DIR="${3}"
+	ODIR="${4}"
+
+	mkdir -p "${ODIR}"
+
+	cat > "${ODIR}/index.rst" << __EOF__
+================================================================================
+Database Test 5 "$TITLE" "${TAG}" Charts
+================================================================================
+
+$(show_images "${DIR}" "${TAG}")
+__EOF__
+}
+
+create_pidstat_page()
+{
+	TAG="${1}"
+	DIR="${2}"
+
+	mkdir -p "${DIR}"
+
+	PIDSTATCSV=$(find "${DIR}/.." -name pidstat.csv 2> /dev/null)
+	PIDSTATINDEX="$(dirname "${PIDSTATCSV}")/pidstat-index.txt"
+
+	cat > "${DIR}/index.rst" << __EOF__
+================================================================================
+Database Test 5 pidstat ${TAG} Charts
+================================================================================
+
+$(show_images_pidstat "${TAG}" "${DIR}" "${PIDSTATINDEX}")
+__EOF__
+}
+
+list_multiple_systems_summary()
+{
+	TITLE="${1}"
+	MYTAG="${2}"
+
+	echo "   * - **${TITLE}**"
+	echo "     -"
+	echo "     -"
+	echo "     -"
+
+	# List system statistics if sysstat directory exists.
+	find "${INDIR}/${MYTAG}" -type d -name sysstat 2> /dev/null | \
+			while IFS= read -r SYSSTATDIR
+	do
+		SNAME="$(basename "$(dirname "${SYSSTATDIR}")")"
+		echo "   * - ${SNAME}"
+		echo "     - $(head -n "${INDIR}/${MYTAG}/readme.txt")"
+		echo "     - $(show_system_links "${MYTAG}/${SNAME}")"
+		echo "     - $(show_profile_links "${MYTAG}/${SNAME}/profile")"
+
+		if [ -f "${INDIR}/${MYTAG}/${SNAME}/sysstat/sar.datafile" ]; then
+			THISDIR="${INDIR}/${MYTAG}/${SNAME}"
+			create_stat_page "${MYTAG}" cpu "${THISDIR}" "${THISDIR}/cpu"
+			create_stat_page "${MYTAG}" mem "${THISDIR}" "${THISDIR}/mem"
+			create_stat_page "${MYTAG}" blockdev "${THISDIR}" "${THISDIR}/blockdev"
+			create_stat_page "${MYTAG}" net "${THISDIR}" "${THISDIR}/net"
+			create_stat_page "${MYTAG}" paging "${THISDIR}" "${THISDIR}/paging"
+			create_stat_page "${MYTAG}" swap "${THISDIR}" "${THISDIR}/swap"
+		fi
+	done
+}
+
+list_processes()
+{
+	list_processes2 "Driver(s):" driver
+	list_processes2 "Customer Emulator(s):" bh
+	list_processes2 "Market Exchange Emulator(s):" mee
+	list_processes2 "Database System(s):" db
+}
+
+list_processes2()
+{
+	TITLE="${1}"
+	MYPTAG="${2}"
+
+	echo "${TITLE}"
+	echo ""
+	find "${INDIR}/${MYPTAG}" -name pidstat.csv 2> /dev/null | \
+			while IFS= read -r PIDSTATCSV
+	do
+		PIDSTATDIR="$(dirname "${PIDSTATCSV}")"
+		echo "* $(basename "$(dirname "${PIDSTATDIR}")")"
+		ts plot-pidstat -i "${PIDSTATCSV}" -o "${PIDSTATDIR}/pidstat"
+
+		# Try not to count execution of the binaries on remote systems.
+		COUNTCE="$(grep BrokerageHouseMain "$PIDSTATCSV" | grep -c -v ssh)"
+		COUNTDRIVER="$(grep DriverMain "$PIDSTATCSV" | grep -c -v ssh)"
+		COUNTMEE="$(grep MarketExchangeMain "$PIDSTATCSV" | grep -c -v ssh)"
+		SNAME="$(basename "$(dirname "$(dirname "${PIDSTATCSV}")")")"
+
+		echo "* ${SNAME}"
+
+		if [ "${COUNTDRIVER}" -gt 0 ]; then
+			PTAG="DriverMain"
+			create_pidstat_page "${PTAG}" "${INDIR}/${MYPTAG}/${SNAME}/${PTAG}"
+			echo "   * \`${PTAG} <${MYPTAG}/${SNAME}/${PTAG}/>\`__"
+		fi
+
+		if [ "${COUNTCE}" -gt 0 ]; then
+			PTAG="BrokerageHouseMain"
+			create_pidstat_page "${PTAG}" "${INDIR}/${MYPTAG}/${SNAME}/${PTAG}"
+			echo "   * \`${PTAG} <${MYPTAG}/${SNAME}/${PTAG}/>\`__"
+		fi
+
+		if [ "${COUNTMEE}" -gt 0 ]; then
+			PTAG="MarketExchangeMain"
+			create_pidstat_page "${PTAG}" "${INDIR}/${MYPTAG}/${SNAME}/${PTAG}"
+			echo "   * \`${PTAG} <${MYPTAG}/${SNAME}/${PTAG}/>\`__"
+		fi
+
+		echo ""
+	done
+}
+
+show_images()
+{
+	DIR="${1}"
+	TAG="${2}"
+
+	CHARTS="$(find "${DIR}" -name "sar-${TAG}*.png" | sort -n)"
+	for CHART in ${CHARTS}; do
+		FNAME=$(basename "${CHART}")
+		echo ".. image:: ../sysstat/sar/${TAG}/${FNAME}"
+		echo "   :target: ../sysstat/sar/${TAG}/${FNAME}"
+		echo "   :width: 100%"
+		echo ""
+	done
+}
+
+show_images_pidstat()
+{
+	TAG="${1}"
+	DIR="${2}"
+	PINDEX="${3}"
+
+	TAGPIDS="$(grep "${TAG}" "${PINDEX}" | cut -d " " -f 1)"
+	for P in ${TAGPIDS}; do
+		CHARTS=$(find "${DIR}/../sysstat/pidstat" \
+				-name "pidstat-${P}-*.png" 2> /dev/null | sort)
+		for CHART in ${CHARTS}; do
+			BCHART="$(basename "${CHART}")"
+			echo ".. image:: ../sysstat/pidstat/${BCHART}"
+			echo "   :target: ../sysstat/pidstat/${BCHART}"
+			echo "   :width: 100%"
+			echo ""
+		done
+	done
+}
+
+show_profile_links()
+{
+	PPATH="${1}"
+
+	FILENAME="${INDIR}/${PPATH}/readprofile.txt"
+	if [ -f "${FILENAME}" ]; then
+		printf "%s" "\`readprofile <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/readprofile-load.txt"
+	if [ -f "${FILENAME}" ]; then
+		printf "%s" "\`readprofile-by-load <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/readprofile-ticks.txt"
+	if [ -f "${FILENAME}" ]; then
+		printf "%s" "\`readprofile-by-ticks <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/opreport.txt"
+	if [ -f "${FILENAME}" ]; then
+		printf "%s" "\`opreport <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/opreport-callgraph.txt"
+	if [ -f "${FILENAME}" ]; then
+		printf "%s" "\`opreport-callgraph <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/opannotate-assembly.txt"
+	if [ -f "${FILENAME}" ]; then
+		printf "%s" "\`opannotate-assembly <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/opannotate-source.txt"
+	if [ -f "${FILENAME}" ]; then
+		printf "%s" "\`opannotate-source <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/perf-report.txt"
+	if [ -f "${FILENAME}" ]; then
+		printf "%s" "\`perf-report <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/perf-trace.txt"
+	if [ -f "${FILENAME}" ]; then
+		printf "%s" "\`perf-trace <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/perf-annotate.txt"
+	if [ -f "${FILENAME}" ]; then
+		printf "%s" "\`perf-annotated-source <${PPATH}/$(basename "${FILENAME}")>\`__ "
+	fi
+
+	FILENAME="${INDIR}/${PPATH}/perf.txt"
+	if [ -f "${FILENAME}" ]; then
+		STACKCOLLAPSEPL="$(command -v stackcollapse-perf.pl)"
+		if [ ! "${STACKCOLLAPSEPL}" = "" ]; then
+			(cd "$(dirname "${FILENAME}")" && \
+					"${STACKCOLLAPSEPL}" perf.txt > perf.folded 2> /dev/null)
+		fi
+		FLAMEGRAPHPL="$(command -v flamegraph.pl)"
+		if [ ! "${FLAMEGRAPHPL}" = "" ]; then
+			FLAMEGRAPH="${INDIR}/${PPATH}/flamegraph.svg"
+			(cd "$(dirname "${FILENAME}")" && \
+					"${FLAMEGRAPHPL}" perf.folded > \
+							"$(basename "${FLAMEGRAPH}")" 2> /dev/null)
+		fi
+		if [ -f "${FLAMEGRAPH}" ]; then
+			printf "%s" \
+					"\`flame-graph <${PPATH}/$(basename "${FLAMEGRAPH}")>\`__ "
+		fi
+	fi
+}
+
+show_system_links()
+{
+	SYSTEM=$1
+
+	if [ -f "${INDIR}/${SYSTEM}/sysstat/sar.datafile" ]; then
+		LINE="\`CPU <${SYSTEM}/cpu/>\`__"
+		LINE="${LINE} \`Memory <${SYSTEM}/mem/>\`__"
+		LINE="${LINE} \`Blockdev <${SYSTEM}/blockdev/>\`__"
+		LINE="${LINE} \`Network <${SYSTEM}/net/>\`__"
+		LINE="${LINE} \`Paging <${SYSTEM}/paging/>\`__"
+		LINE="${LINE} \`Swap <${SYSTEM}/swap/>\`__"
+		echo "${LINE}"
+	else
+		echo ".."
+	fi
+}
+
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-V | --version)
+		echo "$(basename "${0}") v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
+	esac
+	shift
+done
+
+INDIR="${1}"
+OUTDIR="${INDIR}"
+
+CUSTOMERS="$(grep "Database Customer Cardinality:" "${INDIR}/readme.txt" | cut -d ":" -f 2 | xargs)"
+MIXFILES="$(find "${INDIR}" -name 'mix*.log' -print0 | xargs -0)"
+SUMMARY="${INDIR}/summary.rst"
+if [ ! -f "${SUMMARY}" ]; then
+	dbt5 post-process --customers="${CUSTOMERS}" ${MIXFILES} > "${SUMMARY}"
+fi
+
+echo "Processing pidstat files..."
+find "${INDIR}" -type f -name pidstat.txt 2> /dev/null | \
+		while IFS= read -r PIDSTATFILE; do
+	ts process-pidstat -i "${PIDSTATFILE}"
+done
+
+echo "Generating transaction distribution charts..."
+mkdir -p "${OUTDIR}/txn" || exit 1
+dbt-plot transaction-distribution "Security Detail" 0 "${OUTDIR}/txn" 1 \
+		${MIXFILES} || warning \
+		"Could not create Security Detail response time distribution chart"
+dbt-plot transaction-distribution "Broker Volume" 1 "${OUTDIR}/txn" 2 \
+		${MIXFILES} || warning \
+		"Could not create Broker Volume response time distribution chart"
+dbt-plot transaction-distribution "Customer Position" 2 "${OUTDIR}/txn" 3 \
+		${MIXFILES} || warning \
+		"Could not create Customer Position response time distribution chart"
+dbt-plot transaction-distribution "Market Watch" 3 "${OUTDIR}/txn" 4 \
+		${MIXFILES} || warning \
+		"Could not create Market Watch response time distribution chart"
+dbt-plot transaction-distribution "Trade Status" 4 "${OUTDIR}/txn" 5 \
+		${MIXFILES} || warning \
+		"Could not create Trade Status response time distribution chart"
+dbt-plot transaction-distribution "Trade Lookup" 5 "${OUTDIR}/txn" 6 \
+		${MIXFILES} || warning \
+		"Could not create Trade Lookup response time distribution chart"
+dbt-plot transaction-distribution "Trade Order" 6 "${OUTDIR}/txn" 7 \
+		${MIXFILES} || warning \
+		"Could not create Trade Order response time distribution chart"
+dbt-plot transaction-distribution "Trade Update" 7 "${OUTDIR}/txn" 8 \
+		${MIXFILES} || warning \
+		"Could not create Trade Update response time distribution chart"
+dbt-plot transaction-distribution "Market Feed" 8 "${OUTDIR}/txn" 9 \
+		${MIXFILES} || warning \
+		"Could not create Market Feed response time distribution chart"
+dbt-plot transaction-distribution "Trade Result" 9 "${OUTDIR}/txn" 10 \
+		${MIXFILES} || warning \
+		"Could not create Trade Result response time distribution chart"
+dbt-plot transaction-distribution "Data Maintenance" 10 "${OUTDIR}/txn" 11 \
+		${MIXFILES} || warning \
+		"Could not create Data Maintenance response time distribution chart"
+
+echo "Generating sar charts..."
+find "${INDIR}" -type d -name sysstat 2> /dev/null | \
+		while IFS= read -r SARDIR; do
+	ts plot-sar -i "${SARDIR}/sar"
+done
+
+echo "Generating transaction rate charts..."
+dbt-plot transaction-rate "Security Detail" 0 tps "${OUTDIR}/txn" 1 \
+		${MIXFILES} 2> /dev/null || warning \
+		"Could not create Security Detail transaction rate charts"
+dbt-plot transaction-rate "Broker Volume" 1 tps "${OUTDIR}/txn" 2 \
+		${MIXFILES} 2> /dev/null || warning \
+		"Could not create Broker Volume transaction rate charts"
+dbt-plot transaction-rate "Customer Position" 2 tps "${OUTDIR}/txn" 3 \
+		${MIXFILES} 2> /dev/null || warning \
+		"Could not create Customer Position transaction rate charts"
+dbt-plot transaction-rate "Market Watch" 3 tps "${OUTDIR}/txn" 4 \
+		${MIXFILES} 2> /dev/null || warning \
+		"Could not create Market Watch transaction rate charts"
+dbt-plot transaction-rate "Trade Status" 4 tps "${OUTDIR}/txn" 5 \
+		${MIXFILES} 2> /dev/null || warning \
+		"Could not create Trade Status transaction rate charts"
+dbt-plot transaction-rate "Trade Lookup" 5 tps "${OUTDIR}/txn" 6 \
+		${MIXFILES} 2> /dev/null || warning \
+		"Could not create Trade Lookup transaction rate charts"
+dbt-plot transaction-rate "Trade Order" 6 tps "${OUTDIR}/txn" 7 \
+		${MIXFILES} 2> /dev/null || warning \
+		"Could not create Trade Order transaction rate charts"
+dbt-plot transaction-rate "Trade Update" 7 tps "${OUTDIR}/txn" 8 \
+		${MIXFILES} 2> /dev/null || warning \
+		"Could not create Trade Update transaction rate charts"
+dbt-plot transaction-rate "Market Feed" 8 tps "${OUTDIR}/txn" 9 \
+		${MIXFILES} 2> /dev/null || warning \
+		"Could not create Market Feed transaction rate charts"
+dbt-plot transaction-rate "Trade Result" 9 tps "${OUTDIR}/txn" 10 \
+		${MIXFILES} 2> /dev/null || warning \
+		"Could not create Trade Result transaction rate charts"
+dbt-plot transaction-rate "Data Maintenance" 10 tps "${OUTDIR}/txn" 11 \
+		${MIXFILES} 2> /dev/null || warning \
+		"Could not create Data Maintenance transaction rate charts"
+
+REPORTFILE="${OUTDIR}/report.rst"
+cat > "${REPORTFILE}" << __EOF__
+======================
+Database Test 5 Report
+======================
+
+**These results are not comparable to TPC Benchmark(TM) E results.**
+
+Summary
+=======
+
+* Date: $(head -n 1 "${INDIR}/readme.txt")
+* Scale Factor: $(grep "Database Scale Factor:" "${INDIR}/readme.txt" | cut -d ":" -f 2 | xargs)
+
+$(cat "${SUMMARY}")
+
+Notes: $(head -n 2 "${INDIR}/readme.txt" | tail -n 1)
+
+Transaction Charts
+==================
+
++-----------+----------------------------------------+------------------------------------+
+|Transaction|            Response Time               |        Time Distribution           |
++===========+========================================+====================================+
+|Security   |.. image:: txn/t0-transaction-rate.png  |.. image:: txn/t0-distribution.png  |
+|Detail     |   :target: txn/t0-transaction-rate.png |   :target: txn/t0-distribution.png |
+|           |   :width: 100%                         |   :width: 100%                     |
++-----------+----------------------------------------+------------------------------------+
+|Broker     |.. image:: txn/t1-transaction-rate.png  |.. image:: txn/t1-distribution.png  |
+|Volume     |   :target: txn/t1-transaction-rate.png |   :target: txn/t1-distribution.png |
+|           |   :width: 100%                         |   :width: 100%                     |
++-----------+----------------------------------------+------------------------------------+
+|Customer   |.. image:: txn/t2-transaction-rate.png  |.. image:: txn/t2-distribution.png  |
+|Position   |   :target: txn/t2-transaction-rate.png |   :target: txn/t2-distribution.png |
+|           |   :width: 100%                         |   :width: 100%                     |
++-----------+----------------------------------------+------------------------------------+
+|Market     |.. image:: txn/t3-transaction-rate.png  |.. image:: txn/t3-distribution.png  |
+|Watch      |   :target: txn/t3-transaction-rate.png |   :target: txn/t3-distribution.png |
+|           |   :width: 100%                         |   :width: 100%                     |
++-----------+----------------------------------------+------------------------------------+
+|Trade      |.. image:: txn/t4-transaction-rate.png  |.. image:: txn/t4-distribution.png  |
+|Status     |   :target: txn/t4-transaction-rate.png |   :target: txn/t4-distribution.png |
+|           |   :width: 100%                         |   :width: 100%                     |
++-----------+----------------------------------------+------------------------------------+
+|Trade      |.. image:: txn/t5-transaction-rate.png  |.. image:: txn/t5-distribution.png  |
+|Lookup     |   :target: txn/t5-transaction-rate.png |   :target: txn/t5-distribution.png |
+|           |   :width: 100%                         |   :width: 100%                     |
++-----------+----------------------------------------+------------------------------------+
+|Trade      |.. image:: txn/t6-transaction-rate.png  |.. image:: txn/t6-distribution.png  |
+|Order      |   :target: txn/t6-transaction-rate.png |   :target: txn/t6-distribution.png |
+|           |   :width: 100%                         |   :width: 100%                     |
++-----------+----------------------------------------+------------------------------------+
+|Trade      |.. image:: txn/t7-transaction-rate.png  |.. image:: txn/t7-distribution.png  |
+|Update     |   :target: txn/t7-transaction-rate.png |   :target: txn/t7-distribution.png |
+|           |   :width: 100%                         |   :width: 100%                     |
++-----------+----------------------------------------+------------------------------------+
+|Market     |.. image:: txn/t8-transaction-rate.png  |.. image:: txn/t8-distribution.png  |
+|Feed       |   :target: txn/t8-transaction-rate.png |   :target: txn/t8-distribution.png |
+|           |   :width: 100%                         |   :width: 100%                     |
++-----------+----------------------------------------+------------------------------------+
+|Trade      |.. image:: txn/t9-transaction-rate.png  |.. image:: txn/t9-distribution.png  |
+|Result     |   :target: txn/t9-transaction-rate.png |   :target: txn/t9-distribution.png |
+|           |   :width: 100%                         |   :width: 100%                     |
++-----------+----------------------------------------+------------------------------------+
+|Data       |.. image:: txn/t10-transaction-rate.png |.. image:: txn/t10-distribution.png |
+|Maintenance|   :target: txn/t10-transaction-rate.png|   :target: txn/t10-distribution.png|
+|           |   :width: 100%                         |   :width: 100%                     |
++-----------+----------------------------------------+------------------------------------+
+
+System Summary
+==============
+
+.. list-table::
+   :header-rows: 1
+
+   * -
+     - Operating System
+     - Charts
+     - Profiling
+$(list_multiple_systems_summary "Database System" db)
+
+Component Statistics per Process
+--------------------------------
+
+$(list_processes)
+__EOF__
+
+# Generate HTML and PDF files.
+# TODO: An RST report is always generated, but automatically create HTML and
+# PDF reports if we detect docutils and pandoc.  This should be a little
+# smarter such that we should actually do some combination of generating
+# formats requested or throw codes depending on what actually failed.
+
+GENERATE_PDF=0
+
+RST2HTML5="$(command -v rst2html5.py)"
+if [ "${RST2HTML5}" = "" ]; then
+	RST2HTML5="$(command -v rst2html5.py)"
+fi
+
+if [ ! "${RST2HTML5}" = "" ]; then
+	# pandoc can't properly convert multi-cell table headings from rst but
+	# Sphinx's rst2html can. Then pandoc can convert multi-cell table headings
+	# from html to pdf.
+
+	find "${OUTDIR}" -name "*.rst" 2> /dev/null | while IFS= read -r RST; do
+		RSTDIR=$(dirname "$RST")
+		RSTNAME=$(basename "$RST")
+		NAME="${RSTNAME%.*}"
+		"$RST2HTML5" "$RST" "${RSTDIR}/${NAME}.html" 2> /dev/null
+	done
+
+	echo "Generated top level HTML reports:"
+	find "${OUTDIR}" -maxdepth 1 -name '*.html' 2> /dev/null
+	echo ""
+
+	if [ ${GENERATE_PDF} -eq 1 ]; then
+		# A pdf could be produced other ways, but I believe pandoc produces the
+		# most minimally styled LaTeX looking document, as opposed to using
+		# rst2latex, with default settings.
+		PANDOC="$(command -v pandoc)"
+		if [ ! "${PANDOC}" = "" ]; then
+			(cd "${OUTDIR}" && \
+					pandoc -s report.html -f html -t pdf -o report.pdf \
+							2> /dev/null)
+			find "${OUTDIR}" -name "*.html" 2> /dev/null | \
+					while IFS= read -r HTML; do
+				HTMLDIR=$(dirname "$HTML")
+				HTMLNAME=$(basename "$HTML")
+				NAME="${HTMLNAME%.*}"
+				pandoc -s "$HTML" -f html -t pdf \
+						-o "${HTMLDIR}/${NAME}.pdf" 2> /dev/null
+			done
+
+			echo "Generated top level PDF reports:"
+			find "${OUTDIR}" -maxdepth 1 -name '*.pdf' 2> /dev/null
+			echo ""
+		else
+			echo "WARNING: pandoc required to generate pdf report"
+			exit 0
+		fi
+	fi
+else
+	echo "WARNING: rst2html5 required to generate html report"
+	exit 0
+fi

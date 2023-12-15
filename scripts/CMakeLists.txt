@@ -25,6 +25,12 @@ configure_file(
 )
 
 configure_file(
+    dbt5-report.in
+    ${CMAKE_BINARY_DIR}/dbt5-report
+    @ONLY
+)
+
+configure_file(
     dbt5-run.in
     ${CMAKE_BINARY_DIR}/dbt5-run
     @ONLY
@@ -35,6 +41,7 @@ install (
              ${CMAKE_BINARY_DIR}/dbt5-build
              ${CMAKE_BINARY_DIR}/dbt5-build-egen
              ${CMAKE_BINARY_DIR}/dbt5-post-process
+             ${CMAKE_BINARY_DIR}/dbt5-report
              ${CMAKE_BINARY_DIR}/dbt5-run
     DESTINATION "bin"
 )
