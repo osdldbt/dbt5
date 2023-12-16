@@ -45,23 +45,23 @@
 namespace TPCE
 {
 
-class CPGSQLCommissionRateLoad : public CPGSQLLoader<COMMISSION_RATE_ROW>
+class CPGSQLCommissionRateLoad: public CPGSQLLoader<COMMISSION_RATE_ROW>
 {
 public:
-	CPGSQLCommissionRateLoad(const char *szConnectStr,
-			const char *szTable = "commission_rate")
-			: CPGSQLLoader<COMMISSION_RATE_ROW>(szConnectStr, szTable) { };
+	CPGSQLCommissionRateLoad(
+			const char *szConnectStr, const char *szTable = "commission_rate")
+	: CPGSQLLoader<COMMISSION_RATE_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const COMMISSION_RATE_ROW &next_record) {
-		fprintf(p, "%d|%s|%s|%d|%d|%.2f\n",
-				next_record.CR_C_TIER,
-				next_record.CR_TT_ID,
-				next_record.CR_EX_ID,
-				next_record.CR_FROM_QTY,
-				next_record.CR_TO_QTY,
+	void
+	WriteNextRecord(const COMMISSION_RATE_ROW &next_record)
+	{
+		fprintf(p, "%d|%s|%s|%d|%d|%.2f\n", next_record.CR_C_TIER,
+				next_record.CR_TT_ID, next_record.CR_EX_ID,
+				next_record.CR_FROM_QTY, next_record.CR_TO_QTY,
 				next_record.CR_RATE);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

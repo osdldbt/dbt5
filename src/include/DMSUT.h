@@ -17,7 +17,7 @@
 #include "BaseInterface.h"
 using namespace TPCE;
 
-class CDMSUT : public CDMSUTInterface, public CBaseInterface
+class CDMSUT: public CDMSUTInterface, public CBaseInterface
 {
 public:
 	CDMSUT(char *, char *, const int);

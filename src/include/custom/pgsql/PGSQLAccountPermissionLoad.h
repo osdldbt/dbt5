@@ -45,22 +45,22 @@
 namespace TPCE
 {
 
-class CPGSQLAccountPermissionLoad : public CPGSQLLoader<ACCOUNT_PERMISSION_ROW>
+class CPGSQLAccountPermissionLoad: public CPGSQLLoader<ACCOUNT_PERMISSION_ROW>
 {
 public:
 	CPGSQLAccountPermissionLoad(const char *szConnectStr,
 			const char *szTable = "account_permission")
-			: CPGSQLLoader<ACCOUNT_PERMISSION_ROW>(szConnectStr, szTable) { };
+	: CPGSQLLoader<ACCOUNT_PERMISSION_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const ACCOUNT_PERMISSION_ROW &next_record) {
-		fprintf(p, "%" PRId64 "|%s|%s|%s|%s\n",
-				next_record.AP_CA_ID,
-				next_record.AP_ACL,
-				next_record.AP_TAX_ID,
-				next_record.AP_L_NAME,
-				next_record.AP_F_NAME);
+	void
+	WriteNextRecord(const ACCOUNT_PERMISSION_ROW &next_record)
+	{
+		fprintf(p, "%" PRId64 "|%s|%s|%s|%s\n", next_record.AP_CA_ID,
+				next_record.AP_ACL, next_record.AP_TAX_ID,
+				next_record.AP_L_NAME, next_record.AP_F_NAME);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

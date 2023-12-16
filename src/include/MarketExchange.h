@@ -46,7 +46,7 @@ public:
 	bool verbose();
 };
 
-//parameter structure for the threads
+// parameter structure for the threads
 typedef struct TMarketThreadParam
 {
 	CMarketExchange *pMarketExchange;

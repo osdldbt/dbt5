@@ -14,8 +14,8 @@
 #include "DBT5Consts.h"
 
 CBaseInterface::CBaseInterface(const char type[3], char *outputDirectory,
-		char *addr, const int iListenPort): m_szBHAddress(addr),
-				m_iBHlistenPort(iListenPort)
+		char *addr, const int iListenPort)
+: m_szBHAddress(addr), m_iBHlistenPort(iListenPort)
 {
 	m_pid = syscall(SYS_gettid);
 
@@ -45,42 +45,43 @@ CBaseInterface::~CBaseInterface()
 }
 
 // connect to BrokerageHouse
-bool CBaseInterface::biConnect()
+bool
+CBaseInterface::biConnect()
 {
 	try {
 		sock->dbt5Connect();
 		return true;
-	}
-	catch(std::runtime_error& err) {
+	} catch (std::runtime_error &err) {
 		logErrorMessage(err.what());
 		return false;
-	}
-	catch(CSocketErr *pErr) {
+	} catch (CSocketErr *pErr) {
 		ostringstream osErr;
-		osErr << "Error: " << pErr->ErrorText() <<
-				" at CBaseInterface::talkToSUT " << endl;
+		osErr << "Error: " << pErr->ErrorText()
+			  << " at CBaseInterface::talkToSUT " << endl;
 		logErrorMessage(osErr.str());
 		return false;
 	}
 }
 
 // close connection to BrokerageHouse
-bool CBaseInterface::biDisconnect()
+bool
+CBaseInterface::biDisconnect()
 {
 	try {
 		sock->dbt5Disconnect();
 		return true;
-	} catch(CSocketErr *pErr) {
+	} catch (CSocketErr *pErr) {
 		ostringstream osErr;
-		osErr << "Error: " << pErr->ErrorText() <<
-				" at CBaseInterface::talkToSUT " << endl;
+		osErr << "Error: " << pErr->ErrorText()
+			  << " at CBaseInterface::talkToSUT " << endl;
 		logErrorMessage(osErr.str());
 		return false;
 	}
 }
 
 // Connect to BrokerageHouse, send request, receive reply, and calculate RT
-bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
+bool
+CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 {
 	int length = 0;
 	TMsgBrokerageDriver Reply; // reply message from BrokerageHouse
@@ -92,32 +93,32 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 
 	// send and wait for response
 	try {
-		length = sock->dbt5Send(reinterpret_cast<void *>(pRequest),
-				sizeof(*pRequest));
-	} catch(CSocketErr *pErr) {
+		length = sock->dbt5Send(
+				reinterpret_cast<void *>(pRequest), sizeof(*pRequest));
+	} catch (CSocketErr *pErr) {
 		sock->dbt5Reconnect();
 		logResponseTime(-1, 0, -1);
 
 		ostringstream msg;
-		msg << time(NULL) << " " << m_pid << " " <<
-				szTransactionName[pRequest->TxnType] << ": " << endl <<
-				"Error sending " << length << " bytes of data" << endl <<
-				pErr->ErrorText() << endl;
+		msg << time(NULL) << " " << m_pid << " "
+			<< szTransactionName[pRequest->TxnType] << ": " << endl
+			<< "Error sending " << length << " bytes of data" << endl
+			<< pErr->ErrorText() << endl;
 		logErrorMessage(msg.str());
 		length = -1;
 		delete pErr;
 	}
 	try {
-		length = sock->dbt5Receive(reinterpret_cast<void *>(&Reply),
-				sizeof(Reply));
-	} catch(CSocketErr *pErr) {
+		length = sock->dbt5Receive(
+				reinterpret_cast<void *>(&Reply), sizeof(Reply));
+	} catch (CSocketErr *pErr) {
 		logResponseTime(-1, 0, -2);
 
 		ostringstream msg;
-		msg << time(NULL) << " " << m_pid << " " <<
-				szTransactionName[pRequest->TxnType] << ": " << endl <<
-				"Error receiving " << length << " bytes of data" << endl <<
-				pErr->ErrorText() << endl;
+		msg << time(NULL) << " " << m_pid << " "
+			<< szTransactionName[pRequest->TxnType] << ": " << endl
+			<< "Error receiving " << length << " bytes of data" << endl
+			<< pErr->ErrorText() << endl;
 		logErrorMessage(msg.str());
 		length = -1;
 		if (pErr->getAction() == CSocketErr::ERR_SOCKET_CLOSED)
@@ -133,7 +134,7 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 	TxnTime.Set(0); // clear time
 	TxnTime.Add(0, (int) ((EndTime - StartTime) * MsPerSecond)); // add ms
 
-	//log response time
+	// log response time
 	logResponseTime(Reply.iStatus, pRequest->TxnType, TxnTime.MSec() / 1000.0);
 
 	if (Reply.iStatus == CBaseTxnErr::SUCCESS)
@@ -142,22 +143,25 @@ bool CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 }
 
 // Log Transaction Response Times
-void CBaseInterface::logResponseTime(int iStatus, int iTxnType, double dRT)
+void
+CBaseInterface::logResponseTime(int iStatus, int iTxnType, double dRT)
 {
-	m_fMix << (long long) time(NULL) << "," << iTxnType << "," <<
-			iStatus << "," << dRT << "," << m_pid << endl;
+	m_fMix << (long long) time(NULL) << "," << iTxnType << "," << iStatus
+		   << "," << dRT << "," << m_pid << endl;
 	m_fMix.flush();
 }
 
 // logErrorMessage
-void CBaseInterface::logErrorMessage(const string sErr)
+void
+CBaseInterface::logErrorMessage(const string sErr)
 {
 	cerr << sErr;
 	m_fLog << sErr;
 	m_fLog.flush();
 }
 
-void CBaseInterface::logStopTime()
+void
+CBaseInterface::logStopTime()
 {
 	m_fMix << time(NULL) << ",STOP,,," << m_pid << endl;
 	m_fMix.flush();

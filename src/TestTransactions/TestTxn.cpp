@@ -15,7 +15,7 @@ using namespace std;
 #include "locking.h"
 
 // BrokerageHouseMain variables;
-CCESUT	*m_pCCESUT = NULL;
+CCESUT *m_pCCESUT = NULL;
 char szBHaddr[iMaxHostname + 1] = "";
 int iBHlistenPort = iBrokerageHousePort;
 
@@ -38,25 +38,29 @@ int iScaleFactor = 500;
 int iDaysOfInitialTrades = 300;
 
 eTxnType TxnType = NULL_TXN;
-RNGSEED	Seed = 0;
+RNGSEED Seed = 0;
 
 // shows program usage
-void Usage()
+void
+Usage()
 {
 	cout << "\nUsage: TestTxn [option]" << endl << endl;
 	cout << "  where" << endl;
 	cout << "   Option               Description" << endl;
 	cout << "   =========            ========================" << endl;
 	cout << "   -b address           Address of Brokerage House." << endl;
-	cout << "                        Connect to database directly if not used." << endl;
+	cout << "                        Connect to database directly if not used."
+		 << endl;
 	cout << "   -c number            Customer count (default 5000)" << endl;
-	cout << "   -f number            Number of customers for 1 TRTPS (default 500)" << endl;
+	cout << "   -f number            Number of customers for 1 TRTPS (default "
+			"500)"
+		 << endl;
 	cout << "   -h host              Hostname of database server" << endl;
-	cout << "   -i path              full path to EGen flat_in directory" <<
-			endl;
+	cout << "   -i path              full path to EGen flat_in directory"
+		 << endl;
 	cout << "   -g dbname            Database name" << endl;
-	cout << "                        Optional if testing BrokerageHouseMain" <<
-			endl;
+	cout << "                        Optional if testing BrokerageHouseMain"
+		 << endl;
 	cout << "   -p number            database listener port" << endl;
 	cout << "   -r number            seed random number generator" << endl;
 	cout << "   -t letter            Transaction type" << endl;
@@ -68,67 +72,66 @@ void Usage()
 	cout << "                        E - TRADE_STATUS" << endl;
 	cout << "                        F - CUSTOMER_POSITION" << endl;
 	cout << "                        G - BROKER_VOLUME" << endl;
-	cout << "                        H - SECURITY_DETAIL"<<endl;
+	cout << "                        H - SECURITY_DETAIL" << endl;
 	cout << "                        J - MARKET_WATCH" << endl;
 	cout << "                        K - DATA_MAINTENANCE" << endl;
 	cout << "                        L - TRADE_CLEANUP" << endl;
-	cout << "   -w number            Days of initial trades (default 300)" <<
-			endl;
+	cout << "   -w number            Days of initial trades (default 300)"
+		 << endl;
 	cout << endl;
 	cout << "Note: Trade Order triggers Trade Result and Market Feed" << endl;
-	cout << "      when the type of trade is Market (type_is_market=1)" << endl;
+	cout << "      when the type of trade is Market (type_is_market=1)"
+		 << endl;
 }
 
 // parse command line
-bool ParseCommandLine( int argc, char *argv[] )
+bool
+ParseCommandLine(int argc, char *argv[])
 {
-	int   arg;
-	char  *sp;
-	char  *vp;
+	int arg;
+	char *sp;
+	char *vp;
 
-	if (argc < 2) 
-	{
+	if (argc < 2) {
 		// use default
-		return(true);
+		return (true);
 	}
 
 	/*
-	*  Scan the command line arguments
-	*/
-	for ( arg = 1; arg < argc; ++arg ) {
+	 *  Scan the command line arguments
+	 */
+	for (arg = 1; arg < argc; ++arg) {
 		/*
-		*  Look for a switch 
-		*/
+		 *  Look for a switch
+		 */
 		sp = argv[arg];
-		if ( *sp == '-' ) 
-		{
+		if (*sp == '-') {
 			++sp;
 		}
-		*sp = (char)tolower( *sp );
-		
+		*sp = (char) tolower(*sp);
+
 		/*
-		*  Find the switch's argument.  It is either immediately after the
-		*  switch or in the next argv
-		*/
+		 *  Find the switch's argument.  It is either immediately after the
+		 *  switch or in the next argv
+		 */
 		vp = sp + 1;
 		// Allow for switched that don't have any parameters.
 		// Need to check that the next argument is in fact a parameter
 		// and not the next switch that starts with '-'.
 		//
-		if ( (*vp == 0) && ((arg + 1) < argc) && (argv[arg + 1][0] != '-') )
-		{
+		if ((*vp == 0) && ((arg + 1) < argc) && (argv[arg + 1][0] != '-')) {
 			vp = argv[++arg];
 		}
-		
+
 		/*
-		*  Parse the switch
-		*/
-		switch ( *sp ) {
+		 *  Parse the switch
+		 */
+		switch (*sp) {
 		case 'b':
 			strncpy(szBHaddr, vp, iMaxHostname);
 			szBHaddr[iMaxHostname] = '\0';
-			cout << "Will connect to BrokerageHouseMain at '" << szBHaddr <<
-					"'." << endl;
+			cout << "Will connect to BrokerageHouseMain at '" << szBHaddr
+				 << "'." << endl;
 			break;
 		case 'c':
 			sscanf(vp, "%" PRId64, &iConfiguredCustomerCount);
@@ -153,14 +156,14 @@ bool ParseCommandLine( int argc, char *argv[] )
 			szPort[iPortLen] = '\0';
 			break;
 		case 't':
-			switch ( *vp) {
+			switch (*vp) {
 			case 'A':
 				TxnType = TRADE_ORDER;
 				break;
 			case 'C':
 				TxnType = TRADE_LOOKUP;
 				break;
-			case 'D': 
+			case 'D':
 				TxnType = TRADE_UPDATE;
 				break;
 			case 'E':
@@ -185,7 +188,7 @@ bool ParseCommandLine( int argc, char *argv[] )
 				TxnType = TRADE_CLEANUP;
 				break;
 			default:
-				return(false);
+				return (false);
 			}
 			break;
 		case 'r':
@@ -195,20 +198,21 @@ bool ParseCommandLine( int argc, char *argv[] )
 			iDaysOfInitialTrades = atoi(vp);
 			break;
 		default:
-			return(false);
+			return (false);
 		}
 	}
-	return(true);
+	return (true);
 }
 
 // Trade Order
-INT32 TradeOrder(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+INT32
+TradeOrder(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 {
-	// SendToMarket test class that can call Trade-Result and Market-Feed 
-	// via the MEE - Market Exchange Emulator when type_is_market = 1. 
+	// SendToMarket test class that can call Trade-Result and Market-Feed
+	// via the MEE - Market Exchange Emulator when type_is_market = 1.
 	// These two txns run async.
-	CSendToMarketTest m_pSendToMarket(iConfiguredCustomerCount,
-			iConfiguredCustomerCount, szInDir);
+	CSendToMarketTest m_pSendToMarket(
+			iConfiguredCustomerCount, iConfiguredCustomerCount, szInDir);
 
 	// trade order harness code (TPC provided)
 	// this class uses our implementation of CTradeOrderDB class
@@ -216,19 +220,19 @@ INT32 TradeOrder(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	CTradeOrder m_TradeOrder(&m_TradeOrderDB, &m_pSendToMarket);
 
 	// trade order input/output parameters
-	TTradeOrderTxnInput	m_TradeOrderTxnInput;
-	TTradeOrderTxnOutput	m_TradeOrderTxnOutput;
-	
+	TTradeOrderTxnInput m_TradeOrderTxnInput;
+	TTradeOrderTxnOutput m_TradeOrderTxnOutput;
+
 	// using TPC-provided input generator class
-	bool	bExecutorIsAccountOwner;
-	INT32	iTradeType;
-	pTxnInputGenerator->GenerateTradeOrderInput( m_TradeOrderTxnInput,
-			iTradeType, bExecutorIsAccountOwner );
+	bool bExecutorIsAccountOwner;
+	INT32 iTradeType;
+	pTxnInputGenerator->GenerateTradeOrderInput(
+			m_TradeOrderTxnInput, iTradeType, bExecutorIsAccountOwner);
 
 	// Perform Trade Order
 	if (m_pCCESUT != NULL) {
-		m_pCCESUT->TradeOrder(&m_TradeOrderTxnInput, iTradeType,
-				bExecutorIsAccountOwner);
+		m_pCCESUT->TradeOrder(
+				&m_TradeOrderTxnInput, iTradeType, bExecutorIsAccountOwner);
 	} else {
 		m_TradeOrder.DoTxn(&m_TradeOrderTxnInput, &m_TradeOrderTxnOutput);
 	}
@@ -236,9 +240,9 @@ INT32 TradeOrder(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
 	return m_TradeOrderTxnOutput.status;
 }
 
-
 // Trade Status
-INT32 TradeStatus(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+INT32
+TradeStatus(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 {
 	// trade status harness code (TPC provided)
 	// this class uses our implementation of CTradeStatusDB class
@@ -246,11 +250,11 @@ INT32 TradeStatus(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator
 	CTradeStatus m_TradeStatus(&m_TradeStatusDB);
 
 	// trade status input/output parameters
-	TTradeStatusTxnInput	m_TradeStatusTxnInput;
-	TTradeStatusTxnOutput	m_TradeStatusTxnOutput;
-	
+	TTradeStatusTxnInput m_TradeStatusTxnInput;
+	TTradeStatusTxnOutput m_TradeStatusTxnOutput;
+
 	// using TPC-provided input generator class
-	pTxnInputGenerator->GenerateTradeStatusInput( m_TradeStatusTxnInput );
+	pTxnInputGenerator->GenerateTradeStatusInput(m_TradeStatusTxnInput);
 
 	// Perform Trade Status
 	if (m_pCCESUT != NULL) {
@@ -262,9 +266,9 @@ INT32 TradeStatus(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator
 	return m_TradeStatusTxnOutput.status;
 }
 
-
 // Trade Lookup
-INT32 TradeLookup(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+INT32
+TradeLookup(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 {
 	// trade lookup harness code (TPC provided)
 	// this class uses our implementation of CTradeLookupDB class
@@ -272,11 +276,11 @@ INT32 TradeLookup(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator
 	CTradeLookup m_TradeLookup(&m_TradeLookupDB);
 
 	// trade lookup input/output parameters
-	TTradeLookupTxnInput	m_TradeLookupTxnInput;
-	TTradeLookupTxnOutput	m_TradeLookupTxnOutput;
-	
+	TTradeLookupTxnInput m_TradeLookupTxnInput;
+	TTradeLookupTxnOutput m_TradeLookupTxnOutput;
+
 	// using TPC-provided input generator class
-	pTxnInputGenerator->GenerateTradeLookupInput( m_TradeLookupTxnInput );
+	pTxnInputGenerator->GenerateTradeLookupInput(m_TradeLookupTxnInput);
 
 	// Perform Trade Lookup
 	if (m_pCCESUT != NULL) {
@@ -288,9 +292,9 @@ INT32 TradeLookup(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator
 	return m_TradeLookupTxnOutput.status;
 }
 
-
 // Trade Update
-INT32 TradeUpdate(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+INT32
+TradeUpdate(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 {
 	// trade update harness code (TPC provided)
 	// this class uses our implementation of CTradeUpdateDB class
@@ -298,11 +302,11 @@ INT32 TradeUpdate(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator
 	CTradeUpdate m_TradeUpdate(&m_TradeUpdateDB);
 
 	// trade update input/output parameters
-	TTradeUpdateTxnInput	m_TradeUpdateTxnInput;
-	TTradeUpdateTxnOutput	m_TradeUpdateTxnOutput;
-	
+	TTradeUpdateTxnInput m_TradeUpdateTxnInput;
+	TTradeUpdateTxnOutput m_TradeUpdateTxnOutput;
+
 	// using TPC-provided input generator class
-	pTxnInputGenerator->GenerateTradeUpdateInput( m_TradeUpdateTxnInput );
+	pTxnInputGenerator->GenerateTradeUpdateInput(m_TradeUpdateTxnInput);
 
 	// Perform Trade Update
 	if (m_pCCESUT != NULL) {
@@ -314,10 +318,10 @@ INT32 TradeUpdate(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator
 	return m_TradeUpdateTxnOutput.status;
 }
 
-
 // Customer Position
-INT32 CustomerPosition(CDBConnection* pConn,
-		CCETxnInputGenerator* pTxnInputGenerator)
+INT32
+CustomerPosition(
+		CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 {
 	// customer position harness code (TPC provided)
 	// this class uses our implementation of CCustomerPositionDB class
@@ -325,9 +329,9 @@ INT32 CustomerPosition(CDBConnection* pConn,
 	CCustomerPosition m_CustomerPosition(&m_CustomerPositionDB);
 
 	// customer position input/output parameters
-	TCustomerPositionTxnInput	m_CustomerPositionTxnInput;
-	TCustomerPositionTxnOutput	m_CustomerPositionTxnOutput;
-	
+	TCustomerPositionTxnInput m_CustomerPositionTxnInput;
+	TCustomerPositionTxnOutput m_CustomerPositionTxnOutput;
+
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateCustomerPositionInput(
 			m_CustomerPositionTxnInput);
@@ -336,17 +340,16 @@ INT32 CustomerPosition(CDBConnection* pConn,
 	if (m_pCCESUT != NULL) {
 		m_pCCESUT->CustomerPosition(&m_CustomerPositionTxnInput);
 	} else {
-		m_CustomerPosition.DoTxn(&m_CustomerPositionTxnInput,
-				&m_CustomerPositionTxnOutput);
+		m_CustomerPosition.DoTxn(
+				&m_CustomerPositionTxnInput, &m_CustomerPositionTxnOutput);
 	}
 
 	return m_CustomerPositionTxnOutput.status;
 }
 
-
 // Broker Volume
-INT32 BrokerVolume(CDBConnection* pConn,
-		CCETxnInputGenerator* pTxnInputGenerator)
+INT32
+BrokerVolume(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 {
 	// Broker Volume harness code (TPC provided)
 	// this class uses our implementation of CBrokerVolumeDB class
@@ -354,26 +357,26 @@ INT32 BrokerVolume(CDBConnection* pConn,
 	CBrokerVolume m_BrokerVolume(&m_BrokerVolumeDB);
 
 	// broker volume input/output parameters
-	TBrokerVolumeTxnInput	m_BrokerVolumeTxnInput;
-	TBrokerVolumeTxnOutput	m_BrokerVolumeTxnOutput;
-	
+	TBrokerVolumeTxnInput m_BrokerVolumeTxnInput;
+	TBrokerVolumeTxnOutput m_BrokerVolumeTxnOutput;
+
 	// using TPC-provided input generator class
-	pTxnInputGenerator->GenerateBrokerVolumeInput( m_BrokerVolumeTxnInput );
+	pTxnInputGenerator->GenerateBrokerVolumeInput(m_BrokerVolumeTxnInput);
 
 	// Perform Broker Volume
 	if (m_pCCESUT != NULL) {
 		m_pCCESUT->BrokerVolume(&m_BrokerVolumeTxnInput);
 	} else {
-		m_BrokerVolume.DoTxn(&m_BrokerVolumeTxnInput, &m_BrokerVolumeTxnOutput);
+		m_BrokerVolume.DoTxn(
+				&m_BrokerVolumeTxnInput, &m_BrokerVolumeTxnOutput);
 	}
 
 	return m_BrokerVolumeTxnOutput.status;
 }
 
-
 // Security Detail
-INT32 SecurityDetail(CDBConnection* pConn,
-		CCETxnInputGenerator* pTxnInputGenerator)
+INT32
+SecurityDetail(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 {
 	// Security Detail harness code (TPC provided)
 	// this class uses our implementation of CSecurityDetailDB class
@@ -381,26 +384,26 @@ INT32 SecurityDetail(CDBConnection* pConn,
 	CSecurityDetail m_SecurityDetail(&m_SecurityDetailDB);
 
 	// security detail input/output parameters
-	TSecurityDetailTxnInput	m_SecurityDetailTxnInput;
-	TSecurityDetailTxnOutput	m_SecurityDetailTxnOutput;
-	
+	TSecurityDetailTxnInput m_SecurityDetailTxnInput;
+	TSecurityDetailTxnOutput m_SecurityDetailTxnOutput;
+
 	// using TPC-provided input generator class
-	pTxnInputGenerator->GenerateSecurityDetailInput( m_SecurityDetailTxnInput );
+	pTxnInputGenerator->GenerateSecurityDetailInput(m_SecurityDetailTxnInput);
 
 	// Perform Security Detail
 	if (m_pCCESUT != NULL) {
 		m_pCCESUT->SecurityDetail(&m_SecurityDetailTxnInput);
 	} else {
-		m_SecurityDetail.DoTxn(&m_SecurityDetailTxnInput,
-				&m_SecurityDetailTxnOutput);
+		m_SecurityDetail.DoTxn(
+				&m_SecurityDetailTxnInput, &m_SecurityDetailTxnOutput);
 	}
 
 	return m_SecurityDetailTxnOutput.status;
 }
 
-
 // Market Watch
-INT32 MarketWatch(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator)
+INT32
+MarketWatch(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 {
 	// Market Watch harness code (TPC provided)
 	// this class uses our implementation of CMarketWatchDB class
@@ -408,11 +411,11 @@ INT32 MarketWatch(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator
 	CMarketWatch m_MarketWatch(&m_MarketWatchDB);
 
 	// Market Watch input/output parameters
-	TMarketWatchTxnInput	m_MarketWatchTxnInput;
-	TMarketWatchTxnOutput	m_MarketWatchTxnOutput;
-	
+	TMarketWatchTxnInput m_MarketWatchTxnInput;
+	TMarketWatchTxnOutput m_MarketWatchTxnOutput;
+
 	// using TPC-provided input generator class
-	pTxnInputGenerator->GenerateMarketWatchInput( m_MarketWatchTxnInput );
+	pTxnInputGenerator->GenerateMarketWatchInput(m_MarketWatchTxnInput);
 
 	// Perform Market Watch
 	if (m_pCCESUT != NULL) {
@@ -424,28 +427,28 @@ INT32 MarketWatch(CDBConnection* pConn, CCETxnInputGenerator* pTxnInputGenerator
 	return m_MarketWatchTxnOutput.status;
 }
 
-
 // Data Maintenance
-void DataMaintenance(CDM* pCDM)
+void
+DataMaintenance(CDM *pCDM)
 {
 	// using TPC-provided Data Maintenance class to perform the Data
 	// Maintenance transaction.  Testing all tables
-	for (int i = 0; i <= 11; i++)
-	{
+	for (int i = 0; i <= 11; i++) {
 		pCDM->DoTxn();
 	}
 }
 
-
 // Trade Cleanup
-void TradeCleanup(CDM* pCDM)
+void
+TradeCleanup(CDM *pCDM)
 {
 	// using TPC-provided Data Maintenance class to perform the Trade Cleanup.
 	pCDM->DoCleanupTxn();
 }
 
 // main
-int main(int argc, char* argv[])
+int
+main(int argc, char *argv[])
 {
 	ofstream m_fLog;
 	ofstream m_fMix;
@@ -453,15 +456,14 @@ int main(int argc, char* argv[])
 	CMutex m_MixLock;
 	char outputDirectory[2] = ".";
 
-	if (!ParseCommandLine(argc, argv))
-	{
+	if (!ParseCommandLine(argc, argv)) {
 		Usage();
-		return(-1);
+		return (-1);
 	}
 
 	if (strlen(szInDir) == 0) {
-		cout << "Use -i to specify full path to EGen flat_in directory." <<
-				endl;
+		cout << "Use -i to specify full path to EGen flat_in directory."
+			 << endl;
 		exit(1);
 	}
 
@@ -479,86 +481,85 @@ int main(int argc, char* argv[])
 	try {
 		// database connection
 		CDBConnection m_Conn(szDBHost, szDBName, szPort);
-	
+
 		// initialize Input Generator
 		//
 		CLogFormatTab fmt;
 		CEGenLogger log(eDriverEGenLoader, 0, "TestTxn.log", &fmt);
-	
-	const DataFileManager inputFiles(szInDir, iConfiguredCustomerCount,
-			iActiveCustomerCount, TPCE::DataFileManager::IMMEDIATE_LOAD);
-	
-		TDriverCETxnSettings	m_DriverCETxnSettings;
-	
+
+		const DataFileManager inputFiles(szInDir, iConfiguredCustomerCount,
+				iActiveCustomerCount, TPCE::DataFileManager::IMMEDIATE_LOAD);
+
+		TDriverCETxnSettings m_DriverCETxnSettings;
+
 		CCETxnInputGenerator m_TxnInputGenerator(inputFiles,
-				iConfiguredCustomerCount, iActiveCustomerCount,
-				iScaleFactor, iDaysOfInitialTrades * HoursPerWorkDay, &log,
+				iConfiguredCustomerCount, iActiveCustomerCount, iScaleFactor,
+				iDaysOfInitialTrades * HoursPerWorkDay, &log,
 				&m_DriverCETxnSettings);
-	
-		if (Seed == 0) 
+
+		if (Seed == 0)
 			Seed = m_TxnInputGenerator.GetRNGSeed();
 		else
-			m_TxnInputGenerator.SetRNGSeed( Seed );
-		cout<<"Seed: "<<Seed<<endl<<endl;
+			m_TxnInputGenerator.SetRNGSeed(Seed);
+		cout << "Seed: " << Seed << endl << endl;
 
 		// Initialize DM - Data Maintenance class
 		// DM is used by Data-Maintenance and Trade-Cleanup transactions
 		// Data-Maintenance SUT interface (provided by us)
-		CDMSUTtest	m_CDMSUT( &m_Conn );
-		CDM	m_CDM( &m_CDMSUT, &log, inputFiles, iConfiguredCustomerCount,
-				iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades,
-				1 );
+		CDMSUTtest m_CDMSUT(&m_Conn);
+		CDM m_CDM(&m_CDMSUT, &log, inputFiles, iConfiguredCustomerCount,
+				iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades, 1);
 
 		CDateTime StartTime;
 
 		//  Parse Txn type
 		INT32 status = 0;
-		switch ( TxnType ) 
-		{
+		switch (TxnType) {
 		case TRADE_ORDER:
 			cout << "=== Testing Trade Order, Trade Result and Market Feed ==="
-					<< endl << endl;
-			status = TradeOrder( &m_Conn, &m_TxnInputGenerator );
+				 << endl
+				 << endl;
+			status = TradeOrder(&m_Conn, &m_TxnInputGenerator);
 			break;
 		case TRADE_LOOKUP:
 			cout << "=== Testing Trade Lookup ===" << endl << endl;
-			status = TradeLookup( &m_Conn, &m_TxnInputGenerator );
+			status = TradeLookup(&m_Conn, &m_TxnInputGenerator);
 			break;
 		case TRADE_UPDATE:
 			cout << "=== Testing Trade Update ===" << endl << endl;
-			status = TradeUpdate( &m_Conn, &m_TxnInputGenerator );
+			status = TradeUpdate(&m_Conn, &m_TxnInputGenerator);
 			break;
 		case TRADE_STATUS:
 			cout << "=== Testing Trade Status ===" << endl << endl;
-			status = TradeStatus( &m_Conn, &m_TxnInputGenerator );
+			status = TradeStatus(&m_Conn, &m_TxnInputGenerator);
 			break;
 		case CUSTOMER_POSITION:
 			cout << "=== Testing Customer Position ===" << endl << endl;
-			status = CustomerPosition( &m_Conn, &m_TxnInputGenerator );
+			status = CustomerPosition(&m_Conn, &m_TxnInputGenerator);
 			break;
 		case BROKER_VOLUME:
 			cout << "=== Testing Broker Volume ===" << endl << endl;
-			status = BrokerVolume( &m_Conn, &m_TxnInputGenerator );
+			status = BrokerVolume(&m_Conn, &m_TxnInputGenerator);
 			break;
 		case SECURITY_DETAIL:
 			cout << "=== Testing Security Detail ===" << endl << endl;
-			status = SecurityDetail( &m_Conn, &m_TxnInputGenerator );
+			status = SecurityDetail(&m_Conn, &m_TxnInputGenerator);
 			break;
 		case MARKET_WATCH:
 			cout << "=== Testing Market Watch ===" << endl << endl;
-			status = MarketWatch( &m_Conn, &m_TxnInputGenerator );
+			status = MarketWatch(&m_Conn, &m_TxnInputGenerator);
 			break;
 		case DATA_MAINTENANCE:
 			cout << "=== Testing Data Maintenance ===" << endl << endl;
-			DataMaintenance( &m_CDM );
+			DataMaintenance(&m_CDM);
 			break;
 		case TRADE_CLEANUP:
 			cout << "=== Testing Trade Cleanup ===" << endl << endl;
-			TradeCleanup( &m_CDM );
+			TradeCleanup(&m_CDM);
 			break;
 		default:
 			cout << "wrong txn type" << endl;
-			return(-1);
+			return (-1);
 		}
 
 		// record txn end time
@@ -566,11 +567,11 @@ int main(int argc, char* argv[])
 
 		// calculate txn response time
 		CDateTime TxnTime;
-		TxnTime.Set(0);	// clear time
-		TxnTime.Add(0, (int)((EndTime - StartTime) * MsPerSecond));	// add ms
+		TxnTime.Set(0); // clear time
+		TxnTime.Add(0, (int) ((EndTime - StartTime) * MsPerSecond)); // add ms
 
 		cout << "Txn Status = " << status << endl;
-		cout << "Txn Response Time = " << (TxnTime.MSec()/1000.0) << endl;
+		cout << "Txn Response Time = " << (TxnTime.MSec() / 1000.0) << endl;
 	} catch (CBaseErr *pErr) {
 		cout << "Error " << pErr->ErrorNum() << ": " << pErr->ErrorText();
 		if (pErr->ErrorLoc()) {

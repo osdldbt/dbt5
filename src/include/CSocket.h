@@ -37,9 +37,23 @@ public:
 	void dbt5Reconnect();
 	int dbt5Send(void *, int);
 
-	void setSocketFd(int sockfd) { m_sockfd = sockfd; }
-	int getSocketFd() { return m_sockfd; }
-	void closeListenerSocket() { close(m_listenfd); }
+	void
+	setSocketFd(int sockfd)
+	{
+		m_sockfd = sockfd;
+	}
+
+	int
+	getSocketFd()
+	{
+		return m_sockfd;
+	}
+
+	void
+	closeListenerSocket()
+	{
+		close(m_listenfd);
+	}
 
 private:
 	void throwError(CSocketErr::Action);

@@ -44,7 +44,7 @@
 #include "TradeUpdateDB.h"
 using namespace TPCE;
 
-class CDMSUTtest : public CDMSUTInterface
+class CDMSUTtest: public CDMSUTInterface
 {
 protected:
 	CDBConnection *m_pDBConnection;
@@ -57,4 +57,4 @@ public:
 	bool TradeCleanup(PTradeCleanupTxnInput);
 };
 
-#endif	// DM_SUT_TEST_H
+#endif // DM_SUT_TEST_H

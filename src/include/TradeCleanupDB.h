@@ -10,11 +10,11 @@
 #ifndef TRADE_CLEANUP_DB_H
 #define TRADE_CLEANUP_DB_H
 
-#include <TxnHarnessDBInterface.h> 
+#include <TxnHarnessDBInterface.h>
 
 #include "TxnBaseDB.h"
- 
-class CTradeCleanupDB : public CTxnBaseDB, public CTradeCleanupDBInterface
+
+class CTradeCleanupDB: public CTxnBaseDB, public CTradeCleanupDBInterface
 {
 private:
 	bool m_Verbose;
@@ -22,14 +22,14 @@ private:
 
 public:
 	CTradeCleanupDB(CDBConnection *, bool);
-	~CTradeCleanupDB() {};
+	~CTradeCleanupDB(){};
 
-	void DoTradeCleanupFrame1(const TTradeCleanupFrame1Input*);
+	void DoTradeCleanupFrame1(const TTradeCleanupFrame1Input *);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException) {};
+	void Cleanup(void *pException){};
 };
 
-#endif	// TRADE_CLEANUP_DB_H
+#endif // TRADE_CLEANUP_DB_H

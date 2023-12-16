@@ -10,11 +10,11 @@
 #ifndef DATA_MAINTENANCE_DB_H
 #define DATA_MAINTENANCE_DB_H
 
-#include <TxnHarnessDBInterface.h> 
+#include <TxnHarnessDBInterface.h>
 
 #include "TxnBaseDB.h"
- 
-class CDataMaintenanceDB : public CTxnBaseDB, public CDataMaintenanceDBInterface
+
+class CDataMaintenanceDB: public CTxnBaseDB, public CDataMaintenanceDBInterface
 {
 private:
 	bool m_Verbose;
@@ -22,15 +22,14 @@ private:
 
 public:
 	CDataMaintenanceDB(CDBConnection *, bool);
-	~CDataMaintenanceDB() {};
+	~CDataMaintenanceDB(){};
 
 	void DoDataMaintenanceFrame1(const TDataMaintenanceFrame1Input *pIn);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException) {};
-
+	void Cleanup(void *pException){};
 };
 
-#endif	// DATA_MAINTENANCE_DB_H
+#endif // DATA_MAINTENANCE_DB_H

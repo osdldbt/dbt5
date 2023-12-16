@@ -45,20 +45,21 @@
 namespace TPCE
 {
 
-class CPGSQLZipCodeLoad : public CPGSQLLoader<ZIP_CODE_ROW>
+class CPGSQLZipCodeLoad: public CPGSQLLoader<ZIP_CODE_ROW>
 {
 public:
-	CPGSQLZipCodeLoad(const char *szConnectStr,
-			const char *szTable = "zip_code")
-			: CPGSQLLoader<ZIP_CODE_ROW>(szConnectStr, szTable) { };
+	CPGSQLZipCodeLoad(
+			const char *szConnectStr, const char *szTable = "zip_code")
+	: CPGSQLLoader<ZIP_CODE_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const ZIP_CODE_ROW &next_record) {
-		fprintf(p, "%s|%s|%s\n",
-				next_record.ZC_CODE,
-				next_record.ZC_TOWN,
+	void
+	WriteNextRecord(const ZIP_CODE_ROW &next_record)
+	{
+		fprintf(p, "%s|%s|%s\n", next_record.ZC_CODE, next_record.ZC_TOWN,
 				next_record.ZC_DIV);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

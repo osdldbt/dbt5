@@ -9,8 +9,9 @@
 
 #include "TxnHarnessSendToMarket.h"
 
-CSendToMarket::CSendToMarket(ofstream* pfile, char *addr,
-		int MEport=iMarketExchangePort): m_pfLog(pfile), m_MEport(MEport)
+CSendToMarket::CSendToMarket(
+		ofstream *pfile, char *addr, int MEport = iMarketExchangePort)
+: m_pfLog(pfile), m_MEport(MEport)
 {
 	if (addr != NULL)
 		m_Socket = new CSocket(addr, m_MEport);
@@ -25,29 +26,31 @@ CSendToMarket::~CSendToMarket()
 	delete m_Socket;
 }
 
-bool CSendToMarket::SendToMarket(TTradeRequest &trade_mes)
+bool
+CSendToMarket::SendToMarket(TTradeRequest &trade_mes)
 {
 	try {
 		// send Trade Request to MEE
-		m_Socket->dbt5Send(reinterpret_cast<void *>(&trade_mes),
-				sizeof(TTradeRequest));
+		m_Socket->dbt5Send(
+				reinterpret_cast<void *>(&trade_mes), sizeof(TTradeRequest));
 	} catch (CSocketErr *pErr) {
-		m_Socket->dbt5Disconnect();	// close connection
+		m_Socket->dbt5Disconnect(); // close connection
 
 		ostringstream osErr;
-		osErr << "Cannot send to market" << endl <<
-				"Error: " << pErr->ErrorText() <<
-				" at CSendToMarket::SendToMarket" << endl;
+		osErr << "Cannot send to market" << endl
+			  << "Error: " << pErr->ErrorText()
+			  << " at CSendToMarket::SendToMarket" << endl;
 		delete pErr;
 		LogErrorMessage(osErr.str());
 		return false;
-	}	
+	}
 
 	return true;
 }
 
 // LogErrorMessage
-void CSendToMarket::LogErrorMessage(const string sErr)
+void
+CSendToMarket::LogErrorMessage(const string sErr)
 {
 	m_LogLock.lock();
 	cout << sErr;

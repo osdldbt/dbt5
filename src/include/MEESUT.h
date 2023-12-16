@@ -18,17 +18,17 @@
 #include "BaseInterface.h"
 using namespace TPCE;
 
-class CMEESUT : public CMEESUTInterface, public CBaseInterface
+class CMEESUT: public CMEESUTInterface, public CBaseInterface
 {
 private:
 	TTradeResultTxnInput m_TradeResultTxnInput;
 	TMarketFeedTxnInput m_MarketFeedTxnInput;
 
 public:
-	CMEESUT(char *outputDirectory, char *addr, const int iListenPort):
-			CBaseInterface("me", outputDirectory, addr, iListenPort),
-					m_SocketLock() {};
-	~CMEESUT() {};
+	CMEESUT(char *outputDirectory, char *addr, const int iListenPort)
+	: CBaseInterface("me", outputDirectory, addr, iListenPort),
+	  m_SocketLock(){};
+	~CMEESUT(){};
 
 	CMutex m_SocketLock;
 
@@ -42,10 +42,11 @@ public:
 	friend bool RunMarketFeedAsync(void *);
 };
 
-//parameter structure for the threads
+// parameter structure for the threads
 typedef struct TMEESUTThreadParam
 {
 	CMEESUT *pCMEESUT;
+
 	union
 	{
 		TTradeResultTxnInput m_TradeResultTxnInput;

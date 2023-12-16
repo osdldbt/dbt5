@@ -45,37 +45,34 @@
 namespace TPCE
 {
 
-class CPGSQLFinancialLoad : public CPGSQLLoader<FINANCIAL_ROW>
+class CPGSQLFinancialLoad: public CPGSQLLoader<FINANCIAL_ROW>
 {
 private:
 	CDateTime fi_qtr_start_date;
 
 public:
-	CPGSQLFinancialLoad(const char *szConnectStr,
-			const char *szTable = "financial")
-			: CPGSQLLoader<FINANCIAL_ROW>(szConnectStr, szTable) { };
+	CPGSQLFinancialLoad(
+			const char *szConnectStr, const char *szTable = "financial")
+	: CPGSQLLoader<FINANCIAL_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const FINANCIAL_ROW &next_record) {
+	void
+	WriteNextRecord(const FINANCIAL_ROW &next_record)
+	{
 		fi_qtr_start_date = next_record.FI_QTR_START_DATE;
 
 		fprintf(p,
-				"%" PRId64 "|%d|%d|%s|%.2f|%.2f|%.2f|%.2f|%.2f|%.2f|%.2f|%.2f|%ld|%ld\n",
-				next_record.FI_CO_ID,
-				next_record.FI_YEAR,
-				next_record.FI_QTR,
-				fi_qtr_start_date.ToStr(iDateTimeFmt),
-				next_record.FI_REVENUE,
-				next_record.FI_NET_EARN,
-				next_record.FI_BASIC_EPS,
-				next_record.FI_DILUT_EPS,
-				next_record.FI_MARGIN,
-				next_record.FI_INVENTORY,
-				next_record.FI_ASSETS,
-				next_record.FI_LIABILITY,
-				next_record.FI_OUT_BASIC,
+				"%" PRId64
+				"|%d|%d|%s|%.2f|%.2f|%.2f|%.2f|%.2f|%.2f|%.2f|%.2f|%ld|%ld\n",
+				next_record.FI_CO_ID, next_record.FI_YEAR, next_record.FI_QTR,
+				fi_qtr_start_date.ToStr(iDateTimeFmt), next_record.FI_REVENUE,
+				next_record.FI_NET_EARN, next_record.FI_BASIC_EPS,
+				next_record.FI_DILUT_EPS, next_record.FI_MARGIN,
+				next_record.FI_INVENTORY, next_record.FI_ASSETS,
+				next_record.FI_LIABILITY, next_record.FI_OUT_BASIC,
 				next_record.FI_OUT_DILUT);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

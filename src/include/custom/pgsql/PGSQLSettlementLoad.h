@@ -45,25 +45,26 @@
 namespace TPCE
 {
 
-class CPGSQLSettlementLoad : public CPGSQLLoader<SETTLEMENT_ROW>
+class CPGSQLSettlementLoad: public CPGSQLLoader<SETTLEMENT_ROW>
 {
 private:
 	CDateTime se_cash_due_date;
 
 public:
-	CPGSQLSettlementLoad(const char *szConnectStr,
-			const char *szTable = "settlement")
-			: CPGSQLLoader<SETTLEMENT_ROW>(szConnectStr, szTable) { };
+	CPGSQLSettlementLoad(
+			const char *szConnectStr, const char *szTable = "settlement")
+	: CPGSQLLoader<SETTLEMENT_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const SETTLEMENT_ROW &next_record) {
+	void
+	WriteNextRecord(const SETTLEMENT_ROW &next_record)
+	{
 		se_cash_due_date = next_record.SE_CASH_DUE_DATE;
-		fprintf(p, "%" PRId64 "|%s|%s|%.2f\n",
-				next_record.SE_T_ID,
-				next_record.SE_CASH_TYPE,
-				se_cash_due_date.ToStr(iDateTimeFmt),
+		fprintf(p, "%" PRId64 "|%s|%s|%.2f\n", next_record.SE_T_ID,
+				next_record.SE_CASH_TYPE, se_cash_due_date.ToStr(iDateTimeFmt),
 				next_record.SE_AMT);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

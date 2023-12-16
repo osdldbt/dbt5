@@ -18,10 +18,9 @@
 #include "BaseInterface.h"
 using namespace TPCE;
 
-class CCESUT : public CCESUTInterface, public CBaseInterface
+class CCESUT: public CCESUTInterface, public CBaseInterface
 {
 public:
-
 	CCESUT(char *, char *, const int);
 	~CCESUT(void);
 
@@ -35,8 +34,7 @@ public:
 	bool TradeUpdate(PTradeUpdateTxnInput);
 
 private:
-
 	struct TMsgDriverBrokerage request;
 };
 
-#endif	// CE_SUT_H
+#endif // CE_SUT_H

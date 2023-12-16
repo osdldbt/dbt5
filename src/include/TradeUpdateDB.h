@@ -16,7 +16,7 @@
 #include "DBConnection.h"
 using namespace TPCE;
 
-class CTradeUpdateDB : public CTxnBaseDB, public CTradeUpdateDBInterface
+class CTradeUpdateDB: public CTxnBaseDB, public CTradeUpdateDBInterface
 {
 private:
 	bool m_Verbose;
@@ -24,19 +24,19 @@ private:
 
 public:
 	CTradeUpdateDB(CDBConnection *, bool);
-	~CTradeUpdateDB() {};
+	~CTradeUpdateDB(){};
 
-	void DoTradeUpdateFrame1(const TTradeUpdateFrame1Input*,
-			TTradeUpdateFrame1Output*);
-	void DoTradeUpdateFrame2(const TTradeUpdateFrame2Input*,
-			TTradeUpdateFrame2Output*);
-	void DoTradeUpdateFrame3(const TTradeUpdateFrame3Input*,
-			TTradeUpdateFrame3Output*);
+	void DoTradeUpdateFrame1(
+			const TTradeUpdateFrame1Input *, TTradeUpdateFrame1Output *);
+	void DoTradeUpdateFrame2(
+			const TTradeUpdateFrame2Input *, TTradeUpdateFrame2Output *);
+	void DoTradeUpdateFrame3(
+			const TTradeUpdateFrame3Input *, TTradeUpdateFrame3Output *);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException) {};
+	void Cleanup(void *pException){};
 };
 
-#endif	// TRADE_UPDATE_DB_H
+#endif // TRADE_UPDATE_DB_H

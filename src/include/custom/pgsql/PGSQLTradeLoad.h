@@ -45,55 +45,56 @@
 namespace TPCE
 {
 
-class CPGSQLTradeLoad : public CPGSQLLoader<TRADE_ROW>
+class CPGSQLTradeLoad: public CPGSQLLoader<TRADE_ROW>
 {
 private:
 	CDateTime t_dts;
 
 public:
 	CPGSQLTradeLoad(const char *szConnectStr, const char *szTable = "trade")
-			: CPGSQLLoader<TRADE_ROW>(szConnectStr, szTable) { };
+	: CPGSQLLoader<TRADE_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const TRADE_ROW &next_record) {
+	void
+	WriteNextRecord(const TRADE_ROW &next_record)
+	{
 		t_dts = next_record.T_DTS;
 
 		fprintf(p,
-				"%" PRId64 "|%s|%s|%s|%d|%s|%d|%.2f|%" PRId64 "|%s|%.2f|%.2f|%.2f|%.2f|%d\n",
-				next_record.T_ID,
-				t_dts.ToStr(iDateTimeFmt),
-				next_record.T_ST_ID,
-				next_record.T_TT_ID,
-				next_record.T_IS_CASH,
-				next_record.T_S_SYMB,
-				next_record.T_QTY,
-				next_record.T_BID_PRICE,
-				next_record.T_CA_ID,
-				next_record.T_EXEC_NAME,
-				next_record.T_TRADE_PRICE,
-				next_record.T_CHRG,
-				next_record.T_COMM,
-				next_record.T_TAX,
+				"%" PRId64 "|%s|%s|%s|%d|%s|%d|%.2f|%" PRId64
+				"|%s|%.2f|%.2f|%.2f|%.2f|%d\n",
+				next_record.T_ID, t_dts.ToStr(iDateTimeFmt),
+				next_record.T_ST_ID, next_record.T_TT_ID,
+				next_record.T_IS_CASH, next_record.T_S_SYMB, next_record.T_QTY,
+				next_record.T_BID_PRICE, next_record.T_CA_ID,
+				next_record.T_EXEC_NAME, next_record.T_TRADE_PRICE,
+				next_record.T_CHRG, next_record.T_COMM, next_record.T_TAX,
 				next_record.T_LIFO);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 
-	void FinishLoad() {
+	void
+	FinishLoad()
+	{
 		// FIXME: Can't we call the parent class's FinishLoad to do the COMMIT?
 		// End of the COPY.
 		fprintf(p, "\\.\n");
 		// FIXME: Have blind faith that COPY was successful.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 
 		// COMMIT the COPY.
 		fprintf(p, "COMMIT;\n");
 		// FIXME: Have blind faith that COMMIT was successful.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 
-		fprintf(p,
-				"SELECT SETVAL('seq_trade_id', (SELECT MAX(t_id) FROM trade));\n");
+		fprintf(p, "SELECT SETVAL('seq_trade_id', (SELECT MAX(t_id) FROM "
+				   "trade));\n");
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

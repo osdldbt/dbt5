@@ -16,7 +16,7 @@
 #include "DBConnection.h"
 using namespace TPCE;
 
-class CTradeOrderDB : public CTxnBaseDB, public CTradeOrderDBInterface
+class CTradeOrderDB: public CTxnBaseDB, public CTradeOrderDBInterface
 {
 private:
 	bool m_Verbose;
@@ -24,23 +24,23 @@ private:
 
 public:
 	CTradeOrderDB(CDBConnection *, bool);
-	~CTradeOrderDB() {};
+	~CTradeOrderDB(){};
 
-	void DoTradeOrderFrame1(const TTradeOrderFrame1Input*,
-			TTradeOrderFrame1Output*);
-	void DoTradeOrderFrame2(const TTradeOrderFrame2Input*,
-			TTradeOrderFrame2Output*);
-	void DoTradeOrderFrame3(const TTradeOrderFrame3Input*,
-			TTradeOrderFrame3Output*);
-	void DoTradeOrderFrame4(const TTradeOrderFrame4Input*,
-			TTradeOrderFrame4Output*);
+	void DoTradeOrderFrame1(
+			const TTradeOrderFrame1Input *, TTradeOrderFrame1Output *);
+	void DoTradeOrderFrame2(
+			const TTradeOrderFrame2Input *, TTradeOrderFrame2Output *);
+	void DoTradeOrderFrame3(
+			const TTradeOrderFrame3Input *, TTradeOrderFrame3Output *);
+	void DoTradeOrderFrame4(
+			const TTradeOrderFrame4Input *, TTradeOrderFrame4Output *);
 	void DoTradeOrderFrame5();
 	void DoTradeOrderFrame6();
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException) {};
+	void Cleanup(void *pException){};
 };
 
-#endif	// TRADE_ORDER_DB_H
+#endif // TRADE_ORDER_DB_H

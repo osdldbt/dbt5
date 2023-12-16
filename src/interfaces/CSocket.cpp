@@ -18,23 +18,17 @@
 
 #define LISTENQ 1024
 
-//Constructor
-CSocket::CSocket(void)
-: m_listenfd(0),
-  m_sockfd(0)
-{
-}
+// Constructor
+CSocket::CSocket(void): m_listenfd(0), m_sockfd(0) {}
 
-CSocket::CSocket(char *address, int port)
-: m_listenfd(0),
-  m_sockfd(0)
+CSocket::CSocket(char *address, int port): m_listenfd(0), m_sockfd(0)
 {
 	strncpy(this->address, address, iMaxHostname);
 	this->address[iMaxHostname] = '\0';
 	this->port = port;
 }
 
-//Destructor
+// Destructor
 CSocket::~CSocket()
 {
 	closeListenerSocket();
@@ -42,7 +36,8 @@ CSocket::~CSocket()
 }
 
 // Accept
-int CSocket::dbt5Accept(void)
+int
+CSocket::dbt5Accept(void)
 {
 	struct sockaddr_in sa;
 
@@ -56,7 +51,8 @@ int CSocket::dbt5Accept(void)
 }
 
 // Connect
-void CSocket::dbt5Connect()
+void
+CSocket::dbt5Connect()
 {
 	errno = 0;
 	m_sockfd = socket(AF_INET, SOCK_STREAM, resolveProto("tcp"));
@@ -83,7 +79,7 @@ void CSocket::dbt5Connect()
 			throwError(CSocketErr::ERR_SOCKET_HOSTBYNAME);
 		}
 		memcpy(&sa.sin_addr, he->h_addr_list[0], he->h_length);
-		//throwError(CSocketErr::ERR_SOCKET_INETPTON, "CSocket::Connect");
+		// throwError(CSocketErr::ERR_SOCKET_INETPTON, "CSocket::Connect");
 	}
 
 	errno = 0;
@@ -102,13 +98,16 @@ void CSocket::dbt5Connect()
 	}
 }
 
-void CSocket::dbt5Disconnect()
+void
+CSocket::dbt5Disconnect()
 {
-	if (m_sockfd != 0) close(m_sockfd);
+	if (m_sockfd != 0)
+		close(m_sockfd);
 }
 
 // Receive
-int CSocket::dbt5Receive(void *data, int length)
+int
+CSocket::dbt5Receive(void *data, int length)
 {
 	int received, total, remaining;
 	remaining = length;
@@ -119,18 +118,17 @@ int CSocket::dbt5Receive(void *data, int length)
 		received = recv(m_sockfd, data, remaining, MSG_WAITALL);
 		if (received == -1 && errno == EAGAIN) {
 			received = 0;
-		}
-		else if (received == -1) {
+		} else if (received == -1) {
 			throwError(CSocketErr::ERR_SOCKET_RECV);
 		} else if (received == 0) {
 			throwError(CSocketErr::ERR_SOCKET_CLOSED);
 		}
 
 		total += received;
-		szData = reinterpret_cast<char*>(data);
+		szData = reinterpret_cast<char *>(data);
 
 		szData += received;
-		data = reinterpret_cast<void*>(szData);
+		data = reinterpret_cast<void *>(szData);
 		remaining -= received;
 	} while (total != length);
 
@@ -141,20 +139,22 @@ int CSocket::dbt5Receive(void *data, int length)
 	return total;
 }
 
-void CSocket::dbt5Reconnect()
+void
+CSocket::dbt5Reconnect()
 {
 	dbt5Disconnect();
 	dbt5Connect();
 }
 
-int CSocket::dbt5Send(void *data, int length)
+int
+CSocket::dbt5Send(void *data, int length)
 {
 	int sent = 0;
 	int remaining = length;
-	char* szData = NULL;
+	char *szData = NULL;
 	do {
 		errno = 0;
-		sent = send(m_sockfd, (void*)data, remaining, 0);
+		sent = send(m_sockfd, (void *) data, remaining, 0);
 
 		if (sent == -1) {
 			throwError(CSocketErr::ERR_SOCKET_SEND);
@@ -162,9 +162,9 @@ int CSocket::dbt5Send(void *data, int length)
 			throwError(CSocketErr::ERR_SOCKET_CLOSED);
 		}
 
-		szData = reinterpret_cast<char*>(data);
+		szData = reinterpret_cast<char *>(data);
 		szData += sent;
-		data = reinterpret_cast<void*>(szData);
+		data = reinterpret_cast<void *>(szData);
 		remaining -= sent;
 	} while (sent != length);
 
@@ -175,7 +175,8 @@ int CSocket::dbt5Send(void *data, int length)
 	return sent;
 }
 
-void CSocket::dbt5Listen(const int port)
+void
+CSocket::dbt5Listen(const int port)
 {
 	struct sockaddr_in sa;
 
@@ -186,9 +187,11 @@ void CSocket::dbt5Listen(const int port)
 	}
 
 	const int enable = 1;
-	if (setsockopt(m_listenfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+	if (setsockopt(m_listenfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int))
+			< 0)
 		throwError(CSocketErr::ERR_SOCKET_BIND);
-	if (setsockopt(m_listenfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int)) < 0)
+	if (setsockopt(m_listenfd, SOL_SOCKET, SO_REUSEPORT, &enable, sizeof(int))
+			< 0)
 		throwError(CSocketErr::ERR_SOCKET_BIND);
 
 	bzero(&sa, sizeof(sa));
@@ -199,7 +202,7 @@ void CSocket::dbt5Listen(const int port)
 	errno = 0;
 	if (bind(m_listenfd, (struct sockaddr *) &sa, sizeof(sa)) < 0) {
 		throwError(CSocketErr::ERR_SOCKET_BIND);
-		//perror("_listen");
+		// perror("_listen");
 	}
 
 	errno = 0;
@@ -209,7 +212,8 @@ void CSocket::dbt5Listen(const int port)
 }
 
 // ResolveProto
-int CSocket::resolveProto(const char *proto)
+int
+CSocket::resolveProto(const char *proto)
 {
 	struct protoent *protocol;
 
@@ -222,7 +226,8 @@ int CSocket::resolveProto(const char *proto)
 }
 
 // throwError
-void CSocket::throwError(CSocketErr::Action eAction)
+void
+CSocket::throwError(CSocketErr::Action eAction)
 {
 	throw new CSocketErr(eAction);
 }

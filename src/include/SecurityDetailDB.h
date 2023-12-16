@@ -10,11 +10,11 @@
 #ifndef SECURITY_DETAIL_DB_H
 #define SECURITY_DETAIL_DB_H
 
-#include <TxnHarnessDBInterface.h> 
+#include <TxnHarnessDBInterface.h>
 
 #include "TxnBaseDB.h"
- 
-class CSecurityDetailDB : public CTxnBaseDB, public CSecurityDetailDBInterface
+
+class CSecurityDetailDB: public CTxnBaseDB, public CSecurityDetailDBInterface
 {
 private:
 	bool m_Verbose;
@@ -22,15 +22,15 @@ private:
 
 public:
 	CSecurityDetailDB(CDBConnection *, bool);
-	~CSecurityDetailDB() {};
+	~CSecurityDetailDB(){};
 
-	void DoSecurityDetailFrame1(const TSecurityDetailFrame1Input*,
-			TSecurityDetailFrame1Output*);
+	void DoSecurityDetailFrame1(
+			const TSecurityDetailFrame1Input *, TSecurityDetailFrame1Output *);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException) {};
+	void Cleanup(void *pException){};
 };
 
-#endif	// SECURITY_DETAIL_DB_H
+#endif // SECURITY_DETAIL_DB_H

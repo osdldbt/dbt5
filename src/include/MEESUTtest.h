@@ -17,7 +17,7 @@
 #include "DBConnection.h"
 using namespace TPCE;
 
-class CMEESUTtest : public CMEESUTInterface
+class CMEESUTtest: public CMEESUTInterface
 {
 private:
 	CDBConnection *m_pDBConnection;
@@ -26,17 +26,19 @@ private:
 
 public:
 	CMEESUTtest(CDBConnection *pDBConn, TIdent iConfiguredCustomerCountIn,
-			TIdent iActiveCustomerCountIn,
-			char *szInDirIn) : m_pDBConnection(pDBConn) {
+			TIdent iActiveCustomerCountIn, char *szInDirIn)
+	: m_pDBConnection(pDBConn)
+	{
 		iConfiguredCustomerCount = iConfiguredCustomerCountIn;
 		iActiveCustomerCount = iActiveCustomerCountIn;
 		strncpy(szInDir, szInDirIn, 256);
 	};
-	~CMEESUTtest() { };
+
+	~CMEESUTtest(){};
 
 	bool TradeResult(PTradeResultTxnInput);
 	bool MarketFeed(PMarketFeedTxnInput);
-	
+
 	friend void *TradeResultAsync(void *);
 	friend bool RunTradeResultAsync(CMEESUTtest *);
 
@@ -48,4 +50,4 @@ public:
 	char szInDir[iMaxPath + 1];
 };
 
-#endif	// MEE_SUT_TEST_H
+#endif // MEE_SUT_TEST_H

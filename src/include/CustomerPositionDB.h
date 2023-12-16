@@ -16,8 +16,8 @@
 #include "DBConnection.h"
 using namespace TPCE;
 
-class CCustomerPositionDB : public CTxnBaseDB,
-		public CCustomerPositionDBInterface
+class CCustomerPositionDB: public CTxnBaseDB,
+						   public CCustomerPositionDBInterface
 {
 private:
 	bool m_Verbose;
@@ -25,18 +25,18 @@ private:
 
 public:
 	CCustomerPositionDB(CDBConnection *, bool);
-	~CCustomerPositionDB() {};
+	~CCustomerPositionDB(){};
 
-	void DoCustomerPositionFrame1(const TCustomerPositionFrame1Input*,
-			TCustomerPositionFrame1Output*);
-	void DoCustomerPositionFrame2(const TCustomerPositionFrame2Input*,
-			TCustomerPositionFrame2Output*);
+	void DoCustomerPositionFrame1(const TCustomerPositionFrame1Input *,
+			TCustomerPositionFrame1Output *);
+	void DoCustomerPositionFrame2(const TCustomerPositionFrame2Input *,
+			TCustomerPositionFrame2Output *);
 	void DoCustomerPositionFrame3();
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException) {};
+	void Cleanup(void *pException){};
 };
 
-#endif	// CUSTOMER_POSITION_DB_H
+#endif // CUSTOMER_POSITION_DB_H

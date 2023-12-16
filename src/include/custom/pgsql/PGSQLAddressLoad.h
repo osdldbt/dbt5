@@ -45,21 +45,22 @@
 namespace TPCE
 {
 
-class CPGSQLAddressLoad : public CPGSQLLoader<ADDRESS_ROW>
+class CPGSQLAddressLoad: public CPGSQLLoader<ADDRESS_ROW>
 {
 public:
-	CPGSQLAddressLoad(const char *szConnectStr, const char *szTable = "address")
-			: CPGSQLLoader<ADDRESS_ROW>(szConnectStr, szTable) { };
+	CPGSQLAddressLoad(
+			const char *szConnectStr, const char *szTable = "address")
+	: CPGSQLLoader<ADDRESS_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const ADDRESS_ROW &next_record) {
-		fprintf(p, "%" PRId64 "|%s|%s|%s|%s\n",
-				next_record.AD_ID,
-				next_record.AD_LINE1,
-				next_record.AD_LINE2,
-				next_record.AD_ZC_CODE,
-				next_record.AD_CTRY);
+	void
+	WriteNextRecord(const ADDRESS_ROW &next_record)
+	{
+		fprintf(p, "%" PRId64 "|%s|%s|%s|%s\n", next_record.AD_ID,
+				next_record.AD_LINE1, next_record.AD_LINE2,
+				next_record.AD_ZC_CODE, next_record.AD_CTRY);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

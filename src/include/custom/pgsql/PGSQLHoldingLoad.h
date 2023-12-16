@@ -45,26 +45,27 @@
 namespace TPCE
 {
 
-class CPGSQLHoldingLoad : public CPGSQLLoader <HOLDING_ROW>
+class CPGSQLHoldingLoad: public CPGSQLLoader<HOLDING_ROW>
 {
 private:
 	CDateTime h_dts;
 
 public:
-	CPGSQLHoldingLoad(const char *szConnectStr, const char *szTable = "holding")
-			: CPGSQLLoader<HOLDING_ROW>(szConnectStr, szTable) { };
+	CPGSQLHoldingLoad(
+			const char *szConnectStr, const char *szTable = "holding")
+	: CPGSQLLoader<HOLDING_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const HOLDING_ROW &next_record) {
+	void
+	WriteNextRecord(const HOLDING_ROW &next_record)
+	{
 		h_dts = next_record.H_DTS;
 		fprintf(p, "%" PRId64 "|%" PRId64 "|%s|%s|%.2f|%d\n",
-				next_record.H_T_ID,
-				next_record.H_CA_ID,
-				next_record.H_S_SYMB,
-				h_dts.ToStr(iDateTimeFmt),
-				next_record.H_PRICE,
+				next_record.H_T_ID, next_record.H_CA_ID, next_record.H_S_SYMB,
+				h_dts.ToStr(iDateTimeFmt), next_record.H_PRICE,
 				next_record.H_QTY);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

@@ -45,23 +45,23 @@
 namespace TPCE
 {
 
-class CPGSQLTradeRequestLoad : public CPGSQLLoader<TRADE_REQUEST_ROW>
+class CPGSQLTradeRequestLoad: public CPGSQLLoader<TRADE_REQUEST_ROW>
 {
 public:
-	CPGSQLTradeRequestLoad(const char *szConnectStr,
-			const char *szTable = "trade_request")
-			: CPGSQLLoader<TRADE_REQUEST_ROW>(szConnectStr, szTable) { };
+	CPGSQLTradeRequestLoad(
+			const char *szConnectStr, const char *szTable = "trade_request")
+	: CPGSQLLoader<TRADE_REQUEST_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const TRADE_REQUEST_ROW &next_record) {
+	void
+	WriteNextRecord(const TRADE_REQUEST_ROW &next_record)
+	{
 		fprintf(p, "%" PRId64 "|%s|%s|%d|%.2f|%" PRId64 "\n",
-				next_record.TR_T_ID,
-				next_record.TR_TT_ID,
-				next_record.TR_S_SYMB,
-				next_record.TR_QTY,
-				next_record.TR_BID_PRICE,
-				next_record.TR_B_ID);
+				next_record.TR_T_ID, next_record.TR_TT_ID,
+				next_record.TR_S_SYMB, next_record.TR_QTY,
+				next_record.TR_BID_PRICE, next_record.TR_B_ID);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

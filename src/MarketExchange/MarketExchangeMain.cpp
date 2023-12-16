@@ -28,15 +28,16 @@ char szFileLoc[iMaxPath + 1];
 char outputDirectory[iMaxPath + 1] = ".";
 
 // shows program usage
-void usage()
+void
+usage()
 {
 	cout << "Usage: MarketExchangeMain [options]" << endl << endl;
 	cout << "   Option      Default     Description" << endl;
 	cout << "   ==========  ==========  =============================" << endl;
 	printf("   -c integer  %-10ld  Configured customer count\n",
 			iConfiguredCustomerCount);
-	cout << "   -i string               Location of EGen flat_in directory" <<
-			endl;
+	cout << "   -i string               Location of EGen flat_in directory"
+		 << endl;
 	printf("   -l integer  %-10d  Socket listen port\n", iListenPort);
 	printf("   -h string   %-10s  Brokerage House address\n", szBHaddr);
 	printf("   -o string   %-10s  directory for output files\n",
@@ -49,7 +50,8 @@ void usage()
 }
 
 // Parse command line
-void parse_command_line(int argc, char *argv[])
+void
+parse_command_line(int argc, char *argv[])
 {
 	int arg;
 	char *sp;
@@ -58,12 +60,12 @@ void parse_command_line(int argc, char *argv[])
 	// Scan the command line arguments
 	for (arg = 1; arg < argc; ++arg) {
 
-		// Look for a switch 
+		// Look for a switch
 		sp = argv[arg];
 		if (*sp == '-') {
 			++sp;
 		}
-		*sp = (char)tolower(*sp);
+		*sp = (char) tolower(*sp);
 
 		/*
 		 *  Find the switch's argument.  It is either immediately after the
@@ -112,7 +114,8 @@ void parse_command_line(int argc, char *argv[])
 	}
 }
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
 	// Establish defaults for command line options
 	strncpy(szFileLoc, "flat_in", iMaxPath);
@@ -137,19 +140,18 @@ int main(int argc, char *argv[])
 		CMarketExchange MarketExchange(inputFiles, szFileLoc, 1,
 				iConfiguredCustomerCount, iActiveCustomerCount, iListenPort,
 				szBHaddr, iBHlistenPort, outputDirectory, verbose);
-		cout << "Market Exchange started, waiting for trade requests..." <<
-				endl;
+		cout << "Market Exchange started, waiting for trade requests..."
+			 << endl;
 
 		MarketExchange.startListener();
 	} catch (CBaseErr *pErr) {
-		cout << "Error " << pErr->ErrorNum() << ": " <<
-				pErr->ErrorText();
+		cout << "Error " << pErr->ErrorNum() << ": " << pErr->ErrorText();
 		if (pErr->ErrorLoc()) {
 			cout << " at " << pErr->ErrorLoc();
 		}
 		cout << endl;
 		return 1;
-	} catch (std::bad_alloc const&) {
+	} catch (std::bad_alloc const &) {
 		// operator new will throw std::bad_alloc exception if there is no
 		// sufficient memory for the request.
 		cout << "*** Out of memory ***" << endl;
@@ -159,5 +161,5 @@ int main(int argc, char *argv[])
 	pthread_exit(NULL);
 
 	cout << "Market Exchange closed for business." << endl;
-	return(0);
+	return (0);
 }

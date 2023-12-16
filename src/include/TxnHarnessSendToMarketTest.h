@@ -15,7 +15,7 @@
 #include "TxnHarnessSendToMarketInterface.h"
 using namespace TPCE;
 
-class CSendToMarketTest : public CSendToMarketInterface
+class CSendToMarketTest: public CSendToMarketInterface
 {
 public:
 	CSendToMarketTest(TIdent, TIdent, char *);
@@ -29,4 +29,4 @@ private:
 	char szInDir[iMaxPath + 1];
 };
 
-#endif	// TXN_HARNESS_SENDTOMARKET_TEST_H
+#endif // TXN_HARNESS_SENDTOMARKET_TEST_H

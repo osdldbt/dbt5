@@ -31,8 +31,8 @@ protected:
 	void commitTransaction();
 	string escape(string);
 
-	void execute(const TBrokerVolumeFrame1Input *,
-			TBrokerVolumeFrame1Output *);
+	void execute(
+			const TBrokerVolumeFrame1Input *, TBrokerVolumeFrame1Output *);
 
 	void execute(const TCustomerPositionFrame1Input *,
 			TCustomerPositionFrame1Output *);
@@ -42,12 +42,12 @@ protected:
 	void execute(const TDataMaintenanceFrame1Input *);
 
 	void execute(const TMarketFeedFrame1Input *, TMarketFeedFrame1Output *,
-        CSendToMarketInterface *);
+			CSendToMarketInterface *);
 
 	void execute(const TMarketWatchFrame1Input *, TMarketWatchFrame1Output *);
 
-	void execute(const TSecurityDetailFrame1Input *,
-			TSecurityDetailFrame1Output *);
+	void execute(
+			const TSecurityDetailFrame1Input *, TSecurityDetailFrame1Output *);
 
 	void execute(const TTradeCleanupFrame1Input *);
 

@@ -10,7 +10,8 @@
 #include "MarketExchange.h"
 
 // worker thread
-void *MarketWorkerThread(void* data)
+void *
+MarketWorkerThread(void *data)
 {
 	PMarketThreadParam pThrParam = reinterpret_cast<PMarketThreadParam>(data);
 
@@ -22,22 +23,22 @@ void *MarketWorkerThread(void* data)
 
 	do {
 		try {
-			sockDrv.dbt5Receive(reinterpret_cast<void*>(pMessage),
-					sizeof(TTradeRequest));
+			sockDrv.dbt5Receive(
+					reinterpret_cast<void *>(pMessage), sizeof(TTradeRequest));
 
 			if (pThrParam->pMarketExchange->verbose()) {
-				cout << "TTradeRequest" << endl <<
-						"  price_quote: " << pMessage->price_quote << endl <<
-						"  trade_id: " << pMessage->trade_id << endl <<
-						"  trade_qty: " << pMessage->trade_qty << endl <<
-						"  eAction: " << pMessage->eAction << endl <<
-						"  symbol: " << pMessage->symbol << endl <<
-						"  trade_type_id: " << pMessage->trade_type_id << endl;
+				cout << "TTradeRequest" << endl
+					 << "  price_quote: " << pMessage->price_quote << endl
+					 << "  trade_id: " << pMessage->trade_id << endl
+					 << "  trade_qty: " << pMessage->trade_qty << endl
+					 << "  eAction: " << pMessage->eAction << endl
+					 << "  symbol: " << pMessage->symbol << endl
+					 << "  trade_type_id: " << pMessage->trade_type_id << endl;
 			}
-	
+
 			// submit trade request
 			pThrParam->pMarketExchange->m_pCMEE->SubmitTradeRequest(pMessage);
-		} catch(CSocketErr *pErr) {
+		} catch (CSocketErr *pErr) {
 			sockDrv.dbt5Disconnect(); // close connection
 
 			if (pErr->getAction() == CSocketErr::ERR_SOCKET_CLOSED) {
@@ -45,9 +46,9 @@ void *MarketWorkerThread(void* data)
 				break;
 			}
 
-			cerr << time(NULL) <<
-					" Trade Request not submitted to Market Exchange" <<
-					endl << "Error: "<<pErr->ErrorText() << endl;
+			cerr << time(NULL)
+				 << " Trade Request not submitted to Market Exchange" << endl
+				 << "Error: " << pErr->ErrorText() << endl;
 			delete pErr;
 
 			// The socket is closed, break and let this thread die.
@@ -61,7 +62,8 @@ void *MarketWorkerThread(void* data)
 }
 
 // entry point for worker thread
-void EntryMarketWorkerThread(void *data)
+void
+EntryMarketWorkerThread(void *data)
 {
 	PMarketThreadParam pThrParam = reinterpret_cast<PMarketThreadParam>(data);
 
@@ -74,28 +76,28 @@ void EntryMarketWorkerThread(void *data)
 		if (status != 0) {
 			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_INIT);
 		}
-	
+
 		// set the detachstate attribute to detached
-		status = pthread_attr_setdetachstate(&threadAttribute,
-				PTHREAD_CREATE_DETACHED);
+		status = pthread_attr_setdetachstate(
+				&threadAttribute, PTHREAD_CREATE_DETACHED);
 		if (status != 0) {
 			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_DETACH);
 		}
-	
+
 		// create the thread in the detached state
-		status = pthread_create(&threadID, &threadAttribute,
-				&MarketWorkerThread, data);
-	
+		status = pthread_create(
+				&threadID, &threadAttribute, &MarketWorkerThread, data);
+
 		if (status != 0) {
 			throw new CThreadErr(CThreadErr::ERR_THREAD_CREATE);
 		}
-	} catch(CThreadErr *pErr) {
+	} catch (CThreadErr *pErr) {
 		// close recently accepted connection, to release threads
 		close(pThrParam->iSockfd);
 
-		cerr << "Error: " << pErr->ErrorText() <<
-			" at MarketExchange::entryMarketWorkerThread" << endl <<
-			"accepted socket connection closed" << endl;
+		cerr << "Error: " << pErr->ErrorText()
+			 << " at MarketExchange::entryMarketWorkerThread" << endl
+			 << "accepted socket connection closed" << endl;
 		delete pErr;
 	}
 }
@@ -104,7 +106,7 @@ void EntryMarketWorkerThread(void *data)
 CMarketExchange::CMarketExchange(const DataFileManager &inputFiles,
 		char *szFileLoc, UINT32 UniqueId, TIdent iConfiguredCustomerCount,
 		TIdent iActiveCustomerCount, int iListenPort, char *szBHaddr,
-		int iBHlistenPort, char *outputDirectory, bool verbose=false)
+		int iBHlistenPort, char *outputDirectory, bool verbose = false)
 : m_UniqueId(UniqueId), m_iListenPort(iListenPort), m_Verbose(verbose)
 {
 	char filename[iMaxPath + 1];
@@ -127,7 +129,8 @@ CMarketExchange::~CMarketExchange()
 	delete m_pLog;
 }
 
-void CMarketExchange::startListener(void)
+void
+CMarketExchange::startListener(void)
 {
 	int acc_socket;
 	PMarketThreadParam pThrParam;
@@ -148,17 +151,18 @@ void CMarketExchange::startListener(void)
 			pThrParam->pMarketExchange = this;
 
 			// call entry point
-			EntryMarketWorkerThread(reinterpret_cast<void*>(pThrParam));
-		} catch(CSocketErr *pErr) {
-			cerr << "Problem to accept socket connection" << endl <<
-					"Error: " << pErr->ErrorText() << " at " <<
-					"MarketExchange::startListener" << endl;
+			EntryMarketWorkerThread(reinterpret_cast<void *>(pThrParam));
+		} catch (CSocketErr *pErr) {
+			cerr << "Problem to accept socket connection" << endl
+				 << "Error: " << pErr->ErrorText() << " at "
+				 << "MarketExchange::startListener" << endl;
 			delete pErr;
 		}
 	}
 }
 
-bool CMarketExchange::verbose()
+bool
+CMarketExchange::verbose()
 {
 	return m_Verbose;
 }

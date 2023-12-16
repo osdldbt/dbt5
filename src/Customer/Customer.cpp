@@ -53,12 +53,14 @@ CCustomer::~CCustomer()
 	delete m_pLog;
 }
 
-void CCustomer::DoTxn()
+void
+CCustomer::DoTxn()
 {
 	m_pCCE->DoTxn();
 }
 
-void CCustomer::LogStopTime()
+void
+CCustomer::LogStopTime()
 {
 	m_pCCESUT->logStopTime();
 }

@@ -45,20 +45,21 @@
 namespace TPCE
 {
 
-class CPGSQLIndustryLoad : public CPGSQLLoader<INDUSTRY_ROW>
+class CPGSQLIndustryLoad: public CPGSQLLoader<INDUSTRY_ROW>
 {
 public:
-	CPGSQLIndustryLoad(const char *szConnectStr,
-			const char *szTable = "industry")
-			: CPGSQLLoader<INDUSTRY_ROW>(szConnectStr, szTable) { };
+	CPGSQLIndustryLoad(
+			const char *szConnectStr, const char *szTable = "industry")
+	: CPGSQLLoader<INDUSTRY_ROW>(szConnectStr, szTable){};
 
-	 void WriteNextRecord(const INDUSTRY_ROW &next_record) {
-		fprintf(p, "%s|%s|%s\n",
-				next_record.IN_ID,
-				next_record.IN_NAME,
+	void
+	WriteNextRecord(const INDUSTRY_ROW &next_record)
+	{
+		fprintf(p, "%s|%s|%s\n", next_record.IN_ID, next_record.IN_NAME,
 				next_record.IN_SC_ID);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

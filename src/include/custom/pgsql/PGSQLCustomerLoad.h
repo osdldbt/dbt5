@@ -45,47 +45,38 @@
 namespace TPCE
 {
 
-class CPGSQLCustomerLoad : public CPGSQLLoader<CUSTOMER_ROW>
+class CPGSQLCustomerLoad: public CPGSQLLoader<CUSTOMER_ROW>
 {
 private:
 	CDateTime c_dob;
 
 public:
-	CPGSQLCustomerLoad(const char *szConnectStr,
-			const char *szTable = "customer")
-			: CPGSQLLoader<CUSTOMER_ROW>(szConnectStr, szTable) { };
+	CPGSQLCustomerLoad(
+			const char *szConnectStr, const char *szTable = "customer")
+	: CPGSQLLoader<CUSTOMER_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const CUSTOMER_ROW &next_record) {
+	void
+	WriteNextRecord(const CUSTOMER_ROW &next_record)
+	{
 		c_dob = next_record.C_DOB;
 
 		fprintf(p,
-				"%" PRId64 "|%s|%s|%s|%s|%s|%c|%d|%s|%" PRId64 "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n",
-				next_record.C_ID,
-				next_record.C_TAX_ID,
-				next_record.C_ST_ID,
-				next_record.C_L_NAME,
-				next_record.C_F_NAME,
-				next_record.C_M_NAME,
-				next_record.C_GNDR,
-				next_record.C_TIER,
-				c_dob.ToStr(iDateTimeFmt),
-				next_record.C_AD_ID,
-				next_record.C_CTRY_1,
-				next_record.C_AREA_1,
-				next_record.C_LOCAL_1,
-				next_record.C_EXT_1,
-				next_record.C_CTRY_2,
-				next_record.C_AREA_2,
-				next_record.C_LOCAL_2,
-				next_record.C_EXT_2,
-				next_record.C_CTRY_3,
-				next_record.C_AREA_3,
-				next_record.C_LOCAL_3,
-				next_record.C_EXT_3,
-				next_record.C_EMAIL_1,
-				next_record.C_EMAIL_2);
+				"%" PRId64 "|%s|%s|%s|%s|%s|%c|%d|%s|%" PRId64
+				"|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n",
+				next_record.C_ID, next_record.C_TAX_ID, next_record.C_ST_ID,
+				next_record.C_L_NAME, next_record.C_F_NAME,
+				next_record.C_M_NAME, next_record.C_GNDR, next_record.C_TIER,
+				c_dob.ToStr(iDateTimeFmt), next_record.C_AD_ID,
+				next_record.C_CTRY_1, next_record.C_AREA_1,
+				next_record.C_LOCAL_1, next_record.C_EXT_1,
+				next_record.C_CTRY_2, next_record.C_AREA_2,
+				next_record.C_LOCAL_2, next_record.C_EXT_2,
+				next_record.C_CTRY_3, next_record.C_AREA_3,
+				next_record.C_LOCAL_3, next_record.C_EXT_3,
+				next_record.C_EMAIL_1, next_record.C_EMAIL_2);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

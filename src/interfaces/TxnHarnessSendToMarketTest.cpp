@@ -23,35 +23,34 @@ CSendToMarketTest::CSendToMarketTest(TIdent iConfiguredCustomerCountIn,
 	szInDir[iMaxPath] = '\0';
 }
 
-CSendToMarketTest::~CSendToMarketTest()
-{
-}
+CSendToMarketTest::~CSendToMarketTest() {}
 
-bool CSendToMarketTest::SendToMarket(TTradeRequest &trade_mes)
+bool
+CSendToMarketTest::SendToMarket(TTradeRequest &trade_mes)
 {
 	CLogFormatTab fmt;
 	CEGenLogger log(eDriverEGenLoader, 0, "temp.log", &fmt);
 
 	// Initialize MEE - Market Exchange Emulator class
-	CMEESUTtest m_CMEESUT(NULL, iConfiguredCustomerCount, iActiveCustomerCount,
-			szInDir);
+	CMEESUTtest m_CMEESUT(
+			NULL, iConfiguredCustomerCount, iActiveCustomerCount, szInDir);
 	const DataFileManager inputFiles(szInDir, iConfiguredCustomerCount,
 			iActiveCustomerCount, TPCE::DataFileManager::IMMEDIATE_LOAD);
 
 	CMEE m_CMEE(0, &m_CMEESUT, &log, inputFiles, 1);
 	m_CMEE.SetBaseTime();
-	
-	cout<<endl<<"Sending to Market a ";
-	if (strcmp(trade_mes.trade_type_id, "TLS") == 0 ||
-			strcmp(trade_mes.trade_type_id, "TSL") == 0 ||
-			strcmp(trade_mes.trade_type_id, "TLB") == 0) {
+
+	cout << endl << "Sending to Market a ";
+	if (strcmp(trade_mes.trade_type_id, "TLS") == 0
+			|| strcmp(trade_mes.trade_type_id, "TSL") == 0
+			|| strcmp(trade_mes.trade_type_id, "TLB") == 0) {
 		// limit-order
 		cout << "Limit-Order" << endl;
 		m_CMEE.SubmitTradeRequest(&trade_mes);
 	} else {
 		// market-order
 		cout << "Market-Order: Trade-Result & Market-Feed should trigger"
-				<< endl;
+			 << endl;
 		// we have to fill MEE's buffer, so it can trigger Market-Feed
 		for (int i = 0; i <= 15; i++) {
 			// we're submitting the same trade 20 times...

@@ -45,19 +45,20 @@
 namespace TPCE
 {
 
-class CPGSQLStatusTypeLoad : public CPGSQLLoader<STATUS_TYPE_ROW>
+class CPGSQLStatusTypeLoad: public CPGSQLLoader<STATUS_TYPE_ROW>
 {
 public:
-	CPGSQLStatusTypeLoad(const char *szConnectStr,
-			const char *szTable = "status_type")
-			: CPGSQLLoader<STATUS_TYPE_ROW>(szConnectStr, szTable) { };
+	CPGSQLStatusTypeLoad(
+			const char *szConnectStr, const char *szTable = "status_type")
+	: CPGSQLLoader<STATUS_TYPE_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const STATUS_TYPE_ROW &next_record) {
-		fprintf(p, "%s|%s\n",
-				next_record.ST_ID,
-				next_record.ST_NAME);
+	void
+	WriteNextRecord(const STATUS_TYPE_ROW &next_record)
+	{
+		fprintf(p, "%s|%s\n", next_record.ST_ID, next_record.ST_NAME);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

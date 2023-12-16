@@ -9,16 +9,12 @@
 
 #include "DMSUTtest.h"
 
-CDMSUTtest::CDMSUTtest(CDBConnection *pDBConn)
-: m_pDBConnection(pDBConn)
-{
-}
+CDMSUTtest::CDMSUTtest(CDBConnection *pDBConn): m_pDBConnection(pDBConn) {}
 
-CDMSUTtest::~CDMSUTtest()
-{
-}
+CDMSUTtest::~CDMSUTtest() {}
 
-bool CDMSUTtest::DataMaintenance(PDataMaintenanceTxnInput pTxnInput)
+bool
+CDMSUTtest::DataMaintenance(PDataMaintenanceTxnInput pTxnInput)
 {
 	// Data Maintenance harness code (TPC provided)
 	// this class uses our implementation of CDataMaintenanceDB class
@@ -26,25 +22,26 @@ bool CDMSUTtest::DataMaintenance(PDataMaintenanceTxnInput pTxnInput)
 	CDataMaintenance m_DataMaintenance(&m_DataMaintenanceDB);
 
 	// Data Maintenance output parameters
-	TDataMaintenanceTxnOutput	m_DataMaintenanceTxnOutput;
-	
+	TDataMaintenanceTxnOutput m_DataMaintenanceTxnOutput;
+
 	// Perform Data Maintenance
 	m_DataMaintenance.DoTxn(pTxnInput, &m_DataMaintenanceTxnOutput);
 
 	return true;
 }
 
-bool CDMSUTtest::TradeCleanup(PTradeCleanupTxnInput pTxnInput)
+bool
+CDMSUTtest::TradeCleanup(PTradeCleanupTxnInput pTxnInput)
 {
 	// Data Maintenance harness code (TPC provided)
 	// this class uses our implementation of CTradeCleanupDB class
-	CTradeCleanupDB	m_TradeCleanupDB(m_pDBConnection, true);
+	CTradeCleanupDB m_TradeCleanupDB(m_pDBConnection, true);
 	CTradeCleanup m_TradeCleanup(&m_TradeCleanupDB);
 
 	// Data Maintenance output parameters
-	TTradeCleanupTxnOutput	m_TradeCleanupTxnOutput;
-	
-	// Perform Trade Cleanup	
+	TTradeCleanupTxnOutput m_TradeCleanupTxnOutput;
+
+	// Perform Trade Cleanup
 	m_TradeCleanup.DoTxn(pTxnInput, &m_TradeCleanupTxnOutput);
 
 	return true;

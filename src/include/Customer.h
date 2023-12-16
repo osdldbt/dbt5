@@ -23,8 +23,8 @@ class CCustomer
 	int m_iPacingDelay;
 	CLogFormatTab m_fmt;
 	CEGenLogger *m_pLog;
-	CCESUT * m_pCCESUT;
-	CCE * m_pCCE;
+	CCESUT *m_pCCESUT;
+	CCE *m_pCCE;
 
 private:
 	friend void *CustomerWorkerThread(void *);
@@ -33,12 +33,13 @@ private:
 
 	friend void *DMWorkerThread(void *);
 	friend void EntryDMWorkerThread(CCustomer *);
+
 public:
-	CCustomer(const DataFileManager &, char *szInDir, TIdent iConfiguredCustomerCount,
-			TIdent iActiveCustomerCount, INT32 iScaleFactor,
-			INT32 iDaysOfInitialTrades, UINT32 iSeed, char *szBHaddr,
-			int iBHlistenPort, UINT32 UniqueId, int iPacingDelay,
-			char *outputDirectory);
+	CCustomer(const DataFileManager &, char *szInDir,
+			TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
+			INT32 iScaleFactor, INT32 iDaysOfInitialTrades, UINT32 iSeed,
+			char *szBHaddr, int iBHlistenPort, UINT32 UniqueId,
+			int iPacingDelay, char *outputDirectory);
 	~CCustomer();
 
 	void DoTxn();

@@ -9,7 +9,8 @@
 
 #include "MEESUT.h"
 
-void *TradeResultAsync(void *data)
+void *
+TradeResultAsync(void *data)
 {
 	PMEESUTThreadParam pThrParam = reinterpret_cast<PMEESUTThreadParam>(data);
 	struct TMsgDriverBrokerage request;
@@ -30,50 +31,51 @@ void *TradeResultAsync(void *data)
 	return NULL;
 }
 
-bool RunTradeResultAsync(void *data)
+bool
+RunTradeResultAsync(void *data)
 {
 	PMEESUTThreadParam pThrParam = reinterpret_cast<PMEESUTThreadParam>(data);
 
 	pthread_t threadID; // thread ID
 	pthread_attr_t threadAttribute; // thread attribute
 
-	try
-	{
+	try {
 		// initialize the attribute object
 		int status = pthread_attr_init(&threadAttribute);
 		if (status != 0) {
 			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_INIT);
 		}
-	
+
 		// set the detachstate attribute to detached
-		status = pthread_attr_setdetachstate(&threadAttribute,
-				PTHREAD_CREATE_DETACHED);
+		status = pthread_attr_setdetachstate(
+				&threadAttribute, PTHREAD_CREATE_DETACHED);
 		if (status != 0) {
 			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_DETACH);
 		}
-	
+
 		// create the thread in the detached state - Call Trade Result
 		// asyncronously
-		status = pthread_create(&threadID, &threadAttribute, &TradeResultAsync,
-				data);
+		status = pthread_create(
+				&threadID, &threadAttribute, &TradeResultAsync, data);
 
 		if (status != 0) {
 			throw new CThreadErr(CThreadErr::ERR_THREAD_CREATE);
 		}
-	} catch(CThreadErr *pErr) {
+	} catch (CThreadErr *pErr) {
 		ostringstream osErr;
-		osErr << "Error: " << pErr->ErrorText() <<
-				" at MEESUT::RunTradeResultAsync" << endl;
+		osErr << "Error: " << pErr->ErrorText()
+			  << " at MEESUT::RunTradeResultAsync" << endl;
 		pThrParam->pCMEESUT->logErrorMessage(osErr.str());
 		delete pErr;
 		return false;
 	}
 
 	// return immediatelly
-	return true;	
+	return true;
 }
 
-bool CMEESUT::TradeResult(PTradeResultTxnInput pTxnInput)
+bool
+CMEESUT::TradeResult(PTradeResultTxnInput pTxnInput)
 {
 	PMEESUTThreadParam pThrParam = new TMEESUTThreadParam;
 	memset(pThrParam, 0, sizeof(TMEESUTThreadParam));
@@ -87,7 +89,8 @@ bool CMEESUT::TradeResult(PTradeResultTxnInput pTxnInput)
 
 // Market Feed
 //
-void *MarketFeedAsync(void* data)
+void *
+MarketFeedAsync(void *data)
 {
 	PMEESUTThreadParam pThrParam = reinterpret_cast<PMEESUTThreadParam>(data);
 	struct TMsgDriverBrokerage request;
@@ -108,7 +111,8 @@ void *MarketFeedAsync(void* data)
 	return NULL;
 }
 
-bool RunMarketFeedAsync(void *data)
+bool
+RunMarketFeedAsync(void *data)
 {
 	PMEESUTThreadParam pThrParam = reinterpret_cast<PMEESUTThreadParam>(data);
 
@@ -121,26 +125,26 @@ bool RunMarketFeedAsync(void *data)
 		if (status != 0) {
 			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_INIT);
 		}
-	
+
 		// set the detachstate attribute to detached
-		status = pthread_attr_setdetachstate(&threadAttribute,
-				PTHREAD_CREATE_DETACHED);
+		status = pthread_attr_setdetachstate(
+				&threadAttribute, PTHREAD_CREATE_DETACHED);
 		if (status != 0) {
 			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_DETACH);
 		}
-	
+
 		// create the thread in the detached state - Call Trade Result
 		// asyncronously
-		status = pthread_create(&threadID, &threadAttribute, &MarketFeedAsync,
-				data);
+		status = pthread_create(
+				&threadID, &threadAttribute, &MarketFeedAsync, data);
 
 		if (status != 0) {
 			throw new CThreadErr(CThreadErr::ERR_THREAD_CREATE);
 		}
-	} catch(CThreadErr *pErr) {
+	} catch (CThreadErr *pErr) {
 		ostringstream osErr;
-		osErr << "Error: " << pErr->ErrorText() <<
-				" at MEESUT::RunMarketFeedAsync" << endl;
+		osErr << "Error: " << pErr->ErrorText()
+			  << " at MEESUT::RunMarketFeedAsync" << endl;
 		pThrParam->pCMEESUT->logErrorMessage(osErr.str());
 		delete pErr;
 		return false;
@@ -150,7 +154,8 @@ bool RunMarketFeedAsync(void *data)
 	return true;
 }
 
-bool CMEESUT::MarketFeed(PMarketFeedTxnInput pTxnInput)
+bool
+CMEESUT::MarketFeed(PMarketFeedTxnInput pTxnInput)
 {
 	PMEESUTThreadParam pThrParam = new TMEESUTThreadParam;
 	memset(pThrParam, 0, sizeof(TMEESUTThreadParam));

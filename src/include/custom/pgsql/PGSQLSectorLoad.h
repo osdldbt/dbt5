@@ -45,18 +45,19 @@
 namespace TPCE
 {
 
-class CPGSQLSectorLoad : public CPGSQLLoader<SECTOR_ROW>
+class CPGSQLSectorLoad: public CPGSQLLoader<SECTOR_ROW>
 {
 public:
 	CPGSQLSectorLoad(const char *szConnectStr, const char *szTable = "sector")
-			: CPGSQLLoader<SECTOR_ROW>(szConnectStr, szTable) { };
+	: CPGSQLLoader<SECTOR_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const SECTOR_ROW &next_record) {
-		fprintf(p, "%s|%s\n",
-				next_record.SC_ID,
-				next_record.SC_NAME);
+	void
+	WriteNextRecord(const SECTOR_ROW &next_record)
+	{
+		fprintf(p, "%s|%s\n", next_record.SC_ID, next_record.SC_NAME);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

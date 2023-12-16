@@ -16,7 +16,7 @@
 #include "DBConnection.h"
 using namespace TPCE;
 
-class CTradeLookupDB : public CTxnBaseDB, public CTradeLookupDBInterface
+class CTradeLookupDB: public CTxnBaseDB, public CTradeLookupDBInterface
 {
 private:
 	bool m_Verbose;
@@ -24,21 +24,21 @@ private:
 
 public:
 	CTradeLookupDB(CDBConnection *, bool);
-	~CTradeLookupDB() {};
+	~CTradeLookupDB(){};
 
-	void DoTradeLookupFrame1(const TTradeLookupFrame1Input*,
-			TTradeLookupFrame1Output*);
-	void DoTradeLookupFrame2(const TTradeLookupFrame2Input*,
-			TTradeLookupFrame2Output*);
-	void DoTradeLookupFrame3(const TTradeLookupFrame3Input*,
-			TTradeLookupFrame3Output*);
-	void DoTradeLookupFrame4(const TTradeLookupFrame4Input*,
-			TTradeLookupFrame4Output*);
+	void DoTradeLookupFrame1(
+			const TTradeLookupFrame1Input *, TTradeLookupFrame1Output *);
+	void DoTradeLookupFrame2(
+			const TTradeLookupFrame2Input *, TTradeLookupFrame2Output *);
+	void DoTradeLookupFrame3(
+			const TTradeLookupFrame3Input *, TTradeLookupFrame3Output *);
+	void DoTradeLookupFrame4(
+			const TTradeLookupFrame4Input *, TTradeLookupFrame4Output *);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException) {};
+	void Cleanup(void *pException){};
 };
 
-#endif	// TRADE_LOOKUP_DB_H
+#endif // TRADE_LOOKUP_DB_H

@@ -27,15 +27,14 @@ protected:
 	int m_iBHlistenPort;
 
 private:
-	CSocket	*sock;
+	CSocket *sock;
 	pid_t m_pid;
 	ofstream m_fLog; // error log file
 	ofstream m_fMix; // mix log file
 
 	void logResponseTime(int, int, double);
-	
-public:
 
+public:
 	CBaseInterface(const char *, char *, char *, const int);
 	~CBaseInterface(void);
 	bool biConnect();

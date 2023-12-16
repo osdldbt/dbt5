@@ -33,16 +33,18 @@ char outputDirectory[iMaxPath + 1] = "."; // path to output files
 UINT32 iSeed = 0;
 
 // shows program usage
-void usage()
+void
+usage()
 {
-	cout << "Usage: DriverMain {options}" << endl << endl <<
-			"   Option      Default    Description" << endl <<
-			"   ==========  =========  ===============================" << endl;
+	cout << "Usage: DriverMain {options}" << endl
+		 << endl
+		 << "   Option      Default    Description" << endl
+		 << "   ==========  =========  ==============================="
+		 << endl;
 	printf("   -c integer  %-9ld  Configured customer count\n",
 			iActiveCustomerCount);
 	printf("   -d integer             Duration of the test (seconds)\n");
-	printf("   -f integer  %-9d  # of customers per 1 TRTPS\n",
-			iScaleFactor);
+	printf("   -f integer  %-9d  # of customers per 1 TRTPS\n", iScaleFactor);
 	printf("   -h string   %-9s  Brokerage House address\n", szBHaddr);
 	printf("   -i string   %-9s  Path to EGen flat_in directory\n", szInDir);
 	printf("   -n integer  %-9d  millisecond delay between transactions\n",
@@ -63,7 +65,8 @@ void usage()
 }
 
 // Parse command line
-void parse_command_line(int argc, char *argv[])
+void
+parse_command_line(int argc, char *argv[])
 {
 	int arg;
 	char *sp;
@@ -80,15 +83,15 @@ void parse_command_line(int argc, char *argv[])
 		*sp = (char) tolower(*sp);
 
 		/*
-		*  Find the switch's argument.  It is either immediately after the
-		*  switch or in the next argv
-		*/
+		 *  Find the switch's argument.  It is either immediately after the
+		 *  switch or in the next argv
+		 */
 		vp = sp + 1;
-			// Allow for switched that don't have any parameters.
-			// Need to check that the next argument is in fact a parameter
-			// and not the next switch that starts with '-'.
-			//
-		if  ((*vp == 0) && ((arg + 1) < argc) && (argv[arg + 1][0] != '-')) {
+		// Allow for switched that don't have any parameters.
+		// Need to check that the next argument is in fact a parameter
+		// and not the next switch that starts with '-'.
+		//
+		if ((*vp == 0) && ((arg + 1) < argc) && (argv[arg + 1][0] != '-')) {
 			vp = argv[++arg];
 		}
 
@@ -107,7 +110,7 @@ void parse_command_line(int argc, char *argv[])
 			strncpy(szBHaddr, vp, iMaxHostname);
 			szBHaddr[iMaxHostname] = '\0';
 			break;
-		case 'i':	// input files path
+		case 'i': // input files path
 			strncpy(szInDir, vp, iMaxPath);
 			szInDir[iMaxPath] = '\0';
 			break;
@@ -139,36 +142,37 @@ void parse_command_line(int argc, char *argv[])
 		default:
 			usage();
 			cout << endl << "Error: Unrecognized option: " << sp << endl;
-			exit (1);
+			exit(1);
 		}
 	}
-
 }
 
 // Validate Parameters
-bool ValidateParameters()
+bool
+ValidateParameters()
 {
 	bool bRet = true;
 
 	// Configured Customer count must be a non-zero integral multiple of load
 	// unit size.
-	if ((iDefaultLoadUnitSize > iConfiguredCustomerCount) ||
-			(0 != iConfiguredCustomerCount % iDefaultLoadUnitSize)) {
-		cerr << "The specified customer count (-c " <<
-				iConfiguredCustomerCount <<
-				") must be a non-zero integral multiple of the load unit size (" <<
-				iDefaultLoadUnitSize << ")." << endl;
+	if ((iDefaultLoadUnitSize > iConfiguredCustomerCount)
+			|| (0 != iConfiguredCustomerCount % iDefaultLoadUnitSize)) {
+		cerr << "The specified customer count (-c " << iConfiguredCustomerCount
+			 << ") must be a non-zero integral multiple of the load unit size "
+				"("
+			 << iDefaultLoadUnitSize << ")." << endl;
 
 		bRet = false;
 	}
 
 	// Active customer count must be a non-zero integral multiple of load unit
 	// size.
-	if ((iDefaultLoadUnitSize > iActiveCustomerCount) ||
-			(0 != iActiveCustomerCount % iDefaultLoadUnitSize)) {
-		cerr << "The total customer count (-a " << iActiveCustomerCount <<
-				") must be a non-zero integral multiple of the load unit size (" <<
-				iDefaultLoadUnitSize << ")." << endl;
+	if ((iDefaultLoadUnitSize > iActiveCustomerCount)
+			|| (0 != iActiveCustomerCount % iDefaultLoadUnitSize)) {
+		cerr << "The total customer count (-a " << iActiveCustomerCount
+			 << ") must be a non-zero integral multiple of the load unit size "
+				"("
+			 << iDefaultLoadUnitSize << ")." << endl;
 
 		bRet = false;
 	}
@@ -176,20 +180,22 @@ bool ValidateParameters()
 	// Completed trades in 8 hours must be a non-zero integral multiple of 100
 	// so that exactly 1% extra trade ids can be assigned to simulate aborts.
 	//
-	if ((INT64) (HoursPerWorkDay * SecondsPerHour * iDefaultLoadUnitSize /
-			iScaleFactor) % 100 != 0) {
+	if ((INT64) (HoursPerWorkDay * SecondsPerHour * iDefaultLoadUnitSize
+				 / iScaleFactor)
+					% 100
+			!= 0) {
 		cerr << "Incompatible value for Scale Factor (-f) specified." << endl;
-		cerr << HoursPerWorkDay << " * " << SecondsPerHour <<
-				" * Load Unit Size (" << iDefaultLoadUnitSize <<
-				") / Scale Factor (" << iScaleFactor <<
-				") must be integral multiple of 100." << endl;
+		cerr << HoursPerWorkDay << " * " << SecondsPerHour
+			 << " * Load Unit Size (" << iDefaultLoadUnitSize
+			 << ") / Scale Factor (" << iScaleFactor
+			 << ") must be integral multiple of 100." << endl;
 
 		bRet = false;
 	}
 
 	if (iDaysOfInitialTrades <= 0) {
-		cerr << "The specified number of 8-Hour Workdays (-i " <<
-				(iDaysOfInitialTrades) << ") must be non-zero." << endl;
+		cerr << "The specified number of 8-Hour Workdays (-i "
+			 << (iDaysOfInitialTrades) << ") must be non-zero." << endl;
 
 		bRet = false;
 	}
@@ -209,7 +215,8 @@ bool ValidateParameters()
 	return bRet;
 }
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
 	// Establish defaults for command line options
 	strncpy(szInDir, "flat_in", iMaxPath);
@@ -230,7 +237,8 @@ int main(int argc, char *argv[])
 	cout << "Input files location: " << szInDir << endl << endl;
 
 	cout << "Brokerage House address: " << szBHaddr << endl;
-	cout << "Brokerage House port: " << iBHListenerPort << endl << endl;;
+	cout << "Brokerage House port: " << iBHListenerPort << endl << endl;
+	;
 
 	cout << "Configured customer count: " << iConfiguredCustomerCount << endl;
 	cout << "Active customer count: " << iActiveCustomerCount << endl;
@@ -254,15 +262,15 @@ int main(int argc, char *argv[])
 		Driver.runTest(iSleep, iTestDuration);
 
 	} catch (CBaseErr *pErr) {
-		cout << endl << "Error " << pErr->ErrorNum() << ": " <<
-				pErr->ErrorText();
+		cout << endl
+			 << "Error " << pErr->ErrorNum() << ": " << pErr->ErrorText();
 		if (pErr->ErrorLoc()) {
 			cout << " at " << pErr->ErrorLoc() << endl;
 		} else {
 			cout << endl;
 		}
-		return(1);
+		return (1);
 	}
 
-	return(0);
+	return (0);
 }

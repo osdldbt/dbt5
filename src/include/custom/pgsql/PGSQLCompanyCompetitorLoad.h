@@ -45,20 +45,21 @@
 namespace TPCE
 {
 
-class CPGSQLCompanyCompetitorLoad : public CPGSQLLoader<COMPANY_COMPETITOR_ROW>
+class CPGSQLCompanyCompetitorLoad: public CPGSQLLoader<COMPANY_COMPETITOR_ROW>
 {
 public:
 	CPGSQLCompanyCompetitorLoad(const char *szConnectStr,
 			const char *szTable = "company_competitor")
-			: CPGSQLLoader<COMPANY_COMPETITOR_ROW>(szConnectStr, szTable) { };
+	: CPGSQLLoader<COMPANY_COMPETITOR_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const COMPANY_COMPETITOR_ROW &next_record) {
-		fprintf(p, "%" PRId64 "|%" PRId64 "|%s\n",
-				next_record.CP_CO_ID,
-				next_record.CP_COMP_CO_ID,
-				next_record.CP_IN_ID);
+	void
+	WriteNextRecord(const COMPANY_COMPETITOR_ROW &next_record)
+	{
+		fprintf(p, "%" PRId64 "|%" PRId64 "|%s\n", next_record.CP_CO_ID,
+				next_record.CP_COMP_CO_ID, next_record.CP_IN_ID);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

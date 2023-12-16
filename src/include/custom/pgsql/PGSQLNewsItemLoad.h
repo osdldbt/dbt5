@@ -45,28 +45,27 @@
 namespace TPCE
 {
 
-class CPGSQLNewsItemLoad : public CPGSQLLoader<NEWS_ITEM_ROW>
+class CPGSQLNewsItemLoad: public CPGSQLLoader<NEWS_ITEM_ROW>
 {
 private:
 	CDateTime ni_dts;
 
 public:
-	CPGSQLNewsItemLoad(const char *szConnectStr,
-			const char *szTable = "news_item")
-			: CPGSQLLoader<NEWS_ITEM_ROW>(szConnectStr, szTable) { };
+	CPGSQLNewsItemLoad(
+			const char *szConnectStr, const char *szTable = "news_item")
+	: CPGSQLLoader<NEWS_ITEM_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const NEWS_ITEM_ROW &next_record) {
+	void
+	WriteNextRecord(const NEWS_ITEM_ROW &next_record)
+	{
 		ni_dts = next_record.NI_DTS;
-		fprintf(p, "%" PRId64 "|%s|%s|%s|%s|%s|%s\n",
-				next_record.NI_ID,
-				next_record.NI_HEADLINE,
-				next_record.NI_SUMMARY,
-				next_record.NI_ITEM,
-				ni_dts.ToStr(iDateTimeFmt),
-				next_record.NI_SOURCE,
-				next_record.NI_AUTHOR);
+		fprintf(p, "%" PRId64 "|%s|%s|%s|%s|%s|%s\n", next_record.NI_ID,
+				next_record.NI_HEADLINE, next_record.NI_SUMMARY,
+				next_record.NI_ITEM, ni_dts.ToStr(iDateTimeFmt),
+				next_record.NI_SOURCE, next_record.NI_AUTHOR);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	};
 };
 

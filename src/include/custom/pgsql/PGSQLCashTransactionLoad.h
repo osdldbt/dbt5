@@ -45,27 +45,29 @@
 namespace TPCE
 {
 
-class CPGSQLCashTransactionLoad : public CPGSQLLoader<CASH_TRANSACTION_ROW>
+class CPGSQLCashTransactionLoad: public CPGSQLLoader<CASH_TRANSACTION_ROW>
 {
 private:
 	CDateTime ct_dts;
-public:
-	CPGSQLCashTransactionLoad(const char *szConnectStr,
-			const char *szTable = "cash_transaction")
-			: CPGSQLLoader<CASH_TRANSACTION_ROW>(szConnectStr, szTable) { };
 
-	void WriteNextRecord(const CASH_TRANSACTION_ROW &next_record) {
+public:
+	CPGSQLCashTransactionLoad(
+			const char *szConnectStr, const char *szTable = "cash_transaction")
+	: CPGSQLLoader<CASH_TRANSACTION_ROW>(szConnectStr, szTable){};
+
+	void
+	WriteNextRecord(const CASH_TRANSACTION_ROW &next_record)
+	{
 		ct_dts = next_record.CT_DTS;
-		fprintf(p, "%" PRId64 "|%s|%.2f|%s\n",
-				next_record.CT_T_ID,
-				ct_dts.ToStr(iDateTimeFmt),
-				next_record.CT_AMT,
+		fprintf(p, "%" PRId64 "|%s|%.2f|%s\n", next_record.CT_T_ID,
+				ct_dts.ToStr(iDateTimeFmt), next_record.CT_AMT,
 				next_record.CT_NAME);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 
 } // namespace TPCE
 
-#endif //PGSQL_CASH_TRANSACTION_LOAD_H
+#endif // PGSQL_CASH_TRANSACTION_LOAD_H

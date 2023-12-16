@@ -10,11 +10,11 @@
 #ifndef MARKET_WATCH_DB_H
 #define MARKET_WATCH_DB_H
 
-#include <TxnHarnessDBInterface.h> 
+#include <TxnHarnessDBInterface.h>
 
 #include "TxnBaseDB.h"
- 
-class CMarketWatchDB : public CTxnBaseDB, public CMarketWatchDBInterface
+
+class CMarketWatchDB: public CTxnBaseDB, public CMarketWatchDBInterface
 {
 private:
 	bool m_Verbose;
@@ -22,15 +22,15 @@ private:
 
 public:
 	CMarketWatchDB(CDBConnection *, bool);
-	~CMarketWatchDB() {};
+	~CMarketWatchDB(){};
 
-	void DoMarketWatchFrame1(const TMarketWatchFrame1Input*,
-			TMarketWatchFrame1Output*);
+	void DoMarketWatchFrame1(
+			const TMarketWatchFrame1Input *, TMarketWatchFrame1Output *);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException) {};
+	void Cleanup(void *pException){};
 };
 
-#endif	// MARKET_WATCH_DB_H
+#endif // MARKET_WATCH_DB_H

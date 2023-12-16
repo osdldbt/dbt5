@@ -10,18 +10,17 @@
 #include "DMSUT.h"
 
 // constructor
-CDMSUT::CDMSUT(char *outputDirectory, char *addr, const int iListenPort):
-		CBaseInterface("dm", outputDirectory, addr, iListenPort)
+CDMSUT::CDMSUT(char *outputDirectory, char *addr, const int iListenPort)
+: CBaseInterface("dm", outputDirectory, addr, iListenPort)
 {
 }
 
 // destructor
-CDMSUT::~CDMSUT()
-{
-}
+CDMSUT::~CDMSUT() {}
 
 // Data Maintenance
-bool CDMSUT::DataMaintenance(PDataMaintenanceTxnInput pTxnInput)
+bool
+CDMSUT::DataMaintenance(PDataMaintenanceTxnInput pTxnInput)
 {
 	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
 	memset(pRequest, 0, sizeof(TMsgDriverBrokerage));
@@ -29,12 +28,13 @@ bool CDMSUT::DataMaintenance(PDataMaintenanceTxnInput pTxnInput)
 	pRequest->TxnType = DATA_MAINTENANCE;
 	memcpy(&(pRequest->TxnInput.DataMaintenanceTxnInput), pTxnInput,
 			sizeof(TDataMaintenanceTxnInput));
-	
+
 	return talkToSUT(pRequest);
 }
 
 // Trade Cleanup
-bool CDMSUT::TradeCleanup(PTradeCleanupTxnInput pTxnInput)
+bool
+CDMSUT::TradeCleanup(PTradeCleanupTxnInput pTxnInput)
 {
 	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
 	memset(pRequest, 0, sizeof(TMsgDriverBrokerage));
@@ -42,6 +42,6 @@ bool CDMSUT::TradeCleanup(PTradeCleanupTxnInput pTxnInput)
 	pRequest->TxnType = TRADE_CLEANUP;
 	memcpy(&(pRequest->TxnInput.TradeCleanupTxnInput), pTxnInput,
 			sizeof(TTradeCleanupTxnInput));
-	
+
 	return talkToSUT(pRequest);
 }

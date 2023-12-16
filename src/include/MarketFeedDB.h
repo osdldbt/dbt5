@@ -10,11 +10,11 @@
 #ifndef MARKET_FEED_DB_H
 #define MARKET_FEED_DB_H
 
-#include <TxnHarnessDBInterface.h> 
+#include <TxnHarnessDBInterface.h>
 
 #include "TxnBaseDB.h"
 
-class CMarketFeedDB : public CTxnBaseDB, public CMarketFeedDBInterface
+class CMarketFeedDB: public CTxnBaseDB, public CMarketFeedDBInterface
 {
 private:
 	bool m_Verbose;
@@ -22,15 +22,15 @@ private:
 
 public:
 	CMarketFeedDB(CDBConnection *, bool);
-	~CMarketFeedDB() {};
+	~CMarketFeedDB(){};
 
-	void DoMarketFeedFrame1(const TMarketFeedFrame1Input*,
-			TMarketFeedFrame1Output*, CSendToMarketInterface*);
+	void DoMarketFeedFrame1(const TMarketFeedFrame1Input *,
+			TMarketFeedFrame1Output *, CSendToMarketInterface *);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException) {};
+	void Cleanup(void *pException){};
 };
 
-#endif	// MARKET_FEED_DB_H
+#endif // MARKET_FEED_DB_H

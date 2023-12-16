@@ -14,8 +14,8 @@
 
 #include "TxnBaseDB.h"
 using namespace TPCE;
- 
-class CBrokerVolumeDB : public CTxnBaseDB, public CBrokerVolumeDBInterface
+
+class CBrokerVolumeDB: public CTxnBaseDB, public CBrokerVolumeDBInterface
 {
 private:
 	bool m_Verbose;
@@ -23,15 +23,15 @@ private:
 
 public:
 	CBrokerVolumeDB(CDBConnection *, bool);
-	~CBrokerVolumeDB() {};
+	~CBrokerVolumeDB(){};
 
-	void DoBrokerVolumeFrame1(const TBrokerVolumeFrame1Input*,
-			TBrokerVolumeFrame1Output*);
+	void DoBrokerVolumeFrame1(
+			const TBrokerVolumeFrame1Input *, TBrokerVolumeFrame1Output *);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException) {};
+	void Cleanup(void *pException){};
 };
 
-#endif	// BROKER_VOLUME_DB_H
+#endif // BROKER_VOLUME_DB_H

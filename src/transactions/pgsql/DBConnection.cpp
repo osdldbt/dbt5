@@ -15,11 +15,11 @@
 
 // These are inlined function that should only be used here.
 
-bool inline check_count(int should, int is, const char *file, int line) {
+bool inline check_count(int should, int is, const char *file, int line)
+{
 	if (should != is) {
-		cout << "*** array length (" << is <<
-				") does not match expections (" << should << "): " << file <<
-				":" << line << endl;
+		cout << "*** array length (" << is << ") does not match expections ("
+			 << should << "): " << file << ":" << line << endl;
 		return false;
 	}
 	return true;
@@ -36,7 +36,7 @@ int inline get_col_num(PGresult *res, const char *col_name)
 }
 
 // Array Tokenizer
-void inline TokenizeArray(const string& str2, vector<string>& tokens)
+void inline TokenizeArray(const string &str2, vector<string> &tokens)
 {
 	// This is essentially an empty array. i.e. '{}'
 	if (str2.size() < 3)
@@ -51,8 +51,7 @@ void inline TokenizeArray(const string& str2, vector<string>& tokens)
 	// Find first "non-delimiter".
 	string::size_type pos = str.find_first_of("}", lastPos);
 
-	while (string::npos != pos || string::npos != lastPos)
-	{
+	while (string::npos != pos || string::npos != lastPos) {
 		// Found a token, add it to the vector.
 		tokens.push_back(str.substr(lastPos, pos - lastPos + 1));
 
@@ -63,7 +62,7 @@ void inline TokenizeArray(const string& str2, vector<string>& tokens)
 
 // String Tokenizer
 // FIXME: This token doesn't handle strings with escaped characters.
-void inline TokenizeSmart(const string& str, vector<string>& tokens)
+void inline TokenizeSmart(const string &str, vector<string> &tokens)
 {
 	// This is essentially an empty array. i.e. '{}'
 	if (str.size() < 3)
@@ -72,8 +71,7 @@ void inline TokenizeSmart(const string& str, vector<string>& tokens)
 	string::size_type lastPos = 1;
 	string::size_type pos = 1;
 	bool end = false;
-	while (end == false)
-	{
+	while (end == false) {
 		if (str[lastPos] == '"') {
 			pos = str.find_first_of("\"", lastPos + 1);
 			if (pos == string::npos) {
@@ -97,8 +95,8 @@ void inline TokenizeSmart(const string& str, vector<string>& tokens)
 }
 
 // Constructor: Creates PgSQL connection
-CDBConnection::CDBConnection(const char *szHost, const char *szDBName,
-		const char *szDBPort)
+CDBConnection::CDBConnection(
+		const char *szHost, const char *szDBName, const char *szDBPort)
 {
 	szConnectStr[0] = '\0';
 
@@ -128,24 +126,28 @@ CDBConnection::~CDBConnection()
 	PQfinish(m_Conn);
 }
 
-void CDBConnection::begin()
+void
+CDBConnection::begin()
 {
 	PGresult *res = PQexec(m_Conn, "BEGIN;");
 	PQclear(res);
 }
 
-void CDBConnection::connect()
+void
+CDBConnection::connect()
 {
 	m_Conn = PQconnectdb(szConnectStr);
 }
 
-void CDBConnection::commit()
+void
+CDBConnection::commit()
 {
 	PGresult *res = PQexec(m_Conn, "COMMIT;");
 	PQclear(res);
 }
 
-char *CDBConnection::escape(string s)
+char *
+CDBConnection::escape(string s)
 {
 	char *esc = PQescapeLiteral(m_Conn, s.c_str(), s.length());
 	if (esc == NULL)
@@ -153,15 +155,17 @@ char *CDBConnection::escape(string s)
 	return esc;
 }
 
-void CDBConnection::disconnect()
+void
+CDBConnection::disconnect()
 {
 	PQfinish(m_Conn);
 }
 
-PGresult *CDBConnection::exec(const char *sql, int nParams=0,
-		const Oid *paramTypes=NULL, const char * const *paramValues=NULL,
-		const int *paramLengths=NULL, const int *paramFormats=NULL,
-		int resultFormat=0)
+PGresult *
+CDBConnection::exec(const char *sql, int nParams = 0,
+		const Oid *paramTypes = NULL, const char *const *paramValues = NULL,
+		const int *paramLengths = NULL, const int *paramFormats = NULL,
+		int resultFormat = 0)
 {
 	// FIXME: Handle serialization errors.
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
@@ -177,15 +181,17 @@ PGresult *CDBConnection::exec(const char *sql, int nParams=0,
 	ostringstream msg;
 	switch (status) {
 	case PGRES_FATAL_ERROR:
-		msg << time(NULL) << " " << pid << endl << "SQL: " << sql << endl <<
-				PQresultErrorMessage(res) << endl;
+		msg << time(NULL) << " " << pid << endl
+			<< "SQL: " << sql << endl
+			<< PQresultErrorMessage(res) << endl;
 		rollback();
 		throw msg.str().c_str();
 		break;
 	case PGRES_TUPLES_OK:
 		if (PQntuples(res) == 0) {
-			msg << time(NULL) << " " << pid << endl << "SQL: " << sql <<
-					endl << "NO RESULTS" << endl;
+			msg << time(NULL) << " " << pid << endl
+				<< "SQL: " << sql << endl
+				<< "NO RESULTS" << endl;
 			rollback();
 			throw msg.str().c_str();
 		}
@@ -204,21 +210,21 @@ PGresult *CDBConnection::exec(const char *sql, int nParams=0,
 	return res;
 }
 
-void CDBConnection::execute(const TBrokerVolumeFrame1Input *pIn,
-		TBrokerVolumeFrame1Output *pOut)
+void
+CDBConnection::execute(
+		const TBrokerVolumeFrame1Input *pIn, TBrokerVolumeFrame1Output *pOut)
 {
 	ostringstream osBrokers;
 	int i = 0;
 	osBrokers << pIn->broker_list[i];
-	for (i = 1; pIn->broker_list[i][0] != '\0' &&
-			i < max_broker_list_len; i++) {
+	for (i = 1; pIn->broker_list[i][0] != '\0' && i < max_broker_list_len;
+			i++) {
 		osBrokers << ", " << pIn->broker_list[i];
 	}
 
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM BrokerVolumeFrame1('{" <<
-			osBrokers.str() << "}','" <<
-			pIn->sector_name << "')";
+	osSQL << "SELECT * FROM BrokerVolumeFrame1('{" << osBrokers.str() << "}','"
+		  << pIn->sector_name << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
 	int i_broker_name = get_col_num(res, "broker_name");
@@ -251,13 +257,13 @@ void CDBConnection::execute(const TBrokerVolumeFrame1Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
+void
+CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
 		TCustomerPositionFrame1Output *pOut)
 {
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM CustomerPositionFrame1(" <<
-			pIn->cust_id << ",'" <<
-			pIn->tax_id << "')";
+	osSQL << "SELECT * FROM CustomerPositionFrame1(" << pIn->cust_id << ",'"
+		  << pIn->tax_id << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
 	int i_cust_id = get_col_num(res, "cust_id");
@@ -297,7 +303,7 @@ void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
 	TokenizeSmart(PQgetvalue(res, 0, i_acct_id), vAux);
 	int i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->acct_id[i] = atol( (*p).c_str() );
+		pOut->acct_id[i] = atol((*p).c_str());
 		++i;
 	}
 	check_count(pOut->acct_len, vAux.size(), __FILE__, __LINE__);
@@ -306,14 +312,13 @@ void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
 	TokenizeSmart(PQgetvalue(res, 0, i_asset_total), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-			pOut->asset_total[i] = atof( (*p).c_str() );
-			++i;
+		pOut->asset_total[i] = atof((*p).c_str());
+		++i;
 	}
 	check_count(pOut->acct_len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	pOut->c_ad_id = atol(PQgetvalue(res, 0, i_c_ad_id));
-
 
 	strncpy(pOut->c_area_1, PQgetvalue(res, 0, i_c_area_1), cAREA_len);
 	pOut->c_area_1[cAREA_len] = '\0';
@@ -367,7 +372,7 @@ void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_bal), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->cash_bal[i] = atof( (*p).c_str() );
+		pOut->cash_bal[i] = atof((*p).c_str());
 		++i;
 	}
 	check_count(pOut->acct_len, vAux.size(), __FILE__, __LINE__);
@@ -375,7 +380,8 @@ void CDBConnection::execute(const TCustomerPositionFrame1Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TCustomerPositionFrame2Input *pIn,
+void
+CDBConnection::execute(const TCustomerPositionFrame2Input *pIn,
 		TCustomerPositionFrame2Output *pOut)
 {
 	ostringstream osSQL;
@@ -399,12 +405,9 @@ void CDBConnection::execute(const TCustomerPositionFrame2Input *pIn,
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
-				&pOut->hist_dts[i].year,
-				&pOut->hist_dts[i].month,
-				&pOut->hist_dts[i].day,
-				&pOut->hist_dts[i].hour,
-				&pOut->hist_dts[i].minute,
-				&pOut->hist_dts[i].second);
+				&pOut->hist_dts[i].year, &pOut->hist_dts[i].month,
+				&pOut->hist_dts[i].day, &pOut->hist_dts[i].hour,
+				&pOut->hist_dts[i].minute, &pOut->hist_dts[i].second);
 		++i;
 	}
 	check_count(pOut->hist_len, vAux.size(), __FILE__, __LINE__);
@@ -450,24 +453,21 @@ void CDBConnection::execute(const TCustomerPositionFrame2Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TDataMaintenanceFrame1Input *pIn)
+void
+CDBConnection::execute(const TDataMaintenanceFrame1Input *pIn)
 {
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM DataMaintenanceFrame1(" <<
-			pIn->acct_id << ", " <<
-			pIn->c_id << ", " <<
-			pIn->co_id << ", " <<
-			pIn->day_of_month << ", '" <<
-			pIn->symbol << "', '" <<
-			pIn->table_name << "', '" <<
-			pIn->tx_id << "', " <<
-			pIn->vol_incr << ")";
+	osSQL << "SELECT * FROM DataMaintenanceFrame1(" << pIn->acct_id << ", "
+		  << pIn->c_id << ", " << pIn->co_id << ", " << pIn->day_of_month
+		  << ", '" << pIn->symbol << "', '" << pIn->table_name << "', '"
+		  << pIn->tx_id << "', " << pIn->vol_incr << ")";
 
 	PGresult *res = exec(osSQL.str().c_str());
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
+void
+CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 		TMarketFeedFrame1Output *pOut, CSendToMarketInterface *pMarketExchange)
 {
 	ostringstream osSymbol, osPrice, osQty;
@@ -487,14 +487,12 @@ void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 	osSymbol << "\"";
 
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM MarketFeedFrame1('{" <<
-			osPrice.str() << "}','" <<
-			pIn->StatusAndTradeType.status_submitted << "','{" <<
-			osSymbol.str() << "}', '{" <<
-			osQty.str() << "}','" <<
-			pIn->StatusAndTradeType.type_limit_buy << "','" <<
-			pIn->StatusAndTradeType.type_limit_sell << "','" <<
-			pIn->StatusAndTradeType.type_stop_loss << "')";
+	osSQL << "SELECT * FROM MarketFeedFrame1('{" << osPrice.str() << "}','"
+		  << pIn->StatusAndTradeType.status_submitted << "','{"
+		  << osSymbol.str() << "}', '{" << osQty.str() << "}','"
+		  << pIn->StatusAndTradeType.type_limit_buy << "','"
+		  << pIn->StatusAndTradeType.type_limit_sell << "','"
+		  << pIn->StatusAndTradeType.type_stop_loss << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
 	int i_num_updated = get_col_num(res, "num_updated");
@@ -534,7 +532,8 @@ void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 	int i = 0;
 	bool bSent;
 	for (p1 = v1.begin(), p2 = v2.begin(), p3 = v3.begin(), p4 = v4.begin(),
-			p5 = v5.begin(); p1 != v1.end(); ++p1, ++p2, ++p3, ++p4) {
+		p5 = v5.begin();
+			p1 != v1.end(); ++p1, ++p2, ++p3, ++p4) {
 		strncpy(m_TriggeredLimitOrders.symbol, (*p1).c_str(), cSYMBOL_len);
 		m_TriggeredLimitOrders.symbol[cSYMBOL_len] = '\0';
 		m_TriggeredLimitOrders.trade_id = atol((*p2).c_str());
@@ -544,10 +543,11 @@ void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 				cTT_ID_len);
 		m_TriggeredLimitOrders.trade_type_id[cTT_ID_len] = '\0';
 
-		bSent = pMarketExchange->SendToMarketFromFrame(
-				m_TriggeredLimitOrders);
+		bSent = pMarketExchange->SendToMarketFromFrame(m_TriggeredLimitOrders);
 		if (!bSent) {
-			cout << "WARNING: SendToMarketFromFrame() returned failure but continuing..." << endl;
+			cout << "WARNING: SendToMarketFromFrame() returned failure but "
+					"continuing..."
+				 << endl;
 		}
 		++i;
 	}
@@ -555,19 +555,16 @@ void CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TMarketWatchFrame1Input *pIn,
-		TMarketWatchFrame1Output *pOut)
+void
+CDBConnection::execute(
+		const TMarketWatchFrame1Input *pIn, TMarketWatchFrame1Output *pOut)
 {
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM MarketWatchFrame1(" <<
-			pIn->acct_id << "," <<
-			pIn->c_id << "," <<
-			pIn->ending_co_id << ",'" <<
-			pIn->industry_name << "','" <<
-			pIn->start_day.year << "-" <<
-			pIn->start_day.month << "-" <<
-			pIn->start_day.day << "'," <<
-			pIn->starting_co_id << ")";
+	osSQL << "SELECT * FROM MarketWatchFrame1(" << pIn->acct_id << ","
+		  << pIn->c_id << "," << pIn->ending_co_id << ",'"
+		  << pIn->industry_name << "','" << pIn->start_day.year << "-"
+		  << pIn->start_day.month << "-" << pIn->start_day.day << "',"
+		  << pIn->starting_co_id << ")";
 
 	PGresult *res = exec(osSQL.str().c_str());
 
@@ -575,17 +572,15 @@ void CDBConnection::execute(const TMarketWatchFrame1Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
+void
+CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 		TSecurityDetailFrame1Output *pOut)
 {
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM SecurityDetailFrame1(" <<
-			pIn->access_lob_flag << "::SMALLINT," <<
-			pIn->max_rows_to_return << ",'" <<
-			pIn->start_day.year << "-" <<
-			pIn->start_day.month << "-" <<
-			pIn->start_day.day << "','" <<
-			pIn->symbol << "')";
+	osSQL << "SELECT * FROM SecurityDetailFrame1(" << pIn->access_lob_flag
+		  << "::SMALLINT," << pIn->max_rows_to_return << ",'"
+		  << pIn->start_day.year << "-" << pIn->start_day.month << "-"
+		  << pIn->start_day.day << "','" << pIn->symbol << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
 	int i_s52_wk_high = get_col_num(res, "x52_wk_high");
@@ -640,13 +635,11 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 
 	pOut->s52_wk_high = atof(PQgetvalue(res, 0, i_s52_wk_high));
 	sscanf(PQgetvalue(res, 0, i_s52_wk_high_date), "%hd-%hd-%hd",
-			&pOut->s52_wk_high_date.year,
-			&pOut->s52_wk_high_date.month,
+			&pOut->s52_wk_high_date.year, &pOut->s52_wk_high_date.month,
 			&pOut->s52_wk_high_date.day);
 	pOut->s52_wk_low = atof(PQgetvalue(res, 0, i_s52_wk_low));
 	sscanf(PQgetvalue(res, 0, i_s52_wk_low_date), "%hd-%hd-%hd",
-			&pOut->s52_wk_low_date.year,
-			&pOut->s52_wk_low_date.month,
+			&pOut->s52_wk_low_date.year, &pOut->s52_wk_low_date.month,
 			&pOut->s52_wk_low_date.day);
 
 	strncpy(pOut->ceo_name, PQgetvalue(res, 0, i_ceo_name), cCEO_NAME_len);
@@ -655,9 +648,11 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 	pOut->co_ad_cty[cAD_CTRY_len] = '\0';
 	strncpy(pOut->co_ad_div, PQgetvalue(res, 0, i_co_ad_div), cAD_DIV_len);
 	pOut->co_ad_div[cAD_DIV_len] = '\0';
-	strncpy(pOut->co_ad_line1, PQgetvalue(res, 0, i_co_ad_line1), cAD_LINE_len);
+	strncpy(pOut->co_ad_line1, PQgetvalue(res, 0, i_co_ad_line1),
+			cAD_LINE_len);
 	pOut->co_ad_line1[cAD_LINE_len] = '\0';
-	strncpy(pOut->co_ad_line2, PQgetvalue(res, 0, i_co_ad_line2), cAD_LINE_len);
+	strncpy(pOut->co_ad_line2, PQgetvalue(res, 0, i_co_ad_line2),
+			cAD_LINE_len);
 	pOut->co_ad_line2[cAD_LINE_len] = '\0';
 	strncpy(pOut->co_ad_town, PQgetvalue(res, 0, i_co_ad_town), cAD_TOWN_len);
 	pOut->co_ad_town[cAD_TOWN_len] = '\0';
@@ -674,7 +669,7 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 	vector<string>::iterator p;
 	TokenizeSmart(PQgetvalue(res, 0, i_cp_co_name), vAux);
 	int i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->cp_co_name[i], (*p).c_str(), cCO_NAME_len);
 		pOut->cp_co_name[i][cCO_NAME_len] = '\0';
 		++i;
@@ -686,7 +681,7 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cp_in_name), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->cp_in_name[i], (*p).c_str(), cIN_NAME_len);
 		pOut->cp_in_name[i][cIN_NAME_len] = '\0';
 		++i;
@@ -699,17 +694,15 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 
 	TokenizeArray(PQgetvalue(res, 0, i_day), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		vector<string> v2;
 		vector<string>::iterator p2;
 
 		TokenizeSmart((*p).c_str(), v2);
 
 		p2 = v2.begin();
-		sscanf((*p2++).c_str(), "%hd-%hd-%hd",
-				&pOut->day[i].date.year,
-				&pOut->day[i].date.month,
-				&pOut->day[i].date.day);
+		sscanf((*p2++).c_str(), "%hd-%hd-%hd", &pOut->day[i].date.year,
+				&pOut->day[i].date.month, &pOut->day[i].date.day);
 		pOut->day[i].close = atof((*p2++).c_str());
 		pOut->day[i].high = atof((*p2++).c_str());
 		pOut->day[i].low = atof((*p2++).c_str());
@@ -726,19 +719,19 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 	pOut->ex_ad_cty[cAD_CTRY_len] = '\0';
 	strncpy(pOut->ex_ad_div, PQgetvalue(res, 0, i_ex_ad_div), cAD_DIV_len);
 	pOut->ex_ad_div[cAD_DIV_len] = '\0';
-	strncpy(pOut->ex_ad_line1, PQgetvalue(res, 0, i_ex_ad_line1), cAD_LINE_len);
+	strncpy(pOut->ex_ad_line1, PQgetvalue(res, 0, i_ex_ad_line1),
+			cAD_LINE_len);
 	pOut->ex_ad_line1[cAD_LINE_len] = '\0';
-	strncpy(pOut->ex_ad_line2, PQgetvalue(res, 0, i_ex_ad_line2), cAD_LINE_len);
+	strncpy(pOut->ex_ad_line2, PQgetvalue(res, 0, i_ex_ad_line2),
+			cAD_LINE_len);
 	pOut->ex_ad_line2[cAD_LINE_len] = '\0';
 	strncpy(pOut->ex_ad_town, PQgetvalue(res, 0, i_ex_ad_town), cAD_TOWN_len);
-	pOut->ex_ad_town[cAD_TOWN_len]  = '\0';
+	pOut->ex_ad_town[cAD_TOWN_len] = '\0';
 	strncpy(pOut->ex_ad_zip, PQgetvalue(res, 0, i_ex_ad_zip), cAD_ZIP_len);
 	pOut->ex_ad_zip[cAD_ZIP_len] = '\0';
 	pOut->ex_close = atoi(PQgetvalue(res, 0, i_ex_close));
-	sscanf(PQgetvalue(res, 0, i_ex_date), "%hd-%hd-%hd",
-			&pOut->ex_date.year,
-			&pOut->ex_date.month,
-			&pOut->ex_date.day);
+	sscanf(PQgetvalue(res, 0, i_ex_date), "%hd-%hd-%hd", &pOut->ex_date.year,
+			&pOut->ex_date.month, &pOut->ex_date.day);
 	strncpy(pOut->ex_desc, PQgetvalue(res, 0, i_ex_desc), cEX_DESC_len);
 	pOut->ex_desc[cEX_DESC_len] = '\0';
 	strncpy(pOut->ex_name, PQgetvalue(res, 0, i_ex_name), cEX_NAME_len);
@@ -748,7 +741,7 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 
 	TokenizeArray(PQgetvalue(res, 0, i_fin), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		vector<string> v2;
 		vector<string>::iterator p2;
 
@@ -757,10 +750,8 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 		p2 = v2.begin();
 		pOut->fin[i].year = atoi((*p2++).c_str());
 		pOut->fin[i].qtr = atoi((*p2++).c_str());
-		sscanf((*p2++).c_str(), "%hd-%hd-%hd",
-				&pOut->fin[i].start_date.year,
-				&pOut->fin[i].start_date.month,
-				&pOut->fin[i].start_date.day);
+		sscanf((*p2++).c_str(), "%hd-%hd-%hd", &pOut->fin[i].start_date.year,
+				&pOut->fin[i].start_date.month, &pOut->fin[i].start_date.day);
 		pOut->fin[i].rev = atof((*p2++).c_str());
 		pOut->fin[i].net_earn = atof((*p2++).c_str());
 		pOut->fin[i].basic_eps = atof((*p2++).c_str());
@@ -783,7 +774,7 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 
 	TokenizeArray(PQgetvalue(res, 0, i_news), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		vector<string> v2;
 		vector<string>::iterator p2;
 
@@ -796,12 +787,9 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 		strncpy(pOut->news[i].item, (*p2++).c_str(), cNI_ITEM_len);
 		pOut->news[i].item[cNI_ITEM_len] = '\0';
 		sscanf((*p2++).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
-				&pOut->news[i].dts.year,
-				&pOut->news[i].dts.month,
-				&pOut->news[i].dts.day,
-				&pOut->news[i].dts.hour,
-				&pOut->news[i].dts.minute,
-				&pOut->news[i].dts.second);
+				&pOut->news[i].dts.year, &pOut->news[i].dts.month,
+				&pOut->news[i].dts.day, &pOut->news[i].dts.hour,
+				&pOut->news[i].dts.minute, &pOut->news[i].dts.second);
 		strncpy(pOut->news[i].src, (*p2++).c_str(), cNI_SOURCE_len);
 		pOut->news[i].src[cNI_SOURCE_len] = '\0';
 		strncpy(pOut->news[i].auth, (*p2++).c_str(), cNI_AUTHOR_len);
@@ -817,8 +805,7 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 	vAux.clear();
 
 	sscanf(PQgetvalue(res, 0, i_open_date), "%hd-%hd-%hd",
-			&pOut->open_date.year,
-			&pOut->open_date.month,
+			&pOut->open_date.year, &pOut->open_date.month,
 			&pOut->open_date.day);
 	pOut->pe_ratio = atof(PQgetvalue(res, 0, i_pe_ratio));
 	strncpy(pOut->s_name, PQgetvalue(res, 0, i_s_name), cS_NAME_len);
@@ -827,44 +814,43 @@ void CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 	strncpy(pOut->sp_rate, PQgetvalue(res, 0, i_sp_rate), cSP_RATE_len);
 	pOut->sp_rate[cSP_RATE_len] = '\0';
 	sscanf(PQgetvalue(res, 0, i_start_date), "%hd-%hd-%hd",
-			&pOut->start_date.year,
-			&pOut->start_date.month,
+			&pOut->start_date.year, &pOut->start_date.month,
 			&pOut->start_date.day);
 	pOut->yield = atof(PQgetvalue(res, 0, i_yield));
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
+void
+CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
 {
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeCleanupFrame1('" <<
-			pIn->st_canceled_id << "','" <<
-			pIn->st_pending_id << "','" <<
-			pIn->st_submitted_id << "'," <<
-			pIn->start_trade_id << ")";
+	osSQL << "SELECT * FROM TradeCleanupFrame1('" << pIn->st_canceled_id
+		  << "','" << pIn->st_pending_id << "','" << pIn->st_submitted_id
+		  << "'," << pIn->start_trade_id << ")";
 
 	PGresult *res = exec(osSQL.str().c_str());
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
-		TTradeLookupFrame1Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeLookupFrame1Input *pIn, TTradeLookupFrame1Output *pOut)
 {
 	ostringstream osTrades;
 	int i = 0;
 	osTrades << pIn->trade_id[i];
-	for ( i = 1; i < pIn->max_trades; i++) {
+	for (i = 1; i < pIn->max_trades; i++) {
 		osTrades << "," << pIn->trade_id[i];
 	}
 
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeLookupFrame1(" <<
-			pIn->max_trades << ",'{" <<
-			osTrades.str() << "}')";
+	osSQL << "SELECT * FROM TradeLookupFrame1(" << pIn->max_trades << ",'{"
+		  << osTrades.str() << "}')";
 
 	PGresult *res = exec(osSQL.str().c_str());
 	int i_bid_price = get_col_num(res, "bid_price");
-	int i_cash_transaction_amount = get_col_num(res, "cash_transaction_amount");
+	int i_cash_transaction_amount
+			= get_col_num(res, "cash_transaction_amount");
 	int i_cash_transaction_dts = get_col_num(res, "cash_transaction_dts");
 	int i_cash_transaction_name = get_col_num(res, "cash_transaction_name");
 	int i_exec_name = get_col_num(res, "exec_name");
@@ -872,10 +858,12 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 	int i_is_market = get_col_num(res, "is_market");
 	int i_num_found = get_col_num(res, "num_found");
 	int i_settlement_amount = get_col_num(res, "settlement_amount");
-	int i_settlement_cash_due_date = get_col_num(res, "settlement_cash_due_date");
+	int i_settlement_cash_due_date
+			= get_col_num(res, "settlement_cash_due_date");
 	int i_settlement_cash_type = get_col_num(res, "settlement_cash_type");
 	int i_trade_history_dts = get_col_num(res, "trade_history_dts");
-	int i_trade_history_status_id = get_col_num(res, "trade_history_status_id");
+	int i_trade_history_status_id
+			= get_col_num(res, "trade_history_status_id");
 	int i_trade_price = get_col_num(res, "trade_price");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
@@ -974,8 +962,8 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 		++i;
 	}
 	if (!check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__)) {
-		cout << "*** settlement_cash_due_date = " <<
-				PQgetvalue(res, 0, i_settlement_cash_due_date) << endl;
+		cout << "*** settlement_cash_due_date = "
+			 << PQgetvalue(res, 0, i_settlement_cash_due_date) << endl;
 	}
 	vAux.clear();
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_cash_type), vAux);
@@ -1020,8 +1008,8 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 		for (p2 = v2.begin(); p2 != v2.end(); ++p2) {
 			strncpy(pOut->trade_info[i].trade_history_status_id[j],
 					(*p2).c_str(), cTH_ST_ID_len);
-			pOut->trade_info[i].trade_history_status_id[j][cTH_ST_ID_len] =
-					'\0';
+			pOut->trade_info[i].trade_history_status_id[j][cTH_ST_ID_len]
+					= '\0';
 			++j;
 		}
 		++i;
@@ -1039,40 +1027,38 @@ void CDBConnection::execute(const TTradeLookupFrame1Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
-		TTradeLookupFrame2Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeLookupFrame2Input *pIn, TTradeLookupFrame2Output *pOut)
 {
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeLookupFrame2(" <<
-			pIn->acct_id << ",'" <<
-			pIn->end_trade_dts.year << "-" <<
-			pIn->end_trade_dts.month << "-" <<
-			pIn->end_trade_dts.day << " " <<
-			pIn->end_trade_dts.hour << ":" <<
-			pIn->end_trade_dts.minute << ":" <<
-			pIn->end_trade_dts.second << "'::TIMESTAMP," <<
-			pIn->max_trades << ",'" <<
-			pIn->start_trade_dts.year << "-" <<
-			pIn->start_trade_dts.month << "-" <<
-			pIn->start_trade_dts.day << " " <<
-			pIn->start_trade_dts.hour << ":" <<
-			pIn->start_trade_dts.minute << ":" <<
-			pIn->start_trade_dts.second << "'::TIMESTAMP)";
+	osSQL << "SELECT * FROM TradeLookupFrame2(" << pIn->acct_id << ",'"
+		  << pIn->end_trade_dts.year << "-" << pIn->end_trade_dts.month << "-"
+		  << pIn->end_trade_dts.day << " " << pIn->end_trade_dts.hour << ":"
+		  << pIn->end_trade_dts.minute << ":" << pIn->end_trade_dts.second
+		  << "'::TIMESTAMP," << pIn->max_trades << ",'"
+		  << pIn->start_trade_dts.year << "-" << pIn->start_trade_dts.month
+		  << "-" << pIn->start_trade_dts.day << " "
+		  << pIn->start_trade_dts.hour << ":" << pIn->start_trade_dts.minute
+		  << ":" << pIn->start_trade_dts.second << "'::TIMESTAMP)";
 
 	PGresult *res = exec(osSQL.str().c_str());
 
 	int i_bid_price = get_col_num(res, "bid_price");
-	int i_cash_transaction_amount = get_col_num(res, "cash_transaction_amount");
+	int i_cash_transaction_amount
+			= get_col_num(res, "cash_transaction_amount");
 	int i_cash_transaction_dts = get_col_num(res, "cash_transaction_dts");
 	int i_cash_transaction_name = get_col_num(res, "cash_transaction_name");
 	int i_exec_name = get_col_num(res, "exec_name");
 	int i_is_cash = get_col_num(res, "is_cash");
 	int i_num_found = get_col_num(res, "num_found");
 	int i_settlement_amount = get_col_num(res, "settlement_amount");
-	int i_settlement_cash_due_date = get_col_num(res, "settlement_cash_due_date");
+	int i_settlement_cash_due_date
+			= get_col_num(res, "settlement_cash_due_date");
 	int i_settlement_cash_type = get_col_num(res, "settlement_cash_type");
 	int i_trade_history_dts = get_col_num(res, "trade_history_dts");
-	int i_trade_history_status_id = get_col_num(res, "trade_history_status_id");
+	int i_trade_history_status_id
+			= get_col_num(res, "trade_history_status_id");
 	int i_trade_list = get_col_num(res, "trade_list");
 	int i_trade_price = get_col_num(res, "trade_price");
 
@@ -1112,7 +1098,7 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 		++i;
 	}
 	// FIXME: According to spec, this may not match the returned number found?
-   vAux.clear();
+	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_name), vAux);
 	i = 0;
@@ -1188,12 +1174,12 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 		int j = 0;
 		for (p2 = v2.begin(); p2 != v2.end(); ++p2) {
 			sscanf((*p2).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
-						&pOut->trade_info[i].trade_history_dts[j].year,
-						&pOut->trade_info[i].trade_history_dts[j].month,
-						&pOut->trade_info[i].trade_history_dts[j].day,
-						&pOut->trade_info[i].trade_history_dts[j].hour,
-						&pOut->trade_info[i].trade_history_dts[j].minute,
-						&pOut->trade_info[i].trade_history_dts[j].second);
+					&pOut->trade_info[i].trade_history_dts[j].year,
+					&pOut->trade_info[i].trade_history_dts[j].month,
+					&pOut->trade_info[i].trade_history_dts[j].day,
+					&pOut->trade_info[i].trade_history_dts[j].hour,
+					&pOut->trade_info[i].trade_history_dts[j].minute,
+					&pOut->trade_info[i].trade_history_dts[j].second);
 			++j;
 		}
 		++i;
@@ -1209,9 +1195,9 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 		int j = 0;
 		for (p2 = v2.begin(); p2 != v2.end(); ++p2) {
 			strncpy(pOut->trade_info[i].trade_history_status_id[j],
-						(*p2).c_str(), cTH_ST_ID_len);
-			pOut->trade_info[i].trade_history_status_id[j][cTH_ST_ID_len] =
-					'\0';
+					(*p2).c_str(), cTH_ST_ID_len);
+			pOut->trade_info[i].trade_history_status_id[j][cTH_ST_ID_len]
+					= '\0';
 			++j;
 		}
 		++i;
@@ -1238,30 +1224,25 @@ void CDBConnection::execute(const TTradeLookupFrame2Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
-		TTradeLookupFrame3Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeLookupFrame3Input *pIn, TTradeLookupFrame3Output *pOut)
 {
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeLookupFrame3('" <<
-			pIn->end_trade_dts.year << "-" <<
-			pIn->end_trade_dts.month << "-" <<
-			pIn->end_trade_dts.day << " " <<
-			pIn->end_trade_dts.hour << ":" <<
-			pIn->end_trade_dts.minute << ":" <<
-			pIn->end_trade_dts.second << "'," <<
-			pIn->max_acct_id << "," <<
-			pIn->max_trades << ",'" <<
-			pIn->start_trade_dts.year << "-" <<
-			pIn->start_trade_dts.month << "-" <<
-			pIn->start_trade_dts.day << " " <<
-			pIn->start_trade_dts.hour << ":" <<
-			pIn->start_trade_dts.minute << ":" <<
-			pIn->start_trade_dts.second << "','" <<
-			pIn->symbol << "')";
+	osSQL << "SELECT * FROM TradeLookupFrame3('" << pIn->end_trade_dts.year
+		  << "-" << pIn->end_trade_dts.month << "-" << pIn->end_trade_dts.day
+		  << " " << pIn->end_trade_dts.hour << ":" << pIn->end_trade_dts.minute
+		  << ":" << pIn->end_trade_dts.second << "'," << pIn->max_acct_id
+		  << "," << pIn->max_trades << ",'" << pIn->start_trade_dts.year << "-"
+		  << pIn->start_trade_dts.month << "-" << pIn->start_trade_dts.day
+		  << " " << pIn->start_trade_dts.hour << ":"
+		  << pIn->start_trade_dts.minute << ":" << pIn->start_trade_dts.second
+		  << "','" << pIn->symbol << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
 	int i_acct_id = get_col_num(res, "acct_id");
-	int i_cash_transaction_amount = get_col_num(res, "cash_transaction_amount");
+	int i_cash_transaction_amount
+			= get_col_num(res, "cash_transaction_amount");
 	int i_cash_transaction_dts = get_col_num(res, "cash_transaction_dts");
 	int i_cash_transaction_name = get_col_num(res, "cash_transaction_name");
 	int i_exec_name = get_col_num(res, "exec_name");
@@ -1270,11 +1251,13 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 	int i_price = get_col_num(res, "price");
 	int i_quantity = get_col_num(res, "quantity");
 	int i_settlement_amount = get_col_num(res, "settlement_amount");
-	int i_settlement_cash_due_date = get_col_num(res, "settlement_cash_due_date");
+	int i_settlement_cash_due_date
+			= get_col_num(res, "settlement_cash_due_date");
 	int i_settlement_cash_type = get_col_num(res, "settlement_cash_type");
 	int i_trade_dts = get_col_num(res, "trade_dts");
 	int i_trade_history_dts = get_col_num(res, "trade_history_dts");
-	int i_trade_history_status_id = get_col_num(res, "trade_history_status_id");
+	int i_trade_history_status_id
+			= get_col_num(res, "trade_history_status_id");
 	int i_trade_list = get_col_num(res, "trade_list");
 	int i_trade_type = get_col_num(res, "trade_type");
 
@@ -1330,8 +1313,7 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 	TokenizeSmart(PQgetvalue(res, 0, i_exec_name), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		strncpy(pOut->trade_info[i].exec_name, (*p).c_str(),
-				cEXEC_NAME_len);
+		strncpy(pOut->trade_info[i].exec_name, (*p).c_str(), cEXEC_NAME_len);
 		pOut->trade_info[i].exec_name[cEXEC_NAME_len] = '\0';
 		++i;
 	}
@@ -1446,8 +1428,8 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 		for (p2 = v2.begin(); p2 != v2.end(); ++p2) {
 			strncpy(pOut->trade_info[i].trade_history_status_id[j],
 					(*p2).c_str(), cTH_ST_ID_len);
-			pOut->trade_info[i].trade_history_status_id[j][cTH_ST_ID_len] =
-					'\0';
+			pOut->trade_info[i].trade_history_status_id[j][cTH_ST_ID_len]
+					= '\0';
 			++j;
 		}
 		++i;
@@ -1475,22 +1457,20 @@ void CDBConnection::execute(const TTradeLookupFrame3Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeLookupFrame4Input *pIn,
-		TTradeLookupFrame4Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeLookupFrame4Input *pIn, TTradeLookupFrame4Output *pOut)
 {
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeLookupFrame4(" <<
-			pIn->acct_id << ",'" <<
-			pIn->trade_dts.year << "-" <<
-			pIn->trade_dts.month << "-" <<
-			pIn->trade_dts.day << " " <<
-			pIn->trade_dts.hour << ":" <<
-			pIn->trade_dts.minute << ":" <<
-			pIn->trade_dts.second << "')";
+	osSQL << "SELECT * FROM TradeLookupFrame4(" << pIn->acct_id << ",'"
+		  << pIn->trade_dts.year << "-" << pIn->trade_dts.month << "-"
+		  << pIn->trade_dts.day << " " << pIn->trade_dts.hour << ":"
+		  << pIn->trade_dts.minute << ":" << pIn->trade_dts.second << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
 	int i_holding_history_id = get_col_num(res, "holding_history_id");
-	int i_holding_history_trade_id = get_col_num(res, "holding_history_trade_id");
+	int i_holding_history_trade_id
+			= get_col_num(res, "holding_history_trade_id");
 	int i_num_found = get_col_num(res, "num_found");
 	int i_num_trades_found = get_col_num(res, "num_trades_found");
 	int i_quantity_after = get_col_num(res, "quantity_after");
@@ -1543,8 +1523,9 @@ void CDBConnection::execute(const TTradeLookupFrame4Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeOrderFrame1Input *pIn,
-		TTradeOrderFrame1Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeOrderFrame1Input *pIn, TTradeOrderFrame1Output *pOut)
 {
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeOrderFrame1(" << pIn->acct_id << ")";
@@ -1562,10 +1543,10 @@ void CDBConnection::execute(const TTradeOrderFrame1Input *pIn,
 	int i_tax_status = get_col_num(res, "tax_status");
 
 	strncpy(pOut->acct_name, PQgetvalue(res, 0, i_acct_name), cCA_NAME_len);
-	pOut->acct_name[cCA_NAME_len] ='\0';
+	pOut->acct_name[cCA_NAME_len] = '\0';
 	pOut->broker_id = atol(PQgetvalue(res, 0, i_broker_id));
 	strncpy(pOut->broker_name, PQgetvalue(res, 0, i_broker_name), cB_NAME_len);
-	pOut->broker_name[cB_NAME_len]  ='\0';
+	pOut->broker_name[cB_NAME_len] = '\0';
 	strncpy(pOut->cust_f_name, PQgetvalue(res, 0, i_cust_f_name), cF_NAME_len);
 	pOut->cust_f_name[cF_NAME_len] = '\0';
 	pOut->cust_id = atol(PQgetvalue(res, 0, i_cust_id));
@@ -1579,13 +1560,13 @@ void CDBConnection::execute(const TTradeOrderFrame1Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeOrderFrame2Input *pIn,
-		TTradeOrderFrame2Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeOrderFrame2Input *pIn, TTradeOrderFrame2Output *pOut)
 {
 	ostringstream osSQL;
 	char *tmpstr;
-	osSQL << "SELECT * FROM TradeOrderFrame2(" <<
-			pIn->acct_id << ",";
+	osSQL << "SELECT * FROM TradeOrderFrame2(" << pIn->acct_id << ",";
 	tmpstr = escape(pIn->exec_f_name);
 	osSQL << tmpstr;
 	PQfreemem(tmpstr);
@@ -1593,7 +1574,7 @@ void CDBConnection::execute(const TTradeOrderFrame2Input *pIn,
 	tmpstr = escape(pIn->exec_l_name);
 	osSQL << tmpstr;
 	PQfreemem(tmpstr);
-	osSQL << ",'" << pIn->exec_tax_id<<"')";
+	osSQL << ",'" << pIn->exec_tax_id << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
 
@@ -1606,29 +1587,23 @@ void CDBConnection::execute(const TTradeOrderFrame2Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeOrderFrame3Input *pIn,
-		TTradeOrderFrame3Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeOrderFrame3Input *pIn, TTradeOrderFrame3Output *pOut)
 {
 	ostringstream osSQL;
 	char *tmpstr;
-	osSQL << "SELECT * FROM TradeOrderFrame3(" <<
-			pIn->acct_id << "," <<
-			pIn->cust_id << "," <<
-			pIn->cust_tier << "::SMALLINT," <<
-			pIn->is_lifo << "::SMALLINT,'" <<
-			pIn->issue << "','" <<
-			pIn->st_pending_id << "','" <<
-			pIn->st_submitted_id << "'," <<
-			pIn->tax_status << "::SMALLINT," <<
-			pIn->trade_qty << ",'" <<
-			pIn->trade_type_id << "'," <<
-			pIn->type_is_margin << "::SMALLINT,";
+	osSQL << "SELECT * FROM TradeOrderFrame3(" << pIn->acct_id << ","
+		  << pIn->cust_id << "," << pIn->cust_tier << "::SMALLINT,"
+		  << pIn->is_lifo << "::SMALLINT,'" << pIn->issue << "','"
+		  << pIn->st_pending_id << "','" << pIn->st_submitted_id << "',"
+		  << pIn->tax_status << "::SMALLINT," << pIn->trade_qty << ",'"
+		  << pIn->trade_type_id << "'," << pIn->type_is_margin
+		  << "::SMALLINT,";
 	tmpstr = escape(pIn->co_name);
 	osSQL << tmpstr;
 	PQfreemem(tmpstr);
-	osSQL << "," <<
-			pIn->requested_price << ",'" <<
-			pIn->symbol << "')";
+	osSQL << "," << pIn->requested_price << ",'" << pIn->symbol << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
 	int i_co_name = get_col_num(res, "co_name");
@@ -1666,28 +1641,23 @@ void CDBConnection::execute(const TTradeOrderFrame3Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeOrderFrame4Input *pIn,
-		TTradeOrderFrame4Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeOrderFrame4Input *pIn, TTradeOrderFrame4Output *pOut)
 {
 	ostringstream osSQL;
 	char *tmpstr;
-	osSQL << "SELECT * FROM TradeOrderFrame4(" <<
-			pIn->acct_id << "," <<
-			pIn->broker_id << "," <<
-			pIn->charge_amount << "," <<
-			pIn->comm_amount << ",";
+	osSQL << "SELECT * FROM TradeOrderFrame4(" << pIn->acct_id << ","
+		  << pIn->broker_id << "," << pIn->charge_amount << ","
+		  << pIn->comm_amount << ",";
 	tmpstr = escape(pIn->exec_name);
 	osSQL << tmpstr;
 	PQfreemem(tmpstr);
-	osSQL << "," <<
-			pIn->is_cash << "::SMALLINT," <<
-			pIn->is_lifo << "::SMALLINT," <<
-			pIn->requested_price << ",'" <<
-			pIn->status_id << "','" <<
-			pIn->symbol << "'," <<
-			pIn->trade_qty << ",'" <<
-			pIn->trade_type_id << "'," <<
-			pIn->type_is_market << "::SMALLINT)";
+	osSQL << "," << pIn->is_cash << "::SMALLINT," << pIn->is_lifo
+		  << "::SMALLINT," << pIn->requested_price << ",'" << pIn->status_id
+		  << "','" << pIn->symbol << "'," << pIn->trade_qty << ",'"
+		  << pIn->trade_type_id << "'," << pIn->type_is_market
+		  << "::SMALLINT)";
 
 	PGresult *res = exec(osSQL.str().c_str());
 
@@ -1695,8 +1665,9 @@ void CDBConnection::execute(const TTradeOrderFrame4Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeResultFrame1Input *pIn,
-		TTradeResultFrame1Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeResultFrame1Input *pIn, TTradeResultFrame1Output *pOut)
 {
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeResultFrame1(" << pIn->trade_id << ")";
@@ -1733,19 +1704,16 @@ void CDBConnection::execute(const TTradeResultFrame1Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeResultFrame2Input *pIn,
-		TTradeResultFrame2Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeResultFrame2Input *pIn, TTradeResultFrame2Output *pOut)
 {
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeResultFrame2(" <<
-			pIn->acct_id << "," <<
-			pIn->hs_qty << "," <<
-			pIn->is_lifo << "::SMALLINT,'" <<
-			pIn->symbol << "'," <<
-			pIn->trade_id << "," <<
-			pIn->trade_price << "," <<
-			pIn->trade_qty << "," <<
-			pIn->type_is_sell << "::SMALLINT)";
+	osSQL << "SELECT * FROM TradeResultFrame2(" << pIn->acct_id << ","
+		  << pIn->hs_qty << "," << pIn->is_lifo << "::SMALLINT,'"
+		  << pIn->symbol << "'," << pIn->trade_id << "," << pIn->trade_price
+		  << "," << pIn->trade_qty << "," << pIn->type_is_sell
+		  << "::SMALLINT)";
 
 	PGresult *res = exec(osSQL.str().c_str());
 
@@ -1755,24 +1723,20 @@ void CDBConnection::execute(const TTradeResultFrame2Input *pIn,
 	pOut->sell_value = atof(PQgetvalue(res, 0, 3));
 	pOut->tax_status = atoi(PQgetvalue(res, 0, 4));
 	sscanf(PQgetvalue(res, 0, 5), "%hd-%hd-%hd %hd:%hd:%hd.%*d",
-			&pOut->trade_dts.year,
-			&pOut->trade_dts.month,
-			&pOut->trade_dts.day,
-			&pOut->trade_dts.hour,
-			&pOut->trade_dts.minute,
-			&pOut->trade_dts.second);
+			&pOut->trade_dts.year, &pOut->trade_dts.month,
+			&pOut->trade_dts.day, &pOut->trade_dts.hour,
+			&pOut->trade_dts.minute, &pOut->trade_dts.second);
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeResultFrame3Input *pIn,
-		TTradeResultFrame3Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeResultFrame3Input *pIn, TTradeResultFrame3Output *pOut)
 {
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeResultFrame3(" <<
-			pIn->buy_value << "," <<
-			pIn->cust_id << "," <<
-			pIn->sell_value << "," <<
-			pIn->trade_id << ")";
+	osSQL << "SELECT * FROM TradeResultFrame3(" << pIn->buy_value << ","
+		  << pIn->cust_id << "," << pIn->sell_value << "," << pIn->trade_id
+		  << ")";
 
 	PGresult *res = exec(osSQL.str().c_str());
 
@@ -1780,15 +1744,14 @@ void CDBConnection::execute(const TTradeResultFrame3Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeResultFrame4Input *pIn,
-		TTradeResultFrame4Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeResultFrame4Input *pIn, TTradeResultFrame4Output *pOut)
 {
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeResultFrame4(" <<
-			pIn->cust_id << ",'" <<
-			pIn->symbol << "'," <<
-			pIn->trade_qty << ",'" <<
-			pIn->type_id << "')";
+	osSQL << "SELECT * FROM TradeResultFrame4(" << pIn->cust_id << ",'"
+		  << pIn->symbol << "'," << pIn->trade_qty << ",'" << pIn->type_id
+		  << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
 
@@ -1798,21 +1761,16 @@ void CDBConnection::execute(const TTradeResultFrame4Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeResultFrame5Input *pIn)
+void
+CDBConnection::execute(const TTradeResultFrame5Input *pIn)
 {
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeResultFrame5(" <<
-			pIn->broker_id << "," <<
-			pIn->comm_amount << ",'" <<
-			pIn->st_completed_id << "','" <<
-			pIn->trade_dts.year << "-" <<
-			pIn->trade_dts.month << "-" <<
-			pIn->trade_dts.day << " " <<
-			pIn->trade_dts.hour << ":" <<
-			pIn->trade_dts.minute << ":" <<
-			pIn->trade_dts.second << "'," <<
-			pIn->trade_id << "," <<
-			pIn->trade_price << ")";
+	osSQL << "SELECT * FROM TradeResultFrame5(" << pIn->broker_id << ","
+		  << pIn->comm_amount << ",'" << pIn->st_completed_id << "','"
+		  << pIn->trade_dts.year << "-" << pIn->trade_dts.month << "-"
+		  << pIn->trade_dts.day << " " << pIn->trade_dts.hour << ":"
+		  << pIn->trade_dts.minute << ":" << pIn->trade_dts.second << "',"
+		  << pIn->trade_id << "," << pIn->trade_price << ")";
 
 	// For PostgreSQL, see comment in the Concurrency Control chapter, under
 	// the Transaction Isolation section for dealing with serialization
@@ -1822,34 +1780,25 @@ void CDBConnection::execute(const TTradeResultFrame5Input *pIn)
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeResultFrame6Input *pIn,
-		TTradeResultFrame6Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeResultFrame6Input *pIn, TTradeResultFrame6Output *pOut)
 {
 	ostringstream osSQL;
 	char *tmpstr;
-	osSQL << "SELECT * FROM TradeResultFrame6(" <<
-			pIn->acct_id << ",'" <<
-			pIn->due_date.year << "-"<<
-			pIn->due_date.month << "-" <<
-			pIn->due_date.day << " " <<
-			pIn->due_date.hour << ":" <<
-			pIn->due_date.minute << ":" <<
-			pIn->due_date.second << "',";
+	osSQL << "SELECT * FROM TradeResultFrame6(" << pIn->acct_id << ",'"
+		  << pIn->due_date.year << "-" << pIn->due_date.month << "-"
+		  << pIn->due_date.day << " " << pIn->due_date.hour << ":"
+		  << pIn->due_date.minute << ":" << pIn->due_date.second << "',";
 	tmpstr = escape(pIn->s_name);
 	osSQL << tmpstr;
 	PQfreemem(tmpstr);
-	osSQL << ", " <<
-			pIn->se_amount << ",'" <<
-			pIn->trade_dts.year << "-" <<
-			pIn->trade_dts.month << "-" <<
-			pIn->trade_dts.day << " " <<
-			pIn->trade_dts.hour << ":" <<
-			pIn->trade_dts.minute << ":" <<
-			pIn->trade_dts.second << "'," <<
-			pIn->trade_id << "," <<
-			pIn->trade_is_cash << "::SMALLINT," <<
-			pIn->trade_qty << ",'" <<
-			pIn->type_name << "')";
+	osSQL << ", " << pIn->se_amount << ",'" << pIn->trade_dts.year << "-"
+		  << pIn->trade_dts.month << "-" << pIn->trade_dts.day << " "
+		  << pIn->trade_dts.hour << ":" << pIn->trade_dts.minute << ":"
+		  << pIn->trade_dts.second << "'," << pIn->trade_id << ","
+		  << pIn->trade_is_cash << "::SMALLINT," << pIn->trade_qty << ",'"
+		  << pIn->type_name << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
 
@@ -1857,8 +1806,9 @@ void CDBConnection::execute(const TTradeResultFrame6Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
-		TTradeStatusFrame1Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeStatusFrame1Input *pIn, TTradeStatusFrame1Output *pOut)
 {
 	ostringstream osSQL;
 	osSQL << "SELECT * FROM TradeStatusFrame1(" << pIn->acct_id << ")";
@@ -1889,7 +1839,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_charge), vAux);
 	int i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->charge[i] = atof((*p).c_str());
 		++i;
 	}
@@ -1904,7 +1854,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_ex_name), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->ex_name[i], (*p).c_str(), cEX_NAME_len);
 		pOut->ex_name[i][cEX_NAME_len] = '\0';
 		++i;
@@ -1914,7 +1864,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_exec_name), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->exec_name[i], (*p).c_str(), cEXEC_NAME_len);
 		pOut->exec_name[i][cEXEC_NAME_len] = '\0';
 		++i;
@@ -1924,7 +1874,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_s_name), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->s_name[i], (*p).c_str(), cS_NAME_len);
 		pOut->s_name[i][cS_NAME_len] = '\0';
 		++i;
@@ -1934,7 +1884,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_status_name), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->status_name[i], (*p).c_str(), cST_NAME_len);
 		pOut->status_name[i][cST_NAME_len] = '\0';
 		++i;
@@ -1943,7 +1893,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 	vAux.clear();
 	TokenizeSmart(PQgetvalue(res, 0, i_symbol), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->symbol[i], (*p).c_str(), cSYMBOL_len);
 		pOut->symbol[i][cSYMBOL_len] = '\0';
 		++i;
@@ -1953,14 +1903,11 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_dts), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
-				&pOut->trade_dts[i].year,
-				&pOut->trade_dts[i].month,
-				&pOut->trade_dts[i].day,
-				&pOut->trade_dts[i].hour,
-				&pOut->trade_dts[i].minute,
-				&pOut->trade_dts[i].second);
+				&pOut->trade_dts[i].year, &pOut->trade_dts[i].month,
+				&pOut->trade_dts[i].day, &pOut->trade_dts[i].hour,
+				&pOut->trade_dts[i].minute, &pOut->trade_dts[i].second);
 		++i;
 	}
 	check_count(len, vAux.size(), __FILE__, __LINE__);
@@ -1968,7 +1915,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_id), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_id[i] = atol((*p).c_str());
 		++i;
 	}
@@ -1977,7 +1924,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_qty), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_qty[i] = atoi((*p).c_str());
 		++i;
 	}
@@ -1986,7 +1933,7 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_type_name), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->type_name[i], (*p).c_str(), cTT_NAME_len);
 		pOut->type_name[i][cTT_NAME_len] = '\0';
 		++i;
@@ -1996,8 +1943,9 @@ void CDBConnection::execute(const TTradeStatusFrame1Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
-		TTradeUpdateFrame1Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeUpdateFrame1Input *pIn, TTradeUpdateFrame1Output *pOut)
 {
 	ostringstream osTrades;
 	int i = 0;
@@ -2007,14 +1955,13 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 	}
 
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeUpdateFrame1(" <<
-			pIn->max_trades << "," <<
-			pIn->max_updates << ",'{" <<
-			osTrades.str() << "}')";
+	osSQL << "SELECT * FROM TradeUpdateFrame1(" << pIn->max_trades << ","
+		  << pIn->max_updates << ",'{" << osTrades.str() << "}')";
 
 	PGresult *res = exec(osSQL.str().c_str());
 	int i_bid_price = get_col_num(res, "bid_price");
-	int i_cash_transaction_amount = get_col_num(res, "cash_transaction_amount");
+	int i_cash_transaction_amount
+			= get_col_num(res, "cash_transaction_amount");
 	int i_cash_transaction_dts = get_col_num(res, "cash_transaction_dts");
 	int i_cash_transaction_name = get_col_num(res, "cash_transaction_name");
 	int i_exec_name = get_col_num(res, "exec_name");
@@ -2023,10 +1970,12 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 	int i_num_found = get_col_num(res, "num_found");
 	int i_num_updated = get_col_num(res, "num_updated");
 	int i_settlement_amount = get_col_num(res, "settlement_amount");
-	int i_settlement_cash_due_date = get_col_num(res, "settlement_cash_due_date");
+	int i_settlement_cash_due_date
+			= get_col_num(res, "settlement_cash_due_date");
 	int i_settlement_cash_type = get_col_num(res, "settlement_cash_type");
 	int i_trade_history_dts = get_col_num(res, "trade_history_dts");
-	int i_trade_history_status_id = get_col_num(res, "trade_history_status_id");
+	int i_trade_history_status_id
+			= get_col_num(res, "trade_history_status_id");
 	int i_trade_price = get_col_num(res, "trade_price");
 
 	pOut->num_found = atoi(PQgetvalue(res, 0, i_num_found));
@@ -2036,7 +1985,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_bid_price), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].bid_price = atof((*p).c_str());
 		++i;
 	}
@@ -2045,7 +1994,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_amount), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].cash_transaction_amount = atof((*p).c_str());
 		++i;
 	}
@@ -2054,7 +2003,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_dts), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].cash_transaction_dts.year,
 				&pOut->trade_info[i].cash_transaction_dts.month,
@@ -2069,7 +2018,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_name), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str(),
 				cCT_NAME_len);
 		pOut->trade_info[i].cash_transaction_name[cCT_NAME_len] = '\0';
@@ -2080,7 +2029,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_exec_name), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].exec_name, (*p).c_str(), cEXEC_NAME_len);
 		pOut->trade_info[i].exec_name[cEXEC_NAME_len] = '\0';
 		++i;
@@ -2089,7 +2038,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 	vAux.clear();
 	TokenizeSmart(PQgetvalue(res, 0, i_is_cash), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].is_cash = atof((*p).c_str());
 		++i;
 	}
@@ -2098,7 +2047,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_is_market), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].is_market = atof((*p).c_str());
 		++i;
 	}
@@ -2107,7 +2056,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_amount), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].settlement_amount = atof((*p).c_str());
 		++i;
 	}
@@ -2116,7 +2065,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_cash_due_date), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].settlement_cash_due_date.year,
 				&pOut->trade_info[i].settlement_cash_due_date.month,
@@ -2131,7 +2080,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_cash_type), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str(),
 				cSE_CASH_TYPE_len);
 		pOut->trade_info[i].settlement_cash_type[cSE_CASH_TYPE_len] = '\0';
@@ -2144,7 +2093,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 
 	TokenizeArray(PQgetvalue(res, 0, i_trade_history_dts), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		vector<string> v2;
 		vector<string>::iterator p2;
 		TokenizeSmart((*p).c_str(), v2);
@@ -2177,7 +2126,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 
 	TokenizeArray(PQgetvalue(res, 0, i_trade_history_status_id), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		vector<string> v2;
 		vector<string>::iterator p2;
 		TokenizeSmart((*p).c_str(), v2);
@@ -2188,8 +2137,8 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 		strncpy(pOut->trade_info[i].trade_history_status_id[1],
 				(*p2++).c_str(), cTH_ST_ID_len);
 		pOut->trade_info[i].trade_history_status_id[1][cTH_ST_ID_len] = '\0';
-		strncpy(pOut->trade_info[i].trade_history_status_id[3],
-				(*p2).c_str(), cTH_ST_ID_len);
+		strncpy(pOut->trade_info[i].trade_history_status_id[3], (*p2).c_str(),
+				cTH_ST_ID_len);
 		pOut->trade_info[i].trade_history_status_id[3][cTH_ST_ID_len] = '\0';
 		++i;
 	}
@@ -2198,7 +2147,7 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_price), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].trade_price = atof((*p).c_str());
 		++i;
 	}
@@ -2207,30 +2156,26 @@ void CDBConnection::execute(const TTradeUpdateFrame1Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
-		TTradeUpdateFrame2Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeUpdateFrame2Input *pIn, TTradeUpdateFrame2Output *pOut)
 {
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeUpdateFrame2(" <<
-			pIn->acct_id << ",'" <<
-			pIn->end_trade_dts.year << "-" <<
-			pIn->end_trade_dts.month << "-" <<
-			pIn->end_trade_dts.day << " " <<
-			pIn->end_trade_dts.hour << ":" <<
-			pIn->end_trade_dts.minute << ":" <<
-			pIn->end_trade_dts.second << "'::TIMESTAMP," <<
-			pIn->max_trades << "," <<
-			pIn->max_updates << ",'" <<
-			pIn->start_trade_dts.year << "-" <<
-			pIn->start_trade_dts.month << "-" <<
-			pIn->start_trade_dts.day << " " <<
-			pIn->start_trade_dts.hour << ":" <<
-			pIn->start_trade_dts.minute << ":" <<
-			pIn->start_trade_dts.second << "'::TIMESTAMP)";
+	osSQL << "SELECT * FROM TradeUpdateFrame2(" << pIn->acct_id << ",'"
+		  << pIn->end_trade_dts.year << "-" << pIn->end_trade_dts.month << "-"
+		  << pIn->end_trade_dts.day << " " << pIn->end_trade_dts.hour << ":"
+		  << pIn->end_trade_dts.minute << ":" << pIn->end_trade_dts.second
+		  << "'::TIMESTAMP," << pIn->max_trades << "," << pIn->max_updates
+		  << ",'" << pIn->start_trade_dts.year << "-"
+		  << pIn->start_trade_dts.month << "-" << pIn->start_trade_dts.day
+		  << " " << pIn->start_trade_dts.hour << ":"
+		  << pIn->start_trade_dts.minute << ":" << pIn->start_trade_dts.second
+		  << "'::TIMESTAMP)";
 
 	PGresult *res = exec(osSQL.str().c_str());
 	int i_bid_price = get_col_num(res, "bid_price");
-	int i_cash_transaction_amount = get_col_num(res, "cash_transaction_amount");
+	int i_cash_transaction_amount
+			= get_col_num(res, "cash_transaction_amount");
 	int i_cash_transaction_dts = get_col_num(res, "cash_transaction_dts");
 	int i_cash_transaction_name = get_col_num(res, "cash_transaction_name");
 	int i_exec_name = get_col_num(res, "exec_name");
@@ -2238,10 +2183,12 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 	int i_num_found = get_col_num(res, "num_found");
 	int i_num_updated = get_col_num(res, "num_updated");
 	int i_settlement_amount = get_col_num(res, "settlement_amount");
-	int i_settlement_cash_due_date = get_col_num(res, "settlement_cash_due_date");
+	int i_settlement_cash_due_date
+			= get_col_num(res, "settlement_cash_due_date");
 	int i_settlement_cash_type = get_col_num(res, "settlement_cash_type");
 	int i_trade_history_dts = get_col_num(res, "trade_history_dts");
-	int i_trade_history_status_id = get_col_num(res, "trade_history_status_id");
+	int i_trade_history_status_id
+			= get_col_num(res, "trade_history_status_id");
 	int i_trade_list = get_col_num(res, "trade_list");
 	int i_trade_price = get_col_num(res, "trade_price");
 
@@ -2252,7 +2199,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_bid_price), vAux);
 	int i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].bid_price = atof((*p).c_str());
 		++i;
 	}
@@ -2261,7 +2208,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_amount), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].cash_transaction_amount = atof((*p).c_str());
 		++i;
 	}
@@ -2270,7 +2217,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_dts), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].cash_transaction_dts.year,
 				&pOut->trade_info[i].cash_transaction_dts.month,
@@ -2285,7 +2232,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_name), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str(),
 				cCT_NAME_len);
 		pOut->trade_info[i].cash_transaction_name[cCT_NAME_len] = '\0';
@@ -2296,7 +2243,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_exec_name), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].exec_name, (*p).c_str(), cEXEC_NAME_len);
 		pOut->trade_info[i].exec_name[cEXEC_NAME_len] = '\0';
 		++i;
@@ -2306,7 +2253,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_is_cash), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].is_cash = atof((*p).c_str());
 		++i;
 	}
@@ -2317,7 +2264,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_amount), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].settlement_amount = atof((*p).c_str());
 		++i;
 	}
@@ -2326,7 +2273,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_cash_due_date), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].settlement_cash_due_date.year,
 				&pOut->trade_info[i].settlement_cash_due_date.month,
@@ -2341,7 +2288,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_cash_type), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str(),
 				cSE_CASH_TYPE_len);
 		pOut->trade_info[i].settlement_cash_type[cSE_CASH_TYPE_len] = '\0';
@@ -2352,7 +2299,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 
 	TokenizeArray(PQgetvalue(res, 0, i_trade_history_dts), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		vector<string> v2;
 		vector<string>::iterator p2;
 		TokenizeSmart((*p).c_str(), v2);
@@ -2385,7 +2332,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 
 	TokenizeArray(PQgetvalue(res, 0, i_trade_history_status_id), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		vector<string> v2;
 		vector<string>::iterator p2;
 		TokenizeSmart((*p).c_str(), v2);
@@ -2396,8 +2343,8 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 		strncpy(pOut->trade_info[i].trade_history_status_id[1],
 				(*p2++).c_str(), cTH_ST_ID_len);
 		pOut->trade_info[i].trade_history_status_id[1][cTH_ST_ID_len] = '\0';
-		strncpy(pOut->trade_info[i].trade_history_status_id[3],
-				(*p2).c_str(), cTH_ST_ID_len);
+		strncpy(pOut->trade_info[i].trade_history_status_id[3], (*p2).c_str(),
+				cTH_ST_ID_len);
 		pOut->trade_info[i].trade_history_status_id[3][cTH_ST_ID_len] = '\0';
 		++i;
 	}
@@ -2407,7 +2354,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_list), vAux);
 	this->bh = bh;
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].trade_id = atol((*p).c_str());
 		++i;
 	}
@@ -2416,7 +2363,7 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_price), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].trade_price = atof((*p).c_str());
 		++i;
 	}
@@ -2425,31 +2372,26 @@ void CDBConnection::execute(const TTradeUpdateFrame2Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
-		TTradeUpdateFrame3Output *pOut)
+void
+CDBConnection::execute(
+		const TTradeUpdateFrame3Input *pIn, TTradeUpdateFrame3Output *pOut)
 {
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeUpdateFrame3('" <<
-			pIn->end_trade_dts.year << "-" <<
-			pIn->end_trade_dts.month << "-" <<
-			pIn->end_trade_dts.day << " " <<
-			pIn->end_trade_dts.hour << ":" <<
-			pIn->end_trade_dts.minute << ":" <<
-			pIn->end_trade_dts.second << "'," <<
-			pIn->max_acct_id << "," <<
-			pIn->max_trades << "," <<
-			pIn->max_updates << ",'" <<
-			pIn->start_trade_dts.year << "-" <<
-			pIn->start_trade_dts.month << "-" <<
-			pIn->start_trade_dts.day << " " <<
-			pIn->start_trade_dts.hour << ":" <<
-			pIn->start_trade_dts.minute << ":" <<
-			pIn->start_trade_dts.second << "','" <<
-			pIn->symbol << "')";
+	osSQL << "SELECT * FROM TradeUpdateFrame3('" << pIn->end_trade_dts.year
+		  << "-" << pIn->end_trade_dts.month << "-" << pIn->end_trade_dts.day
+		  << " " << pIn->end_trade_dts.hour << ":" << pIn->end_trade_dts.minute
+		  << ":" << pIn->end_trade_dts.second << "'," << pIn->max_acct_id
+		  << "," << pIn->max_trades << "," << pIn->max_updates << ",'"
+		  << pIn->start_trade_dts.year << "-" << pIn->start_trade_dts.month
+		  << "-" << pIn->start_trade_dts.day << " "
+		  << pIn->start_trade_dts.hour << ":" << pIn->start_trade_dts.minute
+		  << ":" << pIn->start_trade_dts.second << "','" << pIn->symbol
+		  << "')";
 
 	PGresult *res = exec(osSQL.str().c_str());
 	int i_acct_id = get_col_num(res, "acct_id");
-	int i_cash_transaction_amount = get_col_num(res, "cash_transaction_amount");
+	int i_cash_transaction_amount
+			= get_col_num(res, "cash_transaction_amount");
 	int i_cash_transaction_dts = get_col_num(res, "cash_transaction_dts");
 	int i_cash_transaction_name = get_col_num(res, "cash_transaction_name");
 	int i_exec_name = get_col_num(res, "exec_name");
@@ -2460,11 +2402,13 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 	int i_quantity = get_col_num(res, "quantity");
 	int i_s_name = get_col_num(res, "s_name");
 	int i_settlement_amount = get_col_num(res, "settlement_amount");
-	int i_settlement_cash_due_date = get_col_num(res, "settlement_cash_due_date");
+	int i_settlement_cash_due_date
+			= get_col_num(res, "settlement_cash_due_date");
 	int i_settlement_cash_type = get_col_num(res, "settlement_cash_type");
 	int i_trade_dts = get_col_num(res, "trade_dts");
 	int i_trade_history_dts = get_col_num(res, "trade_history_dts");
-	int i_trade_history_status_id = get_col_num(res, "trade_history_status_id");
+	int i_trade_history_status_id
+			= get_col_num(res, "trade_history_status_id");
 	int i_trade_list = get_col_num(res, "trade_list");
 	int i_type_name = get_col_num(res, "type_name");
 	int i_trade_type = get_col_num(res, "trade_type");
@@ -2476,7 +2420,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_acct_id), vAux);
 	int i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].acct_id = atol((*p).c_str());
 		++i;
 	}
@@ -2485,7 +2429,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_amount), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].cash_transaction_amount = atof((*p).c_str());
 		++i;
 	}
@@ -2494,7 +2438,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_dts), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].cash_transaction_dts.year,
 				&pOut->trade_info[i].cash_transaction_dts.month,
@@ -2509,7 +2453,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_name), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].cash_transaction_name, (*p).c_str(),
 				cCT_NAME_len);
 		pOut->trade_info[i].cash_transaction_name[cCT_NAME_len] = '\0';
@@ -2519,7 +2463,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_exec_name), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].exec_name, (*p).c_str(), cEXEC_NAME_len);
 		pOut->trade_info[i].exec_name[cEXEC_NAME_len] = '\0';
 		++i;
@@ -2529,7 +2473,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_is_cash), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].is_cash = atof((*p).c_str());
 		++i;
 	}
@@ -2540,7 +2484,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_price), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].price = atof((*p).c_str());
 		++i;
 	}
@@ -2549,7 +2493,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_quantity), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].quantity = atoi((*p).c_str());
 		++i;
 	}
@@ -2558,7 +2502,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_s_name), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].s_name, (*p).c_str(), cS_NAME_len);
 		pOut->trade_info[i].s_name[cS_NAME_len] = '\0';
 		++i;
@@ -2567,7 +2511,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_amount), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].settlement_amount = atof((*p).c_str());
 		++i;
 	}
@@ -2576,7 +2520,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_cash_due_date), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].settlement_cash_due_date.year,
 				&pOut->trade_info[i].settlement_cash_due_date.month,
@@ -2591,7 +2535,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_cash_type), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].settlement_cash_type, (*p).c_str(),
 				cSE_CASH_TYPE_len);
 		pOut->trade_info[i].settlement_cash_type[cSE_CASH_TYPE_len] = '\0';
@@ -2602,7 +2546,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_dts), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		sscanf((*p).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].trade_dts.year,
 				&pOut->trade_info[i].trade_dts.month,
@@ -2646,8 +2590,8 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 		for (p2 = v2.begin(); p2 != v2.end(); ++p2) {
 			strncpy(pOut->trade_info[i].trade_history_status_id[j],
 					(*p2).c_str(), cTH_ST_ID_len);
-			pOut->trade_info[i].trade_history_status_id[j][cTH_ST_ID_len] =
-					'\0';
+			pOut->trade_info[i].trade_history_status_id[j][cTH_ST_ID_len]
+					= '\0';
 			++j;
 		}
 		++i;
@@ -2656,7 +2600,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_list), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		pOut->trade_info[i].trade_id = atol((*p).c_str());
 		++i;
 	}
@@ -2665,7 +2609,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_type_name), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].type_name, (*p).c_str(), cTT_NAME_len);
 		pOut->trade_info[i].type_name[cTT_NAME_len] = '\0';
 		++i;
@@ -2675,7 +2619,7 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_type), vAux);
 	i = 0;
-	for  (p = vAux.begin(); p != vAux.end(); ++p) {
+	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		strncpy(pOut->trade_info[i].trade_type, (*p).c_str(), cTT_ID_len);
 		pOut->trade_info[i].trade_type[cTT_ID_len] = '\0';
 		++i;
@@ -2685,43 +2629,54 @@ void CDBConnection::execute(const TTradeUpdateFrame3Input *pIn,
 	PQclear(res);
 }
 
-void CDBConnection::reconnect()
+void
+CDBConnection::reconnect()
 {
 	disconnect();
 	connect();
 }
 
-void CDBConnection::rollback()
+void
+CDBConnection::rollback()
 {
 	PGresult *res = PQexec(m_Conn, "ROLLBACK;");
 	PQclear(res);
 }
 
-void CDBConnection::setBrokerageHouse(CBrokerageHouse *bh)
+void
+CDBConnection::setBrokerageHouse(CBrokerageHouse *bh)
 {
 	this->bh = bh;
 }
 
-void CDBConnection::setReadCommitted()
+void
+CDBConnection::setReadCommitted()
 {
-	PGresult *res = PQexec(m_Conn, "SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
+	PGresult *res = PQexec(
+			m_Conn, "SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
 	PQclear(res);
 }
 
-void CDBConnection::setReadUncommitted()
+void
+CDBConnection::setReadUncommitted()
 {
-	PGresult *res = PQexec(m_Conn, "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;");
+	PGresult *res = PQexec(
+			m_Conn, "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;");
 	PQclear(res);
 }
 
-void CDBConnection::setRepeatableRead()
+void
+CDBConnection::setRepeatableRead()
 {
-	PGresult *res = PQexec(m_Conn, "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;");
+	PGresult *res = PQexec(
+			m_Conn, "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;");
 	PQclear(res);
 }
 
-void CDBConnection::setSerializable()
+void
+CDBConnection::setSerializable()
 {
-	PGresult *res = PQexec(m_Conn, "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
+	PGresult *res
+			= PQexec(m_Conn, "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");
 	PQclear(res);
 }

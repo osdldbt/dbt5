@@ -45,7 +45,7 @@
 namespace TPCE
 {
 
-class CPGSQLSecurityLoad : public CPGSQLLoader<SECURITY_ROW>
+class CPGSQLSecurityLoad: public CPGSQLLoader<SECURITY_ROW>
 {
 private:
 	CDateTime s_start_date;
@@ -54,36 +54,31 @@ private:
 	CDateTime s_52wk_low_date;
 
 public:
-	CPGSQLSecurityLoad(const char *szConnectStr,
-			const char *szTable = "security")
-			: CPGSQLLoader<SECURITY_ROW>(szConnectStr, szTable) { };
+	CPGSQLSecurityLoad(
+			const char *szConnectStr, const char *szTable = "security")
+	: CPGSQLLoader<SECURITY_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const SECURITY_ROW &next_record) {
+	void
+	WriteNextRecord(const SECURITY_ROW &next_record)
+	{
 		s_start_date = next_record.S_START_DATE;
 		s_exch_date = next_record.S_EXCH_DATE;
 		s_52wk_high_date = next_record.S_52WK_HIGH_DATE;
 		s_52wk_low_date = next_record.S_52WK_LOW_DATE;
 
 		fprintf(p,
-				"%s|%s|%s|%s|%s|%" PRId64 "|%" PRId64 "|%s|%s|%.2f|%.2f|%s|%.2f|%s|%.2f|%.2f\n",
-				next_record.S_SYMB,
-				next_record.S_ISSUE,
-				next_record.S_ST_ID,
-				next_record.S_NAME,
-				next_record.S_EX_ID,
-				next_record.S_CO_ID,
-				next_record.S_NUM_OUT,
-				s_start_date.ToStr(iDateTimeFmt),
-				s_exch_date.ToStr(iDateTimeFmt),
-				next_record.S_PE,
-				next_record.S_52WK_HIGH,
-				s_52wk_high_date.ToStr(iDateTimeFmt),
-				next_record.S_52WK_LOW,
-				s_52wk_low_date.ToStr(iDateTimeFmt),
-				next_record.S_DIVIDEND,
-				next_record.S_YIELD);
+				"%s|%s|%s|%s|%s|%" PRId64 "|%" PRId64
+				"|%s|%s|%.2f|%.2f|%s|%.2f|%s|%.2f|%.2f\n",
+				next_record.S_SYMB, next_record.S_ISSUE, next_record.S_ST_ID,
+				next_record.S_NAME, next_record.S_EX_ID, next_record.S_CO_ID,
+				next_record.S_NUM_OUT, s_start_date.ToStr(iDateTimeFmt),
+				s_exch_date.ToStr(iDateTimeFmt), next_record.S_PE,
+				next_record.S_52WK_HIGH, s_52wk_high_date.ToStr(iDateTimeFmt),
+				next_record.S_52WK_LOW, s_52wk_low_date.ToStr(iDateTimeFmt),
+				next_record.S_DIVIDEND, next_record.S_YIELD);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

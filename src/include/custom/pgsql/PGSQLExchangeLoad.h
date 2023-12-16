@@ -45,24 +45,23 @@
 namespace TPCE
 {
 
-class CPGSQLExchangeLoad : public CPGSQLLoader<EXCHANGE_ROW>
+class CPGSQLExchangeLoad: public CPGSQLLoader<EXCHANGE_ROW>
 {
 public:
-	CPGSQLExchangeLoad(const char *szConnectStr,
-			const char *szTable = "exchange")
-			: CPGSQLLoader<EXCHANGE_ROW>(szConnectStr, szTable) { };
+	CPGSQLExchangeLoad(
+			const char *szConnectStr, const char *szTable = "exchange")
+	: CPGSQLLoader<EXCHANGE_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const EXCHANGE_ROW &next_record) {
-		fprintf(p, "%s|%s|%d|%d|%d|%s|%" PRId64 "\n",
-				next_record.EX_ID,
-				next_record.EX_NAME,
-				next_record.EX_NUM_SYMB,
-				next_record.EX_OPEN,
-				next_record.EX_CLOSE,
-				next_record.EX_DESC,
+	void
+	WriteNextRecord(const EXCHANGE_ROW &next_record)
+	{
+		fprintf(p, "%s|%s|%d|%d|%d|%s|%" PRId64 "\n", next_record.EX_ID,
+				next_record.EX_NAME, next_record.EX_NUM_SYMB,
+				next_record.EX_OPEN, next_record.EX_CLOSE, next_record.EX_DESC,
 				next_record.EX_AD_ID);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

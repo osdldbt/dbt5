@@ -15,13 +15,13 @@
 
 using namespace TPCE;
 
-#define ERR_TYPE_SOCKET		13		// socket error
-#define ERR_TYPE_THREAD		14		// thread error
-#define ERR_TYPE_PQXX		15		// libpqxx error
-#define ERR_TYPE_WRONGTXN	16		// wrong txn type
-#define CE_MIX_LOG_NAME		"mix-dr.log"
+#define ERR_TYPE_SOCKET 13 // socket error
+#define ERR_TYPE_THREAD 14 // thread error
+#define ERR_TYPE_PQXX 15 // libpqxx error
+#define ERR_TYPE_WRONGTXN 16 // wrong txn type
+#define CE_MIX_LOG_NAME "mix-dr.log"
 
-class CSocketErr : public CBaseErr
+class CSocketErr: public CBaseErr
 {
 public:
 	enum Action
@@ -44,54 +44,62 @@ public:
 	};
 
 private:
-	Action		m_eAction;
+	Action m_eAction;
 
 public:
-	CSocketErr(Action eAction)
-	: CBaseErr()
+	CSocketErr(Action eAction): CBaseErr()
 	{
 		m_eAction = eAction;
 	};
 
-	CSocketErr(Action eAction, char const * szLoc)
-	: CBaseErr(szLoc)
+	CSocketErr(Action eAction, char const *szLoc): CBaseErr(szLoc)
 	{
 		m_eAction = eAction;
 	};
 
-	~CSocketErr() throw()
-	{
-	};
-	
-	Action getAction() { return m_eAction; };
-	int ErrorType() { return ERR_TYPE_SOCKET; };
+	~CSocketErr() throw(){};
 
-	const char* ErrorText() const
+	Action
+	getAction()
 	{
-		static	char *szErrMsg[15] = {
-			(char*)"Can't accept client connection",
-			(char*)"Please specify port on which server listen for request",
-			(char*)"Please specify correct hostname of box where server is running",
-			(char*)"Please specify correct IP of box where server is running",
-			(char*)"Can't create socket",
-			(char*)"Can't connect to server socket",
-			(char*)"Can't bind socket",
-			(char*)"Can't listen on socket",
-			(char*)"Error in getprotobyname",
-			(char*)"inet_pton - Error in converting string to network address",
-			(char*)"cannot receive data",
-			(char*)"socket closed on operation",
-			(char*)"did not receive all data",
-			(char*)"cannot send data",
-			(char*)"did not send all data"
+		return m_eAction;
+	};
+
+	int
+	ErrorType()
+	{
+		return ERR_TYPE_SOCKET;
+	};
+
+	const char *
+	ErrorText() const
+	{
+		static char *szErrMsg[15] = {
+			(char *) "Can't accept client connection",
+			(char *) "Please specify port on which server listen for "
+					 "request",
+			(char *) "Please specify correct hostname of box where server "
+					 "is "
+					 "running",
+			(char *) "Please specify correct IP of box where server is "
+					 "running",
+			(char *) "Can't create socket",
+			(char *) "Can't connect to server socket",
+			(char *) "Can't bind socket", (char *) "Can't listen on socket",
+			(char *) "Error in getprotobyname",
+			(char *) "inet_pton - Error in converting string to network "
+					 "address",
+			(char *) "cannot receive data",
+			(char *) "socket closed on operation",
+			(char *) "did not receive all data", (char *) "cannot send data",
+			(char *) "did not send all data"
 		};
 
 		return szErrMsg[m_eAction];
 	};
-	
 };
 
-class CThreadErr : public CBaseErr
+class CThreadErr: public CBaseErr
 {
 public:
 	enum Action
@@ -103,33 +111,34 @@ public:
 	};
 
 private:
-	Action		m_eAction;
+	Action m_eAction;
 
 public:
-	CThreadErr(Action eAction, char const * szLoc = NULL)
-	: CBaseErr(szLoc)
+	CThreadErr(Action eAction, char const *szLoc = NULL): CBaseErr(szLoc)
 	{
 		m_eAction = eAction;
 	};
 
-	~CThreadErr() throw()
-	{
-	};
-	
-	int ErrorType() { return ERR_TYPE_THREAD; };
+	~CThreadErr() throw(){};
 
-	const char* ErrorText() const
+	int
+	ErrorType()
 	{
-		static	char *szErrMsg[4] = {
-			(char*)"pthread_attr_init failed",
-			(char*)"pthread_attr_setdetachstate failed",
-			(char*)"pthread_create failed",
-			(char*)"error join terminal thread",
+		return ERR_TYPE_THREAD;
+	};
+
+	const char *
+	ErrorText() const
+	{
+		static char *szErrMsg[4] = {
+			(char *) "pthread_attr_init failed",
+			(char *) "pthread_attr_setdetachstate failed",
+			(char *) "pthread_create failed",
+			(char *) "error join terminal thread",
 		};
 
 		return szErrMsg[m_eAction];
 	};
-	
 };
 
-#endif	// CTHREADERR_H
+#endif // CTHREADERR_H

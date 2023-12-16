@@ -50,7 +50,7 @@ const int iConnectStrLen = 256;
 //
 // PGSQLLoader class.
 //
-template <typename T> class CPGSQLLoader : public CBaseLoader<T>
+template <typename T> class CPGSQLLoader: public CBaseLoader<T>
 {
 protected:
 	FILE *p;
@@ -71,10 +71,13 @@ public:
 	void FinishLoad(); // finish load
 	void Connect(); // connect to PostgreSQL
 
-	// disconnect - should not throw any exceptions (to put into the destructor)
+	// disconnect - should not throw any exceptions (to put into the
+	// destructor)
 	void Disconnect();
 
-	void WriteNextRecord(const T &next_record) {
+	void
+	WriteNextRecord(const T &next_record)
+	{
 		printf("pgloader - const ref\n");
 	};
 };
@@ -95,8 +98,7 @@ CPGSQLLoader<T>::CPGSQLLoader(const char *szConnectStr, const char *szTable)
 //
 // Destructor closes the connection.
 //
-template <typename T>
-CPGSQLLoader<T>::~CPGSQLLoader()
+template <typename T> CPGSQLLoader<T>::~CPGSQLLoader()
 {
 	Disconnect();
 }
@@ -106,13 +108,15 @@ CPGSQLLoader<T>::~CPGSQLLoader()
 // Needed after Commit() to continue loading.
 //
 template <typename T>
-void CPGSQLLoader<T>::Init()
+void
+CPGSQLLoader<T>::Init()
 {
 	Connect();
 }
 
 template <typename T>
-void CPGSQLLoader<T>::Connect()
+void
+CPGSQLLoader<T>::Connect()
 {
 	// Open a pipe to psql.
 	p = popen(m_szConnectStr, "w");
@@ -121,22 +125,26 @@ void CPGSQLLoader<T>::Connect()
 		exit(1);
 	}
 	// FIXME: Have blind faith that psql connected ok.
-	while (fgetc(p) != EOF) ;
+	while (fgetc(p) != EOF)
+		;
 
 	// BEGIN the transaction now to avoid WAL activity.  Don't remember which
 	// version of PostgreSQL takes advantage of this, one of the 8.x series.
 	fprintf(p, "BEGIN;\n");
-	while (fgetc(p) != EOF) ;
+	while (fgetc(p) != EOF)
+		;
 
 	fprintf(p, "TRUNCATE %s;\n", m_szTable);
 	// FIXME: Have blind faith that TRUNCATE ran correctly.
-	while (fgetc(p) != EOF) ;
+	while (fgetc(p) != EOF)
+		;
 
 	fprintf(p,
 			"COPY %s FROM STDIN WITH (DELIMITER '|', FREEZE TRUE, NULL '');\n",
 			m_szTable);
 	// FIXME: Have blind faith that COPY started correctly.
-	while (fgetc(p) != EOF) ;
+	while (fgetc(p) != EOF)
+		;
 }
 
 //
@@ -144,7 +152,8 @@ void CPGSQLLoader<T>::Connect()
 // lock accumulation.
 //
 template <typename T>
-void CPGSQLLoader<T>::Commit()
+void
+CPGSQLLoader<T>::Commit()
 {
 	// With COPY, don't COMMIT until we're done.
 }
@@ -155,24 +164,28 @@ void CPGSQLLoader<T>::Commit()
 // since this is in a transaction.
 //
 template <typename T>
-void CPGSQLLoader<T>::FinishLoad()
+void
+CPGSQLLoader<T>::FinishLoad()
 {
 	// End of the COPY.
 	fprintf(p, "\\.\n");
 	// FIXME: Have blind faith that COPY was successful.
-	while (fgetc(p) != EOF) ;
+	while (fgetc(p) != EOF)
+		;
 
 	// COMMIT the COPY.
 	fprintf(p, "COMMIT;\n");
 	// FIXME: Have blind faith that COMMIT was successful.
-	while (fgetc(p) != EOF) ;
+	while (fgetc(p) != EOF)
+		;
 }
 
 //
 // Disconnect from the server. Should not throw any exceptions.
 //
 template <typename T>
-void CPGSQLLoader<T>::Disconnect()
+void
+CPGSQLLoader<T>::Disconnect()
 {
 	if (p != NULL) {
 		pclose(p);

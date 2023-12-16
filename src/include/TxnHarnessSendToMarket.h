@@ -16,7 +16,7 @@
 #include "DBT5Consts.h"
 #include "CSocket.h"
 
-class CSendToMarket : public CSendToMarketInterface
+class CSendToMarket: public CSendToMarketInterface
 {
 	ofstream *m_pfLog;
 	int m_MEport;
@@ -32,4 +32,4 @@ public:
 	bool SendToMarket(TTradeRequest &);
 };
 
-#endif	// TXN_HARNESS_SENDTOMARKET_H
+#endif // TXN_HARNESS_SENDTOMARKET_H

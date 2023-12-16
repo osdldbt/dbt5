@@ -34,28 +34,29 @@ enum eTxnType
 // structure of the message Driver --> Brokerage House
 typedef struct TMsgDriverBrokerage
 {
-	eTxnType	TxnType;
+	eTxnType TxnType;
+
 	union
 	{
-		TBrokerVolumeTxnInput		BrokerVolumeTxnInput;
-		TCustomerPositionTxnInput	CustomerPositionTxnInput;
-		TMarketFeedTxnInput		MarketFeedTxnInput;
-		TMarketWatchTxnInput		MarketWatchTxnInput;
-		TTradeLookupTxnInput		TradeLookupTxnInput;
-		TSecurityDetailTxnInput		SecurityDetailTxnInput;
-		TTradeOrderTxnInput		TradeOrderTxnInput;
-		TTradeResultTxnInput		TradeResultTxnInput;
-		TTradeStatusTxnInput		TradeStatusTxnInput;
-		TTradeUpdateTxnInput		TradeUpdateTxnInput;
-		TDataMaintenanceTxnInput	DataMaintenanceTxnInput;
-		TTradeCleanupTxnInput		TradeCleanupTxnInput;
+		TBrokerVolumeTxnInput BrokerVolumeTxnInput;
+		TCustomerPositionTxnInput CustomerPositionTxnInput;
+		TMarketFeedTxnInput MarketFeedTxnInput;
+		TMarketWatchTxnInput MarketWatchTxnInput;
+		TTradeLookupTxnInput TradeLookupTxnInput;
+		TSecurityDetailTxnInput SecurityDetailTxnInput;
+		TTradeOrderTxnInput TradeOrderTxnInput;
+		TTradeResultTxnInput TradeResultTxnInput;
+		TTradeStatusTxnInput TradeStatusTxnInput;
+		TTradeUpdateTxnInput TradeUpdateTxnInput;
+		TDataMaintenanceTxnInput DataMaintenanceTxnInput;
+		TTradeCleanupTxnInput TradeCleanupTxnInput;
 	} TxnInput;
 } *PMsgDriverBrokerage;
 
 // structure of the message Brokerage House --> Driver
 typedef struct TMsgBrokerageDriver
 {
-	int			iStatus;
+	int iStatus;
 } *PMsgBrokerageDriver;
 
-#endif	//COMMON_STRUCTS_H
+#endif // COMMON_STRUCTS_H

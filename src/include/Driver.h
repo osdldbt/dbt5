@@ -52,19 +52,18 @@ public:
 	CDMSUT *m_pCDMSUT;
 	CDM *m_pCDM;
 
-	CDriver(const DataFileManager&, char *, TIdent, TIdent, INT32, INT32, UINT32, char *, int, int,
-			int, char *);
+	CDriver(const DataFileManager &, char *, TIdent, TIdent, INT32, INT32,
+			UINT32, char *, int, int, int, char *);
 	~CDriver();
 
 	void runTest(int, int);
 };
 
-//parameter structure for the threads
+// parameter structure for the threads
 typedef struct TCustomerThreadParam
 {
 	UINT32 UniqueId;
 	CDriver *pDriver;
 } *PCustomerThreadParam;
-
 
 #endif // DRIVER_H

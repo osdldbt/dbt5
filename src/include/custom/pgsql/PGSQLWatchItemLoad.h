@@ -45,19 +45,21 @@
 namespace TPCE
 {
 
-class CPGSQLWatchItemLoad : public CPGSQLLoader<WATCH_ITEM_ROW>
+class CPGSQLWatchItemLoad: public CPGSQLLoader<WATCH_ITEM_ROW>
 {
 public:
-	CPGSQLWatchItemLoad(const char *szConnectStr,
-			const char *szTable = "watch_item")
-			: CPGSQLLoader<WATCH_ITEM_ROW>(szConnectStr, szTable) { };
+	CPGSQLWatchItemLoad(
+			const char *szConnectStr, const char *szTable = "watch_item")
+	: CPGSQLLoader<WATCH_ITEM_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const WATCH_ITEM_ROW &next_record) {
-		fprintf(p, "%" PRId64 "|%s\n",
-				next_record.WI_WL_ID,
+	void
+	WriteNextRecord(const WATCH_ITEM_ROW &next_record)
+	{
+		fprintf(p, "%" PRId64 "|%s\n", next_record.WI_WL_ID,
 				next_record.WI_S_SYMB);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

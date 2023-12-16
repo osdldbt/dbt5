@@ -16,7 +16,7 @@
 #include "DBConnection.h"
 using namespace TPCE;
 
-class CTradeResultDB : public CTxnBaseDB, public CTradeResultDBInterface
+class CTradeResultDB: public CTxnBaseDB, public CTradeResultDBInterface
 {
 private:
 	bool m_Verbose;
@@ -24,24 +24,24 @@ private:
 
 public:
 	CTradeResultDB(CDBConnection *, bool);
-	~CTradeResultDB() {};
+	~CTradeResultDB(){};
 
-	void DoTradeResultFrame1(const TTradeResultFrame1Input*,
-			TTradeResultFrame1Output*);
-	void DoTradeResultFrame2(const TTradeResultFrame2Input*,
-			TTradeResultFrame2Output*);
-	void DoTradeResultFrame3(const TTradeResultFrame3Input*,
-			TTradeResultFrame3Output*);
-	void DoTradeResultFrame4(const TTradeResultFrame4Input*,
-			TTradeResultFrame4Output*);
-	void DoTradeResultFrame5(const TTradeResultFrame5Input*);
-	void DoTradeResultFrame6(const TTradeResultFrame6Input*,
-			TTradeResultFrame6Output*);
+	void DoTradeResultFrame1(
+			const TTradeResultFrame1Input *, TTradeResultFrame1Output *);
+	void DoTradeResultFrame2(
+			const TTradeResultFrame2Input *, TTradeResultFrame2Output *);
+	void DoTradeResultFrame3(
+			const TTradeResultFrame3Input *, TTradeResultFrame3Output *);
+	void DoTradeResultFrame4(
+			const TTradeResultFrame4Input *, TTradeResultFrame4Output *);
+	void DoTradeResultFrame5(const TTradeResultFrame5Input *);
+	void DoTradeResultFrame6(
+			const TTradeResultFrame6Input *, TTradeResultFrame6Output *);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException) {};
+	void Cleanup(void *pException){};
 };
 
-#endif	// TRADE_RESULT_DB_H
+#endif // TRADE_RESULT_DB_H

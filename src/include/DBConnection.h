@@ -45,11 +45,11 @@ public:
 	char *escape(string);
 	void disconnect();
 
-	PGresult *exec(const char *, int, const Oid *, const char * const *, const
-			int *, const int *, int);
+	PGresult *exec(const char *, int, const Oid *, const char *const *,
+			const int *, const int *, int);
 
-	void execute(const TBrokerVolumeFrame1Input *,
-			TBrokerVolumeFrame1Output *);
+	void execute(
+			const TBrokerVolumeFrame1Input *, TBrokerVolumeFrame1Output *);
 
 	void execute(const TCustomerPositionFrame1Input *,
 			TCustomerPositionFrame1Output *);
@@ -63,8 +63,8 @@ public:
 
 	void execute(const TMarketWatchFrame1Input *, TMarketWatchFrame1Output *);
 
-	void execute(const TSecurityDetailFrame1Input *,
-			TSecurityDetailFrame1Output *);
+	void execute(
+			const TSecurityDetailFrame1Input *, TSecurityDetailFrame1Output *);
 
 	void execute(const TTradeCleanupFrame1Input *);
 
@@ -103,4 +103,4 @@ public:
 	void setSerializable();
 };
 
-#endif //DB_CONNECTION_H
+#endif // DB_CONNECTION_H

@@ -45,21 +45,22 @@
 namespace TPCE
 {
 
-class CPGSQLHoldingHistoryLoad : public CPGSQLLoader<HOLDING_HISTORY_ROW>
+class CPGSQLHoldingHistoryLoad: public CPGSQLLoader<HOLDING_HISTORY_ROW>
 {
 public:
-	CPGSQLHoldingHistoryLoad(const char *szConnectStr,
-			const char *szTable = "holding_history")
-			: CPGSQLLoader<HOLDING_HISTORY_ROW>(szConnectStr, szTable) { };
+	CPGSQLHoldingHistoryLoad(
+			const char *szConnectStr, const char *szTable = "holding_history")
+	: CPGSQLLoader<HOLDING_HISTORY_ROW>(szConnectStr, szTable){};
 
-	void WriteNextRecord(const HOLDING_HISTORY_ROW &next_record) {
-		fprintf(p, "%" PRId64 "|%" PRId64 "|%d|%d\n",
-				next_record.HH_H_T_ID,
-				next_record.HH_T_ID,
-				next_record.HH_BEFORE_QTY,
+	void
+	WriteNextRecord(const HOLDING_HISTORY_ROW &next_record)
+	{
+		fprintf(p, "%" PRId64 "|%" PRId64 "|%d|%d\n", next_record.HH_H_T_ID,
+				next_record.HH_T_ID, next_record.HH_BEFORE_QTY,
 				next_record.HH_AFTER_QTY);
 		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF) ;
+		while (fgetc(p) != EOF)
+			;
 	}
 };
 

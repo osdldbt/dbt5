@@ -20,7 +20,7 @@ pthread_t *g_tid = NULL;
 int stop_time = 0;
 
 // Constructor
-CDriver::CDriver(const DataFileManager& inputFiles, char *szInDir,
+CDriver::CDriver(const DataFileManager &inputFiles, char *szInDir,
 		TIdent iConfiguredCustomerCount, TIdent iActiveCustomerCount,
 		INT32 iScaleFactor, INT32 iDaysOfInitialTrades, UINT32 iSeed,
 		char *szBHaddr, int iBHlistenPort, int iUsers, int iPacingDelay,
@@ -71,18 +71,18 @@ CDriver::CDriver(const DataFileManager& inputFiles, char *szInDir,
 	}
 }
 
-void *customerWorkerThread(void *data)
+void *
+customerWorkerThread(void *data)
 {
 	CCustomer *customer;
-	PCustomerThreadParam pThrParam =
-			reinterpret_cast<PCustomerThreadParam>(data);
+	PCustomerThreadParam pThrParam
+			= reinterpret_cast<PCustomerThreadParam>(data);
 
 	ostringstream osErr;
 	struct timespec ts, rem;
 
 	ts.tv_sec = (time_t) (pThrParam->pDriver->iPacingDelay / 1000);
-	ts.tv_nsec = (long) (pThrParam->pDriver->iPacingDelay % 1000) *
-			1000000;
+	ts.tv_nsec = (long) (pThrParam->pDriver->iPacingDelay % 1000) * 1000000;
 
 	const DataFileManager inputFiles(pThrParam->pDriver->szInDir,
 			pThrParam->pDriver->iConfiguredCustomerCount,
@@ -93,10 +93,8 @@ void *customerWorkerThread(void *data)
 			pThrParam->pDriver->iActiveCustomerCount,
 			pThrParam->pDriver->iScaleFactor,
 			pThrParam->pDriver->iDaysOfInitialTrades,
-			pThrParam->pDriver->iSeed,
-			pThrParam->pDriver->szBHaddr,
-			pThrParam->pDriver->iBHlistenPort,
-			pThrParam->UniqueId,
+			pThrParam->pDriver->iSeed, pThrParam->pDriver->szBHaddr,
+			pThrParam->pDriver->iBHlistenPort, pThrParam->UniqueId,
 			pThrParam->pDriver->iPacingDelay,
 			pThrParam->pDriver->outputDirectory);
 	do {
@@ -109,7 +107,7 @@ void *customerWorkerThread(void *data)
 			} else {
 				ostringstream osErr;
 				osErr << "pacing delay time invalid " << ts.tv_sec << " s "
-						<< ts.tv_nsec << " ns" << endl;
+					  << ts.tv_nsec << " ns" << endl;
 				pThrParam->pDriver->logErrorMessage(osErr.str());
 				break;
 			}
@@ -126,17 +124,18 @@ void *customerWorkerThread(void *data)
 }
 
 // entry point for worker thread
-void entryCustomerWorkerThread(void* data)
+void
+entryCustomerWorkerThread(void *data)
 {
-	PCustomerThreadParam pThrParam =
-			reinterpret_cast<PCustomerThreadParam>(data);
+	PCustomerThreadParam pThrParam
+			= reinterpret_cast<PCustomerThreadParam>(data);
 	pthread_attr_t threadAttribute; // thread attribute
 
 	try {
 		// initialize the attribute object
 		int status = pthread_attr_init(&threadAttribute);
 		if (status != 0) {
-			throw new CThreadErr( CThreadErr::ERR_THREAD_ATTR_INIT );
+			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_INIT);
 		}
 
 		// create the thread in the joinable state
@@ -144,12 +143,14 @@ void entryCustomerWorkerThread(void* data)
 				&customerWorkerThread, data);
 
 		if (status != 0) {
-			throw new CThreadErr( CThreadErr::ERR_THREAD_CREATE );
+			throw new CThreadErr(CThreadErr::ERR_THREAD_CREATE);
 		}
-	} catch(CThreadErr *pErr) {
-		cerr << "Thread " << pThrParam->UniqueId <<
-				" didn't spawn correctly" << endl << endl << "Error: " <<
-				pErr->ErrorText() << " at EntryCustomerWorkerThread" << endl;
+	} catch (CThreadErr *pErr) {
+		cerr << "Thread " << pThrParam->UniqueId << " didn't spawn correctly"
+			 << endl
+			 << endl
+			 << "Error: " << pErr->ErrorText()
+			 << " at EntryCustomerWorkerThread" << endl;
 		exit(1);
 	}
 }
@@ -167,16 +168,17 @@ CDriver::~CDriver()
 }
 
 // RunTest
-void CDriver::runTest(int iSleep, int iTestDuration)
+void
+CDriver::runTest(int iSleep, int iTestDuration)
 {
 	// Create enough space for all of the users plus an additional thread for
-    // data maintenance.
-	g_tid = (pthread_t*) malloc(sizeof(pthread_t) * (iUsers + 1));
+	// data maintenance.
+	g_tid = (pthread_t *) malloc(sizeof(pthread_t) * (iUsers + 1));
 
 	// before starting the test run Trade-Cleanup transaction
-	cout << endl <<
-			"Running Trade-Cleanup transaction before starting the test..." <<
-			endl;
+	cout << endl
+		 << "Running Trade-Cleanup transaction before starting the test..."
+		 << endl;
 	m_pCDM->DoCleanupTxn();
 	cout << "Trade-Cleanup transaction completed." << endl << endl;
 
@@ -187,17 +189,17 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 	ts.tv_nsec = (long) (iSleep % 1000) * 1000000;
 
 	// Caulculate when the test should stop.
-	int threads_start_time =
-			(int) ((double) iSleep / 1000.0 * (double) iUsers);
+	int threads_start_time
+			= (int) ((double) iSleep / 1000.0 * (double) iUsers);
 	stop_time = time(NULL) + iTestDuration + threads_start_time;
 
 	CDateTime dtAux;
 
-	cout << "Test is starting at " << dtAux.ToStr(02) << endl <<
-			"Estimated duration of ramp-up: " << threads_start_time <<
-			" seconds" << endl;
+	cout << "Test is starting at " << dtAux.ToStr(02) << endl
+		 << "Estimated duration of ramp-up: " << threads_start_time
+		 << " seconds" << endl;
 
-	dtAux.AddMinutes((iTestDuration + threads_start_time)/60);
+	dtAux.AddMinutes((iTestDuration + threads_start_time) / 60);
 	cout << "Estimated end time " << dtAux.ToStr(02) << endl;
 
 	cout << ">> Start of ramp-up." << endl;
@@ -221,8 +223,8 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 				memcpy(&ts, &rem, sizeof(timespec));
 			} else {
 				ostringstream osErr;
-				osErr << "sleep time invalid " << ts.tv_sec << " s " <<
-						ts.tv_nsec << " ns" << endl;
+				osErr << "sleep time invalid " << ts.tv_sec << " s "
+					  << ts.tv_nsec << " ns" << endl;
 				logErrorMessage(osErr.str());
 				break;
 			}
@@ -239,18 +241,18 @@ void CDriver::runTest(int iSleep, int iTestDuration)
 	// 0 represents the Data-Maintenance thread
 	for (int i = 0; i <= iUsers; i++) {
 		if (pthread_join(g_tid[i], NULL) != 0) {
-			throw new CThreadErr( CThreadErr::ERR_THREAD_JOIN,
-					"Driver::RunTest" );
+			throw new CThreadErr(
+					CThreadErr::ERR_THREAD_JOIN, "Driver::RunTest");
 		}
 	}
 }
 
-
 // DM worker thread
-void *dmWorkerThread(void *data)
+void *
+dmWorkerThread(void *data)
 {
-	PCustomerThreadParam pThrParam =
-			reinterpret_cast<PCustomerThreadParam>(data);
+	PCustomerThreadParam pThrParam
+			= reinterpret_cast<PCustomerThreadParam>(data);
 
 	// The Data-Maintenance transaction must run once per minute.
 	// FIXME: What do we do if the transaction takes more than a minute
@@ -276,7 +278,8 @@ void *dmWorkerThread(void *data)
 }
 
 // entry point for worker thread
-void entryDMWorkerThread(CDriver *ptr)
+void
+entryDMWorkerThread(CDriver *ptr)
 {
 	PCustomerThreadParam pThrParam = new TCustomerThreadParam;
 	pThrParam->pDriver = ptr;
@@ -292,15 +295,16 @@ void entryDMWorkerThread(CDriver *ptr)
 				reinterpret_cast<void *>(pThrParam));
 
 		cout << ">> Data-Maintenance thread started." << endl;
-	} catch(CThreadErr *pErr) {
+	} catch (CThreadErr *pErr) {
 		cerr << "Data-Maintenance thread not created successfully, exiting..."
-				<< endl;
+			 << endl;
 		exit(1);
 	}
 }
 
 // logErrorMessage
-void CDriver::logErrorMessage(const string sErr)
+void
+CDriver::logErrorMessage(const string sErr)
 {
 	m_LogLock.lock();
 	cout << sErr;

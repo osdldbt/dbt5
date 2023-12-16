@@ -16,7 +16,7 @@
 #include "DBConnection.h"
 using namespace TPCE;
 
-class CTradeStatusDB : public CTxnBaseDB, public CTradeStatusDBInterface
+class CTradeStatusDB: public CTxnBaseDB, public CTradeStatusDBInterface
 {
 private:
 	bool m_Verbose;
@@ -25,15 +25,15 @@ private:
 public:
 	CTradeStatusDB(CDBConnection *, bool);
 
-	~CTradeStatusDB() {};
+	~CTradeStatusDB(){};
 
-	void DoTradeStatusFrame1(const TTradeStatusFrame1Input*,
-			TTradeStatusFrame1Output*);
+	void DoTradeStatusFrame1(
+			const TTradeStatusFrame1Input *, TTradeStatusFrame1Output *);
 
 	// Function to pass any exception thrown inside
 	// database class frame implementation
 	// back into the database class
-	void Cleanup(void* pException) {};
+	void Cleanup(void *pException){};
 };
 
-#endif	// TRADE_STATUS_DB_H
+#endif // TRADE_STATUS_DB_H
