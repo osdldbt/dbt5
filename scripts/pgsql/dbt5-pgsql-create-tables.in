@@ -243,8 +243,8 @@ CREATE TABLE account_permission (
     ap_ca_id IDENT_T NOT NULL,
     ap_acl VARCHAR(4) NOT NULL,
     ap_tax_id VARCHAR(20) NOT NULL,
-    ap_l_name VARCHAR(30) NOT NULL,
-    ap_f_name VARCHAR(30) NOT NULL)
+    ap_l_name VARCHAR(25) NOT NULL,
+    ap_f_name VARCHAR(20) NOT NULL)
     ${TS_ACCOUNT_PERMISSION};
 
 -- Clause 2.2.5.2
@@ -252,10 +252,10 @@ CREATE TABLE customer (
     c_id IDENT_T NOT NULL,
     c_tax_id VARCHAR(20) NOT NULL,
     c_st_id VARCHAR(4) NOT NULL,
-    c_l_name VARCHAR(30) NOT NULL,
-    c_f_name VARCHAR(30) NOT NULL,
-    c_m_name CHAR(1),
-    c_gndr CHAR(1),
+    c_l_name VARCHAR(25) NOT NULL,
+    c_f_name VARCHAR(20) NOT NULL,
+    c_m_name VARCHAR(1),
+    c_gndr VARCHAR(1),
     c_tier SMALLINT NOT NULL,
     c_dob DATE NOT NULL,
     c_ad_id IDENT_T NOT NULL,
@@ -334,7 +334,7 @@ CREATE TABLE watch_list (
 CREATE TABLE broker (
     b_id IDENT_T NOT NULL,
     b_st_id VARCHAR(4) NOT NULL,
-    b_name VARCHAR(100) NOT NULL,
+    b_name VARCHAR(49) NOT NULL,
     b_num_trades INTEGER NOT NULL,
     b_comm_total BALANCE_T NOT NULL)
     ${TS_BROKER};
@@ -350,7 +350,7 @@ CREATE TABLE cash_transaction (
 -- Clause 2.2.6.3
 CREATE TABLE charge (
     ch_tt_id VARCHAR(3) NOT NULL,
-    ch_c_tier SMALLINT,
+    ch_c_tier SMALLINT NOT NULL,
     ch_chrg VALUE_T CHECK (ch_chrg > 0))
     ${TS_CHARGE};
 
@@ -383,7 +383,7 @@ CREATE TABLE trade (
     t_qty S_QTY_T NOT NULL CHECK (t_qty > 0),
     t_bid_price S_PRICE_T NOT NULL CHECK (t_bid_price > 0),
     t_ca_id IDENT_T NOT NULL,
-    t_exec_name VARCHAR(64) NOT NULL,
+    t_exec_name VARCHAR(49) NOT NULL,
     t_trade_price S_PRICE_T,
     t_chrg VALUE_T NOT NULL CHECK (t_chrg >= 0),
     t_comm VALUE_T NOT NULL CHECK (t_comm >= 0),
@@ -425,7 +425,7 @@ CREATE TABLE company (
     co_name VARCHAR(60) NOT NULL,
     co_in_id VARCHAR(2) NOT NULL,
     co_sp_rate VARCHAR(4) NOT NULL,
-    co_ceo VARCHAR(100) NOT NULL,
+    co_ceo VARCHAR(46) NOT NULL,
     co_ad_id IDENT_T NOT NULL,
     co_desc VARCHAR(150) NOT NULL,
     co_open_date DATE NOT NULL)
@@ -463,7 +463,7 @@ CREATE TABLE exchange (
 CREATE TABLE financial (
     fi_co_id IDENT_T NOT NULL,
     fi_year INTEGER NOT NULL,
-    fi_qtr SMALLINT NOT NULL,
+	fi_qtr SMALLINT NOT NULL CHECK (fi_qtr = ANY ('{1, 2, 3, 4}')),
     fi_qtr_start_date DATE NOT NULL,
     fi_revenue FIN_AGG_T NOT NULL,
     fi_net_earn FIN_AGG_T NOT NULL,
@@ -490,20 +490,19 @@ CREATE TABLE last_trade (
     lt_dts TIMESTAMP NOT NULL,
     lt_price S_PRICE_T NOT NULL,
     lt_open_price S_PRICE_T NOT NULL,
-    lt_vol S_COUNT_T)
+    lt_vol S_COUNT_T NOT NULL)
     ${TS_LAST_TRADE};
 
 -- Clause 2.2.7.8
 -- FIXME: The NI_ITEM field may be either LOB(100000) or
 -- LOB_Ref, which is a reference to a LOB(100000) object
--- stored outside the table. 
--- TEXT seems to be simpler to handle
+-- stored outside the table.  The latter is expected to be more performanct.
 
 CREATE TABLE news_item (
     ni_id IDENT_T NOT NULL,
     ni_headline VARCHAR(80) NOT NULL,
     ni_summary VARCHAR(255) NOT NULL,
-    ni_item BYTEA NOT NULL,
+	ni_item BYTEA NOT NULL,
     ni_dts TIMESTAMP NOT NULL,
     ni_source VARCHAR(30) NOT NULL,
     ni_author VARCHAR(30))

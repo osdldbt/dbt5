@@ -616,7 +616,6 @@ REFERENCES holding_summary (hs_ca_id, hs_s_symb);
 EOF
 
 # Clause 2.2.5.6
-# FIXME: Should the next two foreign keys be a single definition?
 eval "${PSQL}" << EOF &
 ALTER TABLE holding_history
 ADD CONSTRAINT fk_holding_history_t1 FOREIGN KEY (hh_h_t_id) 

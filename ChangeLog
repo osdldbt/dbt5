@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Update PostgreSQL schema definitions to v1.14.0 spec
+
 v0.3.0 (2023-12-15)
 
 - Add verbose flag (-v) to BrokerageHouseMain to output frame inputs/outputs
