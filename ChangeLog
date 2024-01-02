@@ -3,6 +3,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Update PostgreSQL schema definitions to v1.14.0 spec
 - Fix "build" script to set number of instance customers correctly with
   respective database build scripts
+- Fix egen-1.14-warnings patch's EGen MaxRecordIdx() to use int
 
 v0.3.0 (2023-12-15)
 

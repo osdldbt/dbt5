@@ -182,23 +182,6 @@ Index: dbt5/egen/src/TradeGen.cpp
  
      return m_iCurrentLoadUnit < (m_iCustomerCount / m_iLoadUnitSize);
  }
-Index: dbt5/egen/inc/FixedTable.h
-===================================================================
---- dbt5.orig/egen/inc/FixedTable.h
-+++ dbt5/egen/inc/FixedTable.h
-@@ -49,10 +49,10 @@ class FixedTable
- protected:
-     const DataFileT & df;
-     TableRowT tableRow;
--    int recordIdx;
-+    unsigned int recordIdx;
- 
- public:
--    FixedTable(const DataFileT & dataFile) : df(dataFile), tableRow(), recordIdx(-1)
-+    FixedTable(const DataFileT & dataFile) : df(dataFile), tableRow(), recordIdx(0)
-     {
-     }
- 
 Index: dbt5/egen/inc/TableTemplate.h
 ===================================================================
 --- dbt5.orig/egen/inc/TableTemplate.h
@@ -212,3 +195,42 @@ Index: dbt5/egen/inc/TableTemplate.h
  };
  
  }   // namespace TPCE
+Index: dbt5/egen/inc/FixedTable.h
+===================================================================
+--- dbt5.orig/egen/inc/FixedTable.h
++++ dbt5/egen/inc/FixedTable.h
+@@ -86,7 +86,7 @@ public:
+         return true;
+     }
+ 
+-    virtual unsigned int MaxRecordIdx() const
++    virtual int MaxRecordIdx() const
+     {
+         return df.size();
+     }
+Index: dbt5/egen/inc/ZipCodeTable.h
+===================================================================
+--- dbt5.orig/egen/inc/ZipCodeTable.h
++++ dbt5/egen/inc/ZipCodeTable.h
+@@ -53,7 +53,7 @@ public:
+     CZipCodeTable(const ZipCodeDataFile_t &dataFile);
+     ~CZipCodeTable();
+ 
+-    virtual unsigned int MaxRecordIdx() const;
++    virtual int MaxRecordIdx() const;
+     virtual void LoadTableRow();
+ 
+ };
+Index: dbt5/egen/src/ZipCodeTable.cpp
+===================================================================
+--- dbt5.orig/egen/src/ZipCodeTable.cpp
++++ dbt5/egen/src/ZipCodeTable.cpp
+@@ -49,7 +49,7 @@ CZipCodeTable::~CZipCodeTable()
+ {
+ }
+ 
+-unsigned int CZipCodeTable::MaxRecordIdx() const
++int CZipCodeTable::MaxRecordIdx() const
+ {
+     return df.size(df.UniqueRecordsOnly);  // unique records only
+ }
