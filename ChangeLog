@@ -4,6 +4,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix "build" script to set number of instance customers correctly with
   respective database build scripts
 - Fix egen-1.14-warnings patch's EGen MaxRecordIdx() to use int
+- TestTxn: Clear data structures before executing transactions
 
 v0.3.0 (2023-12-15)
 

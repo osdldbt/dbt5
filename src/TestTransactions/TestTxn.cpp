@@ -221,7 +221,9 @@ TradeOrder(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 
 	// trade order input/output parameters
 	TTradeOrderTxnInput m_TradeOrderTxnInput;
+	memset(&m_TradeOrderTxnInput, 0, sizeof(TTradeOrderTxnInput));
 	TTradeOrderTxnOutput m_TradeOrderTxnOutput;
+	memset(&m_TradeOrderTxnOutput, 0, sizeof(TTradeOrderTxnOutput));
 
 	// using TPC-provided input generator class
 	bool bExecutorIsAccountOwner;
@@ -251,7 +253,9 @@ TradeStatus(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 
 	// trade status input/output parameters
 	TTradeStatusTxnInput m_TradeStatusTxnInput;
+	memset(&m_TradeStatusTxnInput, 0, sizeof(TTradeStatusTxnInput));
 	TTradeStatusTxnOutput m_TradeStatusTxnOutput;
+	memset(&m_TradeStatusTxnOutput, 0, sizeof(TTradeStatusTxnOutput));
 
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateTradeStatusInput(m_TradeStatusTxnInput);
@@ -277,7 +281,9 @@ TradeLookup(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 
 	// trade lookup input/output parameters
 	TTradeLookupTxnInput m_TradeLookupTxnInput;
+	memset(&m_TradeLookupTxnInput, 0, sizeof(TTradeLookupTxnInput));
 	TTradeLookupTxnOutput m_TradeLookupTxnOutput;
+	memset(&m_TradeLookupTxnOutput, 0, sizeof(TTradeLookupTxnOutput));
 
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateTradeLookupInput(m_TradeLookupTxnInput);
@@ -303,7 +309,9 @@ TradeUpdate(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 
 	// trade update input/output parameters
 	TTradeUpdateTxnInput m_TradeUpdateTxnInput;
+	memset(&m_TradeUpdateTxnInput, 0, sizeof(TTradeUpdateTxnInput));
 	TTradeUpdateTxnOutput m_TradeUpdateTxnOutput;
+	memset(&m_TradeUpdateTxnOutput, 0, sizeof(TTradeUpdateTxnOutput));
 
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateTradeUpdateInput(m_TradeUpdateTxnInput);
@@ -330,7 +338,10 @@ CustomerPosition(
 
 	// customer position input/output parameters
 	TCustomerPositionTxnInput m_CustomerPositionTxnInput;
+	memset(&m_CustomerPositionTxnInput, 0, sizeof(TCustomerPositionTxnInput));
 	TCustomerPositionTxnOutput m_CustomerPositionTxnOutput;
+	memset(&m_CustomerPositionTxnOutput, 0,
+			sizeof(TCustomerPositionTxnOutput));
 
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateCustomerPositionInput(
@@ -358,7 +369,9 @@ BrokerVolume(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 
 	// broker volume input/output parameters
 	TBrokerVolumeTxnInput m_BrokerVolumeTxnInput;
+	memset(&m_BrokerVolumeTxnInput, 0, sizeof(TBrokerVolumeTxnInput));
 	TBrokerVolumeTxnOutput m_BrokerVolumeTxnOutput;
+	memset(&m_BrokerVolumeTxnOutput, 0, sizeof(TBrokerVolumeTxnOutput));
 
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateBrokerVolumeInput(m_BrokerVolumeTxnInput);
@@ -385,7 +398,9 @@ SecurityDetail(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 
 	// security detail input/output parameters
 	TSecurityDetailTxnInput m_SecurityDetailTxnInput;
+	memset(&m_SecurityDetailTxnInput, 0, sizeof(TSecurityDetailTxnInput));
 	TSecurityDetailTxnOutput m_SecurityDetailTxnOutput;
+	memset(&m_SecurityDetailTxnOutput, 0, sizeof(TSecurityDetailTxnOutput));
 
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateSecurityDetailInput(m_SecurityDetailTxnInput);
@@ -412,7 +427,9 @@ MarketWatch(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 
 	// Market Watch input/output parameters
 	TMarketWatchTxnInput m_MarketWatchTxnInput;
+	memset(&m_MarketWatchTxnInput, 0, sizeof(TMarketWatchTxnInput));
 	TMarketWatchTxnOutput m_MarketWatchTxnOutput;
+	memset(&m_MarketWatchTxnOutput, 0, sizeof(TMarketWatchTxnOutput));
 
 	// using TPC-provided input generator class
 	pTxnInputGenerator->GenerateMarketWatchInput(m_MarketWatchTxnInput);
