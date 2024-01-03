@@ -402,7 +402,6 @@ RETURNS VALUE_T AS $$
 DECLARE
 	-- Local Frame variables
     tax_rates	VALUE_T;
-	tax_amount	VALUE_T;
 BEGIN
 	SELECT	sum(TX_RATE)
 	INTO	tax_rates
@@ -411,7 +410,7 @@ BEGIN
 			FROM	CUSTOMER_TAXRATE
 			WHERE	CX_C_ID = cust_id);
 
-	tax_amount = tax_rates * (sell_value - buy_value);
+	tax_amount := (sell_value - buy_value) * tax_rates;
 
 	UPDATE	TRADE
 	SET	T_TAX = tax_amount
