@@ -106,9 +106,6 @@ CREATE OR REPLACE FUNCTION TradeOrderFrame3(
 ) RETURNS RECORD AS $$
 <<tof3>>
 DECLARE
-	-- output parameters
-	required_price	S_PRICE_T;	
-
 	-- variables
     co_id IDENT_T;
 	exch_id		char(6);
@@ -129,6 +126,10 @@ DECLARE
     tmp_type_is_market BOOLEAN;
     tmp_type_is_sell BOOLEAN;
 BEGIN
+    hs_qty := 0;
+    comm_rate := 0;
+    hold_assets := NULL;
+
 	-- Get information on the security
     IF symbol = '' THEN
         SELECT company.co_id
@@ -187,12 +188,11 @@ BEGIN
         type_is_sell := 0;
     END IF;
 
-	-- If this is a limit-order, then the requested_price was passed in to us,
-    -- but
-	-- if this this a market-order, then we need to set the requested_price to
-    -- the current market price.
-	IF type_is_market THEN
-		required_price = market_price;
+    -- If this is a limit-order, then the requested_price was passed in to the
+    -- frame, but if this a market-order, then the requested_price needs to be
+    -- set to the current market price.
+	IF tmp_type_is_market THEN
+		requested_price = market_price;
 	END IF;
 
 	-- Initialize variables
@@ -200,22 +200,18 @@ BEGIN
 	sell_value = 0.0;
 	needed_qty = trade_qty;
 
+    -- No prior holdings exist – if no rows returned.
     SELECT coalesce(holding_summary.hs_qty, 0)
     INTO hs_qty
 	FROM	HOLDING_SUMMARY
 	WHERE	HS_CA_ID = acct_id AND
           HS_S_SYMB = symbol;
 
-    IF hs_qty IS NULL THEN
-        hs_qty := 0;
-    END IF;
-
 	IF tmp_type_is_sell THEN
 	-- This is a sell transaction, so estimate the impact to any currently held
-	-- long postions in the security.
-	--
+	-- long positions in the security.
         IF hs_qty > 0 THEN
-			IF is_lifo THEN
+			IF is_lifo = 1 THEN
 				-- Estimates will be based on closing most recently acquired
 				-- holdings
 				-- Could return 0, 1 or many rows
@@ -251,23 +247,22 @@ BEGIN
 				EXIT WHEN NOT FOUND;
 
 				IF hold_qty > needed_qty THEN
-					-- Only a portion of this holding would be sold as a
-					-- result of the trade.
+					-- Only a portion of this holding would be sold as a result
+					-- of the trade.
 					buy_value = buy_value + (needed_qty * hold_price);
-					sell_value = sell_value + (needed_qty * required_price);
+					sell_value = sell_value + (needed_qty * requested_price);
 					needed_qty = 0;
 				ELSE
 					-- All of this holding would be sold as a result of this
 					-- trade.
 					buy_value = buy_value + (hold_qty * hold_price);
-					sell_value = sell_value + (hold_qty * required_price);
+					sell_value = sell_value + (hold_qty * requested_price);
 					needed_qty = needed_qty - hold_qty;
 				END IF;
 			END LOOP;
 
 			CLOSE hold_list;
 		END IF;
-
 		-- NOTE: If needed_qty is still greater than 0 at this point, then the
 		-- customer would be liquidating all current holdings for this
 		-- security, and then short-selling this remaining balance for the
@@ -279,8 +274,7 @@ BEGIN
 		-- opening a long postion in this security.
 
         IF hs_qty < 0 THEN  -- Existing short position to buy
-
-			IF is_lifo THEN
+			IF is_lifo = 1 THEN
 				-- Estimates will be based on closing most recently acquired
 				-- holdings
 				-- Could return 0, 1 or many rows
@@ -309,7 +303,7 @@ BEGIN
 			-- realized by covering short postions currently held for this
 			-- security. The customer may have multiple holdings for this
 			-- security (representing different purchases of this security at
-			-- different times and therefore, most likely, different prices).
+			-- different times).
 
 			WHILE needed_qty > 0 LOOP
 				FETCH	hold_list
@@ -319,11 +313,10 @@ BEGIN
 
 				IF (hold_qty + needed_qty < 0) THEN
 					-- Only a portion of this holding would be covered (bought
-					-- back) as -- a result of this trade.
+					-- back) as a result of this trade.
 					sell_value = sell_value + (needed_qty * hold_price);
-					buy_value = buy_value + (needed_qty * required_price);
+					buy_value = buy_value + (needed_qty * requested_price);
 					needed_qty = 0;
-
 				ELSE
 					-- All of this holding would be covered (bought back) as
 					-- a result of this trade.
@@ -331,18 +324,17 @@ BEGIN
 					-- calculations
 					hold_qty = -hold_qty;
 					sell_value = sell_value + (hold_qty * hold_price);
-					buy_value = buy_value + (hold_qty * required_price);
+					buy_value = buy_value + (hold_qty * requested_price);
 					needed_qty = needed_qty - hold_qty;
 				END IF;
 			END LOOP;
 
 			CLOSE hold_list;
 		END IF;
-
 		-- NOTE: If needed_qty is still greater than 0 at this point, then the
-		-- customer would cover all current short positions for this security,
-		-- (if any) and then open a new long position for the remaining balance
-		-- of this transaction.
+		-- customer would cover all current short positions (if any) for this
+        -- security, and then open a new long position for the remaining
+        -- balance of this transaction.
 	END IF;
 
 	-- Estimate any capital gains tax that would be incurred as a result of this
@@ -351,12 +343,10 @@ BEGIN
 	tax_amount = 0.0;
 
 	IF (sell_value > buy_value) AND ((tax_status = 1) OR (tax_status = 2)) THEN
-		--
-		-- Customer’s can be (are) subject to more than one tax rate.
-		-- For example, a state tax rate and a federal tax rate. Therefore,
-		-- get all tax rates the customer is subject to, and estimate overall
-		-- amount of tax that would result from this order.
-		--
+        -- Customers may be subject to more than one tax at different rates.
+        -- Therefore, get the sum of the tax rates that apply to the customer
+        -- and estimate the overall amount of tax that would result from this
+        -- order.
 		SELECT	sum(TX_RATE)
 		INTO	tax_rates
 		FROM	TAXRATE
@@ -368,7 +358,7 @@ BEGIN
 		tax_amount = (sell_value - buy_value) * tax_rates;
 	END IF;
 
-	-- Get administrative fees (e.g. trading charge, commision rate)
+	-- Get administrative fees (e.g. trading charge, commission rate)
 	SELECT	CR_RATE
 	INTO	comm_rate
 	FROM	COMMISSION_RATE
@@ -377,10 +367,6 @@ BEGIN
 		CR_EX_ID = exch_id AND
 		CR_FROM_QTY <= trade_qty AND
 		CR_TO_QTY >= trade_qty;
-
-    IF comm_rate IS NULL THEN
-        comm_rate = 0;
-    END IF;
 
 	SELECT	CH_CHRG
 	INTO	charge_amount
