@@ -451,16 +451,13 @@ DECLARE
 	-- Local Frame variables
 	rs		RECORD;
 BEGIN
-    FOR rs IN
-        SELECT T_ID
-        FROM TRADE
-        WHERE t_ca_id = acct_id
-          AND t_dts >= start_trade_dts
-        ORDER BY t_dts ASC
-    LOOP
-        trade_id := rs.t_id;
-        EXIT;
-    END LOOP;
+    SELECT T_ID
+    FROM TRADE
+    INTO trade_id
+    WHERE t_ca_id = acct_id
+      AND t_dts >= start_trade_dts
+    ORDER BY t_dts ASC
+    LIMIT 1;
 
     GET DIAGNOSTICS i = ROW_COUNT;
     num_trades_found = i;

@@ -8,6 +8,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: check-db script now runs consistency tests tests and calculates
   expected table cardinalities
 - pgsql: build-db default to use FLAT instead of CUSTOM
+- pgsql: fix trade lookup frame 4 pl/pgsql stored function
 
 v0.3.0 (2023-12-15)
 
