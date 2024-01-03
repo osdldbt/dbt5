@@ -7,6 +7,7 @@ vX.Y.Z (YYYY-MM-DD)
 - TestTxn: Clear data structures before executing transactions
 - pgsql: check-db script now runs consistency tests tests and calculates
   expected table cardinalities
+- pgsql: build-db default to use FLAT instead of CUSTOM
 
 v0.3.0 (2023-12-15)
 

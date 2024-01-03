@@ -46,7 +46,7 @@ load_table()
 	EOF
 }
 
-MODE="CUSTOM"
+MODE="FLAT"
 REBUILD_DB=0
 PRIVILEGED=0
 
