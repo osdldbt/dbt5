@@ -1,0 +1,286 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+
+usage() {
+	cat << EOF
+$(basename "${0}") is the Database Test 5 (DBT-5) PostgreSQL database checker.
+
+Usage:
+  $(basename "${0}") [OPTION] DBNAME
+
+Options:
+  -c CUSTOMERS   number of CUSTOMERS for this instance, default ${CUSTOMERS}
+  --db-host ADDRESS
+                 ADDRESS of database system
+  --db-port PORT
+                 database listening PORT number
+  --db-user USER
+                 database USER
+  -f SCALE_FACTOR
+                 customer per Trade Result transactions per second, default ${SCALE_FACTOR}
+  -V, --version  output version information, then exit
+  -w DAYS        number of DAYS of initial trades to populate, default ${DAYS}
+  -?, --help     show this help, then exit
+
+DBMS options are:
+  pgsql      PostgreSQL
+
+DBNAME is "${DBNAME}" by default.
+
+@HOMEPAGE@
+EOF
+}
+
+CUSTOMERS=5000
+DAYS=300
+DBNAME="dbt5"
+PSQLARGS="-q"
+SCALE_FACTOR=500
+
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-c)
+		shift
+		CUSTOMERS="${1}"
+		;;
+	(--db-host)
+		shift
+		DB_HOSTNAME="${1}"
+		;;
+	(--db-host=?*)
+		DB_HOSTNAME="${1#*--db-host=}"
+		;;
+	(--db-port)
+		shift
+		DB_PORT="${1}"
+		;;
+	(--db-port=?*)
+		DB_PORT="${1#*--db-port=}"
+		;;
+	(--db-user)
+		shift
+		DB_USER="${1}"
+		;;
+	(--db-user=?*)
+		DB_USER="${1#*--db-user=}"
+		;;
+	(-f)
+		shift
+		SCALE_FACTOR="${1}"
+		;;
+	(-V | --version)
+		echo "$(basename "${0}") v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-w)
+		shift
+		DAYS="${1}"
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
+	esac
+	shift
+done
+
+if [ ! "${1}" = "" ]; then
+	DBNAME="${1}"
+fi
+PSQLARGS="${PSQLARGS} -d ${DBNAME}"
+
+if [ ! "${DB_HOSTNAME}" = "" ]; then
+	PSQLARGS="${PSQLARGS} -h ${DB_HOSTNAME}"
+fi
+if [ ! "${DB_PORT}" = "" ]; then
+	PSQLARGS="${PSQLARGS} -p ${DB_PORT}"
+fi
+if [ ! "${DB_USER}" = "" ]; then
+	PSQLARGS="${PSQLARGS} -U ${DB_USER}"
+fi
+
+PSQL="psql ${PSQLARGS} -A -t"
+
+ACCOUNTS="$((5 * CUSTOMERS))"
+TRADES="$((17280 * CUSTOMERS))"
+SETTLED="${TRADES}"
+COMPANIES="$((500 * CUSTOMERS / 1000))"
+SECURITIES="$((685 * CUSTOMERS / 1000))"
+
+cat << EOF
+
+VARIABLES
+=========
+
+CUSTOMERS = ${CUSTOMERS}
+ACCOUNTS = ${ACCOUNTS}
+TRADES = ${TRADES}
+SETTLED = ${SETTLED}
+
+FIXED TABLES
+============
+
+charge 15 = $(${PSQL} -c "SELECT count(*) FROM charge")
+commission_rate 240 = $(${PSQL} -c "SELECT count(*) FROM commission_rate")
+exchange 4 = $(${PSQL} -c "SELECT count(*) FROM exchange")
+industry 102 = $(${PSQL} -c "SELECT count(*) FROM industry")
+sector 12 = $(${PSQL} -c "SELECT count(*) FROM sector")
+status_type 5 = $(${PSQL} -c "SELECT count(*) FROM status_type")
+taxrate 320 = $(${PSQL} -c "SELECT count(*) FROM taxrate")
+trade_type 5 = $(${PSQL} -c "SELECT count(*) FROM trade_type")
+zip_code 14741 = $(${PSQL} -c "SELECT count(*) FROM zip_code")
+
+SCALING TABLES
+==============
+
+EOF
+
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM customer")"
+echo "customer ${CUSTOMERS} = ${ACTUAL}"
+
+EXPECT="$((CUSTOMERS * 2))"
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM customer_taxrate")"
+echo "customer_taxrate ${EXPECT} = ${ACTUAL}"
+
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM customer_account")"
+echo "customer_account ${ACCOUNTS} = ${ACTUAL}"
+
+EXPECT="$(${PSQL} -c "SELECT (1.42 * ${ACCOUNTS})::BIGINT")"
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM account_permission")"
+echo "account_permission ${EXPECT} ~ ${ACTUAL}"
+
+EXPECT="$((COMPANIES + 4 + CUSTOMERS))"
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM address")"
+echo "address ${EXPECT} = ${ACTUAL}"
+
+EXPECT="$(${PSQL} -c "SELECT 0.01 * ${CUSTOMERS}")"
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM broker")"
+echo "broker ${EXPECT} = ${ACTUAL}"
+
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM company")"
+echo "company ${COMPANIES} = ${ACTUAL}"
+
+EXPECT="$((COMPANIES * 3))"
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM company_competitor")"
+echo "company_competitor ${EXPECT} = ${ACTUAL}"
+
+EXPECT="$((SECURITIES * 1305))"
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM daily_market")"
+echo "daily_market ${EXPECT} = ${ACTUAL}"
+
+EXPECT="$((COMPANIES * 20))"
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM financial")"
+echo "financial ${EXPECT} = ${ACTUAL}"
+
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM last_trade")"
+echo "last_trade ${SECURITIES} = ${ACTUAL}"
+
+WATCH_LIST="$(${PSQL} -c "SELECT count(*) FROM watch_list")"
+echo "watch_list ${CUSTOMERS} = ${WATCH_LIST}"
+
+EXPECT="$((CUSTOMERS * 100))"
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM watch_item")"
+echo "watch_item ${EXPECT} ~ ${ACTUAL}"
+
+cat << EOF
+
+GROWING TABLES
+==============
+
+EOF
+
+EXPECT="$(${PSQL} -c "SELECT (0.92 * ${SETTLED})::BIGINT")"
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM cash_transaction")"
+echo "cash_transaction ${EXPECT} ~ ${ACTUAL}"
+
+EXPECT="$(${PSQL} -c "SELECT (0.051 * ${SETTLED})::BIGINT")"
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM holding")"
+echo "holding ${EXPECT} ~ ${ACTUAL}"
+
+EXPECT="$(${PSQL} -c "SELECT (1.340 * ${SETTLED})::BIGINT")"
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM holding_history")"
+echo "holding_history ${EXPECT} ~ ${ACTUAL}"
+
+EXPECT="$(${PSQL} -c "SELECT (9.956 * ${ACCOUNTS})::BIGINT")"
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM holding_summary")"
+echo "holding_summary ${EXPECT} ~ ${ACTUAL}"
+
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM settlement")"
+echo "settlement ${SETTLED} ~ ${ACTUAL}"
+
+EXPECT="$(${PSQL} -c "SELECT ${DAYS}::BIGINT * 8::BIGINT * 360::BIGINT * ${CUSTOMERS}::BIGINT / ${SCALE_FACTOR}::BIGINT")"
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM trade")"
+echo "trade ${EXPECT} ~ ${ACTUAL}"
+
+EXPECT="$(${PSQL} -c "SELECT (2.4 * ${TRADES})::BIGINT")"
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM trade_history")"
+echo "trade_history ${EXPECT} ~ ${ACTUAL}"
+
+ACTUAL="$(${PSQL} -c "SELECT count(*) FROM trade_request")"
+echo "trade_request 0 = ${ACTUAL}"
+
+PSQL="psql ${PSQLARGS}"
+
+cat << EOF
+
+CONSISTENCY CHECK 1
+===================
+
+EOF
+
+${PSQL} << EOF
+SELECT b_id, b_num_trades, count(*), b_num_trades = count(*) AS consistent
+FROM broker, customer_account, trade
+WHERE b_id = ca_b_id
+  AND t_ca_id = ca_id
+  AND t_st_id = 'CMPT'
+GROUP BY b_id;
+EOF
+
+cat << EOF
+
+CONSISTENCY CHECK 2
+===================
+
+EOF
+
+${PSQL} << EOF
+SELECT b_id, b_comm_total, sum(t_comm)
+     , b_comm_total = sum(t_comm) AS consistent
+FROM broker, customer_account, trade
+WHERE b_id = ca_b_id
+  AND t_ca_id = ca_id
+  AND t_st_id = 'CMPT'
+GROUP BY b_id;
+EOF
+
+cat << EOF
+
+CONSISTENCY CHECK 3
+===================
+
+EOF
+
+${PSQL} << EOF
+SELECT hs_ca_id, hs_s_symb, hs_qty, sum(h_qty)
+     , hs_qty = sum(h_qty) AS consistent
+FROM holding_summary, holding
+WHERE hs_ca_id = h_ca_id
+  AND hs_s_symb = h_s_symb
+GROUP BY hs_ca_id, hs_s_symb;
+EOF

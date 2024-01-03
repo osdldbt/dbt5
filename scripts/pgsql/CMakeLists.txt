@@ -4,6 +4,11 @@ configure_file(
     @ONLY
 )
 configure_file(
+    dbt5-pgsql-check-db.in
+    ${CMAKE_BINARY_DIR}/dbt5-pgsql-check-db
+    @ONLY
+)
+configure_file(
     dbt5-pgsql-create-db.in
     ${CMAKE_BINARY_DIR}/dbt5-pgsql-create-db
     @ONLY
@@ -26,6 +31,7 @@ configure_file(
 
 install (
     PROGRAMS ${CMAKE_BINARY_DIR}/dbt5-pgsql-build-db
+             ${CMAKE_BINARY_DIR}/dbt5-pgsql-check-db
              ${CMAKE_BINARY_DIR}/dbt5-pgsql-create-db
              ${CMAKE_BINARY_DIR}/dbt5-pgsql-create-indexes
              ${CMAKE_BINARY_DIR}/dbt5-pgsql-create-tables

@@ -5,6 +5,8 @@ vX.Y.Z (YYYY-MM-DD)
   respective database build scripts
 - Fix egen-1.14-warnings patch's EGen MaxRecordIdx() to use int
 - TestTxn: Clear data structures before executing transactions
+- pgsql: check-db script now runs consistency tests tests and calculates
+  expected table cardinalities
 
 v0.3.0 (2023-12-15)
 
