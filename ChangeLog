@@ -10,6 +10,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: build-db default to use FLAT instead of CUSTOM
 - pgsql: fix trade lookup frame 4 pl/pgsql stored function
 - pgsql: fix trade order frame 3 pl/pgsql stored function
+- Fix verbose output of trade lookup and trade order transactions
 
 v0.3.0 (2023-12-15)
 

@@ -34,6 +34,7 @@ CTradeOrderDB::DoTradeOrderFrame1(
 	if (m_Verbose) {
 		cout << m_pid << " - Trade Order Frame 1 (output)" << endl
 			 << m_pid << " -- acct_name: " << pOut->acct_name << endl
+			 << m_pid << " -- broker_id: " << pOut->broker_id << endl
 			 << m_pid << " -- broker_name: " << pOut->broker_name << endl
 			 << m_pid << " -- cust_f_name: " << pOut->cust_f_name << endl
 			 << m_pid << " -- cust_id: " << pOut->cust_id << endl

@@ -342,19 +342,21 @@ CTradeLookupDB::DoTradeLookupFrame4(
 
 	if (m_Verbose) {
 		cout << m_pid << " - Trade Lookup Frame 4 (output)" << endl
-			 << m_pid << " -- holding_history_id[0]: "
-			 << pOut->trade_info[0].holding_history_id << endl
-			 << m_pid << " -- holding_history_trade_id[0]: "
-			 << pOut->trade_info[0].holding_history_trade_id << endl
 			 << m_pid << " -- num_found: " << pOut->num_found << endl
 			 << m_pid << " -- num_trades_found: " << pOut->num_trades_found
-			 << endl
-			 << m_pid << " -- quantity_before[0]: "
-			 << pOut->trade_info[0].quantity_before << endl
-			 << m_pid
-			 << " -- quantity_after[0]: " << pOut->trade_info[0].quantity_after
-			 << endl
-			 << m_pid << " -- trade_id: " << pOut->trade_id << endl
+			 << endl;
+		for (int i = 0; i < pOut->num_found; i++) {
+			cout << m_pid << " -- holding_history_id[" << i
+				 << "]: " << pOut->trade_info[i].holding_history_id << endl
+				 << m_pid << " -- holding_history_trade_id[" << i
+				 << "]: " << pOut->trade_info[i].holding_history_trade_id
+				 << endl
+				 << m_pid << " -- quantity_before[" << i
+				 << "]: " << pOut->trade_info[i].quantity_before << endl
+				 << m_pid << " -- quantity_after[" << i
+				 << "]: " << pOut->trade_info[i].quantity_after << endl;
+		}
+		cout << m_pid << " -- trade_id: " << pOut->trade_id << endl
 			 << m_pid << " >>> TLF4" << endl;
 	}
 }
