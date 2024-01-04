@@ -1,17 +1,14 @@
-/*
- * This file is released under the terms of the Artistic License.  Please see
- * the file LICENSE, included in this package, for details.
- *
- * Copyright The DBT-5 Authors
- *
- * Based on TPC-E Standard Specification Revision 1.14.0
- */
-
+-- This file is released under the terms of the Artistic License.  Please see
+-- the file LICENSE, included in this package, for details.
+--
+-- Copyright The DBT-5 Authors
+--
+-- Based on TPC-E Standard Specification Revision 1.14.0
 -- Clause 3.3.10.3
 CREATE OR REPLACE FUNCTION TradeUpdateFrame1 (
-						IN max_trades	integer,
-						IN max_updates	integer,
-    IN trade_id	IDENT_T[20]
+    IN max_trades INTEGER
+  , IN max_updates INTEGER
+  , IN trade_id IDENT_T[20]
   , OUT bid_price S_PRICE_T[20]
   , OUT cash_transaction_amount VALUE_T[20]
   , OUT cash_transaction_dts TIMESTAMP[20]
@@ -27,83 +24,70 @@ CREATE OR REPLACE FUNCTION TradeUpdateFrame1 (
   , OUT trade_history_dts TIMESTAMP[20][3]
   , OUT trade_history_status_id VARCHAR(4)[20][3]
   , OUT trade_price S_PRICE_T[20]
-) RETURNS RECORD AS $$
+) RETURNS RECORD
+AS $$
 DECLARE
-	-- variables
-	exch_name	char(64);
-	i		integer;
-	j		integer;
+    -- variables
+    exch_name CHAR(64);
+    i INTEGER;
+    j INTEGER;
     k INTEGER;
-	irow_count	integer;
-	rs		RECORD;
-
+    irow_count INTEGER;
+    rs RECORD;
     tmp_bid_price S_PRICE_T;
     tmp_exec_name VARCHAR(64);
     tmp_is_cash BOOLEAN;
     tmp_is_market BOOLEAN;
     tmp_trade_price S_PRICE_T;
-
     tmp_settlement_amount VALUE_T;
     tmp_settlement_cash_due_date TIMESTAMP;
     tmp_settlement_cash_type VARCHAR(40);
-
     tmp_cash_transaction_amount VALUE_T;
     tmp_cash_transaction_dts TIMESTAMP;
     tmp_cash_transaction_name VARCHAR(100);
 BEGIN
     num_found = 0;
-	num_updated = 0;
-
+    num_updated = 0;
     i = 0;
     WHILE i < max_trades LOOP
         i = i + 1;
-
-		-- Get trade information
-
-		IF num_updated < max_updates THEN
-			-- Modify the TRADE row for this trade
-
-			SELECT	T_EXEC_NAME
-			INTO	exch_name
-			FROM 	TRADE
-			WHERE	T_ID = trade_id[i];
-
+        -- Get trade information
+        IF num_updated < max_updates THEN
+            -- Modify the TRADE row for this trade
+            SELECT t_exec_name
+            INTO exch_name
+            FROM trade
+            WHERE t_id = trade_id[i];
             GET DIAGNOSTICS irow_count = ROW_COUNT;
             num_found := num_found + irow_count;
-
-			IF exch_name like '% X %' THEN
-                SELECT replace(exch_name, ' ', ' X ')
-				INTO 	exch_name;
-			ELSE
-                SELECT replace(exch_name, ' X ', ' ')
-				INTO 	exch_name;
-			END IF;
-
-			UPDATE	TRADE
-			SET	T_EXEC_NAME = exch_name
-			WHERE	T_ID = trade_id[i];
-
-			GET DIAGNOSTICS irow_count = ROW_COUNT;
-			num_updated = num_updated + irow_count;
-		END IF;
-
-		-- will only return one row for each trade
-
-		SELECT	T_BID_PRICE,
-			T_EXEC_NAME,
-			T_IS_CASH,
-			TT_IS_MRKT,
-			T_TRADE_PRICE
+            IF exch_name LIKE '% X %' THEN
+                SELECT replace(exch_name , ' ' , ' X ')
+                INTO exch_name;
+            ELSE
+                SELECT replace(exch_name , ' X ' , ' ')
+                INTO exch_name;
+            END IF;
+            UPDATE trade
+            SET t_exec_name = exch_name
+            WHERE t_id = trade_id[i];
+            GET DIAGNOSTICS irow_count = ROW_COUNT;
+            num_updated = num_updated + irow_count;
+        END IF;
+        -- will only return one row for each trade
+        SELECT t_bid_price
+             , t_exec_name
+             , t_is_cash
+             , tt_is_mrkt
+             , t_trade_price
         INTO tmp_bid_price
-          , tmp_exec_name
-          , tmp_is_cash
-          , tmp_is_market
-          , tmp_trade_price
-		FROM	TRADE,
-			TRADE_TYPE
-		WHERE	T_ID = trade_id[i] AND
-			T_TT_ID = TT_ID;
-
+           , tmp_exec_name
+           , tmp_is_cash
+           , tmp_is_market
+           , tmp_trade_price
+        FROM trade
+           , trade_type
+        WHERE t_id = trade_id[i]
+          AND t_tt_id = tt_id;
         GET DIAGNOSTICS irow_count = ROW_COUNT;
         IF irow_count > 0 THEN
             bid_price[i] := tmp_bid_price;
@@ -120,50 +104,42 @@ BEGIN
             END IF;
             trade_price[i] := tmp_trade_price;
         END IF;
-		
-		-- Get settlement information
-		-- Will only return one row for each trade
-
-		SELECT	SE_AMT,
-			SE_CASH_DUE_DATE,
-			SE_CASH_TYPE
+        -- Get settlement information
+        -- Will only return one row for each trade
+        SELECT se_amt
+             , se_cash_due_date
+             , se_cash_type
         INTO tmp_settlement_amount
-          , tmp_settlement_cash_due_date
-          , tmp_settlement_cash_type
-		FROM	SETTLEMENT
-		WHERE	SE_T_ID = trade_id[i];
-
+           , tmp_settlement_cash_due_date
+           , tmp_settlement_cash_type
+        FROM settlement
+        WHERE se_t_id = trade_id[i];
         GET DIAGNOSTICS irow_count = ROW_COUNT;
         IF irow_count > 0 THEN
             settlement_amount[i] := tmp_settlement_amount;
             settlement_cash_due_date[i] := tmp_settlement_cash_due_date;
             settlement_cash_type[i] := tmp_settlement_cash_type;
         END IF;
-
-		-- get cash information if this is a cash transaction
-		-- Will only return one row for each trade that was a cash transaction
-
+        -- get cash information if this is a cash transaction
+        -- Will only return one row for each trade that was a cash transaction
         IF tmp_is_cash THEN
-			SELECT	CT_AMT,
-				CT_DTS,
-				CT_NAME
+            SELECT ct_amt
+                 , ct_dts
+                 , ct_name
             INTO tmp_cash_transaction_amount
-              , tmp_cash_transaction_dts
-              , tmp_cash_transaction_name
-			FROM	CASH_TRANSACTION
-			WHERE	CT_T_ID = trade_id[i];
-		END IF;
-
+               , tmp_cash_transaction_dts
+               , tmp_cash_transaction_name
+            FROM cash_transaction
+            WHERE ct_t_id = trade_id[i];
+        END IF;
         GET DIAGNOSTICS irow_count = ROW_COUNT;
         IF irow_count > 0 THEN
             cash_transaction_amount[i] := tmp_cash_transaction_amount;
             cash_transaction_dts[i] := tmp_cash_transaction_dts;
             cash_transaction_name[i] := tmp_cash_transaction_name;
         END IF;
-
-		-- read trade_history for the trades
-		-- Will return 2 to 3 rows per trade
-
+        -- read trade_history for the trades
+        -- Will return 2 to 3 rows per trade
         j := 0;
         k := (i - 1) * 3 + 1;
         trade_history_dts[k + j] := NULL;
@@ -172,27 +148,30 @@ BEGIN
         trade_history_status_id[k + j] := NULL;
         trade_history_status_id[k + j + 1] := NULL;
         trade_history_status_id[k + j + 2] := NULL;
-		FOR rs IN SELECT TH_DTS, TH_ST_ID 
-			FROM TRADE_HISTORY
-            WHERE TH_T_ID = trade_id[i]
-            ORDER BY TH_DTS
+        FOR rs IN
+            SELECT th_dts
+                 , th_st_id
+            FROM trade_history
+            WHERE th_t_id = trade_id[i]
+            ORDER BY th_dts
             LIMIT 3
         LOOP
             trade_history_dts[k + j] = rs.th_dts;
             trade_history_status_id[k + j] = rs.th_st_id;
             j = j + 1;
-		END LOOP;
-	END LOOP;
+        END LOOP;
+    END LOOP;
 END;
-$$ LANGUAGE 'plpgsql';
+$$
+LANGUAGE 'plpgsql';
 
 -- Clause 3.3.10.4
-CREATE OR REPLACE FUNCTION TradeUpdateFrame2(
-						IN acct_id	IDENT_T,
-    IN end_trade_dts TIMESTAMP,
-						IN max_trades	integer,
-						IN max_updates	integer,
-    IN start_trade_dts TIMESTAMP
+CREATE OR REPLACE FUNCTION TradeUpdateFrame2 (
+    IN acct_id IDENT_T
+  , IN end_trade_dts TIMESTAMP
+  , IN max_trades INTEGER
+  , IN max_updates INTEGER
+  , IN start_trade_dts TIMESTAMP
   , OUT bid_price VALUE_T[20]
   , OUT cash_transaction_amount VALUE_T[20]
   , OUT cash_transaction_dts TIMESTAMP[20]
@@ -208,42 +187,41 @@ CREATE OR REPLACE FUNCTION TradeUpdateFrame2(
   , OUT trade_history_status_id VARCHAR(4)[20][3]
   , OUT trade_list IDENT_T[20]
   , OUT trade_price VALUE_T[20]
-) RETURNS RECORD AS $$
+) RETURNS RECORD
+    AS $$
 DECLARE
-	-- variables
-	i		integer;
-	j		integer;
+    -- variables
+    i INTEGER;
+    j INTEGER;
     k INTEGER;
-	rs		RECORD;
-	aux		RECORD;
-	cash_type	char(40);
-	irow_count	integer;
-
+    rs RECORD;
+    aux RECORD;
+    cash_type CHAR(40);
+    irow_count INTEGER;
     tmp_settlement_amount VALUE_T;
     tmp_settlement_cash_due_date TIMESTAMP;
     tmp_settlement_cash_type VARCHAR(40);
-
     tmp_cash_transaction_amount VALUE_T;
     tmp_cash_transaction_dts TIMESTAMP;
     tmp_cash_transaction_name VARCHAR(100);
 BEGIN
-	-- Get trade information
-	-- Should return between 0 and max_trades rows
-
+    -- Get trade information
+    -- Should return between 0 and max_trades rows
     i = 0;
-	num_updated = 0;
-	FOR rs IN SELECT T_BID_PRICE,
-			T_EXEC_NAME,
-			T_IS_CASH,
-			T_ID,
-			T_TRADE_PRICE
-		FROM	TRADE
-		WHERE	T_CA_ID = acct_id AND
-              t_dts >= start_trade_dts
+    num_updated = 0;
+    FOR rs IN
+        SELECT t_bid_price
+             , t_exec_name
+             , t_is_cash
+             , t_id
+             , t_trade_price
+        FROM trade
+        WHERE t_ca_id = acct_id
+          AND t_dts >= start_trade_dts
           AND t_dts <= end_trade_dts
-		ORDER BY t_dts ASC LOOP
+        ORDER BY t_dts ASC
+    LOOP
         i = i + 1;
-
         bid_price[i] := rs.t_bid_price;
         exec_name[i] := rs.t_exec_name;
         IF rs.t_is_cash THEN
@@ -253,81 +231,66 @@ BEGIN
         END IF;
         trade_list[i] := rs.t_id;
         trade_price[i] := rs.t_trade_price;
-
-		IF num_updated < max_updates THEN
-
-			-- Select the SETTLEMENT row for this trade
-
-			SELECT	SE_CASH_TYPE
-			INTO	cash_type
-			FROM 	SETTLEMENT
-			WHERE	SE_T_ID = rs.T_ID;
-
-			IF rs.T_IS_CASH THEN
-				IF cash_type = 'Cash Account' THEN
-					cash_type = 'Cash';
-				ELSE
-					cash_type = 'Cash Account';
-				END IF;
-			ELSE
-				IF cash_type = 'Margin Account' THEN
-					cash_type = 'Margin';
-				ELSE
-					cash_type = 'Margin Account';
-				END IF;				
-			END IF;
-
-			UPDATE	SETTLEMENT
-			SET	SE_CASH_TYPE = cash_type
-			WHERE	SE_T_ID = rs.T_ID;
-
-			GET DIAGNOSTICS irow_count = ROW_COUNT;
-			num_updated = num_updated + irow_count;
-		END IF;
-
-		-- Get settlement information
-		-- Should return only one row for each trade
-
-		SELECT	SE_AMT,
-			SE_CASH_DUE_DATE,
-			SE_CASH_TYPE
+        IF num_updated < max_updates THEN
+            -- Select the SETTLEMENT row for this trade
+            SELECT se_cash_type INTO cash_type
+            FROM settlement
+            WHERE se_t_id = rs.T_ID;
+            IF rs.t_is_cash THEN
+                IF cash_type = 'Cash Account' THEN
+                    cash_type = 'Cash';
+                ELSE
+                    cash_type = 'Cash Account';
+                END IF;
+            ELSE
+                IF cash_type = 'Margin Account' THEN
+                    cash_type = 'Margin';
+                ELSE
+                    cash_type = 'Margin Account';
+                END IF;
+            END IF;
+            UPDATE settlement
+            SET se_cash_type = cash_type
+            WHERE se_t_id = rs.t_id;
+            GET DIAGNOSTICS irow_count = ROW_COUNT;
+            num_updated = num_updated + irow_count;
+        END IF;
+        -- Get settlement information
+        -- Should return only one row for each trade
+        SELECT se_amt
+             , se_cash_due_date
+             , se_cash_type
         INTO tmp_settlement_amount
-          , tmp_settlement_cash_due_date
-          , tmp_settlement_cash_type
-		FROM	SETTLEMENT
-		WHERE	SE_T_ID = rs.T_ID;
-
+           , tmp_settlement_cash_due_date
+           , tmp_settlement_cash_type
+        FROM settlement
+        WHERE se_t_id = rs.t_id;
         GET DIAGNOSTICS irow_count = ROW_COUNT;
         IF irow_count > 0 THEN
             settlement_amount[i] := tmp_settlement_amount;
             settlement_cash_due_date[i] := tmp_settlement_cash_due_date;
             settlement_cash_type[i] := tmp_settlement_cash_type;
         END IF;
-
-		-- get cash information if this is a cash transaction
-		-- Should return only one row for each trade that was a cash transaction
-
-		IF rs.T_IS_CASH THEN
-			SELECT	CT_AMT,
- 				CT_DTS,
-				CT_NAME
+        -- get cash information if this is a cash transaction
+        -- Should return only one row for each trade that was a cash transaction
+        IF rs.t_is_cash THEN
+            SELECT ct_amt
+                 , ct_dts
+                 , ct_name
             INTO tmp_cash_transaction_amount
-              , tmp_cash_transaction_dts
-              , tmp_cash_transaction_name
-			FROM	CASH_TRANSACTION
-			WHERE	CT_T_ID = rs.T_ID;
-		END IF;
-
+               , tmp_cash_transaction_dts
+               , tmp_cash_transaction_name
+            FROM cash_transaction
+            WHERE ct_t_id = rs.t_id;
+        END IF;
         GET DIAGNOSTICS irow_count = ROW_COUNT;
         IF irow_count > 0 THEN
             cash_transaction_amount[i] := tmp_cash_transaction_amount;
             cash_transaction_dts[i] := tmp_cash_transaction_dts;
             cash_transaction_name[i] := tmp_cash_transaction_name;
         END IF;
-
-		-- read trade_history for the trades
-		-- Should return 2 to 3 rows per trade
-
+        -- read trade_history for the trades
+        -- Should return 2 to 3 rows per trade
         j := 0;
         k := (i - 1) * 3 + 1;
         trade_history_dts[k + j] := NULL;
@@ -336,8 +299,10 @@ BEGIN
         trade_history_status_id[k + j] := NULL;
         trade_history_status_id[k + j + 1] := NULL;
         trade_history_status_id[k + j + 2] := NULL;
-		FOR aux IN SELECT TH_DTS, TH_ST_ID 
-			FROM TRADE_HISTORY
+        FOR aux IN
+            SELECT th_dts
+                 , th_st_id
+            FROM trade_history
             WHERE th_t_id = rs.t_id
             ORDER BY th_dts
             LIMIT 3
@@ -345,23 +310,23 @@ BEGIN
             trade_history_dts[k + j] = aux.th_dts;
             trade_history_status_id[k + j] = aux.th_st_id;
             j = j + 1;
-		END LOOP;
-
+        END LOOP;
         IF i >= max_trades THEN
             EXIT;
         END IF;
-	END LOOP;
+    END LOOP;
     num_found := i;
 END;
-$$ LANGUAGE 'plpgsql';
+$$
+LANGUAGE 'plpgsql';
 
 -- Clause 3.3.10.5
-CREATE OR REPLACE FUNCTION TradeUpdateFrame3(
-    IN end_trade_dts TIMESTAMP,
-						IN max_acct_id	IDENT_T,
-						IN max_trades	integer,
-						IN max_updates	integer,
-    IN start_trade_dts TIMESTAMP
+CREATE OR REPLACE FUNCTION TradeUpdateFrame3 (
+    IN end_trade_dts TIMESTAMP
+  , IN max_acct_id IDENT_T
+  , IN max_trades INTEGER
+  , IN max_updates INTEGER
+  , IN start_trade_dts TIMESTAMP
   , IN symbol CHAR(15)
   , OUT acct_id IDENT_T[20]
   , OUT cash_transaction_amount VALUE_T[20]
@@ -383,141 +348,125 @@ CREATE OR REPLACE FUNCTION TradeUpdateFrame3(
   , OUT trade_list IDENT_T[20]
   , OUT type_name VARCHAR(12)[20]
   , OUT trade_type VARCHAR(12)[20]
-) RETURNS RECORD AS $$
-<<tuf3>>
+) RETURNS RECORD
+AS $$
+<< tuf3 >>
 DECLARE
-	-- Local Frame variables
-	i		integer;
-	j		integer;
+    -- Local Frame variables
+    i INTEGER;
+    j INTEGER;
     k INTEGER;
-	rs		RECORD;
-	aux		RECORD;
-    ct_name	CHAR(100);
-	irow_count	integer;
-
+    rs RECORD;
+    aux RECORD;
+    ct_name CHAR(100);
+    irow_count INTEGER;
     tmp_settlement_amount VALUE_T;
     tmp_settlement_cash_due_date TIMESTAMP;
     tmp_settlement_cash_type VARCHAR(40);
-
     tmp_cash_transaction_amount VALUE_T;
     tmp_cash_transaction_dts TIMESTAMP;
     tmp_cash_transaction_name VARCHAR(100);
 BEGIN
-	-- Should return between 0 and max_trades rows.
-   	num_found = 0;
-	FOR rs IN
-		SELECT T_CA_ID,
-			T_EXEC_NAME,
-			T_IS_CASH,
-			T_TRADE_PRICE,
-			T_QTY,
-            security.s_name,
-			T_DTS,
-            t_id,
-			T_TT_ID,
-            tt_name
-		FROM	TRADE,
-			TRADE_TYPE,
-			SECURITY
-		WHERE	T_S_SYMB = symbol AND
-            t_dts >= start_trade_dts
-          AND t_dts <= end_trade_dts AND
-			TT_ID = T_TT_ID AND
-              s_symb = t_s_symb
-		ORDER BY T_DTS asc
-		LIMIT max_trades
-	LOOP
-		num_found := num_found + 1;
-
-		acct_id[num_found] := rs.t_ca_id;
-		exec_name[num_found] := rs.t_exec_name;
+    -- Should return between 0 and max_trades rows.
+    num_found = 0;
+    FOR rs IN
+        SELECT t_ca_id
+            , t_exec_name
+            , t_is_cash
+            , t_trade_price
+            , t_qty
+            , security.s_name
+            , t_dts
+            , t_id
+            , t_tt_id
+            , tt_name
+        FROM trade
+           , trade_type
+           , security
+        WHERE t_s_symb = symbol
+          AND t_dts >= start_trade_dts
+          AND t_dts <= end_trade_dts
+          AND tt_id = t_tt_id
+          AND s_symb = t_s_symb
+        ORDER BY t_dts ASC
+        LIMIT max_trades
+    LOOP
+        num_found := num_found + 1;
+        acct_id[num_found] := rs.t_ca_id;
+        exec_name[num_found] := rs.t_exec_name;
         IF rs.t_is_cash THEN
             is_cash[num_found] := 1;
         ELSE
             is_cash[num_found] := 0;
         END IF;
-		price[num_found] := rs.t_trade_price;
-		quantity[num_found] := rs.t_qty;
-		s_name[num_found] := rs.s_name;
-		trade_dts[num_found] := rs.t_dts;
-		trade_list[num_found] := rs.t_id;
-		trade_type[num_found] := rs.t_tt_id;
-		type_name[num_found] := rs.tt_name;
-	END LOOP;
-
-	num_updated := 0;
-
-	-- Get extra information for each trade in the trade list.
-	i := 0;
-	LOOP
-		IF i = num_found THEN
-			EXIT;
-		END IF;
-		i := i + 1;
-
-		-- Get settlement information
-		-- Will return only one row for each trade
-		SELECT	SE_AMT,
-			SE_CASH_DUE_DATE,
-			SE_CASH_TYPE
-		INTO tmp_settlement_amount
-		   , tmp_settlement_cash_due_date
-		   , tmp_settlement_cash_type
-		FROM	SETTLEMENT
-		WHERE	SE_T_ID = trade_list[i];
-
+        price[num_found] := rs.t_trade_price;
+        quantity[num_found] := rs.t_qty;
+        s_name[num_found] := rs.s_name;
+        trade_dts[num_found] := rs.t_dts;
+        trade_list[num_found] := rs.t_id;
+        trade_type[num_found] := rs.t_tt_id;
+        type_name[num_found] := rs.tt_name;
+    END LOOP;
+    num_updated := 0;
+    -- Get extra information for each trade in the trade list.
+    i := 0;
+    LOOP
+        IF i = num_found THEN
+            EXIT;
+        END IF;
+        i := i + 1;
+        -- Get settlement information
+        -- Will return only one row for each trade
+        SELECT se_amt
+             , se_cash_due_date
+             , se_cash_type
+        INTO tmp_settlement_amount
+           , tmp_settlement_cash_due_date
+           , tmp_settlement_cash_type
+        FROM settlement
+        WHERE se_t_id = trade_list[i];
         GET DIAGNOSTICS irow_count = ROW_COUNT;
         IF irow_count > 0 THEN
             settlement_amount[i] := tmp_settlement_amount;
             settlement_cash_due_date[i] := tmp_settlement_cash_due_date;
             settlement_cash_type[i] := tmp_settlement_cash_type;
         END IF;
-
-		-- get cash information if this is a cash transaction
-		-- Will return only one row for each trade that was a cash transaction
-
-		IF is_cash[i] = 1 THEN
-			IF num_updated < max_updates THEN
-				-- Modify the CASH_TRANSACTION row for this trade
-                SELECT	cash_transaction.ct_name
-                INTO ct_name
-				FROM 	CASH_TRANSACTION
-				WHERE	CT_T_ID = trade_list[i];
-
-                IF ct_name like '% shares of %' THEN
-                    ct_name = type_name[i] || ' ' || quantity[i] || ' Shares of ' || s_name[i];
-				ELSE
-                    ct_name = type_name[i] || ' ' || quantity[i] || ' shares of ' || s_name[i];
-				END IF;
-
-				UPDATE	CASH_TRANSACTION
-                SET	ct_name = tuf3.ct_name
-				WHERE	CT_T_ID = trade_list[i];
-
-				GET DIAGNOSTICS irow_count = ROW_COUNT;
-				num_updated = num_updated + irow_count;
-			END IF;
-
-			SELECT	CT_AMT,
- 				CT_DTS,
-                   cash_transaction.ct_name
-			INTO tmp_cash_transaction_amount
-			   , tmp_cash_transaction_dts
-			   , tmp_cash_transaction_name
-			FROM	CASH_TRANSACTION
-			WHERE	CT_T_ID = trade_list[i];
-
+        -- get cash information if this is a cash transaction
+        -- Will return only one row for each trade that was a cash transaction
+        IF is_cash[i] = 1 THEN
+            IF num_updated < max_updates THEN
+                -- Modify the CASH_TRANSACTION row for this trade
+                SELECT cash_transaction.ct_name INTO ct_name
+                FROM CASH_TRANSACTION
+                WHERE CT_T_ID = trade_list[i];
+                IF ct_name LIKE '% shares of %' THEN
+			        ct_name := type_name[i] || ' ' || quantity[i] || ' Shares of ' || s_name[i];
+                ELSE
+			        ct_name := type_name[i] || ' ' || quantity[i] || ' shares of ' || s_name[i];
+                END IF;
+                UPDATE cash_transaction
+                SET ct_name = tuf3.ct_name
+                WHERE ct_t_id = trade_list[i];
+                GET DIAGNOSTICS irow_count = ROW_COUNT;
+                num_updated = num_updated + irow_count;
+            END IF;
+            SELECT ct_amt
+                 , ct_dts
+                 , cash_transaction.ct_name
+            INTO tmp_cash_transaction_amount
+               , tmp_cash_transaction_dts
+               , tmp_cash_transaction_name
+            FROM cash_transaction
+            WHERE ct_t_id = trade_list[i];
             GET DIAGNOSTICS irow_count = ROW_COUNT;
             IF irow_count > 0 THEN
                 cash_transaction_amount[i] := tmp_cash_transaction_amount;
                 cash_transaction_dts[i] := tmp_cash_transaction_dts;
                 cash_transaction_name[i] := tmp_cash_transaction_name;
             END IF;
-		END IF;
-
-		-- read trade_history for the trades
-		-- Should return 2 to 3 rows per trade
-
+        END IF;
+        -- read trade_history for the trades
+        -- Should return 2 to 3 rows per trade
         j := 0;
         k := (i - 1) * 3 + 1;
         trade_history_dts[k + j] := NULL;
@@ -526,14 +475,18 @@ BEGIN
         trade_history_status_id[k + j] := NULL;
         trade_history_status_id[k + j + 1] := NULL;
         trade_history_status_id[k + j + 2] := NULL;
-		FOR aux IN SELECT TH_DTS, TH_ST_ID 
-			FROM TRADE_HISTORY
-			WHERE TH_T_ID = trade_list[i] ORDER BY TH_DTS ASC
-		LOOP
+        FOR aux IN
+            SELECT th_dts
+                 , th_st_id
+            FROM trade_history
+            WHERE th_t_id = trade_list[i]
+            ORDER BY th_dts ASC
+        LOOP
             trade_history_dts[k + j] = aux.th_dts;
             trade_history_status_id[k + j] = aux.th_st_id;
             j = j + 1;
         END LOOP;
-	END LOOP;
+    END LOOP;
 END;
-$$ LANGUAGE 'plpgsql';
+$$
+LANGUAGE 'plpgsql';

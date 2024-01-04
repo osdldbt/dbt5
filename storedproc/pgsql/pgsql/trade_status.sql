@@ -1,12 +1,9 @@
-/*
- * This file is released under the terms of the Artistic License.  Please see
- * the file LICENSE, included in this package, for details.
- *
- * Copyright The DBT-5 Authors
- *
- * Based on TPC-E Standard Specification Revision 1.14.0
- */
-
+-- This file is released under the terms of the Artistic License.  Please see
+-- the file LICENSE, included in this package, for details.
+--
+-- Copyright The DBT-5 Authors
+--
+-- Based on TPC-E Standard Specification Revision 1.14.0
 -- Clause 3.3.9.3
 CREATE OR REPLACE FUNCTION TradeStatusFrame1 (
     IN acct_id IDENT_T
@@ -24,15 +21,16 @@ CREATE OR REPLACE FUNCTION TradeStatusFrame1 (
   , OUT trade_id TRADE_T[50]
   , OUT trade_qty S_QTY_T[50]
   , OUT type_name VARCHAR(12)[50]
-) RETURNS RECORD AS $$
+) RETURNS RECORD
+    AS $$
 DECLARE
-	-- variables
-	rs RECORD;
+    -- variables
+    rs RECORD;
     i INTEGER;
 BEGIN
-	-- Only want 50 rows, the 50 most recent trades for this customer account
+    -- Only want 50 rows, the 50 most recent trades for this customer account
     i := 0;
-	FOR rs IN
+    FOR rs IN
         SELECT t_id
              , t_dts
              , st_name
@@ -43,19 +41,19 @@ BEGIN
              , t_chrg
              , security.s_name
              , exchange.ex_name
-		FROM	TRADE,
-			STATUS_TYPE,
-			TRADE_TYPE,
-			SECURITY,
-			EXCHANGE
-		WHERE	T_CA_ID = acct_id AND
-			ST_ID = T_ST_ID AND
-			TT_ID = T_TT_ID AND
-			S_SYMB = T_S_SYMB AND
-			EX_ID = S_EX_ID
-		ORDER BY T_DTS desc
-		LIMIT 50
-	LOOP
+        FROM trade
+           , status_type
+           , trade_type
+           , security
+           , exchange
+        WHERE t_ca_id = acct_id
+            AND st_id = t_st_id
+            AND tt_id = t_tt_id
+            AND s_symb = t_s_symb
+            AND ex_id = s_ex_id
+        ORDER BY t_dts DESC
+        LIMIT 50
+    LOOP
         i := i + 1;
         trade_id[i] := rs.t_id;
         trade_dts[i] := rs.t_dts;
@@ -67,20 +65,20 @@ BEGIN
         charge[i] := rs.t_chrg;
         s_name[i] := rs.s_name;
         ex_name[i] := rs.ex_name;
-	END LOOP;
+    END LOOP;
     num_found := i;
-
-	SELECT	C_L_NAME,
-		C_F_NAME,
-		B_NAME
-	INTO 	cust_l_name,
-		cust_f_name,
-		broker_name
-	FROM	CUSTOMER_ACCOUNT,
-		CUSTOMER,
-		BROKER
-	WHERE	CA_ID = acct_id AND
-		C_ID = CA_C_ID AND
-		B_ID = CA_B_ID;
+    SELECT c_l_name
+         , c_f_name
+         , b_name
+    INTO cust_l_name
+       , cust_f_name
+       , broker_name
+    FROM customer_account
+       , customer
+       , broker
+    WHERE ca_id = acct_id
+      AND c_id = ca_c_id
+      AND b_id = ca_b_id;
 END;
-$$ LANGUAGE 'plpgsql';
+$$
+LANGUAGE 'plpgsql';
