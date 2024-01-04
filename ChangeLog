@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.4.0 (2024-01-04)
 
 - Update PostgreSQL schema definitions to v1.14.0 spec
 - Fix "build" script to set number of instance customers correctly with
