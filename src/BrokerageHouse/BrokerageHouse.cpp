@@ -510,7 +510,7 @@ CBrokerageHouse::dumpInputData(PTradeUpdateTxnInput pTxnInput)
 		<< pid << " max_acct_id = " << pTxnInput->max_acct_id << endl
 		<< pid << " frame_to_execute = " << pTxnInput->frame_to_execute << endl
 		<< pid << " max_trades = " << pTxnInput->max_trades << endl
-		<< pid << " trade_id = " << pTxnInput->trade_id << endl
+		<< pid << " max_updates = " << pTxnInput->max_updates << endl
 		<< pid << " end_trade_dts = " << pTxnInput->end_trade_dts.year << "-"
 		<< pTxnInput->end_trade_dts.month << "-"
 		<< pTxnInput->end_trade_dts.day << " " << pTxnInput->end_trade_dts.hour
@@ -928,7 +928,7 @@ CBrokerageHouse::RunTradeUpdate(
 	if (tuOutput.status != CBaseTxnErr::SUCCESS) {
 		pid_t pid = syscall(SYS_gettid);
 		ostringstream msg;
-		msg << pid << " Trade Lookup " << tuOutput.status << endl;
+		msg << pid << " Trade Update " << tuOutput.status << endl;
 		switch (tuOutput.status) {
 		case -1011:
 			msg << pid << " num_found != max_trades" << endl;
@@ -945,6 +945,9 @@ CBrokerageHouse::RunTradeUpdate(
 			break;
 		case -1022:
 			msg << pid << " num_updated <> num_found" << endl;
+			break;
+		case 1031:
+			msg << pid << " num_updated == 0" << endl;
 			break;
 		case -1031:
 			msg << pid << " (num_found < 0) or (num_found > max_trades)"
