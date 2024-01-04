@@ -384,7 +384,11 @@ BEGIN
 		WHERE	CA_ID = acct_id;
 
 		-- Should return 0 or 1 row
-        SELECT sum(holding_summary.hs_qty * lt_price)
+        -- FIXME: Is there a better way to keep the sum() from overflowing?
+        SELECT CASE WHEN sum(holding_summary.hs_qty * lt_price) > 999999.99 THEN 999999.99
+                    WHEN sum(holding_summary.hs_qty * lt_price) < -999999.99 THEN -999999.99
+                    ELSE sum(holding_summary.hs_qty * lt_price)
+               END
 		INTO	hold_assets
 		FROM	HOLDING_SUMMARY,
 			LAST_TRADE
