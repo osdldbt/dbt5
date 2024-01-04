@@ -17,6 +17,7 @@ vX.Y.Z (YYYY-MM-DD)
   current timestamp
 - pgsql: fix trade update frame 3 pl/pgsql assignment of num_updated
 - pgsql: add dirty hack to trade order frame 3 to handle S_PRICE_T overflow
+- pgsql: fix trade cleanup pl/pgsql assignment of current timestamp
 
 v0.3.0 (2023-12-15)
 

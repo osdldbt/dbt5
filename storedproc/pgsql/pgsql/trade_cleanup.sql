@@ -81,7 +81,7 @@ BEGIN
 	INTO	trade_id;
 
 	WHILE FOUND LOOP
-		now_dts = now();
+		now_dts := now();
 
 		/* Mark the trade as canceled, and record the time */
 
