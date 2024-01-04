@@ -12,6 +12,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: fix trade order frame 3 pl/pgsql stored function
 - Fix verbose output of trade lookup and trade order transactions
 - pgsql: fix trade result frame 3 pl/pgsql assignment of tax_amount
+- pgsql: fix market feed frame 1 pl/plgsql assignment of num_updated and
+  current timestamp
 
 v0.3.0 (2023-12-15)
 

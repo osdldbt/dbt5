@@ -28,16 +28,14 @@ CREATE OR REPLACE FUNCTION MarketFeedFrame1 (
 DECLARE
 	-- variables
 	i			integer;
+	j			integer;
 	now_dts			timestamp;
-	request_list		refcursor;
-	trade_id		TRADE_T;
-	price			numeric(8,2);
-	trade_type		char(3);
-	trade_qty		integer;
+	request_list RECORD;
 	irow_count INTEGER;
-	tmp_symbol CHAR(15);
 BEGIN
-	now_dts = now();
+	now_dts := now();
+    num_updated := 0;
+    j := 1;
 
 	FOR i IN 1..20 LOOP
 		-- start transaction
@@ -47,51 +45,41 @@ BEGIN
 			LT_DTS = now_dts
 		WHERE	LT_S_SYMB = symbol[i];
 
-		OPEN request_list FOR
-		SELECT	TR_T_ID,
-			TR_BID_PRICE,
-			TR_TT_ID,
-			TR_QTY,
-			TR_S_SYMB
-		FROM	TRADE_REQUEST
-		WHERE	TR_S_SYMB = symbol[i] and 
-			((TR_TT_ID = type_stop_loss and TR_BID_PRICE >= price_quote[i]) or
-			(TR_TT_ID = type_limit_sell and	TR_BID_PRICE <= price_quote[i]) or
-			(TR_TT_ID = type_limit_buy and TR_BID_PRICE >= price_quote[i]));
+        GET DIAGNOSTICS irow_count = ROW_COUNT;
+        num_updated = num_updated + irow_count;
 
-		FETCH	request_list
-		INTO	trade_id,
-			price,
-			trade_type,
-			mff1.trade_qty,
-			tmp_symbol;
-
-		i := i;
-		WHILE FOUND LOOP
+        FOR request_list IN
+            SELECT tr_t_id
+                 , tr_bid_price
+                 , tr_tt_id
+                 , tr_qty
+            FROM trade_request
+            WHERE tr_s_symb = symbol[i]
+              AND (
+                      (tr_tt_id = type_stop_loss AND tr_bid_price >= price_quote[i])
+                   OR (tr_tt_id = type_limit_sell AND tr_bid_price <= price_quote[i])
+                   OR (tr_tt_id = type_limit_buy AND tr_bid_price >= price_quote[i])
+                  )
+        LOOP
 			UPDATE	TRADE
 			SET	T_DTS = now_dts,
 				T_ST_ID = status_submitted
-			WHERE	T_ID = trade_id;
-
-			GET DIAGNOSTICS irow_count = ROW_COUNT;
-			num_updated = num_updated + irow_count;
+			WHERE t_id = request_list.tr_t_id;
 
 			DELETE	FROM TRADE_REQUEST
-			WHERE	TR_T_ID = trade_id;
+			WHERE tr_t_id = request_list.tr_t_id;
 
 			INSERT INTO TRADE_HISTORY
-			VALUES (trade_id, now_dts, status_submitted);
+			VALUES (request_list.tr_t_id, now_dts, status_submitted);
 
-			req_trade_symbol[i] := tmp_symbol;
-			req_trade_id[i] := trade_id;
-			req_price_quote[i] := price;
-			req_trade_qty[i] := mff1.trade_qty;
-			req_trade_type[i] := trade_type;
+			req_trade_symbol[j] := symbol[i];
+			req_trade_id[j] := request_list.tr_t_id;
+			req_price_quote[j] := request_list.tr_bid_price;
+			req_trade_type[j] := request_list.tr_tt_id;
+			req_trade_qty[j] := request_list.tr_qty;
 
-			i := i + 1;
+			j := j + 1;
 		END LOOP;
-	
-		CLOSE request_list;
 		-- commit transaction
 	END LOOP;
 END;
