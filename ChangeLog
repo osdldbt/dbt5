@@ -14,6 +14,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: fix trade result frame 3 pl/pgsql assignment of tax_amount
 - pgsql: fix market feed frame 1 pl/plgsql assignment of num_updated and
   current timestamp
+- pgsql: fix trade update frame 3 pl/pgsql assignment of num_updated
 
 v0.3.0 (2023-12-15)
 

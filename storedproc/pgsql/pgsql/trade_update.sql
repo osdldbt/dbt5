@@ -404,9 +404,9 @@ DECLARE
     tmp_cash_transaction_name VARCHAR(100);
 BEGIN
 	-- Should return between 0 and max_trades rows.
-
-	i = 0;
-	FOR rs IN SELECT T_CA_ID,
+   	num_found = 0;
+	FOR rs IN
+		SELECT T_CA_ID,
 			T_EXEC_NAME,
 			T_IS_CASH,
 			T_TRADE_PRICE,
@@ -425,40 +425,46 @@ BEGIN
 			TT_ID = T_TT_ID AND
               s_symb = t_s_symb
 		ORDER BY T_DTS asc
-		LIMIT max_trades LOOP
-        i = i + 1;
+		LIMIT max_trades
+	LOOP
+		num_found := num_found + 1;
 
-        acct_id[i] := rs.t_ca_id;
-        exec_name[i] := rs.t_exec_name;
+		acct_id[num_found] := rs.t_ca_id;
+		exec_name[num_found] := rs.t_exec_name;
         IF rs.t_is_cash THEN
-            is_cash[i] := 1;
+            is_cash[num_found] := 1;
         ELSE
-            is_cash[i] := 0;
+            is_cash[num_found] := 0;
         END IF;
-        price[i] := rs.t_trade_price;
-        quantity[i] := rs.t_qty;
-        s_name[i] := rs.s_name;
-        trade_dts[i] := rs.t_dts;
-        trade_list[i] := rs.t_id;
-        trade_type[i] := rs.t_tt_id;
-        type_name[i] := rs.tt_name;
+		price[num_found] := rs.t_trade_price;
+		quantity[num_found] := rs.t_qty;
+		s_name[num_found] := rs.s_name;
+		trade_dts[num_found] := rs.t_dts;
+		trade_list[num_found] := rs.t_id;
+		trade_type[num_found] := rs.t_tt_id;
+		type_name[num_found] := rs.tt_name;
+	END LOOP;
 
-        GET DIAGNOSTICS irow_count = ROW_COUNT;
-        num_found := irow_count;
-        num_updated = 0;
+	num_updated := 0;
 
-		-- Get extra information for each trade in the trade list.
+	-- Get extra information for each trade in the trade list.
+	i := 0;
+	LOOP
+		IF i = num_found THEN
+			EXIT;
+		END IF;
+		i := i + 1;
+
 		-- Get settlement information
 		-- Will return only one row for each trade
-
 		SELECT	SE_AMT,
 			SE_CASH_DUE_DATE,
 			SE_CASH_TYPE
-        INTO tmp_settlement_amount
-          , tmp_settlement_cash_due_date
-          , tmp_settlement_cash_type
+		INTO tmp_settlement_amount
+		   , tmp_settlement_cash_due_date
+		   , tmp_settlement_cash_type
 		FROM	SETTLEMENT
-		WHERE	SE_T_ID = rs.T_ID;
+		WHERE	SE_T_ID = trade_list[i];
 
         GET DIAGNOSTICS irow_count = ROW_COUNT;
         IF irow_count > 0 THEN
@@ -470,47 +476,44 @@ BEGIN
 		-- get cash information if this is a cash transaction
 		-- Will return only one row for each trade that was a cash transaction
 
-		IF rs.T_IS_CASH THEN
-
+		IF is_cash[i] = 1 THEN
 			IF num_updated < max_updates THEN
 				-- Modify the CASH_TRANSACTION row for this trade
                 SELECT	cash_transaction.ct_name
                 INTO ct_name
 				FROM 	CASH_TRANSACTION
-				WHERE	CT_T_ID = rs.T_ID;
+				WHERE	CT_T_ID = trade_list[i];
 
                 IF ct_name like '% shares of %' THEN
-                    ct_name = rs.TT_NAME || ' ' || rs.T_QTY || ' Shares of ' || rs.S_NAME;
+                    ct_name = type_name[i] || ' ' || quantity[i] || ' Shares of ' || s_name[i];
 				ELSE
-                    ct_name = rs.TT_NAME || ' ' || rs.T_QTY || ' shares of ' || rs.S_NAME;
+                    ct_name = type_name[i] || ' ' || quantity[i] || ' shares of ' || s_name[i];
 				END IF;
 
 				UPDATE	CASH_TRANSACTION
                 SET	ct_name = tuf3.ct_name
-				WHERE	CT_T_ID = rs.T_ID;
+				WHERE	CT_T_ID = trade_list[i];
 
 				GET DIAGNOSTICS irow_count = ROW_COUNT;
-
 				num_updated = num_updated + irow_count;
-
 			END IF;
 
 			SELECT	CT_AMT,
  				CT_DTS,
                    cash_transaction.ct_name
-            INTO tmp_cash_transaction_amount
-              , tmp_cash_transaction_dts
-              , tmp_cash_transaction_name
+			INTO tmp_cash_transaction_amount
+			   , tmp_cash_transaction_dts
+			   , tmp_cash_transaction_name
 			FROM	CASH_TRANSACTION
-			WHERE	CT_T_ID = rs.T_ID;
-		END IF;
+			WHERE	CT_T_ID = trade_list[i];
 
-        GET DIAGNOSTICS irow_count = ROW_COUNT;
-        IF irow_count > 0 THEN
-            cash_transaction_amount[i] := tmp_cash_transaction_amount;
-            cash_transaction_dts[i] := tmp_cash_transaction_dts;
-            cash_transaction_name[i] := tmp_cash_transaction_name;
-        END IF;
+            GET DIAGNOSTICS irow_count = ROW_COUNT;
+            IF irow_count > 0 THEN
+                cash_transaction_amount[i] := tmp_cash_transaction_amount;
+                cash_transaction_dts[i] := tmp_cash_transaction_dts;
+                cash_transaction_name[i] := tmp_cash_transaction_name;
+            END IF;
+		END IF;
 
 		-- read trade_history for the trades
 		-- Should return 2 to 3 rows per trade
@@ -525,7 +528,8 @@ BEGIN
         trade_history_status_id[k + j + 2] := NULL;
 		FOR aux IN SELECT TH_DTS, TH_ST_ID 
 			FROM TRADE_HISTORY
-			WHERE TH_T_ID = rs.T_ID ORDER BY TH_DTS LOOP
+			WHERE TH_T_ID = trade_list[i] ORDER BY TH_DTS ASC
+		LOOP
             trade_history_dts[k + j] = aux.th_dts;
             trade_history_status_id[k + j] = aux.th_st_id;
             j = j + 1;
