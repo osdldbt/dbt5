@@ -168,7 +168,7 @@ EXPECT="$((COMPANIES + 4 + CUSTOMERS))"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM address")"
 echo "address ${EXPECT} = ${ACTUAL}"
 
-EXPECT="$(${PSQL} -c "SELECT 0.01 * ${CUSTOMERS}")"
+EXPECT="$(${PSQL} -c "SELECT (0.01 * ${CUSTOMERS})::BIGINT")"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM broker")"
 echo "broker ${EXPECT} = ${ACTUAL}"
 
