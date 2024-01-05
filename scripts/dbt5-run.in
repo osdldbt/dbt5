@@ -458,7 +458,7 @@ echo
 echo "4. Run Post processing analyses"
 
 RESULTSFILE="${OUTPUT_DIR}/summary.rst"
-dbt5-post-process --customers="${TOTAL_CUSTOMERS}" \
+dbt5-post-process --customers="${CUSTOMERS_TOTAL}" \
 		"${DRIVER_OUTPUT_DIR}/mix-*.log" "${MEE_OUTPUT_DIR}/mix-*.log" \
 		> "${RESULTSFILE}"
 

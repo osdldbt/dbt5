@@ -4,6 +4,8 @@ vX.Y.Z (YYYY-MM-DD)
   in the COPY command to improve its performance
 - pgsql: remove trade order frame 3 pl/pgsql dirty hack and increase the size
   of S_PRICE_T to NUMERIC(12, 2) from NUMERIC(8, 2)
+- Fix execution of post-process from "run" script to use correct customers
+  value
 
 v0.4.0 (2024-01-04)
 
