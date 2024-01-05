@@ -1,5 +1,8 @@
 vX.Y.Z (YYYY-MM-DD)
 
+- pgsql: update flat file loading to TRUNCATE the table and set FREEZE to true
+  in the COPY command to improve its performance
+
 v0.4.0 (2024-01-04)
 
 - Update PostgreSQL schema definitions to v1.14.0 spec

@@ -42,7 +42,11 @@ usage()
 load_table()
 {
 	eval "${PSQL}" <<- EOF
-		COPY ${1} FROM '${EGENDIR}/flat_out/${2}' USING DELIMITERS '|';
+		BEGIN;
+		TRUNCATE ${1};
+		COPY ${1} FROM '${EGENDIR}/flat_out/${2}'
+		WITH (DELIMITER '|', FREEZE TRUE, NULL '');
+		COMMIT;
 	EOF
 }
 
