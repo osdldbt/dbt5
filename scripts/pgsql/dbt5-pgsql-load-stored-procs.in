@@ -42,7 +42,6 @@ if [ "${TYPE}" = "c" ]; then
 	eval "${PSQL} -f ${SHAREDIR}/contrib/broker_volume.sql" || exit 1
 	eval "${PSQL} -f ${SHAREDIR}/contrib/customer_position.sql" || exit 1
 	eval "${PSQL} -f ${SHAREDIR}/contrib/data_maintenance.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/contrib/market_feed.sql" || exit 1
 	eval "${PSQL} -f ${SHAREDIR}/contrib/market_watch.sql" || exit 1
 	eval "${PSQL} -f ${SHAREDIR}/contrib/security_detail.sql" || exit 1
 	eval "${PSQL} -f ${SHAREDIR}/contrib/trade_cleanup.sql" || exit 1
@@ -55,7 +54,6 @@ elif [ "${TYPE}" = "plpgsql" ]; then
 	eval "${PSQL} -f ${SHAREDIR}/broker_volume.sql" || exit 1
 	eval "${PSQL} -f ${SHAREDIR}/customer_position.sql" || exit 1
 	eval "${PSQL} -f ${SHAREDIR}/data_maintenance.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/market_feed.sql" || exit 1
 	eval "${PSQL} -f ${SHAREDIR}/market_watch.sql" || exit 1
 	eval "${PSQL} -f ${SHAREDIR}/security_detail.sql" || exit 1
 	eval "${PSQL} -f ${SHAREDIR}/trade_cleanup.sql" || exit 1

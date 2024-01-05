@@ -468,89 +468,105 @@ void
 CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 		TMarketFeedFrame1Output *pOut, CSendToMarketInterface *pMarketExchange)
 {
-	ostringstream osSymbol, osPrice, osQty;
-
-	for (unsigned int i = 0;
-			i < (sizeof(pIn->Entries) / sizeof(pIn->Entries[0])); ++i) {
-		if (i == 0) {
-			osSymbol << "\"" << pIn->Entries[i].symbol;
-			osPrice << pIn->Entries[i].price_quote;
-			osQty << pIn->Entries[i].trade_qty;
-		} else {
-			osSymbol << "\",\"" << pIn->Entries[i].symbol;
-			osPrice << "," << pIn->Entries[i].price_quote;
-			osQty << "," << pIn->Entries[i].trade_qty;
-		}
-	}
-	osSymbol << "\"";
-
+	PGresult *res, *res2;
 	ostringstream osSQL;
-	osSQL << "SELECT * FROM MarketFeedFrame1('{" << osPrice.str() << "}','"
-		  << pIn->StatusAndTradeType.status_submitted << "','{"
-		  << osSymbol.str() << "}', '{" << osQty.str() << "}','"
-		  << pIn->StatusAndTradeType.type_limit_buy << "','"
-		  << pIn->StatusAndTradeType.type_limit_sell << "','"
-		  << pIn->StatusAndTradeType.type_stop_loss << "')";
 
-	PGresult *res = exec(osSQL.str().c_str());
-	int i_num_updated = get_col_num(res, "num_updated");
-	int i_send_len = get_col_num(res, "send_len");
-	int i_symbol = get_col_num(res, "req_trade_symbol");
-	int i_trade_id = get_col_num(res, "req_trade_id");
-	int i_price_quote = get_col_num(res, "req_price_quote");
-	int i_trade_qty = get_col_num(res, "req_trade_qty");
-	int i_trade_type = get_col_num(res, "req_trade_type");
+	char now_dts[30];
+	now_dts[29] = '\0';
 
-	pOut->num_updated = atoi(PQgetvalue(res, 0, i_num_updated));
-	pOut->send_len = atoi(PQgetvalue(res, 0, i_send_len));
-
-	vector<string> v1;
-	vector<string>::iterator p1;
-	vector<string> v2;
-	vector<string>::iterator p2;
-	vector<string> v3;
-	vector<string>::iterator p3;
-	vector<string> v4;
-	vector<string>::iterator p4;
-	vector<string> v5;
-	vector<string>::iterator p5;
-
-	TokenizeSmart(PQgetvalue(res, 0, i_symbol), v1);
-	TokenizeSmart(PQgetvalue(res, 0, i_trade_id), v2);
-	TokenizeSmart(PQgetvalue(res, 0, i_price_quote), v3);
-	TokenizeSmart(PQgetvalue(res, 0, i_trade_qty), v4);
-	TokenizeSmart(PQgetvalue(res, 0, i_trade_type), v5);
-
-	// FIXME: Consider altering to match spec.  Since PostgreSQL cannot
-	// control transaction from within a stored function and because we're
-	// making the call to the Market Exchange Emulator from outside
-	// the transaction, consider altering the code to call a stored
-	// function once per symbol to match the transaction rules in
-	// the spec.
-	int i = 0;
-	bool bSent;
-	for (p1 = v1.begin(), p2 = v2.begin(), p3 = v3.begin(), p4 = v4.begin(),
-		p5 = v5.begin();
-			p1 != v1.end(); ++p1, ++p2, ++p3, ++p4) {
-		strncpy(m_TriggeredLimitOrders.symbol, (*p1).c_str(), cSYMBOL_len);
-		m_TriggeredLimitOrders.symbol[cSYMBOL_len] = '\0';
-		m_TriggeredLimitOrders.trade_id = atol((*p2).c_str());
-		m_TriggeredLimitOrders.price_quote = atof((*p3).c_str());
-		m_TriggeredLimitOrders.trade_qty = atoi((*p4).c_str());
-		strncpy(m_TriggeredLimitOrders.trade_type_id, (*p5).c_str(),
-				cTT_ID_len);
-		m_TriggeredLimitOrders.trade_type_id[cTT_ID_len] = '\0';
-
-		bSent = pMarketExchange->SendToMarketFromFrame(m_TriggeredLimitOrders);
-		if (!bSent) {
-			cout << "WARNING: SendToMarketFromFrame() returned failure but "
-					"continuing..."
-				 << endl;
-		}
-		++i;
-	}
-	check_count(pOut->send_len, i, __FILE__, __LINE__);
+	res = exec("SELECT CURRENT_TIMESTAMP");
+	strncpy(now_dts, PQgetvalue(res, 0, 0), 29);
 	PQclear(res);
+
+	pOut->num_updated = 0;
+	pOut->send_len = 0;
+
+	for (int i = 0; i < 20; i++) {
+
+		begin();
+		setRepeatableRead();
+
+		osSQL.str("");
+		osSQL << "UPDATE last_trade SET lt_price = "
+			  << pIn->Entries[i].price_quote << ", lt_vol = lt_vol + "
+			  << pIn->Entries[i].trade_qty << ", lt_dts = '" << now_dts
+			  << "' WHERE lt_s_symb = '" << pIn->Entries[i].symbol << "'";
+		res = exec(osSQL.str().c_str());
+		pOut->num_updated += atoi(PQcmdTuples(res));
+		PQclear(res);
+
+		osSQL.str("");
+		osSQL << "SELECT tr_t_id, tr_bid_price, tr_tt_id, tr_qty FROM "
+				 "trade_request WHERE tr_s_symb = '"
+			  << pIn->Entries[i].symbol << "' AND ((tr_tt_id = '"
+			  << pIn->StatusAndTradeType.type_stop_loss
+			  << "' AND tr_bid_price >= " << pIn->Entries[i].price_quote
+			  << ") OR (tr_tt_id = '"
+			  << pIn->StatusAndTradeType.type_limit_sell
+			  << "' AND tr_bid_price <= " << pIn->Entries[i].price_quote
+			  << ") OR (tr_tt_id = '" << pIn->StatusAndTradeType.type_limit_buy
+			  << "' AND tr_bid_price >= " << pIn->Entries[i].price_quote
+			  << "))";
+		res = exec(osSQL.str().c_str());
+
+		int i_tr_t_id = get_col_num(res, "tr_t_id");
+		int i_tr_bid_price = get_col_num(res, "tr_bid_price");
+		int i_tr_qty = get_col_num(res, "tr_qty");
+		int i_tr_tt_id = get_col_num(res, "tr_tt_id");
+
+		for (int j = 0; j < PQntuples(res); j++) {
+			osSQL.str("");
+			osSQL << "UPDATE trade SET t_dts = '" << now_dts
+				  << "', t_st_id = '"
+				  << pIn->StatusAndTradeType.status_submitted
+				  << "' WHERE t_id = " << PQgetvalue(res, j, i_tr_t_id);
+			res2 = exec(osSQL.str().c_str());
+			PQclear(res2);
+
+			osSQL.str("");
+			osSQL << "DELETE FROM trade_request WHERE tr_t_id = "
+				  << PQgetvalue(res, j, i_tr_t_id);
+			res2 = exec(osSQL.str().c_str());
+			PQclear(res2);
+
+			osSQL.str("");
+			osSQL << "INSERT INTO trade_history VALUES ("
+				  << PQgetvalue(res, j, i_tr_t_id) << ", '" << now_dts
+				  << "', '" << pIn->StatusAndTradeType.status_submitted
+				  << "')";
+			res2 = exec(osSQL.str().c_str());
+			PQclear(res2);
+		}
+
+		commit();
+
+		m_TriggeredLimitOrders.symbol[cSYMBOL_len] = '\0';
+		m_TriggeredLimitOrders.trade_type_id[cTT_ID_len] = '\0';
+		for (int j = 0; j < PQntuples(res); j++) {
+			strncpy(m_TriggeredLimitOrders.symbol, pIn->Entries[i].symbol,
+					cSYMBOL_len);
+			m_TriggeredLimitOrders.trade_id
+					= atoi(PQgetvalue(res, j, i_tr_t_id));
+			m_TriggeredLimitOrders.price_quote
+					= atof(PQgetvalue(res, j, i_tr_bid_price));
+			m_TriggeredLimitOrders.trade_qty
+					= atoi(PQgetvalue(res, j, i_tr_qty));
+			strncpy(m_TriggeredLimitOrders.trade_type_id,
+					PQgetvalue(res, j, i_tr_tt_id), cTT_ID_len);
+
+			bool bSent = pMarketExchange->SendToMarketFromFrame(
+					m_TriggeredLimitOrders);
+			if (!bSent) {
+				cout << "WARNING: SendToMarketFromFrame() returned failure "
+						"but continuing..."
+					 << endl;
+			}
+			++pOut->send_len;
+		}
+
+		check_count(pOut->send_len, i, __FILE__, __LINE__);
+		PQclear(res);
+	}
 }
 
 void

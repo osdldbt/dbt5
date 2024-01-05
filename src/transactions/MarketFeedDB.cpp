@@ -32,16 +32,18 @@ CMarketFeedDB::DoMarketFeedFrame1(const TMarketFeedFrame1Input *pIn,
 			 << pIn->StatusAndTradeType.type_limit_sell << endl
 			 << m_pid << " -- type_stop_loss: "
 			 << pIn->StatusAndTradeType.type_stop_loss << endl;
+		for (int i = 0; i < max_feed_len; i++) {
+			 cout << m_pid << " -- price_quote[" << i << "]: " << pIn->Entries[i].price_quote << endl
+			 << m_pid << " -- trade_qty[" << i << "]: " << pIn->Entries[i].trade_qty << endl
+			 << m_pid << " -- symbol[" << i << "]: " << pIn->Entries[i].symbol << endl;
+			}
 	}
 
-	startTransaction();
-	// Isolation level required by Clause 7.4.1.3
-	setRepeatableRead();
 	execute(pIn, pOut, pMarketExchange);
-	commitTransaction();
 
 	if (m_Verbose) {
 		cout << m_pid << " - Market Feed Frame 1 (output)" << endl
+			 << m_pid << " -- num_updated: " << pOut->num_updated << endl
 			 << m_pid << " -- send_len: " << pOut->send_len << endl
 			 << m_pid << " >>> MFF1" << endl;
 	}

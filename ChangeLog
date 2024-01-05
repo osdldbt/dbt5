@@ -9,6 +9,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix check for rst2html5 in "report" script
 - pgsql: refactor DBConnection exec() function to not throw an error for
   successfully SELECT statements that return zero rows
+- pgsql: refactor Market Feed transaction to be spec compliant
 
 v0.4.0 (2024-01-04)
 

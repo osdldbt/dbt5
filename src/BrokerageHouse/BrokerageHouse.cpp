@@ -394,9 +394,7 @@ CBrokerageHouse::dumpInputData(PMarketFeedTxnInput pTxnInput)
 		<< pid << " StatusAndTradeType.type_limit_sell = "
 		<< pTxnInput->StatusAndTradeType.type_limit_sell << endl
 		<< pid << " StatusAndTradeType.type_stop_loss = "
-		<< pTxnInput->StatusAndTradeType.type_stop_loss << endl
-		<< pid << " zz_padding1 = " << pTxnInput->zz_padding1 << endl
-		<< pid << " zz_padding2 = " << pTxnInput->zz_padding2 << endl;
+		<< pTxnInput->StatusAndTradeType.type_stop_loss << endl;
 	for (int i = 0; i < max_feed_len; i++) {
 		msg << pid << " Entries[" << i
 			<< "].price_quote = " << pTxnInput->Entries[i].price_quote << endl
