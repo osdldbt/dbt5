@@ -13,9 +13,6 @@ usage() {
 ${NAME} is the DBT-5 transaction mix analyzer.
 
 Usage:
-  ${NAME} mee_mix.log ce_mix.log ...
-
-Usage:
   $(basename "${0}") [OPTIONS] FILE...
 
 General options:
