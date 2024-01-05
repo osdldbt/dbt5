@@ -177,33 +177,31 @@ CDBConnection::exec(const char *sql, int nParams = 0,
 			paramLengths, paramFormats, resultFormat);
 	ExecStatusType status = PQresultStatus(res);
 
+	switch (status) {
+	case PGRES_COMMAND_OK:
+	case PGRES_TUPLES_OK:
+		return res;
+	default:
+		break;
+	}
+
 	pid_t pid = syscall(SYS_gettid);
 	ostringstream msg;
 	switch (status) {
 	case PGRES_FATAL_ERROR:
-		msg << time(NULL) << " " << pid << endl
+		msg << pid << " " << time(NULL) << " " << endl
 			<< "SQL: " << sql << endl
 			<< PQresultErrorMessage(res) << endl;
 		rollback();
 		throw msg.str().c_str();
 		break;
-	case PGRES_TUPLES_OK:
-		if (PQntuples(res) == 0) {
-			msg << time(NULL) << " " << pid << endl
-				<< "SQL: " << sql << endl
-				<< "NO RESULTS" << endl;
-			rollback();
-			throw msg.str().c_str();
-		}
-		break;
 	case PGRES_EMPTY_QUERY:
-	case PGRES_COMMAND_OK:
 	case PGRES_COPY_OUT:
 	case PGRES_COPY_IN:
 	case PGRES_BAD_RESPONSE:
 	case PGRES_NONFATAL_ERROR:
 	default:
-		cout << "*** " << PQresStatus(PQresultStatus(res)) << endl;
+		cout << pid << " *** " << PQresStatus(PQresultStatus(res)) << endl;
 		break;
 	}
 

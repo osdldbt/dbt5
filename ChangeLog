@@ -7,6 +7,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix execution of post-process from "run" script to use correct customers
   value
 - Fix check for rst2html5 in "report" script
+- pgsql: refactor DBConnection exec() function to not throw an error for
+  successfully SELECT statements that return zero rows
 
 v0.4.0 (2024-01-04)
 
