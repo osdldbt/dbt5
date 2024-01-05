@@ -6,6 +6,7 @@ vX.Y.Z (YYYY-MM-DD)
   of S_PRICE_T to NUMERIC(12, 2) from NUMERIC(8, 2)
 - Fix execution of post-process from "run" script to use correct customers
   value
+- Fix check for rst2html5 in "report" script
 
 v0.4.0 (2024-01-04)
 

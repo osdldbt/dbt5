@@ -493,7 +493,7 @@ GENERATE_PDF=0
 
 RST2HTML5="$(command -v rst2html5.py)"
 if [ "${RST2HTML5}" = "" ]; then
-	RST2HTML5="$(command -v rst2html5.py)"
+	RST2HTML5="$(command -v rst2html5)"
 fi
 
 if [ ! "${RST2HTML5}" = "" ]; then
