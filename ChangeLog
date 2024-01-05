@@ -2,6 +2,8 @@ vX.Y.Z (YYYY-MM-DD)
 
 - pgsql: update flat file loading to TRUNCATE the table and set FREEZE to true
   in the COPY command to improve its performance
+- pgsql: remove trade order frame 3 pl/pgsql dirty hack and increase the size
+  of S_PRICE_T to NUMERIC(12, 2) from NUMERIC(8, 2)
 
 v0.4.0 (2024-01-04)
 
