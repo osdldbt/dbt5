@@ -1,3 +1,5 @@
+vX.Y.Z (YYYY-MM-DD)
+
 v0.4.0 (2024-01-04)
 
 - Update PostgreSQL schema definitions to v1.14.0 spec
@@ -16,17 +18,18 @@ v0.4.0 (2024-01-04)
 - pgsql: fix market feed frame 1 pl/plgsql assignment of num_updated and
   current timestamp
 - pgsql: fix trade update frame 3 pl/pgsql assignment of num_updated
-- pgsql: add dirty hack to trade order frame 3 to handle S_PRICE_T overflow
+- pgsql: add dirty hack to trade order frame 3 pg/pgsql to handle S_PRICE_T
+  overflow
 - pgsql: fix trade cleanup pl/pgsql assignment of current timestamp
 
 v0.3.0 (2023-12-15)
 
 - Add verbose flag (-v) to BrokerageHouseMain to output frame inputs/outputs
-- Add -U flag to pgsql-build-db to enable database creation from by privileged
+- Add -U flag to pgsql-build-db to enable database creation by privileged
   operating system user
 - Add high level database "build" script
-- psql: update custom loading header files to TRUNCATE the table and set FREEZE
-  to true in the COPY command to improve its performance
+- pgsql: update custom loading header files to TRUNCATE the table and set
+  FREEZE to true in the COPY command to improve its performance
 - Fix memory clearing in TPC-E Tools bugs introduced by warnings patch
 - Log when driver threads terminate to better calculate steady state duration
 - Refactor and rename generate-report to simply "report" as a POSIX shell
@@ -50,7 +53,7 @@ v0.2.0 (2023-12-07)
 - Add scripts to create an AppImage
 - Convert README files to ReStructuredText
 - psql: issue rollback when CustomerPosition, MarketFeed, and TradeResult
-  transactions don't run all frame due to invalid results
+  transactions don't run all frames due to invalid results
 
 v0.1.0 (2010-04-10)
 
