@@ -37,8 +37,7 @@ set (PGSQL_SCRIPTS scripts/pgsql/dbt5-pgsql-start-db
 # Install rules.
 #
 
-INSTALL(PROGRAMS scripts/dbt5-get-os-info
-                 scripts/dbt5-plot-transaction-rate
+INSTALL(PROGRAMS scripts/dbt5-plot-transaction-rate
                  ${PGSQL_SCRIPTS}
         DESTINATION "bin")
 

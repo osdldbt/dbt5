@@ -19,6 +19,12 @@ configure_file(
 )
 
 configure_file(
+    dbt5-get-os-info.in
+    ${CMAKE_BINARY_DIR}/dbt5-get-os-info
+    @ONLY
+)
+
+configure_file(
     dbt5-post-process.in
     ${CMAKE_BINARY_DIR}/dbt5-post-process
     @ONLY
@@ -40,6 +46,7 @@ install (
     PROGRAMS ${CMAKE_BINARY_DIR}/dbt5
              ${CMAKE_BINARY_DIR}/dbt5-build
              ${CMAKE_BINARY_DIR}/dbt5-build-egen
+             ${CMAKE_BINARY_DIR}/dbt5-get-os-info
              ${CMAKE_BINARY_DIR}/dbt5-post-process
              ${CMAKE_BINARY_DIR}/dbt5-report
              ${CMAKE_BINARY_DIR}/dbt5-run
