@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Fix duplicate index name mix_time_txn_start in post-process
+
 v0.5.0 (2024-01-08)
 
 - pgsql: update flat file loading to TRUNCATE the table and set FREEZE to true

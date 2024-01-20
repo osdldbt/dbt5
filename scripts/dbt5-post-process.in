@@ -139,7 +139,7 @@ ${SQLOPTIONS}
 CREATE INDEX mix_time_txn_start
 ON mix (time)
 WHERE txn = 'START';
-CREATE INDEX mix_time_txn_start
+CREATE INDEX mix_time_txn_stop
 ON mix (time)
 WHERE txn = 'STOP';
 EOF
