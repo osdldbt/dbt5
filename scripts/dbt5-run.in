@@ -437,7 +437,7 @@ eval "${EGENDIR}/bin/DriverMain -c ${CUSTOMERS_INSTANCE} \
 		-y ${SLEEPY} -u ${USERS} -n ${PACING_DELAY} ${SEEDARG} \
 		-i ${EGENDIR}/flat_in -o ${DRIVER_OUTPUT_DIR} \
 		> ${DRIVER_OUTPUT_DIR}/driver.out 2>&1" &
-DCMPID=`ps -C DriverMain -o pid=`
+DCMPID="${!}"
 echo "Results will be written to: $OUTPUT_DIR"
 
 do_sleep ${SLEEP_RAMPUP}
@@ -449,9 +449,9 @@ do_sleep $DURATION
 stat_collection -s
 
 # Wait for DriverMain to exit
-#if [ -n ${DCMPID} ]; then
-	#wait ${DCMPID}
-#fi
+if [ -n ${DCMPID} ]; then
+	wait ${DCMPID}
+fi
 
 # Run some post processing analyses.
 echo
@@ -464,7 +464,7 @@ dbt5-post-process --customers="${CUSTOMERS_TOTAL}" \
 
 # Servers don't go away by themselves like the driver does, so kill it.
 echo "Killing Servers..."
-killall BrokerageHouseMain MarketExchangeMain DriverMain 2> /dev/null
+killall BrokerageHouseMain MarketExchangeMain 2> /dev/null
 
 if [ "${PRIVILEGED}" -eq 1 ]; then
 	${DB_COMMAND} dbt5-${DBMS}-stop-db
