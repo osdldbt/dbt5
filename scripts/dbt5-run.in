@@ -19,8 +19,10 @@ trap 'echo "Test was interrupted. Got TERM signal."; \
 
 do_sleep()
 {
-    echo "Sleeping $1 seconds"
-    sleep $1
+	TIME="${1}"
+	shift
+    echo "${*}"
+    sleep "${TIME}"
 }
 
 make_directories()
@@ -378,37 +380,35 @@ if [ "${PRIVILEGED}" -eq 1 ]; then
 	fi
 fi
 
-echo ""
-echo "************************************************************************"
-echo "*                  DBT-5 test started                                  *"
-echo "*                                                                      *"
-echo "************************************************************************"
-echo "*                                                                      *"
-echo "*  Test consists of 4 stages:                                          *"
-echo "*                                                                      *"
-echo "*  1. Start of the Brokerage House server                              *"
-echo "*  2. Start of the Market Exchange server                              *"
-echo "*  3. Test (Start of the Customer Emulator)                            *"
-echo "*  4. Processing of results                                            *"
-echo "*                                                                      *"
-echo "************************************************************************"
-echo "Results can be found in: ${OUTPUT_DIR}"
+cat << EOF
+# DBT-5
+
+Workload consists of 4 stages:
+
+1. Start of the Brokerage House server
+2. Start of the Market Exchange server
+3. Test (Start of the Customer Emulator)
+4. Processing of results
+
+Results will be found in: ${OUTPUT_DIR}
+EOF
 
 #
 # Start the Brokerage House server.
 #
 echo
-echo "1. Starting Brokerage House server"
+echo "## 1. Starting Brokerage House server"
+echo
 eval "${EGENDIR}/bin/BrokerageHouseMain ${DB_HOSTNAME_ARG} -d ${DB_NAME} \
 		${DB_PORT_ARG} -o ${BH_OUTPUT_DIR} > ${BH_OUTPUT_DIR}/bh.out 2>&1" &
 
-do_sleep 1
+do_sleep 1 "Giving BrokerageHouseMain 1 second to start up."
 
 #
 # Start the Market server.
 #
 echo
-echo "2. Starting Market Exchange server"
+echo "## 2. Starting Market Exchange server"
 eval "${EGENDIR}/bin/MarketExchangeMain -c ${CUSTOMERS_INSTANCE} \
 		-t ${CUSTOMERS_TOTAL} -i ${EGENDIR}/flat_in -o ${MEE_OUTPUT_DIR} \
 		> ${MEE_OUTPUT_DIR}/mee.out 2>&1" &
@@ -430,20 +430,20 @@ stat_collection
 #
 
 echo
-echo "3. Starting Customer driver: ${USERS} user(s)"
-echo "   1 user starting every ${SLEEPY} milliseconds..."
+echo "## 3. Starting Customer driver: ${USERS} user(s)"
+echo
+echo "* 1 user starting every ${SLEEPY} milliseconds."
 eval "${EGENDIR}/bin/DriverMain -c ${CUSTOMERS_INSTANCE} \
 		-t ${CUSTOMERS_TOTAL} -f ${SCALE_FACTOR} -w ${ITD} -d ${DURATION} \
 		-y ${SLEEPY} -u ${USERS} -n ${PACING_DELAY} ${SEEDARG} \
 		-i ${EGENDIR}/flat_in -o ${DRIVER_OUTPUT_DIR} \
 		> ${DRIVER_OUTPUT_DIR}/driver.out 2>&1" &
 DCMPID="${!}"
-echo "Results will be written to: $OUTPUT_DIR"
 
-do_sleep ${SLEEP_RAMPUP}
+do_sleep "${SLEEP_RAMPUP}" "* User ramp up to finish in ${SLEEP_RAMPUP} s."
 
 # Sleep for the duration of the run.
-do_sleep $DURATION
+do_sleep "${DURATION}" "* Test expected to finish in ${DURATION} s."
 
 # Stop stats collection.
 stat_collection -s
@@ -455,16 +455,16 @@ fi
 
 # Run some post processing analyses.
 echo
-echo "4. Run Post processing analyses"
+echo "## 4. Processing data"
+echo
 
 RESULTSFILE="${OUTPUT_DIR}/summary.rst"
 dbt5-post-process --customers="${CUSTOMERS_TOTAL}" \
 		"${DRIVER_OUTPUT_DIR}/mix-*.log" "${MEE_OUTPUT_DIR}/mix-*.log" \
-		> "${RESULTSFILE}"
+		> "${RESULTSFILE}" 2> "${OUTPUT_DIR}/post-process.log"
 
 # Servers don't go away by themselves like the driver does, so kill it.
-echo "Killing Servers..."
-killall BrokerageHouseMain MarketExchangeMain 2> /dev/null
+killall -q BrokerageHouseMain MarketExchangeMain
 
 if [ "${PRIVILEGED}" -eq 1 ]; then
 	${DB_COMMAND} dbt5-${DBMS}-stop-db
@@ -475,13 +475,17 @@ if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
 			${DB_OUTPUT_DIR}/
 fi
 
-# Move the database log.  (No, not the transaction log.)
-chmod 644 ${DB_OUTPUT_DIR}/log
+# (No, not the transaction log.)
+if [ -f "${DB_OUTPUT_DIR}/log" ]; then
+	chmod 644 "${DB_OUTPUT_DIR}/log"
+fi
 
-# Post processing of Database Statistics
+METRIC="$(grep "Reported Throughput" "${RESULTSFILE}" | awk '{print $3}')"
+cat << EOF
 
-echo ">> Test completed."
-echo "Results are in: ${OUTPUT_DIR}"
-echo
+## Primary Metric
 
-cat ${RESULTSFILE}
+${METRIC} TRTPS
+
+Complete results are in: ${OUTPUT_DIR}
+EOF
