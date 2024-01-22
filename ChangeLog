@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.5.1 (2024-01-22)
 
 - Fix duplicate index name mix_time_txn_start in post-process
 - Fix "run" script handling of waiting for DriverMain to exit
