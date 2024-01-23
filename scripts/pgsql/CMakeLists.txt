@@ -28,6 +28,11 @@ configure_file(
     ${CMAKE_BINARY_DIR}/dbt5-pgsql-load-stored-procs
     @ONLY
 )
+configure_file(
+    dbt5-pgsql-plans.in
+    ${CMAKE_BINARY_DIR}/dbt5-pgsql-plans
+    @ONLY
+)
 
 install (
     PROGRAMS ${CMAKE_BINARY_DIR}/dbt5-pgsql-build-db
@@ -36,5 +41,6 @@ install (
              ${CMAKE_BINARY_DIR}/dbt5-pgsql-create-indexes
              ${CMAKE_BINARY_DIR}/dbt5-pgsql-create-tables
              ${CMAKE_BINARY_DIR}/dbt5-pgsql-load-stored-procs
+             ${CMAKE_BINARY_DIR}/dbt5-pgsql-plans
     DESTINATION "bin"
 )

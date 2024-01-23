@@ -1,0 +1,1257 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+
+usage() {
+	cat << EOF
+$(basename "${0}") is the Database Test 5 (DBT-5) PostgreSQL Query Plan Explainer.
+
+Usage:
+  $(basename "${0}") [OPTION] [DBNAME]
+
+Options:
+  --db-host ADDRESS
+                 ADDRESS of database system
+  --db-port PORT
+                 database listening PORT number
+  --db-user USER
+                 database USER
+  -V, --version  output version information, then exit
+  -?, --help     show this help, then exit
+
+DBNAME is "${DBNAME}" by default.
+
+@HOMEPAGE@
+EOF
+}
+
+explain() {
+	SQL=${1}
+
+	R="$(eval "${PSQL}" <<- EOF 2>&1
+		BEGIN;
+		LOAD 'auto_explain';
+		SET auto_explain.log_analyze TO on;
+		SET auto_explain.log_buffers TO on;
+		SET auto_explain.log_level TO notice;
+		SET auto_explain.log_min_duration TO 0;
+		SET auto_explain.log_timing TO on;
+		SET auto_explain.log_wal TO on;
+		${SQL};
+		ROLLBACK;
+	EOF
+	)"
+
+	cat <<- EOF
+
+		::
+
+		$(echo "${R}" | sed -e "s/^/    /")
+	EOF
+}
+
+DBNAME="dbt5"
+
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(--db-host)
+		shift
+		DB_HOSTNAME="${1}"
+		;;
+	(--db-host=?*)
+		DB_HOSTNAME="${1#*--db-host=}"
+		;;
+	(--db-port)
+		shift
+		DB_PORT="${1}"
+		;;
+	(--db-port=?*)
+		DB_PORT="${1#*--db-port=}"
+		;;
+	(--db-user)
+		shift
+		DB_USER="${1}"
+		;;
+	(--db-user=?*)
+		DB_USER="${1#*--db-user=}"
+		;;
+	(-V | --version)
+		echo "$(basename "${0}") v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
+	esac
+	shift
+done
+
+# Check for required arguments.
+
+if [ $# -ne 0 ]; then
+	DBNAME="${1}"
+fi
+
+# Build up BUILDARGS based on command line parameters.
+
+if [ "${DBMS}" = "pgsql" ]; then
+	if [ ! "${DB_HOSTNAME}" = "" ]; then
+		export PGHOST="${DB_HOSTNAME}"
+	fi
+	if [ ! "${DB_PARAMS}" = "" ]; then
+		BUILDARGS="${BUILDARGS} -p \"${DB_PARAMS}\""
+	fi
+	if [ ! "${DB_PORT}" = "" ]; then
+		BUILDARGS="${BUILDARGS} -l ${DB_PORT}"
+	fi
+	if [ ! "${DB_USER}" = "" ]; then
+		export PGUSER="${DB_USER}"
+	fi
+fi
+
+PSQL="psql -X -e -d ${DBNAME} ${BUILDARGS}"
+
+cat << EOF
+# BrokerVolume
+
+## Frame1
+EOF
+
+explain "
+        SELECT b_name
+             , sum(tr_qty * tr_bid_price) AS vol
+        FROM trade_request
+           , sector
+           , industry
+           , company
+           , broker
+           , security
+        WHERE tr_b_id = b_id
+          AND tr_s_symb = s_symb
+          AND s_co_id = co_id
+          AND co_in_id = in_id
+          AND sc_id = in_sc_id
+          AND b_name = ANY ('{Yvette C. Pugh, Michael X. Gramlich, Timothy W. Yerbic, Anthony E. Rega, Raymond N. Pullman, Betty K. Hoffner, Elizabeth O. Peli, Juanita K. Reddout, Stefania L. Junk, Vincent U. Tena, Daniel C. Macadangdang, Oscar Z. Wolfer, Jackie B. Mallo, Kyle M. Warmath, Guy D. Orr, Tam B. Fernberg, Ronald Y. Thatch, Pedro P. Kovarovic, Fred P. Haviland, Lisa T. Tatro, Joseph D. Lofties, Daniel R. Dalsanto, Walter M. Attaway, Neil O. Deberg, Maria F. Wasco, James Q. Knoll, Leonard J. Ridpath, Denise U. Woelfel, Donald A. Gunsolus, Sylvia P. Stieff, Albert V. Medler, Floretta E. Coner, Patrick G. Coder, Windy J. Handrick, Albert Z. Titlow, Chris I. Triveno, Kenneth C. Shaver}')
+          AND sc_name = 'Utilities'
+        GROUP BY b_name
+        ORDER BY 2 DESC"
+
+cat << EOF
+
+# CustomerPosition
+
+## Frame1
+EOF
+
+explain "
+        SELECT c_id
+        FROM customer
+        WHERE c_tax_id = '279MB4576WK147'"
+
+echo
+
+explain "
+    SELECT customer.c_st_id
+         , customer.c_l_name
+         , customer.c_f_name
+         , customer.c_m_name
+         , customer.c_gndr
+         , customer.c_tier
+         , customer.c_dob
+         , customer.c_ad_id
+         , customer.c_ctry_1
+         , customer.c_area_1
+         , customer.c_local_1
+         , customer.c_ext_1
+         , customer.c_ctry_2
+         , customer.c_area_2
+         , customer.c_local_2
+         , customer.c_ext_2
+         , customer.c_ctry_3
+         , customer.c_area_3
+         , customer.c_local_3
+         , customer.c_ext_3
+         , customer.c_email_1
+         , customer.c_email_2
+    FROM customer
+    WHERE c_id = 4300003676"
+
+echo
+
+explain "
+        SELECT ca_id
+             , ca_bal
+             , coalesce(sum(hs_qty * lt_price) , 0.00) AS soma
+        FROM customer_account LEFT OUTER JOIN holding_summary
+                              ON hs_ca_id = ca_id
+           , last_trade
+        WHERE ca_c_id = 4300003676
+          AND lt_s_symb = hs_s_symb
+        GROUP BY ca_id
+               , ca_bal
+        ORDER BY 3 ASC
+        LIMIT 10"
+
+cat << EOF
+
+## Frame2 
+EOF
+
+explain "
+        SELECT t_id
+             , t_s_symb
+             , t_qty
+             , st_name
+             , th_dts
+        FROM (
+                 SELECT t_id AS id
+                 FROM trade
+                 WHERE t_ca_id = 43000007553
+                 ORDER BY t_dts DESC
+                 LIMIT 10
+             ) AS T
+           , trade
+           , trade_history
+           , status_type
+        WHERE t_id = id
+          AND th_t_id = t_id
+          AND st_id = th_st_id
+        ORDER BY th_dts DESC
+        LIMIT 30"
+
+cat << EOF
+
+# DataMaintenance
+
+## Frame1
+EOF
+
+explain "
+        SELECT ap_acl
+        FROM account_permission
+        WHERE ap_ca_id = 43000018353
+        ORDER BY ap_acl DESC
+        LIMIT 1"
+
+explain "
+            UPDATE account_permission
+            SET ap_acl = '0011'
+            WHERE ap_ca_id = 43000018353
+              AND ap_acl = '0001'"
+
+explain "
+            SELECT ad_line2
+                 , ad_id
+            FROM address
+               , customer
+            WHERE ad_id = c_ad_id
+              AND customer.c_id = 4300001591"
+
+explain "
+            SELECT ad_line2
+                 , ad_id
+            FROM address
+               , company
+            WHERE ad_id = co_ad_id
+              AND company.co_id = 4300000219"
+
+explain "
+            UPDATE address
+            SET ad_line2 = 'Apt. 22'
+            WHERE ad_id = 4300004095";
+
+explain "
+        SELECT co_sp_rate
+        FROM COMPANY
+        WHERE company.co_id = 4300001848"
+
+explain "
+            UPDATE company
+            SET co_sp_rate = 'ABA'
+            WHERE company.co_id = 4300001848"
+
+explain "
+        SELECT c_email_2
+        INTO email2
+        FROM customer
+        WHERE customer.c_id = 4300004241"
+
+explain "
+            UPDATE CUSTOMER
+            SET C_EMAIL_2 = substring(C_EMAIL_2 FROM 1 FOR position('@' IN C_EMAIL_2)) || 'earthlink.com'
+            WHERE customer.c_id = 4300004241"
+
+explain "
+        SELECT cx_tx_id
+        FROM customer_taxrate
+        WHERE cx_c_id = 4300001703
+          AND (
+                  cx_tx_id LIKE 'US%'
+               OR cx_tx_id LIKE 'CN%'
+              )"
+
+explain "
+        UPDATE customer_taxrate
+        SET cx_tx_id = 'US1'
+        WHERE cx_c_id = 4300001703
+          AND cx_tx_id = 'US4'"
+
+explain "
+        UPDATE daily_market
+        SET dm_vol = dm_vol + 3
+        WHERE dm_s_symb = 'BKF'
+          AND substring(dm_date::TEXT FROM 6 FOR 2)::INTEGER = 29"
+
+explain "
+        SELECT count(*)
+        FROM exchange
+        WHERE ex_desc LIKE '%LAST UPDATED%'"
+
+explain "
+            UPDATE exchange
+            SET ex_desc = ex_desc || ' LAST UPDATED ' || now()"
+
+explain "
+        SELECT count(*)
+        FROM financial
+        WHERE fi_co_id = 4300000619
+          AND substring(fi_qtr_start_date::TEXT FROM 9 FOR 2)::SMALLINT = 1"
+
+explain "
+            UPDATE financial
+            SET fi_qtr_start_date = fi_qtr_start_date + INTERVAL '1 DAY'
+            WHERE fi_co_id = 4300000619"
+
+explain "
+        UPDATE news_item
+        SET ni_dts = ni_dts + INTERVAL '1 DAY'
+        WHERE ni_id = (
+                SELECT nx_ni_id
+                FROM news_xref
+                WHERE nx_co_id = 4300000124
+                LIMIT 1)"
+
+explain "
+        UPDATE security
+        SET s_exch_date = s_exch_date + INTERVAL '1 DAY'
+        WHERE s_symb = 'EOT'"
+
+explain "
+        SELECT tx_name
+        FROM taxrate
+        WHERE taxrate.tx_id = 'KY1'"
+
+explain "
+        UPDATE taxrate
+        SET tx_name = ' Tax '
+        WHERE taxrate.tx_id = 'KY1'"
+
+explain "
+        SELECT count(*)
+        FROM watch_item
+           , watch_list
+        WHERE wl_c_id = 4300004838
+          AND wi_wl_id = wl_id"
+
+explain "
+        SELECT wi_s_symb
+        FROM (
+                 SELECT wi_s_symb
+                 FROM watch_item
+                    , watch_list
+                 WHERE wl_c_id = 4300004838
+                   AND wi_wl_id = wl_id
+                 ORDER BY wi_s_symb ASC
+             ) AS something
+        OFFSET 134
+        LIMIT 1"
+
+explain "
+        SELECT s_symb
+        FROM security
+        WHERE s_symb > 'SUPG'
+          AND s_symb NOT IN (
+                                SELECT wi_s_symb
+                                FROM watch_item
+                                   , watch_list
+                                WHERE wl_c_id = 4300004838
+                                  AND wi_wl_id = wl_id
+                            )
+        ORDER BY s_symb ASC
+        LIMIT 1"
+
+explain "
+        UPDATE watch_item
+        SET wi_s_symb = 'SUR'
+        FROM watch_list
+        WHERE wl_c_id = 4300004838
+          AND wi_wl_id = wl_id
+          AND wi_s_symb = 'SUPG'"
+
+cat << EOF
+
+# MarketWatch
+
+## Frame1
+EOF
+
+explain "
+            SELECT wi_s_symb
+            FROM watch_item
+               , watch_list
+            WHERE wi_wl_id = wl_id
+              AND wl_c_id = 4300003655"
+
+explain "
+            SELECT s_symb
+            FROM industry
+               , company
+               , security
+            WHERE in_name = 'Money Center Banks'
+              AND co_in_id = in_id
+              AND co_id BETWEEN 4300000001 AND 4300002500
+              AND s_co_id = co_id"
+
+explain "
+            SELECT hs_s_symb
+            FROM holding_summary
+            WHERE hs_ca_id = 43000011772"
+
+explain "
+        SELECT lt_price
+        FROM last_trade
+        WHERE lt_s_symb = 'BBDA'"
+
+explain "
+        SELECT s_num_out
+        FROM security
+        WHERE s_symb = 'BBDA'"
+
+explain "
+        SELECT dm_close
+        FROM daily_market
+        WHERE dm_s_symb = 'BBDA'
+        ORDER BY dm_date DESC
+        LIMIT 1"
+
+cat << EOF
+
+# SecurityDetail
+
+## Frame1
+EOF
+
+explain "
+    SELECT security.s_name
+         , company.co_id
+         , company.co_name
+         , company.co_sp_rate
+         , company.co_ceo
+         , company.co_desc
+         , company.co_open_date
+         , company.co_st_id
+         , ca.ad_line1
+         , ca.ad_line2
+         , zca.zc_town
+         , zca.zc_div
+         , ca.ad_zc_code
+         , ca.ad_ctry
+         , s_num_out
+         , s_start_date
+         , s_exch_date
+         , s_pe
+         , s_52wk_high
+         , s_52wk_high_date
+         , s_52wk_low
+         , s_52wk_low_date
+         , s_dividend
+         , s_yield
+         , zea.zc_div
+         , ea.ad_ctry
+         , ea.ad_line1
+         , ea.ad_line2
+         , zea.zc_town
+         , ea.ad_zc_code
+         , exchange.ex_close
+         , exchange.ex_desc
+         , exchange.ex_name
+         , exchange.ex_num_symb
+         , exchange.ex_open
+    FROM security
+       , company
+       , address ca
+       , address ea
+       , zip_code zca
+       , zip_code zea
+       , exchange
+    WHERE s_symb = 'HYC'
+        AND company.co_id = s_co_id
+        AND ca.ad_id = co_ad_id
+        AND ea.ad_id = exchange.ex_ad_id
+        AND exchange.ex_id = s_ex_id
+        AND ca.ad_zc_code = zca.zc_code
+        AND ea.ad_zc_code = zea.zc_code"
+
+explain "
+            SELECT company.co_name
+                 , in_name
+            FROM company_competitor
+               , company
+               , industry
+            WHERE cp_co_id = 4300001794
+                AND company.co_id = cp_comp_co_id
+                AND in_id = cp_in_id
+            LIMIT 3"
+
+explain "
+            SELECT fi_year
+                 , fi_qtr
+                 , fi_qtr_start_date
+                 , fi_revenue
+                 , fi_net_earn
+                 , fi_basic_eps
+                 , fi_dilut_eps
+                 , fi_margin
+                 , fi_inventory
+                 , fi_assets
+                 , fi_liability
+                 , fi_out_basic
+                 , fi_out_dilut
+            FROM financial
+            WHERE fi_co_id = 4300001794
+            ORDER BY fi_year ASC
+                   , fi_qtr
+            LIMIT 20"
+
+explain "
+            SELECT dm_date
+                 , dm_close
+                 , dm_high
+                 , dm_low
+                 , dm_vol
+            FROM daily_market
+            WHERE dm_s_symb = 'HYC'
+                AND dm_date >= '2003-3-20'
+            ORDER BY dm_date ASC
+            LIMIT 8"
+
+explain "
+        SELECT lt_price
+             , lt_open_price
+             , lt_vol
+        FROM last_trade
+        WHERE lt_s_symb = 'HYC'"
+
+explain "
+                SELECT ni_item
+                     , ni_dts
+                     , ni_source
+                     , ni_author
+                FROM news_xref
+                   , news_item
+                WHERE ni_id = nx_ni_id
+                  AND nx_co_id = 4300001794
+                LIMIT 2"
+
+explain "
+                SELECT ni_dts
+                     , ni_source
+                     , ni_author
+                     , ni_headline
+                     , ni_summary
+                FROM news_xref
+                   , news_item
+                WHERE ni_id = nx_ni_id
+                 AND nx_co_id = 4300001794
+                LIMIT 2"
+cat << EOF
+
+# TradeLookup
+
+## Frame1
+EOF
+
+explain "
+        SELECT t_bid_price
+             , t_exec_name
+             , t_is_cash
+             , tt_is_mrkt
+             , t_trade_price
+        FROM trade
+           , trade_type
+        WHERE t_id = 200000058654661
+          AND t_tt_id = tt_id"
+
+explain "
+        SELECT se_amt
+             , se_cash_due_date
+             , se_cash_type
+        FROM settlement
+        WHERE se_t_id = 200000058654661"
+
+explain "
+            SELECT ct_amt
+                 , ct_dts
+                 , ct_name
+            FROM cash_transaction
+            WHERE ct_t_id = 200000058654661"
+
+explain "
+            SELECT th_dts
+                 , th_st_id
+            FROM trade_history
+            WHERE th_t_id = 200000058654661
+            ORDER BY th_dts
+            LIMIT 3"
+
+cat << EOF
+
+## Frame2
+EOF
+
+explain "
+        SELECT t_bid_price
+             , t_exec_name
+             , t_is_cash
+             , t_id
+             , t_trade_price
+        FROM trade
+        WHERE t_ca_id = 43000036742
+            AND t_dts >= '2005-1-14 11:32:43'
+            AND t_dts <= '2006-2-27 9:15:0'
+        ORDER BY t_dts ASC
+        LIMIT 20"
+
+explain "
+        SELECT se_amt
+             , se_cash_due_date
+             , se_cash_type
+        FROM settlement
+        WHERE se_t_id = 200000052906802"
+
+explain "
+            SELECT ct_amt
+                 , ct_dts
+                 , ct_name
+            FROM cash_transaction
+            WHERE ct_t_id = 200000052906802"
+
+explain "
+            SELECT th_dts
+                 , th_st_id
+            FROM trade_history
+            WHERE th_t_id = 200000052906802
+            ORDER BY th_dts
+            LIMIT 3"
+
+cat << EOF
+
+## Frame3
+EOF
+
+explain "
+        SELECT t_ca_id
+             , t_exec_name
+             , t_is_cash
+             , t_trade_price
+             , t_qty
+             , t_dts
+             , t_id
+             , t_tt_id
+        FROM trade
+        WHERE t_s_symb = 'ICN'
+            AND t_dts >= '2005-4-14 11:2:13'
+            AND t_dts <= '2006-2-27 9:15:0'
+        ORDER BY t_dts ASC
+        LIMIT 20"
+
+explain "
+        SELECT se_amt
+             , se_cash_due_date
+             , se_cash_type
+        FROM settlement
+        WHERE se_t_id = 200000074072667"
+
+explain "
+            SELECT ct_amt
+                 , ct_dts
+                 , ct_name
+            FROM cash_transaction
+            WHERE ct_t_id = 200000074072667"
+
+explain "
+            SELECT th_dts
+                 , th_st_id
+            FROM trade_history
+            WHERE th_t_id = 200000074072667
+            ORDER BY th_dts
+            LIMIT 3"
+
+cat << EOF
+
+## Frame4
+EOF
+
+explain "
+    SELECT t_id
+    FROM trade
+    WHERE t_ca_id = 43000012242
+      AND t_dts >= '2005-2-23 11:6:8'
+    ORDER BY t_dts ASC
+    LIMIT 1"
+
+cat << EOF
+
+# TradeOrder
+
+## Frame1
+EOF
+
+explain "
+    SELECT ca_name
+         , ca_b_id
+         , ca_c_id
+         , ca_tax_st
+    FROM customer_account
+    WHERE ca_id = 43000025212"
+
+explain "
+    SELECT c_f_name
+         , c_l_name
+         , c_tier
+         , c_tax_id
+    FROM customer
+    WHERE c_id = 4300002522"
+
+explain "
+    SELECT b_name
+    FROM broker
+    WHERE b_id = 4300000023"
+
+cat << EOF
+
+## Frame2
+EOF
+
+explain "
+    SELECT account_permission.ap_acl
+    FROM account_permission
+    WHERE ap_ca_id = 43000011881
+      AND ap_f_name = 'Margaret'
+      AND ap_l_name = 'Kornrumpf'
+      AND ap_tax_id = '962GG2696HT269'"
+
+cat << EOF
+
+## Frame3
+EOF
+
+explain "
+        SELECT company.co_id
+        FROM company
+        WHERE company.co_name = 'DriverShield Corporation'"
+
+explain "
+        SELECT s_ex_id
+             , security.s_name
+             , s_symb
+        FROM security
+        WHERE s_co_id = 4300001485
+          AND s_issue = 'COMMON'"
+
+explain "
+        SELECT s_co_id
+             , s_ex_id
+             , security.s_name
+        FROM security
+        WHERE s_symb = 'GSH'"
+
+explain "
+        SELECT company.co_name
+        FROM company
+        WHERE company.co_id = 4300001422"
+
+explain "
+    SELECT lt_price
+    FROM last_trade
+    WHERE lt_s_symb = 'GSH'"
+
+explain "
+    SELECT tt_is_mrkt
+         , tt_is_sell
+    FROM trade_type
+    WHERE tt_id = 'TMB'"
+
+explain "
+    SELECT coalesce(holding_summary.hs_qty , 0)
+    FROM holding_summary
+    WHERE hs_ca_id = 43000025212
+      AND hs_s_symb = 'GSH'"
+
+explain "
+                    SELECT h_qty
+                         , h_price
+                    FROM holding
+                    WHERE h_ca_id = 43000025212
+                      AND h_s_symb = 'GSH'
+                    ORDER BY h_dts DESC"
+
+explain "
+                    SELECT h_qty
+                         , h_price
+                    FROM holding
+                    WHERE h_ca_id = 43000025212
+                      AND h_s_symb = 'GSH'
+                    ORDER BY h_dts ASC"
+
+explain "
+        SELECT sum(tx_rate)
+        FROM taxrate
+        WHERE tx_id IN (
+                           SELECT cx_tx_id
+                           FROM customer_taxrate
+                           WHERE cx_c_id = 4300002522
+                       )"
+
+explain "
+    SELECT cr_rate
+    FROM commission_rate
+    WHERE cr_c_tier = 2
+      AND cr_tt_id = 'TMB'
+      AND cr_ex_id = 'NASDAQ'
+      AND cr_from_qty <= 200
+      AND cr_to_qty >= 200"
+
+explain "
+    SELECT ch_chrg
+    FROM charge
+    WHERE ch_c_tier = 2
+      AND ch_tt_id = 'TMB'"
+
+explain "
+        SELECT ca_bal
+        INTO acct_bal
+        FROM customer_account
+        WHERE ca_id = 43000025212"
+
+explain "
+        SELECT sum(holding_summary.hs_qty * lt_price)
+        FROM holding_summary
+           , last_trade
+        WHERE hs_ca_id = 43000025212
+          AND lt_s_symb = 'GSH'"
+
+cat << EOF
+# TradeResult
+
+## Frame1
+EOF
+
+explain "
+    SELECT t_ca_id
+         , t_tt_id
+         , t_s_symb
+         , t_qty
+         , t_chrg
+         , CASE WHEN t_lifo THEN 1
+                ELSE 0
+           END
+         , CASE WHEN t_is_cash THEN 1
+                ELSE 0
+           END
+    FROM trade
+    WHERE t_id = 303"
+
+explain "
+    SELECT tt_name
+        , CASE WHEN tt_is_sell THEN 1
+               ELSE 0
+          END
+        , CASE WHEN tt_is_mrkt THEN 1
+               ELSE 0
+          END
+    FROM trade_type
+    WHERE tt_id = 'TMB'"
+
+explain "
+    SELECT holding_summary.hs_qty
+    FROM holding_summary
+    WHERE hs_ca_id = 43000025212
+      AND hs_s_symb = 'GSH'"
+
+cat << EOF
+
+## Frame2
+EOF
+
+explain "
+    SELECT ca_b_id
+         , ca_c_id
+         , ca_tax_st
+    FROM customer_account
+    WHERE ca_id = 43000025212"
+
+explain "
+                UPDATE holding_summary
+                SET hs_qty = (400 - 100)
+                WHERE hs_ca_id = 43000025212
+                  AND hs_s_symb = 'GSH'"
+
+explain "
+                    SELECT h_t_id
+                         , h_qty
+                         , h_price
+                    FROM holding
+                    WHERE h_ca_id = 43000025212
+                        AND h_s_symb = 'GSH'
+                    ORDER BY h_dts DESC"
+
+explain "
+                    SELECT h_t_id
+                         , h_qty
+                         , h_price
+                    FROM holding
+                    WHERE h_ca_id = 43000025212
+                        AND h_s_symb = 'GSH'
+                    ORDER BY h_dts ASC"
+explain "
+                    UPDATE holding
+                    SET h_qty = (200 - 500)
+                    WHERE h_t_id = 200000049700094"
+
+explain "
+                    DELETE FROM holding
+                    WHERE h_t_id = 200000049700094"
+
+explain "                DELETE FROM holding_summary
+                WHERE hs_ca_id = 43000025212
+                  AND hs_s_symb = 'GSH'"
+
+explain "
+                UPDATE holding_summary
+                SET hs_qty = 5000 + 200
+                WHERE hs_ca_id = 43000025212
+                  AND hs_s_symb = 'GSH'"
+
+explain "
+                    SELECT h_t_id
+                         , h_qty
+                         , h_price
+                    FROM holding
+                    WHERE h_ca_id = 43000025212
+                      AND h_s_symb = 'GSH'
+                    ORDER BY h_dts DESC"
+
+explain "
+                    SELECT h_t_id
+                         , h_qty
+                         , h_price
+                    FROM holding
+                    WHERE h_ca_id = 43000025212
+                      AND h_s_symb = 'GSH'
+                    ORDER BY h_dts ASC"
+
+explain "
+                    UPDATE holding
+                    SET h_qty = (200 + 500)
+                    WHERE h_t_id = 200000049700094"
+
+explain "
+                    DELETE FROM holding
+                    WHERE h_t_id = 200000049700094"
+
+explain "
+                DELETE FROM holding_summary
+                WHERE hs_ca_id = 43000025212
+                    AND hs_s_symb = 'GSH'"
+
+cat << EOF
+
+## Frame3
+EOF
+
+explain "
+    SELECT sum(tx_rate)
+    FROM taxrate
+    WHERE tx_id IN (
+                       SELECT cx_tx_id
+                       FROM customer_taxrate
+                       WHERE cx_c_id = 4300004744
+                   )"
+
+explain "
+    UPDATE trade
+    SET t_tax = 1.2
+    WHERE t_id = 308"
+
+cat << EOF
+
+## Frame4
+EOF
+
+explain "
+    SELECT s_ex_id
+         , security.s_name
+    FROM security
+    WHERE s_symb = 'GSH'"
+
+explain "
+    SELECT c_tier
+    FROM customer
+    WHERE c_id = 4300002522" 
+
+explain "
+    SELECT cr_rate
+    FROM commission_rate
+    WHERE cr_c_tier = 2
+      AND cr_tt_id = 'TMB'
+      AND cr_ex_id = 'NASDAQ'
+      AND cr_from_qty <= 200
+      AND cr_to_qty >= 200
+    LIMIT 1"
+
+cat << EOF
+
+## Frame5
+EOF
+
+explain "
+    UPDATE trade
+    SET t_comm = 18.85
+      , t_dts = '2024-1-22 16:33:50'
+      , t_st_id = 'CMPT'
+      , t_trade_price = 26.18
+    WHERE t_id = 303"
+
+explain "
+    UPDATE broker
+    SET b_comm_total = b_comm_total + 18.85
+      , b_num_trades = b_num_trades + 1
+    WHERE b_id = 4300000023"
+
+cat << EOF
+
+## Frame6
+EOF
+
+explain "
+        UPDATE customer_account
+        SET ca_bal = (ca_bal + -5259.35)
+        WHERE ca_id = 43000025212"
+
+explain "
+    SELECT ca_bal
+    FROM customer_account
+    WHERE ca_id = 43000025212"
+
+cat << EOF
+# TradeStatus
+
+## Frame1
+EOF
+
+explain "
+        SELECT t_id
+             , t_dts
+             , st_name
+             , tt_name
+             , t_s_symb
+             , t_qty
+             , t_exec_name
+             , t_chrg
+             , security.s_name
+             , exchange.ex_name
+        FROM trade
+           , status_type
+           , trade_type
+           , security
+           , exchange
+        WHERE t_ca_id = 43000047062
+            AND st_id = t_st_id
+            AND tt_id = t_tt_id
+            AND s_symb = t_s_symb
+            AND ex_id = s_ex_id
+        ORDER BY t_dts DESC
+        LIMIT 50"
+
+ explain "
+    SELECT c_l_name
+         , c_f_name
+         , b_name
+    FROM customer_account
+       , customer
+       , broker
+    WHERE ca_id = 43000047062
+      AND c_id = ca_c_id
+      AND b_id = ca_b_id"
+
+cat << EOF
+# TradeUpdate
+
+## Frame1
+EOF
+
+explain "
+            SELECT t_exec_name
+            FROM trade
+            WHERE t_id = 200000077442014"
+
+explain "
+            UPDATE trade
+            SET t_exec_name = 'So Carreras'
+            WHERE t_id = 200000077442014"
+
+explain "
+        SELECT t_bid_price
+             , t_exec_name
+             , t_is_cash
+             , tt_is_mrkt
+             , t_trade_price
+        FROM trade
+           , trade_type
+        WHERE t_id = 200000077442014
+          AND t_tt_id = tt_id"
+
+explain "
+        SELECT se_amt
+             , se_cash_due_date
+             , se_cash_type
+        FROM settlement
+        WHERE se_t_id = 200000077442014"
+
+explain "
+            SELECT ct_amt
+                 , ct_dts
+                 , ct_name
+            FROM cash_transaction
+            WHERE ct_t_id = 200000077442014"
+
+explain "
+            SELECT th_dts
+                 , th_st_id
+            FROM trade_history
+            WHERE th_t_id = 200000077442014
+            ORDER BY th_dts
+            LIMIT 3"
+
+cat << EOF
+
+## Frame2
+EOF
+
+explain "
+        SELECT t_bid_price
+             , t_exec_name
+             , t_is_cash
+             , t_id
+             , t_trade_price
+        FROM trade
+        WHERE t_ca_id = 43000044176
+          AND t_dts >= '2005-1-3 15:53:41'
+          AND t_dts <= '2006-2-27 9:15:0'
+        ORDER BY t_dts ASC"
+
+explain "
+            SELECT se_cash_type
+            FROM settlement
+            WHERE se_t_id = 200000069863237"
+
+explain "
+            UPDATE settlement
+            SET se_cash_type = 'Margin'
+            WHERE se_t_id = 200000069863237"
+
+explain "
+        SELECT se_amt
+             , se_cash_due_date
+             , se_cash_type
+        FROM settlement
+        WHERE se_t_id = 200000069863237"
+
+explain "
+            SELECT ct_amt
+                 , ct_dts
+                 , ct_name
+            FROM cash_transaction
+            WHERE ct_t_id = 200000069863237"
+
+explain "
+            SELECT th_dts
+                 , th_st_id
+            FROM trade_history
+            WHERE th_t_id = 200000069863237
+            ORDER BY th_dts
+            LIMIT 3"
+
+cat << EOF
+
+## Frame3
+EOF
+
+explain "
+        SELECT t_ca_id
+            , t_exec_name
+            , t_is_cash
+            , t_trade_price
+            , t_qty
+            , security.s_name
+            , t_dts
+            , t_id
+            , t_tt_id
+            , tt_name
+        FROM trade
+           , trade_type
+           , security
+        WHERE t_s_symb = 'BVRSPRC'
+          AND t_dts >= '2005-5-25 12:25:59'
+          AND t_dts <= '2006-2-27 9:15:0'
+          AND tt_id = t_tt_id
+          AND s_symb = t_s_symb
+        ORDER BY t_dts ASC
+        LIMIT 20"
+
+explain "
+        SELECT se_amt
+             , se_cash_due_date
+             , se_cash_type
+        FROM settlement
+        WHERE se_t_id = 200000058319469"
+
+explain "
+                SELECT cash_transaction.ct_name
+                FROM cash_transaction
+                WHERE ct_t_id = 200000058319469"
+
+explain "
+                UPDATE cash_transaction
+                SET ct_name = 'something'
+                WHERE ct_t_id = 200000058319469"
+
+explain "
+            SELECT ct_amt
+                 , ct_dts
+                 , cash_transaction.ct_name
+            FROM cash_transaction
+            WHERE ct_t_id = 200000058319469"
+
+explain "
+            SELECT th_dts
+                 , th_st_id
+            FROM trade_history
+            WHERE th_t_id = 200000058319469
+            ORDER BY th_dts ASC"
