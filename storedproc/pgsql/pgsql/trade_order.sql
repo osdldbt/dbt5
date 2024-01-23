@@ -151,7 +151,7 @@ BEGIN
         WHERE s_symb = symbol;
         SELECT company.co_name
         INTO TradeOrderFrame3.co_name
-        FROM COMPANY
+        FROM company
         WHERE company.co_id = tof3.co_id;
     END IF;
     -- Get current pricing information for the security
@@ -205,7 +205,7 @@ BEGIN
                          , h_price
                     FROM holding
                     WHERE h_ca_id = acct_id
-                        AND h_s_symb = symbol
+                      AND h_s_symb = symbol
                     ORDER BY h_dts DESC;
             ELSE
                 -- Estimates will be based on closing oldest holdings

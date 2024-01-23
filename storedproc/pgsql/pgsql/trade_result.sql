@@ -46,7 +46,7 @@ BEGIN
     FROM trade
     WHERE t_id = trade_id;
     GET DIAGNOSTICS num_found = ROW_COUNT;
-    SELECT TT_NAME
+    SELECT tt_name
         , CASE WHEN tt_is_sell THEN 1
                ELSE 0
           END

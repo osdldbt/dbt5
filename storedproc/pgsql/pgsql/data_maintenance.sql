@@ -19,7 +19,6 @@ AS $$
 DECLARE
     -- variables
     rowcount INTEGER;
-    custacct_id IDENT_T;
     acl VARCHAR(4);
     line2 VARCHAR;
     addr_id IDENT_T;
@@ -39,22 +38,23 @@ BEGIN
         -- Update the AP_ACL to “1111” or “0011” in rows for
         -- an account of acct_id.
         acl = NULL;
-        SELECT AP_ACL INTO acl
-        FROM ACCOUNT_PERMISSION
-        WHERE AP_CA_ID = acct_id
+        SELECT ap_acl
+        INTO acl
+        FROM account_permission
+        WHERE ap_ca_id = acct_id
         ORDER BY ap_acl DESC
         LIMIT 1;
         IF acl != '1111' THEN
-            UPDATE ACCOUNT_PERMISSION
-            SET AP_ACL = '1111'
-            WHERE AP_CA_ID = custacct_id
-              AND AP_ACL = acl;
+            UPDATE account_permission
+            SET ap_acl = '1111'
+            WHERE ap_ca_id = acct_id
+              AND ap_acl = acl;
         ELSE
             -- ACL is “1111” change it to '0011'
-            UPDATE ACCOUNT_PERMISSION
-            SET AP_ACL = '0011'
-            WHERE AP_CA_ID = custacct_id
-              AND AP_ACL = acl;
+            UPDATE account_permission
+            SET ap_acl = '0011'
+            WHERE ap_ca_id = acct_id
+              AND ap_acl = acl;
         END IF;
     ELSIF table_name = 'ADDRESS' THEN
         -- ADDRESS
@@ -64,18 +64,20 @@ BEGIN
         addr_id = 0;
         IF DataMaintenanceFrame1.c_id != 0 THEN
             SELECT ad_line2
-                 , ad_id INTO line2
-                 , addr_id
+                 , ad_id
+            INTO line2
+               , addr_id
             FROM address
-                 , customer
+               , customer
             WHERE ad_id = c_ad_id
               AND customer.c_id = DataMaintenanceFrame1.c_id;
         ELSE
             SELECT ad_line2
-                 , ad_id INTO line2
-                 , addr_id
+                 , ad_id
+            INTO line2
+               , addr_id
             FROM address
-                 , company
+               , company
             WHERE ad_id = co_ad_id
               AND company.co_id = DataMaintenanceFrame1.co_id;
         END IF;
@@ -94,16 +96,17 @@ BEGIN
         -- by co_id, set the company’s Standard and Poor
         -- credit rating to “ABA” or to “AAA”.
         sprate = NULL;
-        SELECT CO_SP_RATE INTO sprate
-        FROM COMPANY
+        SELECT co_sp_rate
+          INTO sprate
+        FROM company
         WHERE company.co_id = DataMaintenanceFrame1.co_id;
         IF sprate != 'ABA' THEN
-            UPDATE COMPANY
-            SET CO_SP_RATE = 'ABA'
+            UPDATE company
+            SET co_sp_rate = 'ABA'
             WHERE company.co_id = DataMaintenanceFrame1.co_id;
         ELSE
-            UPDATE COMPANY
-            SET CO_SP_RATE = 'AAA'
+            UPDATE company
+            SET co_sp_rate = 'AAA'
             WHERE company.co_id = DataMaintenanceFrame1.co_id;
         END IF;
     ELSIF table_name = 'CUSTOMER' THEN
@@ -115,22 +118,22 @@ BEGIN
         email2 = NULL;
         len = 0;
         lenMindspring = char_length('@mindspring.com');
-        SELECT C_EMAIL_2
+        SELECT c_email_2
         INTO email2
-        FROM CUSTOMER
+        FROM customer
         WHERE customer.c_id = DataMaintenanceFrame1.c_id;
         len = char_length(email2);
         len = len - lenMindspring;
         IF len > 0
                 AND substring(email2 FROM len + 1 FOR lenMindspring) = '@mindspring.com'
         THEN
-            UPDATE CUSTOMER
-            SET C_EMAIL_2 = substring(C_EMAIL_2 FROM 1 FOR position('@' IN C_EMAIL_2)) || 'earthlink.com'
+            UPDATE customer
+            SET c_email_2 = substring(c_email_2 FROM 1 FOR position('@' IN c_email_2)) || 'earthlink.com'
             WHERE customer.c_id = DataMaintenanceFrame1.c_id;
         ELSE
             -- set to @mindspring.com
-            UPDATE CUSTOMER
-            SET C_EMAIL_2 = substring(C_EMAIL_2 FROM 1 FOR position('@' IN C_EMAIL_2)) || 'mindspring.com'
+            UPDATE customer
+            SET c_email_2 = substring(c_email_2 FROM 1 FOR position('@' IN c_email_2)) || 'mindspring.com'
             WHERE customer.c_id = DataMaintenanceFrame1.c_id;
         END IF;
     ELSIF table_name = 'CUSTOMER_TAXRATE' THEN
@@ -194,14 +197,15 @@ BEGIN
         -- - date and time at the end of EX_DESC will be updated
         -- - to the current date and time.
         rowcount = 0;
-        SELECT count(*) INTO rowcount
-        FROM EXCHANGE
-        WHERE EX_DESC LIKE '%LAST UPDATED%';
+        SELECT count(*)
+        INTO rowcount
+        FROM exchange
+        WHERE ex_desc LIKE '%LAST UPDATED%';
         IF rowcount = 0 THEN
-            UPDATE EXCHANGE
-            SET EX_DESC = EX_DESC || ' LAST UPDATED ' || now();
+            UPDATE exchange
+            SET ex_desc = ex_desc || ' LAST UPDATED ' || now();
         ELSE
-            UPDATE EXCHANGE
+            UPDATE exchange
 	        SET ex_desc = substring(ex_desc FROM 1 FOR char_length(ex_desc) - char_length(now()::TEXT)) || now();
         END IF;
     ELSIF table_name = 'FINANCIAL' THEN
@@ -212,25 +216,25 @@ BEGIN
         -- the month if the dates were already the second of the
         -- month.
         rowcount = 0;
-        SELECT count(*) INTO rowcount
-        FROM FINANCIAL
+        SELECT count(*)
+        INTO rowcount
+        FROM financial
         WHERE fi_co_id = DataMaintenanceFrame1.co_id
           AND substring(fi_qtr_start_date::TEXT FROM 9 FOR 2)::SMALLINT = 1;
         IF rowcount > 0 THEN
-            UPDATE FINANCIAL
-            SET FI_QTR_START_DATE = FI_QTR_START_DATE + interval '1 DAY'
+            UPDATE financial
+            SET fi_qtr_start_date = fi_qtr_start_date + INTERVAL '1 DAY'
             WHERE fi_co_id = DataMaintenanceFrame1.co_id;
         ELSE
-            UPDATE FINANCIAL
-            SET FI_QTR_START_DATE = FI_QTR_START_DATE - interval '1 DAY'
+            UPDATE financial
+            SET fi_qtr_start_date = fi_qtr_start_date - INTERVAL '1 DAY'
             WHERE fi_co_id = DataMaintenanceFrame1.co_id;
         END IF;
     ELSIF table_name = 'NEWS_ITEM' THEN
         -- NEWS_ITEM
         -- Update the news items for a specified company.
         -- Change the NI_DTS by 1 day.
-        UPDATE
-            news_item
+        UPDATE news_item
         SET ni_dts = ni_dts + INTERVAL '1 DAY'
         WHERE ni_id = (
                 SELECT nx_ni_id
@@ -241,8 +245,8 @@ BEGIN
         -- SECURITY
         -- Update a security identified symbol, increment
         -- S_EXCH_DATE by 1 day.
-        UPDATE SECURITY
-        SET S_EXCH_DATE = S_EXCH_DATE + interval '1 DAY'
+        UPDATE security
+        SET s_exch_date = s_exch_date + INTERVAL '1 DAY'
         WHERE S_SYMB = symbol;
     ELSIF table_name = 'TAXRATE' THEN
         -- TAXRATE
@@ -253,9 +257,9 @@ BEGIN
         tax_name := NULL;
         pos := 0;
         -- changed from 0 to 1
-        SELECT TX_NAME
+        SELECT tx_name
         INTO tax_name
-        FROM TAXRATE
+        FROM taxrate
         WHERE taxrate.tx_id = DataMaintenanceFrame1.tx_id;
         pos = position(' Tax ' IN tax_name);
         IF (pos != 0) THEN
@@ -267,7 +271,8 @@ BEGIN
         SET tx_name = tax_name
         WHERE taxrate.tx_id = DataMaintenanceFrame1.tx_id;
     ELSIF table_name = 'WATCH_ITEM' THEN
-        SELECT count(*) INTO rowcount
+        SELECT count(*)
+        INTO rowcount
         FROM watch_item
            , watch_list
         WHERE wl_c_id = DataMaintenanceFrame1.c_id
@@ -285,8 +290,9 @@ BEGIN
              ) AS something
         OFFSET rowcount
         LIMIT 1;
-        SELECT s_symb INTO new_symbol
-        FROM SECURITY
+        SELECT s_symb
+        INTO new_symbol
+        FROM security
         WHERE s_symb > old_symbol
           AND s_symb NOT IN (
                                 SELECT wi_s_symb

@@ -87,13 +87,14 @@ BEGIN
         END IF;
         -- Get settlement information
         -- Should only return one row for each trade
-        SELECT SE_AMT
-            , SE_CASH_DUE_DATE
-            , SE_CASH_TYPE INTO tmp_settlement_amount
-            , tmp_settlement_cash_due_date
-            , tmp_settlement_cash_type
-        FROM SETTLEMENT
-        WHERE SE_T_ID = trade_id[i];
+        SELECT se_amt
+             , se_cash_due_date
+             , se_cash_type
+        INTO tmp_settlement_amount
+          , tmp_settlement_cash_due_date
+          , tmp_settlement_cash_type
+        FROM settlement
+        WHERE se_t_id = trade_id[i];
         GET DIAGNOSTICS irow_count = ROW_COUNT;
         IF irow_count > 0 THEN
             settlement_amount[i] := tmp_settlement_amount;
@@ -109,8 +110,8 @@ BEGIN
             INTO tmp_cash_transaction_amount
                , tmp_cash_transaction_dts
                , tmp_cash_transaction_name
-            FROM CASH_TRANSACTION
-            WHERE CT_T_ID = trade_id[i];
+            FROM cash_transaction
+            WHERE ct_t_id = trade_id[i];
         END IF;
         IF irow_count > 0 THEN
             cash_transaction_amount[i] := tmp_cash_transaction_amount;

@@ -233,7 +233,8 @@ BEGIN
         trade_price[i] := rs.t_trade_price;
         IF num_updated < max_updates THEN
             -- Select the SETTLEMENT row for this trade
-            SELECT se_cash_type INTO cash_type
+            SELECT se_cash_type
+            INTO cash_type
             FROM settlement
             WHERE se_t_id = rs.T_ID;
             IF rs.t_is_cash THEN
@@ -436,9 +437,10 @@ BEGIN
         IF is_cash[i] = 1 THEN
             IF num_updated < max_updates THEN
                 -- Modify the CASH_TRANSACTION row for this trade
-                SELECT cash_transaction.ct_name INTO ct_name
-                FROM CASH_TRANSACTION
-                WHERE CT_T_ID = trade_list[i];
+                SELECT cash_transaction.ct_name
+                INTO ct_name
+                FROM cash_transaction
+                WHERE ct_t_id = trade_list[i];
                 IF ct_name LIKE '% shares of %' THEN
 			        ct_name := type_name[i] || ' ' || quantity[i] || ' Shares of ' || s_name[i];
                 ELSE

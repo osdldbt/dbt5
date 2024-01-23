@@ -33,10 +33,10 @@ CREATE TYPE SECURITY_DETAIL_FIN AS (
 CREATE TYPE SECURITY_DETAIL_NEWS AS (
     item BYTEA
   , dts TIMESTAMP
-  , src VARCHAR ( 30)
-  , auth varchar(30)
-  , headline varchar(80)
-  , summary varchar(255)
+  , src VARCHAR( 30)
+  , auth VARCHAR(30)
+  , headline VARCHAR(80)
+  , summary VARCHAR(255)
 );
 
 -- Clause 3.3.5.3
@@ -138,41 +138,42 @@ BEGIN
          , exchange.ex_desc
          , exchange.ex_name
          , exchange.ex_num_symb
-         , exchange.ex_open INTO s_name
-         , sdf1.co_id
-         , co_name
-         , sp_rate
-         , ceo_name
-         , co_desc
-         , open_date
-         , co_st_id
-         , co_ad_line1
-         , co_ad_line2
-         , co_ad_town
-         , co_ad_div
-         , co_ad_zip
-         , co_ad_ctry
-         , num_out
-         , start_date
-         , exch_date
-         , pe_ratio
-         , x52_wk_high
-         , x52_wk_high_date
-         , x52_wk_low
-         , x52_wk_low_date
-         , divid
-         , yield
-         , ex_ad_div
-         , ex_ad_ctry
-         , ex_ad_line1
-         , ex_ad_line2
-         , ex_ad_town
-         , ex_ad_zip
-         , ex_close
-         , ex_desc
-         , ex_name
-         , ex_num_symb
-         , ex_open
+         , exchange.ex_open
+    INTO s_name
+       , sdf1.co_id
+       , co_name
+       , sp_rate
+       , ceo_name
+       , co_desc
+       , open_date
+       , co_st_id
+       , co_ad_line1
+       , co_ad_line2
+       , co_ad_town
+       , co_ad_div
+       , co_ad_zip
+       , co_ad_ctry
+       , num_out
+       , start_date
+       , exch_date
+       , pe_ratio
+       , x52_wk_high
+       , x52_wk_high_date
+       , x52_wk_low
+       , x52_wk_low_date
+       , divid
+       , yield
+       , ex_ad_div
+       , ex_ad_ctry
+       , ex_ad_line1
+       , ex_ad_line2
+       , ex_ad_town
+       , ex_ad_zip
+       , ex_close
+       , ex_desc
+       , ex_name
+       , ex_num_symb
+       , ex_open
     FROM security
        , company
        , address ca

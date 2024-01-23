@@ -40,7 +40,7 @@ DECLARE
     r RECORD;
 BEGIN
     IF cust_id = 0 THEN
-        SELECT C_ID
+        SELECT c_id
         INTO cust_id
         FROM customer
         WHERE c_tax_id = tax_id;
