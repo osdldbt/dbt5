@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.5.2 (2024-01-24)
 
 - Add pgsql-plans script to capture query explain plans for PostgreSQL
 - build-egen automatically includes pg_conf --includedir if pg_config is
