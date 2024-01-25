@@ -35,6 +35,8 @@ OPTIONS
 --patch-dir=DIRECTORY  *directory* of patches to apply to TPC-E Tools,
         overrides *patchdir* environment variable, default
         /usr/share/dbt5/patches
+--source-dir=DIRECTORY  *directory* of code to copy to TPC-E Tools, overrides
+        *sourcedir* environment variable, default /usr/share/dbt5/src
 -V, --version  output version information, then exit
 --help  This usage message.  Or **-?**.
 

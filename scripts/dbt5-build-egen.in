@@ -21,7 +21,10 @@ Options:
                  DIRECTORY of any custom code to build with TPC-E Tools
   --patch-dir=DIRECTORY
                  DIRECTORY of patches to apply to TPC-E Tools, overrides
-                 PATCHDIR environment variable, default /usr/share/dbt5/patches
+                 PATCHDIR environment variable, default ${PATCHDIR}
+  --source-dir=DIRECTORY
+                 DIRECTORY of source files to copy to TPC-E Tools, overrides
+                 SOURCEDIR environment variable, default ${SOURCEDIR}
   -V, --version  output version information, then exit
   -?, --help     show this help, then exit
 
@@ -139,9 +142,13 @@ if [ ${PATCH} -eq 1 ]; then
 	done < "${SERIESFILE}"
 fi
 
+if command -v pg_config > /dev/null; then
+	EXTRAINCLUDE="-I$(pg_config --includedir)"
+fi
+
 (cd "${EGENDIR}/prj" && \
 		make -f Makefile clean && \
-		CCFLAGS="-Wall -D__unix -g -std=c++98 -ansi -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D_LARGEFILE64_SOURCE -DCOMPILE_CUSTOM_LOAD -DPGSQL -I${EGENDIR}/inc ${INCLUDEDIR} -I${EGENDIR}/Utilities/inc" \
+		CCFLAGS="-Wall -D__unix -g -std=c++98 -ansi -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D_LARGEFILE64_SOURCE -DCOMPILE_CUSTOM_LOAD -DPGSQL -I${EGENDIR}/inc ${INCLUDEDIR} -I${EGENDIR}/Utilities/inc ${EXTRAINCLUDE}" \
 		LDFLAGS="-lpthread -lpq" \
 		make -j$(nproc) -f Makefile) \
 		|| (echo "ERROR: cannot build egen" && exit 1)
