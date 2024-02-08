@@ -85,7 +85,7 @@ list_multiple_systems_summary()
 	do
 		SNAME="$(basename "$(dirname "${SYSSTATDIR}")")"
 		echo "   * - ${SNAME}"
-		echo "     - $(head -n "${INDIR}/${MYTAG}/readme.txt")"
+		echo "     - $(head -n 1 "${INDIR}/${MYTAG}/readme.txt")"
 		echo "     - $(show_system_links "${MYTAG}/${SNAME}")"
 		echo "     - $(show_profile_links "${MYTAG}/${SNAME}/profile")"
 
@@ -120,16 +120,14 @@ list_processes2()
 			while IFS= read -r PIDSTATCSV
 	do
 		PIDSTATDIR="$(dirname "${PIDSTATCSV}")"
-		echo "* $(basename "$(dirname "${PIDSTATDIR}")")"
+		SNAME="$(basename "$(dirname "${PIDSTATDIR}")")"
+		echo "* ${SNAME}"
 		ts plot-pidstat -i "${PIDSTATCSV}" -o "${PIDSTATDIR}/pidstat"
 
 		# Try not to count execution of the binaries on remote systems.
 		COUNTCE="$(grep BrokerageHouseMain "$PIDSTATCSV" | grep -c -v ssh)"
 		COUNTDRIVER="$(grep DriverMain "$PIDSTATCSV" | grep -c -v ssh)"
 		COUNTMEE="$(grep MarketExchangeMain "$PIDSTATCSV" | grep -c -v ssh)"
-		SNAME="$(basename "$(dirname "$(dirname "${PIDSTATCSV}")")")"
-
-		echo "* ${SNAME}"
 
 		if [ "${COUNTDRIVER}" -gt 0 ]; then
 			PTAG="DriverMain"

@@ -1,3 +1,7 @@
+vX.Y.X (YYYY-MM-DD)
+
+- Minor cosmetic corrections in report
+
 v0.5.2 (2024-01-24)
 
 - Add pgsql-plans script to capture query explain plans for PostgreSQL
