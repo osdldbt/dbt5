@@ -17,11 +17,11 @@ Usage:
 Options:
   -b POSITION    beginning customer ordinal POSITION, default ${POSITION}
   -c CUSTOMERS   number of CUSTOMERS for this instance, default ${INSTANCE_CUSTOMERS}
-  --db-host ADDRESS
+  --db-host=ADDRESS
                  ADDRESS of database system
-  --db-port PORT
+  --db-port=PORT
                  database listening PORT number
-  --db-user USER
+  --db-user=USER
                  database USER
   --tpcetools=EGENHOME
                  EGENHOME is the directory location of the TPC-E Tools
@@ -34,7 +34,7 @@ Options:
   -?, --help     show this help, then exit
 
 PostgreSQL specific options:
-  --db-parameters OPTIONS
+  --db-parameters=OPTIONS
                  GUC command line OPTIONS to pass to postgresql, when
                  privileged
 
@@ -104,9 +104,12 @@ while [ "${#}" -gt 0 ] ; do
 	(--privileged)
 		BUILDARGS="${BUILDARGS} -U"
 		;;
+	(--tpcetools)
+		shift
+		EGENHOME="${1}"
+		;;
 	(--tpcetools=?*)
 		EGENHOME="${1#*--tpcetools=}"
-		BUILDARGS="${BUILDARGS} -i ${EGENHOME}"
 		;;
 	(-t)
 		shift
@@ -146,6 +149,7 @@ if [ "${EGENHOME}" = "" ]; then
 	echo "for more information." 1>&2
 	exit 1
 fi
+BUILDARGS="${BUILDARGS} -i ${EGENHOME}"
 
 if [ $# -eq 0 ]; then
 	printf "Specify which DBMS system to test, try \"%s --help\" " \
