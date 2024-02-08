@@ -2,6 +2,8 @@ vX.Y.X (YYYY-MM-DD)
 
 - Minor cosmetic corrections in report
 - Update AppImage to include touchstone-tools v0.7.3
+- Update "run" script with consistent use of --tpcetools flag with other
+  scripts
 
 v0.5.2 (2024-01-24)
 

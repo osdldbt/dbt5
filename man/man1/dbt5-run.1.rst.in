@@ -35,7 +35,6 @@ OPTIONS
 -f SCALE_FACTOR  Default 500.
 --help  This usage message.  Or **-?**.
 -h HOSTNAME  Database *hostname*, default localhost.
--i PATH  *path* to TPC-E Tools.
 -l DELAY  Pacing *delay* in seconds, default 0.
 -n NAME  Database *name*, default dbt5.
 --privileged  Run test as a privileged database user.
@@ -43,6 +42,7 @@ OPTIONS
 -r SEED  Random number *seed*, using this invalidates test.
 --stats  Collect system stats and profile.
 -s DELAY  *delay* between starting threads in milliseconds, default 1000.
+--tpcetools=EGENHOME  *egenhome* is the directory location of the TPC-E Tools
 -t CUSTOMERS  Total *customers*, default 5000.
 -u USERS  Number of *users* to emulate, default 1.
 -V, --version  output version information, then exit

@@ -106,7 +106,6 @@ General options:
   -f SCALE_FACTOR
                  default ${SCALE_FACTOR}
   -h HOSTNAME    database hostname, default localhost
-  -i PATH        PATH to TPC-E Tools
   -l DELAY       pacing DELAY in seconds, default ${PACING_DELAY}
   -n NAME        database name, default ${DB_NAME}
   --privileged   run tests as a privileged database user
@@ -115,6 +114,8 @@ General options:
   --stats        collect system stats and profile
   -s DELAY       DELAY between starting threads in milliseconds,
                  default ${SLEEPY}
+  --tpcetools=EGENHOME
+                 EGENHOME is the directory location of the TPC-E Tools
   -t CUSTOMERS   total CUSTOMERS, default ${CUSTOMERS_TOTAL}
   -u USERS       number of USERS to emulate, default ${USERS}
   -w DAYS        initial trade DAYS, default ${ITD}
@@ -182,10 +183,6 @@ while [ "${#}" -gt 0 ] ; do
 		shift
 		DB_HOSTNAME="${1}"
 		;;
-	(-i)
-		shift
-		EGENDIR="${1}"
-		;;
 	(-l)
 		shift
 		PACING_DELAY="$(echo "${1}" | grep -E "^[0-9]+$")"
@@ -213,6 +210,13 @@ while [ "${#}" -gt 0 ] ; do
 		shift
 		SLEEPY="$(echo "${1}" | grep -E "^[0-9]+$")"
 		validate_parameter "s" "${1}" "${SLEEPY}"
+		;;
+	(--tpcetools)
+		shift
+		EGENDIR="${1}"
+		;;
+	(--tpcetools=?*)
+		EGENDIR="${1#*--tpcetools=}"
 		;;
 	(-t)
 		shift
@@ -270,7 +274,7 @@ shift
 # Check parameters.
 
 if [ "${EGENDIR}" = "" ]; then
-	usage "specify path to EGen using -i <path>"
+	usage "specify path to EGen using --tpcetools=<path>"
 	exit 1
 fi
 
