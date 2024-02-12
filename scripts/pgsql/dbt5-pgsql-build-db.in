@@ -142,7 +142,7 @@ if [ ${PRIVILEGED} -eq 1 ] && [ ${REBUILD_DB} -eq 1 ]; then
 	eval dbt5-pgsql-drop-db ${PORTARG}
 fi
 
-eval "dbt5-pgsql-create-db ${PORTARG}" || exit 1
+eval "dbt5-pgsql-create-db ${DBNAMEARG} ${PORTARG}" || exit 1
 
 if [ ${PRIVILEGED} -eq 1 ]; then
 	#

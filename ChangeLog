@@ -2,6 +2,8 @@ vX.Y.Z (YYYY-MM-DD)
 
 - build-egen automatically use `pg_conf --libdir` for additional ld flags if
   pg_config is detected
+- Continue successfully if postgresql database already exists instead of
+  failing
 
 v0.6.0 (2024-02-08)
 
