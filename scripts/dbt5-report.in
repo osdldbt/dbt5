@@ -114,15 +114,19 @@ list_processes2()
 	TITLE="${1}"
 	MYPTAG="${2}"
 
+	PIDSTATFILES="$(find "${INDIR}/${MYPTAG}" -name pidstat.csv 2> /dev/null)"
+	for PIDSTATCSV in ${PIDSTATFILES}; do
+		PIDSTATDIR="$(dirname "${PIDSTATCSV}")"
+		ts plot-pidstat -i "${PIDSTATCSV}" -o "${PIDSTATDIR}/pidstat" &
+	done
+	wait
+
 	echo "${TITLE}"
 	echo ""
-	find "${INDIR}/${MYPTAG}" -name pidstat.csv 2> /dev/null | \
-			while IFS= read -r PIDSTATCSV
-	do
+	for PIDSTATCSV in ${PIDSTATFILES}; do
 		PIDSTATDIR="$(dirname "${PIDSTATCSV}")"
 		SNAME="$(basename "$(dirname "${PIDSTATDIR}")")"
 		echo "* ${SNAME}"
-		ts plot-pidstat -i "${PIDSTATCSV}" -o "${PIDSTATDIR}/pidstat"
 
 		# Try not to count execution of the binaries on remote systems.
 		COUNTCE="$(grep BrokerageHouseMain "$PIDSTATCSV" | grep -c -v ssh)"
@@ -319,80 +323,103 @@ done
 
 echo "Generating transaction distribution charts..."
 mkdir -p "${OUTDIR}/txn" || exit 1
-dbt-plot transaction-distribution "Security Detail" 0 "${OUTDIR}/txn" 1 \
+# shellcheck disable=SC2086
+(dbt-plot transaction-distribution "Security Detail" 0 "${OUTDIR}/txn" 1 \
 		${MIXFILES} || warning \
-		"Could not create Security Detail response time distribution chart"
-dbt-plot transaction-distribution "Broker Volume" 1 "${OUTDIR}/txn" 2 \
+		"Could not create Security Detail response time distribution chart") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-distribution "Broker Volume" 1 "${OUTDIR}/txn" 2 \
 		${MIXFILES} || warning \
-		"Could not create Broker Volume response time distribution chart"
-dbt-plot transaction-distribution "Customer Position" 2 "${OUTDIR}/txn" 3 \
+		"Could not create Broker Volume response time distribution chart") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-distribution "Customer Position" 2 "${OUTDIR}/txn" 3 \
 		${MIXFILES} || warning \
-		"Could not create Customer Position response time distribution chart"
-dbt-plot transaction-distribution "Market Watch" 3 "${OUTDIR}/txn" 4 \
+		"Could not create Customer Position response time distribution chart") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-distribution "Market Watch" 3 "${OUTDIR}/txn" 4 \
 		${MIXFILES} || warning \
-		"Could not create Market Watch response time distribution chart"
-dbt-plot transaction-distribution "Trade Status" 4 "${OUTDIR}/txn" 5 \
+		"Could not create Market Watch response time distribution chart") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-distribution "Trade Status" 4 "${OUTDIR}/txn" 5 \
 		${MIXFILES} || warning \
-		"Could not create Trade Status response time distribution chart"
-dbt-plot transaction-distribution "Trade Lookup" 5 "${OUTDIR}/txn" 6 \
+		"Could not create Trade Status response time distribution chart") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-distribution "Trade Lookup" 5 "${OUTDIR}/txn" 6 \
 		${MIXFILES} || warning \
-		"Could not create Trade Lookup response time distribution chart"
-dbt-plot transaction-distribution "Trade Order" 6 "${OUTDIR}/txn" 7 \
+		"Could not create Trade Lookup response time distribution chart") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-distribution "Trade Order" 6 "${OUTDIR}/txn" 7 \
 		${MIXFILES} || warning \
-		"Could not create Trade Order response time distribution chart"
-dbt-plot transaction-distribution "Trade Update" 7 "${OUTDIR}/txn" 8 \
+		"Could not create Trade Order response time distribution chart") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-distribution "Trade Update" 7 "${OUTDIR}/txn" 8 \
 		${MIXFILES} || warning \
-		"Could not create Trade Update response time distribution chart"
-dbt-plot transaction-distribution "Market Feed" 8 "${OUTDIR}/txn" 9 \
+		"Could not create Trade Update response time distribution chart") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-distribution "Market Feed" 8 "${OUTDIR}/txn" 9 \
 		${MIXFILES} || warning \
-		"Could not create Market Feed response time distribution chart"
-dbt-plot transaction-distribution "Trade Result" 9 "${OUTDIR}/txn" 10 \
+		"Could not create Market Feed response time distribution chart") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-distribution "Trade Result" 9 "${OUTDIR}/txn" 10 \
 		${MIXFILES} || warning \
-		"Could not create Trade Result response time distribution chart"
-dbt-plot transaction-distribution "Data Maintenance" 10 "${OUTDIR}/txn" 11 \
+		"Could not create Trade Result response time distribution chart") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-distribution "Data Maintenance" 10 "${OUTDIR}/txn" 11 \
 		${MIXFILES} || warning \
-		"Could not create Data Maintenance response time distribution chart"
+		"Could not create Data Maintenance response time distribution chart") &
 
 echo "Generating sar charts..."
-find "${INDIR}" -type d -name sysstat 2> /dev/null | \
-		while IFS= read -r SARDIR; do
-	ts plot-sar -i "${SARDIR}/sar"
+# shellcheck disable=SC2044
+for SARDIR in $(find "${INDIR}" -type d -name sysstat 2> /dev/null); do
+	ts plot-sar -i "${SARDIR}/sar" &
 done
+wait
 
 echo "Generating transaction rate charts..."
-dbt-plot transaction-rate "Security Detail" 0 tps "${OUTDIR}/txn" 1 \
+# shellcheck disable=SC2086
+(dbt-plot transaction-rate "Security Detail" 0 tps "${OUTDIR}/txn" 1 \
 		${MIXFILES} 2> /dev/null || warning \
-		"Could not create Security Detail transaction rate charts"
-dbt-plot transaction-rate "Broker Volume" 1 tps "${OUTDIR}/txn" 2 \
+		"Could not create Security Detail transaction rate charts") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-rate "Broker Volume" 1 tps "${OUTDIR}/txn" 2 \
 		${MIXFILES} 2> /dev/null || warning \
-		"Could not create Broker Volume transaction rate charts"
-dbt-plot transaction-rate "Customer Position" 2 tps "${OUTDIR}/txn" 3 \
+		"Could not create Broker Volume transaction rate charts") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-rate "Customer Position" 2 tps "${OUTDIR}/txn" 3 \
 		${MIXFILES} 2> /dev/null || warning \
-		"Could not create Customer Position transaction rate charts"
-dbt-plot transaction-rate "Market Watch" 3 tps "${OUTDIR}/txn" 4 \
+		"Could not create Customer Position transaction rate charts") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-rate "Market Watch" 3 tps "${OUTDIR}/txn" 4 \
 		${MIXFILES} 2> /dev/null || warning \
-		"Could not create Market Watch transaction rate charts"
-dbt-plot transaction-rate "Trade Status" 4 tps "${OUTDIR}/txn" 5 \
+		"Could not create Market Watch transaction rate charts") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-rate "Trade Status" 4 tps "${OUTDIR}/txn" 5 \
 		${MIXFILES} 2> /dev/null || warning \
-		"Could not create Trade Status transaction rate charts"
-dbt-plot transaction-rate "Trade Lookup" 5 tps "${OUTDIR}/txn" 6 \
+		"Could not create Trade Status transaction rate charts") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-rate "Trade Lookup" 5 tps "${OUTDIR}/txn" 6 \
 		${MIXFILES} 2> /dev/null || warning \
-		"Could not create Trade Lookup transaction rate charts"
-dbt-plot transaction-rate "Trade Order" 6 tps "${OUTDIR}/txn" 7 \
+		"Could not create Trade Lookup transaction rate charts") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-rate "Trade Order" 6 tps "${OUTDIR}/txn" 7 \
 		${MIXFILES} 2> /dev/null || warning \
-		"Could not create Trade Order transaction rate charts"
-dbt-plot transaction-rate "Trade Update" 7 tps "${OUTDIR}/txn" 8 \
+		"Could not create Trade Order transaction rate charts") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-rate "Trade Update" 7 tps "${OUTDIR}/txn" 8 \
 		${MIXFILES} 2> /dev/null || warning \
-		"Could not create Trade Update transaction rate charts"
-dbt-plot transaction-rate "Market Feed" 8 tps "${OUTDIR}/txn" 9 \
+		"Could not create Trade Update transaction rate charts") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-rate "Market Feed" 8 tps "${OUTDIR}/txn" 9 \
 		${MIXFILES} 2> /dev/null || warning \
-		"Could not create Market Feed transaction rate charts"
-dbt-plot transaction-rate "Trade Result" 9 tps "${OUTDIR}/txn" 10 \
+		"Could not create Market Feed transaction rate charts") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-rate "Trade Result" 9 tps "${OUTDIR}/txn" 10 \
 		${MIXFILES} 2> /dev/null || warning \
-		"Could not create Trade Result transaction rate charts"
-dbt-plot transaction-rate "Data Maintenance" 10 tps "${OUTDIR}/txn" 11 \
+		"Could not create Trade Result transaction rate charts") &
+# shellcheck disable=SC2086
+(dbt-plot transaction-rate "Data Maintenance" 10 tps "${OUTDIR}/txn" 11 \
 		${MIXFILES} 2> /dev/null || warning \
-		"Could not create Data Maintenance transaction rate charts"
+		"Could not create Data Maintenance transaction rate charts") &
 
 REPORTFILE="${OUTDIR}/report.rst"
 cat > "${REPORTFILE}" << __EOF__
