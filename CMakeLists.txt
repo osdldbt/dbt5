@@ -87,13 +87,10 @@ set (APPIMAGE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/appimage)
 
 add_custom_target(appimage-podman
     COMMAND cp -aLr /usr/local/AppDir .
-    COMMAND cp -aL ${CMAKE_BINARY_DIR}/AppRun AppDir
-    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt5.desktop AppDir
-    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt5.svg AppDir
-    COMMAND mkdir -p AppDir/usr/share/metainfo
-    COMMAND cp -aL ${APPIMAGE_SOURCE_DIR}/dbt5.appdata.xml
-            AppDir/usr/share/metainfo
-    COMMAND mkdir -p AppDir/usr/lib
     COMMAND VERSION=${PROJECT_VERSION} /usr/local/squashfs-root/AppRun
-            --comp=xz AppDir
+            --appdir AppDir
+            --custom-apprun=${CMAKE_BINARY_DIR}/AppRun
+            --desktop-file=${APPIMAGE_SOURCE_DIR}/dbt5.desktop
+            --icon-file=${APPIMAGE_SOURCE_DIR}/dbt5.svg
+            --output appimage
 )

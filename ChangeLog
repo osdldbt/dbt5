@@ -4,6 +4,7 @@ vX.Y.Z (YYYY-MM-DD)
   pg_config is detected
 - Continue successfully if postgresql database already exists instead of
   failing
+- Use linuxdeploy to create AppImage
 
 v0.6.0 (2024-02-08)
 
