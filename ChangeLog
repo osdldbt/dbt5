@@ -6,6 +6,7 @@ vX.Y.Z (YYYY-MM-DD)
   failing
 - Use linuxdeploy to create AppImage
 - Build gnuplot explicitly disabling unnecessary options for AppImage
+- BDR aware PostgreSQL database loading scripts
 
 v0.6.0 (2024-02-08)
 
