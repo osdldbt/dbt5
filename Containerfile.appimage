@@ -99,7 +99,12 @@ RUN wget -O /tmp/gnuplot-${GNUPLOTVER}.tar.gz -q --no-check-certificate \
          https://sourceforge.net/projects/gnuplot/files/gnuplot/5.4.6/gnuplot-5.4.6.tar.gz/download && \
     tar -C /usr/local/src -xf /tmp/gnuplot-${GNUPLOTVER}.tar.gz
 WORKDIR /usr/local/src/gnuplot-${GNUPLOTVER}
-RUN ./configure -q --prefix=/usr/local/AppDir/usr && \
+RUN ./configure -q --prefix=/usr/local/AppDir/usr --without-libcerf \
+                --without-latex --without-readline --without-lua \
+                --without-tektronix --with-qt=no --disable-history-file \
+                --disable-x11-external --disable-raise-console \
+                --disable-wxwidgets --disable-plugins \
+                --disable-dependency-tracking && \
     make -s -j$(nproc) install && \
     sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/gnuplot
 

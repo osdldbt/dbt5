@@ -5,6 +5,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Continue successfully if postgresql database already exists instead of
   failing
 - Use linuxdeploy to create AppImage
+- Build gnuplot explicitly disabling unnecessary options for AppImage
 
 v0.6.0 (2024-02-08)
 
