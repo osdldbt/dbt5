@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.6.1 (2024-02-17)
 
 - build-egen automatically use `pg_conf --libdir` for additional ld flags if
   pg_config is detected
