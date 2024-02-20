@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- pgsql-load-stored-procs: fix accidental bug introduced in v0.2.0
+
 v0.6.1 (2024-02-17)
 
 - build-egen automatically use `pg_conf --libdir` for additional ld flags if

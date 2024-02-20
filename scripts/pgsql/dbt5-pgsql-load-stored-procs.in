@@ -28,7 +28,7 @@ while getopts "d:i:p:t:" OPT; do
 		PORTARG="-p ${OPTARG}"
 		;;
 	t)
-		type="${OPTARG}"
+		TYPE="${OPTARG}"
 		;;
 	esac
 done
