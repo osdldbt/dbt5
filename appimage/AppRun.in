@@ -6,7 +6,7 @@ usage() {
 Database Test 5 (DBT-5) wrapped up in an AppImage.
 
 Usage:
-  $(basename "${ARGV0}") COMMAND [OPTION]
+  $(basename "${0}") COMMAND [OPTION]
 
 Options:
   The OPTION choices are depdent on the COMMAND specified.  The -h flag will
@@ -24,6 +24,10 @@ $(find "${APPDIR}/usr/bin" -maxdepth 1 -type f -name "dbt5-*" -printf "%f\n" | s
 @HOMEPAGE@
 EOF
 }
+
+if [ "${APPDIR}" = "" ]; then
+	APPDIR="$(cd -- "$(dirname -- "${0}")" && pwd)"
+fi
 
 if [ $# -eq 0 ]; then
 	usage
@@ -56,8 +60,8 @@ while [ "${#}" -gt 0 ] ; do
 		exit 0
 		;;
 	(--* | -*)
-		echo "$(basename "${ARGV0}"): invalid option -- '${1}'"
-		echo "try \"$(basename "${ARGV0}") --help\" for more information."
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
 		exit 1
 		;;
 	(*)
@@ -85,7 +89,7 @@ fi
 COMMAND="${APPDIR}/usr/bin/dbt5-${1}"
 
 if [ ! -f "$COMMAND" ]; then
-	echo "COMMAND '${1}' not found, run '$(basename "${ARGV0}")' without arguments for usage."
+	echo "COMMAND '${1}' not found, run '$(basename "${0}")' without arguments for usage."
 	exit 1
 fi
 
