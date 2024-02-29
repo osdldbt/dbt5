@@ -9,34 +9,31 @@
 
 usage()
 {
-	echo "Usage:"
-	echo "    $0 [option]"
-	echo "    $0 -h"
-	echo "Options:"
-	echo "    -b <integer>"
-	echo "        Beginning customer ordinal position"
-	echo "    -c <integer>"
-	echo "        Number of customers for this instance"
-	echo "    -d <dbname>"
-	echo "        PGDATABASE name, default ${DBT5DBNAME}"
-	echo "    -h"
-	echo "        this help"
-	echo "    -i <path>"
-	echo "        Path to EGen"
-	echo "    -l <port>"
-	echo "        database port"
-	echo "    -p <database_parameters>"
-	echo "        PostgreSQL database parameters"
-	echo "    -r"
-	echo "        Drop existing database before building a new database"
-	echo "    -s <scale factor>"
-	echo "        Scale factor (customers per 1 trtps)"
-	echo "    -t <integer>"
-	echo "        Number of customers (total)"
-	echo "    -u"
-	echo "        Use tablespaces"
-	echo "    -w <days>"
-	echo "        Initial trade days (business days) to populate" 
+	cat << EOF
+$(basename "${0}") is the Database Test 5 (DBT-5) PostgreSQL database builder
+
+Usage:
+  $(basename "${0}") [OPTIONS]
+
+General options:
+  -b CUSTOMER_ID Beginning customer ordinal position
+  -c CUSTOMERS   Number of CUSTOMERS for this instance
+  -d DBNAME      PGDATABASE name, default ${DBT5DBNAME}"
+  -i EGENHOME    EGENHOME is the directory location of the TPC-E Tools
+  -l PORT        Database PORT number
+  -p PARAMETERS  PostgreSQL database PARAMETERS
+  -r             Drop existing database before building a new database
+  -s SCALE_FACTOR
+                 Scale factor (customers per 1 trtps), default ${SCALE_FACTOR}
+  -t CUSTOMERS   Total CUSTOMERS, default ${CUSTOMERS_TOTAL}
+  -U             Privileged database user
+  -u             Use tablespaces
+  -w DAYS        Initial trade DAYS (business days) to populate
+  -V, --version  Output version information, then exit
+  -?, --help         Output this help, then exit
+
+@HOMEPAGE@
+EOF
 }
 
 load_table()
@@ -61,56 +58,102 @@ DBT5DBNAME="dbt5"
 SCALE_FACTOR=500
 STARTING_CUSTOMER_ID=1
 ITD=300
+TABLESPACES_FLAG=""
 
-while getopts "b:c:d:hi:l:p:rs:t:Uuw:" OPT; do
-	case ${OPT} in
-	b)
-		STARTING_CUSTOMER_ID=${OPTARG}
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-b)
+		shift
+		STARTING_CUSTOMER_ID="${1}"
 		;;
-	c)
-		CUSTOMERS_INSTANCE=${OPTARG}
+	(-b*)
+		STARTING_CUSTOMER_ID="${1#*-b}"
 		;;
-	d)
-		DBT5DBNAME=${OPTARG}
+	(-c)
+		shift
+		CUSTOMERS_INSTANCE="${1}"
 		;;
-	i)
-		EGENDIR=$(realpath "${OPTARG}")
+	(-c*)
+		CUSTOMERS_INSTANCE="${1#*-c}"
 		;;
-	h)
+	(-d)
+		shift
+		DBT5DBNAME="${1}"
+		;;
+	(-d*)
+		DBT5DBNAME="${1#*-d}"
+		;;
+	(-i)
+		shift
+		EGENDIR="$(realpath "${1}")"
+		;;
+	(-i*)
+		EGENDIR="$(realpath "${1#*-i}")"
+		;;
+	(-l)
+		shift
+		PORT="${1}"
+		;;
+	(-l*)
+		PORT="${1#*-l}"
+		;;
+	(-p)
+		shift
+		PARAMETERS="${1}"
+		;;
+	(-p*)
+		PARAMETERS="${1#*-p}"
+		;;
+	(-r)
+		REBUILD_DB=1
+		;;
+	(-s)
+		shift
+		SCALE_FACTOR="${1}"
+		;;
+	(-s*)
+		SCALE_FACTOR="${1#*-s}"
+		;;
+	(-t)
+		shift
+		CUSTOMERS_TOTAL="${1}"
+		;;
+	(-t*)
+		CUSTOMERS_TOTAL="${1#*-t}"
+		;;
+	(-U)
+		PRIVILEGED=1
+		;;
+	(-u)
+		TABLESPACES_FLAG="-t"
+		;;
+	(-V | --version)
+		echo "dbt5 (Database Test 5) v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-w)
+		shift
+		ITD="${1}"
+		;;
+	(-w*)
+		ITD="${1#*-w}"
+		;;
+	(-\? | --help)
 		usage
 		exit 0
 		;;
-	l)
-		PORT=${OPTARG}
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
 		;;
-	p)
-		PARAMETERS=${OPTARG}
-		;;
-	r)
-		REBUILD_DB=1
-		;;
-	s)
-		SCALE_FACTOR=${OPTARG}
-		;;
-	t)
-		CUSTOMERS_TOTAL=${OPTARG}
-		;;
-	u)
-		TABLESPACES_FLAG="-t"
-		;;
-	U)
-		PRIVILEGED=1
-		;;
-	w)
-		ITD=${OPTARG}
+	(*)
+		break
 		;;
 	esac
+	shift
 done
-
-if [ $# -eq 0 ]; then
-	usage
-	exit 1
-fi
 
 if [ "x${EGENDIR}" = "x" ]; then
 	echo "EGENDIR not defined, specify EGen's directory."
