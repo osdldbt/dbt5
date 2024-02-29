@@ -28,6 +28,8 @@ General options:
   -r             Drop existing database before building a new database
   -s SCALE_FACTOR
                  Scale factor (customers per 1 trtps), default ${SCALE_FACTOR}
+  --skip-data-generation
+                 Do not generate flat files
   -t CUSTOMERS   Total CUSTOMERS, default ${CUSTOMERS_TOTAL}
   -U             Privileged database user
   -u             Use tablespaces
@@ -75,6 +77,7 @@ CUSTOMERS_INSTANCE=5000
 CUSTOMERS_TOTAL=5000
 DBT5DBNAME="dbt5"
 ROWS_PER_COMMIT=0
+SKIP_DATA_GENERATION=0
 SCALE_FACTOR=500
 STARTING_CUSTOMER_ID=1
 ITD=300
@@ -141,6 +144,9 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(-s*)
 		SCALE_FACTOR="${1#*-s}"
+		;;
+	(--skip-data-generation)
+		SKIP_DATA_GENERATION=1
 		;;
 	(-t)
 		shift
@@ -236,15 +242,17 @@ if [ "${MODE}" = "CUSTOM" ]; then
 			-c ${CUSTOMERS_INSTANCE} \
 			-t ${CUSTOMERS_TOTAL} || exit 1
 elif [ "${MODE}" = "FLAT" ]; then
-	${EGENLOADER} \
-			-i ${EGENDIR}/flat_in \
-			-o ${EGENDIR}/flat_out \
-			-b ${STARTING_CUSTOMER_ID} \
-			-l ${MODE} \
-			-f ${SCALE_FACTOR} \
-			-w ${ITD} \
-			-c ${CUSTOMERS_INSTANCE} \
-			-t ${CUSTOMERS_TOTAL} || exit 1
+	if [ "${SKIP_DATA_GENERATION}" -eq 0 ]; then
+		${EGENLOADER} \
+				-i "${EGENDIR}/flat_in" \
+				-o "${EGENDIR}/flat_out" \
+				-b "${STARTING_CUSTOMER_ID}" \
+				-l "${MODE}" \
+				-f "${SCALE_FACTOR}" \
+				-w "${ITD}" \
+				-c "${CUSTOMERS_INSTANCE}" \
+				-t "${CUSTOMERS_TOTAL}" || exit 1
+	fi
 	load_table account_permission AccountPermission.txt &
 	load_table address Address.txt &
 	load_table broker Broker.txt &
