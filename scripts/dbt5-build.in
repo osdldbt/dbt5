@@ -28,6 +28,9 @@ Options:
   -f SCALE_FACTOR
                  customer per Trade Result transactions per second, default ${SCALE_FACTOR}
   --privileged   run test as a privileged operating system and database user
+  --rows-per_commit ROWS
+                 Specify how many ROWS are sent before a COMMIT, the actual
+                 number of rows is approximately calculated, default is all
   -t CUSTOMERS   number of CUSTOMERS total in the database, default ${TOTAL_CUSTOMERS}
   -V, --version  output version information, then exit
   -w DAYS        number of DAYS of initial trades to populate, default ${DAYS}
@@ -52,6 +55,7 @@ DAYS=300
 DBNAME="dbt5"
 POSITION=1
 INSTANCE_CUSTOMERS=5000
+ROWS_PER_COMMIT=0
 SCALE_FACTOR=500
 TOTAL_CUSTOMERS=5000
 
@@ -103,6 +107,13 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--privileged)
 		BUILDARGS="${BUILDARGS} -U"
+		;;
+	(--rows-per-commit)
+		shift
+		ROWS_PER_COMMIT="${1}"
+		;;
+	(--rows-per-commit=*)
+		ROWS_PER_COMMIT="${1#*--rows-per-commit=}"
 		;;
 	(--tpcetools)
 		shift
@@ -182,4 +193,7 @@ if [ "${DBMS}" = "pgsql" ]; then
 	fi
 fi
 
+if [ "${ROWS_PER_COMMIT}" -gt 1 ]; then
+	BUILDARGS="${BUILDARGS} --rows-per-commit=${ROWS_PER_COMMIT}"
+fi
 eval "dbt5 ${DBMS}-build-db -i ${EGENHOME} -d ${DBNAME} ${BUILDARGS}"

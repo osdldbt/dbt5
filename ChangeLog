@@ -3,6 +3,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql-load-stored-procs: fix accidental bug introduced in v0.2.0
 - Remove `activate` script as AppRun is sufficient for extracted AppImage usage
 - Bump CMake minimum version to 3.5.0 per deprecation warning
+- pgsql-build-db can now COMMIT after N rows with --rows-per-commit flag
 
 v0.6.1 (2024-02-17)
 

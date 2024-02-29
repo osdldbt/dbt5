@@ -22,6 +22,9 @@ General options:
   -i EGENHOME    EGENHOME is the directory location of the TPC-E Tools
   -l PORT        Database PORT number
   -p PARAMETERS  PostgreSQL database PARAMETERS
+  --rows-per_commit ROWS
+                 Specify how many ROWS are sent before a COMMIT, the actual
+                 number of rows is approximately calculated, default is all
   -r             Drop existing database before building a new database
   -s SCALE_FACTOR
                  Scale factor (customers per 1 trtps), default ${SCALE_FACTOR}
@@ -38,13 +41,29 @@ EOF
 
 load_table()
 {
-	eval "${PSQL}" -e <<- EOF
-		BEGIN;
-		TRUNCATE ${1};
-		COPY ${1} FROM '${EGENDIR}/flat_out/${2}'
-		WITH (DELIMITER '|', FREEZE TRUE, NULL '');
-		COMMIT;
-	EOF
+	if [ "${ROWS_PER_COMMIT}" -gt 0 ]; then
+		TOTAL_ROWS="$(wc -l "${EGENDIR}/flat_out/${2}" | cut -d " " -f 1)"
+		# Close enough...
+		N=$(( (TOTAL_ROWS + ROWS_PER_COMMIT - 1) / ROWS_PER_COMMIT ))
+		for K in $(seq 1 ${N}); do
+			eval "${PSQL}" -e <<- EOF
+				BEGIN;
+				\COPY ${1} FROM PROGRAM 'split -n l/${K}/${N} ${EGENDIR}/flat_out/${2}' WITH (DELIMITER '|', NULL '');
+				COMMIT;
+			EOF
+			if [ ${?} -ne 0 ]; then
+				echo "ERROR: loading ${1} ${K} of ${N} chunks"
+				exit 1
+			fi
+		done
+	else
+		eval "${PSQL}" -e <<- EOF
+			BEGIN;
+			TRUNCATE ${1};
+			\COPY ${1} FROM '${EGENDIR}/flat_out/${2}' WITH (DELIMITER '|', FREEZE TRUE, NULL '');
+			COMMIT;
+		EOF
+	fi
 }
 
 MODE="FLAT"
@@ -55,6 +74,7 @@ PRIVILEGED=0
 CUSTOMERS_INSTANCE=5000
 CUSTOMERS_TOTAL=5000
 DBT5DBNAME="dbt5"
+ROWS_PER_COMMIT=0
 SCALE_FACTOR=500
 STARTING_CUSTOMER_ID=1
 ITD=300
@@ -107,6 +127,13 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(-r)
 		REBUILD_DB=1
+		;;
+	(--rows-per-commit)
+		shift
+		ROWS_PER_COMMIT="${1}"
+		;;
+	(--rows-per-commit=*)
+		ROWS_PER_COMMIT="${1#*--rows-per-commit=}"
 		;;
 	(-s)
 		shift
