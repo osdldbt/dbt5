@@ -89,7 +89,7 @@ RUN ./configure -q --prefix=/usr/local --without-libcerf \
     make -s -j$(nproc) install && \
     sed -i -e 's#/usr#././#g' /usr/local/bin/gnuplot
 
-ARG TSTOOLSVER="0.7.3"
+ARG TSTOOLSVER="0.8.0"
 RUN curl -o /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz -SsOL \
          https://gitlab.com/touchstone/touchstone-tools/-/archive/v${TSTOOLSVER}/touchstone-tools-v{TSTOOLSVER}.tar.gz && \
     mkdir -p /usr/local/src/touchstone-tools-v${TSTOOLSVER} && \
