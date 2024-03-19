@@ -17,7 +17,8 @@ RUN apt-get -qq -y update && \
                    libcairo2-dev \
                    libev-dev \
                    libffi-dev \
-                   libpango1.0-dev \
+                   libfribidi-dev \
+                   libharfbuzz-dev \
                    libssl-dev \
                    make \
                    wget \
@@ -76,6 +77,16 @@ WORKDIR /usr/local/src/sqlite-autoconf-${SQLITE3VER}
 RUN ./configure --quiet --silent --prefix=/usr/local && \
     make -s -j $(nproc) install && \
     sed -i -e 's#/usr#././#g' /usr/local/bin/sqlite3
+
+ARG PANGOVER="1.42"
+ARG PANGOMINORVER="4"
+RUN curl -o /tmp/pango-${PANGOVER}.${PANGOMINORVER}.tar.xz -SsOL \
+         https://download.gnome.org/sources/pango/${PANGOVER}/pango-${PANGOVER}.${PANGOMINORVER}.tar.xz && \
+    tar -C /usr/local/src -xf /tmp/pango-${PANGOVER}.${PANGOMINORVER}.tar.xz
+WORKDIR /usr/local/src/pango-${PANGOVER}.${PANGOMINORVER}
+RUN ./configure --quiet --silent --prefix=/usr/local && \
+    make -s -j $(nproc) install && \
+    ldconfig
 
 ARG GNUPLOTVER="5.4.6"
 RUN wget -O /tmp/gnuplot-${GNUPLOTVER}.tar.gz -q --no-check-certificate \

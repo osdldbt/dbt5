@@ -8,6 +8,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Bump touchstone-tools version to v0.8.0 in AppImage
 - Fix AppImage use of rst2html5 with manual override of !# in rst2html5 to use
   python in the AppImage environment
+- Build Pango for AppImage with reduced dependencies
 
 v0.6.1 (2024-02-17)
 
