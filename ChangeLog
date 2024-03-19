@@ -6,6 +6,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql-build-db can now COMMIT after N rows with --rows-per-commit flag
 - pgsql-build-db skip data generation with --skip-data-generation flag
 - Bump touchstone-tools version to v0.8.0 in AppImage
+- Fix AppImage use of rst2html5 with manual override of !# in rst2html5 to use
+  python in the AppImage environment
 
 v0.6.1 (2024-02-17)
 
