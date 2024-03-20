@@ -22,7 +22,7 @@ General options:
   -i EGENHOME    EGENHOME is the directory location of the TPC-E Tools
   -l PORT        Database PORT number
   -p PARAMETERS  PostgreSQL database PARAMETERS
-  --rows-per_commit ROWS
+  --rows-per-commit ROWS
                  Specify how many ROWS are sent before a COMMIT, the actual
                  number of rows is approximately calculated, default is all
   -r             Drop existing database before building a new database

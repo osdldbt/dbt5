@@ -28,7 +28,7 @@ Options:
   -f SCALE_FACTOR
                  customer per Trade Result transactions per second, default ${SCALE_FACTOR}
   --privileged   run test as a privileged operating system and database user
-  --rows-per_commit ROWS
+  --rows-per-commit ROWS
                  Specify how many ROWS are sent before a COMMIT, the actual
                  number of rows is approximately calculated, default is all
   -t CUSTOMERS   number of CUSTOMERS total in the database, default ${TOTAL_CUSTOMERS}
