@@ -236,7 +236,7 @@ DBAAS=0
 DBLIST=""
 DRIVERLIST=""
 CONFIGFILE=""
-CUSTOMERS_INSTANCE=5000
+CUSTOMERS_INSTANCE=0
 CUSTOMERS_TOTAL=5000
 ITD=300
 MARKETLIST=""
@@ -427,11 +427,6 @@ if [ "x${DB_NAME}" = "x" ]; then
 	exit 1
 fi
 
-if [ "${CONFIGFILE}" = "" ] && [ "${CUSTOMERS_INSTANCE}" = "" ]; then
-	usage "specify the number of customers in this instance -c #"
-	exit 1
-fi
-
 if [ "x${CUSTOMERS_TOTAL}" = "x" ]; then
 	usage "specify the number of total customers -t #"
 	exit 1
@@ -474,6 +469,10 @@ fi
 if [ ! "x${SEED}" = "x" ]; then
     SEEDARG="-r ${SEED}"
 	echo "WARNING: INVALID RUN BECAUSE RANDOM NUMBER SEED SPECIFIED"
+fi
+
+if [ "${CUSTOMERS_INSTANCE}" -eq 0 ]; then
+	CUSTOMERS_INSTANCE="${CUSTOMERS_TOTAL}"
 fi
 
 # Determine the output directories for storing data.
