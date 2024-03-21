@@ -14,6 +14,7 @@ RUN apt-get -qq -y update && \
                    file \
                    flex \
                    gcc \
+                   jq \
                    libcairo2-dev \
                    libev-dev \
                    libffi-dev \
@@ -113,6 +114,12 @@ WORKDIR /usr/local/src/touchstone-tools-v${TSTOOLSVER}
 RUN cmake -H. -Bbuilds/release -DCMAKE_INSTALL_PREFIX=/usr && \
     (cd builds/release && make -s install DESTDIR=/usr/local/AppDir) && \
     rm -f /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+         -o /tmp/sh.rustup.sh && \
+    sh /tmp/sh.rustup.sh -y
+
+RUN ${HOME}/.cargo/bin/cargo install toml-cli
 
 WORKDIR /usr/local
 RUN curl -SsOL \

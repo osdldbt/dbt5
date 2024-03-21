@@ -65,10 +65,16 @@ required:
     * PostgreSQL https://www.postgresql.org
         * psql
 * SQLite https://www.sqlite.org/index.html
+
+Optional software:
+
 * **sar**, **pidstat** http://pagesperso-orange.fr/sebastien.godard/ (While the
   scripts assume this particular version of **sar** and **pidstat**, it is
   possible to run on non-Linux based operating systems with some modifications
   to the kit.)
+* **jq** https://jqlang.github.io/jq/ and **toml-cli**
+  https://github.com/gnprice/toml-cli are required to use TOML configuration
+  files for executing tests.
 
 .. include:: user-guide.rst
 

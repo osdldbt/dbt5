@@ -89,6 +89,8 @@ add_custom_target(appimage-podman
             --appdir AppDir
             --custom-apprun=${CMAKE_BINARY_DIR}/AppRun
             --desktop-file=${APPIMAGE_SOURCE_DIR}/dbt5.desktop
+            --executable=/root/.cargo/bin/toml
+            --executable=/usr/bin/jq
             --executable=/usr/bin/perl
             --executable=/usr/local/bin/gnuplot
             --executable=/usr/local/bin/sqlite3

@@ -47,42 +47,132 @@ stat_collection()
 
 	ARGS=$1
 
-	# If the this is a 1-tier test, system stats will be saved only in the db
-	# directory.
-	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
-		which ts ts-profile > /dev/null 2>&1
+	if [ "${CONFIGFILE}" = "" ]; then
+		# If the this is a 1-tier test, system stats will be saved only in the db
+		# directory.
+		if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ];
+		then
+			which ts ts-profile > /dev/null 2>&1
+			RC=$?
+			if [ $RC -gt 1 ]; then
+				printf "WARNING: touchstone tools not found for driver system "
+				echo "stats collection"
+			else
+				eval "ts sysstat -o ${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat \
+						${ARGS} &"
+			fi
+		fi
+
+		# Don't collect system stats from the database system if the database
+		# is a service.
+		HOSTNAME=$(eval "${DB_COMMAND} hostname")
+		if [ $DBAAS -eq 0 ]; then
+			eval "${DB_COMMAND} which ts ts-sysstat" > /dev/null 2>&1
+			RC=$?
+			if [ $RC -gt 1 ]; then
+				printf "WARNING: touchstone tools not found for system stats "
+				printf "collection on %s\n" "${HOSTNAME}"
+			else
+				eval "${DB_COMMAND} ts sysstat \
+						-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+			fi
+		fi
+
+		eval "${DB_COMMAND} which ts ts-${DBMS}-stat" > /dev/null 2>&1
 		RC=$?
 		if [ $RC -gt 1 ]; then
-			printf "WARNING: touchstone tools not found for driver system "
-			echo "stats collection"
+			printf "WARNING: touchstone tools not found for database stats "
+			printf "collection for RDBMS %s on system %s\n" \
+					"${DBMS}" "${HOSTNAME}"
 		else
-			eval "ts sysstat -o ${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat ${ARGS} &"
+			eval "${DB_COMMAND} ts ${DBMS}-stat \
+					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${ARGS} &"
 		fi
-	fi
-
-	# Don't collect system stats from the database system if the database
-	# is a service.
-	HOSTNAME=$(eval "${DB_COMMAND} hostname")
-	if [ $DBAAS -eq 0 ]; then
-		eval "${DB_COMMAND} which ts ts-sysstat" > /dev/null 2>&1
-		RC=$?
-		if [ $RC -gt 1 ]; then
-			printf "WARNING: touchstone tools not found for system stats "
-			printf "collection on %s\n" "${HOSTNAME}"
-		else
-			eval "${DB_COMMAND} ts sysstat \
-					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
-		fi
-	fi
-
-	eval "${DB_COMMAND} which ts ts-${DBMS}-stat" > /dev/null 2>&1
-	RC=$?
-	if [ $RC -gt 1 ]; then
-		printf "WARNING: touchstone tools not found for database stats "
-		printf "collection for RDBMS %s on system %s\n" "${DBMS}" "${HOSTNAME}"
 	else
-		eval "${DB_COMMAND} ts ${DBMS}-stat \
-				-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${DBSTATARGS} ${ARGS} &"
+		LIST=""
+		DRIVERS="$(toml get "${CONFIGFILE}" . | jq -r '.driver | length')"
+		for INDEX in $(seq 0 $(( DRIVERS - 1 ))); do
+			ADDR="$(toml get "${CONFIGFILE}" driver | \
+				jq -r ".[${INDEX}].driver_addr")"
+			LIST="${LIST} ${ADDR}"
+		done
+		LIST="$(echo "${LIST}" | \
+			awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+		for SYSTEM in ${LIST}; do
+			if [ ! "${SYSTEM}" = "localhost" ]; then
+				CMD="${SSH} ${SYSTEM}"
+			else
+				CMD=""
+			fi
+			HOSTNAME=$(eval "${CMD} hostname")
+			eval "${CMD} ts sysstat \
+					-o ${DRIVER_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+		done
+
+		LIST=""
+		MARKETS="$(toml get "${CONFIGFILE}" . | jq -r '.market | length')"
+		for INDEX in $(seq 0 $(( MARKETS - 1 ))); do
+			ADDR="$(toml get "${CONFIGFILE}" market | \
+				jq -r ".[${INDEX}].market_addr")"
+			LIST="${LIST} ${ADDR}"
+		done
+		LIST="$(echo "${LIST}" | \
+			awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+		for SYSTEM in ${LIST}; do
+			if [ ! "${SYSTEM}" = "localhost" ]; then
+				CMD="${SSH} ${SYSTEM}"
+			else
+				CMD=""
+			fi
+			HOSTNAME=$(eval "${CMD} hostname")
+			eval "${CMD} ts sysstat \
+					-o ${MEE_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+		done
+
+		DBLIST=""
+		LIST=""
+		BROKERAGES="$(toml get "${CONFIGFILE}" . | jq -r '.brokerage | length')"
+		for INDEX in $(seq 0 $(( BROKERAGES - 1 ))); do
+			ADDR="$(toml get "${CONFIGFILE}" brokerage | \
+				jq -r ".[${INDEX}].brokerage_addr")"
+			LIST="${LIST} ${ADDR}"
+			ADDR="$(toml get "${CONFIGFILE}" brokerage | \
+				jq -r ".[${INDEX}].database_addr")"
+			DBLIST="${DBLIST} ${ADDR}"
+		done
+		LIST="$(echo "${LIST}" | \
+			awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+		for SYSTEM in ${LIST}; do
+			if [ ! "${SYSTEM}" = "localhost" ]; then
+				CMD="${SSH} ${SYSTEM}"
+			else
+				CMD=""
+			fi
+			HOSTNAME=$(eval "${CMD} hostname")
+			eval "${CMD} ts sysstat \
+					-o ${BH_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+		done
+
+		DBS="$(toml get "${CONFIGFILE}" . | jq -r '.database | length')"
+		for INDEX in $(seq 0 $(( DBS - 1 ))); do
+			ADDR="$(toml get "${CONFIGFILE}" database | \
+				jq -r ".[${INDEX}].database_addr")"
+			DBLIST="${DBLIST} ${ADDR}"
+		done
+		DBLIST="$(echo "${DBLIST}" | \
+			awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+		for SYSTEM in ${DBLIST}; do
+			if [ ! "${SYSTEM}" = "localhost" ]; then
+				CMD="${SSH} ${SYSTEM}"
+			else
+				CMD=""
+			fi
+			HOSTNAME=$(eval "${CMD} hostname")
+			eval "${CMD} ts sysstat \
+					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+			eval "${CMD} ts ${DBMS}-stat \
+					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${ARGS} &"
+		done
 	fi
 }
 
@@ -102,6 +192,8 @@ Usage:
 General options:
   -b PARAMETERS  database PARAMETERS
   -c CUSTOMERS   active CUSTOMERS, default ${CUSTOMERS_INSTANCE}
+  --config=FILE  config FILE to use for executing a test where these settings
+                 will override any conflicting command line arguments
   -d SECONDS     test duration in SECONDS
   -f SCALE_FACTOR
                  default ${SCALE_FACTOR}
@@ -138,12 +230,18 @@ validate_parameter()
 	fi
 }
 
+BROKERAGELIST=""
 DB_NAME="dbt5"
 DBAAS=0
+DBLIST=""
+DRIVERLIST=""
+CONFIGFILE=""
 CUSTOMERS_INSTANCE=5000
 CUSTOMERS_TOTAL=5000
 ITD=300
+MARKETLIST=""
 SCALE_FACTOR=500
+SSH="ssh -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 SLEEPY=1000 # milliseconds
 STATS=0
 PACING_DELAY=0
@@ -167,6 +265,13 @@ while [ "${#}" -gt 0 ] ; do
 		# Configured customer count
 		CUSTOMERS_INSTANCE="$(echo "${1}" | grep -E "^[0-9]+$")"
 		validate_parameter "c" "${1}" "${CUSTOMERS_INSTANCE}"
+		;;
+	(--config)
+		shift
+		CONFIGFILE="${1}"
+		;;
+	(--config=*)
+		CONFIGFILE="${1#*--config=}"
 		;;
 	(-d)
 		shift
@@ -260,16 +365,50 @@ while [ "${#}" -gt 0 ] ; do
 done
 
 DBMS="${1}"
+shift
+
+OUTPUT_DIR="${1}"
+shift
+
+# Load parameters from config file, if specified.
+
+if [ ! "${CONFIGFILE}" = "" ]; then
+	TMP="$(toml get "${CONFIGFILE}" . | jq -r '.customers')"
+	if [ ! "${TMP}" = "null" ]; then
+		CUSTOMERS_TOTAL="${TMP}"
+	fi
+
+	TMP="$(toml get "${CONFIGFILE}" . | jq -r '.database_name')"
+	if [ ! "${TMP}" = "null" ]; then
+		DB_NAME="${TMP}"
+	fi
+
+	TMP="$(toml get "${CONFIGFILE}" . | jq -r '.duration')"
+	if [ ! "${TMP}" = "null" ]; then
+		DURATION="${TMP}"
+	fi
+
+	TMP="$(toml get "${CONFIGFILE}" . | jq -r '.itd')"
+	if [ ! "${TMP}" = "null" ]; then
+		ITD="${TMP}"
+	fi
+
+	TMP="$(toml get "${CONFIGFILE}" . | jq -r '.scale_factor')"
+	if [ ! "${TMP}" = "null" ]; then
+		SCALE_FACTOR="${TMP}"
+	fi
+
+	TMP="$(toml get "${CONFIGFILE}" . | jq -r '.tpcetools')"
+	if [ ! "${TMP}" = "null" ]; then
+		EGENDIR="${TMP}"
+	fi
+fi
+
 case "${DBMS}" in
 (pgsql)
 	export PGDATABASE="${DB_NAME}"
 	;;
 esac
-shift
-
-
-OUTPUT_DIR="${1}"
-shift
 
 # Check parameters.
 
@@ -288,7 +427,7 @@ if [ "x${DB_NAME}" = "x" ]; then
 	exit 1
 fi
 
-if [ "x${CUSTOMERS_INSTANCE}" = "x" ]; then
+if [ "${CONFIGFILE}" = "" ] && [ "${CUSTOMERS_INSTANCE}" = "" ]; then
 	usage "specify the number of customers in this instance -c #"
 	exit 1
 fi
@@ -303,7 +442,7 @@ if [ "x${DURATION}" = "x" ]; then
 	exit 1
 fi
 
-if [ "x${USERS}" = "x" ]; then
+if [ "${CONFIGFILE}" = "" ] && [ "${USERS}" = "" ]; then
 	usage "specify the number of users using -u #"
 	exit 1
 fi
@@ -324,11 +463,11 @@ if [ -d "${OUTPUT_DIR}" ]; then
 	exit 1
 fi
 
-if [ ! "x${DB_HOSTNAME}" = "x" ]; then
+if [ "${CONFIGFILE}" = "" ] && [ ! "x${DB_HOSTNAME}" = "x" ]; then
     DB_HOSTNAME_ARG="-h ${DB_HOSTNAME}"
 fi
 
-if [ ! "x${DB_PORT}" = "x" ]; then
+if [ "${CONFIGFILE}" = "" ] && [ ! "x${DB_PORT}" = "x" ]; then
     DB_PORT_ARG="-p ${DB_PORT}"
 fi
 
@@ -345,10 +484,13 @@ DB_OUTPUT_DIR=${OUTPUT_DIR}/db
 
 # Create the directories we will need.
 make_directories
-if [ ! "x${DB_HOSTNAME}" = x ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-	make_directories ${DB_HOSTNAME}
-	rsync -a -e "ssh" --delete ${DB_OUTPUT_DIR}/ \
-		${DB_HOSTNAME}:${DB_OUTPUT_DIR}/
+if [ "${CONFIGFILE}" = "" ]; then
+	if [ ! "${DB_HOSTNAME}" = "" ] && [ ! "${DB_HOSTNAME}" = "localhost" ];
+	then
+		make_directories "${DB_HOSTNAME}"
+		rsync -a -e "ssh" --delete "${DB_OUTPUT_DIR}/" \
+			"${DB_HOSTNAME}:${DB_OUTPUT_DIR}/"
+	fi
 fi
 
 # Create a readme file in the output directory and date it.
@@ -362,25 +504,29 @@ echo "Database Scale Factor: ${SCALE_FACTOR}" >> ${OUTPUT_DIR}/readme.txt
 echo "Database Customer Cardinality: ${CUSTOMERS_TOTAL}" >> ${OUTPUT_DIR}/readme.txt
 echo "Test Duration: ${DURATION} seconds" >> ${OUTPUT_DIR}/readme.txt
 
-if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-	DB_COMMAND="ssh ${DB_HOSTNAME}"
-	# Get the OS information from the database system.
-	${DB_COMMAND} dbt5-get-os-info -o ${DB_OUTPUT_DIR}
-	${DB_COMMAND} "uname -a >> ${DB_OUTPUT_DIR}/readme.txt"
-else
-	uname -a >> ${DB_OUTPUT_DIR}/readme.txt
-	dbt5-get-os-info -o ${DB_OUTPUT_DIR}
-fi
-
-if [ "${PRIVILEGED}" -eq 1 ]; then
-	# Restart database.
-	eval "${DB_COMMAND} dbt5-${DBMS}-stop-db"
-	if [ ! "x${DB_HOSTNAME}" = "x" ] && \
-			[ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-		eval "${DB_COMMAND} dbt5-${DBMS}-start-db -p \"${DB_PARAMS}\" \
-				-o ${DB_OUTPUT_DIR}" || exit 1
+if [ "${CONFIGFILE}" = "" ]; then
+	if [ ! "${DB_HOSTNAME}" = "" ] && [ ! "${DB_HOSTNAME}" = "localhost" ];
+	then
+		DB_COMMAND="ssh ${DB_HOSTNAME}"
+		# Get the OS information from the database system.
+		eval "${DB_COMMAND} dbt5 get-os-info -o ${DB_OUTPUT_DIR}"
+		eval "${DB_COMMAND} \"uname -a >> ${DB_OUTPUT_DIR}/readme.txt\""
 	else
-		dbt5-${DBMS}-start-db -p "${DB_PARAMS}" -o ${DB_OUTPUT_DIR} || exit 1
+		uname -a >> "${DB_OUTPUT_DIR}/readme.txt"
+		dbt5 get-os-info -o "${DB_OUTPUT_DIR}"
+	fi
+
+	if [ "${PRIVILEGED}" -eq 1 ]; then
+		# Restart database.
+		eval "${DB_COMMAND} dbt5-${DBMS}-stop-db"
+		if [ ! "${DB_HOSTNAME}" = "" ] && \
+				[ ! "${DB_HOSTNAME}" = "localhost" ]; then
+			eval "${DB_COMMAND} dbt5-${DBMS}-start-db -p \"${DB_PARAMS}\" \
+					-o ${DB_OUTPUT_DIR}" || exit 1
+		else
+			eval "dbt5-${DBMS}-start-db -p ${DB_PARAMS} -o ${DB_OUTPUT_DIR}" \
+					|| exit 1
+		fi
 	fi
 fi
 
@@ -403,8 +549,71 @@ EOF
 echo
 echo "## 1. Starting Brokerage House server"
 echo
-eval "${EGENDIR}/bin/BrokerageHouseMain ${DB_HOSTNAME_ARG} -d ${DB_NAME} \
-		${DB_PORT_ARG} -o ${BH_OUTPUT_DIR} > ${BH_OUTPUT_DIR}/bh.out 2>&1" &
+
+if [ "${CONFIGFILE}" = "" ]; then
+	eval "${EGENDIR}/bin/BrokerageHouseMain ${DB_HOSTNAME_ARG} -d ${DB_NAME} \
+			${DB_PORT_ARG} -o ${BH_OUTPUT_DIR} > ${BH_OUTPUT_DIR}/bh.out 2>&1" &
+else
+	BROKERAGES="$(toml get "${CONFIGFILE}" . | jq -r '.brokerage | length')"
+
+	printf "Starting up %d brokerage house(s):\n\n" "${BROKERAGES}"
+
+	for INDEX in $(seq 0 $(( BROKERAGES - 1 ))); do
+		BROKERAGE_HOSTNAME="$(toml get "${CONFIGFILE}" brokerage | \
+			jq -r ".[${INDEX}].brokerage_addr")"
+
+		MARKET_HOSTNAME="$(toml get "${CONFIGFILE}" brokerage | \
+			jq -r ".[${INDEX}].market_addr")"
+
+		DB_HOSTNAME="$(toml get "${CONFIGFILE}" brokerage | \
+			jq -r ".[${INDEX}].database_addr")"
+        DB_HOSTNAME_ARG="-h ${DB_HOSTNAME}"
+
+		BROKERAGELIST="${BROKERAGELIST} ${BROKERAGE_HOSTNAME}"
+		MARKETLIST="${MARKETLIST} ${MARKET_HOSTNAME}"
+		DBLIST="${DBLIST} ${DB_HOSTNAME}"
+
+		BHPORTARG=""
+		TMP="$(toml get "${CONFIGFILE}" brokerage | \
+			jq -r ".[${INDEX}].brokerage_port")"
+		if [ ! "${TMP}" = "null" ]; then
+			BHPORTARG="-l ${TMP}"
+		fi
+
+		MEEPORTARG=""
+		TMP="$(toml get "${CONFIGFILE}" brokerage | \
+			jq -r ".[${INDEX}].market_port")"
+		if [ ! "${TMP}" = "null" ]; then
+			MEEPORTARG="-M ${TMP}"
+		fi
+
+		TMP="$(toml get "${CONFIGFILE}" brokerage | \
+			jq -r ".[${INDEX}].database_port")"
+		if [ ! "${TMP}" = "null" ]; then
+			DB_PORT_ARG="-p ${TMP}"
+		fi
+
+		if [ ! "${BROKERAGE_HOSTNAME}" = "localhost" ]; then
+			BROKERAGE_COMMAND="${SSH} ${BROKERAGE_HOSTNAME}"
+		else
+			BROKERAGE_COMMAND=""
+		fi
+
+		HOSTNAME="$(eval "${BROKERAGE_COMMAND}" hostname)"
+
+		printf "%d. %s connecting to market %s and db %s.\n" \
+				$(( INDEX + 1 )) "${BROKERAGE_HOSTNAME}" "${MARKET_HOSTNAME}" \
+				"${DB_HOSTNAME}"
+
+		TMPDIR="${BH_OUTPUT_DIR}/${HOSTNAME}.${INDEX}"
+		eval "${BROKERAGE_COMMAND} mkdir -p ${TMPDIR}"
+		eval "${BROKERAGE_COMMAND} ${EGENDIR}/bin/BrokerageHouseMain \
+				${BHPORTARG} -m ${MARKET_HOSTNAME} ${MEEPORTARG} \
+				${DB_HOSTNAME_ARG} -d ${DB_NAME} ${DB_PORT_ARG} \
+				-o ${TMPDIR} > ${TMPDIR}/bh.out 2>&1" &
+	done
+	echo
+fi
 
 do_sleep 1 "Giving BrokerageHouseMain 1 second to start up."
 
@@ -413,20 +622,62 @@ do_sleep 1 "Giving BrokerageHouseMain 1 second to start up."
 #
 echo
 echo "## 2. Starting Market Exchange server"
-eval "${EGENDIR}/bin/MarketExchangeMain -c ${CUSTOMERS_INSTANCE} \
-		-t ${CUSTOMERS_TOTAL} -i ${EGENDIR}/flat_in -o ${MEE_OUTPUT_DIR} \
-		> ${MEE_OUTPUT_DIR}/mee.out 2>&1" &
+
+if [ "${CONFIGFILE}" = "" ]; then
+	eval "${EGENDIR}/bin/MarketExchangeMain -c ${CUSTOMERS_INSTANCE} \
+			-t ${CUSTOMERS_TOTAL} -i ${EGENDIR}/flat_in -o ${MEE_OUTPUT_DIR} \
+			> ${MEE_OUTPUT_DIR}/mee.out 2>&1" &
+else
+	MARKETS="$(toml get "${CONFIGFILE}" . | jq -r '.market | length')"
+
+	echo
+	printf "Starting up %d market exchanges(s):\n\n" "${MARKETS}"
+
+	for INDEX in $(seq 0 $(( MARKETS - 1 ))); do
+		MARKET_HOSTNAME="$(toml get "${CONFIGFILE}" market | \
+			jq -r ".[${INDEX}].market_addr")"
+
+		BROKERAGE_HOSTNAME="$(toml get "${CONFIGFILE}" market | \
+			jq -r ".[${INDEX}].brokerage_addr")"
+
+		MARKETLIST="${MARKETLIST} ${MARKET_HOSTNAME}"
+		BROKERAGELIST="${BROKERAGELIST} ${BROKERAGE_HOSTNAME}"
+
+		MEEPORTARG=""
+		TMP="$(toml get "${CONFIGFILE}" market | \
+			jq -r ".[${INDEX}].market_port")"
+		if [ ! "${TMP}" = "null" ]; then
+			MEEPORTARG="-l ${TMP}"
+		fi
+
+		BHPORTARG=""
+		TMP="$(toml get "${CONFIGFILE}" market | \
+			jq -r ".[${INDEX}].brokerage_port")"
+		if [ ! "${TMP}" = "null" ]; then
+			BHPORTARG="-p ${TMP}"
+		fi
+
+		if [ ! "${MARKET_HOSTNAME}" = "localhost" ]; then
+			MARKET_COMMAND="${SSH} ${MARKET_HOSTNAME}"
+		else
+			MARKET_COMMAND=""
+		fi
+
+		HOSTNAME="$(eval "${MARKET_COMMAND}" hostname)"
+
+		printf "%d. %s connecting to brokerage %s.\n" \
+				$(( INDEX + 1 )) "${MARKET_HOSTNAME}" "${BROKERAGE_HOSTNAME}"
+
+		TMPDIR="${MEE_OUTPUT_DIR}/${HOSTNAME}.${INDEX}"
+		eval "${MARKET_COMMAND} mkdir -p ${TMPDIR}"
+		eval "${MARKET_COMMAND} ${EGENDIR}/bin/MarketExchangeMain \
+				${MEEPORTARG} -h ${BROKERAGE_HOSTNAME} ${BHPORTARG} \
+				-c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} \
+				-i ${EGENDIR}/flat_in -o ${TMPDIR} > ${TMPDIR}/mee.out 2>&1" &
+	done
+fi
 
 # Start collecting data before we start the test.
-SLEEP_RAMPUP=`expr ${USERS} + 1`
-SLEEP_RAMPUP=`expr ${SLEEP_RAMPUP} \* ${SLEEPY}`
-SLEEP_RAMPUP=`expr ${SLEEP_RAMPUP} / 1000`
-SLEEPYTIME=`expr ${SLEEP_RAMPUP} + ${DURATION}`
-SAMPLE_LENGTH=60
-ITERATIONS=`expr ${SLEEPYTIME} / ${SAMPLE_LENGTH}`
-ITERATIONS=`expr ${ITERATIONS} + 1`
-
-# Start stats collection
 stat_collection
 
 #
@@ -434,55 +685,128 @@ stat_collection
 #
 
 echo
-echo "## 3. Starting Customer driver: ${USERS} user(s)"
-echo
-echo "* 1 user starting every ${SLEEPY} milliseconds."
-eval "${EGENDIR}/bin/DriverMain -c ${CUSTOMERS_INSTANCE} \
-		-t ${CUSTOMERS_TOTAL} -f ${SCALE_FACTOR} -w ${ITD} -d ${DURATION} \
-		-y ${SLEEPY} -u ${USERS} -n ${PACING_DELAY} ${SEEDARG} \
-		-i ${EGENDIR}/flat_in -o ${DRIVER_OUTPUT_DIR} \
-		> ${DRIVER_OUTPUT_DIR}/driver.out 2>&1" &
-DCMPID="${!}"
+echo "## 3. Starting Customer driver(s)"
 
+if [ "${CONFIGFILE}" = "" ]; then
+	echo
+	echo "* 1 user starting every ${SLEEPY} milliseconds."
+	eval "${EGENDIR}/bin/DriverMain -c ${CUSTOMERS_INSTANCE} \
+			-t ${CUSTOMERS_TOTAL} -f ${SCALE_FACTOR} -w ${ITD} -d ${DURATION} \
+			-y ${SLEEPY} -u ${USERS} -n ${PACING_DELAY} ${SEEDARG} \
+			-i ${EGENDIR}/flat_in -o ${DRIVER_OUTPUT_DIR} \
+			> ${DRIVER_OUTPUT_DIR}/driver.out 2>&1" &
+	DCMPID="${!}"
+
+	echo
+	echo "${USERS} user(s) started."
+	echo
+else
+	DRIVERS="$(toml get "${CONFIGFILE}" . | jq -r '.driver | length')"
+
+	echo
+	printf "Starting up %d driver(s):\n\n" "${DRIVERS}"
+
+	TOTAL_USERS=0
+	for INDEX in $(seq 0 $(( DRIVERS - 1 ))); do
+		DRIVER_HOSTNAME="$(toml get "${CONFIGFILE}" driver | \
+			jq -r ".[${INDEX}].driver_addr")"
+
+		BROKERAGE_HOSTNAME="$(toml get "${CONFIGFILE}" driver | \
+			jq -r ".[${INDEX}].brokerage_addr")"
+
+		U="$(toml get "${CONFIGFILE}" driver | jq -r ".[${INDEX}].users")"
+		TOTAL_USERS=$(( TOTAL_USERS + U ))
+		if [ "${U}" -gt "${USERS}" ]; then
+			USERS="${U}"
+		fi
+
+		DRIVERLIST="${DRIVERLIST} ${DRIVER_HOSTNAME}"
+		BROKERAGELIST="${BROKERAGELIST} ${BROKERAGE_HOSTNAME}"
+
+		if [ ! "${DRIVER_HOSTNAME}" = "localhost" ]; then
+			DRIVER_COMMAND="${SSH} ${DRIVER_HOSTNAME}"
+		else
+			DRIVER_COMMAND=""
+		fi
+
+		HOSTNAME="$(eval "${DRIVER_COMMAND}" hostname)"
+
+		printf "%d. %s connecting to brokerage %s.\n" \
+				$(( INDEX + 1 )) "${DRIVER_HOSTNAME}" "${BROKERAGE_HOSTNAME}"
+
+		TMPDIR="${DRIVER_OUTPUT_DIR}/${HOSTNAME}.${INDEX}"
+		eval "${DRIVER_COMMAND} mkdir -p ${TMPDIR}"
+		eval "${DRIVER_COMMAND} ${EGENDIR}/bin/DriverMain \
+				-c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} \
+				-f ${SCALE_FACTOR} -w ${ITD} -d ${DURATION} -y ${SLEEPY} \
+				-u ${U} -n ${PACING_DELAY} ${SEEDARG} -i ${EGENDIR}/flat_in \
+				-o ${TMPDIR} > ${TMPDIR}/driver.out 2>&1" &
+	done
+
+	echo
+	echo "${TOTAL_USERS} user(s) started."
+	echo
+fi
+
+SLEEP_RAMPUP=`expr ${USERS} + 1`
+SLEEP_RAMPUP=`expr ${SLEEP_RAMPUP} \* ${SLEEPY}`
+SLEEP_RAMPUP=`expr ${SLEEP_RAMPUP} / 1000`
+
+# Start stats collection
 do_sleep "${SLEEP_RAMPUP}" "* User ramp up to finish in ${SLEEP_RAMPUP} s."
 
 # Sleep for the duration of the run.
 do_sleep "${DURATION}" "* Test expected to finish in ${DURATION} s."
 
+if [ "${CONFIGFILE}" = "" ]; then
+	# Wait for DriverMain to exit
+	if [ -n "${DCMPID}" ]; then
+		wait "${DCMPID}"
+	fi
+fi
+
 # Stop stats collection.
 stat_collection -s
-
-# Wait for DriverMain to exit
-if [ -n ${DCMPID} ]; then
-	wait ${DCMPID}
-fi
 
 # Run some post processing analyses.
 echo
 echo "## 4. Processing data"
-echo
+
+stop_processes
+
+if [ "${CONFIGFILE}" = "" ]; then
+	# Servers don't go away by themselves like the driver does, so kill it.
+	killall -q BrokerageHouseMain MarketExchangeMain
+
+	if [ "${PRIVILEGED}" -eq 1 ]; then
+		eval "${DB_COMMAND} dbt5-${DBMS}-stop-db"
+	fi
+
+	if [ ! "${DB_HOSTNAME}" = "" ] && [ ! "${DB_HOSTNAME}" = "localhost" ];
+	then
+		rsync -a -e "ssh" --delete "${DB_HOSTNAME}:${DB_OUTPUT_DIR}/" \
+				"${DB_OUTPUT_DIR}/"
+	fi
+
+	# (No, not the transaction log.)
+	if [ -f "${DB_OUTPUT_DIR}/log" ]; then
+		chmod 644 "${DB_OUTPUT_DIR}/log"
+	fi
+else
+	SYSTEMLIST="$(echo "${DBLIST} ${BROKERAGELIST} ${MARKETLIST} ${DRIVERLIST}" | \
+			awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+	for SYSTEM in ${SYSTEMLIST}; do
+		if [ ! "${SYSTEM}" = "localhost" ]; then
+			rsync -a -e "${SSH}" "${SYSTEM}:${OUTPUT_DIR}/" "${OUTPUT_DIR}/"
+		fi
+	done
+fi
 
 RESULTSFILE="${OUTPUT_DIR}/summary.rst"
-dbt5-post-process --customers="${CUSTOMERS_TOTAL}" \
-		"${DRIVER_OUTPUT_DIR}/mix-*.log" "${MEE_OUTPUT_DIR}/mix-*.log" \
+MIXFILES="$(find "${OUTPUT_DIR}" -type f -name 'mix*.log' -print0 | xargs -0)"
+# shellcheck disable=SC2086
+dbt5-post-process --customers="${CUSTOMERS_TOTAL}" ${MIXFILES} \
 		> "${RESULTSFILE}" 2> "${OUTPUT_DIR}/post-process.log"
-
-# Servers don't go away by themselves like the driver does, so kill it.
-killall -q BrokerageHouseMain MarketExchangeMain
-
-if [ "${PRIVILEGED}" -eq 1 ]; then
-	${DB_COMMAND} dbt5-${DBMS}-stop-db
-fi
-
-if [ ! "x${DB_HOSTNAME}" = "x" ] && [ ! "x${DB_HOSTNAME}" = "xlocalhost" ]; then
-	rsync -a -e "ssh" --delete ${DB_HOSTNAME}:${DB_OUTPUT_DIR}/ \
-			${DB_OUTPUT_DIR}/
-fi
-
-# (No, not the transaction log.)
-if [ -f "${DB_OUTPUT_DIR}/log" ]; then
-	chmod 644 "${DB_OUTPUT_DIR}/log"
-fi
 
 METRIC="$(grep "Reported Throughput" "${RESULTSFILE}" | awk '{print $3}')"
 cat << EOF

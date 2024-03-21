@@ -1,0 +1,78 @@
+# DBT-5 Test Execution Example
+
+# General settings:
+
+# Path to built TPC-E tools.
+#tpcetools = "/opt/egen"
+
+# How long to run the test in seconds.
+duration = 120
+
+# Total number of customers.
+#customers = 5000
+
+# Database name.
+#database_name = "dbt5"
+
+# Days of initial trades.
+#itd = 300
+
+# Scale factor, i.e. number of customers per TRTPS
+#scale_factor = 500
+
+# Need at least one Driver.
+[[driver]]
+# Driver server hostname of IP to connect to.
+driver_addr = "driver1"
+
+# Brokerage House server hostname or IP address to connect to.
+brokerage_addr = "brokerage1"
+
+# Brokerage House port.
+#brokerage_port = 30000
+
+# Number of users to drive workload.
+users = 1
+
+# Milliseconds of sleep between users starting.
+#user_creation_delay = 1000
+
+# Need at least one Market Exchange.
+[[market]]
+# Market Exchange server hostname of IP address to start Market Exchange.
+market_addr = "market1"
+
+# Market Exchange server port.
+#market_port = 30010
+
+# Brokerage House server hostname or IP address to connect to.
+brokerage_addr = "brokerage1"
+
+# Brokerage House port.
+#brokerage_port = 30000
+
+# Need at least one Brokerage House.
+
+[[brokerage]]
+# Brokerage House server hostname or IP address to connect to.
+brokerage_addr = "brokerage1"
+
+# Brokerage House port.
+#brokerage_port = 30000
+
+# Database server hostname or IP address to connect to.
+database_addr = "db1"
+
+# Database port
+#database_port = 5432
+
+# Market Exchange server hostname of IP address to connect to.
+market_addr = "market1"
+
+# Market Exchange port.
+#market_port = 30010
+
+# Define additional database servers not previously defined in [[brokerage]] 
+# sections for stats collection.
+#[[database]]
+#database_addr = "database2"
