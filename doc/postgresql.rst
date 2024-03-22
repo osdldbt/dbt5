@@ -4,7 +4,7 @@ PostgreSQL
 Building the Kit
 ----------------
 
-Developed against Postgresql 8.4 and newer.  May work with older versions but
+Developed against PostgreSQL 8.4 and newer.  May work with older versions but
 not quite tested.
 
 By default, the kit will use PL/pgsql stored functions, but you may use C

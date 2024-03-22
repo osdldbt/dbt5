@@ -50,7 +50,7 @@ The latest stable and development version of the kit can be found on GitHub:
 https://github.com/osdldbt/dbt5
 
 The TPC's TPC-E Tools cannot be redistributed with DBT-5 and must be downloaded
-separately :
+separately from:
 https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp
 
 Required Software
@@ -64,7 +64,8 @@ required:
 * Database development libraries and header files
     * PostgreSQL https://www.postgresql.org
         * psql
-* SQLite https://www.sqlite.org/index.html
+* SQLite https://www.sqlite.org/index.html is required for processing test
+  results
 
 Optional software:
 
