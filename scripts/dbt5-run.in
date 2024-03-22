@@ -7,15 +7,8 @@
 # Copyright The DBT-5 Authors
 #
 
-trap 'echo "Test was interrupted by Control-C."; \
-	killall BrokerageHouseMain; killall MarketExchangeMain; \
-	killall DriverMain;  killall sar; killall sadc; killall vmstat; \
-	killall iostat; ${DB_COMMAND} dbt5-${DBMS}-stop-db' INT
-trap 'echo "Test was interrupted. Got TERM signal."; \
-	killall BrokerageHouseMain; killall MarketExchangeMain; \
-	killall DriverMain; killall client; killall driver;  killall sar; \
-	killall sadc; killall vmstat; killall iostat; \
-	${DB_COMMAND} dbt5-${DBMS}-stop-db' TERM
+trap 'echo "Test was interrupted by Control-C."; stop_processes' INT
+trap 'echo "Test was interrupted. Got TERM signal."; stop_processes' TERM
 
 do_sleep()
 {
@@ -172,6 +165,88 @@ stat_collection()
 					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
 			eval "${CMD} ts ${DBMS}-stat \
 					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${ARGS} &"
+		done
+	fi
+}
+
+stop_processes()
+{
+	# Stop processes in reverse order from how they were they started: drivers,
+	# market exchanges, and brokerage houses.
+
+	if [ "${CONFIGFILE}" = "" ]; then
+		for DIR in driver mee bh; do
+			find "${OUTPUT_DIR}/${DIR}" -name "${DIR}.pid" -print | \
+					while IFS= read -r PIDFILE; do
+				PID=$(cat "${PIDFILE}")
+				kill -9 "${PID}" 2> /dev/null
+			done
+		done
+	else
+		LIST=""
+		DRIVERS="$(toml get "${CONFIGFILE}" . | jq -r '.driver | length')"
+		for INDEX in $(seq 0 $(( DRIVERS - 1 ))); do
+			ADDR="$(toml get "${CONFIGFILE}" driver | \
+					jq -r ".[${INDEX}].driver_addr")"
+			LIST="${LIST} ${ADDR}"
+		done
+		LIST="$(echo "${LIST}" | \
+				awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+		for SYSTEM in ${LIST}; do
+			if [ ! "${SYSTEM}" = "localhost" ]; then
+				CMD="${SSH} ${SYSTEM}"
+			else
+				CMD=""
+			fi
+			eval "${CMD} find ${OUTPUT_DIR}/driver -name \"driver.pid\" \
+					-print" | while IFS= read -r PIDFILE; do
+				PID=$(eval "${CMD} cat ${PIDFILE}")
+				eval "${CMD} kill -9 ${PID}" 2> /dev/null
+			done
+		done
+
+		LIST=""
+		MARKETS="$(toml get "${CONFIGFILE}" . | jq -r '.market | length')"
+		for INDEX in $(seq 0 $(( MARKETS - 1 ))); do
+			ADDR="$(toml get "${CONFIGFILE}" market | \
+					jq -r ".[${INDEX}].market_addr")"
+			LIST="${LIST} ${ADDR}"
+		done
+		LIST="$(echo "${LIST}" | \
+			awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+		for SYSTEM in ${LIST}; do
+			if [ ! "${SYSTEM}" = "localhost" ]; then
+				CMD="${SSH} ${SYSTEM}"
+			else
+				CMD=""
+			fi
+			eval "${CMD} find ${OUTPUT_DIR}/mee -name \"mee.pid\" -print" | \
+					while IFS= read -r PIDFILE; do
+				PID=$(eval "${CMD} cat ${PIDFILE}")
+				eval "${CMD} kill -9 ${PID}" 2> /dev/null
+			done
+		done
+
+		LIST=""
+		BROKERAGES="$(toml get "${CONFIGFILE}" . | jq -r '.brokerage | length')"
+		for INDEX in $(seq 0 $(( BROKERAGES - 1 ))); do
+			ADDR="$(toml get "${CONFIGFILE}" brokerage | \
+					jq -r ".[${INDEX}].brokerage_addr")"
+			LIST="${LIST} ${ADDR}"
+		done
+		LIST="$(echo "${LIST}" | \
+				awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+		for SYSTEM in ${LIST}; do
+			if [ ! "${SYSTEM}" = "localhost" ]; then
+				CMD="${SSH} ${SYSTEM}"
+			else
+				CMD=""
+			fi
+			eval "${CMD} find ${OUTPUT_DIR}/bh -name \"bh.pid\" -print" \
+					| while IFS= read -r PIDFILE; do
+				PID=$(eval "${CMD} cat ${PIDFILE}")
+				eval "${CMD} kill -9 ${PID}" 2> /dev/null
+			done
 		done
 	fi
 }
@@ -762,6 +837,26 @@ if [ "${CONFIGFILE}" = "" ]; then
 	if [ -n "${DCMPID}" ]; then
 		wait "${DCMPID}"
 	fi
+else
+	for SYSTEM in ${DRIVERLIST}; do
+		if [ ! "${SYSTEM}" = "localhost" ]; then
+			CMD="${SSH} ${SYSTEM}"
+		else
+			CMD=""
+		fi
+		eval "${CMD} find ${OUTPUT_DIR}/driver -name \"driver.pid\" -print" | \
+				while IFS= read -r PIDFILE; do
+			PID=$(eval "${CMD} cat ${PIDFILE}")
+			echo
+			printf "Waiting for driver (PID %d) to stop on %s." \
+					"${PID}" "${SYSTEM}"
+			while eval "${CMD} kill -0 ${PID}" 2> /dev/null; do
+				printf "."
+				sleep 1
+			done
+			echo
+		done
+	done
 fi
 
 # Stop stats collection.
@@ -773,10 +868,9 @@ echo "## 4. Processing data"
 
 stop_processes
 
-if [ "${CONFIGFILE}" = "" ]; then
-	# Servers don't go away by themselves like the driver does, so kill it.
-	killall -q BrokerageHouseMain MarketExchangeMain
+stop_processes
 
+if [ "${CONFIGFILE}" = "" ]; then
 	if [ "${PRIVILEGED}" -eq 1 ]; then
 		eval "${DB_COMMAND} dbt5-${DBMS}-stop-db"
 	fi

@@ -226,6 +226,17 @@ main(int argc, char *argv[])
 	// Parse command line
 	parse_command_line(argc, argv);
 
+	char *pidFilename = new char[1024];
+	snprintf(pidFilename, 1023, "%s/driver.pid", outputDirectory);
+	FILE *fpid = fopen(pidFilename, "w");
+	if (fpid == NULL) {
+		cerr << "ERROR: can't create pid file: " << pidFilename << endl;
+		return 1;
+	}
+	fprintf(fpid, "%d", getpid());
+	fclose(fpid);
+	delete[] pidFilename;
+
 	// Validate parameters
 	if (!ValidateParameters()) {
 		return 2; // exit returning a non-zero code

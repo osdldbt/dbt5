@@ -126,6 +126,17 @@ main(int argc, char *argv[])
 	// Parse command line
 	parse_command_line(argc, argv);
 
+	char *pidFilename = new char[1024];
+	snprintf(pidFilename, 1023, "%s/mee.pid", outputDirectory);
+	FILE *fpid = fopen(pidFilename, "w");
+	if (fpid == NULL) {
+		cerr << "ERROR: can't create pid file: " << pidFilename << endl;
+		return 1;
+	}
+	fprintf(fpid, "%d", getpid());
+	fclose(fpid);
+	delete[] pidFilename;
+
 	// Let the user know what settings will be used.
 	cout << "Using the following settings:" << endl << endl;
 	cout << "EGen flat_in directory location: " << szFileLoc << endl;
