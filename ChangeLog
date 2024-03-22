@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.8.0 (2024-03-22)
 
 - Support TOML configuration files for executing tests with `run` script
 - If "active customers" is not set, assume it should be the same as "total
