@@ -64,8 +64,14 @@ public:
 	{
 		th_dts = next_record.TH_DTS;
 
-		fprintf(p, TradeHistoryRowFmt.c_str(), next_record.TH_T_ID,
+		int rc = fprintf(p, TradeHistoryRowFmt.c_str(), next_record.TH_T_ID,
 				th_dts.ToStr(iDateTimeFmt), next_record.TH_ST_ID);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatTradeHistory::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

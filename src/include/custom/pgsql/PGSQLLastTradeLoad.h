@@ -64,9 +64,15 @@ public:
 	{
 		lt_dts = next_record.LT_DTS;
 
-		fprintf(p, LastTradeRowFmt.c_str(), next_record.LT_S_SYMB,
+		int rc = fprintf(p, LastTradeRowFmt.c_str(), next_record.LT_S_SYMB,
 				lt_dts.ToStr(iDateTimeFmt), next_record.LT_PRICE,
 				next_record.LT_OPEN_PRICE, next_record.LT_VOL);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatLastTradeLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

@@ -61,8 +61,14 @@ public:
 	void
 	WriteNextRecord(const NEWS_XREF_ROW &next_record)
 	{
-		fprintf(p, NewsXRefRowFmt.c_str(), next_record.NX_NI_ID,
+		int rc = fprintf(p, NewsXRefRowFmt.c_str(), next_record.NX_NI_ID,
 				next_record.NX_CO_ID);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatNewsXRefLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

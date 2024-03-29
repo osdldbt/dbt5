@@ -71,7 +71,7 @@ public:
 		s_52wk_high_date = next_record.S_52WK_HIGH_DATE;
 		s_52wk_low_date = next_record.S_52WK_LOW_DATE;
 
-		fprintf(p, SecurityRowFmt.c_str(), next_record.S_SYMB,
+		int rc = fprintf(p, SecurityRowFmt.c_str(), next_record.S_SYMB,
 				next_record.S_ISSUE, next_record.S_ST_ID, next_record.S_NAME,
 				next_record.S_EX_ID, next_record.S_CO_ID,
 				next_record.S_NUM_OUT, s_start_date.ToStr(iDateTimeFmt),
@@ -79,6 +79,12 @@ public:
 				next_record.S_52WK_HIGH, s_52wk_high_date.ToStr(iDateTimeFmt),
 				next_record.S_52WK_LOW, s_52wk_low_date.ToStr(iDateTimeFmt),
 				next_record.S_DIVIDEND, next_record.S_YIELD);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatSecurityLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

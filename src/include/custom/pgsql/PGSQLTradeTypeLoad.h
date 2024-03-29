@@ -61,9 +61,15 @@ public:
 	void
 	WriteNextRecord(const TRADE_TYPE_ROW &next_record)
 	{
-		fprintf(p, TradeTypeRowFmt.c_str(), next_record.TT_ID,
+		int rc = fprintf(p, TradeTypeRowFmt.c_str(), next_record.TT_ID,
 				next_record.TT_NAME, next_record.TT_IS_SELL ? "TRUE" : "FALSE",
 				next_record.TT_IS_MRKT ? "TRUE" : "FALSE");
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatTradeTypeLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

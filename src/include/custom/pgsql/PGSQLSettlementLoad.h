@@ -63,9 +63,15 @@ public:
 	WriteNextRecord(const SETTLEMENT_ROW &next_record)
 	{
 		se_cash_due_date = next_record.SE_CASH_DUE_DATE;
-		fprintf(p, SettlementRowFmt.c_str(), next_record.SE_T_ID,
+		int rc = fprintf(p, SettlementRowFmt.c_str(), next_record.SE_T_ID,
 				next_record.SE_CASH_TYPE, se_cash_due_date.ToStr(iDateTimeFmt),
 				next_record.SE_AMT);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatSettlementLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

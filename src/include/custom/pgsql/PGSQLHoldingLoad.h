@@ -63,10 +63,16 @@ public:
 	WriteNextRecord(const HOLDING_ROW &next_record)
 	{
 		h_dts = next_record.H_DTS;
-		fprintf(p, HoldingRowFmt.c_str(), next_record.H_T_ID,
+		int rc = fprintf(p, HoldingRowFmt.c_str(), next_record.H_T_ID,
 				next_record.H_CA_ID, next_record.H_S_SYMB,
 				h_dts.ToStr(iDateTimeFmt), next_record.H_PRICE,
 				next_record.H_QTY);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatHoldingLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

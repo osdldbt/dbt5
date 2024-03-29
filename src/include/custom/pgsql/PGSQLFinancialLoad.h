@@ -66,7 +66,7 @@ public:
 	{
 		fi_qtr_start_date = next_record.FI_QTR_START_DATE;
 
-		fprintf(p, FinancialRowFmt.c_str(), next_record.FI_CO_ID,
+		int rc = fprintf(p, FinancialRowFmt.c_str(), next_record.FI_CO_ID,
 				next_record.FI_YEAR, next_record.FI_QTR,
 				fi_qtr_start_date.ToStr(iDateTimeFmt), next_record.FI_REVENUE,
 				next_record.FI_NET_EARN, next_record.FI_BASIC_EPS,
@@ -74,6 +74,12 @@ public:
 				next_record.FI_INVENTORY, next_record.FI_ASSETS,
 				next_record.FI_LIABILITY, next_record.FI_OUT_BASIC,
 				next_record.FI_OUT_DILUT);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatFinancialLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

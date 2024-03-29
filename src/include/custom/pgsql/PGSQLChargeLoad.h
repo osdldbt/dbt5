@@ -60,8 +60,14 @@ public:
 	void
 	WriteNextRecord(const CHARGE_ROW &next_record)
 	{
-		fprintf(p, ChargeRowFmt.c_str(), next_record.CH_TT_ID,
+		int rc = fprintf(p, ChargeRowFmt.c_str(), next_record.CH_TT_ID,
 				next_record.CH_C_TIER, next_record.CH_CHRG);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatChargeLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

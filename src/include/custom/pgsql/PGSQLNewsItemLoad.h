@@ -63,10 +63,16 @@ public:
 	WriteNextRecord(const NEWS_ITEM_ROW &next_record)
 	{
 		ni_dts = next_record.NI_DTS;
-		fprintf(p, NewsItemRowFmt.c_str(), next_record.NI_ID,
+		int rc = fprintf(p, NewsItemRowFmt.c_str(), next_record.NI_ID,
 				next_record.NI_HEADLINE, next_record.NI_SUMMARY,
 				next_record.NI_ITEM, ni_dts.ToStr(iDateTimeFmt),
 				next_record.NI_SOURCE, next_record.NI_AUTHOR);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatNewsItemLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

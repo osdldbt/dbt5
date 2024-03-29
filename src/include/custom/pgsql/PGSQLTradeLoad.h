@@ -64,7 +64,7 @@ public:
 	{
 		t_dts = next_record.T_DTS;
 
-		fprintf(p, TradeRowFmt.c_str(), next_record.T_ID,
+		int rc = fprintf(p, TradeRowFmt.c_str(), next_record.T_ID,
 				t_dts.ToStr(iDateTimeFmt), next_record.T_ST_ID,
 				next_record.T_TT_ID, next_record.T_IS_CASH,
 				next_record.T_S_SYMB, next_record.T_QTY,
@@ -72,6 +72,12 @@ public:
 				next_record.T_EXEC_NAME, next_record.T_TRADE_PRICE,
 				next_record.T_CHRG, next_record.T_COMM, next_record.T_TAX,
 				next_record.T_LIFO);
+
+		if (rc < 0) {
+			throw CSystemErr(
+					CSystemErr::eWriteFile, "CFlatTradeLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

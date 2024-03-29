@@ -61,9 +61,15 @@ public:
 	void
 	WriteNextRecord(const ADDRESS_ROW &next_record)
 	{
-		fprintf(p, AddressRowFmt.c_str(), next_record.AD_ID,
+		int rc = fprintf(p, AddressRowFmt.c_str(), next_record.AD_ID,
 				next_record.AD_LINE1, next_record.AD_LINE2,
 				next_record.AD_ZC_CODE, next_record.AD_CTRY);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatAddressLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

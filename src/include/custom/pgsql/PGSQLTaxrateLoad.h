@@ -61,8 +61,14 @@ public:
 	void
 	WriteNextRecord(const TAX_RATE_ROW &next_record)
 	{
-		fprintf(p, TaxrateRowFmt.c_str(), next_record.TX_ID,
+		int rc = fprintf(p, TaxrateRowFmt.c_str(), next_record.TX_ID,
 				next_record.TX_NAME, next_record.TX_RATE);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatTaxRateLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

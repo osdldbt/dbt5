@@ -61,8 +61,14 @@ public:
 	void
 	WriteNextRecord(const INDUSTRY_ROW &next_record)
 	{
-		fprintf(p, IndustryRowFmt.c_str(), next_record.IN_ID,
+		int rc = fprintf(p, IndustryRowFmt.c_str(), next_record.IN_ID,
 				next_record.IN_NAME, next_record.IN_SC_ID);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatIndustryLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

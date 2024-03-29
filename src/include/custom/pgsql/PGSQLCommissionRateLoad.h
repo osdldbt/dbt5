@@ -61,10 +61,16 @@ public:
 	void
 	WriteNextRecord(const COMMISSION_RATE_ROW &next_record)
 	{
-		fprintf(p, CommissionRateRowFmt.c_str(), next_record.CR_C_TIER,
-				next_record.CR_TT_ID, next_record.CR_EX_ID,
-				next_record.CR_FROM_QTY, next_record.CR_TO_QTY,
-				next_record.CR_RATE);
+		int rc = fprintf(p, CommissionRateRowFmt.c_str(),
+				next_record.CR_C_TIER, next_record.CR_TT_ID,
+				next_record.CR_EX_ID, next_record.CR_FROM_QTY,
+				next_record.CR_TO_QTY, next_record.CR_RATE);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatCommissionRateLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

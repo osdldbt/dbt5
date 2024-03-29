@@ -60,9 +60,15 @@ public:
 	void
 	WriteNextRecord(const BROKER_ROW &next_record)
 	{
-		fprintf(p, BrokerRowFmt.c_str(), next_record.B_ID, next_record.B_ST_ID,
-				next_record.B_NAME, next_record.B_NUM_TRADES,
-				next_record.B_COMM_TOTAL);
+		int rc = fprintf(p, BrokerRowFmt.c_str(), next_record.B_ID,
+				next_record.B_ST_ID, next_record.B_NAME,
+				next_record.B_NUM_TRADES, next_record.B_COMM_TOTAL);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatBrokerLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

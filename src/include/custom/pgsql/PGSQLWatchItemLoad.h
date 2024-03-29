@@ -61,8 +61,14 @@ public:
 	void
 	WriteNextRecord(const WATCH_ITEM_ROW &next_record)
 	{
-		fprintf(p, WatchItemRowFmt.c_str(), next_record.WI_WL_ID,
+		int rc = fprintf(p, WatchItemRowFmt.c_str(), next_record.WI_WL_ID,
 				next_record.WI_S_SYMB);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatTradeTypeLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

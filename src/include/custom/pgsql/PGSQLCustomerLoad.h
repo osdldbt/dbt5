@@ -65,7 +65,7 @@ public:
 	{
 		c_dob = next_record.C_DOB;
 
-		fprintf(p, CustomerRowFmt.c_str(), next_record.C_ID,
+		int rc = fprintf(p, CustomerRowFmt.c_str(), next_record.C_ID,
 				next_record.C_TAX_ID, next_record.C_ST_ID,
 				next_record.C_L_NAME, next_record.C_F_NAME,
 				next_record.C_M_NAME, next_record.C_GNDR, next_record.C_TIER,
@@ -77,6 +77,12 @@ public:
 				next_record.C_CTRY_3, next_record.C_AREA_3,
 				next_record.C_LOCAL_3, next_record.C_EXT_3,
 				next_record.C_EMAIL_1, next_record.C_EMAIL_2);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatCustomerLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

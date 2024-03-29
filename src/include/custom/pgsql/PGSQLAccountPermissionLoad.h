@@ -61,9 +61,16 @@ public:
 	void
 	WriteNextRecord(const ACCOUNT_PERMISSION_ROW &next_record)
 	{
-		fprintf(p, AccountPermissionRowFmt.c_str(), next_record.AP_CA_ID,
-				next_record.AP_ACL, next_record.AP_TAX_ID,
-				next_record.AP_L_NAME, next_record.AP_F_NAME);
+		int rc = fprintf(p, AccountPermissionRowFmt.c_str(),
+				next_record.AP_CA_ID, next_record.AP_ACL,
+				next_record.AP_TAX_ID, next_record.AP_L_NAME,
+				next_record.AP_F_NAME);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatAccountPermissionLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

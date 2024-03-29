@@ -61,8 +61,14 @@ public:
 	void
 	WriteNextRecord(const ZIP_CODE_ROW &next_record)
 	{
-		fprintf(p, ZipCodeRowFmt.c_str(), next_record.ZC_CODE,
+		int rc = fprintf(p, ZipCodeRowFmt.c_str(), next_record.ZC_CODE,
 				next_record.ZC_TOWN, next_record.ZC_DIV);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatWatchListLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

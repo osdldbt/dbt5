@@ -64,11 +64,17 @@ public:
 	{
 		co_open_date = next_record.CO_OPEN_DATE;
 
-		fprintf(p, CompanyRowFmt.c_str(), next_record.CO_ID,
+		int rc = fprintf(p, CompanyRowFmt.c_str(), next_record.CO_ID,
 				next_record.CO_ST_ID, next_record.CO_NAME,
 				next_record.CO_IN_ID, next_record.CO_SP_RATE,
 				next_record.CO_CEO, next_record.CO_AD_ID, next_record.CO_DESC,
 				co_open_date.ToStr(iDateTimeFmt));
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatCompanyLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

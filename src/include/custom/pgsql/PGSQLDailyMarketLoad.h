@@ -64,9 +64,16 @@ public:
 	{
 		dm_date = next_record.DM_DATE;
 
-		fprintf(p, DailyMarketRowFmt.c_str(), dm_date.ToStr(iDateTimeFmt),
-				next_record.DM_S_SYMB, next_record.DM_CLOSE,
-				next_record.DM_HIGH, next_record.DM_LOW, next_record.DM_VOL);
+		int rc = fprintf(p, DailyMarketRowFmt.c_str(),
+				dm_date.ToStr(iDateTimeFmt), next_record.DM_S_SYMB,
+				next_record.DM_CLOSE, next_record.DM_HIGH, next_record.DM_LOW,
+				next_record.DM_VOL);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatDailyMarketLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

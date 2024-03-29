@@ -57,8 +57,14 @@ public:
 	void
 	WriteNextRecord(const HOLDING_SUMMARY_ROW &next_record)
 	{
-		fprintf(p, HoldingSummaryRowFmt.c_str(), next_record.HS_CA_ID,
+		int rc = fprintf(p, HoldingSummaryRowFmt.c_str(), next_record.HS_CA_ID,
 				next_record.HS_S_SYMB, next_record.HS_QTY);
+
+		if (rc < 0) {
+			throw CSystemErr(CSystemErr::eWriteFile,
+					"CFlatHoldingSummaryLoad::WriteNextRecord");
+		}
+
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;
