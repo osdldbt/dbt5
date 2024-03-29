@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-YY)
+
+- Set load type in database build scripts with -l command line argument
+
 v0.8.0 (2024-03-22)
 
 - Support TOML configuration files for executing tests with `run` script

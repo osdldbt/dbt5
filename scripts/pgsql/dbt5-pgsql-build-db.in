@@ -19,8 +19,10 @@ General options:
   -b CUSTOMER_ID Beginning customer ordinal position
   -c CUSTOMERS   Number of CUSTOMERS for this instance
   -d DBNAME      PGDATABASE name, default ${DBT5DBNAME}"
+  --db-port=PORT
+                 database listening PORT number
   -i EGENHOME    EGENHOME is the directory location of the TPC-E Tools
-  -l PORT        Database PORT number
+  -l LOAD        EGenLoader type of LOAD [FLAT|ODBC|CUSTOM|NULL], default FLAT
   -p PARAMETERS  PostgreSQL database PARAMETERS
   --rows-per-commit ROWS
                  Specify how many ROWS are sent before a COMMIT, the actual
@@ -107,6 +109,13 @@ while [ "${#}" -gt 0 ] ; do
 	(-d*)
 		DBT5DBNAME="${1#*-d}"
 		;;
+	(--db-port)
+		shift
+		PORT="${1}"
+		;;
+	(--db-port=?*)
+		PORT="${1#*--db-port=}"
+		;;
 	(-i)
 		shift
 		EGENDIR="$(realpath "${1}")"
@@ -116,10 +125,10 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(-l)
 		shift
-		PORT="${1}"
+		MODE="${1}"
 		;;
 	(-l*)
-		PORT="${1#*-l}"
+		MODE="${1#*-l}"
 		;;
 	(-p)
 		shift
