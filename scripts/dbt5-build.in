@@ -27,7 +27,7 @@ Options:
                  EGENHOME is the directory location of the TPC-E Tools
   -f SCALE_FACTOR
                  customer per Trade Result transactions per second, default ${SCALE_FACTOR}
-  -l LOAD        EGenLoader type of LOAD [FLAT|ODBC|CUSTOM|NULL], default FLAT
+  -l LOAD        EGenLoader type of LOAD [FLAT|ODBC|CUSTOM|NULL], default CUSTOM
   --privileged   run test as a privileged operating system and database user
   --rows-per-commit ROWS
                  Specify how many ROWS are sent before a COMMIT, the actual

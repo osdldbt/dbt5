@@ -22,7 +22,7 @@ General options:
   --db-port=PORT
                  database listening PORT number
   -i EGENHOME    EGENHOME is the directory location of the TPC-E Tools
-  -l LOAD        EGenLoader type of LOAD [FLAT|ODBC|CUSTOM|NULL], default FLAT
+  -l LOAD        EGenLoader type of LOAD [FLAT|ODBC|CUSTOM|NULL], default CUSTOM
   -p PARAMETERS  PostgreSQL database PARAMETERS
   --rows-per-commit ROWS
                  Specify how many ROWS are sent before a COMMIT, the actual
@@ -70,7 +70,7 @@ load_table()
 	fi
 }
 
-MODE="FLAT"
+MODE="CUSTOM"
 REBUILD_DB=0
 PRIVILEGED=0
 
