@@ -1,0 +1,5 @@
+-std=c++98
+-Isrc/include
+-Isrc/include/custom
+-Iegen/inc
+-I/usr/include/c++/13.2
