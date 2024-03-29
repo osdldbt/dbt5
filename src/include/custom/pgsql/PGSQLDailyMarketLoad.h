@@ -51,21 +51,22 @@ class CPGSQLDailyMarketLoad: public CPGSQLLoader<DAILY_MARKET_ROW>
 {
 private:
 	CDateTime dm_date;
+	const std::string DailyMarketRowFmt;
 
 public:
 	CPGSQLDailyMarketLoad(
 			const char *szConnectStr, const char *szTable = "daily_market")
-	: CPGSQLLoader<DAILY_MARKET_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<DAILY_MARKET_ROW>(szConnectStr, szTable),
+	  DailyMarketRowFmt("%s|%s|%.2f|%.2f|%.2f|%" PRId64 "\n"){};
 
 	void
 	WriteNextRecord(const DAILY_MARKET_ROW &next_record)
 	{
 		dm_date = next_record.DM_DATE;
 
-		fprintf(p, "%s|%s|%.2f|%.2f|%.2f|%" PRId64 "\n",
-				dm_date.ToStr(iDateTimeFmt), next_record.DM_S_SYMB,
-				next_record.DM_CLOSE, next_record.DM_HIGH, next_record.DM_LOW,
-				next_record.DM_VOL);
+		fprintf(p, DailyMarketRowFmt.c_str(), dm_date.ToStr(iDateTimeFmt),
+				next_record.DM_S_SYMB, next_record.DM_CLOSE,
+				next_record.DM_HIGH, next_record.DM_LOW, next_record.DM_VOL);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

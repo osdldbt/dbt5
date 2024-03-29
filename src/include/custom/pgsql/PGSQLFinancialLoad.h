@@ -51,21 +51,23 @@ class CPGSQLFinancialLoad: public CPGSQLLoader<FINANCIAL_ROW>
 {
 private:
 	CDateTime fi_qtr_start_date;
+	const std::string FinancialRowFmt;
 
 public:
 	CPGSQLFinancialLoad(
 			const char *szConnectStr, const char *szTable = "financial")
-	: CPGSQLLoader<FINANCIAL_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<FINANCIAL_ROW>(szConnectStr, szTable),
+	  FinancialRowFmt(
+			  "%" PRId64
+			  "|%d|%d|%s|%.2f|%.2f|%.2f|%.2f|%.2f|%.2f|%.2f|%.2f|%ld|%ld\n"){};
 
 	void
 	WriteNextRecord(const FINANCIAL_ROW &next_record)
 	{
 		fi_qtr_start_date = next_record.FI_QTR_START_DATE;
 
-		fprintf(p,
-				"%" PRId64
-				"|%d|%d|%s|%.2f|%.2f|%.2f|%.2f|%.2f|%.2f|%.2f|%.2f|%ld|%ld\n",
-				next_record.FI_CO_ID, next_record.FI_YEAR, next_record.FI_QTR,
+		fprintf(p, FinancialRowFmt.c_str(), next_record.FI_CO_ID,
+				next_record.FI_YEAR, next_record.FI_QTR,
 				fi_qtr_start_date.ToStr(iDateTimeFmt), next_record.FI_REVENUE,
 				next_record.FI_NET_EARN, next_record.FI_BASIC_EPS,
 				next_record.FI_DILUT_EPS, next_record.FI_MARGIN,

@@ -49,16 +49,20 @@ namespace TPCE
 
 class CPGSQLIndustryLoad: public CPGSQLLoader<INDUSTRY_ROW>
 {
+private:
+	const std::string IndustryRowFmt;
+
 public:
 	CPGSQLIndustryLoad(
 			const char *szConnectStr, const char *szTable = "industry")
-	: CPGSQLLoader<INDUSTRY_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<INDUSTRY_ROW>(szConnectStr, szTable),
+	  IndustryRowFmt("%s|%s|%s\n"){};
 
 	void
 	WriteNextRecord(const INDUSTRY_ROW &next_record)
 	{
-		fprintf(p, "%s|%s|%s\n", next_record.IN_ID, next_record.IN_NAME,
-				next_record.IN_SC_ID);
+		fprintf(p, IndustryRowFmt.c_str(), next_record.IN_ID,
+				next_record.IN_NAME, next_record.IN_SC_ID);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

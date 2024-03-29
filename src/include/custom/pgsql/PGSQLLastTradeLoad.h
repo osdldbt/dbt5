@@ -51,18 +51,20 @@ class CPGSQLLastTradeLoad: public CPGSQLLoader<LAST_TRADE_ROW>
 {
 private:
 	CDateTime lt_dts;
+	const std::string LastTradeRowFmt;
 
 public:
 	CPGSQLLastTradeLoad(
 			const char *szConnectStr, const char *szTable = "last_trade")
-	: CPGSQLLoader<LAST_TRADE_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<LAST_TRADE_ROW>(szConnectStr, szTable),
+	  LastTradeRowFmt("%s|%s|%.2f|%.2f|%" PRId64 "\n"){};
 
 	void
 	WriteNextRecord(const LAST_TRADE_ROW &next_record)
 	{
 		lt_dts = next_record.LT_DTS;
 
-		fprintf(p, "%s|%s|%.2f|%.2f|%" PRId64 "\n", next_record.LT_S_SYMB,
+		fprintf(p, LastTradeRowFmt.c_str(), next_record.LT_S_SYMB,
 				lt_dts.ToStr(iDateTimeFmt), next_record.LT_PRICE,
 				next_record.LT_OPEN_PRICE, next_record.LT_VOL);
 		// FIXME: Have blind faith that this row of data was built correctly.

@@ -51,19 +51,21 @@ class CPGSQLCompanyLoad: public CPGSQLLoader<COMPANY_ROW>
 {
 private:
 	CDateTime co_open_date;
+	const std::string CompanyRowFmt;
 
 public:
 	CPGSQLCompanyLoad(
 			const char *szConnectStr, const char *szTable = "company")
-	: CPGSQLLoader<COMPANY_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<COMPANY_ROW>(szConnectStr, szTable),
+	  CompanyRowFmt("%" PRId64 "|%s|%s|%s|%s|%s|%" PRId64 "|%s|%s\n"){};
 
 	void
 	WriteNextRecord(const COMPANY_ROW &next_record)
 	{
 		co_open_date = next_record.CO_OPEN_DATE;
 
-		fprintf(p, "%" PRId64 "|%s|%s|%s|%s|%s|%" PRId64 "|%s|%s\n",
-				next_record.CO_ID, next_record.CO_ST_ID, next_record.CO_NAME,
+		fprintf(p, CompanyRowFmt.c_str(), next_record.CO_ID,
+				next_record.CO_ST_ID, next_record.CO_NAME,
 				next_record.CO_IN_ID, next_record.CO_SP_RATE,
 				next_record.CO_CEO, next_record.CO_AD_ID, next_record.CO_DESC,
 				co_open_date.ToStr(iDateTimeFmt));

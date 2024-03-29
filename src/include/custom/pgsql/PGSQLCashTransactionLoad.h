@@ -51,17 +51,19 @@ class CPGSQLCashTransactionLoad: public CPGSQLLoader<CASH_TRANSACTION_ROW>
 {
 private:
 	CDateTime ct_dts;
+	const std::string CashTransactionRowFmt;
 
 public:
 	CPGSQLCashTransactionLoad(
 			const char *szConnectStr, const char *szTable = "cash_transaction")
-	: CPGSQLLoader<CASH_TRANSACTION_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<CASH_TRANSACTION_ROW>(szConnectStr, szTable),
+	  CashTransactionRowFmt("%" PRId64 "|%s|%.2f|%s\n"){};
 
 	void
 	WriteNextRecord(const CASH_TRANSACTION_ROW &next_record)
 	{
 		ct_dts = next_record.CT_DTS;
-		fprintf(p, "%" PRId64 "|%s|%.2f|%s\n", next_record.CT_T_ID,
+		fprintf(p, CashTransactionRowFmt.c_str(), next_record.CT_T_ID,
 				ct_dts.ToStr(iDateTimeFmt), next_record.CT_AMT,
 				next_record.CT_NAME);
 		// FIXME: Have blind faith that this row of data was built correctly.

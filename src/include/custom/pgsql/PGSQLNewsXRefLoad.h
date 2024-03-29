@@ -49,15 +49,19 @@ namespace TPCE
 
 class CPGSQLNewsXRefLoad: public CPGSQLLoader<NEWS_XREF_ROW>
 {
+private:
+	const std::string NewsXRefRowFmt;
+
 public:
 	CPGSQLNewsXRefLoad(
 			const char *szConnectStr, const char *szTable = "news_xref")
-	: CPGSQLLoader<NEWS_XREF_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<NEWS_XREF_ROW>(szConnectStr, szTable),
+	  NewsXRefRowFmt("%" PRId64 "|%" PRId64 "\n"){};
 
 	void
 	WriteNextRecord(const NEWS_XREF_ROW &next_record)
 	{
-		fprintf(p, "%" PRId64 "|%" PRId64 "\n", next_record.NX_NI_ID,
+		fprintf(p, NewsXRefRowFmt.c_str(), next_record.NX_NI_ID,
 				next_record.NX_CO_ID);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)

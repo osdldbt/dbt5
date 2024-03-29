@@ -49,18 +49,22 @@ namespace TPCE
 
 class CPGSQLCustomerAccountLoad: public CPGSQLLoader<CUSTOMER_ACCOUNT_ROW>
 {
+private:
+	const std::string CustomerAccountRowFmt;
+
 public:
 	CPGSQLCustomerAccountLoad(
 			const char *szConnectStr, const char *szTable = "customer_account")
-	: CPGSQLLoader<CUSTOMER_ACCOUNT_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<CUSTOMER_ACCOUNT_ROW>(szConnectStr, szTable),
+	  CustomerAccountRowFmt(
+			  "%" PRId64 "|%" PRId64 "|%" PRId64 "|%s|%d|%.2f\n"){};
 
 	void
 	WriteNextRecord(const CUSTOMER_ACCOUNT_ROW &next_record)
 	{
-		fprintf(p, "%" PRId64 "|%" PRId64 "|%" PRId64 "|%s|%d|%.2f\n",
-				next_record.CA_ID, next_record.CA_B_ID, next_record.CA_C_ID,
-				next_record.CA_NAME, next_record.CA_TAX_ST,
-				next_record.CA_BAL);
+		fprintf(p, CustomerAccountRowFmt.c_str(), next_record.CA_ID,
+				next_record.CA_B_ID, next_record.CA_C_ID, next_record.CA_NAME,
+				next_record.CA_TAX_ST, next_record.CA_BAL);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

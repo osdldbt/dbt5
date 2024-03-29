@@ -49,15 +49,19 @@ namespace TPCE
 
 class CPGSQLCompanyCompetitorLoad: public CPGSQLLoader<COMPANY_COMPETITOR_ROW>
 {
+private:
+	const std::string CompanyCompetitorRowFmt;
+
 public:
 	CPGSQLCompanyCompetitorLoad(const char *szConnectStr,
 			const char *szTable = "company_competitor")
-	: CPGSQLLoader<COMPANY_COMPETITOR_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<COMPANY_COMPETITOR_ROW>(szConnectStr, szTable),
+	  CompanyCompetitorRowFmt("%" PRId64 "|%" PRId64 "|%s\n"){};
 
 	void
 	WriteNextRecord(const COMPANY_COMPETITOR_ROW &next_record)
 	{
-		fprintf(p, "%" PRId64 "|%" PRId64 "|%s\n", next_record.CP_CO_ID,
+		fprintf(p, CompanyCompetitorRowFmt.c_str(), next_record.CP_CO_ID,
 				next_record.CP_COMP_CO_ID, next_record.CP_IN_ID);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)

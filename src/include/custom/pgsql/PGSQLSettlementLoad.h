@@ -51,17 +51,19 @@ class CPGSQLSettlementLoad: public CPGSQLLoader<SETTLEMENT_ROW>
 {
 private:
 	CDateTime se_cash_due_date;
+	const std::string SettlementRowFmt;
 
 public:
 	CPGSQLSettlementLoad(
 			const char *szConnectStr, const char *szTable = "settlement")
-	: CPGSQLLoader<SETTLEMENT_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<SETTLEMENT_ROW>(szConnectStr, szTable),
+	  SettlementRowFmt("%" PRId64 "|%s|%s|%.2f\n"){};
 
 	void
 	WriteNextRecord(const SETTLEMENT_ROW &next_record)
 	{
 		se_cash_due_date = next_record.SE_CASH_DUE_DATE;
-		fprintf(p, "%" PRId64 "|%s|%s|%.2f\n", next_record.SE_T_ID,
+		fprintf(p, SettlementRowFmt.c_str(), next_record.SE_T_ID,
 				next_record.SE_CASH_TYPE, se_cash_due_date.ToStr(iDateTimeFmt),
 				next_record.SE_AMT);
 		// FIXME: Have blind faith that this row of data was built correctly.

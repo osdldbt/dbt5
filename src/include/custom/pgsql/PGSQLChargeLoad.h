@@ -49,15 +49,19 @@ namespace TPCE
 
 class CPGSQLChargeLoad: public CPGSQLLoader<CHARGE_ROW>
 {
+private:
+	const std::string ChargeRowFmt;
+
 public:
 	CPGSQLChargeLoad(const char *szConnectStr, const char *szTable = "charge")
-	: CPGSQLLoader<CHARGE_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<CHARGE_ROW>(szConnectStr, szTable),
+	  ChargeRowFmt("%s|%d|%.2f\n"){};
 
 	void
 	WriteNextRecord(const CHARGE_ROW &next_record)
 	{
-		fprintf(p, "%s|%d|%.2f\n", next_record.CH_TT_ID, next_record.CH_C_TIER,
-				next_record.CH_CHRG);
+		fprintf(p, ChargeRowFmt.c_str(), next_record.CH_TT_ID,
+				next_record.CH_C_TIER, next_record.CH_CHRG);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

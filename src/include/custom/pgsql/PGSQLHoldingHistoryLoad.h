@@ -49,15 +49,19 @@ namespace TPCE
 
 class CPGSQLHoldingHistoryLoad: public CPGSQLLoader<HOLDING_HISTORY_ROW>
 {
+private:
+	const std::string HoldingHistoryRowFmt;
+
 public:
 	CPGSQLHoldingHistoryLoad(
 			const char *szConnectStr, const char *szTable = "holding_history")
-	: CPGSQLLoader<HOLDING_HISTORY_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<HOLDING_HISTORY_ROW>(szConnectStr, szTable),
+	  HoldingHistoryRowFmt("%" PRId64 "|%" PRId64 "|%d|%d\n"){};
 
 	void
 	WriteNextRecord(const HOLDING_HISTORY_ROW &next_record)
 	{
-		fprintf(p, "%" PRId64 "|%" PRId64 "|%d|%d\n", next_record.HH_H_T_ID,
+		fprintf(p, HoldingHistoryRowFmt.c_str(), next_record.HH_H_T_ID,
 				next_record.HH_T_ID, next_record.HH_BEFORE_QTY,
 				next_record.HH_AFTER_QTY);
 		// FIXME: Have blind faith that this row of data was built correctly.

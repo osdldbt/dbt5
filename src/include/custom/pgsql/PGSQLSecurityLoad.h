@@ -54,11 +54,14 @@ private:
 	CDateTime s_exch_date;
 	CDateTime s_52wk_high_date;
 	CDateTime s_52wk_low_date;
+	const std::string SecurityRowFmt;
 
 public:
 	CPGSQLSecurityLoad(
 			const char *szConnectStr, const char *szTable = "security")
-	: CPGSQLLoader<SECURITY_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<SECURITY_ROW>(szConnectStr, szTable),
+	  SecurityRowFmt("%s|%s|%s|%s|%s|%" PRId64 "|%" PRId64
+					 "|%s|%s|%.2f|%.2f|%s|%.2f|%s|%.2f|%.2f\n"){};
 
 	void
 	WriteNextRecord(const SECURITY_ROW &next_record)
@@ -68,11 +71,9 @@ public:
 		s_52wk_high_date = next_record.S_52WK_HIGH_DATE;
 		s_52wk_low_date = next_record.S_52WK_LOW_DATE;
 
-		fprintf(p,
-				"%s|%s|%s|%s|%s|%" PRId64 "|%" PRId64
-				"|%s|%s|%.2f|%.2f|%s|%.2f|%s|%.2f|%.2f\n",
-				next_record.S_SYMB, next_record.S_ISSUE, next_record.S_ST_ID,
-				next_record.S_NAME, next_record.S_EX_ID, next_record.S_CO_ID,
+		fprintf(p, SecurityRowFmt.c_str(), next_record.S_SYMB,
+				next_record.S_ISSUE, next_record.S_ST_ID, next_record.S_NAME,
+				next_record.S_EX_ID, next_record.S_CO_ID,
 				next_record.S_NUM_OUT, s_start_date.ToStr(iDateTimeFmt),
 				s_exch_date.ToStr(iDateTimeFmt), next_record.S_PE,
 				next_record.S_52WK_HIGH, s_52wk_high_date.ToStr(iDateTimeFmt),

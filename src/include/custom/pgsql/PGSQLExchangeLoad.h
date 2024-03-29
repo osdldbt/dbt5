@@ -49,15 +49,19 @@ namespace TPCE
 
 class CPGSQLExchangeLoad: public CPGSQLLoader<EXCHANGE_ROW>
 {
+private:
+	const std::string ExchangeRowFmt;
+
 public:
 	CPGSQLExchangeLoad(
 			const char *szConnectStr, const char *szTable = "exchange")
-	: CPGSQLLoader<EXCHANGE_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<EXCHANGE_ROW>(szConnectStr, szTable),
+	  ExchangeRowFmt("%s|%s|%d|%d|%d|%s|%" PRId64 "\n"){};
 
 	void
 	WriteNextRecord(const EXCHANGE_ROW &next_record)
 	{
-		fprintf(p, "%s|%s|%d|%d|%d|%s|%" PRId64 "\n", next_record.EX_ID,
+		fprintf(p, ExchangeRowFmt.c_str(), next_record.EX_ID,
 				next_record.EX_NAME, next_record.EX_NUM_SYMB,
 				next_record.EX_OPEN, next_record.EX_CLOSE, next_record.EX_DESC,
 				next_record.EX_AD_ID);

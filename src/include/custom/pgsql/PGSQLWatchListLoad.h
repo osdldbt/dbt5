@@ -49,15 +49,19 @@ namespace TPCE
 
 class CPGSQLWatchListLoad: public CPGSQLLoader<WATCH_LIST_ROW>
 {
+private:
+	const std::string WatchListRowFmt;
+
 public:
 	CPGSQLWatchListLoad(
 			const char *szConnectStr, const char *szTable = "watch_list")
-	: CPGSQLLoader<WATCH_LIST_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<WATCH_LIST_ROW>(szConnectStr, szTable),
+	  WatchListRowFmt("%" PRId64 "|%" PRId64 "\n"){};
 
 	void
 	WriteNextRecord(const WATCH_LIST_ROW &next_record)
 	{
-		fprintf(p, "%" PRId64 "|%" PRId64 "\n", next_record.WL_ID,
+		fprintf(p, WatchListRowFmt.c_str(), next_record.WL_ID,
 				next_record.WL_C_ID);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)

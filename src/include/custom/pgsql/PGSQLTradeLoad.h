@@ -51,22 +51,23 @@ class CPGSQLTradeLoad: public CPGSQLLoader<TRADE_ROW>
 {
 private:
 	CDateTime t_dts;
+	const std::string TradeRowFmt;
 
 public:
 	CPGSQLTradeLoad(const char *szConnectStr, const char *szTable = "trade")
-	: CPGSQLLoader<TRADE_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<TRADE_ROW>(szConnectStr, szTable),
+	  TradeRowFmt("%" PRId64 "|%s|%s|%s|%d|%s|%d|%.2f|%" PRId64
+				  "|%s|%.2f|%.2f|%.2f|%.2f|%d\n"){};
 
 	void
 	WriteNextRecord(const TRADE_ROW &next_record)
 	{
 		t_dts = next_record.T_DTS;
 
-		fprintf(p,
-				"%" PRId64 "|%s|%s|%s|%d|%s|%d|%.2f|%" PRId64
-				"|%s|%.2f|%.2f|%.2f|%.2f|%d\n",
-				next_record.T_ID, t_dts.ToStr(iDateTimeFmt),
-				next_record.T_ST_ID, next_record.T_TT_ID,
-				next_record.T_IS_CASH, next_record.T_S_SYMB, next_record.T_QTY,
+		fprintf(p, TradeRowFmt.c_str(), next_record.T_ID,
+				t_dts.ToStr(iDateTimeFmt), next_record.T_ST_ID,
+				next_record.T_TT_ID, next_record.T_IS_CASH,
+				next_record.T_S_SYMB, next_record.T_QTY,
 				next_record.T_BID_PRICE, next_record.T_CA_ID,
 				next_record.T_EXEC_NAME, next_record.T_TRADE_PRICE,
 				next_record.T_CHRG, next_record.T_COMM, next_record.T_TAX,

@@ -51,21 +51,22 @@ class CPGSQLCustomerLoad: public CPGSQLLoader<CUSTOMER_ROW>
 {
 private:
 	CDateTime c_dob;
+	const std::string CustomerRowFmt;
 
 public:
 	CPGSQLCustomerLoad(
 			const char *szConnectStr, const char *szTable = "customer")
-	: CPGSQLLoader<CUSTOMER_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<CUSTOMER_ROW>(szConnectStr, szTable),
+	  CustomerRowFmt("%" PRId64 "|%s|%s|%s|%s|%s|%c|%d|%s|%" PRId64
+					 "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n"){};
 
 	void
 	WriteNextRecord(const CUSTOMER_ROW &next_record)
 	{
 		c_dob = next_record.C_DOB;
 
-		fprintf(p,
-				"%" PRId64 "|%s|%s|%s|%s|%s|%c|%d|%s|%" PRId64
-				"|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n",
-				next_record.C_ID, next_record.C_TAX_ID, next_record.C_ST_ID,
+		fprintf(p, CustomerRowFmt.c_str(), next_record.C_ID,
+				next_record.C_TAX_ID, next_record.C_ST_ID,
 				next_record.C_L_NAME, next_record.C_F_NAME,
 				next_record.C_M_NAME, next_record.C_GNDR, next_record.C_TIER,
 				c_dob.ToStr(iDateTimeFmt), next_record.C_AD_ID,

@@ -45,15 +45,19 @@ namespace TPCE
 
 class CPGSQLHoldingSummaryLoad: public CPGSQLLoader<HOLDING_SUMMARY_ROW>
 {
+private:
+	const std::string HoldingSummaryRowFmt;
+
 public:
 	CPGSQLHoldingSummaryLoad(
 			const char *szConnectStr, const char *szTable = "holding_summary")
-	: CPGSQLLoader<HOLDING_SUMMARY_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<HOLDING_SUMMARY_ROW>(szConnectStr, szTable),
+	  HoldingSummaryRowFmt("%" PRId64 "|%s|%d\n"){};
 
 	void
 	WriteNextRecord(const HOLDING_SUMMARY_ROW &next_record)
 	{
-		fprintf(p, "%" PRId64 "|%s|%d\n", next_record.HS_CA_ID,
+		fprintf(p, HoldingSummaryRowFmt.c_str(), next_record.HS_CA_ID,
 				next_record.HS_S_SYMB, next_record.HS_QTY);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)

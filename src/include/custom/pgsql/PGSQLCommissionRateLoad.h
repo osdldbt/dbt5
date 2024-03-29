@@ -49,15 +49,19 @@ namespace TPCE
 
 class CPGSQLCommissionRateLoad: public CPGSQLLoader<COMMISSION_RATE_ROW>
 {
+private:
+	const std::string CommissionRateRowFmt;
+
 public:
 	CPGSQLCommissionRateLoad(
 			const char *szConnectStr, const char *szTable = "commission_rate")
-	: CPGSQLLoader<COMMISSION_RATE_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<COMMISSION_RATE_ROW>(szConnectStr, szTable),
+	  CommissionRateRowFmt("%d|%s|%s|%d|%d|%.2f\n"){};
 
 	void
 	WriteNextRecord(const COMMISSION_RATE_ROW &next_record)
 	{
-		fprintf(p, "%d|%s|%s|%d|%d|%.2f\n", next_record.CR_C_TIER,
+		fprintf(p, CommissionRateRowFmt.c_str(), next_record.CR_C_TIER,
 				next_record.CR_TT_ID, next_record.CR_EX_ID,
 				next_record.CR_FROM_QTY, next_record.CR_TO_QTY,
 				next_record.CR_RATE);

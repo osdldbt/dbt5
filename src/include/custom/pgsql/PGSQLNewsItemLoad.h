@@ -51,17 +51,19 @@ class CPGSQLNewsItemLoad: public CPGSQLLoader<NEWS_ITEM_ROW>
 {
 private:
 	CDateTime ni_dts;
+	const std::string NewsItemRowFmt;
 
 public:
 	CPGSQLNewsItemLoad(
 			const char *szConnectStr, const char *szTable = "news_item")
-	: CPGSQLLoader<NEWS_ITEM_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<NEWS_ITEM_ROW>(szConnectStr, szTable),
+	  NewsItemRowFmt("%" PRId64 "|%s|%s|%s|%s|%s|%s\n"){};
 
 	void
 	WriteNextRecord(const NEWS_ITEM_ROW &next_record)
 	{
 		ni_dts = next_record.NI_DTS;
-		fprintf(p, "%" PRId64 "|%s|%s|%s|%s|%s|%s\n", next_record.NI_ID,
+		fprintf(p, NewsItemRowFmt.c_str(), next_record.NI_ID,
 				next_record.NI_HEADLINE, next_record.NI_SUMMARY,
 				next_record.NI_ITEM, ni_dts.ToStr(iDateTimeFmt),
 				next_record.NI_SOURCE, next_record.NI_AUTHOR);

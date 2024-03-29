@@ -49,15 +49,19 @@ namespace TPCE
 
 class CPGSQLAddressLoad: public CPGSQLLoader<ADDRESS_ROW>
 {
+private:
+	const std::string AddressRowFmt;
+
 public:
 	CPGSQLAddressLoad(
 			const char *szConnectStr, const char *szTable = "address")
-	: CPGSQLLoader<ADDRESS_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<ADDRESS_ROW>(szConnectStr, szTable),
+	  AddressRowFmt("%" PRId64 "|%s|%s|%s|%s\n"){};
 
 	void
 	WriteNextRecord(const ADDRESS_ROW &next_record)
 	{
-		fprintf(p, "%" PRId64 "|%s|%s|%s|%s\n", next_record.AD_ID,
+		fprintf(p, AddressRowFmt.c_str(), next_record.AD_ID,
 				next_record.AD_LINE1, next_record.AD_LINE2,
 				next_record.AD_ZC_CODE, next_record.AD_CTRY);
 		// FIXME: Have blind faith that this row of data was built correctly.

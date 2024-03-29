@@ -49,16 +49,20 @@ namespace TPCE
 
 class CPGSQLZipCodeLoad: public CPGSQLLoader<ZIP_CODE_ROW>
 {
+private:
+	const std::string ZipCodeRowFmt;
+
 public:
 	CPGSQLZipCodeLoad(
 			const char *szConnectStr, const char *szTable = "zip_code")
-	: CPGSQLLoader<ZIP_CODE_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<ZIP_CODE_ROW>(szConnectStr, szTable),
+	  ZipCodeRowFmt("%s|%s|%s\n"){};
 
 	void
 	WriteNextRecord(const ZIP_CODE_ROW &next_record)
 	{
-		fprintf(p, "%s|%s|%s\n", next_record.ZC_CODE, next_record.ZC_TOWN,
-				next_record.ZC_DIV);
+		fprintf(p, ZipCodeRowFmt.c_str(), next_record.ZC_CODE,
+				next_record.ZC_TOWN, next_record.ZC_DIV);
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
 			;

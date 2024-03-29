@@ -49,9 +49,13 @@ namespace TPCE
 
 class CPGSQLSectorLoad: public CPGSQLLoader<SECTOR_ROW>
 {
+private:
+	const std::string SectorRowFmt;
+
 public:
 	CPGSQLSectorLoad(const char *szConnectStr, const char *szTable = "sector")
-	: CPGSQLLoader<SECTOR_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<SECTOR_ROW>(szConnectStr, szTable),
+	  SectorRowFmt("%s|%s\n"){};
 
 	void
 	WriteNextRecord(const SECTOR_ROW &next_record)

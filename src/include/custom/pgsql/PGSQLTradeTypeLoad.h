@@ -49,16 +49,20 @@ namespace TPCE
 
 class CPGSQLTradeTypeLoad: public CPGSQLLoader<TRADE_TYPE_ROW>
 {
+private:
+	const std::string TradeTypeRowFmt;
+
 public:
 	CPGSQLTradeTypeLoad(
 			const char *szConnectStr, const char *szTable = "trade_type")
-	: CPGSQLLoader<TRADE_TYPE_ROW>(szConnectStr, szTable){};
+	: CPGSQLLoader<TRADE_TYPE_ROW>(szConnectStr, szTable),
+	  TradeTypeRowFmt("%s|%s|%s|%s\n"){};
 
 	void
 	WriteNextRecord(const TRADE_TYPE_ROW &next_record)
 	{
-		fprintf(p, "%s|%s|%s|%s\n", next_record.TT_ID, next_record.TT_NAME,
-				next_record.TT_IS_SELL ? "TRUE" : "FALSE",
+		fprintf(p, TradeTypeRowFmt.c_str(), next_record.TT_ID,
+				next_record.TT_NAME, next_record.TT_IS_SELL ? "TRUE" : "FALSE",
 				next_record.TT_IS_MRKT ? "TRUE" : "FALSE");
 		// FIXME: Have blind faith that this row of data was built correctly.
 		while (fgetc(p) != EOF)
