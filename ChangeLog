@@ -4,6 +4,8 @@ vX.Y.Z (YYYY-MM-YY)
 - Fix direct loading for postgresql
 - Refactor custom pgsql loader to COMMIT rows as EGenLoader dictates instead of
   just when the loader class is constructed and destructed
+- Quiet the PostgreSQL custom loader output, instead generate log files per
+  table
 
 v0.8.0 (2024-03-22)
 
