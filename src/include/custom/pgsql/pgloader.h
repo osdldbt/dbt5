@@ -55,6 +55,9 @@ const int iConnectStrLen = 256;
 //
 template <typename T> class CPGSQLLoader: public CBaseLoader<T>
 {
+private:
+	void Copy();
+
 protected:
 	FILE *p;
 
@@ -131,8 +134,13 @@ CPGSQLLoader<T>::Connect()
 	while (fgetc(p) != EOF)
 		;
 
-	// BEGIN the transaction now to avoid WAL activity.  Don't remember which
-	// version of PostgreSQL takes advantage of this, one of the 8.x series.
+	Copy();
+}
+
+template <typename T>
+void
+CPGSQLLoader<T>::Copy()
+{
 	fprintf(p, "BEGIN;\n");
 	while (fgetc(p) != EOF)
 		;
@@ -152,7 +160,8 @@ template <typename T>
 void
 CPGSQLLoader<T>::Commit()
 {
-	// With COPY, don't COMMIT until we're done.
+	FinishLoad();
+	Copy();
 }
 
 //

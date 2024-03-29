@@ -2,6 +2,8 @@ vX.Y.Z (YYYY-MM-YY)
 
 - Set load type in database build scripts with -l command line argument
 - Fix direct loading for postgresql
+- Refactor custom pgsql loader to COMMIT rows as EGenLoader dictates instead of
+  just when the loader class is constructed and destructed
 
 v0.8.0 (2024-03-22)
 
