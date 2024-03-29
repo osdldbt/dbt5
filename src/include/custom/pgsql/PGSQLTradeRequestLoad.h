@@ -42,6 +42,8 @@
 #ifndef PGSQL_TRADE_REQUEST_LOAD_H
 #define PGSQL_TRADE_REQUEST_LOAD_H
 
+#include "pgloader.h"
+
 namespace TPCE
 {
 

@@ -42,6 +42,8 @@
 #ifndef PGSQL_DAILY_MARKET_LOAD_H
 #define PGSQL_DAILY_MARKET_LOAD_H
 
+#include "pgloader.h"
+
 namespace TPCE
 {
 

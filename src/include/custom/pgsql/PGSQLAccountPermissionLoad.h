@@ -42,6 +42,8 @@
 #ifndef PGSQL_ACCOUNT_PERMISSION_LOAD_H
 #define PGSQL_ACCOUNT_PERMISSION_LOAD_H
 
+#include "pgloader.h"
+
 namespace TPCE
 {
 

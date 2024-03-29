@@ -42,6 +42,8 @@
 #ifndef PGSQL_COMMISSION_RATE_LOAD_H
 #define PGSQL_COMMISSION_RATE_LOAD_H
 
+#include "pgloader.h"
+
 namespace TPCE
 {
 

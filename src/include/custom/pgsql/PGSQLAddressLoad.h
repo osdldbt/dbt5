@@ -45,6 +45,8 @@
 namespace TPCE
 {
 
+#include "pgloader.h"
+
 class CPGSQLAddressLoad: public CPGSQLLoader<ADDRESS_ROW>
 {
 public:

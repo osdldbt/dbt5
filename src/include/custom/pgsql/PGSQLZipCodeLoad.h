@@ -42,6 +42,8 @@
 #ifndef PGSQL_ZIP_CODE_LOAD_H
 #define PGSQL_ZIP_CODE_LOAD_H
 
+#include "pgloader.h"
+
 namespace TPCE
 {
 

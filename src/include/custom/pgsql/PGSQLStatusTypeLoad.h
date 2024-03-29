@@ -42,6 +42,8 @@
 #ifndef PGSQL_STATUS_TYPE_LOAD_H
 #define PGSQL_STATUS_TYPE_LOAD_H
 
+#include "pgloader.h"
+
 namespace TPCE
 {
 

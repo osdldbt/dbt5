@@ -42,6 +42,8 @@
 #ifndef PGSQL_WATCH_LIST_LOAD_H
 #define PGSQL_WATCH_LIST_LOAD_H
 
+#include "pgloader.h"
+
 namespace TPCE
 {
 

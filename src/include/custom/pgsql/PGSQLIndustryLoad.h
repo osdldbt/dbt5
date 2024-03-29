@@ -42,6 +42,8 @@
 #ifndef PGSQL_INDUSTRY_LOAD_H
 #define PGSQL_INDUSTRY_LOAD_H
 
+#include "pgloader.h"
+
 namespace TPCE
 {
 

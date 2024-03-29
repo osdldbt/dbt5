@@ -42,6 +42,8 @@
 #ifndef PGSQL_CASH_TRANSACTION_LOAD_H
 #define PGSQL_CASH_TRANSACTION_LOAD_H
 
+#include "pgloader.h"
+
 namespace TPCE
 {
 

@@ -38,6 +38,8 @@
 #ifndef PGSQL_HOLDING_SUMMARY_LOAD_H
 #define PGSQL_HOLDING_SUMMARY_LOAD_H
 
+#include "pgloader.h"
+
 namespace TPCE
 {
 

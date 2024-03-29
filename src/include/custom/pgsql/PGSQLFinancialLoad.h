@@ -42,6 +42,8 @@
 #ifndef PGSQL_FINANCIAL_LOAD_H
 #define PGSQL_FINANCIAL_LOAD_H
 
+#include "pgloader.h"
+
 namespace TPCE
 {
 

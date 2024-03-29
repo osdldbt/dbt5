@@ -42,6 +42,8 @@
 #ifndef HOLDING_HISTORY_LOAD_H
 #define HOLDING_HISTORY_LOAD_H
 
+#include "pgloader.h"
+
 namespace TPCE
 {
 

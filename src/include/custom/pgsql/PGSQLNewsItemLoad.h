@@ -42,6 +42,8 @@
 #ifndef PGSQL_NEWS_ITEM_LOAD_H
 #define PGSQL_NEWS_ITEM_LOAD_H
 
+#include "pgloader.h"
+
 namespace TPCE
 {
 

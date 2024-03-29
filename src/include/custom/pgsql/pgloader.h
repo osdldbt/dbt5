@@ -42,6 +42,9 @@
 #ifndef PG_LOADER_H
 #define PG_LOADER_H
 
+#include <stdio.h>
+#include <stdlib.h>
+
 namespace TPCE
 {
 const int iDateTimeFmt = 11;
