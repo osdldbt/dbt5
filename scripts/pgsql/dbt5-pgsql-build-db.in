@@ -299,6 +299,11 @@ else
 	echo "ERROR: unknown load type: ${MODE}"
 	exit 1
 fi
+
+eval "${PSQL} -e \
+		-c \"SELECT SETVAL('seq_trade_id', (SELECT MAX(t_id) FROM trade))\"" \
+		|| exit 1
+
 ROWCOUNT="$(eval "${PSQL} -At" <<- EOF
 	SELECT 1
 	FROM pg_proc, pg_namespace

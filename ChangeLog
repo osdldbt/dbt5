@@ -6,6 +6,8 @@ vX.Y.Z (YYYY-MM-YY)
   just when the loader class is constructed and destructed
 - Quiet the PostgreSQL custom loader output, instead generate log files per
   table
+- PostgreSQL custom loader: set trade sequence in build script, not in
+  EGenLoader
 
 v0.8.0 (2024-03-22)
 

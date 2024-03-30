@@ -82,29 +82,6 @@ public:
 		while (fgetc(p) != EOF)
 			;
 	}
-
-	void
-	FinishLoad()
-	{
-		// FIXME: Can't we call the parent class's FinishLoad to do the COMMIT?
-		// End of the COPY.
-		fprintf(p, "\\.\n");
-		// FIXME: Have blind faith that COPY was successful.
-		while (fgetc(p) != EOF)
-			;
-
-		// COMMIT the COPY.
-		fprintf(p, "COMMIT;\n");
-		// FIXME: Have blind faith that COMMIT was successful.
-		while (fgetc(p) != EOF)
-			;
-
-		fprintf(p, "SELECT SETVAL('seq_trade_id', (SELECT MAX(t_id) FROM "
-				   "trade));\n");
-		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF)
-			;
-	}
 };
 
 } // namespace TPCE
