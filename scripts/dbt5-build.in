@@ -28,6 +28,8 @@ Options:
   -f SCALE_FACTOR
                  customer per Trade Result transactions per second, default ${SCALE_FACTOR}
   -l LOAD        EGenLoader type of LOAD [FLAT|ODBC|CUSTOM|NULL], default CUSTOM
+  --parallelism NUMBER
+                 the NUMBER of processes to use to load the database, default ${PARALLELISM}
   --privileged   run test as a privileged operating system and database user
   --rows-per-commit ROWS
                  Specify how many ROWS are sent before a COMMIT, the actual
@@ -54,11 +56,16 @@ EOF
 BUILDARGS=""
 DAYS=300
 DBNAME="dbt5"
+PARALLELISM=1
 POSITION=1
 INSTANCE_CUSTOMERS=5000
 ROWS_PER_COMMIT=0
 SCALE_FACTOR=500
 TOTAL_CUSTOMERS=5000
+
+if command -v nproc > /dev/null; then
+	PARALLELISM=$(nproc)
+fi
 
 # Custom argument handling for hopefully most portability.
 while [ "${#}" -gt 0 ] ; do
@@ -112,6 +119,13 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(-l*)
 		BUILDARGS="${BUILDARGS} -l ${1#*-l}"
+		;;
+	(--parallelism)
+		shift
+		PARALLELISM="${1}"
+		;;
+	(--parallelism=?*)
+		PARALLELISM="${1#*--parallelism=}"
 		;;
 	(--privileged)
 		BUILDARGS="${BUILDARGS} -U"
@@ -204,4 +218,5 @@ fi
 if [ "${ROWS_PER_COMMIT}" -gt 1 ]; then
 	BUILDARGS="${BUILDARGS} --rows-per-commit=${ROWS_PER_COMMIT}"
 fi
-eval "dbt5 ${DBMS}-build-db -i ${EGENHOME} -d ${DBNAME} ${BUILDARGS}"
+eval "dbt5 ${DBMS}-build-db -i ${EGENHOME} -d ${DBNAME} \
+		--parallelism ${PARALLELISM} ${BUILDARGS}"

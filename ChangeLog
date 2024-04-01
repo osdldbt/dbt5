@@ -8,6 +8,8 @@ vX.Y.Z (YYYY-MM-YY)
   table
 - PostgreSQL custom loader: set trade sequence in build script, not in
   EGenLoader
+- Parallelize direct loading by default
+- Add --parallelism flag to build script to limit parallelism
 
 v0.8.0 (2024-03-22)
 

@@ -24,6 +24,8 @@ General options:
   -i EGENHOME    EGENHOME is the directory location of the TPC-E Tools
   -l LOAD        EGenLoader type of LOAD [FLAT|ODBC|CUSTOM|NULL], default CUSTOM
   -p PARAMETERS  PostgreSQL database PARAMETERS
+  --parallelism NUMBER
+                 the NUMBER of processes to use to load the database, default ${PARALLELISM}
   --rows-per-commit ROWS
                  Specify how many ROWS are sent before a COMMIT, the actual
                  number of rows is approximately calculated, default is all
@@ -72,6 +74,7 @@ load_table()
 
 MODE="CUSTOM"
 REBUILD_DB=0
+PARALLELISM=1
 PRIVILEGED=0
 
 # These are minimum values defined by the specification.
@@ -84,6 +87,10 @@ SCALE_FACTOR=500
 STARTING_CUSTOMER_ID=1
 ITD=300
 TABLESPACES_FLAG=""
+
+if command -v nproc > /dev/null; then
+	PARALLELISM=$(nproc)
+fi
 
 # Custom argument handling for hopefully most portability.
 while [ "${#}" -gt 0 ] ; do
@@ -136,6 +143,13 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(-p*)
 		PARAMETERS="${1#*-p}"
+		;;
+	(--parallelism)
+		shift
+		PARALLELISM="${1}"
+		;;
+	(--parallelism=?*)
+		PARALLELISM="${1#*--parallelism=}"
 		;;
 	(-r)
 		REBUILD_DB=1
@@ -242,14 +256,26 @@ fi
 # apparently doesn't like arguments to have dashes (-) in them.
 eval "dbt5-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG}" || exit 1
 if [ "${MODE}" = "CUSTOM" ]; then
-	${EGENLOADER} \
-			-i ${EGENDIR}/flat_in \
-			-b ${STARTING_CUSTOMER_ID} \
-			-l ${MODE} \
-			-f ${SCALE_FACTOR} \
-			-w ${ITD} \
-			-c ${CUSTOMERS_INSTANCE} \
-			-t ${CUSTOMERS_TOTAL} || exit 1
+	CHUNK=$(( ((CUSTOMERS_TOTAL / PARALLELISM) + 999) / 1000 * 1000 ))
+	WORKERS=$(( (CUSTOMERS_TOTAL + CHUNK - 1) / CHUNK ))
+
+	CUSTOMER_START=1
+	for _I in $(seq 1 ${WORKERS}); do
+		CUSTOMER_END=$(( CUSTOMER_START + CHUNK ))
+		if [ "${CUSTOMER_END}" -gt "${CUSTOMERS_TOTAL}" ]; then
+			CUSTOMER_END=$(( CUSTOMERS_TOTAL + 1 ))
+		fi
+		${EGENLOADER} \
+				-i "${EGENDIR}/flat_in" \
+				-b "${CUSTOMER_START}" \
+				-l "${MODE}" \
+				-f "${SCALE_FACTOR}" \
+				-w "${ITD}" \
+				-c "${CHUNK}" \
+				-t "${CUSTOMERS_TOTAL}" &
+		CUSTOMER_START=${CUSTOMER_END}
+	done
+	wait
 elif [ "${MODE}" = "FLAT" ]; then
 	if [ "${SKIP_DATA_GENERATION}" -eq 0 ]; then
 		${EGENLOADER} \

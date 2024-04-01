@@ -44,6 +44,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 namespace TPCE
 {
@@ -97,7 +99,8 @@ CPGSQLLoader<T>::CPGSQLLoader(const char *szConnectStr, const char *szTable)
 	// FIXME: This may truncate if the szConnectStr is actually close to
 	// iConnectStrLen.
 	snprintf(m_szConnectStr, iConnectStrLen,
-			"psql --quiet --output=psql-%s.log %s", szTable, szConnectStr);
+			"psql --quiet --output=psql-%d-%s.log %s", getpid(), szTable,
+			szConnectStr);
 
 	strncpy(m_szTable, szTable, iMaxPath);
 }
