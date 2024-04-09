@@ -7,6 +7,7 @@ fi
 
 CONTAINER_DIR="$(dirname "$(realpath "${0}")")"
 CONTAINER_TAG="dbt5-appimage"
+CONTAINERFILE="Containerfile.appimage"
 
 ARCH="$(uname -m)"
 
@@ -14,10 +15,15 @@ if [ "${ARCH}" = "arm64" ]; then
 	ARCH="aarch64"
 fi
 
+if [ "${EGEN}" -eq 1 ]; then
+    CONTAINER_TAG="dbt5-appimage-egen"
+    CONTAINERFILE="Containerfile.egen"
+fi
+
 cd "$CONTAINER_DIR/.." && \
 		podman build \
 				--isolation=chroot \
 				--build-arg ARCH="${ARCH}" \
 				-t $CONTAINER_TAG \
-				-f Containerfile.appimage \
+				-f ${CONTAINERFILE} \
 				.

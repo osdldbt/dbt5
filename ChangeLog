@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Allow creating AppImage built TPC-E Tools binaries
+
 v0.9.0 (2024-04-01)
 
 - Set load type in database build scripts with -l command line argument

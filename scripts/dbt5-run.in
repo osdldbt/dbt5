@@ -310,6 +310,7 @@ DB_NAME="dbt5"
 DBAAS=0
 DBLIST=""
 DRIVERLIST=""
+EGENHOME=""
 CONFIGFILE=""
 CUSTOMERS_INSTANCE=0
 CUSTOMERS_TOTAL=5000
@@ -326,6 +327,10 @@ USERS=1
 if [ $# -eq 0 ]; then
 	usage
 	exit 1
+fi
+
+if [ ! "${APPDIR}" = "" ]; then
+	EGENHOME="${APPDIR}/opt/egen"
 fi
 
 # Custom argument handling for hopefully most portability.
@@ -393,10 +398,10 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--tpcetools)
 		shift
-		EGENDIR="${1}"
+		EGENHOME="${1}"
 		;;
 	(--tpcetools=?*)
-		EGENDIR="${1#*--tpcetools=}"
+		EGENHOME="${1#*--tpcetools=}"
 		;;
 	(-t)
 		shift
@@ -475,7 +480,7 @@ if [ ! "${CONFIGFILE}" = "" ]; then
 
 	TMP="$(toml get "${CONFIGFILE}" . | jq -r '.tpcetools')"
 	if [ ! "${TMP}" = "null" ]; then
-		EGENDIR="${TMP}"
+		EGENHOME="${TMP}"
 	fi
 fi
 
@@ -487,7 +492,7 @@ esac
 
 # Check parameters.
 
-if [ "${EGENDIR}" = "" ]; then
+if [ "${EGENHOME}" = "" ]; then
 	usage "specify path to EGen using --tpcetools=<path>"
 	exit 1
 fi
@@ -625,7 +630,7 @@ echo "## 1. Starting Brokerage House server"
 echo
 
 if [ "${CONFIGFILE}" = "" ]; then
-	eval "${EGENDIR}/bin/BrokerageHouseMain ${DB_HOSTNAME_ARG} -d ${DB_NAME} \
+	eval "${EGENHOME}/bin/BrokerageHouseMain ${DB_HOSTNAME_ARG} -d ${DB_NAME} \
 			${DB_PORT_ARG} -o ${BH_OUTPUT_DIR} > ${BH_OUTPUT_DIR}/bh.out 2>&1" &
 else
 	BROKERAGES="$(toml get "${CONFIGFILE}" . | jq -r '.brokerage | length')"
@@ -681,7 +686,7 @@ else
 
 		TMPDIR="${BH_OUTPUT_DIR}/${HOSTNAME}.${INDEX}"
 		eval "${BROKERAGE_COMMAND} mkdir -p ${TMPDIR}"
-		eval "${BROKERAGE_COMMAND} ${EGENDIR}/bin/BrokerageHouseMain \
+		eval "${BROKERAGE_COMMAND} ${EGENHOME}/bin/BrokerageHouseMain \
 				${BHPORTARG} -m ${MARKET_HOSTNAME} ${MEEPORTARG} \
 				${DB_HOSTNAME_ARG} -d ${DB_NAME} ${DB_PORT_ARG} \
 				-o ${TMPDIR} > ${TMPDIR}/bh.out 2>&1" &
@@ -698,8 +703,8 @@ echo
 echo "## 2. Starting Market Exchange server"
 
 if [ "${CONFIGFILE}" = "" ]; then
-	eval "${EGENDIR}/bin/MarketExchangeMain -c ${CUSTOMERS_INSTANCE} \
-			-t ${CUSTOMERS_TOTAL} -i ${EGENDIR}/flat_in -o ${MEE_OUTPUT_DIR} \
+	eval "${EGENHOME}/bin/MarketExchangeMain -c ${CUSTOMERS_INSTANCE} \
+			-t ${CUSTOMERS_TOTAL} -i ${EGENHOME}/flat_in -o ${MEE_OUTPUT_DIR} \
 			> ${MEE_OUTPUT_DIR}/mee.out 2>&1" &
 else
 	MARKETS="$(toml get "${CONFIGFILE}" . | jq -r '.market | length')"
@@ -744,10 +749,10 @@ else
 
 		TMPDIR="${MEE_OUTPUT_DIR}/${HOSTNAME}.${INDEX}"
 		eval "${MARKET_COMMAND} mkdir -p ${TMPDIR}"
-		eval "${MARKET_COMMAND} ${EGENDIR}/bin/MarketExchangeMain \
+		eval "${MARKET_COMMAND} ${EGENHOME}/bin/MarketExchangeMain \
 				${MEEPORTARG} -h ${BROKERAGE_HOSTNAME} ${BHPORTARG} \
 				-c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} \
-				-i ${EGENDIR}/flat_in -o ${TMPDIR} > ${TMPDIR}/mee.out 2>&1" &
+				-i ${EGENHOME}/flat_in -o ${TMPDIR} > ${TMPDIR}/mee.out 2>&1" &
 	done
 fi
 
@@ -764,10 +769,10 @@ echo "## 3. Starting Customer driver(s)"
 if [ "${CONFIGFILE}" = "" ]; then
 	echo
 	echo "* 1 user starting every ${SLEEPY} milliseconds."
-	eval "${EGENDIR}/bin/DriverMain -c ${CUSTOMERS_INSTANCE} \
+	eval "${EGENHOME}/bin/DriverMain -c ${CUSTOMERS_INSTANCE} \
 			-t ${CUSTOMERS_TOTAL} -f ${SCALE_FACTOR} -w ${ITD} -d ${DURATION} \
 			-y ${SLEEPY} -u ${USERS} -n ${PACING_DELAY} ${SEEDARG} \
-			-i ${EGENDIR}/flat_in -o ${DRIVER_OUTPUT_DIR} \
+			-i ${EGENHOME}/flat_in -o ${DRIVER_OUTPUT_DIR} \
 			> ${DRIVER_OUTPUT_DIR}/driver.out 2>&1" &
 	DCMPID="${!}"
 
@@ -810,10 +815,10 @@ else
 
 		TMPDIR="${DRIVER_OUTPUT_DIR}/${HOSTNAME}.${INDEX}"
 		eval "${DRIVER_COMMAND} mkdir -p ${TMPDIR}"
-		eval "${DRIVER_COMMAND} ${EGENDIR}/bin/DriverMain \
+		eval "${DRIVER_COMMAND} ${EGENHOME}/bin/DriverMain \
 				-c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} \
 				-f ${SCALE_FACTOR} -w ${ITD} -d ${DURATION} -y ${SLEEPY} \
-				-u ${U} -n ${PACING_DELAY} ${SEEDARG} -i ${EGENDIR}/flat_in \
+				-u ${U} -n ${PACING_DELAY} ${SEEDARG} -i ${EGENHOME}/flat_in \
 				-o ${TMPDIR} > ${TMPDIR}/driver.out 2>&1" &
 	done
 

@@ -60,3 +60,31 @@ options::
 
 Don't forget that both `PATH` and `LD_LIBRARY_PATH` may need to be set
 appropriately depending on where the custom build of PostgreSQL is installed.
+
+Including TPC-E Tools in the AppImage
+-------------------------------------
+
+Review the TPC EULA for redistribution of TPC provided code and binaries before
+redistributing any AppImages that include any TPC provided code or binaries:
+https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp
+
+In the source directory, create the subdirectory *egen* and unzip the TPC-E
+tools into it::
+
+    mkdir egen
+    cd egen
+    unzip /tmp/*-tpc-e-tool.zip
+
+Two scripts are provided, one to create a container for building the AppImage
+and one to building the AppImage::
+
+    EGEN=1 tools/build-appimage-container
+    EGEN=1 tools/build-appimage
+
+
+The environment variable `EGEN` must be set to `1` otherwise the AppImage will
+be created without the TPC-E tools included.
+
+When the TPC-E Tools are included in the AppImage, the *build* and *run*
+commands do not need the use of the `--tpcetools` flag and will automatically
+use the included TPC-E Tools binaries.

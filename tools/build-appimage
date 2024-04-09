@@ -7,11 +7,17 @@ fi
 
 CONTAINER_DIR="$(dirname "$(realpath "${0}")")"
 CONTAINER_TAG="dbt5-appimage"
+TARGET="appimage"
 
 # Use the return code from `podman inspect` to determine if the container image
 # needs to be created.
 if ! podman inspect ${CONTAINER_TAG} > /dev/null 2>&1; then
 	"${CONTAINER_DIR}/build-appimage-container" || exit 1
+fi
+
+if [ "${EGEN}" -eq 1 ]; then
+	CONTAINER_TAG="dbt5-appimage-egen"
+	TARGET="egen"
 fi
 
 podman run \
@@ -20,7 +26,7 @@ podman run \
 		--env PKG_CONFIG_PATH="/usr/lib/pkgconfig" \
 		-w /usr/local/src/dbt5 \
 		$CONTAINER_TAG \
-		make -f Makefile.cmake appimage
+		make -f Makefile.cmake ${TARGET}
 
 # I wonder if there is a better way to make sure the artifacts are all owned by
 # the user running this.
