@@ -27,6 +27,7 @@ EOF
 
 if [ "${APPDIR}" = "" ]; then
 	APPDIR="$(cd -- "$(dirname -- "${0}")" && pwd)"
+    export APPDIR
 fi
 
 if [ $# -eq 0 ]; then

@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Fix AppRun to export APPDIR when running from an extracted directory
+
 v0.9.1 (2024-04-09)
 
 - Allow creating AppImage built TPC-E Tools binaries
