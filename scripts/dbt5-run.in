@@ -162,10 +162,15 @@ stat_collection()
 					CMD=""
 				fi
 				HOSTNAME=$(eval "${CMD} hostname")
-				eval "${CMD} ts sysstat \
-						-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
-				eval "${CMD} ts ${DBMS}-stat \
-						-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${ARGS} &"
+				if [ ${DBAAS} -ne 1 ]; then
+					eval "${CMD} ts sysstat \
+							-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+					eval "${CMD} ts ${DBMS}-stat \
+							-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${ARGS} &"
+				else
+					eval "ts ${DBMS}-stat \
+							-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${ARGS} &"
+				fi
 			done
 		fi
 	fi
@@ -272,6 +277,8 @@ General options:
   --config=FILE  config FILE to use for executing a test where these settings
                  will override any conflicting command line arguments
   -d SECONDS     test duration in SECONDS
+  --dbaas        flag to signify that the database is a service so only collect
+                 database statistics
   -f SCALE_FACTOR
                  default ${SCALE_FACTOR}
   -h HOSTNAME    database hostname, default localhost
@@ -360,6 +367,9 @@ while [ "${#}" -gt 0 ] ; do
 		# duration of the test
 		DURATION="$(echo "${1}" | grep -E "^[0-9]+$")"
 		validate_parameter "d" "${1}" "${DURATION}"
+		;;
+	(--config)
+		DBAAS="1"
 		;;
 	(-f)
 		shift
@@ -566,8 +576,9 @@ DB_OUTPUT_DIR=${OUTPUT_DIR}/db
 # Create the directories we will need.
 make_directories
 if [ "${CONFIGFILE}" = "" ]; then
-	if [ ${STATS} -eq 1 ] && [ ! "${DB_HOSTNAME}" = "" ] \
-			&& [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+	if [ ${STATS} -eq 1 ] && [ ${DBAAS} -ne 1 ] && \
+			[ ! "${DB_HOSTNAME}" = "" ] && \
+			[ ! "${DB_HOSTNAME}" = "localhost" ]; then
 		make_directories "${DB_HOSTNAME}"
 		rsync -a -e "ssh" --delete "${DB_OUTPUT_DIR}/" \
 			"${DB_HOSTNAME}:${DB_OUTPUT_DIR}/"
@@ -893,7 +904,7 @@ if [ "${CONFIGFILE}" = "" ]; then
 		chmod 644 "${DB_OUTPUT_DIR}/log"
 	fi
 else
-	if [ ${STATS} -eq 1 ]; then
+	if [ ${STATS} -eq 1 ] && [ ${DBAAS} -ne 1 ]; then
 		SYSTEMLIST="$(echo "${DBLIST} ${BROKERAGELIST} ${MARKETLIST} ${DRIVERLIST}" | \
 				awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
 	else

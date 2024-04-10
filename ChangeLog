@@ -4,6 +4,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Don't try to ssh into any database systems unless stats are being collected
   since they won't have any data that would needed for calculating the
   benchmark metrics
+- Add --dbaas flag to run script so it will only collect database stats when
+  stats are collected
 
 v0.9.0 (2024-04-01)
 
