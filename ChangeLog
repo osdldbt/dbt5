@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.9.1 (2024-04-09)
 
 - Allow creating AppImage built TPC-E Tools binaries
 - Don't try to ssh into any database systems unless stats are being collected
