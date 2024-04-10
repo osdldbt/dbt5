@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.9.2 (2024-04-10)
 
 - Fix AppRun to export APPDIR when running from an extracted directory
 - Fix --dbaas flag in run script
