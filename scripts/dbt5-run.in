@@ -154,18 +154,20 @@ stat_collection()
 		done
 		DBLIST="$(echo "${DBLIST}" | \
 			awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
-		for SYSTEM in ${DBLIST}; do
-			if [ ! "${SYSTEM}" = "localhost" ]; then
-				CMD="${SSH} ${SYSTEM}"
-			else
-				CMD=""
-			fi
-			HOSTNAME=$(eval "${CMD} hostname")
-			eval "${CMD} ts sysstat \
-					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
-			eval "${CMD} ts ${DBMS}-stat \
-					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${ARGS} &"
-		done
+		if [ ${STATS} -eq 1 ]; then
+			for SYSTEM in ${DBLIST}; do
+				if [ ! "${SYSTEM}" = "localhost" ]; then
+					CMD="${SSH} ${SYSTEM}"
+				else
+					CMD=""
+				fi
+				HOSTNAME=$(eval "${CMD} hostname")
+				eval "${CMD} ts sysstat \
+						-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+				eval "${CMD} ts ${DBMS}-stat \
+						-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${ARGS} &"
+			done
+		fi
 	fi
 }
 
@@ -564,8 +566,8 @@ DB_OUTPUT_DIR=${OUTPUT_DIR}/db
 # Create the directories we will need.
 make_directories
 if [ "${CONFIGFILE}" = "" ]; then
-	if [ ! "${DB_HOSTNAME}" = "" ] && [ ! "${DB_HOSTNAME}" = "localhost" ];
-	then
+	if [ ${STATS} -eq 1 ] && [ ! "${DB_HOSTNAME}" = "" ] \
+			&& [ ! "${DB_HOSTNAME}" = "localhost" ]; then
 		make_directories "${DB_HOSTNAME}"
 		rsync -a -e "ssh" --delete "${DB_OUTPUT_DIR}/" \
 			"${DB_HOSTNAME}:${DB_OUTPUT_DIR}/"
@@ -880,8 +882,8 @@ if [ "${CONFIGFILE}" = "" ]; then
 		eval "${DB_COMMAND} dbt5-${DBMS}-stop-db"
 	fi
 
-	if [ ! "${DB_HOSTNAME}" = "" ] && [ ! "${DB_HOSTNAME}" = "localhost" ];
-	then
+	if [ ${STATS} -eq 1 ] && [ ! "${DB_HOSTNAME}" = "" ] \
+			&& [ ! "${DB_HOSTNAME}" = "localhost" ]; then
 		rsync -a -e "ssh" --delete "${DB_HOSTNAME}:${DB_OUTPUT_DIR}/" \
 				"${DB_OUTPUT_DIR}/"
 	fi
@@ -891,8 +893,13 @@ if [ "${CONFIGFILE}" = "" ]; then
 		chmod 644 "${DB_OUTPUT_DIR}/log"
 	fi
 else
-	SYSTEMLIST="$(echo "${DBLIST} ${BROKERAGELIST} ${MARKETLIST} ${DRIVERLIST}" | \
-			awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+	if [ ${STATS} -eq 1 ]; then
+		SYSTEMLIST="$(echo "${DBLIST} ${BROKERAGELIST} ${MARKETLIST} ${DRIVERLIST}" | \
+				awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+	else
+		SYSTEMLIST="$(echo "${BROKERAGELIST} ${MARKETLIST} ${DRIVERLIST}" | \
+				awk -v RS='[[:space:]]+' '!a[$0]++{printf "%s%s", $0, RT}')"
+	fi
 	for SYSTEM in ${SYSTEMLIST}; do
 		if [ ! "${SYSTEM}" = "localhost" ]; then
 			rsync -a -e "${SSH}" "${SYSTEM}:${OUTPUT_DIR}/" "${OUTPUT_DIR}/"
