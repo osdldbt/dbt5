@@ -56,9 +56,14 @@ stat_collection()
 			fi
 		fi
 
+		# Use the given hostname if the database is a service.
+		if [ ${DBAAS} -ne 1 ]; then
+			HOSTNAME=$(eval "${DB_COMMAND} hostname")
+		else
+			HOSTNAME=${DB_HOSTNAME}
+		fi
 		# Don't collect system stats from the database system if the database
 		# is a service.
-		HOSTNAME=$(eval "${DB_COMMAND} hostname")
 		if [ $DBAAS -eq 0 ]; then
 			eval "${DB_COMMAND} which ts ts-sysstat" > /dev/null 2>&1
 			RC=$?
@@ -368,7 +373,7 @@ while [ "${#}" -gt 0 ] ; do
 		DURATION="$(echo "${1}" | grep -E "^[0-9]+$")"
 		validate_parameter "d" "${1}" "${DURATION}"
 		;;
-	(--config)
+	(--dbaas)
 		DBAAS="1"
 		;;
 	(-f)
@@ -597,8 +602,8 @@ echo "Database Customer Cardinality: ${CUSTOMERS_TOTAL}" >> ${OUTPUT_DIR}/readme
 echo "Test Duration: ${DURATION} seconds" >> ${OUTPUT_DIR}/readme.txt
 
 if [ "${CONFIGFILE}" = "" ]; then
-	if [ ! "${DB_HOSTNAME}" = "" ] && [ ! "${DB_HOSTNAME}" = "localhost" ];
-	then
+	if [ ${DBAAS} -ne 1 ] && [ ! "${DB_HOSTNAME}" = "" ] && \
+			[ ! "${DB_HOSTNAME}" = "localhost" ]; then
 		DB_COMMAND="ssh ${DB_HOSTNAME}"
 		# Get the OS information from the database system.
 		eval "${DB_COMMAND} dbt5 get-os-info -o ${DB_OUTPUT_DIR}"
@@ -893,8 +898,9 @@ if [ "${CONFIGFILE}" = "" ]; then
 		eval "${DB_COMMAND} dbt5-${DBMS}-stop-db"
 	fi
 
-	if [ ${STATS} -eq 1 ] && [ ! "${DB_HOSTNAME}" = "" ] \
-			&& [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+	if [ ${STATS} -eq 1 ] && [ ${DBAAS} -ne 1 ] && \
+			[ ! "${DB_HOSTNAME}" = "" ] && \
+			[ ! "${DB_HOSTNAME}" = "localhost" ]; then
 		rsync -a -e "ssh" --delete "${DB_HOSTNAME}:${DB_OUTPUT_DIR}/" \
 				"${DB_OUTPUT_DIR}/"
 	fi
