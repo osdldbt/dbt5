@@ -51,7 +51,7 @@ RUN ./configure --silent --prefix=/usr/local/AppDir/usr && \
     sed -i -e 's#/usr#././#g' /usr/local/AppDir/usr/bin/python${PYTHONMMVER}
 RUN /usr/local/AppDir/usr/bin/pip3 install docutils && \
     sed -i "1s/.*/#!\/usr\/bin\/env python3/" \
-        /usr/local/AppDir/usr/bin/rst2html5.py
+        /usr/local/AppDir/usr/bin/rst2html5
 
 ARG CMAKEVER="3.7.2"
 RUN curl -o /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz -SsOL \
