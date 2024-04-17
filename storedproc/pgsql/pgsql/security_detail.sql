@@ -228,7 +228,6 @@ BEGIN
             LIMIT 20
         LOOP
             i = i + 1;
-            sdf = fin[i];
             sdf.year := rs.fi_year;
             sdf.qtr := rs.fi_qtr;
             sdf.start_date := rs.fi_qtr_start_date;
@@ -242,6 +241,7 @@ BEGIN
             sdf.liab := rs.fi_liability;
             sdf.out_basic := rs.fi_out_basic;
             sdf.out_dilut := rs.fi_out_dilut;
+            fin[i] := sdf;
         END LOOP;
         fin_len = i;
         -- Should return max_rows_to_return rows
@@ -259,12 +259,12 @@ BEGIN
             LIMIT max_rows_to_return
         LOOP
             i = i + 1;
-            sdd = day[i];
             sdd._date := rs.dm_date;
             sdd.close := rs.dm_close;
             sdd.high := rs.dm_high;
             sdd.low := rs.dm_low;
             sdd.vol := rs.dm_vol;
+            day[i] := sdd;
         END LOOP;
         day_len = i;
         SELECT lt_price
@@ -290,13 +290,13 @@ BEGIN
                 LIMIT 2
             LOOP
                 i = i + 1;
-                sdn = news[i];
                 sdn.item := rs.ni_item;
                 sdn.dts := rs.ni_dts;
                 sdn.src := rs.ni_source;
                 sdn.auth := rs.ni_author;
                 sdn.headline := '';
                 sdn.summary := '';
+                news[i] := sdn;
             END LOOP;
         ELSE
             FOR rs IN
@@ -312,13 +312,13 @@ BEGIN
                 LIMIT 2
             LOOP
                 i = i + 1;
-                sdn = news[i];
                 sdn.item := '';
                 sdn.dts := rs.ni_dts;
                 sdn.src := rs.ni_source;
                 sdn.auth := rs.ni_author;
                 sdn.headline := rs.ni_headline;
                 sdn.summary := rs.ni_summary;
+                news[i] := sdn;
             END LOOP;
         END IF;
         news_len = i;

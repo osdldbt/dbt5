@@ -2,6 +2,7 @@ vX.Y.Z (YYYY-MM-DD)
 
 - pl/pgsql: data maintenance: use extract() over substring() when handling
   dates
+- pl/pgsql: security detail: fix results handling day, fin, and news
 
 v0.9.2 (2024-04-10)
 
