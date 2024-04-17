@@ -5,7 +5,7 @@ v0.9.2 (2024-04-10)
 
 v0.9.1 (2024-04-09)
 
-- Allow creating AppImage built TPC-E Tools binaries
+- Allow creating AppImage built with TPC-E Tools binaries
 - Don't try to ssh into any database systems unless stats are being collected
   since they won't have any data that would needed for calculating the
   benchmark metrics
