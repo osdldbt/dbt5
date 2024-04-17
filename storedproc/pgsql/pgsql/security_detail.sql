@@ -43,7 +43,7 @@ CREATE TYPE SECURITY_DETAIL_NEWS AS (
 CREATE OR REPLACE FUNCTION SecurityDetailFrame1 (
     IN access_lob_flag SMALLINT
   , IN max_rows_to_return INTEGER
-  , IN start_day TIMESTAMP
+  , IN start_day DATE
   , IN symbol VARCHAR(15)
   , OUT x52_wk_high DOUBLE PRECISION
   , OUT x52_wk_high_date DATE
