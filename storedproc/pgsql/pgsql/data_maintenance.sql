@@ -185,7 +185,7 @@ BEGIN
         UPDATE daily_market
         SET dm_vol = dm_vol + vol_incr
         WHERE dm_s_symb = symbol
-          AND substring(dm_date::TEXT FROM 6 FOR 2)::INTEGER = day_of_month;
+          AND extract(DAY FROM dm_date) = day_of_month;
     ELSIF table_name = 'EXCHANGE' THEN
         --- EXCHANGE
         -- - Other than the table_name, no additional
@@ -220,7 +220,7 @@ BEGIN
         INTO rowcount
         FROM financial
         WHERE fi_co_id = DataMaintenanceFrame1.co_id
-          AND substring(fi_qtr_start_date::TEXT FROM 9 FOR 2)::SMALLINT = 1;
+          AND extract(DAY FROM fi_qtr_start_date) = 1;
         IF rowcount > 0 THEN
             UPDATE financial
             SET fi_qtr_start_date = fi_qtr_start_date + INTERVAL '1 DAY'

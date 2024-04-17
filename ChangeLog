@@ -1,3 +1,8 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- pl/pgsql: data maintenance: use extract() over substring() when handling
+  dates
+
 v0.9.2 (2024-04-10)
 
 - Fix AppRun to export APPDIR when running from an extracted directory
