@@ -3,3 +3,4 @@
 -Isrc/include/custom
 -Iegen/inc
 -I/usr/include/c++/13.2
+-I/usr/include/postgresql/server
