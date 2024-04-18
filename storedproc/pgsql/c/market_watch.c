@@ -142,8 +142,6 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 	SPITupleTable *tuptable = NULL;
 	HeapTuple tuple = NULL;
 
-	Datum result;
-
 	char buf[MAXDATELEN + 1];
 	char industry_name[IN_NAME_LEN + 1];
 	Datum args[3];
@@ -305,6 +303,5 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 
 	SPI_finish();
-	result = DirectFunctionCall1(float8_numeric, Float8GetDatum(pct_change));
-	PG_RETURN_NUMERIC(result);
+	PG_RETURN_FLOAT8(pct_change);
 }
