@@ -315,7 +315,7 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		values[i_day]
 				= (char *) palloc(sizeof(char)
 								  * ((MAXDATELEN + DM_CLOSE_LEN + DM_HIGH_LEN
-											 + DM_LOW_LEN + DM_VOL_LEN + 7)
+											 + DM_LOW_LEN + DM_VOL_LEN + 9)
 												  * max_rows_to_return
 										  + 3));
 		values[i_day_len] = (char *) palloc(sizeof(char) * (INTEGER_LEN + 1));
@@ -323,7 +323,7 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 				((FI_YEAR_LEN + FI_QTR_LEN + MAXDATELEN + FI_REVENUE_LEN
 						 + FI_NET_EARN_LEN + FI_BASIC_EPS_LEN + FI_MARGIN_LEN
 						 + FI_INVENTORY_LEN + FI_ASSETS_LEN + FI_LIABILITY_LEN
-						 + FI_OUT_BASIC_LEN + FI_OUT_DILUT_LEN + 14)
+						 + FI_OUT_BASIC_LEN + FI_OUT_DILUT_LEN + 16)
 								* MAX_FIN_LEN
 						+ 3)
 				* sizeof(char));
@@ -331,7 +331,7 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		values[i_news] = (char *) palloc(
 				sizeof(char)
 				* ((NI_ITEM_LEN + MAXDATELEN + NI_SOURCE_LEN + NI_AUTHOR_LEN
-						   + NI_SUMMARY_LEN + NI_HEADLINE_LEN + 19)
+						   + NI_SUMMARY_LEN + NI_HEADLINE_LEN + 35)
 								* MAX_NEWS_LEN
 						+ 3));
 		values[i_news_len] = (char *) palloc(sizeof(char) * (INTEGER_LEN + 1));
@@ -465,7 +465,7 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			if (i > 0) {
 				strcat(values[i_fin], ",");
 			}
-			strcat(values[i_fin], "{");
+			strcat(values[i_fin], "\"(");
 			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 1));
 			strcat(values[i_fin], ",");
 			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 2));
@@ -491,7 +491,7 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 12));
 			strcat(values[i_fin], ",");
 			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 13));
-			strcat(values[i_fin], "}");
+			strcat(values[i_fin], ")\"");
 		}
 		strcat(values[i_fin], "}");
 #ifdef DEBUG
@@ -517,7 +517,7 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			if (i > 0) {
 				strcat(values[i_day], ",");
 			}
-			strcat(values[i_day], "{");
+			strcat(values[i_day], "\"(");
 			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 1));
 			strcat(values[i_day], ",");
 			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 2));
@@ -527,7 +527,7 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 4));
 			strcat(values[i_day], ",");
 			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 5));
-			strcat(values[i_day], "}");
+			strcat(values[i_day], ")\"");
 		}
 		strcat(values[i_day], "}");
 
@@ -584,21 +584,21 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			if (i > 0) {
 				strcat(values[i_news], ",");
 			}
-			strcat(values[i_news], "{");
-			strcat(values[i_news], "\"");
+			strcat(values[i_news], "\"(");
+			strcat(values[i_news], "\\\"");
 			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 1));
-			strcat(values[i_news], "\",\"");
+			strcat(values[i_news], "\\\",\\\"");
 			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 2));
-			strcat(values[i_news], "\",\"");
+			strcat(values[i_news], "\\\",\\\"");
 			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 3));
-			strcat(values[i_news], "\",\"");
+			strcat(values[i_news], "\\\",\\\"");
 			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 4));
-			strcat(values[i_news], "\",\"");
+			strcat(values[i_news], "\\\",\\\"");
 			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 5));
-			strcat(values[i_news], "\",\"");
+			strcat(values[i_news], "\\\",\\\"");
 			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 6));
-			strcat(values[i_news], "\"");
-			strcat(values[i_news], "}");
+			strcat(values[i_news], "\\\"");
+			strcat(values[i_news], ")\"");
 		}
 		strcat(values[i_news], "}");
 
