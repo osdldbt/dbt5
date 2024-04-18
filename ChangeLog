@@ -15,6 +15,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql pl/c: fix Trade Result Frame 2 and 6 handling of NUMERIC
 - pgsql pl/c: fix Trade Result Frame 6 handling qual assignment bug with
   se_amount
+- pgsql pl/c: fix % escaping in Data Maintenance of exchange
 
 v0.9.2 (2024-04-10)
 

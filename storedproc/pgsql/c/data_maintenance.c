@@ -101,7 +101,7 @@ PG_MODULE_MAGIC;
 #define SQLDMF1_12                                                            \
 	"SELECT COUNT(*)\n"                                                       \
 	"FROM exchange\n"                                                         \
-	"WHERE ex_desc LIKE '%LAST UPDATED%'"
+	"WHERE ex_desc LIKE '%%LAST UPDATED%%'"
 
 #define SQLDMF1_13a                                                           \
 	"UPDATE exchange\n"                                                       \
