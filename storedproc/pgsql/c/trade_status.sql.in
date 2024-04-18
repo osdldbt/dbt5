@@ -1,25 +1,28 @@
-/*
- * This file is released under the terms of the Artistic License.  Please see
- * the file LICENSE, included in this package, for details.
- *
- * Copyright The DBT-5 Authors
- */
+-- This file is released under the terms of the Artistic License.  Please see
+-- the file LICENSE, included in this package, for details.
+--
+-- Copyright The DBT-5 Authors
+--
+-- Based on TPC-E Standard Specification Revision 1.14.0
+
+-- Clause 3.3.9.3
 
 CREATE OR REPLACE FUNCTION TradeStatusFrame1 (
-		IN acct_id BIGINT,
-		OUT broker_name VARCHAR(100),
-		OUT charge NUMERIC(10, 2)[],
-		OUT cust_f_name VARCHAR(30),
-		OUT cust_l_name VARCHAR(30),
-		OUT ex_name VARCHAR(100)[],
-		OUT exec_name VARCHAR(64)[],
-		OUT num_found BIGINT,
-		OUT s_name VARCHAR(70)[],
-		OUT st_name VARCHAR(10)[],
-		OUT symbol VARCHAR(15)[],
-		OUT trade_dts TIMESTAMP[],
-		OUT trade_id BIGINT[],
-		OUT trade_qty INTEGER[],
-		OUT type_name VARCHAR(12)[])
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeStatusFrame1'
+    IN acct_id IDENT_T
+  , OUT broker_name VARCHAR
+  , OUT charge VALUE_T[50]
+  , OUT cust_l_name VARCHAR(30)
+  , OUT cust_f_name VARCHAR(30)
+  , OUT ex_name VARCHAR(100)[50]
+  , OUT exec_name VARCHAR(64)[50]
+  , OUT num_found INTEGER
+  , OUT s_name VARCHAR(70)[50]
+  , OUT status_name VARCHAR(10)[50]
+  , OUT symbol VARCHAR(15)[50]
+  , OUT trade_dts TIMESTAMP[50]
+  , OUT trade_id TRADE_T[50]
+  , OUT trade_qty S_QTY_T[50]
+  , OUT type_name VARCHAR(12)[50]
+) RETURNS SETOF RECORD
+AS 'MODULE_PATHNAME', 'TradeStatusFrame1'
 LANGUAGE C IMMUTABLE STRICT;

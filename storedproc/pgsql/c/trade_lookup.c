@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Based on TPC-E Standard Specification Revision 1.10.0.
+ * Based on TPC-E Standard Specification Revision 1.14.0.
  */
 
 #include <sys/types.h>
@@ -33,31 +33,44 @@ PG_MODULE_MAGIC;
 #define MYMAXDATELEN 63
 
 #define SQLTLF1_1                                                             \
-	"SELECT t_bid_price, t_exec_name, t_is_cash, tt_is_mrkt,\n"               \
-	"       t_trade_price\n"                                                  \
-	"FROM trade, trade_type\n"                                                \
+	"SELECT t_bid_price\n"                                                    \
+	"     , t_exec_name\n"                                                    \
+	"     , t_is_cash\n"                                                      \
+	"     , tt_is_mrkt\n"                                                     \
+	"     , t_trade_price\n"                                                 \
+	"FROM trade\n"                                                            \
+	"   , trade_type\n"                                                       \
 	"WHERE t_id = $1\n"                                                       \
 	"  AND t_tt_id = tt_id"
 
 #define SQLTLF1_2                                                             \
-	"SELECT se_amt, se_cash_due_date, se_cash_type\n"                         \
+	"SELECT se_amt\n"                                                         \
+	"     , se_cash_due_date\n"                                               \
+	"     , se_cash_type\n"                                                   \
 	"FROM settlement\n"                                                       \
 	"WHERE se_t_id = $1"
 
 #define SQLTLF1_3                                                             \
-	"SELECT ct_amt, ct_dts, ct_name\n"                                        \
+	"SELECT ct_amt\n"                                                         \
+	"     , ct_dts\n"                                                         \
+	"     , ct_name\n"                                                        \
 	"FROM cash_transaction\n"                                                 \
 	"WHERE ct_t_id = $1"
 
 #define SQLTLF1_4                                                             \
-	"SELECT th_dts, th_st_id\n"                                               \
+	"SELECT th_dts\n"                                                         \
+	"     , th_st_id\n"                                                       \
 	"FROM trade_history\n"                                                    \
 	"WHERE th_t_id = $1\n"                                                    \
 	"ORDER BY th_dts\n"                                                       \
 	"LIMIT 3"
 
 #define SQLTLF2_1                                                             \
-	"SELECT t_bid_price, t_exec_name, t_is_cash, t_id, t_trade_price\n"       \
+	"SELECT t_bid_price\n"                                                    \
+	"     , t_exec_name\n"                                                    \
+	"     , t_is_cash\n"                                                      \
+	"     , t_id\n"                                                           \
+	"     , t_trade_price\n"                                                  \
 	"FROM trade\n"                                                            \
 	"WHERE t_ca_id = $1\n"                                                    \
 	"  AND t_dts >= $2\n"                                                     \
@@ -66,25 +79,36 @@ PG_MODULE_MAGIC;
 	"LIMIT $4"
 
 #define SQLTLF2_2                                                             \
-	"SELECT se_amt, se_cash_due_date, se_cash_type\n"                         \
+	"SELECT se_amt\n"                                                         \
+	"     , se_cash_due_date\n"                                               \
+	"     , se_cash_type\n"                                                   \
 	"FROM settlement\n"                                                       \
 	"WHERE se_t_id = $1"
 
 #define SQLTLF2_3                                                             \
-	"SELECT ct_amt, ct_dts, ct_name\n"                                        \
+	"SELECT ct_amt\n"                                                         \
+	"     , ct_dts\n"                                                         \
+	"     , ct_name\n"                                                        \
 	"FROM cash_transaction\n"                                                 \
 	"WHERE ct_t_id = $1"
 
 #define SQLTLF2_4                                                             \
-	"SELECT th_dts, th_st_id\n"                                               \
+	"SELECT th_dts\n"                                                         \
+	"     , th_st_id\n"                                                       \
 	"FROM trade_history\n"                                                    \
 	"WHERE th_t_id = $1\n"                                                    \
 	"ORDER BY th_dts\n"                                                       \
 	"LIMIT 3"
 
 #define SQLTLF3_1                                                             \
-	"SELECT t_ca_id, t_exec_name, t_is_cash, t_trade_price, t_qty,\n"         \
-	"       t_dts, t_id, t_tt_id\n"                                           \
+	"SELECT t_ca_id\n"                                                        \
+	"     , t_exec_name\n"                                                    \
+	"     , t_is_cash\n"                                                      \
+	"     , t_trade_price\n"                                                  \
+	"     , t_qty\n"                                                          \
+	"     , t_dts\n"                                                          \
+	"     , t_id\n"                                                           \
+	"     , t_tt_id\n"                                                        \
 	"FROM trade\n"                                                            \
 	"WHERE t_s_symb = $1\n"                                                   \
 	"  AND t_dts >= $2\n"                                                     \
@@ -93,17 +117,22 @@ PG_MODULE_MAGIC;
 	"LIMIT $4"
 
 #define SQLTLF3_2                                                             \
-	"SELECT se_amt, se_cash_due_date, se_cash_type\n"                         \
+	"SELECT se_amt\n"                                                         \
+	"     , se_cash_due_date\n"                                               \
+	"     , se_cash_type\n"                                                   \
 	"FROM settlement\n"                                                       \
 	"WHERE se_t_id = $1"
 
 #define SQLTLF3_3                                                             \
-	"SELECT ct_amt, ct_dts, ct_name\n"                                        \
+	"SELECT ct_amt\n"                                                         \
+	"     , ct_dts\n"                                                         \
+	"     , ct_name\n"                                                        \
 	"FROM cash_transaction\n"                                                 \
 	"WHERE ct_t_id = $1"
 
 #define SQLTLF3_4                                                             \
-	"SELECT th_dts, th_st_id\n"                                               \
+	"SELECT th_dts\n"                                                         \
+	"     , th_st_id\n"                                                       \
 	"FROM trade_history\n"                                                    \
 	"WHERE th_t_id = $1\n"                                                    \
 	"ORDER BY th_dts ASC\n"                                                   \
@@ -118,12 +147,16 @@ PG_MODULE_MAGIC;
 	"LIMIT 1"
 
 #define SQLTLF4_2                                                             \
-	"SELECT hh_h_t_id, hh_t_id, hh_before_qty, hh_after_qty\n"                \
+	"SELECT hh_h_t_id\n"                                                      \
+	"     , hh_t_id\n"                                                        \
+	"     , hh_before_qty\n"                                                  \
+	"     , hh_after_qty\n"                                                   \
 	"FROM holding_history\n"                                                  \
 	"WHERE hh_h_t_id IN (\n"                                                  \
-	"      SELECT hh_h_t_id\n"                                                \
-	"      FROM holding_history\n"                                            \
-	"      WHERE hh_t_id = $1)"
+	"                       SELECT hh_h_t_id\n"                               \
+	"                       FROM holding_history\n"                           \
+	"                       WHERE hh_t_id = $1\n"                             \
+	"                   )"
 
 #define TLF1_1 TLF1_statements[0].plan
 #define TLF1_2 TLF1_statements[1].plan

@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Based on TPC-E Standard Specification Revision 1.10.0.
+ * Based on TPC-E Standard Specification Revision 1.14.0.
  */
 
 #include <sys/types.h>
@@ -30,42 +30,41 @@
 
 #define SQLMWF1_1                                                             \
 	"SELECT wi_s_symb\n"                                                      \
-	"FROM   watch_item,\n"                                                    \
-	"       watch_list\n"                                                     \
-	"WHERE  wi_wl_id = wl_id\n"                                               \
-	"       AND wl_c_id = $1"
+	"FROM watch_item\n"                                                       \
+	"   , watch_list\n"                                                       \
+	"WHERE wi_wl_id = wl_id\n"                                                \
+	"  AND wl_c_id = $1"
 
 #define SQLMWF1_2                                                             \
 	"SELECT s_symb\n"                                                         \
-	"FROM   industry,\n"                                                      \
-	"       company,\n"                                                       \
-	"       security\n"                                                       \
-	"WHERE  in_name = $1\n"                                                   \
-	"       AND co_in_id = in_id\n"                                           \
-	"       AND co_id BETWEEN $2\n"                                           \
-	"                         AND $3\n"                                       \
-	"       AND s_co_id = co_id"
+	"FROM industry\n"                                                         \
+	"   , company\n"                                                          \
+	"   , security\n"                                                         \
+	"WHERE in_name = $1\n"                                                    \
+	"  AND co_in_id = in_id\n"                                                \
+	"  AND co_id BETWEEN $2 AND $3\n"                                         \
+	"  AND s_co_id = co_id"
 
 #define SQLMWF1_3                                                             \
 	"SELECT hs_s_symb\n"                                                      \
-	"FROM   holding_summary\n"                                                \
+	"FROM holding_summary\n"                                                  \
 	"WHERE  hs_ca_id = $1"
 
 #define SQLMWF1_4                                                             \
 	"SELECT lt_price\n"                                                       \
-	"FROM   last_trade\n"                                                     \
-	"WHERE  lt_s_symb = $1"
+	"FROM last_trade\n"                                                       \
+	"WHERE lt_s_symb = $1"
 
 #define SQLMWF1_5                                                             \
 	"SELECT s_num_out\n"                                                      \
-	"FROM   security\n"                                                       \
-	"WHERE  s_symb = $1"
+	"FROM security\n"                                                         \
+	"WHERE s_symb = $1"
 
 #define SQLMWF1_6                                                             \
 	"SELECT dm_close\n"                                                       \
-	"FROM   daily_market\n"                                                   \
-	"WHERE  dm_s_symb = $1\n"                                                 \
-	"       AND dm_date = $2"
+	"FROM daily_market\n"                                                     \
+	"WHERE dm_s_symb = $1\n"                                                  \
+	"  AND dm_date = $2"
 
 #define MWF1_1 MWF1_statements[0].plan
 #define MWF1_2 MWF1_statements[1].plan

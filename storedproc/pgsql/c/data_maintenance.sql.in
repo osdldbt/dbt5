@@ -1,19 +1,21 @@
-/*
- * This file is released under the terms of the Artistic License.  Please see
- * the file LICENSE, included in this package, for details.
- *
- * Copyright The DBT-5 Authors
- */
+-- This file is released under the terms of the Artistic License.  Please see
+-- the file LICENSE, included in this package, for details.
+--
+-- Copyright The DBT-5 Authors
+--
+-- Based on TPC-E Standard Specification Revision 1.14.0.
+
+-- Clause 3.3.11.3
 
 CREATE OR REPLACE FUNCTION DataMaintenanceFrame1 (
-		IN acct_id IDENT_T,
-		IN c_id IDENT_T,
-		IN co_id IDENT_T,
-		IN day_of_month INTEGER,
-		IN symbol VARCHAR(15),
-		IN table_name VARCHAR,
-		IN tx_id VARCHAR(4),
-		IN vol_incr INTEGER,
-		OUT status INTEGER)
-RETURNS INTEGER AS 'MODULE_PATHNAME', 'DataMaintenanceFrame1'
+    IN acct_id IDENT_T
+  , IN c_id IDENT_T
+  , IN co_id IDENT_T
+  , IN day_of_month INTEGER
+  , IN symbol VARCHAR(15)
+  , IN table_name VARCHAR(18)
+  , IN tx_id VARCHAR(4)
+  , IN vol_incr INTEGER
+) RETURNS INTEGER
+AS 'MODULE_PATHNAME', 'DataMaintenanceFrame1'
 LANGUAGE C IMMUTABLE STRICT;

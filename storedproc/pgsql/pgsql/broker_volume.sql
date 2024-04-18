@@ -1,10 +1,12 @@
 -- This file is released under the terms of the Artistic License.  Please see
 -- the file LICENSE, included in this package, for details.
--- 
+--
 -- Copyright The DBT-5 Authors
--- 
+--
 -- Based on TPC-E Standard Specification Revision 1.14.0.
+
 -- Clause 3.3.1.3
+
 CREATE OR REPLACE FUNCTION BrokerVolumeFrame1 (
     IN broker_list VARCHAR(100)[40]
   , IN sector_name VARCHAR(30)

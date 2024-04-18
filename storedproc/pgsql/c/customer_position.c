@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Based on TPC-E Standard Specification Revision 1.10.0.
+ * Based on TPC-E Standard Specification Revision 1.14.0.
  */
 
 #include <sys/types.h>
@@ -32,62 +32,64 @@ PG_MODULE_MAGIC;
 	"WHERE  c_tax_id = $1"
 
 #define SQLCPF1_2                                                             \
-	"SELECT c_st_id,\n"                                                       \
-	"       c_l_name,\n"                                                      \
-	"       c_f_name,\n"                                                      \
-	"       c_m_name,\n"                                                      \
-	"       c_gndr,\n"                                                        \
-	"       c_tier,\n"                                                        \
-	"       c_dob,\n"                                                         \
-	"       c_ad_id,\n"                                                       \
-	"       c_ctry_1,\n"                                                      \
-	"       c_area_1,\n"                                                      \
-	"       c_local_1,\n"                                                     \
-	"       c_ext_1,\n"                                                       \
-	"       c_ctry_2,\n"                                                      \
-	"       c_area_2,\n"                                                      \
-	"       c_local_2,\n"                                                     \
-	"       c_ext_2,\n"                                                       \
-	"       c_ctry_3,\n"                                                      \
-	"       c_area_3,\n"                                                      \
-	"       c_local_3,\n"                                                     \
-	"       c_ext_3,\n"                                                       \
-	"       c_email_1,\n"                                                     \
-	"       c_email_2\n"                                                      \
-	"FROM   customer\n"                                                       \
-	"WHERE  c_id = $1"
+	"SELECT c_st_id\n"                                                        \
+	"     , c_l_name\n"                                                       \
+	"     , c_f_name\n"                                                       \
+	"     , c_m_name\n"                                                       \
+	"     , c_gndr\n"                                                         \
+	"     , c_tier\n"                                                         \
+	"     , c_dob\n"                                                          \
+	"     , c_ad_id\n"                                                        \
+	"     , c_ctry_1\n"                                                       \
+	"     , c_area_1\n"                                                       \
+	"     , c_local_1\n"                                                      \
+	"     , c_ext_1\n"                                                        \
+	"     , c_ctry_2\n"                                                       \
+	"     , c_area_2\n"                                                       \
+	"     , c_local_2\n"                                                      \
+	"     , c_ext_2\n"                                                        \
+	"     , c_ctry_3\n"                                                       \
+	"     , c_area_3\n"                                                       \
+	"     , c_local_3\n"                                                      \
+	"     , c_ext_3\n"                                                        \
+	"     , c_email_1\n"                                                      \
+	"     , c_email_2\n"                                                      \
+	"FROM customer\n"                                                         \
+	"WHERE c_id = $1"
 
 #define SQLCPF1_3                                                             \
-	"SELECT   ca_id,\n"                                                       \
-	"         ca_bal,\n"                                                      \
-	"         COALESCE(SUM(hs_qty * lt_price), 0) AS soma\n"                  \
-	"FROM     customer_account\n"                                             \
-	"         LEFT OUTER JOIN holding_summary\n"                              \
-	"                      ON hs_ca_id = ca_id,\n"                            \
-	"         last_trade\n"                                                   \
-	"WHERE    ca_c_id = $1\n"                                                 \
-	"         AND lt_s_symb = hs_s_symb\n"                                    \
+	"SELECT ca_id\n"                                                          \
+	"    ,  ca_bal\n"                                                         \
+	"    ,  coalesce(sum(hs_qty * lt_price), 0) AS soma\n"                    \
+	"FROM customer_account\n"                                                 \
+	"     LEFT OUTER JOIN holding_summary\n"                                  \
+	"                  ON hs_ca_id = ca_id,\n"                                \
+	"     last_trade\n"                                                       \
+	"WHERE ca_c_id = $1\n"                                                    \
+	" AND lt_s_symb = hs_s_symb\n"                                            \
 	"GROUP BY ca_id, ca_bal\n"                                                \
 	"ORDER BY 3 ASC\n"                                                        \
 	"LIMIT 10"
 
 #define SQLCPF2_1                                                             \
-	"SELECT   t_id,\n"                                                        \
-	"         t_s_symb,\n"                                                    \
-	"         t_qty,\n"                                                       \
-	"         st_name,\n"                                                     \
-	"         th_dts\n"                                                       \
-	"FROM     (SELECT   t_id AS id\n"                                         \
-	"          FROM     trade\n"                                              \
-	"          WHERE    t_ca_id = $1\n"                                       \
-	"          ORDER BY t_dts DESC\n"                                         \
-	"          LIMIT 10) AS t,\n"                                             \
-	"         trade,\n"                                                       \
-	"         trade_history,\n"                                               \
-	"         status_type\n"                                                  \
-	"WHERE    t_id = id\n"                                                    \
-	"         AND th_t_id = t_id\n"                                           \
-	"         AND st_id = th_st_id\n"                                         \
+	"SELECT t_id\n"                                                           \
+	"     , t_s_symb\n"                                                       \
+	"     , t_qty\n"                                                          \
+	"     , st_name\n"                                                        \
+	"     , th_dts\n"                                                         \
+	"FROM (\n"                                                                \
+	"         SELECT t_id AS id\n"                                            \
+	"         FROM trade\n"                                                   \
+	"         WHERE t_ca_id = $1\n"                                           \
+	"         ORDER BY t_dts DESC\n"                                          \
+	"         LIMIT 10\n"                                                     \
+	"     ) AS t\n"                                                           \
+	"   , trade\n"                                                            \
+	"   , trade_history\n"                                                    \
+	"   , status_type\n"                                                      \
+	"WHERE t_id = id\n"                                                       \
+	"  AND th_t_id = t_id\n"                                                  \
+	"  AND st_id = th_st_id\n"                                                \
 	"ORDER BY th_dts DESC"
 
 #define CPF1_1 CPF1_statements[0].plan

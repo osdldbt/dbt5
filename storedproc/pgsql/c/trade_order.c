@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Based on TPC-E Standard Specification Revision 1.10.0.
+ * Based on TPC-E Standard Specification Revision 1.14.0.
  */
 
 #include <sys/types.h>
@@ -23,12 +23,18 @@
 #include "dbt5common.h"
 
 #define SQLTOF1_1                                                             \
-	"SELECT ca_name, ca_b_id, ca_c_id, ca_tax_st\n"                           \
+	"SELECT ca_name\n"                                                        \
+	"     , ca_b_id\n"                                                        \
+	"     , ca_c_id\n"                                                        \
+	"     , ca_tax_st\n"                                                      \
 	"FROM customer_account\n"                                                 \
 	"WHERE ca_id = $1"
 
 #define SQLTOF1_2                                                             \
-	"SELECT c_f_name, c_l_name, c_tier, c_tax_id\n"                           \
+	"SELECT c_f_name\n"                                                       \
+	"     , c_l_name\n"                                                       \
+	"     , c_tier\n"                                                         \
+	"     , c_tax_id\n"                                                       \
 	"FROM customer\n"                                                         \
 	"WHERE c_id = $1"
 
@@ -51,13 +57,17 @@
 	"WHERE co_name = $1"
 
 #define SQLTOF3_2a                                                            \
-	"SELECT s_ex_id, s_name, s_symb\n"                                        \
+	"SELECT s_ex_id\n"                                                        \
+	"     , s_name\n"                                                         \
+	"     , s_symb\n"                                                         \
 	"FROM security\n"                                                         \
 	"WHERE s_co_id = $1\n"                                                    \
 	"  AND s_issue = $2"
 
 #define SQLTOF3_1b                                                            \
-	"SELECT s_co_id, s_ex_id, s_name\n"                                       \
+	"SELECT s_co_id\n"                                                        \
+	"     , s_ex_id\n"                                                        \
+	"     , s_name\n"                                                         \
 	"FROM security\n"                                                         \
 	"WHERE s_symb = $1\n"
 
@@ -72,7 +82,8 @@
 	"WHERE lt_s_symb = $1"
 
 #define SQLTOF3_4                                                             \
-	"SELECT tt_is_mrkt, tt_is_sell\n"                                         \
+	"SELECT tt_is_mrkt\n"                                                     \
+	"     , tt_is_sell\n"                                                     \
 	"FROM trade_type\n"                                                       \
 	"WHERE tt_id = $1"
 
@@ -83,14 +94,16 @@
 	"  AND hs_s_symb = $2"
 
 #define SQLTOF3_6a                                                            \
-	"SELECT h_qty, h_price\n"                                                 \
+	"SELECT h_qty\n"                                                          \
+	"     , h_price\n"                                                        \
 	"FROM holding\n"                                                          \
 	"WHERE h_ca_id = $1\n"                                                    \
 	"  AND h_s_symb = $2\n"                                                   \
 	"ORDER BY h_dts DESC"
 
 #define SQLTOF3_6b                                                            \
-	"SELECT h_qty, h_price\n"                                                 \
+	"SELECT h_qty\n"                                                          \
+	"     , h_price\n"                                                        \
 	"FROM holding\n"                                                          \
 	"WHERE h_ca_id = $1\n"                                                    \
 	"  AND h_s_symb = $2\n"                                                   \
@@ -100,9 +113,10 @@
 	"SELECT sum(tx_rate)\n"                                                   \
 	"FROM taxrate\n"                                                          \
 	"WHERE tx_id in (\n"                                                      \
-	"                SELECT cx_tx_id\n"                                       \
-	"                FROM customer_taxrate\n"                                 \
-	"                WHERE cx_c_id = $1)\n"
+	"                   SELECT cx_tx_id\n"                                    \
+	"                   FROM customer_taxrate\n"                              \
+	"                   WHERE cx_c_id = $1\n"                                 \
+	"               )\n"
 
 #define SQLTOF3_8                                                             \
 	"SELECT cr_rate\n"                                                        \
@@ -126,27 +140,78 @@
 
 #define SQLTOF3_11                                                            \
 	"SELECT sum(hs_qty * lt_price)\n"                                         \
-	"FROM holding_summary, last_trade\n"                                      \
+	"FROM holding_summary\n"                                                  \
+	"   , last_trade\n"                                                       \
 	"WHERE hs_ca_id = $1\n"                                                   \
 	"  AND lt_s_symb = hs_s_symb"
 
 #define SQLTOF4_1                                                             \
-	"INSERT INTO trade(t_id, t_dts, t_st_id, t_tt_id, t_is_cash,\n"           \
-	"                  t_s_symb, t_qty, t_bid_price, t_ca_id,\n"              \
-	"                  t_exec_name, t_trade_price, t_chrg, t_comm, \n"        \
-	"                  t_tax, t_lifo)\n"                                      \
-	"VALUES (NEXTVAL('seq_trade_id'), now(), $1, $2, $3, $4,\n"               \
-	"        $5, $6, $7, $8, NULL, $9, $10, 0, $11)\n"                        \
-	"RETURNING t_id, t_dts"
+	"INSERT INTO trade(\n"                                                    \
+	"    t_id\n"                                                              \
+	"  , t_dts\n"                                                             \
+	"  , t_st_id\n"                                                           \
+	"  , t_tt_id\n"                                                           \
+	"  , t_is_cash\n"                                                         \
+	"  , t_s_symb\n"                                                          \
+	"  , t_qty\n"                                                             \
+	"  , t_bid_price\n"                                                       \
+	"  , t_ca_id\n"                                                           \
+	"  , t_exec_name\n"                                                       \
+	"  , t_trade_price\n"                                                     \
+	"  , t_chrg\n"                                                            \
+	"  , t_comm\n"                                                            \
+	"  , t_tax\n"                                                             \
+	"  , t_lifo\n"                                                            \
+	")\n"                                                                     \
+	"VALUES (\n"                                                              \
+	"    nextval('seq_trade_id')\n"                                           \
+	"  , now()\n"                                                             \
+	"  , $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	"  , $4\n"                                                                \
+	"  , $5\n"                                                                \
+	"  , $6\n"                                                                \
+	"  , $7\n"                                                                \
+	"  , $8\n"                                                                \
+	"  , NULL\n"                                                              \
+	"  , $9\n"                                                                \
+	"  , $10\n"                                                               \
+	"  , 0\n"                                                                 \
+	"  , $11\n"                                                               \
+	")\n"                                                                     \
+	"RETURNING t_id\n"                                                        \
+	"        , t_dts"
 
 #define SQLTOF4_2                                                             \
-	"INSERT INTO trade_request(tr_t_id, tr_tt_id, tr_s_symb, tr_qty,\n"       \
-	"                          tr_bid_price, tr_b_id)\n"                      \
-	"VALUES ($1, $2, $3, $4, $5, $6)"
+	"INSERT INTO trade_request(\n"                                            \
+	"    tr_t_id\n"                                                           \
+	"  , tr_tt_id\n"                                                          \
+	"  , tr_s_symb\n"                                                         \
+	"  , tr_qty\n"                                                            \
+	"  , tr_bid_price\n"                                                      \
+	"  , tr_b_id\n"                                                           \
+	")\n"                                                                     \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	"  , $4\n"                                                                \
+	"  , $5\n"                                                                \
+	"  , $6\n"                                                                \
+	"  )"
 
 #define SQLTOF4_3                                                             \
-	"INSERT INTO trade_history(th_t_id, th_dts, th_st_id)\n"                  \
-	"VALUES($1, now(), $2)"
+	"INSERT INTO trade_history(\n"                                            \
+	"    th_t_id\n"                                                           \
+	"  , th_dts\n"                                                            \
+	"  , th_st_id\n"                                                          \
+	")\n"                                                                     \
+	"VALUES(\n"                                                               \
+	"    $1\n"                                                                \
+	"  , now()\n"                                                             \
+	"  , $2\n"                                                                \
+	")"
 
 #define TOF1_1 TOF1_statements[0].plan
 #define TOF1_2 TOF1_statements[1].plan

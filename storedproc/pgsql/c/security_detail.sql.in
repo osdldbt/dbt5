@@ -1,61 +1,95 @@
-/*
- * This file is released under the terms of the Artistic License.  Please see
- * the file LICENSE, included in this package, for details.
- *
- * Copyright The DBT-5 Authors
- */
+-- This file is released under the terms of the Artistic License.  Please see
+-- the file LICENSE, included in this package, for details.
+--
+-- Copyright The DBT-5 Authors
+--
+-- Based on TPC-E Standard Specification Revision 1.14.0
 
--- FIXEME: fin and day are supposed to be an array of multiple data types.
--- Took the easy way out and may VARCHAR for now.
+CREATE TYPE SECURITY_DETAIL_DAY AS (
+    _date DATE
+  , CLOSE S_PRICE_T
+  , high S_PRICE_T
+  , low S_PRICE_T
+  , vol S_PRICE_T
+);
+
+CREATE TYPE SECURITY_DETAIL_FIN AS (
+    year INTEGER
+  , qtr SMALLINT
+  , start_date DATE
+  , rev FIN_AGG_T
+  , net_earn FIN_AGG_T
+  , basic_eps VALUE_T
+  , dilut_eps VALUE_T
+  , margin VALUE_T
+  , invent FIN_AGG_T
+  , assets FIN_AGG_T
+  , liab FIN_AGG_T
+  , out_basic S_COUNT_T
+  , out_dilut S_COUNT_T
+);
+
+CREATE TYPE SECURITY_DETAIL_NEWS AS (
+    item BYTEA
+  , dts TIMESTAMP
+  , src VARCHAR( 30)
+  , auth VARCHAR(30)
+  , headline VARCHAR(80)
+  , summary VARCHAR(255)
+);
+
+-- Clause 3.3.5.3
+
 CREATE OR REPLACE FUNCTION SecurityDetailFrame1 (
-		IN access_lob_flag BOOL,
-		IN max_rows_to_return INTEGER,
-		IN start_date DATE,
-		IN symbol VARCHAR,
-		OUT x52_wk_high NUMERIC,
-		OUT x52_wk_high_date DATE,
-		OUT x52_wk_low NUMERIC,
-		OUT x52_wk_low_date DATE,
-		OUT ceo_name VARCHAR,
-		OUT co_ad_ctry VARCHAR,
-		OUT co_ad_div VARCHAR,
-		OUT co_ad_line1 VARCHAR,
-		OUT co_ad_line2 VARCHAR,
-		OUT co_ad_town VARCHAR,
-		OUT co_ad_zip VARCHAR,
-		OUT co_desc VARCHAR,
-		OUT co_name VARCHAR,
-		OUT co_st_id VARCHAR,
-		OUT cp_co_name VARCHAR[],
-		OUT cp_in_name VARCHAR[],
-		OUT day VARCHAR[],
-		OUT day_len INTEGER,
-		OUT divid NUMERIC,
-		OUT ex_ad_ctry VARCHAR,
-		OUT ex_ad_div VARCHAR,
-		OUT ex_ad_line1 VARCHAR,
-		OUT ex_ad_line2 VARCHAR,
-		OUT ex_ad_town VARCHAR,
-		OUT ex_ad_zip VARCHAR,
-		OUT ex_close INTEGER,
-		OUT ex_date DATE,
-		OUT ex_desc VARCHAR,
-		OUT ex_name VARCHAR,
-		OUT ex_num_symb INTEGER,
-		OUT ex_open INTEGER,
-		OUT fin VARCHAR[],
-		OUT fin_len INTEGER,
-		OUT last_open NUMERIC,
-		OUT last_price NUMERIC,
-		OUT last_vol INTEGER,
-		OUT news VARCHAR[],
-		OUT news_len INTEGER,
-		OUT num_out BIGINT,
-		OUT open_date DATE,
-		OUT pe_ratio NUMERIC,
-		OUT s_name VARCHAR,
-		OUT sp_rate VARCHAR,
-		OUT start_date DATE,
-		OUT yield NUMERIC)
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'SecurityDetailFrame1'
+    IN access_lob_flag SMALLINT
+  , IN max_rows_to_return INTEGER
+  , IN start_day DATE
+  , IN symbol VARCHAR(15)
+  , OUT x52_wk_high DOUBLE PRECISION
+  , OUT x52_wk_high_date DATE
+  , OUT x52_wk_low DOUBLE PRECISION
+  , OUT x52_wk_low_date DATE
+  , OUT ceo_name VARCHAR(60)
+  , OUT co_ad_ctry VARCHAR(80)
+  , OUT co_ad_div VARCHAR(80)
+  , OUT co_ad_line1 VARCHAR(80)
+  , OUT co_ad_line2 VARCHAR(80)
+  , OUT co_ad_town VARCHAR(80)
+  , OUT co_ad_zip VARCHAR(12)
+  , OUT co_desc VARCHAR(150)
+  , OUT co_name VARCHAR(60)
+  , OUT co_st_id VARCHAR(4)
+  , OUT cp_co_name VARCHAR(60)[3]
+  , OUT cp_in_name VARCHAR(50)[3]
+  , OUT day SECURITY_DETAIL_DAY[20]
+  , OUT day_len INTEGER
+  , OUT divid DOUBLE PRECISION
+  , OUT ex_ad_ctry VARCHAR(80)
+  , OUT ex_ad_div VARCHAR(80)
+  , OUT ex_ad_line1 VARCHAR(80)
+  , OUT ex_ad_line2 VARCHAR(80)
+  , OUT ex_ad_town VARCHAR(80)
+  , OUT ex_ad_zip VARCHAR(12)
+  , OUT ex_close INTEGER
+  , OUT ex_date DATE
+  , OUT ex_desc VARCHAR(150)
+  , OUT ex_name VARCHAR(100)
+  , OUT ex_num_symb INTEGER
+  , OUT ex_open INTEGER
+  , OUT fin SECURITY_DETAIL_FIN[20]
+  , OUT fin_len INTEGER
+  , OUT last_open DOUBLE PRECISION
+  , OUT last_price DOUBLE PRECISION
+  , OUT last_vol INTEGER
+  , OUT news SECURITY_DETAIL_NEWS[2]
+  , OUT news_len INTEGER
+  , OUT num_out BIGINT
+  , OUT open_date DATE
+  , OUT pe_ratio FLOAT
+  , OUT s_name VARCHAR(70)
+  , OUT sp_rate VARCHAR(4)
+  , OUT start_date DATE
+  , OUT yield DOUBLE PRECISION
+) RETURNS SETOF RECORD
+AS 'MODULE_PATHNAME', 'SecurityDetailFrame1'
 LANGUAGE C IMMUTABLE STRICT;

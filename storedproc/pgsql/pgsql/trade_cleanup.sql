@@ -3,15 +3,10 @@
 --
 -- Copyright The DBT-5 Authors
 --
--- Trade Cleanup transaction
--- -------------------------
--- This transaction is used to cancel any pending or submitted trades that are
--- left in the database from a previous Test Run.
---
--- Based on TPC-E Standard Specification Revision 1.14.0 Clause 3.3.12.
---
--- Frame 1
--- Cancel pending and submitted trades
+-- Based on TPC-E Standard Specification Revision 1.14.0
+
+-- Clause 3.3.12.
+
 CREATE OR REPLACE FUNCTION TradeCleanupFrame1 (
     IN st_canceled_id CHAR(4)
   , IN st_pending_id CHAR(4)

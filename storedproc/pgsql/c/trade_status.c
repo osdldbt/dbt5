@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Based on TPC-E Standard Specification Revision 1.10.0.
+ * Based on TPC-E Standard Specification Revision 1.14.0.
  */
 
 #include <sys/types.h>
@@ -27,9 +27,21 @@ PG_MODULE_MAGIC;
 #endif
 
 #define SQLTSF1_1                                                             \
-	"SELECT t_id, t_dts, st_name, tt_name, t_s_symb, t_qty, \n"               \
-	"       t_exec_name, t_chrg, s_name, ex_name\n"                           \
-	"FROM trade, status_type, trade_type, security, exchange\n"               \
+	"SELECT t_id\n"                                                           \
+	"     , t_dts\n"                                                          \
+	"     , st_name\n"                                                        \
+	"     , tt_name\n"                                                        \
+	"     , t_s_symb\n"                                                       \
+	"     , t_qty\n"                                                          \
+	"     , t_exec_name\n"                                                    \
+	"     , t_chrg\n"                                                         \
+	"     , s_name\n"                                                         \
+	"     , ex_name\n"                                                        \
+	"FROM trade\n"                                                            \
+	"   , status_type\n"                                                      \
+	"   , trade_type\n"                                                       \
+	"   , security\n"                                                         \
+	"   , exchange\n"                                                         \
 	"WHERE t_ca_id = $1\n"                                                    \
 	"  AND st_id = t_st_id\n"                                                 \
 	"  AND tt_id = t_tt_id\n"                                                 \
@@ -39,8 +51,12 @@ PG_MODULE_MAGIC;
 	"LIMIT 50"
 
 #define SQLTSF1_2                                                             \
-	"SELECT c_l_name, c_f_name, b_name\n"                                     \
-	"FROM customer_account, customer, broker\n"                               \
+	"SELECT c_l_name\n"                                                       \
+	"     , c_f_name\n"                                                       \
+	"     , b_name\n"                                                         \
+	"FROM customer_account\n"                                                 \
+	"   , customer\n"                                                         \
+	"   , broker\n"                                                           \
 	"WHERE ca_id = $1\n"                                                      \
 	"  AND c_id = ca_c_id\n"                                                  \
 	"  AND b_id = ca_b_id"

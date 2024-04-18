@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Based on TPC-E Standard Specification Revision 1.10.0.
+ * Based on TPC-E Standard Specification Revision 1.14.0.
  */
 
 #include <sys/types.h>
@@ -32,8 +32,16 @@ PG_MODULE_MAGIC;
 	"ORDER BY tr_t_id"
 
 #define SQLTCF1_2                                                             \
-	"INSERT INTO trade_history(th_t_id, th_dts, th_st_id)\n"                  \
-	"VALUES ($1, now(), $2)"
+	"INSERT INTO trade_history(\n"                                            \
+	"    th_t_id\n"                                                           \
+	"  , th_dts\n"                                                            \
+	"  , th_st_id\n"                                                          \
+	")\n"                                                                     \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , now()\n"                                                             \
+	"  , $2\n"                                                                \
+	")"
 
 #define SQLTCF1_3 "DELETE FROM trade_request"
 
@@ -45,14 +53,22 @@ PG_MODULE_MAGIC;
 
 #define SQLTCF1_5                                                             \
 	"UPDATE trade\n"                                                          \
-	"SET t_st_id = $1,\n"                                                     \
-	"    t_dts = now()\n"                                                     \
+	"SET t_st_id = $1\n"                                                      \
+	"  , t_dts = now()\n"                                                     \
 	"WHERE t_id = $2\n"                                                       \
 	"RETURNING t_dts"
 
 #define SQLTCF1_6                                                             \
-	"INSERT INTO trade_history(th_t_id, th_dts, th_st_id)\n"                  \
-	"VALUES ($1, now(), $2)"
+	"INSERT INTO trade_history(\n"                                            \
+	"    th_t_id\n"                                                           \
+	"  , th_dts\n"                                                            \
+	"  , th_st_id\n"                                                          \
+	")\n"                                                                     \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , now()\n"                                                             \
+	"  , $2\n"                                                                \
+	")"
 
 #define TCF1_1 TCF1_statements[0].plan
 #define TCF1_2 TCF1_statements[1].plan

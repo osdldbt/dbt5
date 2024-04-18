@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Based on TPC-E Standard Specification Revision 1.10.0.
+ * Based on TPC-E Standard Specification Revision 1.14.0.
  */
 
 #include <sys/types.h>
@@ -42,14 +42,18 @@ PG_MODULE_MAGIC;
 	"  AND ap_acl = $3"
 
 #define SQLDMF1_3a                                                            \
-	"SELECT ad_line2, ad_id\n"                                                \
-	"FROM address, customer\n"                                                \
+	"SELECT ad_line2\n"                                                       \
+	"     , ad_id\n"                                                          \
+	"FROM address\n"                                                          \
+	"   , customer\n"                                                         \
 	"WHERE ad_id = c_ad_id\n"                                                 \
 	"  AND c_id = $1"
 
 #define SQLDMF1_3b                                                            \
-	"SELECT ad_line2, ad_id\n"                                                \
-	"FROM address, company\n"                                                 \
+	"SELECT ad_line2\n"                                                       \
+	"     , ad_id\n"                                                          \
+	"FROM address\n"                                                          \
+	"   , company\n"                                                          \
 	"WHERE ad_id = co_ad_id\n"                                                \
 	"  AND co_id = $1"
 
@@ -75,7 +79,7 @@ PG_MODULE_MAGIC;
 
 #define SQLDMF1_8                                                             \
 	"UPDATE customer\n"                                                       \
-	"SET c_email_2 = SUBSTRING(c_email_2\n"                                   \
+	"SET c_email_2 = substring(c_email_2\n"                                   \
 	"                          FROM '#\"%%@#\"%%'\n"                          \
 	"                          FOR '#') || $1\n"                              \
 	"WHERE c_id = $2"
@@ -96,10 +100,10 @@ PG_MODULE_MAGIC;
 	"UPDATE daily_market\n"                                                   \
 	"SET dm_vol = dm_vol + $1\n"                                              \
 	"WHERE dm_s_symb = $2\n"                                                  \
-	"  AND EXTRACT(DAY FROM dm_date) = $3"
+	"  AND extract(DAY FROM dm_date) = $3"
 
 #define SQLDMF1_12                                                            \
-	"SELECT COUNT(*)\n"                                                       \
+	"SELECT count(*)\n"                                                       \
 	"FROM exchange\n"                                                         \
 	"WHERE ex_desc LIKE '%%LAST UPDATED%%'"
 
@@ -109,36 +113,38 @@ PG_MODULE_MAGIC;
 
 #define SQLDMF1_13b                                                           \
 	"UPDATE exchange\n"                                                       \
-	"SET ex_desc = SUBSTRING(ex_desc || ' LAST UPDATED ' || NOW()\n"          \
-	"                        FROM 1 FOR (CHAR_LENGTH(ex_desc) -\n"            \
-	"                                    CHAR_LENGTH(NOW()::TEXT))) || NOW()"
+	"SET ex_desc = substring(ex_desc || ' LAST UPDATED ' || now()\n"          \
+	"                        FROM 1 FOR (char_length(ex_desc) -\n"            \
+	"                                    char_length(now()::TEXT))) || now()"
 
 #define SQLDMF1_14                                                            \
-	"SELECT COUNT(*)\n"                                                       \
+	"SELECT count(*)\n"                                                       \
 	"FROM financial\n"                                                        \
 	"WHERE fi_co_id = $1\n"                                                   \
-	"  AND EXTRACT(DAY FROM fi_qtr_start_date) = 1"
+	"  AND extract(DAY FROM fi_qtr_start_date) = 1"
 
 #define SQLDMF1_15a                                                           \
 	"UPDATE financial\n"                                                      \
-	"SET fi_qtr_start_date = fi_qtr_start_date + INTERVAL '1 day'\n"          \
+	"SET fi_qtr_start_date = fi_qtr_start_date + INTERVAL '1 DAY'\n"          \
 	"WHERE fi_co_id = $1"
 
 #define SQLDMF1_15b                                                           \
 	"UPDATE financial\n"                                                      \
-	"SET fi_qtr_start_date = fi_qtr_start_date - INTERVAL '1 day'\n"          \
+	"SET fi_qtr_start_date = fi_qtr_start_date - INTERVAL '1 DAY'\n"          \
 	"WHERE fi_co_id = $1"
 
 #define SQLDMF1_16                                                            \
 	"UPDATE news_item\n"                                                      \
 	"SET ni_dts = ni_dts + INTERVAL '1 day'\n"                                \
-	"WHERE ni_id IN (SELECT nx_ni_id\n"                                       \
-	"               FROM news_xref\n"                                         \
-	"               WHERE nx_co_id = $1)"
+	"WHERE ni_id IN (\n"                                                      \
+	"                   SELECT nx_ni_id\n"                                    \
+	"                   FROM news_xref\n"                                     \
+	"                   WHERE nx_co_id = $1\n"                                \
+	"               )"
 
 #define SQLDMF1_17                                                            \
 	"UPDATE security\n"                                                       \
-	"SET s_exch_date = s_exch_date + INTERVAL '1 day'\n"                      \
+	"SET s_exch_date = s_exch_date + INTERVAL '1 DAY'\n"                      \
 	"WHERE s_symb = $1"
 
 #define SQLDMF1_18                                                            \
@@ -153,17 +159,20 @@ PG_MODULE_MAGIC;
 
 #define SQLDMF1_20                                                            \
 	"SELECT count(*)\n"                                                       \
-	"FROM watch_item, watch_list\n"                                           \
+	"FROM watch_item\n"                                                       \
+	"   , watch_list\n"                                                       \
 	"WHERE wl_c_id = $1\n"                                                    \
 	"  AND wi_wl_id = wl_id"
 
 #define SQLDMF1_21                                                            \
 	"SELECT wi_s_symb\n"                                                      \
-	"FROM (SELECT wi_s_symb\n"                                                \
-	"      FROM watch_item, watch_list\n"                                     \
-	"      WHERE wl_c_id = $1\n"                                              \
-	"        AND wi_wl_id = wl_id\n"                                          \
-	"      ORDER BY wi_s_symb ASC) AS foo\n"                                  \
+	"FROM (\n"                                                                \
+	"         SELECT wi_s_symb\n"                                             \
+	"         FROM watch_item, watch_list\n"                                  \
+	"         WHERE wl_c_id = $1\n"                                           \
+	"           AND wi_wl_id = wl_id\n"                                       \
+	"         ORDER BY wi_s_symb ASC\n"                                       \
+	"     ) AS foo\n"                                                         \
 	"OFFSET $2\n"                                                             \
 	"LIMIT 1"
 
@@ -171,10 +180,12 @@ PG_MODULE_MAGIC;
 	"SELECT s_symb\n"                                                         \
 	"FROM security\n"                                                         \
 	"WHERE s_symb > $1\n"                                                     \
-	"  AND s_symb NOT IN (SELECT wi_s_symb\n"                                 \
-	"                     FROM watch_item, watch_list\n"                      \
-	"                     WHERE wl_c_id = $2\n"                               \
-	"                       AND wi_wl_id = wl_id)\n"                          \
+	"  AND s_symb NOT IN (\n"                                                 \
+	"                        SELECT wi_s_symb\n"                              \
+	"                        FROM watch_item, watch_list\n"                   \
+	"                        WHERE wl_c_id = $2\n"                            \
+	"                          AND wi_wl_id = wl_id\n"                        \
+	"                    )\n"                                                 \
 	"ORDER BY s_symb ASC\n"                                                   \
 	"LIMIT 1"
 

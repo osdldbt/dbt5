@@ -1,77 +1,89 @@
-/*
- * This file is released under the terms of the Artistic License.  Please see
- * the file LICENSE, included in this package, for details.
- *
- * Copyright The DBT-5 Authors
- */
+-- This file is released under the terms of the Artistic License.  Please see
+-- the file LICENSE, included in this package, for details.
+--
+-- Copyright The DBT-5 Authors
+--
+-- Based on TPC-E Standard Specification Revision 1.14.0
+
+-- Clause 3.3.7.3
 
 CREATE OR REPLACE FUNCTION TradeOrderFrame1 (
-		IN acct_id BIGINT,
-		OUT acct_name VARCHAR(50),
-		OUT broker_id BIGINT,
-		OUT broker_name VARCHAR(100),
-		OUT cust_f_name VARCHAR(30),
-		OUT cust_id BIGINT,
-		OUT cust_l_name VARCHAR(30),
-		OUT cust_tier SMALLINT,
-		OUT num_found INTEGER,
-		OUT tax_id VARCHAR(20),
-		OUT tax_status SMALLINT)
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeOrderFrame1'
+    IN acct_id IDENT_T
+  , OUT acct_name VARCHAR(50)
+  , OUT broker_id IDENT_T
+  , OUT broker_name VARCHAR(100)
+  , OUT cust_f_name VARCHAR(30)
+  , OUT cust_id IDENT_T
+  , OUT cust_l_name VARCHAR(30)
+  , OUT cust_tier SMALLINT
+  , OUT num_found INTEGER
+  , OUT tax_id VARCHAR(20)
+  , OUT tax_status SMALLINT
+) RETURNS SETOF RECORD
+AS 'MODULE_PATHNAME', 'TradeOrderFrame1'
 LANGUAGE C IMMUTABLE STRICT;
+
+-- Clause 3.3.7.4
 
 CREATE OR REPLACE FUNCTION TradeOrderFrame2 (
-		IN acct_id BIGINT,
-		IN exec_f_name VARCHAR(30),
-		IN exec_l_name VARCHAR(30),
-		IN exec_tax_id VARCHAR(20),
-		OUT ap_acl VARCHAR(4))
-RETURNS VARCHAR AS 'MODULE_PATHNAME', 'TradeOrderFrame2'
+    IN acct_id IDENT_T
+  , IN exec_f_name VARCHAR(30)
+  , IN exec_l_name VARCHAR(30)
+  , IN exec_tax_id VARCHAR(20)
+  , OUT ap_acl VARCHAR(4)
+) RETURNS VARCHAR(4)
+AS 'MODULE_PATHNAME', 'TradeOrderFrame2'
 LANGUAGE C IMMUTABLE STRICT;
+
+-- Clause 3.3.7.5
 
 CREATE OR REPLACE FUNCTION TradeOrderFrame3 (
-		IN acct_id BIGINT,
-		IN cust_id BIGINT,
-		IN cust_tier SMALLINT,
-		IN is_lifo SMALLINT,
-		IN issue VARCHAR(6),
-		IN st_pending_id VARCHAR(10),
-		IN st_submitted_id VARCHAR(10),
-		IN tax_status SMALLINT,
-		IN trade_qty INTEGER,
-		IN trade_type_id VARCHAR(3),
-		IN type_is_margin SMALLINT,
-		INOUT co_name VARCHAR(60),
-		INOUT requested_price NUMERIC(8, 2),
-		INOUT symbol VARCHAR(15),
-		OUT buy_value NUMERIC(8, 2),
-		OUT charge_amount NUMERIC(10, 2),
-		OUT comm_rate NUMERIC(5, 2),
-		OUT cust_assets NUMERIC(8, 2),
-		OUT market_price NUMERIC(8, 2),
-		OUT s_name VARCHAR(70),
-		OUT sell_value NUMERIC(8, 2),
-		OUT status_id VARCHAR(10),
-		OUT tax_amount NUMERIC(8, 2),
-		OUT type_is_market BOOLEAN,
-		OUT type_is_sell BOOLEAN)
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeOrderFrame3'
+    IN acct_id IDENT_T
+  , IN cust_id IDENT_T
+  , IN cust_tier SMALLINT
+  , IN is_lifo SMALLINT
+  , IN issue CHAR(6)
+  , IN st_pending_id CHAR(4)
+  , IN st_submitted_id CHAR(4)
+  , IN tax_status SMALLINT
+  , IN trade_qty S_QTY_T
+  , IN trade_type_id CHAR(3)
+  , IN type_is_margin SMALLINT
+  , INOUT co_name VARCHAR(60)
+  , INOUT requested_price S_PRICE_T
+  , INOUT symbol VARCHAR(15)
+  , OUT buy_value BALANCE_T
+  , OUT charge_amount VALUE_T
+  , OUT comm_rate S_PRICE_T
+  , OUT acct_assets VALUE_T
+  , OUT market_price S_PRICE_T
+  , OUT s_name VARCHAR(70)
+  , OUT sell_value BALANCE_T
+  , OUT status_id CHAR(4)
+  , OUT tax_amount VALUE_T
+  , OUT type_is_market SMALLINT
+  , OUT type_is_sell SMALLINT
+) RETURNS SETOF RECORD
+AS 'MODULE_PATHNAME', 'TradeOrderFrame3'
 LANGUAGE C IMMUTABLE STRICT;
 
+-- Clause 3.3.7.6
+
 CREATE OR REPLACE FUNCTION TradeOrderFrame4 (
-		IN acct_id BIGINT,
-		IN broker_id BIGINT,
-		IN charge_amount NUMERIC(10, 2),
-		IN comm_amount NUMERIC(10, 2),
-		IN exec_name VARCHAR(64),
-		IN is_cash SMALLINT,
-		IN is_lifo SMALLINT,
-		IN requested_price NUMERIC(8, 2),
-		IN status_id VARCHAR(10),
-		IN symbol VARCHAR(15),
-		IN trade_qty INTEGER,
-		IN trade_type_id VARCHAR(3),
-		IN type_is_market SMALLINT,
-		OUT trade_id BIGINT)
-RETURNS BIGINT AS 'MODULE_PATHNAME', 'TradeOrderFrame4'
+    IN acct_id IDENT_T
+  , IN broker_id IDENT_T
+  , IN charge_amount VALUE_T
+  , IN comm_amount VALUE_T
+  , IN exec_name CHAR(64)
+  , IN is_cash SMALLINT
+  , IN is_lifo SMALLINT
+  , IN requested_price S_PRICE_T
+  , IN status_id CHAR(4)
+  , IN symbol VARCHAR(15)
+  , IN trade_qty S_QTY_T
+  , IN trade_type_id CHAR(3)
+  , IN type_is_market SMALLINT
+  , OUT trade_id TRADE_T
+) RETURNS TRADE_T
+AS 'MODULE_PATHNAME', 'TradeOrderFrame4'
 LANGUAGE C IMMUTABLE STRICT;

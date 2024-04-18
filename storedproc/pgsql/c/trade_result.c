@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Based on TPC-E Standard Specification Revision 1.10.0.
+ * Based on TPC-E Standard Specification Revision 1.14.0.
  */
 
 #include <sys/types.h>
@@ -30,22 +30,26 @@ PG_MODULE_MAGIC;
 #endif
 
 #define SQLTRF1_1                                                             \
-	"SELECT t_ca_id, t_tt_id, t_s_symb, t_qty, t_chrg,\n"                     \
+	"SELECT t_ca_id\n"                                                        \
+	"     , t_tt_id\n"                                                        \
+	"     , t_s_symb\n"                                                       \
+	"     , t_qty\n"                                                          \
+	"     , t_chrg,\n"                                                        \
 	"       CASE WHEN t_lifo = true\n"                                        \
 	"            THEN 1\n"                                                    \
-	"            ELSE 0 END,\n"                                               \
-	"       CASE WHEN t_is_cash = true\n"                                     \
+	"            ELSE 0 END\n"                                                \
+	"     , CASE WHEN t_is_cash = true\n"                                     \
 	"            THEN 1\n"                                                    \
 	"            ELSE 0 END\n"                                                \
 	"FROM trade\n"                                                            \
 	"WHERE t_id = $1"
 
 #define SQLTRF1_2                                                             \
-	"SELECT tt_name,\n"                                                       \
-	"       CASE WHEN tt_is_sell = true\n"                                    \
+	"SELECT tt_name\n"                                                        \
+	"     , CASE WHEN tt_is_sell = true\n"                                    \
 	"            THEN 1\n"                                                    \
-	"            ELSE 0 END,\n"                                               \
-	"       CASE WHEN tt_is_mrkt = true\n"                                    \
+	"            ELSE 0 END\n"                                                \
+	"     , CASE WHEN tt_is_mrkt = true\n"                                    \
 	"            THEN 1\n"                                                    \
 	"            ELSE 0 END\n"                                                \
 	"FROM trade_type\n"                                                       \
@@ -58,14 +62,24 @@ PG_MODULE_MAGIC;
 	"  AND hs_s_symb = $2"
 
 #define SQLTRF2_1                                                             \
-	"SELECT ca_b_id, ca_c_id, ca_tax_st\n"                                    \
+	"SELECT ca_b_id\n"                                                        \
+	"     , ca_c_id\n"                                                        \
+	"     , ca_tax_st\n"                                                      \
 	"FROM customer_account\n"                                                 \
 	"WHERE ca_id = $1\n"                                                      \
 	"FOR UPDATE"
 
 #define SQLTRF2_2a                                                            \
-	"INSERT INTO holding_summary(hs_ca_id, hs_s_symb, hs_qty)\n"              \
-	"VALUES($1, $2, $3)"
+	"INSERT INTO holding_summary(\n"                                          \
+	"    hs_ca_id\n"                                                          \
+	"  , hs_s_symb\n"                                                         \
+	"  , hs_qty\n"                                                            \
+	")\n"                                                                     \
+	"VALUES(\n"                                                               \
+	"    $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	")"
 
 #define SQLTRF2_2b                                                            \
 	"UPDATE holding_summary\n"                                                \
@@ -74,7 +88,9 @@ PG_MODULE_MAGIC;
 	"  AND hs_s_symb = $3"
 
 #define SQLTRF2_3a                                                            \
-	"SELECT h_t_id, h_qty, h_price\n"                                         \
+	"SELECT h_t_id\n"                                                         \
+	"     , h_qty\n"                                                          \
+	"     , h_price\n"                                                        \
 	"FROM holding\n"                                                          \
 	"WHERE h_ca_id = $1\n"                                                    \
 	"  AND h_s_symb = $2\n"                                                   \
@@ -82,7 +98,9 @@ PG_MODULE_MAGIC;
 	"FOR UPDATE"
 
 #define SQLTRF2_3b                                                            \
-	"SELECT h_t_id, h_qty, h_price\n"                                         \
+	"SELECT h_t_id\n"                                                         \
+	"     , h_qty\n"                                                          \
+	"     , h_price\n"                                                        \
 	"FROM holding\n"                                                          \
 	"WHERE h_ca_id = $1\n"                                                    \
 	"  AND h_s_symb = $2\n"                                                   \
@@ -90,9 +108,18 @@ PG_MODULE_MAGIC;
 	"FOR UPDATE"
 
 #define SQLTRF2_4a                                                            \
-	"INSERT INTO holding_history(hh_h_t_id, hh_t_id, hh_before_qty,\n"        \
-	"                            hh_after_qty)\n"                             \
-	"VALUES($1, $2, $3, $4)"
+	"INSERT INTO holding_history(\n"                                          \
+	"    hh_h_t_id\n"                                                         \
+	"  , hh_t_id\n"                                                           \
+	"  , hh_before_qty\n"                                                     \
+	"  , hh_after_qty\n"                                                      \
+	")\n"                                                                     \
+	"VALUES(\n"                                                               \
+	"    $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	"  , $4\n"                                                                \
+	")"
 
 #define SQLTRF2_5a                                                            \
 	"UPDATE holding\n"                                                        \
@@ -104,9 +131,21 @@ PG_MODULE_MAGIC;
 	"WHERE h_t_id = $1"
 
 #define SQLTRF2_7a                                                            \
-	"INSERT INTO holding(h_t_id, h_ca_id, h_s_symb, h_dts, h_price,\n"        \
-	"                    h_qty)\n"                                            \
-	"VALUES ($1, $2, $3, $4, $5, $6)"
+	"INSERT INTO holding(\n"                                                  \
+	"    h_t_id\n"                                                            \
+	"  , h_ca_id\n"                                                           \
+	"  , h_s_symb\n"                                                          \
+	"  , h_dts\n"                                                             \
+	"  , h_price\n"                                                           \
+	"  , h_qty)\n"                                                            \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	"  , $4\n"                                                                \
+	"  , $5\n"                                                                \
+	"  , $6\n"                                                                \
+	")"
 
 #define SQLTRF2_7b                                                            \
 	"DELETE FROM holding_summary\n"                                           \
@@ -114,8 +153,16 @@ PG_MODULE_MAGIC;
 	"  AND hs_s_symb = $2"
 
 #define SQLTRF2_8a                                                            \
-	"INSERT INTO holding_summary(hs_ca_id, hs_s_symb, hs_qty)\n"              \
-	"VALUES ($1, $2, $3)"
+	"INSERT INTO holding_summary(\n"                                          \
+	"    hs_ca_id\n"                                                          \
+	"  , hs_s_symb\n"                                                         \
+	"  , hs_qty\n"                                                            \
+	")\n"                                                                     \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	")"
 
 #define SQLTRF2_8b                                                            \
 	"UPDATE holding_summary\n"                                                \
@@ -124,11 +171,13 @@ PG_MODULE_MAGIC;
 	"  AND hs_s_symb = $3"
 
 #define SQLTRF3_1                                                             \
-	"SELECT SUM(tx_rate)\n"                                                   \
+	"SELECT sum(tx_rate)\n"                                                   \
 	"FROM taxrate\n"                                                          \
-	"WHERE tx_id IN (SELECT cx_tx_id\n"                                       \
-	"                FROM customer_taxrate\n"                                 \
-	"                WHERE cx_c_id = $1)\n"
+	"WHERE tx_id IN (\n"                                                      \
+	"                   SELECT cx_tx_id\n"                                    \
+	"                   FROM customer_taxrate\n"                              \
+	"                   WHERE cx_c_id = $1\n"                                 \
+	"               )\n"
 
 #define SQLTRF3_2                                                             \
 	"UPDATE trade\n"                                                          \
@@ -136,7 +185,8 @@ PG_MODULE_MAGIC;
 	"WHERE t_id = $2"
 
 #define SQLTRF4_1                                                             \
-	"SELECT s_ex_id, s_name\n"                                                \
+	"SELECT s_ex_id\n"                                                        \
+	"     , s_name\n"                                                         \
 	"FROM security\n"                                                         \
 	"WHERE s_symb = $1"
 
@@ -157,26 +207,42 @@ PG_MODULE_MAGIC;
 
 #define SQLTRF5_1                                                             \
 	"UPDATE trade\n"                                                          \
-	"SET t_comm = $1,\n"                                                      \
-	"    t_dts = $2,\n"                                                       \
-	"    t_st_id = $3,\n"                                                     \
-	"    t_trade_price = $4\n"                                                \
+	"SET t_comm = $1\n"                                                       \
+	"  , t_dts = $2\n"                                                        \
+	"  , t_st_id = $3\n"                                                      \
+	"  , t_trade_price = $4\n"                                                \
 	"WHERE t_id = $5"
 
 #define SQLTRF5_2                                                             \
-	"INSERT INTO trade_history(th_t_id, th_dts, th_st_id)\n"                  \
-	"VALUES ($1, $2, $3)"
+	"INSERT INTO trade_history(\n"                                            \
+	"    th_t_id\n"                                                           \
+	"  , th_dts\n"                                                            \
+	"  , th_st_id\n"                                                          \
+	")\n"                                                                     \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	")"
 
 #define SQLTRF5_3                                                             \
 	"UPDATE broker\n"                                                         \
-	"SET b_comm_total = b_comm_total + $1,\n"                                 \
-	"    b_num_trades = b_num_trades + 1\n"                                   \
+	"SET b_comm_total = b_comm_total + $1\n"                                  \
+	"  , b_num_trades = b_num_trades + 1\n"                                   \
 	"WHERE b_id = $2"
 
 #define SQLTRF6_1                                                             \
-	"INSERT INTO settlement(se_t_id, se_cash_type, se_cash_due_date,\n "      \
-	"                       se_amt)\n"                                        \
-	"VALUES ($1, $2, $3, $4)"
+	"INSERT INTO settlement(\n"                                               \
+	"    se_t_id\n"                                                           \
+	"  , se_cash_type\n"                                                      \
+	"  , se_cash_due_date\n"                                                  \
+	"  , se_amt)\n"                                                           \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	"  , $4\n"                                                                \
+	")"
 
 #define SQLTRF6_2                                                             \
 	"UPDATE customer_account\n"                                               \
@@ -184,8 +250,18 @@ PG_MODULE_MAGIC;
 	"WHERE ca_id = $2"
 
 #define SQLTRF6_3                                                             \
-	"INSERT INTO cash_transaction(ct_dts, ct_t_id, ct_amt, ct_name)\n"        \
-	"VALUES ($1, $2, $3, e'$4 $5 shared of $6')"
+	"INSERT INTO cash_transaction(\n"                                         \
+	"    ct_dts\n"                                                            \
+	"  , ct_t_id\n"                                                           \
+	"  , ct_amt\n"                                                            \
+	"  , ct_name\n"                                                           \
+	")\n"                                                                     \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	"  , e'$4 $5 shared of $6'\n"                                             \
+	")"
 
 #define SQLTRF6_4                                                             \
 	"SELECT ca_bal\n"                                                         \

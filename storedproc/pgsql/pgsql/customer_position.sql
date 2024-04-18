@@ -4,7 +4,9 @@
 -- Copyright The DBT-5 Authors
 --
 -- Based on TPC-E Standard Specification Revision 1.14.0
+
 -- Clause 3.3.2.3
+
 CREATE OR REPLACE FUNCTION CustomerPositionFrame1 (
     INOUT cust_id IDENT_T
   , IN tax_id VARCHAR(20)
@@ -117,6 +119,7 @@ $$
 LANGUAGE 'plpgsql';
 
 -- Clause 3.3.2.4
+
 CREATE OR REPLACE FUNCTION CustomerPositionFrame2 (
     IN acct_id IDENT_T
   , OUT hist_dts TIMESTAMP[30]

@@ -4,7 +4,9 @@
 -- Copyright The DBT-5 Authors
 --
 -- Based on TPC-E Standard Specification Revision 1.14.0
+
 -- Clause 3.3.10.3
+
 CREATE OR REPLACE FUNCTION TradeUpdateFrame1 (
     IN max_trades INTEGER
   , IN max_updates INTEGER
@@ -166,6 +168,7 @@ $$
 LANGUAGE 'plpgsql';
 
 -- Clause 3.3.10.4
+
 CREATE OR REPLACE FUNCTION TradeUpdateFrame2 (
     IN acct_id IDENT_T
   , IN end_trade_dts TIMESTAMP
@@ -188,7 +191,7 @@ CREATE OR REPLACE FUNCTION TradeUpdateFrame2 (
   , OUT trade_list IDENT_T[20]
   , OUT trade_price VALUE_T[20]
 ) RETURNS RECORD
-    AS $$
+AS $$
 DECLARE
     -- variables
     i INTEGER;
@@ -322,6 +325,7 @@ $$
 LANGUAGE 'plpgsql';
 
 -- Clause 3.3.10.5
+
 CREATE OR REPLACE FUNCTION TradeUpdateFrame3 (
     IN end_trade_dts TIMESTAMP
   , IN max_acct_id IDENT_T

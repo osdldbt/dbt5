@@ -1,70 +1,55 @@
-/*
- * This file is released under the terms of the Artistic License.  Please see
- * the file LICENSE, included in this package, for details.
- *
- * Copyright The DBT-5 Authors
- *
- * Customer Position transaction
- * ------------------------
- * This transaction takes a customer tax ID or customer ID as input and is 
- * responsible for calculating the current market value of each one of that
- * customer's accounts.
- *
- * Based on TPC-E Standard Specification Revision 1.10.0. Clause 3.3.2.1.
- */
+-- This file is released under the terms of the Artistic License.  Please see
+-- the file LICENSE, included in this package, for details.
+--
+-- Copyright The DBT-5 Authors
+--
+-- Based on TPC-E Standard Specification Revision 1.14.0
 
-/*
- * Frame 1
- * retrieves the detailed customer information and finds the cash balance for
- * each of the customer’s accounts as well as the total value of the 
- * holdings in each account.
- */
+-- Clause 3.3.2.3
 
 CREATE OR REPLACE FUNCTION CustomerPositionFrame1(
-		INOUT cust_id IDENT_T,
-		IN tax_id VARCHAR(20),
-		OUT acct_id BIGINT[],
-		OUT acct_len INTEGER,
-		OUT asset_total NUMERIC(14,2)[],
-		OUT c_ad_id IDENT_T,
-		OUT c_area_1 VARCHAR(3),
-		OUT c_area_2 VARCHAR(3),
-		OUT c_area_3 VARCHAR(3),
-		OUT c_ctry_1 VARCHAR(3),
-		OUT c_ctry_2 VARCHAR(3),
-		OUT c_ctry_3 VARCHAR(3),
-		OUT c_dob DATE,
-		OUT c_email_1 VARCHAR(50),
-		OUT c_email_2 VARCHAR(50),
-		OUT c_ext_1 VARCHAR(5),
-		OUT c_ext_2 VARCHAR(5),
-		OUT c_ext_3 VARCHAR(5),
-		OUT c_f_name VARCHAR(30),
-		OUT c_gndr VARCHAR(1),
-		OUT c_l_name VARCHAR(30),
-		OUT c_local_1 VARCHAR(10),
-		OUT c_local_2 VARCHAR(10),
-		OUT c_local_3 VARCHAR(10),
-		OUT c_m_name VARCHAR(1),
-		OUT c_st_id VARCHAR(4),
-		OUT c_tier SMALLINT,
-		OUT cash_bal NUMERIC(12, 2)[])
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'CustomerPositionFrame1'
+    INOUT cust_id IDENT_T
+  , IN tax_id VARCHAR(20)
+  , OUT acct_id IDENT_T[10]
+  , OUT acct_len INTEGER
+  , OUT asset_total DOUBLE PRECISION[10]
+  , OUT c_ad_id IDENT_T
+  , OUT c_area_1 VARCHAR(3)
+  , OUT c_area_2 VARCHAR(3)
+  , OUT c_area_3 VARCHAR(3)
+  , OUT c_ctry_1 VARCHAR(3)
+  , OUT c_ctry_2 VARCHAR(3)
+  , OUT c_ctry_3 VARCHAR(3)
+  , OUT c_dob DATE
+  , OUT c_email_1 VARCHAR(50)
+  , OUT c_email_2 VARCHAR(50)
+  , OUT c_ext_1 VARCHAR(5)
+  , OUT c_ext_2 VARCHAR(5)
+  , OUT c_ext_3 VARCHAR(5)
+  , OUT c_f_name VARCHAR(30)
+  , OUT c_gndr VARCHAR(1)
+  , OUT c_l_name VARCHAR(30)
+  , OUT c_local_1 VARCHAR(10)
+  , OUT c_local_2 VARCHAR(10)
+  , OUT c_local_3 VARCHAR(10)
+  , OUT c_m_name VARCHAR(1)
+  , OUT c_st_id VARCHAR(4)
+  , OUT c_tier SMALLINT
+  , OUT cash_bal BALANCE_T[10]
+) RETURNS SETOF RECORD
+AS 'MODULE_PATHNAME', 'CustomerPositionFrame1'
 LANGUAGE C IMMUTABLE STRICT;
 
-/*
- * Frame 2
- * returns information for the first N (max_trades) trades executed for the
- * specified customer account at or after the specified time.
- */
+-- Clause 3.3.2.4
 
 CREATE OR REPLACE FUNCTION CustomerPositionFrame2(
-		IN acct_id IDENT_T,
-		OUT hist_dts TIMESTAMP[],
-		OUT hist_len INTEGER,
-		OUT qty INTEGER[],
-		OUT symbol VARCHAR(15)[],
-		OUT trade_id BIGINT[],
-		OUT trade_status VARCHAR(10)[])
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'CustomerPositionFrame2'
+    IN acct_id IDENT_T
+  , OUT hist_dts TIMESTAMP[30]
+  , OUT hist_len INTEGER
+  , OUT qty S_QTY_T[30]
+  , OUT symbol VARCHAR(15)[30]
+  , OUT trade_id IDENT_T[]
+  , OUT trade_status VARCHAR(10)[30]
+) RETURNS SETOF RECORD
+AS 'MODULE_PATHNAME', 'CustomerPositionFrame2'
 LANGUAGE C IMMUTABLE STRICT;

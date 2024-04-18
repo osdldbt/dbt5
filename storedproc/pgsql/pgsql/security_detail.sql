@@ -1,11 +1,10 @@
-/*
- * This file is released under the terms of the Artistic License.  Please see
- * the file LICENSE, included in this package, for details.
- *
- * Copyright The DBT-5 Authors
- *
- * Based on TPC-E Standard Specification Revision 1.14.0
- */
+-- This file is released under the terms of the Artistic License.  Please see
+-- the file LICENSE, included in this package, for details.
+--
+-- Copyright The DBT-5 Authors
+--
+-- Based on TPC-E Standard Specification Revision 1.14.0
+
 CREATE TYPE SECURITY_DETAIL_DAY AS (
     _date DATE
   , CLOSE S_PRICE_T
@@ -40,6 +39,7 @@ CREATE TYPE SECURITY_DETAIL_NEWS AS (
 );
 
 -- Clause 3.3.5.3
+
 CREATE OR REPLACE FUNCTION SecurityDetailFrame1 (
     IN access_lob_flag SMALLINT
   , IN max_rows_to_return INTEGER
@@ -182,146 +182,146 @@ BEGIN
        , zip_code zea
        , exchange
     WHERE s_symb = symbol
-        AND company.co_id = s_co_id
-        AND ca.ad_id = co_ad_id
-        AND ea.ad_id = exchange.ex_ad_id
-        AND exchange.ex_id = s_ex_id
-        AND ca.ad_zc_code = zca.zc_code
-        AND ea.ad_zc_code = zea.zc_code;
-        -- Should return max_comp_len rows
-        i := 0;
+      AND company.co_id = s_co_id
+      AND ca.ad_id = co_ad_id
+      AND ea.ad_id = exchange.ex_ad_id
+      AND exchange.ex_id = s_ex_id
+      AND ca.ad_zc_code = zca.zc_code
+      AND ea.ad_zc_code = zea.zc_code;
+    -- Should return max_comp_len rows
+    i := 0;
+    FOR rs IN
+        SELECT company.co_name
+             , in_name
+        FROM company_competitor
+           , company
+           , industry
+        WHERE cp_co_id = sdf1.co_id
+          AND company.co_id = cp_comp_co_id
+          AND in_id = cp_in_id
+        LIMIT 3
+    LOOP
+        i := i + 1;
+        cp_co_name[i] = rs.co_name;
+        cp_in_name[i] = rs.in_name;
+    END LOOP;
+    -- Should return max_fin_len rows
+    i = 0;
+    FOR rs IN
+        SELECT fi_year
+             , fi_qtr
+             , fi_qtr_start_date
+             , fi_revenue
+             , fi_net_earn
+             , fi_basic_eps
+             , fi_dilut_eps
+             , fi_margin
+             , fi_inventory
+             , fi_assets
+             , fi_liability
+             , fi_out_basic
+             , fi_out_dilut
+        FROM financial
+        WHERE fi_co_id = sdf1.co_id
+        ORDER BY fi_year ASC
+               , fi_qtr
+        LIMIT 20
+    LOOP
+        i = i + 1;
+        sdf.year := rs.fi_year;
+        sdf.qtr := rs.fi_qtr;
+        sdf.start_date := rs.fi_qtr_start_date;
+        sdf.rev := rs.fi_revenue;
+        sdf.net_earn := rs.fi_net_earn;
+        sdf.basic_eps := rs.fi_basic_eps;
+        sdf.dilut_eps := rs.fi_dilut_eps;
+        sdf.margin := rs.fi_margin;
+        sdf.invent := rs.fi_inventory;
+        sdf.assets := rs.fi_assets;
+        sdf.liab := rs.fi_liability;
+        sdf.out_basic := rs.fi_out_basic;
+        sdf.out_dilut := rs.fi_out_dilut;
+        fin[i] := sdf;
+    END LOOP;
+    fin_len = i;
+    -- Should return max_rows_to_return rows
+    i = 0;
+    FOR rs IN
+        SELECT dm_date
+             , dm_close
+             , dm_high
+             , dm_low
+             , dm_vol
+        FROM daily_market
+        WHERE dm_s_symb = symbol
+          AND dm_date >= start_day
+        ORDER BY dm_date ASC
+        LIMIT max_rows_to_return
+    LOOP
+        i = i + 1;
+        sdd._date := rs.dm_date;
+        sdd.close := rs.dm_close;
+        sdd.high := rs.dm_high;
+        sdd.low := rs.dm_low;
+        sdd.vol := rs.dm_vol;
+        day[i] := sdd;
+    END LOOP;
+    day_len = i;
+    SELECT lt_price
+         , lt_open_price
+         , lt_vol
+    INTO last_price
+       , last_open
+       , last_vol
+    FROM last_trade
+    WHERE lt_s_symb = symbol;
+    -- Should return max_news_len rows
+    i = 0;
+    IF access_lob_flag = 1 THEN
         FOR rs IN
-            SELECT company.co_name
-                 , in_name
-            FROM company_competitor
-               , company
-               , industry
-            WHERE cp_co_id = sdf1.co_id
-                AND company.co_id = cp_comp_co_id
-                AND in_id = cp_in_id
-            LIMIT 3
-        LOOP
-            i := i + 1;
-            cp_co_name[i] = rs.co_name;
-            cp_in_name[i] = rs.in_name;
-        END LOOP;
-        -- Should return max_fin_len rows
-        i = 0;
-        FOR rs IN
-            SELECT fi_year
-                 , fi_qtr
-                 , fi_qtr_start_date
-                 , fi_revenue
-                 , fi_net_earn
-                 , fi_basic_eps
-                 , fi_dilut_eps
-                 , fi_margin
-                 , fi_inventory
-                 , fi_assets
-                 , fi_liability
-                 , fi_out_basic
-                 , fi_out_dilut
-            FROM financial
-            WHERE fi_co_id = sdf1.co_id
-            ORDER BY fi_year ASC
-                   , fi_qtr
-            LIMIT 20
+            SELECT ni_item
+                 , ni_dts
+                 , ni_source
+                 , ni_author
+            FROM news_xref
+               , news_item
+            WHERE ni_id = nx_ni_id
+              AND nx_co_id = sdf1.co_id
+            LIMIT 2
         LOOP
             i = i + 1;
-            sdf.year := rs.fi_year;
-            sdf.qtr := rs.fi_qtr;
-            sdf.start_date := rs.fi_qtr_start_date;
-            sdf.rev := rs.fi_revenue;
-            sdf.net_earn := rs.fi_net_earn;
-            sdf.basic_eps := rs.fi_basic_eps;
-            sdf.dilut_eps := rs.fi_dilut_eps;
-            sdf.margin := rs.fi_margin;
-            sdf.invent := rs.fi_inventory;
-            sdf.assets := rs.fi_assets;
-            sdf.liab := rs.fi_liability;
-            sdf.out_basic := rs.fi_out_basic;
-            sdf.out_dilut := rs.fi_out_dilut;
-            fin[i] := sdf;
+            sdn.item := rs.ni_item;
+            sdn.dts := rs.ni_dts;
+            sdn.src := rs.ni_source;
+            sdn.auth := rs.ni_author;
+            sdn.headline := '';
+            sdn.summary := '';
+            news[i] := sdn;
         END LOOP;
-        fin_len = i;
-        -- Should return max_rows_to_return rows
-        i = 0;
+    ELSE
         FOR rs IN
-            SELECT dm_date
-                 , dm_close
-                 , dm_high
-                 , dm_low
-                 , dm_vol
-            FROM daily_market
-            WHERE dm_s_symb = symbol
-                AND dm_date >= start_day
-            ORDER BY dm_date ASC
-            LIMIT max_rows_to_return
+            SELECT ni_dts
+                 , ni_source
+                 , ni_author
+                 , ni_headline
+                 , ni_summary
+            FROM news_xref
+               , news_item
+            WHERE ni_id = nx_ni_id
+             AND nx_co_id = sdf1.co_id
+            LIMIT 2
         LOOP
             i = i + 1;
-            sdd._date := rs.dm_date;
-            sdd.close := rs.dm_close;
-            sdd.high := rs.dm_high;
-            sdd.low := rs.dm_low;
-            sdd.vol := rs.dm_vol;
-            day[i] := sdd;
+            sdn.item := '';
+            sdn.dts := rs.ni_dts;
+            sdn.src := rs.ni_source;
+            sdn.auth := rs.ni_author;
+            sdn.headline := rs.ni_headline;
+            sdn.summary := rs.ni_summary;
+            news[i] := sdn;
         END LOOP;
-        day_len = i;
-        SELECT lt_price
-             , lt_open_price
-             , lt_vol
-        INTO last_price
-           , last_open
-           , last_vol
-        FROM last_trade
-        WHERE lt_s_symb = symbol;
-        -- Should return max_news_len rows
-        i = 0;
-        IF access_lob_flag = 1 THEN
-            FOR rs IN
-                SELECT ni_item
-                     , ni_dts
-                     , ni_source
-                     , ni_author
-                FROM news_xref
-                   , news_item
-                WHERE ni_id = nx_ni_id
-                  AND nx_co_id = sdf1.co_id
-                LIMIT 2
-            LOOP
-                i = i + 1;
-                sdn.item := rs.ni_item;
-                sdn.dts := rs.ni_dts;
-                sdn.src := rs.ni_source;
-                sdn.auth := rs.ni_author;
-                sdn.headline := '';
-                sdn.summary := '';
-                news[i] := sdn;
-            END LOOP;
-        ELSE
-            FOR rs IN
-                SELECT ni_dts
-                     , ni_source
-                     , ni_author
-                     , ni_headline
-                     , ni_summary
-                FROM news_xref
-                   , news_item
-                WHERE ni_id = nx_ni_id
-                 AND nx_co_id = sdf1.co_id
-                LIMIT 2
-            LOOP
-                i = i + 1;
-                sdn.item := '';
-                sdn.dts := rs.ni_dts;
-                sdn.src := rs.ni_source;
-                sdn.auth := rs.ni_author;
-                sdn.headline := rs.ni_headline;
-                sdn.summary := rs.ni_summary;
-                news[i] := sdn;
-            END LOOP;
-        END IF;
-        news_len = i;
+    END IF;
+    news_len = i;
 END;
 $$
 LANGUAGE 'plpgsql';

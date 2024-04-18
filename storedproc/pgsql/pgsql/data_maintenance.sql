@@ -4,7 +4,9 @@
 -- Copyright The DBT-5 Authors
 --
 -- Based on TPC-E Standard Specification Revision 1.14.0.
+
 -- Clause 3.3.11.3
+
 CREATE OR REPLACE FUNCTION DataMaintenanceFrame1 (
     IN acct_id IDENT_T
   , IN c_id IDENT_T

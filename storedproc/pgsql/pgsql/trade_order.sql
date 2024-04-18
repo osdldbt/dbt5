@@ -4,7 +4,9 @@
 -- Copyright The DBT-5 Authors
 --
 -- Based on TPC-E Standard Specification Revision 1.14.0
--- 3.3.7.3
+
+-- Clause 3.3.7.3
+
 CREATE OR REPLACE FUNCTION TradeOrderFrame1 (
     IN acct_id IDENT_T
   , OUT acct_name VARCHAR(50)
@@ -54,6 +56,7 @@ $$
 LANGUAGE 'plpgsql';
 
 -- Clause 3.3.7.4
+
 CREATE OR REPLACE FUNCTION TradeOrderFrame2 (
     IN acct_id IDENT_T
   , IN exec_f_name VARCHAR(30)
@@ -74,7 +77,8 @@ END;
 $$
 LANGUAGE 'plpgsql';
 
--- 3.3.7.5
+-- Clause 3.3.7.5
+
 CREATE OR REPLACE FUNCTION TradeOrderFrame3 (
     IN acct_id IDENT_T
   , IN cust_id IDENT_T
@@ -375,6 +379,7 @@ $$
 LANGUAGE 'plpgsql';
 
 -- Clause 3.3.7.6
+
 CREATE OR REPLACE FUNCTION TradeOrderFrame4 (
     IN acct_id IDENT_T
   , IN broker_id IDENT_T

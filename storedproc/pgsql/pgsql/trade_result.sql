@@ -4,7 +4,9 @@
 -- Copyright The DBT-5 Authors
 --
 -- Based on TPC-E Standard Specification Revision 1.14.0
--- 3.3.8.3
+
+-- Clause 3.3.8.3
+
 CREATE OR REPLACE FUNCTION TradeResultFrame1 (
     IN trade_id TRADE_T
   , OUT acct_id IDENT_T
@@ -72,6 +74,7 @@ $$
 LANGUAGE 'plpgsql';
 
 -- Clause 3.3.8.4
+
 CREATE OR REPLACE FUNCTION TradeResultFrame2 (
     IN acct_id IDENT_T
   , IN hs_qty S_QTY_T
@@ -405,6 +408,7 @@ $$
 LANGUAGE 'plpgsql';
 
 -- Clause 3.3.8.5
+
 CREATE OR REPLACE FUNCTION TradeResultFrame3 (
     IN buy_value VALUE_T
   , IN cust_id IDENT_T
@@ -434,7 +438,9 @@ $$
 LANGUAGE 'plpgsql';
 
 -- Clause 3.3.8.6
-CREATE OR REPLACE FUNCTION TradeResultFrame4 (IN cust_id IDENT_T
+
+CREATE OR REPLACE FUNCTION TradeResultFrame4 (
+    IN cust_id IDENT_T
   , IN symbol CHAR(15)
   , IN trade_qty S_QTY_T
   , IN type_id CHAR(3)
@@ -473,6 +479,7 @@ $$
 LANGUAGE 'plpgsql';
 
 -- Clause 3.3.8.7
+
 CREATE OR REPLACE FUNCTION TradeResultFrame5 (
     IN broker_id IDENT_T
   , IN comm_amount VALUE_T
@@ -510,6 +517,7 @@ $$
 LANGUAGE 'plpgsql';
 
 -- Clause 3.3.8.8
+
 CREATE OR REPLACE FUNCTION TradeResultFrame6 (
     IN acct_id IDENT_T
   , IN due_date TIMESTAMP

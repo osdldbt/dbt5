@@ -4,7 +4,9 @@
 -- Copyright The DBT-5 Authors
 --
 -- Based on TPC-E Standard Specification Revision 1.14.0
+
 -- Clause 3.3.6.3
+
 CREATE OR REPLACE FUNCTION TradeLookupFrame1 (
     IN max_trades INTEGER
   , IN trade_id TRADE_T[20]
@@ -146,6 +148,7 @@ $$
 LANGUAGE 'plpgsql';
 
 -- Clause 3.3.6.4
+
 CREATE OR REPLACE FUNCTION TradeLookupFrame2 (
     IN acct_id IDENT_T
   , IN end_trade_dts TIMESTAMP
@@ -165,7 +168,7 @@ CREATE OR REPLACE FUNCTION TradeLookupFrame2 (
   , OUT trade_history_status_id CHAR(4)[20][3]
   , OUT trade_list IDENT_T[20]
   , OUT trade_price VALUE_T[20]
-) RETURNS record
+) RETURNS RECORD
 AS $$
 DECLARE
     -- variables
@@ -271,6 +274,7 @@ $$
 LANGUAGE 'plpgsql';
 
 -- Clause 3.3.6.5
+
 CREATE OR REPLACE FUNCTION TradeLookupFrame3 (
     IN end_trade_dts TIMESTAMP
   , IN max_acct_id IDENT_T

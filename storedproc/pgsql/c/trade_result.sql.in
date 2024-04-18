@@ -1,85 +1,102 @@
-/*
- * This file is released under the terms of the Artistic License.  Please see
- * the file LICENSE, included in this package, for details.
- *
- * Copyright The DBT-5 Authors
- */
+-- This file is released under the terms of the Artistic License.  Please see
+-- the file LICENSE, included in this package, for details.
+--
+-- Copyright The DBT-5 Authors
+--
+-- Based on TPC-E Standard Specification Revision 1.14.0
+
+-- Clause 3.3.8.3
 
 CREATE OR REPLACE FUNCTION TradeResultFrame1 (
-		IN trade_id BIGINT,
-		OUT acct_id BIGINT,
-		OUT charge NUMERIC(10, 2),
-		OUT hs_qty INTEGER,
-		OUT is_lifo SMALLINT,
-		OUT num_found INTEGER,
-		OUT symbol VARCHAR(15),
-		OUT trade_is_cash SMALLINT,
-		OUT trade_qty INTEGER,
-		OUT type_id VARCHAR(3),
-		OUT type_is_market SMALLINT,
-		OUT type_is_sell SMALLINT,
-		OUT type_name VARCHAR(12))
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeResultFrame1'
+    IN trade_id TRADE_T
+  , OUT acct_id IDENT_T
+  , OUT charge VALUE_T
+  , OUT hs_qty S_QTY_T
+  , OUT is_lifo SMALLINT
+  , OUT num_found INTEGER
+  , OUT symbol CHAR(15)
+  , OUT trade_is_cash SMALLINT
+  , OUT trade_qty S_QTY_T
+  , OUT type_id CHAR(3)
+  , OUT type_is_market SMALLINT
+  , OUT type_is_sell SMALLINT
+  , OUT type_name CHAR(12)
+) RETURNS SETOF RECORD
+AS 'MODULE_PATHNAME', 'TradeResultFrame1'
 LANGUAGE C IMMUTABLE STRICT;
+
+-- Clause 3.3.8.4
 
 CREATE OR REPLACE FUNCTION TradeResultFrame2 (
-		IN acct_id BIGINT,
-		IN hs_qty INTEGER,
-		IN is_lifo SMALLINT,
-		IN symbol VARCHAR(15),
-		IN trade_id BIGINT,
-		IN trade_price NUMERIC(8, 2),
-		IN trade_qty INTEGER,
-		IN type_is_sell SMALLINT,
-		OUT broker_id BIGINT,
-		OUT buy_value NUMERIC(8, 2),
-		OUT cust_id BIGINT,
-		OUT sell_value NUMERIC(8, 2),
-		OUT tax_status SMALLINT,
-		OUT trade_dts TIMESTAMP)
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeResultFrame2'
+    IN acct_id IDENT_T
+  , IN hs_qty S_QTY_T
+  , IN is_lifo SMALLINT
+  , IN symbol CHAR(15)
+  , IN trade_id TRADE_T
+  , IN trade_price S_PRICE_T
+  , IN trade_qty S_QTY_T
+  , IN type_is_sell SMALLINT
+  , OUT broker_id IDENT_T
+  , OUT buy_value NUMERIC(12, 2)
+  , OUT cust_id IDENT_T
+  , OUT sell_value NUMERIC(12, 2)
+  , OUT tax_status SMALLINT
+  , OUT trade_dts TIMESTAMP
+) RETURNS SETOF RECORD
+AS 'MODULE_PATHNAME', 'TradeResultFrame2'
 LANGUAGE C IMMUTABLE STRICT;
+
+-- Clause 3.3.8.5
 
 CREATE OR REPLACE FUNCTION TradeResultFrame3 (
-		IN buy_value NUMERIC(8, 2),
-		IN cust_id BIGINT,
-		IN sell_value NUMERIC(8, 2),
-		IN trade_id BIGINT,
-		OUT tax_amount NUMERIC(8, 2))
-RETURNS NUMERIC AS 'MODULE_PATHNAME', 'TradeResultFrame3'
+    IN buy_value VALUE_T
+  , IN cust_id IDENT_T
+  , IN sell_value VALUE_T
+  , IN trade_id TRADE_T
+  , OUT tax_amount VALUE_T
+) RETURNS VALUE_T
+AS 'MODULE_PATHNAME', 'TradeResultFrame3'
 LANGUAGE C IMMUTABLE STRICT;
+
+-- Clause 3.3.8.6
 
 CREATE OR REPLACE FUNCTION TradeResultFrame4 (
-		IN cust_id BIGINT,
-		IN symbol VARCHAR(15),
-		IN trade_qty INTEGER,
-		IN type_id VARCHAR(3),
-		OUT comm_rate NUMERIC(5, 2),
-		OUT s_name VARCHAR(70))
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeResultFrame4'
+    IN cust_id IDENT_T
+  , IN symbol CHAR(15)
+  , IN trade_qty S_QTY_T
+  , IN type_id CHAR(3)
+  , OUT comm_rate NUMERIC(5, 2)
+  , OUT s_name VARCHAR
+) RETURNS SETOF RECORD
+AS 'MODULE_PATHNAME', 'TradeResultFrame4'
 LANGUAGE C IMMUTABLE STRICT;
+
+-- Clause 3.3.8.7
 
 CREATE OR REPLACE FUNCTION TradeResultFrame5 (
-		IN broker_id BIGINT,
-		IN comm_amount NUMERIC(5, 2),
-		IN st_completed_id VARCHAR(4),
-		IN trade_dts TIMESTAMP,
-		IN trade_id BIGINT,
-		IN trade_price NUMERIC(8, 2),
-		OUT status INTEGER)
-RETURNS INTEGER AS 'MODULE_PATHNAME', 'TradeResultFrame5'
+    IN broker_id IDENT_T
+  , IN comm_amount VALUE_T
+  , IN st_completed_id CHAR(4)
+  , IN trade_dts TIMESTAMP
+  , IN trade_id IDENT_T
+  , IN trade_price S_PRICE_T
+) RETURNS INTEGER
+AS 'MODULE_PATHNAME', 'TradeResultFrame5'
 LANGUAGE C IMMUTABLE STRICT;
 
+-- Clause 3.3.8.8
+
 CREATE OR REPLACE FUNCTION TradeResultFrame6 (
-		IN acct_id BIGINT,
-		IN due_date TIMESTAMP,
-		IN s_name VARCHAR(70),
-		IN se_amount NUMERIC(10, 2),
-		IN trade_dts TIMESTAMP,
-		IN trade_id BIGINT,
-		IN trade_is_cash SMALLINT,
-		IN trade_qty INTEGER,
-		IN type_name VARCHAR(12),
-		OUT acct_bal NUMERIC(12, 2))
-RETURNS NUMERIC AS 'MODULE_PATHNAME', 'TradeResultFrame6'
+    IN acct_id IDENT_T
+  , IN due_date TIMESTAMP
+  , IN s_name VARCHAR(70)
+  , IN se_amount VALUE_T
+  , IN trade_dts TIMESTAMP
+  , IN trade_id IDENT_T
+  , IN trade_is_cash SMALLINT
+  , IN trade_qty S_QTY_T
+  , IN type_name CHAR(12)
+  , OUT acct_bal BALANCE_T
+) RETURNS BALANCE_T
+AS 'MODULE_PATHNAME', 'TradeResultFrame6'
 LANGUAGE C IMMUTABLE STRICT;

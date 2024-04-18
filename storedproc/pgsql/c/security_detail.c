@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Based on TPC-E Standard Specification Revision 1.10.0.
+ * Based on TPC-E Standard Specification Revision 1.14.0.
  */
 
 #include <sys/types.h>
@@ -30,130 +30,130 @@
 #define MAX_NEWS_LEN 2
 
 #define SQLSDF1_1                                                             \
-	"SELECT s_name,\n"                                                        \
-	"       co_id,\n"                                                         \
-	"       co_name,\n"                                                       \
-	"       co_sp_rate,\n"                                                    \
-	"       co_ceo,\n"                                                        \
-	"       co_desc,\n"                                                       \
-	"       co_open_date,\n"                                                  \
-	"       co_st_id,\n"                                                      \
-	"       ca.ad_line1,\n"                                                   \
-	"       ca.ad_line2,\n"                                                   \
-	"       zca.zc_town,\n"                                                   \
-	"       zca.zc_div,\n"                                                    \
-	"       ca.ad_zc_code,\n"                                                 \
-	"       ca.ad_ctry,\n"                                                    \
-	"       s_num_out,\n"                                                     \
-	"       s_start_date,\n"                                                  \
-	"       s_exch_date,\n"                                                   \
-	"       s_pe,\n"                                                          \
-	"       s_52wk_high,\n"                                                   \
-	"       s_52wk_high_date,\n"                                              \
-	"       s_52wk_low,\n"                                                    \
-	"       s_52wk_low_date,\n"                                               \
-	"       s_dividend,\n"                                                    \
-	"       s_yield,\n"                                                       \
-	"       zea.zc_div,\n"                                                    \
-	"       ea.ad_ctry,\n"                                                    \
-	"       ea.ad_line1,\n"                                                   \
-	"       ea.ad_line2,\n"                                                   \
-	"       zea.zc_town,\n"                                                   \
-	"       ea.ad_zc_code,\n"                                                 \
-	"       ex_close,\n"                                                      \
-	"       ex_desc,\n"                                                       \
-	"       ex_name,\n"                                                       \
-	"       ex_num_symb,\n"                                                   \
-	"       ex_open\n"                                                        \
-	"FROM   security,\n"                                                      \
-	"       company,\n"                                                       \
-	"       address ca,\n"                                                    \
-	"       address ea,\n"                                                    \
-	"       zip_code zca,\n"                                                  \
-	"       zip_code zea,\n"                                                  \
-	"       exchange\n"                                                       \
-	"WHERE  s_symb = $1\n"                                                    \
-	"       AND co_id = s_co_id\n"                                            \
-	"       AND ca.ad_id = co_ad_id\n"                                        \
-	"       AND ea.ad_id = ex_ad_id\n"                                        \
-	"       AND ex_id = s_ex_id\n"                                            \
-	"       AND ca.ad_zc_code = zca.zc_code\n"                                \
-	"       AND ea.ad_zc_code = zea.zc_code"
+	"SELECT s_name\n"                                                         \
+	"     , co_id\n"                                                          \
+	"     , co_name\n"                                                        \
+	"     , co_sp_rate\n"                                                     \
+	"     , co_ceo\n"                                                         \
+	"     , co_desc\n"                                                        \
+	"     , co_open_date\n"                                                   \
+	"     , co_st_id\n"                                                       \
+	"     , ca.ad_line1\n"                                                    \
+	"     , ca.ad_line2\n"                                                    \
+	"     , zca.zc_town\n"                                                    \
+	"     , zca.zc_div\n"                                                     \
+	"     , ca.ad_zc_code\n"                                                  \
+	"     , ca.ad_ctry\n"                                                     \
+	"     , s_num_out\n"                                                      \
+	"     , s_start_date\n"                                                   \
+	"     , s_exch_date\n"                                                    \
+	"     , s_pe\n"                                                           \
+	"     , s_52wk_high\n"                                                    \
+	"     , s_52wk_high_date\n"                                               \
+	"     , s_52wk_low\n"                                                     \
+	"     , s_52wk_low_date\n"                                                \
+	"     , s_dividend\n"                                                     \
+	"     , s_yield\n"                                                        \
+	"     , zea.zc_div\n"                                                     \
+	"     , ea.ad_ctry\n"                                                     \
+	"     , ea.ad_line1\n"                                                    \
+	"     , ea.ad_line2\n"                                                    \
+	"     , zea.zc_town\n"                                                    \
+	"     , ea.ad_zc_code\n"                                                  \
+	"     , ex_close\n"                                                       \
+	"     , ex_desc\n"                                                        \
+	"     , ex_name\n"                                                        \
+	"     , ex_num_symb\n"                                                    \
+	"     , ex_open\n"                                                        \
+	"FROM security\n"                                                         \
+	"   , company\n"                                                          \
+	"   , address ca\n"                                                       \
+	"   , address ea\n"                                                       \
+	"   , zip_code zca\n"                                                     \
+	"   , zip_code zea\n"                                                     \
+	"   , exchange\n"                                                         \
+	"WHERE s_symb = $1\n"                                                     \
+	"  AND co_id = s_co_id\n"                                                 \
+	"  AND ca.ad_id = co_ad_id\n"                                             \
+	"  AND ea.ad_id = ex_ad_id\n"                                             \
+	"  AND ex_id = s_ex_id\n"                                                 \
+	"  AND ca.ad_zc_code = zca.zc_code\n"                                     \
+	"  AND ea.ad_zc_code = zea.zc_code"
 
 #define SQLSDF1_2                                                             \
-	"SELECT co_name,\n"                                                       \
-	"       in_name\n"                                                        \
-	"FROM   company_competitor,\n"                                            \
-	"       company,\n"                                                       \
-	"       industry\n"                                                       \
-	"WHERE  cp_co_id = $1\n"                                                  \
-	"       AND co_id = cp_comp_co_id\n"                                      \
-	"       AND in_id = cp_in_id\n"                                           \
+	"SELECT co_name\n"                                                        \
+	"     , in_name\n"                                                        \
+	"FROM company_competitor\n"                                               \
+	"   , company\n"                                                          \
+	"   , industry\n"                                                         \
+	"WHERE cp_co_id = $1\n"                                                   \
+	"  AND co_id = cp_comp_co_id\n"                                           \
+	"  AND in_id = cp_in_id\n"                                                \
 	"LIMIT $2"
 
 #define SQLSDF1_3                                                             \
-	"SELECT   fi_year,\n"                                                     \
-	"         fi_qtr,\n"                                                      \
-	"         fi_qtr_start_date,\n"                                           \
-	"         fi_revenue,\n"                                                  \
-	"         fi_net_earn,\n"                                                 \
-	"         fi_basic_eps,\n"                                                \
-	"         fi_dilut_eps,\n"                                                \
-	"         fi_margin,\n"                                                   \
-	"         fi_inventory,\n"                                                \
-	"         fi_assets,\n"                                                   \
-	"         fi_liability,\n"                                                \
-	"         fi_out_basic,\n"                                                \
-	"         fi_out_dilut\n"                                                 \
-	"FROM     financial\n"                                                    \
-	"WHERE    fi_co_id = $1\n"                                                \
-	"ORDER BY fi_year ASC,\n"                                                 \
-	"         fi_qtr\n"                                                       \
+	"SELECT fi_year\n"                                                        \
+	"     , fi_qtr\n"                                                         \
+	"     , fi_qtr_start_date\n"                                              \
+	"     , fi_revenue\n"                                                     \
+	"     , fi_net_earn\n"                                                    \
+	"     , fi_basic_eps\n"                                                   \
+	"     , fi_dilut_eps\n"                                                   \
+	"     , fi_margin\n"                                                      \
+	"     , fi_inventory\n"                                                   \
+	"     , fi_assets\n"                                                      \
+	"     , fi_liability\n"                                                   \
+	"     , fi_out_basic\n"                                                   \
+	"     , fi_out_dilut\n"                                                   \
+	"FROM financial\n"                                                        \
+	"WHERE fi_co_id = $1\n"                                                   \
+	"ORDER BY fi_year ASC\n"                                                  \
+	"       , fi_qtr\n"                                                       \
 	"LIMIT $2"
 
 #define SQLSDF1_4                                                             \
-	"SELECT   dm_date,\n"                                                     \
-	"         dm_close,\n"                                                    \
-	"         dm_high,\n"                                                     \
-	"         dm_low,\n"                                                      \
-	"         dm_vol\n"                                                       \
-	"FROM     daily_market\n"                                                 \
-	"WHERE    dm_s_symb = $1\n"                                               \
-	"         AND dm_date >= $2\n"                                            \
+	"SELECT dm_date\n"                                                        \
+	"     , dm_close\n"                                                       \
+	"     , dm_high\n"                                                        \
+	"     , dm_low\n"                                                         \
+	"     , dm_vol\n"                                                         \
+	"FROM daily_market\n"                                                     \
+	"WHERE dm_s_symb = $1\n"                                                  \
+	"  AND dm_date >= $2\n"                                                   \
 	"ORDER BY dm_date ASC\n"                                                  \
 	"LIMIT $3"
 
 #define SQLSDF1_5                                                             \
-	"SELECT lt_price,\n"                                                      \
-	"       lt_open_price,\n"                                                 \
-	"       lt_vol\n"                                                         \
-	"FROM   last_trade\n"                                                     \
-	"WHERE  lt_s_symb = $1"
+	"SELECT lt_price\n"                                                       \
+	"     , lt_open_price\n"                                                  \
+	"     , lt_vol\n"                                                         \
+	"FROM last_trade\n"                                                       \
+	"WHERE lt_s_symb = $1"
 
 #define SQLSDF1_6                                                             \
-	"SELECT ni_item,\n"                                                       \
-	"       ni_dts,\n"                                                        \
-	"       ni_source,\n"                                                     \
-	"       ni_author,\n"                                                     \
-	"      '',\n"                                                             \
-	"      ''\n"                                                              \
-	"FROM   news_xref,\n"                                                     \
-	"       news_item\n"                                                      \
-	"WHERE  ni_id = nx_ni_id\n"                                               \
-	"       AND nx_co_id = $1\n"                                              \
+	"SELECT ni_item\n"                                                        \
+	"     , ni_dts\n"                                                         \
+	"     , ni_source\n"                                                      \
+	"     , ni_author\n"                                                      \
+	"     ,''\n"                                                              \
+	"     ,''\n"                                                              \
+	"FROM news_xref\n"                                                        \
+	"   ,  news_item\n"                                                       \
+	"WHERE ni_id = nx_ni_id\n"                                                \
+	"  AND nx_co_id = $1\n"                                                   \
 	"LIMIT $2"
 
 #define SQLSDF1_7                                                             \
-	"SELECT '',\n"                                                            \
-	"       ni_dts,\n"                                                        \
-	"       ni_source,\n"                                                     \
-	"       ni_author,\n"                                                     \
-	"       ni_headline,\n"                                                   \
-	"       ni_summary\n"                                                     \
-	"FROM   news_xref,\n"                                                     \
-	"       news_item\n"                                                      \
-	"WHERE  ni_id = nx_ni_id\n"                                               \
-	"       AND nx_co_id = $1\n"                                              \
+	"SELECT ''\n"                                                             \
+	"     , ni_dts\n"                                                         \
+	"     , ni_source\n"                                                      \
+	"     , ni_author\n"                                                      \
+	"     , ni_headline\n"                                                    \
+	"     , ni_summary\n"                                                     \
+	"FROM news_xref\n"                                                        \
+	"   , news_item\n"                                                        \
+	"WHERE ni_id = nx_ni_id\n"                                                \
+	"  AND nx_co_id = $1\n"                                                   \
 	"LIMIT $2"
 
 #define SDF1_1 SDF1_statements[0].plan

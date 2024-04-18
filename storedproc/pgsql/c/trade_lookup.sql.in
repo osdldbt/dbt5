@@ -1,87 +1,99 @@
-/*
- * This file is released under the terms of the Artistic License.  Please see
- * the file LICENSE, included in this package, for details.
- *
- * Copyright The DBT-5 Authors
- */
+-- This file is released under the terms of the Artistic License.  Please see
+-- the file LICENSE, included in this package, for details.
+--
+-- Copyright The DBT-5 Authors
+--
+-- Based on TPC-E Standard Specification Revision 1.14.0
+
+-- Clause 3.3.6.3
 
 CREATE OR REPLACE FUNCTION TradeLookupFrame1 (
-		IN max_trades INTEGER,
-		IN trade_id BIGINT[],
-		OUT bid_price NUMERIC(8,2)[],
-		OUT cash_transaction_amount NUMERIC(10,2)[],
-		OUT cash_transaction_dts TIMESTAMP[],
-		OUT cash_transaction_name VARCHAR(100)[],
-		OUT exec_name VARCHAR(64)[],
-		OUT is_cash SMALLINT[],
-		OUT is_market SMALLINT[],
-		OUT num_found INTEGER,
-		OUT settlement_amount NUMERIC(10,2)[],
-		OUT settlement_cash_due_date TIMESTAMP[],
-		OUT settlement_cash_type VARCHAR(40)[],
-		OUT trade_history_dts TIMESTAMP[],
-		OUT trade_history_status_id VARCHAR(4)[],
-		OUT trade_price NUMERIC(8,2)[])
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeLookupFrame1'
+    IN max_trades INTEGER
+  , IN trade_id TRADE_T[20]
+  , OUT bid_price S_PRICE_T[20]
+  , OUT cash_transaction_amount VALUE_T[20]
+  , OUT cash_transaction_dts TIMESTAMP[20]
+  , OUT cash_transaction_name VARCHAR(100)[20]
+  , OUT exec_name VARCHAR(64)[20]
+  , OUT is_cash SMALLINT[20]
+  , OUT is_market SMALLINT[20]
+  , OUT num_found INTEGER
+  , OUT settlement_amount VALUE_T[20]
+  , OUT settlement_cash_due_date TIMESTAMP[20]
+  , OUT settlement_cash_type VARCHAR(40)[20]
+  , OUT trade_history_dts TIMESTAMP[20][3]
+  , OUT trade_history_status_id VARCHAR(4)[20][3]
+  , OUT trade_price S_PRICE_T[20]
+) RETURNS SETOF RECORD
+AS 'MODULE_PATHNAME', 'TradeLookupFrame1'
 LANGUAGE C IMMUTABLE STRICT;
+
+-- Clause 3.3.6.4
 
 CREATE OR REPLACE FUNCTION TradeLookupFrame2 (
-		IN acct_id BIGINT,
-		IN end_trade_dts TIMESTAMP,
-		IN max_trades INTEGER,
-		IN start_trade_dts TIMESTAMP,
-		OUT bid_price NUMERIC(8,2)[],
-		OUT cash_transaction_amount NUMERIC(10,2)[],
-		OUT cash_transaction_dts TIMESTAMP[],
-		OUT cash_transaction_name VARCHAR(100)[],
-		OUT exec_name VARCHAR(64)[],
-		OUT is_cash SMALLINT[],
-		OUT num_found INTEGER,
-		OUT settlement_amount NUMERIC(10,2)[],
-		OUT settlement_cash_due_date TIMESTAMP[],
-		OUT settlement_cash_type VARCHAR(40)[],
-		OUT trade_history_dts TIMESTAMP[],
-		OUT trade_history_status_id VARCHAR(4)[],
-		OUT trade_list BIGINT[],
-		OUT trade_price NUMERIC(8,2)[])
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeLookupFrame2'
+    IN acct_id IDENT_T
+  , IN end_trade_dts TIMESTAMP
+  , IN max_trades INTEGER
+  , IN start_trade_dts TIMESTAMP
+  , OUT bid_price VALUE_T[20]
+  , OUT cash_transaction_amount VALUE_T[20]
+  , OUT cash_transaction_dts TIMESTAMP[20]
+  , OUT cash_transaction_name VARCHAR[20]
+  , OUT exec_name VARCHAR[20]
+  , OUT is_cash BOOL[20]
+  , OUT num_found INTEGER
+  , OUT settlement_amount VALUE_T[20]
+  , OUT settlement_cash_due_date TIMESTAMP[20]
+  , OUT settlement_cash_type VARCHAR[20]
+  , OUT trade_history_dts TIMESTAMP[20][3]
+  , OUT trade_history_status_id CHAR(4)[20][3]
+  , OUT trade_list IDENT_T[20]
+  , OUT trade_price VALUE_T[20]
+) RETURNS SETOF RECORD
+AS 'MODULE_PATHNAME', 'TradeLookupFrame2'
 LANGUAGE C IMMUTABLE STRICT;
+
+-- Clause 3.3.6.5
 
 CREATE OR REPLACE FUNCTION TradeLookupFrame3 (
-		IN end_trade_dts TIMESTAMP,
-		IN max_acct_id BIGINT,
-		IN max_trades INTEGER,
-		IN start_trade_dts TIMESTAMP,
-		IN symbol char(15),
-		OUT acct_id BIGINT[],
-		OUT cash_transaction_amount NUMERIC(10,2)[],
-		OUT cash_transaction_dts TIMESTAMP[],
-		OUT cash_transaction_name VARCHAR(100)[],
-		OUT exec_name VARCHAR(64)[],
-		OUT is_cash SMALLINT[],
-		OUT num_found INTEGER,
-		OUT price NUMERIC(8,2)[],
-		OUT quantity INTEGER[],
-		OUT settlement_amount NUMERIC(10,2)[],
-		OUT settlement_cash_due_date TIMESTAMP[],
-		OUT settlement_cash_type VARCHAR(40)[],
-		OUT trade_dts TIMESTAMP[],
-		OUT trade_history_dts TIMESTAMP[],
-		OUT trade_history_status_id VARCHAR(4)[],
-		OUT trade_list BIGINT[],
-		OUT trade_type VARCHAR(3)[])
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeLookupFrame3'
+    IN end_trade_dts TIMESTAMP
+  , IN max_acct_id IDENT_T
+  , IN max_trades INTEGER
+  , IN start_trade_dts TIMESTAMP
+  , IN symbol CHAR(15)
+  , OUT acct_id IDENT_T[20]
+  , OUT cash_transaction_amount VALUE_T[20]
+  , OUT cash_transaction_dts TIMESTAMP[20]
+  , OUT cash_transaction_name VARCHAR[20]
+  , OUT exec_name VARCHAR(64)[20]
+  , OUT is_cash INTEGER[20]
+  , OUT num_found INTEGER
+  , OUT price VALUE_T[20]
+  , OUT quantity INTEGER[20]
+  , OUT settlement_amount VALUE_T[20]
+  , OUT settlement_cash_due_date TIMESTAMP[20]
+  , OUT settlement_cash_type VARCHAR[20]
+  , OUT trade_dts TIMESTAMP[20]
+  , OUT trade_history_dts TIMESTAMP[20][3]
+  , OUT trade_history_status_id CHAR(4)[20][3]
+  , OUT trade_list IDENT_T[20]
+  , OUT trade_type VARCHAR(3)[20]
+) RETURNS SETOF RECORD
+AS 'MODULE_PATHNAME', 'TradeLookupFrame3'
 LANGUAGE C IMMUTABLE STRICT;
 
+-- Clause 3.3.6.6
+
 CREATE OR REPLACE FUNCTION TradeLookupFrame4 (
-		IN acct_id BIGINT,
-		IN start_trade_dts TIMESTAMP,
-		OUT holding_history_id BIGINT[],
-		OUT holding_history_trade_id BIGINT[],
-		OUT num_found INTEGER,
-		OUT num_trades_found INTEGER,
-		OUT quantity_after INTEGER[],
-		OUT quantity_before INTEGER[],
-		OUT trade_id BIGINT)
-RETURNS SETOF record AS 'MODULE_PATHNAME', 'TradeLookupFrame4'
+    IN acct_id IDENT_T
+  , IN start_trade_dts TIMESTAMP
+  , OUT holding_history_id IDENT_T[20]
+  , OUT holding_history_trade_id IDENT_T[20]
+  , OUT num_found INTEGER
+  , OUT num_trades_found INTEGER
+  , OUT quantity_after INTEGER[20]
+  , OUT quantity_before INTEGER[20]
+  , OUT trade_id TRADE_T
+) RETURNS SETOF RECORD
+AS 'MODULE_PATHNAME', 'TradeLookupFrame4'
 LANGUAGE C IMMUTABLE STRICT;

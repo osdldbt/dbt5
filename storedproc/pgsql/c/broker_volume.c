@@ -4,7 +4,7 @@
  *
  * Copyright The DBT-5 Authors
  *
- * Based on TPC-E Standard Specification Revision 1.10.0.
+ * Based on TPC-E Standard Specification Revision 1.14.0.
  */
 
 #include <sys/types.h>
@@ -25,9 +25,14 @@
 #include "dbt5common.h"
 
 #define SQLBVF1_1                                                             \
-	"SELECT b_name, SUM(tr_qty * tr_bid_price)\n"                             \
-	"FROM trade_request, sector, industry, company, broker,\n"                \
-	"     security\n"                                                         \
+	"SELECT b_name\n"                                                         \
+	"     , sum(tr_qty * tr_bid_price)\n"                                     \
+	"FROM trade_request\n"                                                    \
+	"   , sector\n"                                                           \
+	"   , industry\n"                                                         \
+	"   , company\n"                                                          \
+	"   , broker\n"                                                           \
+	"   , security\n"                                                         \
 	"WHERE tr_b_id = b_id\n"                                                  \
 	"  AND tr_s_symb = s_symb\n"                                              \
 	"  AND s_co_id = co_id\n"                                                 \
