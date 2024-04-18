@@ -18,6 +18,7 @@
 #include <utils/datetime.h>
 #include <utils/array.h>
 #include <utils/builtins.h>
+#include <utils/timestamp.h>
 #include <catalog/pg_type.h>
 
 #include "frame.h"
@@ -1465,7 +1466,7 @@ TradeLookupFrame4(PG_FUNCTION_ARGS)
 		elog(DEBUG1, "%s", SQLTLF4_1);
 #endif /* DEBUG */
 		args[0] = Int64GetDatum(acct_id);
-		args[1] = TimestampGetDatum(start_trade_dts);
+		args[1] = TimestampGetDatum(start_trade_dts_ts);
 		ret = SPI_execute_plan(TLF4_1, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT) {
 			tupdesc = SPI_tuptable->tupdesc;
