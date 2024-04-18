@@ -598,7 +598,7 @@ main(int argc, char *argv[])
 		}
 		return 1;
 	} catch (const char *str) {
-		cerr << "### FUCK THERE HAS BEEN A PROBLEM" << endl;
+		cerr << "### OHNOES THERE HAS BEEN A PROBLEM" << endl;
 		return 3;
 	}
 
