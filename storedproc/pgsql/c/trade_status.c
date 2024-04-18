@@ -13,7 +13,7 @@
 #include <postgres.h>
 #include <fmgr.h>
 #include <executor/spi.h> /* this should include most necessary APIs */
-#include <executor/executor.h>  /* for GetAttributeByName() */
+#include <executor/executor.h> /* for GetAttributeByName() */
 #include <funcapi.h> /* for returning set of rows in order_status */
 #include <utils/datetime.h>
 #include <utils/numeric.h>
@@ -26,78 +26,59 @@
 PG_MODULE_MAGIC;
 #endif
 
-#ifdef DEBUG
-#define SQLTSF1_1 \
-		"SELECT t_id, t_dts, st_name, tt_name, t_s_symb, t_qty, \n" \
-		"       t_exec_name, t_chrg, s_name, ex_name\n" \
-		"FROM trade, status_type, trade_type, security, exchange\n" \
-		"WHERE t_ca_id = %ld\n" \
-		"  AND st_id = t_st_id\n" \
-		"  AND tt_id = t_tt_id\n" \
-		"  AND s_symb = t_s_symb\n" \
-		"  AND ex_id = s_ex_id\n" \
-		"ORDER BY t_dts DESC\n" \
-		"LIMIT 50"
+#define SQLTSF1_1                                                             \
+	"SELECT t_id, t_dts, st_name, tt_name, t_s_symb, t_qty, \n"               \
+	"       t_exec_name, t_chrg, s_name, ex_name\n"                           \
+	"FROM trade, status_type, trade_type, security, exchange\n"               \
+	"WHERE t_ca_id = $1\n"                                                    \
+	"  AND st_id = t_st_id\n"                                                 \
+	"  AND tt_id = t_tt_id\n"                                                 \
+	"  AND s_symb = t_s_symb\n"                                               \
+	"  AND ex_id = s_ex_id\n"                                                 \
+	"ORDER BY t_dts DESC\n"                                                   \
+	"LIMIT 50"
 
-#define SQLTSF1_2 \
-		"SELECT c_l_name, c_f_name, b_name\n" \
-		"FROM customer_account, customer, broker\n" \
-		"WHERE ca_id = %ld\n" \
-		"  AND c_id = ca_c_id\n" \
-		"  AND b_id = ca_b_id"
-#endif /* End DEBUG */
+#define SQLTSF1_2                                                             \
+	"SELECT c_l_name, c_f_name, b_name\n"                                     \
+	"FROM customer_account, customer, broker\n"                               \
+	"WHERE ca_id = $1\n"                                                      \
+	"  AND c_id = ca_c_id\n"                                                  \
+	"  AND b_id = ca_b_id"
 
 #define TSF1_1 TSF1_statements[0].plan
 #define TSF1_2 TSF1_statements[1].plan
 
 static cached_statement TSF1_statements[] = {
 
-	/* TSF1_1 */
-	{
-	"SELECT t_id, t_dts, st_name, tt_name, t_s_symb, t_qty, \n" \
-	"       t_exec_name, t_chrg, s_name, ex_name\n" \
-	"FROM trade, status_type, trade_type, security, exchange\n" \
-	"WHERE t_ca_id = $1\n" \
-	"  AND st_id = t_st_id\n" \
-	"  AND tt_id = t_tt_id\n" \
-	"  AND s_symb = t_s_symb\n" \
-	"  AND ex_id = s_ex_id\n" \
-	"ORDER BY t_dts DESC\n" \
-	"LIMIT 50",
-	1,
-	{ INT8OID }
-	},
+	{ SQLTSF1_1, 1, { INT8OID } },
 
-	/* TSF1_2 */
-	{
-	"SELECT c_l_name, c_f_name, b_name\n" \
-	"FROM customer_account, customer, broker\n" \
-	"WHERE ca_id = $1\n" \
-	"  AND c_id = ca_c_id\n" \
-	"  AND b_id = ca_b_id",
-	1,
-	{ INT8OID }
-	},
+	{ SQLTSF1_2, 1, { INT8OID } },
 
 	{ NULL }
-}; /* End TSF1_statements */
+};
 
 /* Prototypes. */
+#ifdef DEBUG
 void dump_tsf1_inputs(long);
+#endif /* DEBUG */
 
 Datum TradeStatusFrame1(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(TradeStatusFrame1);
 
-void dump_tsf1_inputs(long acct_id)
+#ifdef DEBUG
+void
+dump_tsf1_inputs(long acct_id)
 {
-	elog(NOTICE, "TSF1: INPUTS START");
-	elog(NOTICE, "TSF1: acct_id %ld", acct_id);
-	elog(NOTICE, "TSF1: INPUTS END");
+	elog(DEBUG1, "TSF1: INPUTS START");
+	elog(DEBUG1, "TSF1: acct_id %ld", acct_id);
+	elog(DEBUG1, "TSF1: INPUTS END");
 }
+#endif /* DEBUG */
 
 /* Clause 3.3.9.3 */
-Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
+Datum
+TradeStatusFrame1(PG_FUNCTION_ARGS)
 {
 	FuncCallContext *funcctx;
 	AttInMetadata *attinmeta;
@@ -112,10 +93,22 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 	if (SRF_IS_FIRSTCALL()) {
 		MemoryContext oldcontext;
 
-		enum tsf1 {
-				i_broker_name=0, i_charge, i_cust_f_name, i_cust_l_name,
-				i_ex_name, i_exec_name, i_num_found, i_s_name, i_status_name,
-				i_symbol, i_trade_dts, i_trade_id, i_trade_qty, i_type_name
+		enum tsf1
+		{
+			i_broker_name = 0,
+			i_charge,
+			i_cust_f_name,
+			i_cust_l_name,
+			i_ex_name,
+			i_exec_name,
+			i_num_found,
+			i_s_name,
+			i_status_name,
+			i_symbol,
+			i_trade_dts,
+			i_trade_id,
+			i_trade_qty,
+			i_type_name
 		};
 
 		long acct_id = PG_GETARG_INT64(0);
@@ -124,9 +117,6 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 		TupleDesc tupdesc;
 		SPITupleTable *tuptable = NULL;
 		HeapTuple tuple = NULL;
-#ifdef DEBUG
-		char sql[2048];
-#endif
 		Datum args[1];
 		char nulls[1] = { ' ' };
 		/*
@@ -135,27 +125,27 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 		 * be processed later by the type input functions.
 		 */
 		values = (char **) palloc(sizeof(char *) * 14);
-		values[i_charge] =
-				(char *) palloc((VALUE_T_LEN + 1) * sizeof(char) * 50);
-		values[i_ex_name] =
-				(char *) palloc((EX_NAME_LEN + 3) * sizeof(char) * 50);
-		values[i_exec_name] =
-				(char *) palloc((T_EXEC_NAME_LEN + 3) * sizeof(char) * 50);
+		values[i_charge]
+				= (char *) palloc((VALUE_T_LEN + 1) * sizeof(char) * 50);
+		values[i_ex_name]
+				= (char *) palloc((EX_NAME_LEN + 3) * sizeof(char) * 50);
+		values[i_exec_name]
+				= (char *) palloc((T_EXEC_NAME_LEN + 3) * sizeof(char) * 50);
 		values[i_num_found] = (char *) palloc((BIGINT_LEN + 1) * sizeof(char));
-		values[i_s_name] =
-				(char *) palloc((S_NAME_LEN + 3) * sizeof(char) * 50);
-		values[i_status_name] =
-				(char *) palloc((ST_NAME_LEN + 3) * sizeof(char) * 50);
-		values[i_symbol] =
-				(char *) palloc((S_SYMB_LEN + 3) * sizeof(char) * 50);
-		values[i_trade_dts] =
-				(char *) palloc((MAXDATELEN + 1) * sizeof(char) * 50);
-		values[i_trade_id] =
-				(char *) palloc((BIGINT_LEN + 1) * sizeof(char) * 50);
-		values[i_trade_qty] =
-				(char *) palloc((INTEGER_LEN + 1) * sizeof(char) * 50);
-		values[i_type_name] =
-				(char *) palloc((TT_NAME_LEN + 3) * sizeof(char) * 50);
+		values[i_s_name]
+				= (char *) palloc((S_NAME_LEN + 3) * sizeof(char) * 50);
+		values[i_status_name]
+				= (char *) palloc((ST_NAME_LEN + 3) * sizeof(char) * 50);
+		values[i_symbol]
+				= (char *) palloc((S_SYMB_LEN + 3) * sizeof(char) * 50);
+		values[i_trade_dts]
+				= (char *) palloc((MAXDATELEN + 1) * sizeof(char) * 50);
+		values[i_trade_id]
+				= (char *) palloc((BIGINT_LEN + 1) * sizeof(char) * 50);
+		values[i_trade_qty]
+				= (char *) palloc((INTEGER_LEN + 1) * sizeof(char) * 50);
+		values[i_type_name]
+				= (char *) palloc((TT_NAME_LEN + 3) * sizeof(char) * 50);
 
 		values[i_cust_l_name] = NULL;
 		values[i_cust_f_name] = NULL;
@@ -175,8 +165,7 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 		SPI_connect();
 		plan_queries(TSF1_statements);
 #ifdef DEBUG
-		sprintf(sql, SQLTSF1_1, acct_id);
-		elog(NOTICE, "SQL\n%s", sql);
+		elog(DEBUG1, "%s", SQLTSF1_1);
 #endif /* DEBUG */
 		args[0] = Int64GetDatum(acct_id);
 		ret = SPI_execute_plan(TSF1_1, args, nulls, true, 0);
@@ -185,7 +174,9 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 		} else {
 			FAIL_FRAME_SET(&funcctx->max_calls, TSF1_statements[0].sql);
+#ifdef DEBUG
 			dump_tsf1_inputs(acct_id);
+#endif /* DEBUG */
 		}
 		sprintf(values[i_num_found], "%" PRId64, SPI_processed);
 		strcpy(values[i_trade_id], "{");
@@ -247,8 +238,7 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 		strcat(values[i_ex_name], "}");
 
 #ifdef DEBUG
-		sprintf(sql, SQLTSF1_2, acct_id);
-		elog(NOTICE, "SQL\n%s", sql);
+		elog(DEBUG1, "%s", SQLTSF1_2);
 #endif /* DEBUG */
 		ret = SPI_execute_plan(TSF1_2, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT) {
@@ -262,15 +252,17 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 			}
 		} else {
 			FAIL_FRAME_SET(&funcctx->max_calls, TSF1_statements[1].sql);
+#ifdef DEBUG
 			dump_tsf1_inputs(acct_id);
+#endif /* DEBUG */
 		}
 		/* Build a tuple descriptor for our result type */
-		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
-				TYPEFUNC_COMPOSITE) {
-			ereport(ERROR,
-					(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-					errmsg("function returning record called in context "
-							"that cannot accept type record")));
+		if (get_call_result_type(fcinfo, NULL, &tupdesc)
+				!= TYPEFUNC_COMPOSITE) {
+			ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
+								   errmsg("function returning record called "
+										  "in context "
+										  "that cannot accept type record")));
 		}
 
 		/*
@@ -297,7 +289,7 @@ Datum TradeStatusFrame1(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 14; i++) {
-			elog(NOTICE, "TSF1 OUT: %d %s", i, values[i]);
+			elog(DEBUG1, "TSF1 OUT: %d %s", i, values[i]);
 		}
 #endif /* DEBUG */
 

@@ -13,7 +13,7 @@
 #include <postgres.h>
 #include <fmgr.h>
 #include <executor/spi.h> /* this should include most necessary APIs */
-#include <executor/executor.h>  /* for GetAttributeByName() */
+#include <executor/executor.h> /* for GetAttributeByName() */
 #include <funcapi.h> /* for returning set of rows */
 #include <utils/datetime.h>
 #include <utils/builtins.h>
@@ -26,72 +26,69 @@
 PG_MODULE_MAGIC;
 #endif
 
-#ifdef DEBUG
-#define SQLCPF1_1 \
-		"SELECT c_id\n" \
-		"FROM   customer\n" \
-		"WHERE  c_tax_id = '%s'"
+#define SQLCPF1_1                                                             \
+	"SELECT c_id\n"                                                           \
+	"FROM   customer\n"                                                       \
+	"WHERE  c_tax_id = $1"
 
-#define SQLCPF1_2 \
-		"SELECT c_st_id,\n" \
-		"       c_l_name,\n" \
-		"       c_f_name,\n" \
-		"       c_m_name,\n" \
-		"       c_gndr,\n" \
-		"       c_tier,\n" \
-		"       c_dob,\n" \
-		"       c_ad_id,\n" \
-		"       c_ctry_1,\n" \
-		"       c_area_1,\n" \
-		"       c_local_1,\n" \
-		"       c_ext_1,\n" \
-		"       c_ctry_2,\n" \
-		"       c_area_2,\n" \
-		"       c_local_2,\n" \
-		"       c_ext_2,\n" \
-		"       c_ctry_3,\n" \
-		"       c_area_3,\n" \
-		"       c_local_3,\n" \
-		"       c_ext_3,\n" \
-		"       c_email_1,\n" \
-		"       c_email_2\n" \
-		"FROM   customer\n" \
-		"WHERE  c_id = %" PRId64
+#define SQLCPF1_2                                                             \
+	"SELECT c_st_id,\n"                                                       \
+	"       c_l_name,\n"                                                      \
+	"       c_f_name,\n"                                                      \
+	"       c_m_name,\n"                                                      \
+	"       c_gndr,\n"                                                        \
+	"       c_tier,\n"                                                        \
+	"       c_dob,\n"                                                         \
+	"       c_ad_id,\n"                                                       \
+	"       c_ctry_1,\n"                                                      \
+	"       c_area_1,\n"                                                      \
+	"       c_local_1,\n"                                                     \
+	"       c_ext_1,\n"                                                       \
+	"       c_ctry_2,\n"                                                      \
+	"       c_area_2,\n"                                                      \
+	"       c_local_2,\n"                                                     \
+	"       c_ext_2,\n"                                                       \
+	"       c_ctry_3,\n"                                                      \
+	"       c_area_3,\n"                                                      \
+	"       c_local_3,\n"                                                     \
+	"       c_ext_3,\n"                                                       \
+	"       c_email_1,\n"                                                     \
+	"       c_email_2\n"                                                      \
+	"FROM   customer\n"                                                       \
+	"WHERE  c_id = $1"
 
-#define SQLCPF1_3 \
-		"SELECT   ca_id,\n" \
-		"         ca_bal,\n" \
-		"         COALESCE(SUM(hs_qty * lt_price), 0) AS soma\n" \
-		"FROM     customer_account\n" \
-		"         LEFT OUTER JOIN holding_summary\n" \
-		"                      ON hs_ca_id = ca_id,\n" \
-		"         last_trade\n" \
-		"WHERE    ca_c_id = %" PRId64 "\n" \
-		"         AND lt_s_symb = hs_s_symb\n" \
-		"GROUP BY ca_id, ca_bal\n" \
-		"ORDER BY 3 ASC\n" \
-		"LIMIT 10"
+#define SQLCPF1_3                                                             \
+	"SELECT   ca_id,\n"                                                       \
+	"         ca_bal,\n"                                                      \
+	"         COALESCE(SUM(hs_qty * lt_price), 0) AS soma\n"                  \
+	"FROM     customer_account\n"                                             \
+	"         LEFT OUTER JOIN holding_summary\n"                              \
+	"                      ON hs_ca_id = ca_id,\n"                            \
+	"         last_trade\n"                                                   \
+	"WHERE    ca_c_id = $1\n"                                                 \
+	"         AND lt_s_symb = hs_s_symb\n"                                    \
+	"GROUP BY ca_id, ca_bal\n"                                                \
+	"ORDER BY 3 ASC\n"                                                        \
+	"LIMIT 10"
 
-#define SQLCPF2_1 \
-		"SELECT   t_id,\n" \
-		"         t_s_symb,\n" \
-		"         t_qty,\n" \
-		"         st_name,\n" \
-		"         th_dts\n" \
-		"FROM     (SELECT   t_id AS id\n" \
-		"          FROM     trade\n" \
-		"          WHERE    t_ca_id = %" PRId64 "\n" \
-		"          ORDER BY t_dts DESC\n" \
-		"          LIMIT 10) AS t,\n" \
-		"         trade,\n" \
-		"         trade_history,\n" \
-		"         status_type\n" \
-		"WHERE    t_id = id\n" \
-		"         AND th_t_id = t_id\n" \
-		"         AND st_id = th_st_id\n" \
-		"ORDER BY th_dts DESC\n" \
-		"LIMIT 30"
-#endif /* End DEBUG */
+#define SQLCPF2_1                                                             \
+	"SELECT   t_id,\n"                                                        \
+	"         t_s_symb,\n"                                                    \
+	"         t_qty,\n"                                                       \
+	"         st_name,\n"                                                     \
+	"         th_dts\n"                                                       \
+	"FROM     (SELECT   t_id AS id\n"                                         \
+	"          FROM     trade\n"                                              \
+	"          WHERE    t_ca_id = $1\n"                                       \
+	"          ORDER BY t_dts DESC\n"                                         \
+	"          LIMIT 10) AS t,\n"                                             \
+	"         trade,\n"                                                       \
+	"         trade_history,\n"                                               \
+	"         status_type\n"                                                  \
+	"WHERE    t_id = id\n"                                                    \
+	"         AND th_t_id = t_id\n"                                           \
+	"         AND st_id = th_st_id\n"                                         \
+	"ORDER BY th_dts DESC"
 
 #define CPF1_1 CPF1_statements[0].plan
 #define CPF1_2 CPF1_statements[1].plan
@@ -101,93 +98,21 @@ PG_MODULE_MAGIC;
 
 static cached_statement CPF1_statements[] = {
 
-	/* CPF1_1 */
-	{
-	"SELECT c_id\n" \
-	"FROM   customer\n" \
-	"WHERE  c_tax_id = $1",
-	1,
-	{ TEXTOID }
-	},
+	{ SQLCPF1_1, 1, { TEXTOID } },
 
-	/* CPF1_2 */
-	{
-	"SELECT c_st_id,\n" \
-	"       c_l_name,\n" \
-	"       c_f_name,\n" \
-	"       c_m_name,\n" \
-	"       c_gndr,\n" \
-	"       c_tier,\n" \
-	"       c_dob,\n" \
-	"       c_ad_id,\n" \
-	"       c_ctry_1,\n" \
-	"       c_area_1,\n" \
-	"       c_local_1,\n" \
-	"       c_ext_1,\n" \
-	"       c_ctry_2,\n" \
-	"       c_area_2,\n" \
-	"       c_local_2,\n" \
-	"       c_ext_2,\n" \
-	"       c_ctry_3,\n" \
-	"       c_area_3,\n" \
-	"       c_local_3,\n" \
-	"       c_ext_3,\n" \
-	"       c_email_1,\n" \
-	"       c_email_2\n" \
-	"FROM   customer\n" \
-	"WHERE  c_id = $1",
-	1,
-	{ INT8OID}
-	},
+	{ SQLCPF1_2, 1, { INT8OID } },
 
-	/* CPF1_3 */
-	{
-	"SELECT   ca_id,\n" \
-	"         ca_bal,\n" \
-	"         COALESCE(SUM(hs_qty * lt_price), 0) AS soma\n" \
-	"FROM     customer_account\n" \
-	"         LEFT OUTER JOIN holding_summary\n" \
-	"                      ON hs_ca_id = ca_id,\n" \
-	"         last_trade\n" \
-	"WHERE    ca_c_id = $1\n" \
-	"         AND lt_s_symb = hs_s_symb\n" \
-	"GROUP BY ca_id, ca_bal\n" \
-	"ORDER BY 3 ASC\n" \
-	"LIMIT 10",
-	1,
-	{ INT8OID }
-	},
+	{ SQLCPF1_3, 1, { INT8OID } },
 
 	{ NULL }
-};	/* End of CPF1_statements */
+};
 
 static cached_statement CPF2_statements[] = {
 
-	/* CPF2_1 */
-	{
-	"SELECT   t_id,\n" \
-	"         t_s_symb,\n" \
-	"         t_qty,\n" \
-	"         st_name,\n" \
-	"         th_dts\n" \
-	"FROM     (SELECT   t_id AS id\n" \
-	"          FROM     trade\n" \
-	"          WHERE    t_ca_id = $1\n" \
-	"          ORDER BY t_dts DESC\n" \
-	"          LIMIT 10) AS t,\n" \
-	"         trade,\n" \
-	"         trade_history,\n" \
-	"         status_type\n" \
-	"WHERE    t_id = id\n" \
-	"         AND th_t_id = t_id\n" \
-	"         AND st_id = th_st_id\n" \
-	"ORDER BY th_dts DESC",
-	1,
-	{ INT8OID }
-	},
+	{ SQLCPF2_1, 1, { INT8OID } },
 
 	{ NULL }
-};	/* End of CPF2_statements */
+};
 
 /* Prototypes to prevent potential gcc warnings. */
 Datum CustomerPositionFrame1(PG_FUNCTION_ARGS);
@@ -196,25 +121,33 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(CustomerPositionFrame1);
 PG_FUNCTION_INFO_V1(CustomerPositionFrame2);
 
+#ifdef DEBUG
 void dump_cpf1_inputs(long, text *);
 void dump_cpf2_inputs(long);
 
-void dump_cpf1_inputs(long cust_id, text *tax_id_p) {
-	elog(NOTICE, "CPF1: INPUTS START");
-	elog(NOTICE, "CPF1: cust_id %ld", cust_id);
-	elog(NOTICE, "CPF1: tax_id %s", DatumGetCString(DirectFunctionCall1(textout,
-			PointerGetDatum(tax_id_p))));
-	elog(NOTICE, "CPF1: INPUTS END"); 
+void
+dump_cpf1_inputs(long cust_id, text *tax_id_p)
+{
+	elog(DEBUG1, "CPF1: INPUTS START");
+	elog(DEBUG1, "CPF1: cust_id %ld", cust_id);
+	elog(DEBUG1, "CPF1: tax_id %s",
+			DatumGetCString(
+					DirectFunctionCall1(textout, PointerGetDatum(tax_id_p))));
+	elog(DEBUG1, "CPF1: INPUTS END");
 }
 
-void dump_cpf2_inputs(long acct_id) {
-	elog(NOTICE, "CPF2: INPUTS START");
-	elog(NOTICE, "CPF2: acct_id %ld", acct_id);
-	elog(NOTICE, "CPF2: INPUTS END"); 
+void
+dump_cpf2_inputs(long acct_id)
+{
+	elog(DEBUG1, "CPF2: INPUTS START");
+	elog(DEBUG1, "CPF2: acct_id %ld", acct_id);
+	elog(DEBUG1, "CPF2: INPUTS END");
 }
+#endif /* DEBUG */
 
 /* Clause 3.3.2.3 */
-Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
+Datum
+CustomerPositionFrame1(PG_FUNCTION_ARGS)
 {
 	FuncCallContext *funcctx;
 	int i;
@@ -228,19 +161,38 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 
 		text *tax_id_p;
 
-		enum cpf1 {
-				i_cust_id=0, i_acct_id, i_acct_len, i_asset_total, i_c_ad_id,
-				i_c_area_1, i_c_area_2, i_c_area_3, i_c_ctry_1, i_c_ctry_2,
-				i_c_ctry_3, i_c_dob, i_c_email_1, i_c_email_2, i_c_ext_1,
-				i_c_ext_2, i_c_ext_3, i_c_f_name, i_c_gndr, i_c_l_name,
-				i_c_local_1, i_c_local_2, i_c_local_3, i_c_m_name, i_c_st_id,
-				i_c_tier, i_cash_bal
+		enum cpf1
+		{
+			i_cust_id = 0,
+			i_acct_id,
+			i_acct_len,
+			i_asset_total,
+			i_c_ad_id,
+			i_c_area_1,
+			i_c_area_2,
+			i_c_area_3,
+			i_c_ctry_1,
+			i_c_ctry_2,
+			i_c_ctry_3,
+			i_c_dob,
+			i_c_email_1,
+			i_c_email_2,
+			i_c_ext_1,
+			i_c_ext_2,
+			i_c_ext_3,
+			i_c_f_name,
+			i_c_gndr,
+			i_c_l_name,
+			i_c_local_1,
+			i_c_local_2,
+			i_c_local_3,
+			i_c_m_name,
+			i_c_st_id,
+			i_c_tier,
+			i_cash_bal
 		};
 
 		int ret;
-#ifdef DEBUG
-		char sql[1024];
-#endif /* DEBUG */
 		Datum args[1];
 		char nulls[1] = { ' ' };
 		TupleDesc tupdesc;
@@ -263,7 +215,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
 
 		cust_id = PG_GETARG_INT64(0);
-		tax_id_p= PG_GETARG_TEXT_P(1);
+		tax_id_p = PG_GETARG_TEXT_P(1);
 #ifdef DEBUG
 		dump_cpf1_inputs(cust_id, tax_id_p);
 #endif /* DEBUG */
@@ -272,9 +224,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		plan_queries(CPF1_statements);
 		if (cust_id == 0) {
 #ifdef DEBUG
-			sprintf(sql, SQLCPF1_1, DatumGetCString(DirectFunctionCall1(textout,
-					PointerGetDatum(tax_id_p))));
-			elog(NOTICE, "SQL\n%s", sql);
+			elog(DEBUG1, "%s", SQLCPF1_1);
 #endif /* DEBUG */
 			args[0] = PointerGetDatum(tax_id_p);
 			ret = SPI_execute_plan(CPF1_1, args, nulls, true, 0);
@@ -284,23 +234,23 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 				tuple = tuptable->vals[0];
 				cust_id = atoll(SPI_getvalue(tuple, tupdesc, 1));
 #ifdef DEBUG
-				elog(NOTICE, "Got cust_id ok: %ld", cust_id);
+				elog(DEBUG1, "Got cust_id ok: %ld", cust_id);
 #endif /* DEBUG */
 			} else {
+#ifdef DEBUG
 				dump_cpf1_inputs(cust_id, tax_id_p);
-				FAIL_FRAME_SET(&funcctx->max_calls,
-						CPF1_statements[0].sql);
+#endif /* DEBUG */
+				FAIL_FRAME_SET(&funcctx->max_calls, CPF1_statements[0].sql);
 			}
 		}
 
 #ifdef DEBUG
-		sprintf(sql, SQLCPF1_2, cust_id);
-		elog(NOTICE, "SQL\n%s", sql);
+		elog(DEBUG1, "%s", SQLCPF1_2);
 #endif /* DEBUG */
 		args[0] = Int64GetDatum(cust_id);
 		ret = SPI_execute_plan(CPF1_2, args, nulls, true, 0);
 #ifdef DEBUG
-		elog(NOTICE, "%d row(s) returned from CPF1_2.", SPI_processed);
+		elog(DEBUG1, "%ld row(s) returned from CPF1_2.", SPI_processed);
 #endif /* DEBUG */
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			tupdesc = SPI_tuptable->tupdesc;
@@ -330,18 +280,19 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			values[i_c_email_1] = SPI_getvalue(tuple, tupdesc, 21);
 			values[i_c_email_2] = SPI_getvalue(tuple, tupdesc, 22);
 		} else {
+#ifdef DEBUG
 			dump_cpf1_inputs(cust_id, tax_id_p);
+#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, CPF1_statements[1].sql);
 		}
 #ifdef DEBUG
-		sprintf(sql, SQLCPF1_3, cust_id);
-		elog(NOTICE, "SQL\n%s", sql);
+		elog(DEBUG1, "%s", SQLCPF1_3);
 #endif /* DEBUG */
 		args[0] = Int64GetDatum(cust_id);
 		ret = SPI_execute_plan(CPF1_3, args, nulls, true, 0);
 		sprintf(values[i_acct_len], "%" PRId64, SPI_processed);
 #ifdef DEBUG
-		elog(NOTICE, "%d row(s) returned from CPF1_3.", SPI_processed);
+		elog(DEBUG1, "%ld row(s) returned from CPF1_3.", SPI_processed);
 #endif /* DEBUG */
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			/* Total number of tuples to be returned. */
@@ -351,12 +302,15 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 
-			values[i_acct_id] = (char *) palloc(((BIGINT_LEN + 1) *
-					(SPI_processed + 1) + 2) * sizeof(char));
-			values[i_cash_bal] = (char *) palloc(((BALANCE_T_LEN + 1) *
-					(SPI_processed + 1) +2) * sizeof(char));
-			values[i_asset_total] = (char *) palloc(((S_PRICE_T_LEN + 1) *
-					(SPI_processed + 1) + 2) * sizeof(char));
+			values[i_acct_id] = (char *) palloc(
+					((BIGINT_LEN + 1) * (SPI_processed + 1) + 2)
+					* sizeof(char));
+			values[i_cash_bal] = (char *) palloc(
+					((BALANCE_T_LEN + 1) * (SPI_processed + 1) + 2)
+					* sizeof(char));
+			values[i_asset_total] = (char *) palloc(
+					((S_PRICE_T_LEN + 1) * (SPI_processed + 1) + 2)
+					* sizeof(char));
 
 			strcpy(values[i_acct_id], "{");
 			strcpy(values[i_cash_bal], "{");
@@ -389,18 +343,20 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			strcat(values[i_cash_bal], "}");
 			strcat(values[i_asset_total], "}");
 		} else {
+#ifdef DEBUG
 			dump_cpf1_inputs(cust_id, tax_id_p);
+#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, CPF1_statements[2].sql);
 		}
 		snprintf(values[i_cust_id], 12, "%" PRId64, cust_id);
 
 		/* Build a tuple descriptor for our result type. */
-		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
-				TYPEFUNC_COMPOSITE) {
-			ereport(ERROR,
-					(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-					errmsg("function returning record called in context "
-							"that cannot accept type record")));
+		if (get_call_result_type(fcinfo, NULL, &tupdesc)
+				!= TYPEFUNC_COMPOSITE) {
+			ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
+								   errmsg("function returning record called "
+										  "in context "
+										  "that cannot accept type record")));
 		}
 
 		/*
@@ -424,7 +380,7 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 27; i++) {
-			elog(NOTICE, "CPF1 OUT: %d '%s'", i, values[i]);
+			elog(DEBUG1, "CPF1 OUT: %d '%s'", i, values[i]);
 		}
 #endif /* DEBUG */
 
@@ -442,7 +398,8 @@ Datum CustomerPositionFrame1(PG_FUNCTION_ARGS)
 }
 
 /* Clause 3.3.2.4 */
-Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
+Datum
+CustomerPositionFrame2(PG_FUNCTION_ARGS)
 {
 	FuncCallContext *funcctx;
 	char **values = NULL;
@@ -457,16 +414,20 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 
 		int64 acct_id = PG_GETARG_INT64(0);
 
-		enum cpf2 {
-				i_hist_dts=0, i_hist_len, i_qty, i_symbol, i_trade_id,
-				i_trade_status
+		enum cpf2
+		{
+			i_hist_dts = 0,
+			i_hist_len,
+			i_qty,
+			i_symbol,
+			i_trade_id,
+			i_trade_status
 		};
 
 		int ret;
 		Datum args[1];
 		char nulls[] = { ' ' };
 #ifdef DEBUG
-		char sql[1024];
 		dump_cpf2_inputs(acct_id);
 #endif /* DEBUG */
 
@@ -488,14 +449,13 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 		SPI_connect();
 		plan_queries(CPF2_statements);
 #ifdef DEBUG
-		sprintf(sql, SQLCPF2_1, acct_id);
-		elog(NOTICE, "SQL\n%s", sql);
+		elog(DEBUG1, "%s", SQLCPF2_1);
 #endif /* DEBUG */
 		args[0] = Int64GetDatum(acct_id);
 		ret = SPI_execute_plan(CPF2_1, args, nulls, true, 0);
 		sprintf(values[i_hist_len], "%" PRId64, SPI_processed);
 #ifdef DEBUG
-		elog(NOTICE, "%d row(s) returned.", SPI_processed);
+		elog(DEBUG1, "%ld row(s) returned.", SPI_processed);
 #endif /* DEBUG */
 		/* Should return 1 to rows. */
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
@@ -506,16 +466,16 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 
-			values[i_hist_dts] = (char *) palloc(((MAXDATELEN + 1) *
-					SPI_processed + 3) * sizeof(char));
-			values[i_qty] = (char *) palloc(((INTEGER_LEN + 1) *
-					SPI_processed + 3) * sizeof(char));
-			values[i_symbol] = (char *) palloc(((S_SYMB_LEN + 3) *
-					SPI_processed + 3) * sizeof(char));
-			values[i_trade_id] = (char *) palloc(((IDENT_T_LEN + 1) *
-					SPI_processed + 3) * sizeof(char));
-			values[i_trade_status] = (char *) palloc(((ST_NAME_LEN + 3) *
-					SPI_processed + 3) * sizeof(char));
+			values[i_hist_dts] = (char *) palloc(
+					((MAXDATELEN + 1) * SPI_processed + 3) * sizeof(char));
+			values[i_qty] = (char *) palloc(
+					((INTEGER_LEN + 1) * SPI_processed + 3) * sizeof(char));
+			values[i_symbol] = (char *) palloc(
+					((S_SYMB_LEN + 3) * SPI_processed + 3) * sizeof(char));
+			values[i_trade_id] = (char *) palloc(
+					((IDENT_T_LEN + 1) * SPI_processed + 3) * sizeof(char));
+			values[i_trade_status] = (char *) palloc(
+					((ST_NAME_LEN + 3) * SPI_processed + 3) * sizeof(char));
 
 			strcpy(values[i_hist_dts], "{");
 			strcpy(values[i_qty], "{");
@@ -552,7 +512,8 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 
 				strcat(values[i_trade_status], ",");
 				strcat(values[i_trade_status], "\"");
-				strcat(values[i_trade_status], SPI_getvalue(tuple, tupdesc, 4));
+				strcat(values[i_trade_status],
+						SPI_getvalue(tuple, tupdesc, 4));
 				strcat(values[i_trade_status], "\"");
 			}
 			strcat(values[i_hist_dts], "}");
@@ -564,7 +525,9 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 			if (ret == SPI_OK_SELECT && SPI_processed == 0) {
 				elog(WARNING, "Query CPF2_1 should return 10-30 rows.");
 			}
+#ifdef DEBUG
 			dump_cpf2_inputs(acct_id);
+#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, CPF2_statements[1].sql);
 
 			/*
@@ -585,12 +548,12 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 		}
 
 		/* Build a tuple descriptor for our result type. */
-		if (get_call_result_type(fcinfo, NULL, &tupdesc) !=
-				TYPEFUNC_COMPOSITE) {
-			ereport(ERROR,
-					(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-					errmsg("function returning record called in context "
-							"that cannot accept type record")));
+		if (get_call_result_type(fcinfo, NULL, &tupdesc)
+				!= TYPEFUNC_COMPOSITE) {
+			ereport(ERROR, (errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
+								   errmsg("function returning record called "
+										  "in context "
+										  "that cannot accept type record")));
 		}
 
 		/*
@@ -614,7 +577,7 @@ Datum CustomerPositionFrame2(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 6; i++) {
-			elog(NOTICE, "CPF2 OUT: %d '%s'", i, values[i]);
+			elog(DEBUG1, "CPF2 OUT: %d '%s'", i, values[i]);
 		}
 #endif /* DEBUG */
 
