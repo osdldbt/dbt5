@@ -199,7 +199,7 @@ TradeCleanupFrame1(PG_FUNCTION_ARGS)
 		elog(DEBUG1, "%s", SQLTCF1_5);
 #endif /* DEBUG */
 		args[0] = CStringGetTextDatum(st_canceled_id);
-		args[1] = Int64GetDatum(t_id);
+		args[1] = Int64GetDatum(atoll(t_id));
 		ret = SPI_execute_plan(TCF1_5, args, nulls, false, 0);
 		if (ret != SPI_OK_UPDATE_RETURNING) {
 #ifdef DEBUG
