@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <postgres.h>
 #include <fmgr.h>
+#include <time.h>
 #include <executor/spi.h> /* this should include most necessary APIs */
 #include <executor/executor.h> /* for GetAttributeByName() */
 #include <funcapi.h> /* for returning set of rows in order_status */
@@ -18,6 +19,7 @@
 #include <utils/numeric.h>
 #include <utils/builtins.h>
 #include <utils/date.h>
+#include <utils/timestamp.h>
 #include <catalog/pg_type.h>
 
 #include "frame.h"
@@ -928,6 +930,10 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 			 */
 
 			if (needed_qty > 0) {
+				struct tm tm;
+				struct pg_tm tt;
+				Timestamp dt;
+
 #ifdef DEBUG
 				elog(DEBUG1, "%s", SQLTRF2_4a);
 #endif /* DEBUG */
@@ -950,7 +956,20 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				args[0] = Int64GetDatum(trade_id);
 				args[1] = Int64GetDatum(acct_id);
 				args[2] = CStringGetTextDatum(symbol);
-				args[3] = TimestampGetDatum(values[i_trade_dts]);
+
+				strptime(values[i_trade_dts], "%Y-%m-%d %H:%M:%S", &tm);
+				tt.tm_year = tm.tm_year - 1900;
+				tt.tm_mon = tm.tm_mon - 1;
+				tt.tm_mday = tm.tm_mday;
+				tt.tm_hour = tm.tm_hour;
+				tt.tm_min = tm.tm_min;
+				tt.tm_sec = tm.tm_sec;
+				tt.tm_isdst = tm.tm_isdst;
+				tt.tm_gmtoff = tm.tm_gmtoff;
+				tt.tm_zone = tm.tm_zone;
+				tm2timestamp(&tt, 0, NULL, &dt);
+				args[3] = TimestampGetDatum(dt);
+
 				args[4] = Float8GetDatum(trade_price);
 				args[5] = Int32GetDatum(-1 * needed_qty);
 				ret = SPI_execute_plan(TRF2_7a, args, nulls, false, 0);
@@ -1153,6 +1172,10 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 			 */
 
 			if (needed_qty > 0) {
+				struct tm tm;
+				struct pg_tm tt;
+				Timestamp dt;
+
 #ifdef DEBUG
 				elog(DEBUG1, "%s", SQLTRF2_4a);
 #endif /* DEBUG */
@@ -1175,7 +1198,20 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				args[0] = Int64GetDatum(trade_id);
 				args[1] = Int64GetDatum(acct_id);
 				args[2] = CStringGetTextDatum(symbol);
-				args[3] = TimestampGetDatum(values[i_trade_dts]);
+
+				strptime(values[i_trade_dts], "%Y-%m-%d %H:%M:%S", &tm);
+				tt.tm_year = tm.tm_year - 1900;
+				tt.tm_mon = tm.tm_mon - 1;
+				tt.tm_mday = tm.tm_mday;
+				tt.tm_hour = tm.tm_hour;
+				tt.tm_min = tm.tm_min;
+				tt.tm_sec = tm.tm_sec;
+				tt.tm_isdst = tm.tm_isdst;
+				tt.tm_gmtoff = tm.tm_gmtoff;
+				tt.tm_zone = tm.tm_zone;
+				tm2timestamp(&tt, 0, NULL, &dt);
+				args[3] = TimestampGetDatum(dt);
+
 				args[4] = Float8GetDatum(trade_price);
 				args[5] = Int32GetDatum(needed_qty);
 				ret = SPI_execute_plan(TRF2_7a, args, nulls, false, 0);
@@ -1273,7 +1309,7 @@ TradeResultFrame3(PG_FUNCTION_ARGS)
 	SPITupleTable *tuptable = NULL;
 	HeapTuple tuple = NULL;
 
-	Datum result;
+	Numeric result;
 	double buy_value;
 	double sell_value;
 
@@ -1331,7 +1367,8 @@ TradeResultFrame3(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 
 	SPI_finish();
-	result = DirectFunctionCall1(float8_numeric, Float8GetDatum(tax_amount));
+	result = DatumGetNumeric(
+			DirectFunctionCall1(float8_numeric, Float8GetDatum(tax_amount)));
 	PG_RETURN_NUMERIC(result);
 }
 
@@ -1639,7 +1676,7 @@ TradeResultFrame6(PG_FUNCTION_ARGS)
 	SPITupleTable *tuptable = NULL;
 	HeapTuple tuple = NULL;
 
-	Datum result;
+	Numeric result;
 	Datum args[6];
 	char nulls[6] = { ' ', ' ', ' ', ' ', ' ', ' ' };
 
@@ -1701,11 +1738,15 @@ TradeResultFrame6(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 	elog(DEBUG1, "%s", SQLTRF6_1);
+	elog(DEBUG1, "$1 %ld", trade_id);
+	elog(DEBUG1, "$2 %s", cash_type);
+	elog(DEBUG1, "$3 %s", due_date);
+	elog(DEBUG1, "$4 %f", se_amount);
 #endif /* DEBUG */
 	args[0] = Int64GetDatum(trade_id);
 	args[1] = CStringGetTextDatum(cash_type);
 	args[2] = DirectFunctionCall1(date_in, CStringGetDatum(due_date));
-	args[4] = Float8GetDatum(se_amount);
+	args[3] = Float8GetDatum(se_amount);
 	ret = SPI_execute_plan(TRF6_1, args, nulls, false, 0);
 	if (ret != SPI_OK_INSERT) {
 		FAIL_FRAME(TRF6_statements[0].sql);
@@ -1718,6 +1759,8 @@ TradeResultFrame6(PG_FUNCTION_ARGS)
 	if (trade_is_cash == 1) {
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLTRF6_2);
+		elog(DEBUG1, "$1 %f", se_amount);
+		elog(DEBUG1, "$2 %ld", acct_id);
 #endif /* DEBUG */
 		args[0] = Float8GetDatum(se_amount);
 		args[1] = Int64GetDatum(acct_id);
@@ -1731,6 +1774,12 @@ TradeResultFrame6(PG_FUNCTION_ARGS)
 		}
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLTRF6_3);
+		elog(DEBUG1, "$1 %ld", trade_dts_ts);
+		elog(DEBUG1, "$2 %ld", trade_id);
+		elog(DEBUG1, "$3 %f", se_amount);
+		elog(DEBUG1, "$4 %s", type_name);
+		elog(DEBUG1, "$5 %d", trade_qty);
+		elog(DEBUG1, "$6 %s", s_name);
 #endif /* DEBUG */
 		args[0] = TimestampGetDatum(trade_dts_ts);
 		args[1] = Int64GetDatum(trade_id);
@@ -1750,6 +1799,7 @@ TradeResultFrame6(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 	elog(DEBUG1, "%s", SQLTRF6_4);
+	elog(DEBUG1, "$1 %ld", acct_id);
 #endif /* DEBUG */
 	args[0] = Int64GetDatum(acct_id);
 	ret = SPI_execute_plan(TRF6_4, args, nulls, true, 0);
@@ -1771,6 +1821,7 @@ TradeResultFrame6(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 
 	SPI_finish();
-	result = DirectFunctionCall1(float8_numeric, Float8GetDatum(acct_bal));
+	result = DatumGetNumeric(
+			DirectFunctionCall1(float8_numeric, Float8GetDatum(acct_bal)));
 	PG_RETURN_NUMERIC(result);
 }

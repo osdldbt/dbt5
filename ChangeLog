@@ -12,6 +12,9 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql pl/c: fix Trade Order Frame 3 handling of type_is_market and
   type_is_sell
 - pgsql pl/c: fix Trade Order Frame 3 truncation of acct_bal
+- pgsql pl/c: fix Trade Result Frame 2 and 6 handling of NUMERIC
+- pgsql pl/c: fix Trade Result Frame 6 handling qual assignment bug with
+  se_amount
 
 v0.9.2 (2024-04-10)
 
