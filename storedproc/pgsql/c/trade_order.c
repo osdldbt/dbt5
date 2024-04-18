@@ -673,11 +673,13 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 		values[i_buy_value]
 				= (char *) palloc((S_PRICE_T_LEN + 1) * sizeof(char));
 		values[i_cust_assets]
-				= (char *) palloc((S_PRICE_T_LEN + 1) * sizeof(char));
+				= (char *) palloc((VALUE_T_LEN + 1) * sizeof(char));
 		values[i_sell_value]
 				= (char *) palloc((S_PRICE_T_LEN + 1) * sizeof(char));
 		values[i_tax_amount]
 				= (char *) palloc((S_PRICE_T_LEN + 1) * sizeof(char));
+		values[i_type_is_market] = (char *) palloc((2) * sizeof(char));
+		values[i_type_is_sell] = (char *) palloc((2) * sizeof(char));
 
 		values[i_symbol] = NULL;
 
@@ -830,8 +832,20 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			values[i_type_is_market] = SPI_getvalue(tuple, tupdesc, 1);
-			values[i_type_is_sell] = SPI_getvalue(tuple, tupdesc, 2);
+
+			if (SPI_getvalue(tuple, tupdesc, 1)[0] == 'f') {
+				values[i_type_is_market][0] = '0';
+			} else {
+				values[i_type_is_market][0] = '1';
+			}
+			values[i_type_is_market][1] = '\0';
+
+			if (SPI_getvalue(tuple, tupdesc, 2)[0] == 'f') {
+				values[i_type_is_sell][0] = '0';
+			} else {
+				values[i_type_is_sell][0] = '1';
+			}
+			values[i_type_is_sell][1] = '\0';
 		} else {
 #ifdef DEBUG
 			dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
@@ -1077,10 +1091,10 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 				tuptable = SPI_tuptable;
 				if (SPI_processed > 0) {
 					tuple = tuptable->vals[0];
-					sprintf(values[i_cust_assets], "%8.2f",
-							atof(SPI_getvalue(tuple, tupdesc, 1)) * acct_bal);
+					sprintf(values[i_cust_assets], "%10.2f",
+							atof(SPI_getvalue(tuple, tupdesc, 1)) + acct_bal);
 				} else {
-					sprintf(values[i_cust_assets], "%8.2f", acct_bal);
+					sprintf(values[i_cust_assets], "%10.2f", acct_bal);
 				}
 			} else {
 #ifdef DEBUG

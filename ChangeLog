@@ -9,6 +9,9 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql pl/c: fix construction of composite types in Security Detail Frame 1
 - pgsql pl/c: fix t_id assignment in Trade Cleanup Frame 1
 - pgsql pl/c: fix start_trade_dts_ts assignment in Trade Lookup Frame 4
+- pgsql pl/c: fix Trade Order Frame 3 handling of type_is_market and
+  type_is_sell
+- pgsql pl/c: fix Trade Order Frame 3 truncation of acct_bal
 
 v0.9.2 (2024-04-10)
 
