@@ -141,12 +141,18 @@ TradeCleanupFrame1(PG_FUNCTION_ARGS)
 	Datum args[2];
 	char nulls[] = { ' ', ' ' };
 
-	strcpy(st_canceled_id, DatumGetCString(DirectFunctionCall1(textout,
-								   PointerGetDatum(st_canceled_id_p))));
-	strcpy(st_pending_id, DatumGetCString(DirectFunctionCall1(
-								  textout, PointerGetDatum(st_pending_id_p))));
-	strcpy(st_submitted_id, DatumGetCString(DirectFunctionCall1(textout,
-									PointerGetDatum(st_submitted_id_p))));
+	strncpy(st_canceled_id,
+			DatumGetCString(DirectFunctionCall1(
+					textout, PointerGetDatum(st_canceled_id_p))),
+			sizeof(st_canceled_id));
+	strncpy(st_pending_id,
+			DatumGetCString(DirectFunctionCall1(
+					textout, PointerGetDatum(st_pending_id_p))),
+			sizeof(st_pending_id));
+	strncpy(st_submitted_id,
+			DatumGetCString(DirectFunctionCall1(
+					textout, PointerGetDatum(st_submitted_id_p))),
+			sizeof(st_submitted_id));
 
 #ifdef DEBUG
 	dump_tcf1_inputs(st_canceled_id, st_pending_id, st_submitted_id, trade_id);

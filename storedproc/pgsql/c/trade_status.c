@@ -135,33 +135,49 @@ TradeStatusFrame1(PG_FUNCTION_ARGS)
 		HeapTuple tuple = NULL;
 		Datum args[1];
 		char nulls[1] = { ' ' };
+
+		char *tmp;
+		int length_c, length_en, length_en2, length_s, length_sn, length_sn2,
+				length_td, length_ti, length_tn, length_tq;
+
 		/*
 		 * Prepare a values array for building the returned tuple.
 		 * This should be an array of C strings, which will
 		 * be processed later by the type input functions.
 		 */
 		values = (char **) palloc(sizeof(char *) * 14);
-		values[i_charge]
-				= (char *) palloc((VALUE_T_LEN + 1) * sizeof(char) * 50);
-		values[i_ex_name]
-				= (char *) palloc((EX_NAME_LEN + 3) * sizeof(char) * 50);
-		values[i_exec_name]
-				= (char *) palloc((T_EXEC_NAME_LEN + 3) * sizeof(char) * 50);
+
+		length_c = (VALUE_T_LEN + 1) * 50;
+		values[i_charge] = (char *) palloc(length_c-- * sizeof(char));
+
+		length_en2 = (EX_NAME_LEN + 3) * 50;
+		values[i_ex_name] = (char *) palloc(length_en2-- * sizeof(char));
+
+		length_en = (T_EXEC_NAME_LEN + 3) * 50;
+		values[i_exec_name] = (char *) palloc(length_en-- * sizeof(char));
+
 		values[i_num_found] = (char *) palloc((BIGINT_LEN + 1) * sizeof(char));
-		values[i_s_name]
-				= (char *) palloc((S_NAME_LEN + 3) * sizeof(char) * 50);
-		values[i_status_name]
-				= (char *) palloc((ST_NAME_LEN + 3) * sizeof(char) * 50);
-		values[i_symbol]
-				= (char *) palloc((S_SYMB_LEN + 3) * sizeof(char) * 50);
-		values[i_trade_dts]
-				= (char *) palloc((MAXDATELEN + 1) * sizeof(char) * 50);
-		values[i_trade_id]
-				= (char *) palloc((BIGINT_LEN + 1) * sizeof(char) * 50);
-		values[i_trade_qty]
-				= (char *) palloc((INTEGER_LEN + 1) * sizeof(char) * 50);
-		values[i_type_name]
-				= (char *) palloc((TT_NAME_LEN + 3) * sizeof(char) * 50);
+
+		length_sn2 = (S_NAME_LEN + 3) * 50;
+		values[i_s_name] = (char *) palloc(length_sn2-- * sizeof(char));
+
+		length_sn = (ST_NAME_LEN + 3) * 50;
+		values[i_status_name] = (char *) palloc(length_sn-- * sizeof(char));
+
+		length_s = (S_SYMB_LEN + 3) * 50;
+		values[i_symbol] = (char *) palloc(length_s-- * sizeof(char));
+
+		length_td = (MAXDATELEN + 1) * 50;
+		values[i_trade_dts] = (char *) palloc(length_td-- * sizeof(char));
+
+		length_ti = (BIGINT_LEN + 1) * 50;
+		values[i_trade_id] = (char *) palloc(length_ti-- * sizeof(char));
+
+		length_tq = (INTEGER_LEN + 1) * 50;
+		values[i_trade_qty] = (char *) palloc(length_tq-- * sizeof(char));
+
+		length_tn = (TT_NAME_LEN + 3) * 50;
+		values[i_type_name] = (char *) palloc(length_tn-- * sizeof(char));
 
 		values[i_cust_l_name] = NULL;
 		values[i_cust_f_name] = NULL;
@@ -194,64 +210,272 @@ TradeStatusFrame1(PG_FUNCTION_ARGS)
 			dump_tsf1_inputs(acct_id);
 #endif /* DEBUG */
 		}
-		sprintf(values[i_num_found], "%" PRId64, SPI_processed);
-		strcpy(values[i_trade_id], "{");
-		strcpy(values[i_trade_dts], "{");
-		strcpy(values[i_status_name], "{");
-		strcpy(values[i_type_name], "{");
-		strcpy(values[i_symbol], "{");
-		strcpy(values[i_trade_qty], "{");
-		strcpy(values[i_exec_name], "{");
-		strcpy(values[i_charge], "{");
-		strcpy(values[i_s_name], "{");
-		strcpy(values[i_ex_name], "{");
+		snprintf(values[i_num_found], BIGINT_LEN, "%" PRId64, SPI_processed);
+
+		values[i_trade_id][0] = '{';
+		values[i_trade_id][1] = '\0';
+
+		values[i_trade_dts][0] = '{';
+		values[i_trade_dts][1] = '\0';
+
+		values[i_status_name][0] = '{';
+		values[i_status_name][1] = '\0';
+
+		values[i_type_name][0] = '{';
+		values[i_type_name][1] = '\0';
+
+		values[i_symbol][0] = '{';
+		values[i_symbol][1] = '\0';
+
+		values[i_trade_qty][0] = '{';
+		values[i_trade_qty][1] = '\0';
+
+		values[i_exec_name][0] = '{';
+		values[i_exec_name][1] = '\0';
+
+		values[i_charge][0] = '{';
+		values[i_charge][1] = '\0';
+
+		values[i_s_name][0] = '{';
+		values[i_s_name][1] = '\0';
+
+		values[i_ex_name][0] = '{';
+		values[i_ex_name][1] = '\0';
+
 		for (i = 0; i < SPI_processed; i++) {
 			tuple = tuptable->vals[i];
 			if (i > 0) {
-				strcat(values[i_trade_id], ",");
-				strcat(values[i_trade_dts], ",");
-				strcat(values[i_status_name], ",");
-				strcat(values[i_type_name], ",");
-				strcat(values[i_symbol], ",");
-				strcat(values[i_trade_qty], ",");
-				strcat(values[i_exec_name], ",");
-				strcat(values[i_charge], ",");
-				strcat(values[i_s_name], ",");
-				strcat(values[i_ex_name], ",");
+				strncat(values[i_trade_id], ",", length_ti--);
+				if (length_ti < 0) {
+					FAIL_FRAME("trade_id values needs to be increased");
+				}
+
+				strncat(values[i_trade_dts], ",", length_td--);
+				if (length_td < 0) {
+					FAIL_FRAME("trade_dts values needs to be increased");
+				}
+
+				strncat(values[i_status_name], ",", length_sn--);
+				if (length_sn < 0) {
+					FAIL_FRAME("status_name values needs to be increased");
+				}
+
+				strncat(values[i_type_name], ",", length_tn--);
+				if (length_tn < 0) {
+					FAIL_FRAME("type_name values needs to be increased");
+				}
+
+				strncat(values[i_symbol], ",", length_s--);
+				if (length_s < 0) {
+					FAIL_FRAME("symbol values needs to be increased");
+				}
+
+				strncat(values[i_trade_qty], ",", length_tq--);
+				if (length_tq < 0) {
+					FAIL_FRAME("trade_qty values needs to be increased");
+				}
+
+				strncat(values[i_exec_name], ",", length_en--);
+				if (length_en < 0) {
+					FAIL_FRAME("exec_name values needs to be increased");
+				}
+
+				strncat(values[i_charge], ",", length_c--);
+				if (length_c < 0) {
+					FAIL_FRAME("charge values needs to be increased");
+				}
+
+				strncat(values[i_s_name], ",", length_sn2--);
+				if (length_sn2 < 0) {
+					FAIL_FRAME("s_name values needs to be increased");
+				}
+
+				strncat(values[i_ex_name], ",", length_en2--);
+				if (length_en2 < 0) {
+					FAIL_FRAME("ex_name values needs to be increased");
+				}
 			}
-			strcat(values[i_trade_id], SPI_getvalue(tuple, tupdesc, 1));
-			strcat(values[i_trade_dts], SPI_getvalue(tuple, tupdesc, 2));
-			strcat(values[i_status_name], "\"");
-			strcat(values[i_status_name], SPI_getvalue(tuple, tupdesc, 3));
-			strcat(values[i_status_name], "\"");
-			strcat(values[i_type_name], "\"");
-			strcat(values[i_type_name], SPI_getvalue(tuple, tupdesc, 4));
-			strcat(values[i_type_name], "\"");
-			strcat(values[i_symbol], "\"");
-			strcat(values[i_symbol], SPI_getvalue(tuple, tupdesc, 5));
-			strcat(values[i_symbol], "\"");
-			strcat(values[i_trade_qty], SPI_getvalue(tuple, tupdesc, 6));
-			strcat(values[i_exec_name], "\"");
-			strcat(values[i_exec_name], SPI_getvalue(tuple, tupdesc, 7));
-			strcat(values[i_exec_name], "\"");
-			strcat(values[i_charge], SPI_getvalue(tuple, tupdesc, 8));
-			strcat(values[i_s_name], "\"");
-			strcat(values[i_s_name], SPI_getvalue(tuple, tupdesc, 9));
-			strcat(values[i_s_name], "\"");
-			strcat(values[i_ex_name], "\"");
-			strcat(values[i_ex_name], SPI_getvalue(tuple, tupdesc, 10));
-			strcat(values[i_ex_name], "\"");
+
+			tmp = SPI_getvalue(tuple, tupdesc, 1);
+			strncat(values[i_trade_id], tmp, length_ti);
+			length_ti -= strlen(tmp);
+			if (length_ti < 0) {
+				FAIL_FRAME("trade_id values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 2);
+			strncat(values[i_trade_dts], tmp, length_td);
+			length_td -= strlen(tmp);
+			if (length_td < 0) {
+				FAIL_FRAME("trade_dts values needs to be increased");
+			}
+
+			strncat(values[i_status_name], "\"", length_sn--);
+			if (length_sn < 0) {
+				FAIL_FRAME("status_name values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 3);
+			strncat(values[i_status_name], tmp, length_sn);
+			length_sn -= strlen(tmp);
+			if (length_sn < 0) {
+				FAIL_FRAME("status_name values needs to be increased");
+			}
+
+			strncat(values[i_status_name], "\"", length_sn--);
+			if (length_sn < 0) {
+				FAIL_FRAME("status_name values needs to be increased");
+			}
+
+			strncat(values[i_type_name], "\"", length_tn--);
+			if (length_tn < 0) {
+				FAIL_FRAME("type_name values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 4);
+			strncat(values[i_type_name], tmp, length_tn);
+			length_tn -= strlen(tmp);
+			if (length_tn < 0) {
+				FAIL_FRAME("type_name values needs to be increased");
+			}
+
+			strncat(values[i_type_name], "\"", length_tn--);
+			if (length_tn < 0) {
+				FAIL_FRAME("type_name values needs to be increased");
+			}
+
+			strncat(values[i_symbol], "\"", length_s--);
+			if (length_s < 0) {
+				FAIL_FRAME("symbol values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 5);
+			strncat(values[i_symbol], tmp, length_s);
+			length_s -= strlen(tmp);
+			if (length_s < 0) {
+				FAIL_FRAME("symbol values needs to be increased");
+			}
+
+			strncat(values[i_symbol], "\"", length_s--);
+			if (length_s < 0) {
+				FAIL_FRAME("symbol values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 6);
+			strncat(values[i_trade_qty], tmp, length_tq);
+			length_tq -= strlen(tmp);
+			if (length_tq < 0) {
+				FAIL_FRAME("trade_qty values needs to be increased");
+			}
+
+			strncat(values[i_exec_name], "\"", length_en--);
+			if (length_en < 0) {
+				FAIL_FRAME("exec_name values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 7);
+			strncat(values[i_exec_name], tmp, length_en);
+			length_en -= strlen(tmp);
+			if (length_en < 0) {
+				FAIL_FRAME("exec_name values needs to be increased");
+			}
+
+			strncat(values[i_exec_name], "\"", length_en--);
+			if (length_en < 0) {
+				FAIL_FRAME("exec_name values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 8);
+			strncat(values[i_charge], tmp, length_c);
+			length_c -= strlen(tmp);
+			if (length_c < 0) {
+				FAIL_FRAME("charge values needs to be increased");
+			}
+
+			strncat(values[i_s_name], "\"", length_sn2--);
+			if (length_sn2 < 0) {
+				FAIL_FRAME("s_name values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 9);
+			strncat(values[i_s_name], tmp, length_sn2);
+			length_sn2 -= strlen(tmp);
+			if (length_sn2 < 0) {
+				FAIL_FRAME("s_name values needs to be increased");
+			}
+
+			strncat(values[i_s_name], "\"", length_sn2--);
+			if (length_sn2 < 0) {
+				FAIL_FRAME("s_name values needs to be increased");
+			}
+
+			strncat(values[i_ex_name], "\"", length_en2--);
+			if (length_en2 < 0) {
+				FAIL_FRAME("ex_name values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 10);
+			strncat(values[i_ex_name], tmp, length_en2);
+			length_en2 -= strlen(tmp);
+			if (length_en2 < 0) {
+				FAIL_FRAME("ex_name values needs to be increased");
+			}
+
+			strncat(values[i_ex_name], "\"", length_en2--);
+			if (length_en2 < 0) {
+				FAIL_FRAME("ex_name values needs to be increased");
+			}
 		}
-		strcat(values[i_trade_id], "}");
-		strcat(values[i_trade_dts], "}");
-		strcat(values[i_status_name], "}");
-		strcat(values[i_type_name], "}");
-		strcat(values[i_symbol], "}");
-		strcat(values[i_trade_qty], "}");
-		strcat(values[i_exec_name], "}");
-		strcat(values[i_charge], "}");
-		strcat(values[i_s_name], "}");
-		strcat(values[i_ex_name], "}");
+
+		strncat(values[i_trade_id], "}", length_ti--);
+		if (length_ti < 0) {
+			FAIL_FRAME("trade_id values needs to be increased");
+		}
+
+		strncat(values[i_trade_dts], "}", length_td--);
+		if (length_td < 0) {
+			FAIL_FRAME("trade_dts values needs to be increased");
+		}
+
+		strncat(values[i_status_name], "}", length_sn--);
+		if (length_sn < 0) {
+			FAIL_FRAME("status_name values needs to be increased");
+		}
+
+		strncat(values[i_type_name], "}", length_tn--);
+		if (length_tn < 0) {
+			FAIL_FRAME("type_name values needs to be increased");
+		}
+
+		strncat(values[i_symbol], "}", length_s--);
+		if (length_s < 0) {
+			FAIL_FRAME("symbol values needs to be increased");
+		}
+
+		strncat(values[i_trade_qty], "}", length_tq--);
+		if (length_tq < 0) {
+			FAIL_FRAME("trade_qty values needs to be increased");
+		}
+
+		strncat(values[i_exec_name], "}", length_en--);
+		if (length_en < 0) {
+			FAIL_FRAME("exec_name values needs to be increased");
+		}
+
+		strncat(values[i_charge], "}", length_c--);
+		if (length_c < 0) {
+			FAIL_FRAME("charge values needs to be increased");
+		}
+
+		strncat(values[i_s_name], "}", length_sn2--);
+		if (length_sn2 < 0) {
+			FAIL_FRAME("s_name values needs to be increased");
+		}
+
+		strncat(values[i_ex_name], "}", length_en2--);
+		if (length_en2 < 0) {
+			FAIL_FRAME("ex_name values needs to be increased");
+		}
 
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLTSF1_2);

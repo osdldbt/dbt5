@@ -513,7 +513,7 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			PG_RETURN_INT32(1);
 		}
 
-		len = strlen(email2);
+		len -= strlen(email2);
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLDMF1_8);
 #endif /* DEBUG */
@@ -562,15 +562,17 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 
 		if (strncmp(old_tax_rate, "US", 2) == 0) {
 			if (old_tax_rate[2] == '5') {
-				strcpy(new_tax_rate, "US1");
+				strncpy(new_tax_rate, "US1", sizeof(new_tax_rate));
 			} else {
-				sprintf(new_tax_rate, "US%c", old_tax_rate[2] + 1);
+				snprintf(new_tax_rate, sizeof(new_tax_rate), "US%c",
+						old_tax_rate[2] + 1);
 			}
 		} else {
 			if (old_tax_rate[2] == '4') {
-				strcpy(new_tax_rate, "CN1");
+				strncpy(new_tax_rate, "CN1", sizeof(new_tax_rate));
 			} else {
-				sprintf(new_tax_rate, "CN%c", old_tax_rate[2] + 1);
+				snprintf(new_tax_rate, sizeof(new_tax_rate), "CN%c",
+						old_tax_rate[2] + 1);
 			}
 		}
 
@@ -745,7 +747,7 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			strcpy(tx_name, SPI_getvalue(tuple, tupdesc, 1));
+			strncpy(tx_name, SPI_getvalue(tuple, tupdesc, 1), sizeof(tx_name));
 		} else {
 			FAIL_FRAME(DMF1_statements[20].sql);
 #ifdef DEBUG
@@ -760,9 +762,9 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		elog(DEBUG1, "tx_name = '%s'", tx_name);
 #endif /* DEBUG */
 
-		if ((p = strstr(tx_name, " Tax ")) > 0) {
+		if ((p = strstr(tx_name, " Tax ")) != NULL) {
 			p[1] = 't';
-		} else if ((p = strstr(tx_name, " tax ")) > 0) {
+		} else if ((p = strstr(tx_name, " tax ")) != NULL) {
 			p[1] = 'T';
 		} else {
 			FAIL_FRAME(DMF1_statements[20].sql);

@@ -658,7 +658,7 @@ TradeResultFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME_SET(&funcctx->max_calls, TRF1_statements[0].sql);
 		}
 
-		sprintf(values[i_num_found], "%d", num_found);
+		snprintf(values[i_num_found], INTEGER_LEN, "%d", num_found);
 
 		/* Build a tuple descriptor for our result type */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc)
@@ -1317,8 +1317,8 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 			}
 		}
 
-		sprintf(values[i_buy_value], "%.2f", buy_value);
-		sprintf(values[i_sell_value], "%.2f", sell_value);
+		snprintf(values[i_buy_value], S_PRICE_T_LEN, "%.2f", buy_value);
+		snprintf(values[i_sell_value], S_PRICE_T_LEN, "%.2f", sell_value);
 
 		/* Build a tuple descriptor for our result type */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc)
@@ -1807,9 +1807,9 @@ TradeResultFrame6(PG_FUNCTION_ARGS)
 	plan_queries(TRF6_statements);
 
 	if (trade_is_cash == 1) {
-		strcpy(cash_type, "Cash Account");
+		strncpy(cash_type, "Cash Account", sizeof(cash_type));
 	} else {
-		strcpy(cash_type, "Margin");
+		strncpy(cash_type, "Margin", sizeof(cash_type));
 	}
 
 #ifdef DEBUG

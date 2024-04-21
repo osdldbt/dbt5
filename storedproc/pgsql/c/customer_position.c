@@ -292,11 +292,14 @@ CustomerPositionFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		args[0] = Int64GetDatum(cust_id);
 		ret = SPI_execute_plan(CPF1_3, args, nulls, true, 0);
-		sprintf(values[i_acct_len], "%" PRId64, SPI_processed);
+		snprintf(values[i_acct_len], BIGINT_LEN, "%" PRId64, SPI_processed);
 #ifdef DEBUG
 		elog(DEBUG1, "%ld row(s) returned from CPF1_3.", SPI_processed);
 #endif /* DEBUG */
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+			char *tmp;
+			int length_ai, length_at, length_cb;
+
 			/* Total number of tuples to be returned. */
 			funcctx->max_calls = 1;
 
@@ -304,46 +307,108 @@ CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 
-			values[i_acct_id] = (char *) palloc(
-					((BIGINT_LEN + 1) * (SPI_processed + 1) + 2)
-					* sizeof(char));
-			values[i_cash_bal] = (char *) palloc(
-					((BALANCE_T_LEN + 1) * (SPI_processed + 1) + 2)
-					* sizeof(char));
-			values[i_asset_total] = (char *) palloc(
-					((S_PRICE_T_LEN + 1) * (SPI_processed + 1) + 2)
-					* sizeof(char));
+			length_ai = (BIGINT_LEN + 1) * (SPI_processed + 1) + 2;
+			values[i_acct_id] = (char *) palloc(length_ai-- * sizeof(char));
 
-			strcpy(values[i_acct_id], "{");
-			strcpy(values[i_cash_bal], "{");
-			strcpy(values[i_asset_total], "{");
+			length_cb = (BALANCE_T_LEN + 1) * (SPI_processed + 1) + 2;
+			values[i_cash_bal] = (char *) palloc(length_cb-- * sizeof(char));
+
+			length_at = (S_PRICE_T_LEN + 1) * (SPI_processed + 1) + 2;
+			values[i_asset_total]
+					= (char *) palloc(length_at-- * sizeof(char));
+
+			values[i_acct_id][0] = '{';
+			values[i_acct_id][1] = '\0';
+
+			values[i_cash_bal][0] = '{';
+			values[i_cash_bal][1] = '\0';
+
+			values[i_asset_total][0] = '{';
+			values[i_asset_total][1] = '\0';
 
 			if (SPI_processed > 0) {
-				strcat(values[i_acct_id], SPI_getvalue(tuple, tupdesc, 1));
-				strcat(values[i_cash_bal], SPI_getvalue(tuple, tupdesc, 2));
-				strcat(values[i_asset_total], SPI_getvalue(tuple, tupdesc, 3));
-			}
-			for (i = 1; i < SPI_processed; i++) {
-				char *sum;
+				tmp = SPI_getvalue(tuple, tupdesc, 1);
+				strncat(values[i_acct_id], tmp, length_ai);
+				length_ai -= strlen(tmp);
+				if (length_ai < 0) {
+					FAIL_FRAME("acct_id values needs to be increased");
+				}
 
-				tuple = tuptable->vals[i];
-				strcat(values[i_acct_id], ",");
-				strcat(values[i_acct_id], SPI_getvalue(tuple, tupdesc, 1));
+				tmp = SPI_getvalue(tuple, tupdesc, 2);
+				strncat(values[i_cash_bal], tmp, length_cb);
+				length_cb -= strlen(tmp);
+				if (length_cb < 0) {
+					FAIL_FRAME("cash_bal values needs to be increased");
+				}
 
-				strcat(values[i_cash_bal], ",");
-				strcat(values[i_cash_bal], SPI_getvalue(tuple, tupdesc, 2));
-
-				strcat(values[i_asset_total], ",");
-				sum = SPI_getvalue(tuple, tupdesc, 3);
-				if (sum != NULL) {
-					strcat(values[i_asset_total], sum);
-				} else {
-					strcat(values[i_asset_total], "0.00");
+				tmp = SPI_getvalue(tuple, tupdesc, 3);
+				strncat(values[i_asset_total], tmp, length_at);
+				length_at -= strlen(tmp);
+				if (length_at < 0) {
+					FAIL_FRAME("asset_total values needs to be increased");
 				}
 			}
-			strcat(values[i_acct_id], "}");
-			strcat(values[i_cash_bal], "}");
-			strcat(values[i_asset_total], "}");
+			for (i = 1; i < SPI_processed; i++) {
+				tuple = tuptable->vals[i];
+
+				strncat(values[i_acct_id], ",", length_ai--);
+				if (length_ai < 0) {
+					FAIL_FRAME("acct_id values needs to be increased");
+				}
+
+				tmp = SPI_getvalue(tuple, tupdesc, 1);
+				strncat(values[i_acct_id], tmp, length_ai);
+				length_ai -= strlen(tmp);
+				if (length_ai < 0) {
+					FAIL_FRAME("account_id values needs to be increased");
+				}
+
+				strncat(values[i_cash_bal], ",", length_cb--);
+				if (length_cb < 0) {
+					FAIL_FRAME("cash_bal values needs to be increased");
+				}
+
+				tmp = SPI_getvalue(tuple, tupdesc, 2);
+				strncat(values[i_cash_bal], tmp, length_cb);
+				length_cb -= strlen(tmp);
+				if (length_cb < 0) {
+					FAIL_FRAME("cash_bal values needs to be increased");
+				}
+
+				strncat(values[i_asset_total], ",", length_at--);
+				if (length_at < 0) {
+					FAIL_FRAME("asset_total values needs to be increased");
+				}
+
+				tmp = SPI_getvalue(tuple, tupdesc, 3);
+				if (tmp != NULL) {
+					strncat(values[i_asset_total], tmp, length_at);
+					length_at -= strlen(tmp);
+					if (length_at < 0) {
+						FAIL_FRAME("asset_total values needs to be increased");
+					}
+				} else {
+					strncat(values[i_asset_total], "0.00", length_at);
+					length_at -= 4;
+					if (length_at < 0) {
+						FAIL_FRAME("asset_total values needs to be increased");
+					}
+				}
+			}
+			strncat(values[i_acct_id], "}", length_ai--);
+			if (length_ai < 0) {
+				FAIL_FRAME("account_id values needs to be increased");
+			}
+
+			strncat(values[i_cash_bal], "}", length_cb--);
+			if (length_cb < 0) {
+				FAIL_FRAME("cash_bal values needs to be increased");
+			}
+
+			strncat(values[i_asset_total], "}", length_at--);
+			if (length_at < 0) {
+				FAIL_FRAME("asset_total values needs to be increased");
+			}
 		} else {
 #ifdef DEBUG
 			dump_cpf1_inputs(cust_id, tax_id_p);
@@ -455,12 +520,15 @@ CustomerPositionFrame2(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		args[0] = Int64GetDatum(acct_id);
 		ret = SPI_execute_plan(CPF2_1, args, nulls, true, 0);
-		sprintf(values[i_hist_len], "%" PRId64, SPI_processed);
+		snprintf(values[i_hist_len], BIGINT_LEN, "%" PRId64, SPI_processed);
 #ifdef DEBUG
 		elog(DEBUG1, "%ld row(s) returned.", SPI_processed);
 #endif /* DEBUG */
 		/* Should return 1 to rows. */
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+			char *tmp;
+			int length_hd, length_q, length_s, length_ti, length_ts;
+
 			/* Total number of tuples to be returned. */
 			funcctx->max_calls = 1;
 
@@ -468,61 +536,192 @@ CustomerPositionFrame2(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 
-			values[i_hist_dts] = (char *) palloc(
-					((MAXDATELEN + 1) * SPI_processed + 3) * sizeof(char));
-			values[i_qty] = (char *) palloc(
-					((INTEGER_LEN + 1) * SPI_processed + 3) * sizeof(char));
-			values[i_symbol] = (char *) palloc(
-					((S_SYMB_LEN + 3) * SPI_processed + 3) * sizeof(char));
-			values[i_trade_id] = (char *) palloc(
-					((IDENT_T_LEN + 1) * SPI_processed + 3) * sizeof(char));
-			values[i_trade_status] = (char *) palloc(
-					((ST_NAME_LEN + 3) * SPI_processed + 3) * sizeof(char));
+			length_hd = (MAXDATELEN + 1) * SPI_processed + 3;
+			values[i_hist_dts] = (char *) palloc(length_hd-- * sizeof(char));
 
-			strcpy(values[i_hist_dts], "{");
-			strcpy(values[i_qty], "{");
-			strcpy(values[i_symbol], "{");
-			strcpy(values[i_trade_id], "{");
-			strcpy(values[i_trade_status], "{");
+			length_q = (INTEGER_LEN + 1) * SPI_processed + 3;
+			values[i_qty] = (char *) palloc(length_q-- * sizeof(char));
 
-			strcat(values[i_hist_dts], SPI_getvalue(tuple, tupdesc, 5));
-			strcat(values[i_qty], SPI_getvalue(tuple, tupdesc, 3));
-			strcat(values[i_symbol], "\"");
-			strcat(values[i_symbol], SPI_getvalue(tuple, tupdesc, 2));
-			strcat(values[i_symbol], "\"");
-			strcat(values[i_trade_id], SPI_getvalue(tuple, tupdesc, 1));
-			strcat(values[i_trade_status], "\"");
-			strcat(values[i_trade_status], SPI_getvalue(tuple, tupdesc, 4));
-			strcat(values[i_trade_status], "\"");
+			length_s = (S_SYMB_LEN + 3) * SPI_processed + 3;
+			values[i_symbol] = (char *) palloc(length_s-- * sizeof(char));
+
+			length_ti = (IDENT_T_LEN + 1) * SPI_processed + 3;
+			values[i_trade_id] = (char *) palloc(length_ti-- * sizeof(char));
+
+			length_ts = (ST_NAME_LEN + 3) * SPI_processed + 3;
+			values[i_trade_status]
+					= (char *) palloc(length_ts-- * sizeof(char));
+
+			values[i_hist_dts][0] = '{';
+			values[i_hist_dts][1] = '\0';
+
+			values[i_qty][0] = '{';
+			values[i_qty][1] = '\0';
+
+			values[i_symbol][0] = '{';
+			values[i_symbol][1] = '\0';
+
+			values[i_trade_id][0] = '{';
+			values[i_trade_id][1] = '\0';
+
+			values[i_trade_status][0] = '{';
+			values[i_trade_status][1] = '\0';
+
+			tmp = SPI_getvalue(tuple, tupdesc, 5);
+			strncat(values[i_hist_dts], tmp, length_hd);
+			length_hd -= strlen(tmp);
+			if (length_hd < 0) {
+				FAIL_FRAME("hist_dts values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 3);
+			strncat(values[i_qty], tmp, length_q);
+			length_q -= strlen(tmp);
+			if (length_q < 0) {
+				FAIL_FRAME("qty values needs to be increased");
+			}
+
+			strncat(values[i_symbol], "\"", length_s--);
+			if (length_s < 0) {
+				FAIL_FRAME("symbol values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 2);
+			strncat(values[i_symbol], tmp, length_s);
+			length_s -= strlen(tmp);
+			if (length_s < 0) {
+				FAIL_FRAME("symbol values needs to be increased");
+			}
+
+			strncat(values[i_symbol], "\"", length_s--);
+			if (length_s < 0) {
+				FAIL_FRAME("symbol values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 1);
+			strncat(values[i_trade_id], tmp, length_ti);
+			length_ti -= strlen(tmp);
+			if (length_ti < 0) {
+				FAIL_FRAME("trade_id values needs to be increased");
+			}
+
+			strncat(values[i_trade_status], "\"", length_ts--);
+			if (length_ts < 0) {
+				FAIL_FRAME("trade_status values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 4);
+			strncat(values[i_trade_status], tmp, length_ts);
+			length_ts -= strlen(tmp);
+			if (length_ts < 0) {
+				FAIL_FRAME("trade_status values needs to be increased");
+			}
+
+			strncat(values[i_trade_status], "\"", length_ts--);
+			if (length_ts < 0) {
+				FAIL_FRAME("trade_status values needs to be increased");
+			}
 
 			for (i = 1; i < SPI_processed; i++) {
 				tuple = tuptable->vals[i];
 
-				strcat(values[i_hist_dts], ",");
-				strcat(values[i_hist_dts], SPI_getvalue(tuple, tupdesc, 5));
+				strncat(values[i_hist_dts], ",", length_hd--);
+				if (length_hd < 0) {
+					FAIL_FRAME("hist_dts values needs to be increased");
+				}
 
-				strcat(values[i_qty], ",");
-				strcat(values[i_qty], SPI_getvalue(tuple, tupdesc, 3));
+				tmp = SPI_getvalue(tuple, tupdesc, 5);
+				strncat(values[i_hist_dts], tmp, length_hd);
+				length_hd -= strlen(tmp);
+				if (length_hd < 0) {
+					FAIL_FRAME("hist_dts values needs to be increased");
+				}
 
-				strcat(values[i_symbol], ",");
-				strcat(values[i_symbol], "\"");
-				strcat(values[i_symbol], SPI_getvalue(tuple, tupdesc, 2));
-				strcat(values[i_symbol], "\"");
+				strncat(values[i_qty], ",", length_q--);
+				if (length_q < 0) {
+					FAIL_FRAME("qty values needs to be increased");
+				}
 
-				strcat(values[i_trade_id], ",");
-				strcat(values[i_trade_id], SPI_getvalue(tuple, tupdesc, 1));
+				tmp = SPI_getvalue(tuple, tupdesc, 3);
+				strncat(values[i_qty], tmp, length_q);
+				length_q -= strlen(tmp);
+				if (length_q < 0) {
+					FAIL_FRAME("qty values needs to be increased");
+				}
 
-				strcat(values[i_trade_status], ",");
-				strcat(values[i_trade_status], "\"");
-				strcat(values[i_trade_status],
-						SPI_getvalue(tuple, tupdesc, 4));
-				strcat(values[i_trade_status], "\"");
+				strncat(values[i_symbol], ",\"", length_s);
+				length_s -= 2;
+				if (length_s < 0) {
+					FAIL_FRAME("symbol values needs to be increased");
+				}
+
+				tmp = SPI_getvalue(tuple, tupdesc, 2);
+				strncat(values[i_symbol], tmp, length_s);
+				length_s -= strlen(tmp);
+				if (length_s < 0) {
+					FAIL_FRAME("symbol values needs to be increased");
+				}
+
+				strncat(values[i_symbol], "\"", length_s--);
+				if (length_s < 0) {
+					FAIL_FRAME("symbol values needs to be increased");
+				}
+
+				strncat(values[i_trade_id], ",", length_ti--);
+				if (length_ti < 0) {
+					FAIL_FRAME("trade_id values needs to be increased");
+				}
+
+				tmp = SPI_getvalue(tuple, tupdesc, 1);
+				strncat(values[i_trade_id], tmp, length_ti);
+				length_ti -= strlen(tmp);
+				if (length_ti < 0) {
+					FAIL_FRAME("trade_id values needs to be increased");
+				}
+
+				strncat(values[i_trade_status], ",\"", length_ts);
+				length_ts -= 2;
+				if (length_ts < 0) {
+					FAIL_FRAME("trade_status values needs to be increased");
+				}
+
+				tmp = SPI_getvalue(tuple, tupdesc, 4);
+				strncat(values[i_trade_status], tmp, length_ts);
+				length_ts -= strlen(tmp);
+				if (length_ts < 0) {
+					FAIL_FRAME("trade_status values needs to be increased");
+				}
+
+				strncat(values[i_trade_status], "\"", length_ts--);
+				if (length_ts < 0) {
+					FAIL_FRAME("trade_status values needs to be increased");
+				}
 			}
-			strcat(values[i_hist_dts], "}");
-			strcat(values[i_qty], "}");
-			strcat(values[i_symbol], "}");
-			strcat(values[i_trade_id], "}");
-			strcat(values[i_trade_status], "}");
+
+			strncat(values[i_hist_dts], "}", length_hd--);
+			if (length_hd < 0) {
+				FAIL_FRAME("hist_dts values needs to be increased");
+			}
+
+			strncat(values[i_qty], "}", length_q--);
+			if (length_q < 0) {
+				FAIL_FRAME("qty values needs to be increased");
+			}
+
+			strncat(values[i_symbol], "}", length_s--);
+			if (length_s < 0) {
+				FAIL_FRAME("symbol values needs to be increased");
+			}
+
+			strncat(values[i_trade_id], "}", length_ti--);
+			if (length_ti < 0) {
+				FAIL_FRAME("trade_id values needs to be increased");
+			}
+
+			strncat(values[i_trade_status], "}", length_ts--);
+			if (length_ts < 0) {
+				FAIL_FRAME("trade_status values needs to be increased");
+			}
 		} else {
 			if (ret == SPI_OK_SELECT && SPI_processed == 0) {
 				elog(WARNING, "Query CPF2_1 should return 10-30 rows.");
@@ -542,11 +741,12 @@ CustomerPositionFrame2(PG_FUNCTION_ARGS)
 			values[i_symbol] = (char *) palloc(3 * sizeof(char));
 			values[i_trade_id] = (char *) palloc(3 * sizeof(char));
 			values[i_trade_status] = (char *) palloc(3 * sizeof(char));
-			strcpy(values[i_hist_dts], "{}");
-			strcpy(values[i_qty], "{}");
-			strcpy(values[i_symbol], "{}");
-			strcpy(values[i_trade_id], "{}");
-			strcpy(values[i_trade_status], "{}");
+
+			strncpy(values[i_hist_dts], "{}", 3);
+			strncpy(values[i_qty], "{}", 3);
+			strncpy(values[i_symbol], "{}", 3);
+			strncpy(values[i_trade_id], "{}", 3);
+			strncpy(values[i_trade_status], "{}", 3);
 		}
 
 		/* Build a tuple descriptor for our result type. */

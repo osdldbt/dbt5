@@ -24,6 +24,8 @@
 #include "frame.h"
 #include "dbt5common.h"
 
+#define BROKER_LIST_ARRAY_LEN ((B_NAME_LEN + 3) * 40 + 4)
+
 #define SQLBVF1_1                                                             \
 	"SELECT b_name\n"                                                         \
 	"     , sum(tr_qty * tr_bid_price)\n"                                     \
@@ -140,9 +142,12 @@ BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		SPITupleTable *tuptable = NULL;
 		HeapTuple tuple = NULL;
 
-		char broker_list_array[(B_NAME_LEN + 3) * 40 + 5] = "'{";
+		char broker_list_array[BROKER_LIST_ARRAY_LEN + 1] = "'{";
+		int length_bl = BROKER_LIST_ARRAY_LEN - 2;
 		Datum args[2];
 		char nulls[2] = { ' ', ' ' };
+
+		char *tmp;
 
 		/*
 		 * Prepare a values array for building the returned tuple.
@@ -165,26 +170,57 @@ BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		broker_list = ARR_DATA_PTR(broker_list_p);
 		/* Turn the broker_list input into an array format. */
 		if (nitems > 0) {
-			strcat(broker_list_array, "\"");
-			strcat(broker_list_array,
+			strncat(broker_list_array, "\"", length_bl--);
+			if (length_bl < 0) {
+				FAIL_FRAME("broker_list_array needs to be increased");
+			}
+
+			tmp = DatumGetCString(DirectFunctionCall1(
+					textout, PointerGetDatum(broker_list)));
+			strncat(broker_list_array,
 					DatumGetCString(DirectFunctionCall1(
-							textout, PointerGetDatum(broker_list))));
+							textout, PointerGetDatum(broker_list))),
+					length_bl);
+			length_bl -= strlen(tmp);
+			if (length_bl < 0) {
+				FAIL_FRAME("broker_list_array needs to be increased");
+			}
+
 			broker_list
 					= att_addlength_pointer(broker_list, typlen, broker_list);
 			broker_list = (char *) att_align_nominal(broker_list, typalign);
-			strcat(broker_list_array, "\"");
+			strncat(broker_list_array, "\"", length_bl--);
+			if (length_bl < 0) {
+				FAIL_FRAME("broker_list_array needs to be increased");
+			}
 		}
 		for (i = 1; i < nitems; i++) {
-			strcat(broker_list_array, ",\"");
-			strcat(broker_list_array,
-					DatumGetCString(DirectFunctionCall1(
-							textout, PointerGetDatum(broker_list))));
+			strncat(broker_list_array, ",\"", length_bl--);
+			if (length_bl < 0) {
+				FAIL_FRAME("broker_list_array needs to be increased");
+			}
+
+			tmp = DatumGetCString(DirectFunctionCall1(
+					textout, PointerGetDatum(broker_list)));
+			strncat(broker_list_array, tmp, length_bl);
+			length_bl -= strlen(tmp);
+			if (length_bl < 0) {
+				FAIL_FRAME("broker_list_array needs to be increased");
+			}
+
 			broker_list
 					= att_addlength_pointer(broker_list, typlen, broker_list);
 			broker_list = (char *) att_align_nominal(broker_list, typalign);
-			strcat(broker_list_array, "\"");
+			strncat(broker_list_array, "\"", length_bl--);
+			if (length_bl < 0) {
+				FAIL_FRAME("broker_list_array needs to be increased");
+			}
 		}
-		strcat(broker_list_array, "}'");
+		strncat(broker_list_array, "}'", length_bl);
+		length_bl -= 2;
+		if (length_bl < 0) {
+			FAIL_FRAME("broker_list_array needs to be increased");
+		}
 #ifdef DEBUG
 		dump_bvf1_inputs(broker_list_p, sector_name_p);
 #endif
@@ -215,37 +251,97 @@ BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME_SET(&funcctx->max_calls, BVF1_statements[0].sql);
 		}
 
-		sprintf(values[i_list_len], "%" PRId64, SPI_processed);
-		values[i_broker_name] = (char *) palloc(
-				((B_NAME_LEN + 2) * (SPI_processed + 1) + 3) * sizeof(char));
-		values[i_volume] = (char *) palloc(
-				(INTEGER_LEN * (SPI_processed + 1) + 3) * sizeof(char));
+		snprintf(values[i_list_len], BIGINT_LEN, "%" PRId64, SPI_processed);
 
 		if (SPI_processed == 0) {
-			strcpy(values[i_broker_name], "{}");
-			strcpy(values[i_volume], "{}");
+			values[i_broker_name] = (char *) palloc(3 * sizeof(char));
+			values[i_volume] = (char *) palloc(3 * sizeof(char));
+
+			strncpy(values[i_broker_name], "{}", 3);
+			strncpy(values[i_volume], "{}", 3);
 		} else {
-			strcpy(values[i_broker_name], "{");
-			strcpy(values[i_volume], "{");
+			int length_bn, length_v;
+
+			length_bn = (B_NAME_LEN + 2) * (SPI_processed + 1) + 3;
+			values[i_broker_name]
+					= (char *) palloc(length_bn-- * sizeof(char));
+
+			length_v = INTEGER_LEN * (SPI_processed + 1) + 3;
+			values[i_volume] = (char *) palloc(length_v-- * sizeof(char));
+
+			values[i_broker_name][0] = '{';
+			values[i_broker_name][1] = '\0';
+
+			values[i_volume][0] = '{';
+			values[i_volume][1] = '\0';
 
 			if (SPI_processed > 0) {
-				strcat(values[i_broker_name], "\"");
-				strcat(values[i_broker_name], SPI_getvalue(tuple, tupdesc, 1));
-				strcat(values[i_broker_name], "\"");
-				strcat(values[i_volume], SPI_getvalue(tuple, tupdesc, 2));
+				strncat(values[i_broker_name], "\"", length_bn--);
+				if (length_bn < 0) {
+					FAIL_FRAME("broker_name values needs to be increased");
+				}
+
+				tmp = SPI_getvalue(tuple, tupdesc, 1);
+				strncat(values[i_broker_name], tmp, length_bn);
+				length_bn -= strlen(tmp);
+				if (length_bn < 0) {
+					FAIL_FRAME("broker_name values needs to be increased");
+				}
+
+				strncat(values[i_broker_name], "\"", length_bn--);
+				if (length_bn < 0) {
+					FAIL_FRAME("broker_name values needs to be increased");
+				}
+
+				tmp = SPI_getvalue(tuple, tupdesc, 2);
+				strncat(values[i_volume], tmp, length_v);
+				length_v -= strlen(tmp);
+				if (length_v < 0) {
+					FAIL_FRAME("volume values needs to be increased");
+				}
 			}
 			for (i = 1; i < SPI_processed; i++) {
 				tuple = tuptable->vals[i];
-				strcat(values[i_broker_name], ",");
-				strcat(values[i_broker_name], "\"");
-				strcat(values[i_broker_name], SPI_getvalue(tuple, tupdesc, 1));
-				strcat(values[i_broker_name], "\"");
 
-				strcat(values[i_volume], ",");
-				strcat(values[i_volume], SPI_getvalue(tuple, tupdesc, 2));
+				strncat(values[i_broker_name], ",\"", length_bn);
+				length_bn -= 2;
+				if (length_bn < 0) {
+					FAIL_FRAME("broker_name values needs to be increased");
+				}
+
+				tmp = SPI_getvalue(tuple, tupdesc, 1);
+				strncat(values[i_broker_name], tmp, length_bn);
+				length_bn -= strlen(tmp);
+				if (length_bn < 0) {
+					FAIL_FRAME("broker_name values needs to be increased");
+				}
+
+				strncat(values[i_broker_name], "\"", length_bn--);
+				if (length_bn < 0) {
+					FAIL_FRAME("broker_name values needs to be increased");
+				}
+
+				strncat(values[i_volume], ",", length_v--);
+				if (length_v < 0) {
+					FAIL_FRAME("volume values needs to be increased");
+				}
+
+				tmp = SPI_getvalue(tuple, tupdesc, 2);
+				strncat(values[i_volume], tmp, length_v);
+				length_v -= strlen(tmp);
+				if (length_v < 0) {
+					FAIL_FRAME("volume values needs to be increased");
+				}
 			}
-			strcat(values[i_broker_name], "}");
-			strcat(values[i_volume], "}");
+			strncat(values[i_broker_name], "}", length_bn--);
+			if (length_bn < 0) {
+				FAIL_FRAME("broker_name values needs to be increased");
+			}
+
+			strncat(values[i_volume], "}", length_v--);
+			if (length_v < 0) {
+				FAIL_FRAME("volume values needs to be increased");
+			}
 		}
 
 		/* Build a tuple descriptor for our result type */

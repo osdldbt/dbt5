@@ -282,6 +282,7 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			i_yield
 		};
 
+		char *tmp;
 		int ret;
 		TupleDesc tupdesc;
 		SPITupleTable *tuptable = NULL;
@@ -289,6 +290,8 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		char *co_id = NULL;
 		Datum args[3];
 		char nulls[3] = { ' ', ' ', ' ' };
+
+		int length_cn, length_d, length_f, length_in, length_n;
 
 		strncpy(symbol,
 				DatumGetCString(DirectFunctionCall1(
@@ -307,33 +310,36 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		 * This should be an array of C strings, which will
 		 * be processed later by the type input functions.
 		 */
+		length_cn = MAX_COMP_LEN * (CO_NAME_LEN + 3) + 3;
+		length_in = MAX_COMP_LEN * (IN_NAME_LEN + 3) + 3;
+
 		values = (char **) palloc(sizeof(char *) * 45);
-		values[i_cp_co_name] = (char *) palloc(
-				sizeof(char) * (MAX_COMP_LEN * (CO_NAME_LEN + 3) + 3));
-		values[i_cp_in_name] = (char *) palloc(
-				sizeof(char) * (MAX_COMP_LEN * (IN_NAME_LEN + 3) + 3));
-		values[i_day]
-				= (char *) palloc(sizeof(char)
-								  * ((MAXDATELEN + DM_CLOSE_LEN + DM_HIGH_LEN
-											 + DM_LOW_LEN + DM_VOL_LEN + 9)
-												  * max_rows_to_return
-										  + 3));
+		values[i_cp_co_name] = (char *) palloc(sizeof(char) * length_cn--);
+		values[i_cp_in_name] = (char *) palloc(sizeof(char) * length_in--);
+
+		length_d = (MAXDATELEN + DM_CLOSE_LEN + DM_HIGH_LEN + DM_LOW_LEN
+						   + DM_VOL_LEN + 9)
+						   * max_rows_to_return
+				   + 3;
+		values[i_day] = (char *) palloc(sizeof(char) * length_d--);
+
 		values[i_day_len] = (char *) palloc(sizeof(char) * (INTEGER_LEN + 1));
-		values[i_fin] = (char *) palloc(
-				((FI_YEAR_LEN + FI_QTR_LEN + MAXDATELEN + FI_REVENUE_LEN
-						 + FI_NET_EARN_LEN + FI_BASIC_EPS_LEN + FI_MARGIN_LEN
-						 + FI_INVENTORY_LEN + FI_ASSETS_LEN + FI_LIABILITY_LEN
-						 + FI_OUT_BASIC_LEN + FI_OUT_DILUT_LEN + 16)
-								* MAX_FIN_LEN
-						+ 3)
-				* sizeof(char));
+
+		length_f
+				= (FI_YEAR_LEN + FI_QTR_LEN + MAXDATELEN + FI_REVENUE_LEN
+						  + FI_NET_EARN_LEN + FI_BASIC_EPS_LEN + FI_MARGIN_LEN
+						  + FI_INVENTORY_LEN + FI_ASSETS_LEN + FI_LIABILITY_LEN
+						  + FI_OUT_BASIC_LEN + FI_OUT_DILUT_LEN + 16)
+						  * MAX_FIN_LEN
+				  + 3;
+		values[i_fin] = (char *) palloc(length_f-- * sizeof(char));
 		values[i_fin_len] = (char *) palloc(sizeof(char) * (INTEGER_LEN + 1));
-		values[i_news] = (char *) palloc(
-				sizeof(char)
-				* ((NI_ITEM_LEN + MAXDATELEN + NI_SOURCE_LEN + NI_AUTHOR_LEN
+
+		length_n = (NI_ITEM_LEN + MAXDATELEN + NI_SOURCE_LEN + NI_AUTHOR_LEN
 						   + NI_SUMMARY_LEN + NI_HEADLINE_LEN + 35)
-								* MAX_NEWS_LEN
-						+ 3));
+						   * MAX_NEWS_LEN
+				   + 3;
+		values[i_news] = (char *) palloc(sizeof(char) * length_n--);
 		values[i_news_len] = (char *) palloc(sizeof(char) * (INTEGER_LEN + 1));
 
 		/* create a function context for cross-call persistence */
@@ -407,40 +413,111 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 
-			strcpy(values[i_cp_co_name], "{");
-			strcpy(values[i_cp_in_name], "{");
+			values[i_cp_co_name][0] = '{';
+			values[i_cp_co_name][1] = '\0';
+			if (length_cn < 0) {
+				FAIL_FRAME("cp_co_name values needs to be increased");
+			}
+
+			values[i_cp_in_name][0] = '{';
+			values[i_cp_in_name][1] = '\0';
+			if (length_in < 0) {
+				FAIL_FRAME("cp_in_name values needs to be increased");
+			}
 
 			if (SPI_processed > 0) {
 				tuple = tuptable->vals[0];
 
-				strcat(values[i_cp_co_name], "\"");
-				strcat(values[i_cp_co_name], SPI_getvalue(tuple, tupdesc, 1));
-				strcat(values[i_cp_co_name], "\"");
+				strncat(values[i_cp_co_name], "\"", length_cn--);
+				if (length_cn < 0) {
+					FAIL_FRAME("cp_co_name values needs to be increased");
+				}
 
-				strcat(values[i_cp_in_name], "\"");
-				strcat(values[i_cp_in_name], SPI_getvalue(tuple, tupdesc, 2));
-				strcat(values[i_cp_in_name], "\"");
+				tmp = SPI_getvalue(tuple, tupdesc, 1);
+				strncat(values[i_cp_co_name], tmp, length_cn);
+				length_cn -= strlen(tmp);
+				if (length_cn < 0) {
+					FAIL_FRAME("cp_co_name values needs to be increased");
+				}
+
+				strncat(values[i_cp_co_name], "\"", length_cn--);
+				if (length_cn < 0) {
+					FAIL_FRAME("cp_co_name values needs to be increased");
+				}
+
+				strncat(values[i_cp_in_name], "\"", length_in--);
+				if (length_in < 0) {
+					FAIL_FRAME("cp_in_name values needs to be increased");
+				}
+
+				tmp = SPI_getvalue(tuple, tupdesc, 2);
+				strncat(values[i_cp_in_name], tmp, length_in--);
+				length_in -= strlen(tmp);
+				if (length_in < 0) {
+					FAIL_FRAME("cp_in_name values needs to be increased");
+				}
+
+				strncat(values[i_cp_in_name], "\"", length_in--);
+				if (length_in < 0) {
+					FAIL_FRAME("cp_in_name values needs to be increased");
+				}
 			}
 			for (i = 1; i < SPI_processed; i++) {
 				tuple = tuptable->vals[i];
 
-				strcat(values[i_cp_co_name], ",\"");
-				strcat(values[i_cp_co_name], SPI_getvalue(tuple, tupdesc, 1));
-				strcat(values[i_cp_co_name], "\"");
+				strncat(values[i_cp_co_name], ",\"", length_cn);
+				length_cn -= 2;
+				if (length_cn < 0) {
+					FAIL_FRAME("cp_co_name values needs to be increased");
+				}
 
-				strcat(values[i_cp_in_name], ",\"");
-				strcat(values[i_cp_in_name], SPI_getvalue(tuple, tupdesc, 2));
-				strcat(values[i_cp_in_name], "\"");
+				tmp = SPI_getvalue(tuple, tupdesc, 1);
+				strncat(values[i_cp_co_name], tmp, length_cn);
+				length_cn -= strlen(tmp);
+				if (length_cn < 0) {
+					FAIL_FRAME("cp_co_name values needs to be increased");
+				}
+
+				strncat(values[i_cp_co_name], "\"", length_cn--);
+				if (length_cn < 0) {
+					FAIL_FRAME("cp_co_name values needs to be increased");
+				}
+
+				strncat(values[i_cp_in_name], ",\"", length_in);
+				length_in -= 2;
+				if (length_in < 0) {
+					FAIL_FRAME("cp_in_name values needs to be increased");
+				}
+
+				tmp = SPI_getvalue(tuple, tupdesc, 2);
+				strncat(values[i_cp_in_name], tmp, length_in);
+				length_in -= strlen(tmp);
+				if (length_in < 0) {
+					FAIL_FRAME("cp_in_name values needs to be increased");
+				}
+
+				strncat(values[i_cp_in_name], "\"", length_in--);
+				if (length_in < 0) {
+					FAIL_FRAME("cp_in_name values needs to be increased");
+				}
 			}
-			strcat(values[i_cp_co_name], "}");
-			strcat(values[i_cp_in_name], "}");
+
+			strncat(values[i_cp_co_name], "}", length_cn--);
+			if (length_cn < 0) {
+				FAIL_FRAME("cp_co_name values needs to be increased");
+			}
+
+			strncat(values[i_cp_in_name], "}", length_in--);
+			if (length_in < 0) {
+				FAIL_FRAME("cp_in_name values needs to be increased");
+			}
 		} else {
 #ifdef DEBUG
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
 #endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[1].sql);
-			strcpy(values[i_cp_co_name], "{}");
-			strcpy(values[i_cp_in_name], "{}");
+			strncpy(values[i_cp_co_name], "{}", 3);
+			strncpy(values[i_cp_in_name], "{}", 3);
 		}
 
 #ifdef DEBUG
@@ -458,42 +535,185 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[2].sql);
 		}
-		sprintf(values[i_fin_len], "%" PRId64, SPI_processed);
-		strcpy(values[i_fin], "{");
+		snprintf(values[i_fin_len], sizeof(values[i_fin_len]), "%" PRId64,
+				SPI_processed);
+		values[i_fin][0] = '{';
+		values[i_fin][1] = '\0';
 		for (i = 0; i < SPI_processed; i++) {
 			tuple = tuptable->vals[i];
 			if (i > 0) {
-				strcat(values[i_fin], ",");
+				strncat(values[i_fin], ",", length_f--);
+				if (length_f < 0) {
+					FAIL_FRAME("fin values needs to be increased");
+				}
 			}
-			strcat(values[i_fin], "\"(");
-			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 1));
-			strcat(values[i_fin], ",");
-			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 2));
-			strcat(values[i_fin], ",");
-			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 3));
-			strcat(values[i_fin], ",");
-			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 4));
-			strcat(values[i_fin], ",");
-			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 5));
-			strcat(values[i_fin], ",");
-			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 6));
-			strcat(values[i_fin], ",");
-			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 7));
-			strcat(values[i_fin], ",");
-			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 8));
-			strcat(values[i_fin], ",");
-			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 9));
-			strcat(values[i_fin], ",");
-			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 10));
-			strcat(values[i_fin], ",");
-			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 11));
-			strcat(values[i_fin], ",");
-			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 12));
-			strcat(values[i_fin], ",");
-			strcat(values[i_fin], SPI_getvalue(tuple, tupdesc, 13));
-			strcat(values[i_fin], ")\"");
+			strncat(values[i_fin], "\"(", length_f);
+			length_f -= 2;
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 1);
+			strncat(values[i_fin], tmp, length_f);
+			length_f -= strlen(tmp);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_fin], ",", length_f--);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 2);
+			strncat(values[i_fin], tmp, length_f);
+			length_f -= strlen(tmp);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_fin], ",", length_f--);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 3);
+			strncat(values[i_fin], tmp, length_f);
+			length_f -= strlen(tmp);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_fin], ",", length_f--);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 4);
+			strncat(values[i_fin], tmp, length_f);
+			length_f -= strlen(tmp);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_fin], ",", length_f--);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 5);
+			strncat(values[i_fin], tmp, length_f);
+			length_f -= strlen(tmp);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_fin], ",", length_f--);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 6);
+			strncat(values[i_fin], tmp, length_f);
+			length_f -= strlen(tmp);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_fin], ",", length_f--);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 7);
+			strncat(values[i_fin], tmp, length_f);
+			length_f -= strlen(tmp);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_fin], ",", length_f--);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 8);
+			strncat(values[i_fin], tmp, length_f);
+			length_f -= strlen(tmp);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_fin], ",", length_f--);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 9);
+			strncat(values[i_fin], tmp, length_f);
+			length_f -= strlen(tmp);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_fin], ",", length_f--);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 10);
+			strncat(values[i_fin], tmp, length_f);
+			length_f -= strlen(tmp);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_fin], ",", length_f--);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 11);
+			strncat(values[i_fin], tmp, length_f);
+			length_f -= strlen(tmp);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_fin], ",", length_f--);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 12);
+			strncat(values[i_fin], tmp, length_f);
+			length_f -= strlen(tmp);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_fin], ",", length_f--);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 13);
+			strncat(values[i_fin], tmp, length_f);
+			length_f -= strlen(tmp);
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_fin], ")\"", length_f);
+			length_f -= 2;
+			if (length_f < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
 		}
-		strcat(values[i_fin], "}");
+		strncat(values[i_fin], "}", length_f--);
+		if (length_f < 0) {
+			FAIL_FRAME("fin values needs to be increased");
+		}
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLSDF1_4);
 #endif /* DEBUG */
@@ -510,26 +730,89 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[3].sql);
 		}
-		sprintf(values[i_day_len], "%" PRId64, SPI_processed);
-		strcpy(values[i_day], "{");
+		snprintf(values[i_day_len], sizeof(values[i_day_len]), "%" PRId64,
+				SPI_processed);
+		values[i_day][0] = '{';
+		values[i_day][1] = '\0';
 		for (i = 0; i < SPI_processed; i++) {
 			tuple = tuptable->vals[i];
 			if (i > 0) {
-				strcat(values[i_day], ",");
+				strncat(values[i_day], ",", length_d--);
+				if (length_d < 0) {
+					FAIL_FRAME("fin values needs to be increased");
+				}
 			}
-			strcat(values[i_day], "\"(");
-			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 1));
-			strcat(values[i_day], ",");
-			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 2));
-			strcat(values[i_day], ",");
-			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 3));
-			strcat(values[i_day], ",");
-			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 4));
-			strcat(values[i_day], ",");
-			strcat(values[i_day], SPI_getvalue(tuple, tupdesc, 5));
-			strcat(values[i_day], ")\"");
+			strncat(values[i_day], "\"(", length_d);
+			length_d -= 2;
+			if (length_d < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 1);
+			strncat(values[i_day], tmp, length_d);
+			length_d -= strlen(tmp);
+			if (length_d < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_day], ",", length_d--);
+			if (length_d < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 2);
+			strncat(values[i_day], tmp, length_d);
+			length_d -= strlen(tmp);
+			if (length_d < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_day], ",", length_d--);
+			if (length_d < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 3);
+			strncat(values[i_day], tmp, length_d);
+			length_d -= strlen(tmp);
+			if (length_d < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_day], ",", length_d--);
+			if (length_d < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 4);
+			strncat(values[i_day], tmp, length_d);
+			length_d -= strlen(tmp);
+			if (length_d < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_day], ",", length_d--);
+			if (length_d < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 5);
+			strncat(values[i_day], tmp, length_d);
+			length_d -= strlen(tmp);
+			if (length_d < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
+
+			strncat(values[i_day], ")\"", length_d);
+			length_d -= 2;
+			if (length_d < 0) {
+				FAIL_FRAME("fin values needs to be increased");
+			}
 		}
-		strcat(values[i_day], "}");
+		strncat(values[i_day], "}", length_d--);
+		if (length_d < 0) {
+			FAIL_FRAME("fin values needs to be increased");
+		}
 
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLSDF1_5);
@@ -577,30 +860,106 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 					access_lob_flag ? SDF1_statements[5].sql
 									: SDF1_statements[6].sql);
 		}
-		sprintf(values[i_news_len], "%" PRId64, SPI_processed);
-		strcpy(values[i_news], "{");
+		snprintf(values[i_news_len], sizeof(values[i_news_len]), "%" PRId64,
+				SPI_processed);
+		values[i_news][0] = '{';
+		values[i_news][1] = '\0';
 		for (i = 0; i < SPI_processed; i++) {
 			tuple = tuptable->vals[i];
 			if (i > 0) {
-				strcat(values[i_news], ",");
+				strncat(values[i_news], ",", length_n--);
+				if (length_n < 0) {
+					FAIL_FRAME("news values needs to be increased");
+				}
 			}
-			strcat(values[i_news], "\"(");
-			strcat(values[i_news], "\\\"");
-			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 1));
-			strcat(values[i_news], "\\\",\\\"");
-			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 2));
-			strcat(values[i_news], "\\\",\\\"");
-			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 3));
-			strcat(values[i_news], "\\\",\\\"");
-			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 4));
-			strcat(values[i_news], "\\\",\\\"");
-			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 5));
-			strcat(values[i_news], "\\\",\\\"");
-			strcat(values[i_news], SPI_getvalue(tuple, tupdesc, 6));
-			strcat(values[i_news], "\\\"");
-			strcat(values[i_news], ")\"");
+			strncat(values[i_news], "\"(\\\"", length_n);
+			length_n -= 4;
+			if (length_n < 0) {
+				FAIL_FRAME("news values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 1);
+			strncat(values[i_news], tmp, length_n);
+			length_n -= strlen(tmp);
+			if (length_n < 0) {
+				FAIL_FRAME("news values needs to be increased");
+			}
+
+			strncat(values[i_news], "\\\",\\\"", length_n);
+			length_n -= 5;
+			if (length_n < 0) {
+				FAIL_FRAME("news values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 2);
+			strncat(values[i_news], tmp, length_n);
+			length_n -= strlen(tmp);
+			if (length_n < 0) {
+				FAIL_FRAME("news values needs to be increased");
+			}
+
+			strncat(values[i_news], "\\\",\\\"", length_n);
+			length_n -= 5;
+			if (length_n < 0) {
+				FAIL_FRAME("news values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 3);
+			strncat(values[i_news], tmp, length_n);
+			length_n -= strlen(tmp);
+			if (length_n < 0) {
+				FAIL_FRAME("news values needs to be increased");
+			}
+
+			strncat(values[i_news], "\\\",\\\"", length_n);
+			length_n -= 5;
+			if (length_n < 0) {
+				FAIL_FRAME("news values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 4);
+			strncat(values[i_news], tmp, length_n);
+			length_n -= strlen(tmp);
+			if (length_n < 0) {
+				FAIL_FRAME("news values needs to be increased");
+			}
+
+			strncat(values[i_news], "\\\",\\\"", length_n);
+			length_n -= 5;
+			if (length_n < 0) {
+				FAIL_FRAME("news values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 5);
+			strncat(values[i_news], tmp, length_n);
+			length_n -= strlen(tmp);
+			if (length_n < 0) {
+				FAIL_FRAME("news values needs to be increased");
+			}
+
+			strncat(values[i_news], "\\\",\\\"", length_n);
+			length_n -= 5;
+			if (length_n < 0) {
+				FAIL_FRAME("news values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 6);
+			strncat(values[i_news], tmp, length_n);
+			length_n -= strlen(tmp);
+			if (length_n < 0) {
+				FAIL_FRAME("news values needs to be increased");
+			}
+
+			strncat(values[i_news], "\\\")\"", length_n);
+			length_n -= 4;
+			if (length_n < 0) {
+				FAIL_FRAME("news values needs to be increased");
+			}
 		}
-		strcat(values[i_news], "}");
+		strncat(values[i_news], "}", length_n--);
+		if (length_n < 0) {
+			FAIL_FRAME("news values needs to be increased");
+		}
 
 		/* Build a tuple descriptor for our result type */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc)

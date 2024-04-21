@@ -464,7 +464,8 @@ TradeOrderFrame1(PG_FUNCTION_ARGS)
 			values[i_broker_id] = SPI_getvalue(tuple, tupdesc, 2);
 			values[i_cust_id] = SPI_getvalue(tuple, tupdesc, 3);
 			values[i_tax_status] = SPI_getvalue(tuple, tupdesc, 4);
-			sprintf(values[i_num_found], "%" PRId64, SPI_processed);
+			snprintf(values[i_num_found], BIGINT_LEN, "%" PRId64,
+					SPI_processed);
 		} else {
 #ifdef DEBUG
 			dump_tof1_inputs(acct_id);
@@ -590,12 +591,18 @@ TradeOrderFrame2(PG_FUNCTION_ARGS)
 	Datum args[5];
 	char nulls[5] = { ' ', ' ', ' ', ' ', ' ' };
 
-	strcpy(exec_f_name, DatumGetCString(DirectFunctionCall1(
-								textout, PointerGetDatum(exec_f_name_p))));
-	strcpy(exec_l_name, DatumGetCString(DirectFunctionCall1(
-								textout, PointerGetDatum(exec_l_name_p))));
-	strcpy(exec_tax_id, DatumGetCString(DirectFunctionCall1(
-								textout, PointerGetDatum(exec_tax_id_p))));
+	strncpy(exec_f_name,
+			DatumGetCString(DirectFunctionCall1(
+					textout, PointerGetDatum(exec_f_name_p))),
+			sizeof(exec_f_name));
+	strncpy(exec_l_name,
+			DatumGetCString(DirectFunctionCall1(
+					textout, PointerGetDatum(exec_l_name_p))),
+			sizeof(exec_l_name));
+	strncpy(exec_tax_id,
+			DatumGetCString(DirectFunctionCall1(
+					textout, PointerGetDatum(exec_tax_id_p))),
+			sizeof(exec_tax_id));
 #ifdef DEBUG
 	dump_tof2_inputs(acct_id, exec_f_name, exec_l_name, exec_tax_id);
 #endif
@@ -710,18 +717,30 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 
 		char co_name_esc[CO_NAME_LEN * 2 + 1];
 
-		strcpy(co_name, DatumGetCString(DirectFunctionCall1(
-								textout, PointerGetDatum(co_name_p))));
-		strcpy(issue, DatumGetCString(DirectFunctionCall1(
-							  textout, PointerGetDatum(issue_p))));
-		strcpy(st_pending_id, DatumGetCString(DirectFunctionCall1(textout,
-									  PointerGetDatum(st_pending_id_p))));
-		strcpy(st_submitted_id, DatumGetCString(DirectFunctionCall1(textout,
-										PointerGetDatum(st_submitted_id_p))));
-		strcpy(trade_type_id, DatumGetCString(DirectFunctionCall1(textout,
-									  PointerGetDatum(trade_type_id_p))));
-		strcpy(symbol, DatumGetCString(DirectFunctionCall1(
-							   textout, PointerGetDatum(symbol_p))));
+		strncpy(co_name,
+				DatumGetCString(DirectFunctionCall1(
+						textout, PointerGetDatum(co_name_p))),
+				sizeof(co_name));
+		strncpy(issue,
+				DatumGetCString(DirectFunctionCall1(
+						textout, PointerGetDatum(issue_p))),
+				sizeof(issue));
+		strncpy(st_pending_id,
+				DatumGetCString(DirectFunctionCall1(
+						textout, PointerGetDatum(st_pending_id_p))),
+				sizeof(st_pending_id));
+		strncpy(st_submitted_id,
+				DatumGetCString(DirectFunctionCall1(
+						textout, PointerGetDatum(st_submitted_id_p))),
+				sizeof(st_submitted_id));
+		strncpy(trade_type_id,
+				DatumGetCString(DirectFunctionCall1(
+						textout, PointerGetDatum(trade_type_id_p))),
+				sizeof(trade_type_id));
+		strncpy(symbol,
+				DatumGetCString(DirectFunctionCall1(
+						textout, PointerGetDatum(symbol_p))),
+				sizeof(symbol));
 
 		requested_price = DatumGetFloat8(
 				DirectFunctionCall1(numeric_float8_no_overflow,
@@ -758,7 +777,8 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
 		funcctx->max_calls = 1;
-		sprintf(values[i_requested_price], "%8.2f", requested_price);
+		snprintf(values[i_requested_price], S_PRICE_T_LEN, "%8.2f",
+				requested_price);
 
 		/* switch to memory context appropriate for multiple function calls */
 		oldcontext = MemoryContextSwitchTo(funcctx->multi_call_memory_ctx);
@@ -1047,8 +1067,8 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 			}
 		}
 
-		sprintf(values[i_buy_value], "%8.2f", buy_value);
-		sprintf(values[i_sell_value], "%8.2f", sell_value);
+		snprintf(values[i_buy_value], S_PRICE_T_LEN, "%8.2f", buy_value);
+		snprintf(values[i_sell_value], S_PRICE_T_LEN, "%8.2f", sell_value);
 
 		if (sell_value > buy_value && (tax_status == 1 || tax_status == 2)) {
 #ifdef DEBUG
@@ -1073,7 +1093,7 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 				FAIL_FRAME_SET(&funcctx->max_calls, TOF3_statements[9].sql);
 			}
 		}
-		sprintf(values[i_tax_amount], "%8.2f", tax_amount);
+		snprintf(values[i_tax_amount], S_PRICE_T_LEN, "%8.2f", tax_amount);
 
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLTOF3_8);
@@ -1122,7 +1142,7 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 			FAIL_FRAME_SET(&funcctx->max_calls, TOF3_statements[11].sql);
 		}
 
-		strcpy(values[i_cust_assets], "0.00");
+		strncpy(values[i_cust_assets], "0.00", 4);
 		if (type_is_margin == 1) {
 			double acct_bal = 0;
 
@@ -1156,10 +1176,11 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 				tuptable = SPI_tuptable;
 				if (SPI_processed > 0) {
 					tuple = tuptable->vals[0];
-					sprintf(values[i_cust_assets], "%10.2f",
+					snprintf(values[i_cust_assets], VALUE_T_LEN, "%10.2f",
 							atof(SPI_getvalue(tuple, tupdesc, 1)) + acct_bal);
 				} else {
-					sprintf(values[i_cust_assets], "%10.2f", acct_bal);
+					snprintf(values[i_cust_assets], VALUE_T_LEN, "%10.2f",
+							acct_bal);
 				}
 			} else {
 #ifdef DEBUG
@@ -1264,14 +1285,22 @@ TradeOrderFrame4(PG_FUNCTION_ARGS)
 	Datum args[11];
 	char nulls[11] = { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
 
-	strcpy(exec_name, DatumGetCString(DirectFunctionCall1(
-							  textout, PointerGetDatum(exec_name_p))));
-	strcpy(status_id, DatumGetCString(DirectFunctionCall1(
-							  textout, PointerGetDatum(status_id_p))));
-	strcpy(symbol, DatumGetCString(DirectFunctionCall1(
-						   textout, PointerGetDatum(symbol_p))));
-	strcpy(trade_type_id, DatumGetCString(DirectFunctionCall1(
-								  textout, PointerGetDatum(trade_type_id_p))));
+	strncpy(exec_name,
+			DatumGetCString(DirectFunctionCall1(
+					textout, PointerGetDatum(exec_name_p))),
+			sizeof(exec_name));
+	strncpy(status_id,
+			DatumGetCString(DirectFunctionCall1(
+					textout, PointerGetDatum(status_id_p))),
+			sizeof(status_id));
+	strncpy(symbol,
+			DatumGetCString(
+					DirectFunctionCall1(textout, PointerGetDatum(symbol_p))),
+			sizeof(symbol));
+	strncpy(trade_type_id,
+			DatumGetCString(DirectFunctionCall1(
+					textout, PointerGetDatum(trade_type_id_p))),
+			sizeof(trade_type_id));
 
 	charge_amount = DatumGetFloat8(DirectFunctionCall1(
 			numeric_float8_no_overflow, PointerGetDatum(charge_amount_num)));
