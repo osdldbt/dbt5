@@ -356,52 +356,51 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		args[0] = CStringGetTextDatum(symbol);
 		ret = SPI_execute_plan(SDF1_1, args, nulls, true, 0);
-		if (ret == SPI_OK_SELECT) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-			tuple = tuptable->vals[0];
-
-			values[i_s_name] = SPI_getvalue(tuple, tupdesc, 1);
-			co_id = SPI_getvalue(tuple, tupdesc, 2);
-			values[i_co_name] = SPI_getvalue(tuple, tupdesc, 3);
-			values[i_sp_rate] = SPI_getvalue(tuple, tupdesc, 4);
-			values[i_ceo_name] = SPI_getvalue(tuple, tupdesc, 5);
-			values[i_co_desc] = SPI_getvalue(tuple, tupdesc, 6);
-			values[i_open_date] = SPI_getvalue(tuple, tupdesc, 7);
-			values[i_co_st_id] = SPI_getvalue(tuple, tupdesc, 8);
-			values[i_co_ad_line1] = SPI_getvalue(tuple, tupdesc, 9);
-			values[i_co_ad_line2] = SPI_getvalue(tuple, tupdesc, 10);
-			values[i_co_ad_town] = SPI_getvalue(tuple, tupdesc, 11);
-			values[i_co_ad_div] = SPI_getvalue(tuple, tupdesc, 12);
-			values[i_co_ad_zip] = SPI_getvalue(tuple, tupdesc, 13);
-			values[i_co_ad_ctry] = SPI_getvalue(tuple, tupdesc, 14);
-			values[i_num_out] = SPI_getvalue(tuple, tupdesc, 15);
-			values[i_start_date] = SPI_getvalue(tuple, tupdesc, 16);
-			values[i_ex_date] = SPI_getvalue(tuple, tupdesc, 17);
-			values[i_pe_ratio] = SPI_getvalue(tuple, tupdesc, 18);
-			values[i_x52_wk_high] = SPI_getvalue(tuple, tupdesc, 19);
-			values[i_x52_wk_high_date] = SPI_getvalue(tuple, tupdesc, 20);
-			values[i_x52_wk_low] = SPI_getvalue(tuple, tupdesc, 21);
-			values[i_x52_wk_low_date] = SPI_getvalue(tuple, tupdesc, 22);
-			values[i_divid] = SPI_getvalue(tuple, tupdesc, 23);
-			values[i_yield] = SPI_getvalue(tuple, tupdesc, 24);
-			values[i_ex_ad_div] = SPI_getvalue(tuple, tupdesc, 25);
-			values[i_ex_ad_ctry] = SPI_getvalue(tuple, tupdesc, 26);
-			values[i_ex_ad_line1] = SPI_getvalue(tuple, tupdesc, 27);
-			values[i_ex_ad_line2] = SPI_getvalue(tuple, tupdesc, 28);
-			values[i_ex_ad_town] = SPI_getvalue(tuple, tupdesc, 29);
-			values[i_ex_ad_zip] = SPI_getvalue(tuple, tupdesc, 30);
-			values[i_ex_close] = SPI_getvalue(tuple, tupdesc, 31);
-			values[i_ex_desc] = SPI_getvalue(tuple, tupdesc, 32);
-			values[i_ex_name] = SPI_getvalue(tuple, tupdesc, 33);
-			values[i_ex_num_symb] = SPI_getvalue(tuple, tupdesc, 34);
-			values[i_ex_open] = SPI_getvalue(tuple, tupdesc, 35);
-		} else {
+		if (ret != SPI_OK_SELECT) {
 #ifdef DEBUG
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
 #endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[0].sql);
 		}
+		tupdesc = SPI_tuptable->tupdesc;
+		tuptable = SPI_tuptable;
+		tuple = tuptable->vals[0];
+
+		values[i_s_name] = SPI_getvalue(tuple, tupdesc, 1);
+		co_id = SPI_getvalue(tuple, tupdesc, 2);
+		values[i_co_name] = SPI_getvalue(tuple, tupdesc, 3);
+		values[i_sp_rate] = SPI_getvalue(tuple, tupdesc, 4);
+		values[i_ceo_name] = SPI_getvalue(tuple, tupdesc, 5);
+		values[i_co_desc] = SPI_getvalue(tuple, tupdesc, 6);
+		values[i_open_date] = SPI_getvalue(tuple, tupdesc, 7);
+		values[i_co_st_id] = SPI_getvalue(tuple, tupdesc, 8);
+		values[i_co_ad_line1] = SPI_getvalue(tuple, tupdesc, 9);
+		values[i_co_ad_line2] = SPI_getvalue(tuple, tupdesc, 10);
+		values[i_co_ad_town] = SPI_getvalue(tuple, tupdesc, 11);
+		values[i_co_ad_div] = SPI_getvalue(tuple, tupdesc, 12);
+		values[i_co_ad_zip] = SPI_getvalue(tuple, tupdesc, 13);
+		values[i_co_ad_ctry] = SPI_getvalue(tuple, tupdesc, 14);
+		values[i_num_out] = SPI_getvalue(tuple, tupdesc, 15);
+		values[i_start_date] = SPI_getvalue(tuple, tupdesc, 16);
+		values[i_ex_date] = SPI_getvalue(tuple, tupdesc, 17);
+		values[i_pe_ratio] = SPI_getvalue(tuple, tupdesc, 18);
+		values[i_x52_wk_high] = SPI_getvalue(tuple, tupdesc, 19);
+		values[i_x52_wk_high_date] = SPI_getvalue(tuple, tupdesc, 20);
+		values[i_x52_wk_low] = SPI_getvalue(tuple, tupdesc, 21);
+		values[i_x52_wk_low_date] = SPI_getvalue(tuple, tupdesc, 22);
+		values[i_divid] = SPI_getvalue(tuple, tupdesc, 23);
+		values[i_yield] = SPI_getvalue(tuple, tupdesc, 24);
+		values[i_ex_ad_div] = SPI_getvalue(tuple, tupdesc, 25);
+		values[i_ex_ad_ctry] = SPI_getvalue(tuple, tupdesc, 26);
+		values[i_ex_ad_line1] = SPI_getvalue(tuple, tupdesc, 27);
+		values[i_ex_ad_line2] = SPI_getvalue(tuple, tupdesc, 28);
+		values[i_ex_ad_town] = SPI_getvalue(tuple, tupdesc, 29);
+		values[i_ex_ad_zip] = SPI_getvalue(tuple, tupdesc, 30);
+		values[i_ex_close] = SPI_getvalue(tuple, tupdesc, 31);
+		values[i_ex_desc] = SPI_getvalue(tuple, tupdesc, 32);
+		values[i_ex_name] = SPI_getvalue(tuple, tupdesc, 33);
+		values[i_ex_num_symb] = SPI_getvalue(tuple, tupdesc, 34);
+		values[i_ex_open] = SPI_getvalue(tuple, tupdesc, 35);
 
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLSDF1_2);
@@ -409,115 +408,114 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		args[0] = Int64GetDatum(atoll(co_id));
 		args[1] = Int16GetDatum(MAX_COMP_LEN);
 		ret = SPI_execute_plan(SDF1_2, args, nulls, true, 0);
-		if (ret == SPI_OK_SELECT) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-
-			values[i_cp_co_name][0] = '{';
-			values[i_cp_co_name][1] = '\0';
-			if (length_cn < 0) {
-				FAIL_FRAME("cp_co_name values needs to be increased");
-			}
-
-			values[i_cp_in_name][0] = '{';
-			values[i_cp_in_name][1] = '\0';
-			if (length_in < 0) {
-				FAIL_FRAME("cp_in_name values needs to be increased");
-			}
-
-			if (SPI_processed > 0) {
-				tuple = tuptable->vals[0];
-
-				strncat(values[i_cp_co_name], "\"", length_cn--);
-				if (length_cn < 0) {
-					FAIL_FRAME("cp_co_name values needs to be increased");
-				}
-
-				tmp = SPI_getvalue(tuple, tupdesc, 1);
-				strncat(values[i_cp_co_name], tmp, length_cn);
-				length_cn -= strlen(tmp);
-				if (length_cn < 0) {
-					FAIL_FRAME("cp_co_name values needs to be increased");
-				}
-
-				strncat(values[i_cp_co_name], "\"", length_cn--);
-				if (length_cn < 0) {
-					FAIL_FRAME("cp_co_name values needs to be increased");
-				}
-
-				strncat(values[i_cp_in_name], "\"", length_in--);
-				if (length_in < 0) {
-					FAIL_FRAME("cp_in_name values needs to be increased");
-				}
-
-				tmp = SPI_getvalue(tuple, tupdesc, 2);
-				strncat(values[i_cp_in_name], tmp, length_in--);
-				length_in -= strlen(tmp);
-				if (length_in < 0) {
-					FAIL_FRAME("cp_in_name values needs to be increased");
-				}
-
-				strncat(values[i_cp_in_name], "\"", length_in--);
-				if (length_in < 0) {
-					FAIL_FRAME("cp_in_name values needs to be increased");
-				}
-			}
-			for (i = 1; i < SPI_processed; i++) {
-				tuple = tuptable->vals[i];
-
-				strncat(values[i_cp_co_name], ",\"", length_cn);
-				length_cn -= 2;
-				if (length_cn < 0) {
-					FAIL_FRAME("cp_co_name values needs to be increased");
-				}
-
-				tmp = SPI_getvalue(tuple, tupdesc, 1);
-				strncat(values[i_cp_co_name], tmp, length_cn);
-				length_cn -= strlen(tmp);
-				if (length_cn < 0) {
-					FAIL_FRAME("cp_co_name values needs to be increased");
-				}
-
-				strncat(values[i_cp_co_name], "\"", length_cn--);
-				if (length_cn < 0) {
-					FAIL_FRAME("cp_co_name values needs to be increased");
-				}
-
-				strncat(values[i_cp_in_name], ",\"", length_in);
-				length_in -= 2;
-				if (length_in < 0) {
-					FAIL_FRAME("cp_in_name values needs to be increased");
-				}
-
-				tmp = SPI_getvalue(tuple, tupdesc, 2);
-				strncat(values[i_cp_in_name], tmp, length_in);
-				length_in -= strlen(tmp);
-				if (length_in < 0) {
-					FAIL_FRAME("cp_in_name values needs to be increased");
-				}
-
-				strncat(values[i_cp_in_name], "\"", length_in--);
-				if (length_in < 0) {
-					FAIL_FRAME("cp_in_name values needs to be increased");
-				}
-			}
-
-			strncat(values[i_cp_co_name], "}", length_cn--);
-			if (length_cn < 0) {
-				FAIL_FRAME("cp_co_name values needs to be increased");
-			}
-
-			strncat(values[i_cp_in_name], "}", length_in--);
-			if (length_in < 0) {
-				FAIL_FRAME("cp_in_name values needs to be increased");
-			}
-		} else {
+		if (ret != SPI_OK_SELECT) {
 #ifdef DEBUG
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
 #endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[1].sql);
 			strncpy(values[i_cp_co_name], "{}", 3);
 			strncpy(values[i_cp_in_name], "{}", 3);
+		}
+		tupdesc = SPI_tuptable->tupdesc;
+		tuptable = SPI_tuptable;
+
+		values[i_cp_co_name][0] = '{';
+		values[i_cp_co_name][1] = '\0';
+		if (length_cn < 0) {
+			FAIL_FRAME("cp_co_name values needs to be increased");
+		}
+
+		values[i_cp_in_name][0] = '{';
+		values[i_cp_in_name][1] = '\0';
+		if (length_in < 0) {
+			FAIL_FRAME("cp_in_name values needs to be increased");
+		}
+
+		if (SPI_processed > 0) {
+			tuple = tuptable->vals[0];
+
+			strncat(values[i_cp_co_name], "\"", length_cn--);
+			if (length_cn < 0) {
+				FAIL_FRAME("cp_co_name values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 1);
+			strncat(values[i_cp_co_name], tmp, length_cn);
+			length_cn -= strlen(tmp);
+			if (length_cn < 0) {
+				FAIL_FRAME("cp_co_name values needs to be increased");
+			}
+
+			strncat(values[i_cp_co_name], "\"", length_cn--);
+			if (length_cn < 0) {
+				FAIL_FRAME("cp_co_name values needs to be increased");
+			}
+
+			strncat(values[i_cp_in_name], "\"", length_in--);
+			if (length_in < 0) {
+				FAIL_FRAME("cp_in_name values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 2);
+			strncat(values[i_cp_in_name], tmp, length_in--);
+			length_in -= strlen(tmp);
+			if (length_in < 0) {
+				FAIL_FRAME("cp_in_name values needs to be increased");
+			}
+
+			strncat(values[i_cp_in_name], "\"", length_in--);
+			if (length_in < 0) {
+				FAIL_FRAME("cp_in_name values needs to be increased");
+			}
+		}
+		for (i = 1; i < SPI_processed; i++) {
+			tuple = tuptable->vals[i];
+
+			strncat(values[i_cp_co_name], ",\"", length_cn);
+			length_cn -= 2;
+			if (length_cn < 0) {
+				FAIL_FRAME("cp_co_name values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 1);
+			strncat(values[i_cp_co_name], tmp, length_cn);
+			length_cn -= strlen(tmp);
+			if (length_cn < 0) {
+				FAIL_FRAME("cp_co_name values needs to be increased");
+			}
+
+			strncat(values[i_cp_co_name], "\"", length_cn--);
+			if (length_cn < 0) {
+				FAIL_FRAME("cp_co_name values needs to be increased");
+			}
+
+			strncat(values[i_cp_in_name], ",\"", length_in);
+			length_in -= 2;
+			if (length_in < 0) {
+				FAIL_FRAME("cp_in_name values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 2);
+			strncat(values[i_cp_in_name], tmp, length_in);
+			length_in -= strlen(tmp);
+			if (length_in < 0) {
+				FAIL_FRAME("cp_in_name values needs to be increased");
+			}
+
+			strncat(values[i_cp_in_name], "\"", length_in--);
+			if (length_in < 0) {
+				FAIL_FRAME("cp_in_name values needs to be increased");
+			}
+		}
+
+		strncat(values[i_cp_co_name], "}", length_cn--);
+		if (length_cn < 0) {
+			FAIL_FRAME("cp_co_name values needs to be increased");
+		}
+
+		strncat(values[i_cp_in_name], "}", length_in--);
+		if (length_in < 0) {
+			FAIL_FRAME("cp_in_name values needs to be increased");
 		}
 
 #ifdef DEBUG
@@ -526,15 +524,14 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		args[0] = Int64GetDatum(atoll(co_id));
 		args[1] = Int16GetDatum(MAX_FIN_LEN);
 		ret = SPI_execute_plan(SDF1_3, args, nulls, true, 0);
-		if (ret == SPI_OK_SELECT) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-		} else {
+		if (ret != SPI_OK_SELECT) {
 #ifdef DEBUG
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
 #endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[2].sql);
 		}
+		tupdesc = SPI_tuptable->tupdesc;
+		tuptable = SPI_tuptable;
 		snprintf(values[i_fin_len], sizeof(values[i_fin_len]), "%" PRId64,
 				SPI_processed);
 		values[i_fin][0] = '{';
@@ -721,15 +718,14 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		args[1] = DirectFunctionCall1(date_in, CStringGetDatum(pstrdup(buf)));
 		args[2] = Int16GetDatum(max_rows_to_return);
 		ret = SPI_execute_plan(SDF1_4, args, nulls, true, 0);
-		if (ret == SPI_OK_SELECT) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-		} else {
+		if (ret != SPI_OK_SELECT) {
 #ifdef DEBUG
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
 #endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[3].sql);
 		}
+		tupdesc = SPI_tuptable->tupdesc;
+		tuptable = SPI_tuptable;
 		snprintf(values[i_day_len], sizeof(values[i_day_len]), "%" PRId64,
 				SPI_processed);
 		values[i_day][0] = '{';
@@ -819,14 +815,7 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		args[0] = CStringGetTextDatum(symbol);
 		ret = SPI_execute_plan(SDF1_5, args, nulls, true, 0);
-		if (ret == SPI_OK_SELECT) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-			tuple = tuptable->vals[0];
-			values[i_last_price] = SPI_getvalue(tuple, tupdesc, 1);
-			values[i_last_open] = SPI_getvalue(tuple, tupdesc, 2);
-			values[i_last_vol] = SPI_getvalue(tuple, tupdesc, 3);
-		} else {
+		if (ret != SPI_OK_SELECT) {
 #ifdef DEBUG
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
 #endif /* DEBUG */
@@ -835,6 +824,12 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			values[i_last_price] = NULL;
 			values[i_last_vol] = NULL;
 		}
+		tupdesc = SPI_tuptable->tupdesc;
+		tuptable = SPI_tuptable;
+		tuple = tuptable->vals[0];
+		values[i_last_price] = SPI_getvalue(tuple, tupdesc, 1);
+		values[i_last_open] = SPI_getvalue(tuple, tupdesc, 2);
+		values[i_last_vol] = SPI_getvalue(tuple, tupdesc, 3);
 		args[0] = Int64GetDatum(atoll(co_id));
 		args[1] = Int16GetDatum(MAX_NEWS_LEN);
 
@@ -849,10 +844,7 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			ret = SPI_execute_plan(SDF1_7, args, nulls, true, 0);
 		}
-		if (ret == SPI_OK_SELECT) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-		} else {
+		if (ret != SPI_OK_SELECT) {
 #ifdef DEBUG
 			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
 #endif /* DEBUG */
@@ -860,6 +852,8 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 					access_lob_flag ? SDF1_statements[5].sql
 									: SDF1_statements[6].sql);
 		}
+		tupdesc = SPI_tuptable->tupdesc;
+		tuptable = SPI_tuptable;
 		snprintf(values[i_news_len], sizeof(values[i_news_len]), "%" PRId64,
 				SPI_processed);
 		values[i_news][0] = '{';

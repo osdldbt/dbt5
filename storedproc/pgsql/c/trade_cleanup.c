@@ -164,16 +164,15 @@ TradeCleanupFrame1(PG_FUNCTION_ARGS)
 	elog(DEBUG1, "%s", SQLTCF1_1);
 #endif /* DEBUG */
 	ret = SPI_execute_plan(TCF1_1, NULL, nulls, false, 0);
-	if (ret == SPI_OK_SELECT) {
-		tupdesc = SPI_tuptable->tupdesc;
-		tuptable = SPI_tuptable;
-	} else {
+	if (ret != SPI_OK_SELECT) {
 #ifdef DEBUG
 		dump_tcf1_inputs(
 				st_canceled_id, st_pending_id, st_submitted_id, trade_id);
 #endif /* DEBUG */
 		FAIL_FRAME(TCF1_statements[0].sql);
 	}
+	tupdesc = SPI_tuptable->tupdesc;
+	tuptable = SPI_tuptable;
 
 	n = SPI_processed;
 	for (i = 0; i < n; i++) {
@@ -200,16 +199,15 @@ TradeCleanupFrame1(PG_FUNCTION_ARGS)
 	args[0] = Int64GetDatum(trade_id);
 	args[1] = CStringGetTextDatum(st_submitted_id);
 	ret = SPI_execute_plan(TCF1_4, args, nulls, true, 0);
-	if (ret == SPI_OK_SELECT) {
-		tupdesc = SPI_tuptable->tupdesc;
-		tuptable = SPI_tuptable;
-	} else {
+	if (ret != SPI_OK_SELECT) {
 #ifdef DEBUG
 		dump_tcf1_inputs(
 				st_canceled_id, st_pending_id, st_submitted_id, trade_id);
 #endif /* DEBUG */
 		FAIL_FRAME(TCF1_statements[3].sql);
 	}
+	tupdesc = SPI_tuptable->tupdesc;
+	tuptable = SPI_tuptable;
 
 	n = SPI_processed;
 	for (i = 0; i < n; i++) {

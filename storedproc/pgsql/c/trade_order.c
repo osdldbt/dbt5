@@ -620,18 +620,17 @@ TradeOrderFrame2(PG_FUNCTION_ARGS)
 	args[3] = CStringGetTextDatum(exec_tax_id);
 
 	ret = SPI_execute_plan(TOF2_1, args, nulls, true, 0);
-	if (ret == SPI_OK_SELECT) {
-		tupdesc = SPI_tuptable->tupdesc;
-		tuptable = SPI_tuptable;
-		if (SPI_processed > 0) {
-			tuple = tuptable->vals[0];
-			ap_acl = SPI_getvalue(tuple, tupdesc, 1);
-		}
-	} else {
+	if (ret != SPI_OK_SELECT) {
 		FAIL_FRAME(TOF2_statements[0].sql);
 #ifdef DEBUG
 		dump_tof2_inputs(acct_id, exec_f_name, exec_l_name, exec_tax_id);
 #endif /* DEBUG */
+	}
+	tupdesc = SPI_tuptable->tupdesc;
+	tuptable = SPI_tuptable;
+	if (SPI_processed > 0) {
+		tuple = tuptable->vals[0];
+		ap_acl = SPI_getvalue(tuple, tupdesc, 1);
 	}
 
 #ifdef DEBUG
@@ -979,10 +978,7 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 				ret = SPI_execute_plan(TOF3_6b, args, nulls, true, 0);
 			}
-			if (ret == SPI_OK_SELECT) {
-				tupdesc = SPI_tuptable->tupdesc;
-				tuptable = SPI_tuptable;
-			} else {
+			if (ret != SPI_OK_SELECT) {
 #ifdef DEBUG
 				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
 						st_pending_id, st_submitted_id, tax_status, trade_qty,
@@ -993,6 +989,8 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 						(hs_qty > 0 ? TOF3_statements[7].sql
 									: TOF3_statements[8].sql));
 			}
+			tupdesc = SPI_tuptable->tupdesc;
+			tuptable = SPI_tuptable;
 
 			i = 0;
 			while (needed_qty > 0 && i < rows) {
@@ -1029,11 +1027,7 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 					ret = SPI_execute_plan(TOF3_6b, args, nulls, true, 0);
 				}
-				if (ret == SPI_OK_SELECT) {
-					tupdesc = SPI_tuptable->tupdesc;
-					tuptable = SPI_tuptable;
-					rows = SPI_processed;
-				} else {
+				if (ret != SPI_OK_SELECT) {
 #ifdef DEBUG
 					dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo,
 							issue, st_pending_id, st_submitted_id, tax_status,
@@ -1044,6 +1038,9 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 							(is_lifo == 1 ? TOF3_statements[7].sql
 										  : TOF3_statements[8].sql));
 				}
+				tupdesc = SPI_tuptable->tupdesc;
+				tuptable = SPI_tuptable;
+				rows = SPI_processed;
 			}
 
 			i = 0;
@@ -1171,18 +1168,7 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "%s", SQLTOF3_11);
 #endif /* DEBUG */
 			ret = SPI_execute_plan(TOF3_11, args, nulls, true, 0);
-			if (ret == SPI_OK_SELECT) {
-				tupdesc = SPI_tuptable->tupdesc;
-				tuptable = SPI_tuptable;
-				if (SPI_processed > 0) {
-					tuple = tuptable->vals[0];
-					snprintf(values[i_cust_assets], VALUE_T_LEN, "%10.2f",
-							atof(SPI_getvalue(tuple, tupdesc, 1)) + acct_bal);
-				} else {
-					snprintf(values[i_cust_assets], VALUE_T_LEN, "%10.2f",
-							acct_bal);
-				}
-			} else {
+			if (ret != SPI_OK_SELECT) {
 #ifdef DEBUG
 				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
 						st_pending_id, st_submitted_id, tax_status, trade_qty,
@@ -1190,6 +1176,16 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 						requested_price, symbol);
 #endif /* DEBUG */
 				FAIL_FRAME_SET(&funcctx->max_calls, TOF3_statements[13].sql);
+			}
+			if (SPI_processed > 0) {
+				tupdesc = SPI_tuptable->tupdesc;
+				tuptable = SPI_tuptable;
+				tuple = tuptable->vals[0];
+				snprintf(values[i_cust_assets], VALUE_T_LEN, "%10.2f",
+						atof(SPI_getvalue(tuple, tupdesc, 1)) + acct_bal);
+			} else {
+				snprintf(values[i_cust_assets], VALUE_T_LEN, "%10.2f",
+						acct_bal);
 			}
 		}
 

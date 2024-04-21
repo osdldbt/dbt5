@@ -608,22 +608,21 @@ TradeResultFrame1(PG_FUNCTION_ARGS)
 				args[0] = Int64GetDatum(atoll(values[i_acct_id]));
 				args[1] = CStringGetTextDatum(values[i_symbol]);
 				ret = SPI_execute_plan(TRF1_3, args, nulls, true, 0);
-				if (ret == SPI_OK_SELECT) {
-					tupdesc = SPI_tuptable->tupdesc;
-					tuptable = SPI_tuptable;
-					if (SPI_processed > 0) {
-						tuple = tuptable->vals[0];
-						values[i_hs_qty] = SPI_getvalue(tuple, tupdesc, 1);
-					} else {
-						values[i_hs_qty] = (char *) palloc(sizeof(char) * 2);
-						strncpy(values[i_hs_qty], "0", 2);
-					}
-				} else {
+				if (ret != SPI_OK_SELECT) {
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TRF1_statements[2].sql);
 #ifdef DEBUG
 					dump_trf1_inputs(trade_id);
 #endif /* DEBUG */
+				}
+				tupdesc = SPI_tuptable->tupdesc;
+				tuptable = SPI_tuptable;
+				if (SPI_processed > 0) {
+					tuple = tuptable->vals[0];
+					values[i_hs_qty] = SPI_getvalue(tuple, tupdesc, 1);
+				} else {
+					values[i_hs_qty] = (char *) palloc(sizeof(char) * 2);
+					strncpy(values[i_hs_qty], "0", 2);
 				}
 			} else if (SPI_processed == 0) {
 				values[i_acct_id] = (char *) palloc(2 * sizeof(char));
@@ -816,21 +815,20 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		args[0] = Int64GetDatum(acct_id);
 		ret = SPI_execute_plan(TRF2_1, args, nulls, false, 0);
-		if (ret == SPI_OK_SELECT) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-			if (SPI_processed > 0) {
-				tuple = tuptable->vals[0];
-				values[i_broker_id] = SPI_getvalue(tuple, tupdesc, 1);
-				values[i_cust_id] = SPI_getvalue(tuple, tupdesc, 2);
-				values[i_tax_status] = SPI_getvalue(tuple, tupdesc, 3);
-			}
-		} else {
+		if (ret != SPI_OK_SELECT) {
 #ifdef DEBUG
 			dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol, trade_id,
 					trade_price, trade_qty, type_is_sell);
 #endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, TRF2_statements[0].sql);
+		}
+		tupdesc = SPI_tuptable->tupdesc;
+		tuptable = SPI_tuptable;
+		if (SPI_processed > 0) {
+			tuple = tuptable->vals[0];
+			values[i_broker_id] = SPI_getvalue(tuple, tupdesc, 1);
+			values[i_cust_id] = SPI_getvalue(tuple, tupdesc, 2);
+			values[i_tax_status] = SPI_getvalue(tuple, tupdesc, 3);
 		}
 
 		/* Determine if sell or buy order */
@@ -1409,20 +1407,19 @@ TradeResultFrame3(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 	args[0] = Int64GetDatum(cust_id);
 	ret = SPI_execute_plan(TRF3_1, args, nulls, true, 0);
-	if (ret == SPI_OK_SELECT) {
-		tupdesc = SPI_tuptable->tupdesc;
-		tuptable = SPI_tuptable;
-		if (SPI_processed > 0) {
-			double tax_rates;
-			tuple = tuptable->vals[0];
-			tax_rates = atof(SPI_getvalue(tuple, tupdesc, 1));
-			tax_amount = (sell_value - buy_value) * tax_rates;
-		}
-	} else {
+	if (ret != SPI_OK_SELECT) {
 		FAIL_FRAME(TRF3_statements[0].sql);
 #ifdef DEBUG
 		dump_trf3_inputs(buy_value, cust_id, sell_value, trade_id);
 #endif /* DEBUG */
+	}
+	tupdesc = SPI_tuptable->tupdesc;
+	tuptable = SPI_tuptable;
+	if (SPI_processed > 0) {
+		double tax_rates;
+		tuple = tuptable->vals[0];
+		tax_rates = atof(SPI_getvalue(tuple, tupdesc, 1));
+		tax_amount = (sell_value - buy_value) * tax_rates;
 	}
 
 #ifdef DEBUG

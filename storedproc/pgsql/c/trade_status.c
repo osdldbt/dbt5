@@ -201,15 +201,14 @@ TradeStatusFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		args[0] = Int64GetDatum(acct_id);
 		ret = SPI_execute_plan(TSF1_1, args, nulls, true, 0);
-		if (ret == SPI_OK_SELECT) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-		} else {
+		if (ret != SPI_OK_SELECT) {
 			FAIL_FRAME_SET(&funcctx->max_calls, TSF1_statements[0].sql);
 #ifdef DEBUG
 			dump_tsf1_inputs(acct_id);
 #endif /* DEBUG */
 		}
+		tupdesc = SPI_tuptable->tupdesc;
+		tuptable = SPI_tuptable;
 		snprintf(values[i_num_found], BIGINT_LEN, "%" PRId64, SPI_processed);
 
 		values[i_trade_id][0] = '{';
@@ -481,20 +480,19 @@ TradeStatusFrame1(PG_FUNCTION_ARGS)
 		elog(DEBUG1, "%s", SQLTSF1_2);
 #endif /* DEBUG */
 		ret = SPI_execute_plan(TSF1_2, args, nulls, true, 0);
-		if (ret == SPI_OK_SELECT) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-			if (SPI_processed > 0) {
-				tuple = tuptable->vals[0];
-				values[i_cust_l_name] = SPI_getvalue(tuple, tupdesc, 1);
-				values[i_cust_f_name] = SPI_getvalue(tuple, tupdesc, 2);
-				values[i_broker_name] = SPI_getvalue(tuple, tupdesc, 3);
-			}
-		} else {
+		if (ret != SPI_OK_SELECT) {
 			FAIL_FRAME_SET(&funcctx->max_calls, TSF1_statements[1].sql);
 #ifdef DEBUG
 			dump_tsf1_inputs(acct_id);
 #endif /* DEBUG */
+		}
+		tupdesc = SPI_tuptable->tupdesc;
+		tuptable = SPI_tuptable;
+		if (SPI_processed > 0) {
+			tuple = tuptable->vals[0];
+			values[i_cust_l_name] = SPI_getvalue(tuple, tupdesc, 1);
+			values[i_cust_f_name] = SPI_getvalue(tuple, tupdesc, 2);
+			values[i_broker_name] = SPI_getvalue(tuple, tupdesc, 3);
 		}
 		/* Build a tuple descriptor for our result type */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc)

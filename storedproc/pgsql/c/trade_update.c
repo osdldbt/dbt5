@@ -823,16 +823,15 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "%s", SQLTUF1_7);
 #endif /* DEBUG */
 			ret = SPI_execute_plan(TUF1_7, args, nulls, true, 0);
-			if (ret == SPI_OK_SELECT) {
-				tupdesc = SPI_tuptable->tupdesc;
-				tuptable = SPI_tuptable;
-			} else {
+			if (ret != SPI_OK_SELECT) {
 				FAIL_FRAME_SET(&funcctx->max_calls, TUF1_statements[8].sql);
 #ifdef DEBUG
 				dump_tuf1_inputs(max_trades, max_updates, trade_id);
 #endif /* DEBUG */
 				continue;
 			}
+			tupdesc = SPI_tuptable->tupdesc;
+			tuptable = SPI_tuptable;
 
 			if (num_updated7 > 0) {
 				strncat(values[i_trade_history_dts], ",", length_thd--);

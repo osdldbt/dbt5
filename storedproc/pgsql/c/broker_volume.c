@@ -240,16 +240,15 @@ BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		args[0] = PointerGetDatum(broker_list_p);
 		args[1] = PointerGetDatum(sector_name_p);
 		ret = SPI_execute_plan(BVF1_1, args, nulls, true, 0);
-		if (ret == SPI_OK_SELECT) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-			tuple = tuptable->vals[0];
-		} else {
+		if (ret != SPI_OK_SELECT) {
 #ifdef DEBUG
 			dump_bvf1_inputs(broker_list_p, sector_name_p);
 #endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, BVF1_statements[0].sql);
 		}
+		tupdesc = SPI_tuptable->tupdesc;
+		tuptable = SPI_tuptable;
+		tuple = tuptable->vals[0];
 
 		snprintf(values[i_list_len], BIGINT_LEN, "%" PRId64, SPI_processed);
 
