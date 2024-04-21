@@ -16,6 +16,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql pl/c: fix Trade Result Frame 6 handling qual assignment bug with
   se_amount
 - pgsql pl/c: fix % escaping in Data Maintenance of exchange
+- pgsql pl/c: update Trade Cleanup to v1.14.0
 
 v0.9.2 (2024-04-10)
 

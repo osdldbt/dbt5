@@ -41,7 +41,8 @@ PG_MODULE_MAGIC;
 	"    $1\n"                                                                \
 	"  , now()\n"                                                             \
 	"  , $2\n"                                                                \
-	")"
+	")\n"                                                                     \
+	"ON CONFLICT DO NOTHING"
 
 #define SQLTCF1_3 "DELETE FROM trade_request"
 
@@ -55,8 +56,7 @@ PG_MODULE_MAGIC;
 	"UPDATE trade\n"                                                          \
 	"SET t_st_id = $1\n"                                                      \
 	"  , t_dts = now()\n"                                                     \
-	"WHERE t_id = $2\n"                                                       \
-	"RETURNING t_dts"
+	"WHERE t_id = $2"
 
 #define SQLTCF1_6                                                             \
 	"INSERT INTO trade_history(\n"                                            \
@@ -68,7 +68,8 @@ PG_MODULE_MAGIC;
 	"    $1\n"                                                                \
 	"  , now()\n"                                                             \
 	"  , $2\n"                                                                \
-	")"
+	")\n"                                                                     \
+	"ON CONFLICT DO NOTHING"
 
 #define TCF1_1 TCF1_statements[0].plan
 #define TCF1_2 TCF1_statements[1].plan
@@ -191,43 +192,21 @@ TradeCleanupFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			FAIL_FRAME(TCF1_statements[1].sql);
 		}
-	}
 
-#ifdef DEBUG
-	elog(DEBUG1, "%s", SQLTCF1_4);
-#endif /* DEBUG */
-	args[0] = Int64GetDatum(trade_id);
-	args[1] = CStringGetTextDatum(st_submitted_id);
-	ret = SPI_execute_plan(TCF1_4, args, nulls, true, 0);
-	if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-		dump_tcf1_inputs(
-				st_canceled_id, st_pending_id, st_submitted_id, trade_id);
-#endif /* DEBUG */
-		FAIL_FRAME(TCF1_statements[3].sql);
-	}
-	tupdesc = SPI_tuptable->tupdesc;
-	tuptable = SPI_tuptable;
-
-	n = SPI_processed;
-	for (i = 0; i < n; i++) {
-		char *t_id;
-
-		tuple = tuptable->vals[i];
-		t_id = SPI_getvalue(tuple, tupdesc, 1);
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLTCF1_5);
 #endif /* DEBUG */
 		args[0] = CStringGetTextDatum(st_canceled_id);
-		args[1] = Int64GetDatum(atoll(t_id));
+		args[1] = Int64GetDatum(atoll(tr_t_id));
 		ret = SPI_execute_plan(TCF1_5, args, nulls, false, 0);
-		if (ret != SPI_OK_UPDATE_RETURNING) {
+		if (ret != SPI_OK_UPDATE) {
 #ifdef DEBUG
 			dump_tcf1_inputs(
 					st_canceled_id, st_pending_id, st_submitted_id, trade_id);
 #endif /* DEBUG */
 			FAIL_FRAME(TCF1_statements[4].sql);
 		}
+
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLTCF1_6);
 #endif /* DEBUG */
@@ -253,6 +232,58 @@ TradeCleanupFrame1(PG_FUNCTION_ARGS)
 				st_canceled_id, st_pending_id, st_submitted_id, trade_id);
 #endif /* DEBUG */
 		FAIL_FRAME(TCF1_statements[2].sql);
+	}
+
+#ifdef DEBUG
+	elog(DEBUG1, "%s", SQLTCF1_4);
+#endif /* DEBUG */
+	args[0] = Int64GetDatum(trade_id);
+	args[1] = CStringGetTextDatum(st_submitted_id);
+	ret = SPI_execute_plan(TCF1_4, args, nulls, true, 0);
+	if (ret != SPI_OK_SELECT) {
+#ifdef DEBUG
+		dump_tcf1_inputs(
+				st_canceled_id, st_pending_id, st_submitted_id, trade_id);
+#endif /* DEBUG */
+		FAIL_FRAME(TCF1_statements[3].sql);
+	}
+	tupdesc = SPI_tuptable->tupdesc;
+	tuptable = SPI_tuptable;
+
+	n = SPI_processed;
+	for (i = 0; i < n; i++) {
+		char *t_id;
+
+		tuple = tuptable->vals[i];
+		t_id = SPI_getvalue(tuple, tupdesc, 1);
+
+#ifdef DEBUG
+		elog(DEBUG1, "%s", SQLTCF1_5);
+#endif /* DEBUG */
+		args[0] = CStringGetTextDatum(st_canceled_id);
+		args[1] = Int64GetDatum(atoll(t_id));
+		ret = SPI_execute_plan(TCF1_5, args, nulls, false, 0);
+		if (ret != SPI_OK_UPDATE) {
+#ifdef DEBUG
+			dump_tcf1_inputs(
+					st_canceled_id, st_pending_id, st_submitted_id, trade_id);
+#endif /* DEBUG */
+			FAIL_FRAME(TCF1_statements[4].sql);
+		}
+
+#ifdef DEBUG
+		elog(DEBUG1, "%s", SQLTCF1_6);
+#endif /* DEBUG */
+		args[0] = Int64GetDatum(atoll(t_id));
+		args[1] = CStringGetTextDatum(st_canceled_id);
+		ret = SPI_execute_plan(TCF1_6, args, nulls, false, 0);
+		if (ret != SPI_OK_INSERT) {
+#ifdef DEBUG
+			dump_tcf1_inputs(
+					st_canceled_id, st_pending_id, st_submitted_id, trade_id);
+#endif /* DEBUG */
+			FAIL_FRAME(TCF1_statements[5].sql);
+		}
 	}
 
 	SPI_finish();
