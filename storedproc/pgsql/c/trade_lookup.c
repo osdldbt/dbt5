@@ -313,8 +313,6 @@ TradeLookupFrame1(PG_FUNCTION_ARGS)
 
 	int i, j;
 
-	int ndim, nitems;
-	int *dim;
 	long *trade_id;
 
 	char **values = NULL;
@@ -423,19 +421,6 @@ TradeLookupFrame1(PG_FUNCTION_ARGS)
 
 		length_tp = (S_PRICE_T_LEN + 1) * max_trades + 2;
 		values[i_trade_price] = (char *) palloc(length_tp-- * sizeof(char));
-
-		/*
-		 * This might be overkill since we always expect single dimensions
-		 * arrays.  This is not necessary if we trust the input.
-		 */
-		ndim = ARR_NDIM(trade_id_p);
-		dim = ARR_DIMS(trade_id_p);
-		nitems = ArrayGetNItems(ndim, dim);
-
-		/*
-		 * FIXME: nitems must be the same as max_trades, otherwise there must
-		 * be a problem with the input data or the parsing of it.
-		 */
 
 		get_typlenbyvalalign(
 				ARR_ELEMTYPE(trade_id_p), &typlen, &typbyval, &typalign);
@@ -795,7 +780,7 @@ TradeLookupFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			ret = SPI_execute_plan(TLF1_4, args, nulls, true, 0);
 			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
-				int j;
+				int k;
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
 				tuple = tuptable->vals[0];
@@ -830,8 +815,8 @@ TradeLookupFrame1(PG_FUNCTION_ARGS)
 				 * Since the spec says no more than three items here, pad the
 				 * array up to 3 all the time.
 				 */
-				for (j = 0; j < SPI_processed; j++) {
-					if (j > 0) {
+				for (k = 0; k < SPI_processed; k++) {
+					if (k > 0) {
 						strncat(values[i_trade_history_dts], ",",
 								length_thd--);
 						if (length_thd < 0) {
@@ -890,8 +875,8 @@ TradeLookupFrame1(PG_FUNCTION_ARGS)
 								   "to be increased");
 					}
 				}
-				for (j = SPI_processed; j < 3; j++) {
-					if (j > 0) {
+				for (k = SPI_processed; k < 3; k++) {
+					if (k > 0) {
 						strncat(values[i_trade_history_dts], ",",
 								length_thd--);
 						if (length_thd < 0) {

@@ -339,8 +339,6 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 		bool typbyval;
 		char typalign;
 
-		int ndim, nitems;
-		int *dim;
 		long *trade_id;
 
 		int ret;
@@ -361,10 +359,6 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 		int length_bp, length_cta, length_ctd, length_ctn, length_en,
 				length_ic, length_im, length_sa, length_scdd, length_sct,
 				length_thd, length_thsi, length_tp;
-
-		ndim = ARR_NDIM(trade_id_p);
-		dim = ARR_DIMS(trade_id_p);
-		nitems = ArrayGetNItems(ndim, dim);
 
 		get_typlenbyvalalign(
 				ARR_ELEMTYPE(trade_id_p), &typlen, &typbyval, &typalign);
