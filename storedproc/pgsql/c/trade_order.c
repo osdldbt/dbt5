@@ -1139,7 +1139,7 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 			FAIL_FRAME_SET(&funcctx->max_calls, TOF3_statements[11].sql);
 		}
 
-		strncpy(values[i_cust_assets], "0.00", 4);
+		strncpy(values[i_cust_assets], "0.00", 5);
 		if (type_is_margin == 1) {
 			double acct_bal = 0;
 
