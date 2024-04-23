@@ -48,7 +48,7 @@ CREATE OR REPLACE FUNCTION CustomerPositionFrame2(
   , OUT hist_len INTEGER
   , OUT qty S_QTY_T[30]
   , OUT symbol VARCHAR(15)[30]
-  , OUT trade_id IDENT_T[]
+  , OUT trade_id IDENT_T[30]
   , OUT trade_status VARCHAR(10)[30]
 ) RETURNS SETOF RECORD
 AS 'MODULE_PATHNAME', 'CustomerPositionFrame2'
