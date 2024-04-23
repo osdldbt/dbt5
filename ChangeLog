@@ -3,6 +3,10 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: update transaction code to parse () delimited arrays correctly for
   Security Detail transactions
 - pgsql pl/c: fix strncpy but in TradeOrderFrame3
+- pgsql pl/c: fix potential buffer overflow warnings in Trade Lookup
+  transactions
+- pgsql pl/c: Trade Lookup and Trade Update frames now format data the same as
+  pl/pgsql functions
 
 v0.9.3 (2024-04-21)
 
