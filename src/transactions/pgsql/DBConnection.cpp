@@ -60,6 +60,30 @@ void inline TokenizeArray(const string &str2, vector<string> &tokens)
 	}
 }
 
+void inline TokenizeArray2(const string &str2, vector<string> &tokens)
+{
+	// This is essentially an empty array. i.e. '()'
+	if (str2.size() < 3)
+		return;
+
+	// We only call this function because we need to chop up arrays that
+	// are in the format '{(1,2,3),(a,b,c)}', so trim off the braces.
+	string str = str2.substr(1, str2.size() - 2);
+
+	// Skip delimiters at beginning.
+	string::size_type lastPos = str.find_first_of("(", 0);
+	// Find first "non-delimiter".
+	string::size_type pos = str.find_first_of(")", lastPos);
+
+	while (string::npos != pos || string::npos != lastPos) {
+		// Found a token, add it to the vector.
+		tokens.push_back(str.substr(lastPos, pos - lastPos + 1));
+
+		lastPos = str.find_first_of("(", pos);
+		pos = str.find_first_of(")", lastPos);
+	}
+}
+
 // String Tokenizer
 // FIXME: This token doesn't handle strings with escaped characters.
 void inline TokenizeSmart(const string &str, vector<string> &tokens)
@@ -706,7 +730,7 @@ CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 	check_count(3, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	TokenizeArray(PQgetvalue(res, 0, i_day), vAux);
+	TokenizeArray2(PQgetvalue(res, 0, i_day), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		vector<string> v2;
@@ -753,7 +777,7 @@ CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 	pOut->ex_num_symb = atoi(PQgetvalue(res, 0, i_ex_num_symb));
 	pOut->ex_open = atoi(PQgetvalue(res, 0, i_ex_open));
 
-	TokenizeArray(PQgetvalue(res, 0, i_fin), vAux);
+	TokenizeArray2(PQgetvalue(res, 0, i_fin), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		vector<string> v2;
@@ -786,7 +810,7 @@ CDBConnection::execute(const TSecurityDetailFrame1Input *pIn,
 	pOut->last_price = atof(PQgetvalue(res, 0, i_last_price));
 	pOut->last_vol = atoi(PQgetvalue(res, 0, i_last_vol));
 
-	TokenizeArray(PQgetvalue(res, 0, i_news), vAux);
+	TokenizeArray2(PQgetvalue(res, 0, i_news), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
 		vector<string> v2;

@@ -1,3 +1,8 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- pgsql: update transaction code to parse () delimited arrays correctly for
+  Security Detail transactions
+
 v0.9.3 (2024-04-21)
 
 - pl/pgsql: data maintenance: use extract() over substring() when handling
