@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.9.4 (2024-04-23)
 
 - pgsql: update transaction code to parse () delimited arrays correctly for
   Security Detail transactions

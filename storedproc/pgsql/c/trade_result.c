@@ -568,6 +568,12 @@ TradeResultFrame1(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			num_found = SPI_processed;
+			if (num_found != 1) {
+				elog(WARNING,
+						"TradeResultFrame1 num_found <> 1 (actual %d) for "
+						"trade_id %ld",
+						num_found, trade_id);
+			}
 			if (SPI_processed > 0) {
 				tuple = tuptable->vals[0];
 				values[i_acct_id] = SPI_getvalue(tuple, tupdesc, 1);
