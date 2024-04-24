@@ -1,0 +1,4 @@
+builds/
+egen/bin/*
+egen/lib/*
+egen/obj/*
