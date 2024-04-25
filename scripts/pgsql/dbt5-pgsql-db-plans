@@ -13,7 +13,7 @@
 
 explain() {
 	SQL="EXPLAIN ${@}"
-	psql -e ${PORTARG} ${DBNAMEARG} -c "${SQL}" >> ${OUTPUT_FILE} 2>&1
+	psql -X -e "${PORTARG}" "${DBNAMEARG}" -c "${SQL}" >> "${OUTPUT_FILE}" 2>&1
 }
 
 while getopts "d:o:p:" opt; do

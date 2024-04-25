@@ -114,7 +114,7 @@ if [ ! "${DB_USER}" = "" ]; then
 	PSQLARGS="${PSQLARGS} -U ${DB_USER}"
 fi
 
-PSQL="psql ${PSQLARGS} -A -t"
+PSQL="psql -X ${PSQLARGS} -A -t"
 
 ACCOUNTS="$((5 * CUSTOMERS))"
 TRADES="$((17280 * CUSTOMERS))"
