@@ -28,7 +28,6 @@ set (PGSQL_SCRIPTS scripts/pgsql/dbt5-pgsql-start-db
                    scripts/pgsql/dbt5-pgsql-drop-tables
                    scripts/pgsql/dbt5-pgsql-db-plans
                    scripts/pgsql/dbt5-pgsql-drop-db
-                   scripts/pgsql/dbt5-pgsql-db-stat
                    scripts/pgsql/dbt5-pgsql-stop-db)
 
 #
