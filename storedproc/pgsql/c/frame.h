@@ -10,14 +10,14 @@
 #ifndef _FRAME_H_
 #define _FRAME_H_
 
-#define FAIL_FRAME(sql) \
-		elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", \
-				__FILE__, __LINE__, sql);
+#define FAIL_FRAME(sql)                                                       \
+	elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", __FILE__,         \
+			__LINE__, sql);
 
-#define FAIL_FRAME_SET(rows, sql) \
-		elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", \
-				__FILE__, __LINE__, sql); \
-		*rows = 0;
+#define FAIL_FRAME_SET(rows, sql)                                             \
+	elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", __FILE__,         \
+			__LINE__, sql);                                                   \
+	*rows = 0;
 
 /* PostgreSQL types */
 #define BIGINT_LEN 20
@@ -40,9 +40,9 @@
 #define AD_LINE2_LEN 80
 
 #define AP_ACL_LEN 4
-#define AP_F_NAME_LEN  30
-#define AP_L_NAME_LEN  30
-#define AP_TAX_ID_LEN  20
+#define AP_F_NAME_LEN 30
+#define AP_L_NAME_LEN 30
+#define AP_TAX_ID_LEN 20
 
 #define B_NAME_LEN 100
 
