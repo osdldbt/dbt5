@@ -50,6 +50,8 @@ private:
 
 	char m_errorLogFilename[iMaxPath + 1];
 
+	int m_ClientSide;
+
 	bool m_Verbose;
 
 	friend void entryWorkerThread(void *); // entry point for worker thread
@@ -96,7 +98,7 @@ private:
 
 public:
 	CBrokerageHouse(const char[], const char *, const char *, const char *,
-			const char *, const int, char *, bool);
+			const char *, const int, char *, int, bool);
 	~CBrokerageHouse();
 
 	void logErrorMessage(const string sErr, bool bScreen = true);

@@ -36,6 +36,7 @@ TIdent iConfiguredCustomerCount = iDefaultLoadUnitSize;
 TIdent iActiveCustomerCount = iConfiguredCustomerCount;
 int iScaleFactor = 500;
 int iDaysOfInitialTrades = 300;
+int iClientSide = 0;
 
 eTxnType TxnType = NULL_TXN;
 RNGSEED Seed = 0;
@@ -48,6 +49,7 @@ Usage()
 	cout << "  where" << endl;
 	cout << "   Option               Description" << endl;
 	cout << "   =========            ========================" << endl;
+	cout << "   -1                   Use client-side logic" << endl;
 	cout << "   -b address           Address of Brokerage House." << endl;
 	cout << "                        Connect to database directly if not used."
 		 << endl;
@@ -135,6 +137,9 @@ ParseCommandLine(int argc, char *argv[])
 			break;
 		case 'c':
 			sscanf(vp, "%" PRId64, &iConfiguredCustomerCount);
+			break;
+		case '1':
+			iClientSide = 1;
 			break;
 		case 'f':
 			iScaleFactor = atoi(vp);
@@ -497,7 +502,7 @@ main(int argc, char *argv[])
 
 	try {
 		// database connection
-		CDBConnection m_Conn(szDBHost, szDBName, szPort);
+		CDBConnection m_Conn(szDBHost, szDBName, szPort, iClientSide);
 
 		// initialize Input Generator
 		//

@@ -119,8 +119,9 @@ void inline TokenizeSmart(const string &str, vector<string> &tokens)
 }
 
 // Constructor: Creates PgSQL connection
-CDBConnection::CDBConnection(
-		const char *szHost, const char *szDBName, const char *szDBPort)
+CDBConnection::CDBConnection(const char *szHost, const char *szDBName,
+		const char *szDBPort, int nClientSide)
+: clientSide(nClientSide)
 {
 	szConnectStr[0] = '\0';
 

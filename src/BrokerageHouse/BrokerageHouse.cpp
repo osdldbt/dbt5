@@ -43,7 +43,8 @@ workerThread(void *data)
 		// new database connection
 		pDBConnection = new CDBConnection(pThrParam->pBrokerageHouse->m_szHost,
 				pThrParam->pBrokerageHouse->m_szDBName,
-				pThrParam->pBrokerageHouse->m_szDBPort);
+				pThrParam->pBrokerageHouse->m_szDBPort,
+				pThrParam->pBrokerageHouse->m_ClientSide);
 		pDBConnection->setBrokerageHouse(pThrParam->pBrokerageHouse);
 		CSendToMarket sendToMarket
 				= CSendToMarket(&(pThrParam->pBrokerageHouse->m_fLog),
@@ -283,8 +284,9 @@ entryWorkerThread(void *data)
 // Constructor
 CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName,
 		const char *szDBPort, const char *szMEEHost, const char *szMEEPort,
-		const int iListenPort, char *outputDirectory, bool verbose = false)
-: m_iListenPort(iListenPort), m_Verbose(verbose)
+		const int iListenPort, char *outputDirectory, int iClientSide,
+		bool verbose = false)
+: m_iListenPort(iListenPort), m_ClientSide(iClientSide), m_Verbose(verbose)
 {
 	strncpy(m_szHost, szHost, iMaxHostname);
 	m_szHost[iMaxHostname] = '\0';

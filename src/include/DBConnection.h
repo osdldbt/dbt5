@@ -27,6 +27,8 @@ class CDBConnection
 private:
 	PGconn *m_Conn;
 
+	int clientSide;
+
 	char szConnectStr[iMaxConnectString + 1];
 	char name[16];
 
@@ -35,7 +37,8 @@ private:
 	TTradeRequest m_TriggeredLimitOrders;
 
 public:
-	CDBConnection(const char *, const char *, const char *);
+	CDBConnection(const char *szHost, const char *szDBName,
+			const char *szDBPort, int nClientSide = 0);
 	~CDBConnection();
 
 	void begin();

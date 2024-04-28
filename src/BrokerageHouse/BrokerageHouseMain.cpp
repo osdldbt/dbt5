@@ -12,6 +12,7 @@
 #include "DBT5Consts.h"
 
 // Establish defaults for command line option
+int iClientSide = 0;
 int iListenPort = iBrokerageHousePort;
 bool verbose = false;
 
@@ -29,6 +30,7 @@ usage()
 	cout << "Usage: BrokerageHouseMain [options]" << endl << endl;
 	cout << "   Option      Default    Description" << endl;
 	cout << "   =========   =========  ===============" << endl;
+	cout << "   -1                     Use client-side app logic" << endl;
 	cout << "   -d string              Database name" << endl;
 	cout << "   -h string   localhost  Database server" << endl;
 	printf("   -l integer  %-9d  Socket listen port\n", iListenPort);
@@ -74,6 +76,9 @@ parse_command_line(int argc, char *argv[])
 
 		// Parse the switch
 		switch (*sp) {
+		case '1':
+			iClientSide = 1;
+			break;
 		case 'd': // Database name.
 			strncpy(szDBName, vp, iMaxDBName);
 			szDBName[iMaxDBName] = '\0';
@@ -145,7 +150,7 @@ main(int argc, char *argv[])
 		 << "  Port: " << szMEEPort << endl;
 
 	CBrokerageHouse BrokerageHouse(szHost, szDBName, szDBPort, szMEEHost,
-			szMEEPort, iListenPort, outputDirectory, verbose);
+			szMEEPort, iListenPort, outputDirectory, iClientSide, verbose);
 	cout << "Brokerage House opened for business, waiting for traders..."
 		 << endl;
 	try {
