@@ -33,10 +33,13 @@ CMarketFeedDB::DoMarketFeedFrame1(const TMarketFeedFrame1Input *pIn,
 			 << m_pid << " -- type_stop_loss: "
 			 << pIn->StatusAndTradeType.type_stop_loss << endl;
 		for (int i = 0; i < max_feed_len; i++) {
-			 cout << m_pid << " -- price_quote[" << i << "]: " << pIn->Entries[i].price_quote << endl
-			 << m_pid << " -- trade_qty[" << i << "]: " << pIn->Entries[i].trade_qty << endl
-			 << m_pid << " -- symbol[" << i << "]: " << pIn->Entries[i].symbol << endl;
-			}
+			cout << m_pid << " -- price_quote[" << i
+				 << "]: " << pIn->Entries[i].price_quote << endl
+				 << m_pid << " -- trade_qty[" << i
+				 << "]: " << pIn->Entries[i].trade_qty << endl
+				 << m_pid << " -- symbol[" << i
+				 << "]: " << pIn->Entries[i].symbol << endl;
+		}
 	}
 
 	execute(pIn, pOut, pMarketExchange);
