@@ -42,57 +42,97 @@ public:
 	~CDBConnection();
 
 	void begin();
-
 	void commit();
 	void connect();
 	char *escape(string);
 	void disconnect();
 
+	PGresult *exec(const char *);
 	PGresult *exec(const char *, int, const Oid *, const char *const *,
 			const int *, const int *, int);
 
-	void execute(
-			const TBrokerVolumeFrame1Input *, TBrokerVolumeFrame1Output *);
+	virtual void execute(
+			const TBrokerVolumeFrame1Input *, TBrokerVolumeFrame1Output *)
+			= 0;
 
-	void execute(const TCustomerPositionFrame1Input *,
-			TCustomerPositionFrame1Output *);
-	void execute(const TCustomerPositionFrame2Input *,
-			TCustomerPositionFrame2Output *);
+	virtual void execute(const TCustomerPositionFrame1Input *,
+			TCustomerPositionFrame1Output *)
+			= 0;
+	virtual void execute(const TCustomerPositionFrame2Input *,
+			TCustomerPositionFrame2Output *)
+			= 0;
 
-	void execute(const TDataMaintenanceFrame1Input *);
+	virtual void execute(const TDataMaintenanceFrame1Input *) = 0;
 
 	void execute(const TMarketFeedFrame1Input *, TMarketFeedFrame1Output *,
 			CSendToMarketInterface *);
 
-	void execute(const TMarketWatchFrame1Input *, TMarketWatchFrame1Output *);
+	virtual void execute(
+			const TMarketWatchFrame1Input *, TMarketWatchFrame1Output *)
+			= 0;
 
-	void execute(
-			const TSecurityDetailFrame1Input *, TSecurityDetailFrame1Output *);
+	virtual void execute(
+			const TSecurityDetailFrame1Input *, TSecurityDetailFrame1Output *)
+			= 0;
 
-	void execute(const TTradeCleanupFrame1Input *);
+	virtual void execute(const TTradeCleanupFrame1Input *) = 0;
 
-	void execute(const TTradeLookupFrame1Input *, TTradeLookupFrame1Output *);
-	void execute(const TTradeLookupFrame2Input *, TTradeLookupFrame2Output *);
-	void execute(const TTradeLookupFrame3Input *, TTradeLookupFrame3Output *);
-	void execute(const TTradeLookupFrame4Input *, TTradeLookupFrame4Output *);
+	virtual void execute(
+			const TTradeLookupFrame1Input *, TTradeLookupFrame1Output *)
+			= 0;
+	virtual void execute(
+			const TTradeLookupFrame2Input *, TTradeLookupFrame2Output *)
+			= 0;
+	virtual void execute(
+			const TTradeLookupFrame3Input *, TTradeLookupFrame3Output *)
+			= 0;
+	virtual void execute(
+			const TTradeLookupFrame4Input *, TTradeLookupFrame4Output *)
+			= 0;
 
-	void execute(const TTradeOrderFrame1Input *, TTradeOrderFrame1Output *);
-	void execute(const TTradeOrderFrame2Input *, TTradeOrderFrame2Output *);
-	void execute(const TTradeOrderFrame3Input *, TTradeOrderFrame3Output *);
-	void execute(const TTradeOrderFrame4Input *, TTradeOrderFrame4Output *);
+	virtual void execute(
+			const TTradeOrderFrame1Input *, TTradeOrderFrame1Output *)
+			= 0;
+	virtual void execute(
+			const TTradeOrderFrame2Input *, TTradeOrderFrame2Output *)
+			= 0;
+	virtual void execute(
+			const TTradeOrderFrame3Input *, TTradeOrderFrame3Output *)
+			= 0;
+	virtual void execute(
+			const TTradeOrderFrame4Input *, TTradeOrderFrame4Output *)
+			= 0;
 
-	void execute(const TTradeResultFrame1Input *, TTradeResultFrame1Output *);
-	void execute(const TTradeResultFrame2Input *, TTradeResultFrame2Output *);
-	void execute(const TTradeResultFrame3Input *, TTradeResultFrame3Output *);
-	void execute(const TTradeResultFrame4Input *, TTradeResultFrame4Output *);
-	void execute(const TTradeResultFrame5Input *);
-	void execute(const TTradeResultFrame6Input *, TTradeResultFrame6Output *);
+	virtual void execute(
+			const TTradeResultFrame1Input *, TTradeResultFrame1Output *)
+			= 0;
+	virtual void execute(
+			const TTradeResultFrame2Input *, TTradeResultFrame2Output *)
+			= 0;
+	virtual void execute(
+			const TTradeResultFrame3Input *, TTradeResultFrame3Output *)
+			= 0;
+	virtual void execute(
+			const TTradeResultFrame4Input *, TTradeResultFrame4Output *)
+			= 0;
+	virtual void execute(const TTradeResultFrame5Input *) = 0;
+	virtual void execute(
+			const TTradeResultFrame6Input *, TTradeResultFrame6Output *)
+			= 0;
 
-	void execute(const TTradeStatusFrame1Input *, TTradeStatusFrame1Output *);
+	virtual void execute(
+			const TTradeStatusFrame1Input *, TTradeStatusFrame1Output *)
+			= 0;
 
-	void execute(const TTradeUpdateFrame1Input *, TTradeUpdateFrame1Output *);
-	void execute(const TTradeUpdateFrame2Input *, TTradeUpdateFrame2Output *);
-	void execute(const TTradeUpdateFrame3Input *, TTradeUpdateFrame3Output *);
+	virtual void execute(
+			const TTradeUpdateFrame1Input *, TTradeUpdateFrame1Output *)
+			= 0;
+	virtual void execute(
+			const TTradeUpdateFrame2Input *, TTradeUpdateFrame2Output *)
+			= 0;
+	virtual void execute(
+			const TTradeUpdateFrame3Input *, TTradeUpdateFrame3Output *)
+			= 0;
 
 	void reconnect();
 

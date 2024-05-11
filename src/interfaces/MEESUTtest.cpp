@@ -7,6 +7,8 @@
  * 23 July 2006
  */
 
+#include "DBConnectionServerSide.h"
+
 #include "MEESUTtest.h"
 #include "TxnHarnessSendToMarketTest.h"
 
@@ -26,7 +28,7 @@ TradeResultAsync(void *data)
 	const char *server = "localhost";
 	const char *db = "dbt5";
 	const char *port = "5432";
-	CDBConnection *m_pConn = new CDBConnection(server, db, port);
+	CDBConnection *m_pConn = new CDBConnectionServerSide(server, db, port);
 
 	// trade result harness code (TPC provided)
 	// this class uses our implementation of CTradeResultDB class
@@ -40,7 +42,6 @@ TradeResultAsync(void *data)
 	m_TradeResult.DoTxn(
 			&(pCMEESUTtest->m_TradeResultTxnInput), &m_TradeResultTxnOutput);
 
-	delete m_pConn;
 	return NULL;
 }
 
@@ -102,7 +103,7 @@ MarketFeedAsync(void *data)
 	const char *server = "localhost";
 	const char *db = "dbt5";
 	const char *port = "5432";
-	CDBConnection *m_pConn = new CDBConnection(server, db, port);
+	CDBConnection *m_pConn = new CDBConnectionServerSide(server, db, port);
 
 	// trade result harness code (TPC provided)
 	// this class uses our implementation of CMarketFeedDB class
@@ -116,7 +117,6 @@ MarketFeedAsync(void *data)
 	m_MarketFeed.DoTxn(
 			&(pCMEESUTtest->m_MarketFeedTxnInput), &m_MarketFeedTxnOutput);
 
-	delete m_pConn;
 	return NULL;
 }
 

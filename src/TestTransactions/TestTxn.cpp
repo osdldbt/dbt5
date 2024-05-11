@@ -8,6 +8,7 @@
 #include <cstdlib>
 using namespace std;
 
+#include "DBConnectionServerSide.h"
 #include "CETxnInputGenerator.h"
 #include "TxnHarnessSendToMarketTest.h"
 #include "DMSUTtest.h"
@@ -502,7 +503,10 @@ main(int argc, char *argv[])
 
 	try {
 		// database connection
-		CDBConnection m_Conn(szDBHost, szDBName, szPort, iClientSide);
+		CDBConnection *m_Conn;
+
+		m_Conn = new CDBConnectionServerSide(
+				szDBHost, szDBName, szPort, iClientSide);
 
 		// initialize Input Generator
 		//
@@ -528,7 +532,7 @@ main(int argc, char *argv[])
 		// Initialize DM - Data Maintenance class
 		// DM is used by Data-Maintenance and Trade-Cleanup transactions
 		// Data-Maintenance SUT interface (provided by us)
-		CDMSUTtest m_CDMSUT(&m_Conn);
+		CDMSUTtest m_CDMSUT(m_Conn);
 		CDM m_CDM(&m_CDMSUT, &log, inputFiles, iConfiguredCustomerCount,
 				iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades, 1);
 
@@ -541,35 +545,35 @@ main(int argc, char *argv[])
 			cout << "=== Testing Trade Order, Trade Result and Market Feed ==="
 				 << endl
 				 << endl;
-			status = TradeOrder(&m_Conn, &m_TxnInputGenerator);
+			status = TradeOrder(m_Conn, &m_TxnInputGenerator);
 			break;
 		case TRADE_LOOKUP:
 			cout << "=== Testing Trade Lookup ===" << endl << endl;
-			status = TradeLookup(&m_Conn, &m_TxnInputGenerator);
+			status = TradeLookup(m_Conn, &m_TxnInputGenerator);
 			break;
 		case TRADE_UPDATE:
 			cout << "=== Testing Trade Update ===" << endl << endl;
-			status = TradeUpdate(&m_Conn, &m_TxnInputGenerator);
+			status = TradeUpdate(m_Conn, &m_TxnInputGenerator);
 			break;
 		case TRADE_STATUS:
 			cout << "=== Testing Trade Status ===" << endl << endl;
-			status = TradeStatus(&m_Conn, &m_TxnInputGenerator);
+			status = TradeStatus(m_Conn, &m_TxnInputGenerator);
 			break;
 		case CUSTOMER_POSITION:
 			cout << "=== Testing Customer Position ===" << endl << endl;
-			status = CustomerPosition(&m_Conn, &m_TxnInputGenerator);
+			status = CustomerPosition(m_Conn, &m_TxnInputGenerator);
 			break;
 		case BROKER_VOLUME:
 			cout << "=== Testing Broker Volume ===" << endl << endl;
-			status = BrokerVolume(&m_Conn, &m_TxnInputGenerator);
+			status = BrokerVolume(m_Conn, &m_TxnInputGenerator);
 			break;
 		case SECURITY_DETAIL:
 			cout << "=== Testing Security Detail ===" << endl << endl;
-			status = SecurityDetail(&m_Conn, &m_TxnInputGenerator);
+			status = SecurityDetail(m_Conn, &m_TxnInputGenerator);
 			break;
 		case MARKET_WATCH:
 			cout << "=== Testing Market Watch ===" << endl << endl;
-			status = MarketWatch(&m_Conn, &m_TxnInputGenerator);
+			status = MarketWatch(m_Conn, &m_TxnInputGenerator);
 			break;
 		case DATA_MAINTENANCE:
 			cout << "=== Testing Data Maintenance ===" << endl << endl;

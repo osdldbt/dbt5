@@ -2,7 +2,7 @@ Index: dbt5/egen/prj/Makefile
 ===================================================================
 --- dbt5.orig/egen/prj/Makefile
 +++ dbt5/egen/prj/Makefile
-@@ -210,10 +210,59 @@ EGenValidate_src =		EGenValidate.cpp str
+@@ -210,10 +210,60 @@ EGenValidate_src =		EGenValidate.cpp str
  EGenValidate_obj =		$(EGenValidate_src:.cpp=.o)
  
  
@@ -21,7 +21,8 @@ Index: dbt5/egen/prj/Makefile
 +DBT5Customer_obj =		$(DBT5Customer_src:.cpp=.o)
 +
 +
-+DBT5Postgres_src =		transactions/pgsql/DBConnection.cpp
++DBT5Postgres_src =		transactions/pgsql/DBConnection.cpp transactions/pgsql/DBConnectionServerSide.cpp
++
 +
 +DBT5Postgres_obj =		$(DBT5Postgres_src:.cpp=.o)
 +
@@ -63,7 +64,7 @@ Index: dbt5/egen/prj/Makefile
  
  EGenLoader:			EGenUtilities \
  				EGenInputFiles \
-@@ -249,6 +298,88 @@ EGenValidate:			EGenDriverLib \
+@@ -249,6 +299,88 @@ EGenValidate:			EGenDriverLib \
  	cd $(PRJ); \
  	ls -al $(EXE)
  
@@ -152,7 +153,7 @@ Index: dbt5/egen/prj/Makefile
  EGenDriverLib:			EGenDriverCELib \
  				EGenDriverDMLib \
  				EGenDriverMEELib \
-@@ -298,9 +429,19 @@ clean:
+@@ -298,9 +430,19 @@ clean:
  				$(FlatFileLoader_obj) \
  				$(EGenGenerateAndLoad_obj) \
  				$(EGenValidate_obj) \

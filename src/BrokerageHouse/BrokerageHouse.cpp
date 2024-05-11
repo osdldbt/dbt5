@@ -10,6 +10,7 @@
 #include "BrokerageHouse.h"
 #include "CommonStructs.h"
 #include "DBConnection.h"
+#include "DBConnectionServerSide.h"
 
 #include "BrokerVolumeDB.h"
 #include "CustomerPositionDB.h"
@@ -41,7 +42,8 @@ workerThread(void *data)
 		CDBConnection *pDBConnection = NULL;
 
 		// new database connection
-		pDBConnection = new CDBConnection(pThrParam->pBrokerageHouse->m_szHost,
+		pDBConnection = new CDBConnectionServerSide(
+				pThrParam->pBrokerageHouse->m_szHost,
 				pThrParam->pBrokerageHouse->m_szDBName,
 				pThrParam->pBrokerageHouse->m_szDBPort,
 				pThrParam->pBrokerageHouse->m_ClientSide);
@@ -228,7 +230,6 @@ workerThread(void *data)
 			}
 		} while (true);
 
-		delete pDBConnection; // close connection with the database
 		close(pThrParam->iSockfd); // close socket connection with the driver
 		delete pThrParam;
 		delete pMessage;
