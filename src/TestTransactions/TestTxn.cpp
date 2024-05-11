@@ -8,6 +8,7 @@
 #include <cstdlib>
 using namespace std;
 
+#include "DBConnectionClientSide.h"
 #include "DBConnectionServerSide.h"
 #include "CETxnInputGenerator.h"
 #include "TxnHarnessSendToMarketTest.h"
@@ -505,8 +506,11 @@ main(int argc, char *argv[])
 		// database connection
 		CDBConnection *m_Conn;
 
-		m_Conn = new CDBConnectionServerSide(
-				szDBHost, szDBName, szPort, iClientSide);
+		if (iClientSide == 1) {
+			m_Conn = new CDBConnectionClientSide(szDBHost, szDBName, szPort);
+		} else {
+			m_Conn = new CDBConnectionServerSide(szDBHost, szDBName, szPort);
+		}
 
 		// initialize Input Generator
 		//

@@ -15,8 +15,7 @@
 
 // Constructor: Creates PgSQL connection
 CDBConnection::CDBConnection(const char *szHost, const char *szDBName,
-		const char *szDBPort, int nClientSide)
-: clientSide(nClientSide)
+		const char *szDBPort)
 {
 	szConnectStr[0] = '\0';
 

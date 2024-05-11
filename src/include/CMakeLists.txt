@@ -11,6 +11,7 @@ install (FILES BaseInterface.h
                CustomerPositionDB.h
                DataMaintenanceDB.h
                DBConnection.h
+               DBConnectionClientSide.h
                DBConnectionServerSide.h
                DBT5Consts.h
                DMSUT.h

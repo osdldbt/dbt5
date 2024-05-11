@@ -113,8 +113,8 @@ void inline TokenizeSmart(const string &str, vector<string> &tokens)
 }
 
 CDBConnectionServerSide::CDBConnectionServerSide(const char *szHost,
-		const char *szDBName, const char *szDBPort, int nClientSide)
-: CDBConnection(szHost, szDBName, szDBPort, nClientSide)
+		const char *szDBName, const char *szDBPort)
+: CDBConnection(szHost, szDBName, szDBPort)
 {
 }
 

@@ -3,41 +3,33 @@
  * the file LICENSE, included in this package, for details.
  *
  * Copyright The DBT-5 Authors
+ *
+ * PostgreSQL connection class
  */
 
-#ifndef DB_CONNECTION_SERVER_SIDE_H
-#define DB_CONNECTION_SERVER_SIDE_H
+#ifndef DB_CONNECTION_CLIENT_SIDE_H
+#define DB_CONNECTION_CLIENT_SIDE_H
 
 #include <libpq-fe.h>
 #include <unistd.h>
 #include <sys/syscall.h>
 
+#include "DBConnection.h"
+#include "DBConnectionClientSide.h"
+
 #include "TxnHarnessStructs.h"
 #include "TxnHarnessSendToMarket.h"
 
-#include "DBConnection.h"
 #include "BrokerageHouse.h"
 #include "DBT5Consts.h"
 using namespace TPCE;
 
-class CDBConnectionServerSide: public CDBConnection
+class CDBConnectionClientSide: public CDBConnection
 {
-private:
-	PGconn *m_Conn;
-
-	int clientSide;
-
-	char szConnectStr[iMaxConnectString + 1];
-	char name[16];
-
-	CBrokerageHouse *bh;
-
-	TTradeRequest m_TriggeredLimitOrders;
-
 public:
-	CDBConnectionServerSide(const char *szHost, const char *szDBName,
+	CDBConnectionClientSide(const char *szHost, const char *szDBName,
 			const char *szDBPort);
-	~CDBConnectionServerSide();
+	~CDBConnectionClientSide();
 
 	void execute(
 			const TBrokerVolumeFrame1Input *, TBrokerVolumeFrame1Output *);
@@ -80,4 +72,4 @@ public:
 	void execute(const TTradeUpdateFrame3Input *, TTradeUpdateFrame3Output *);
 };
 
-#endif // DB_CONNECTION_SERVER_SIDE_H
+#endif // DB_CONNECTION_CLIENT_SIDE_H

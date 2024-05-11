@@ -21,7 +21,7 @@ Index: dbt5/egen/prj/Makefile
 +DBT5Customer_obj =		$(DBT5Customer_src:.cpp=.o)
 +
 +
-+DBT5Postgres_src =		transactions/pgsql/DBConnection.cpp transactions/pgsql/DBConnectionServerSide.cpp
++DBT5Postgres_src =		transactions/pgsql/DBConnection.cpp transactions/pgsql/DBConnectionClientSide.cpp transactions/pgsql/DBConnectionServerSide.cpp
 +
 +
 +DBT5Postgres_obj =		$(DBT5Postgres_src:.cpp=.o)
