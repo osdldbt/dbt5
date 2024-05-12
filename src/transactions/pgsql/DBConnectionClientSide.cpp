@@ -662,6 +662,126 @@ void
 CDBConnectionClientSide::execute(
 		const TMarketWatchFrame1Input *pIn, TMarketWatchFrame1Output *pOut)
 {
+	ostringstream osSQL;
+	PGresult *res = NULL;
+
+	double old_mkt_cap = 0.0;
+	double new_mkt_cap = 0.0;
+
+	if (pIn->c_id != 0) {
+		osSQL << "SELECT wi_s_symb" << endl
+			  << "FROM watch_item" << endl
+			  << "   , watch_list" << endl
+			  << "WHERE wi_wl_id = wl_id" << endl
+			  << "  AND wl_c_id = " << pIn->c_id;
+	} else if (pIn->industry_name[0] != '\0') {
+		osSQL << "SELECT s_symb" << endl
+			  << "FROM industry" << endl
+			  << "   , company" << endl
+			  << "   , security" << endl
+			  << "WHERE in_name = '" << pIn->industry_name << "'" << endl
+			  << "  AND co_in_id = in_id" << endl
+			  << "  AND co_id BETWEEN " << pIn->starting_co_id << " AND "
+			  << pIn->ending_co_id << endl
+			  << "  AND s_co_id = co_id";
+	} else if (pIn->acct_id != 0) {
+		osSQL << "SELECT hs_s_symb" << endl
+			  << "FROM holding_summary" << endl
+			  << "WHERE  hs_ca_id = " << pIn->acct_id;
+	} else {
+		cerr << "MarketWatchFrame1 error figuring out what to do" << endl;
+		return;
+	}
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	int count = PQntuples(res);
+	for (int i = 0; i < count; i++) {
+		PGresult *res2 = NULL;
+
+		char *s_symb = PQgetvalue(res, i, 0);
+
+		if (m_bVerbose) {
+			cout << "s_symb[" << i << "] = " << s_symb << endl;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "SELECT lt_price" << endl
+			  << "FROM last_trade" << endl
+			  << "WHERE lt_s_symb = '" << s_symb << "'";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res2 = exec(osSQL.str().c_str());
+
+		if (PQntuples(res2) == 0) {
+			return;
+		}
+
+		double new_price = atof(PQgetvalue(res2, 0, 0));
+		PQclear(res2);
+
+		if (m_bVerbose) {
+			cout << "new_price[" << i << "] = " << new_price << endl;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "SELECT s_num_out" << endl
+			  << "FROM security" << endl
+			  << "WHERE s_symb = '" << s_symb << "'";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res2 = exec(osSQL.str().c_str());
+
+		if (PQntuples(res2) == 0) {
+			return;
+		}
+
+		double s_num_out = atof(PQgetvalue(res2, 0, 0));
+		PQclear(res2);
+
+		if (m_bVerbose) {
+			cout << "s_num_out[" << i << "] = " << s_num_out << endl;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "SELECT dm_close" << endl
+			  << "FROM daily_market" << endl
+			  << "WHERE dm_s_symb = '" << s_symb << "'" << endl
+			  << "  AND dm_date = '" << pIn->start_day.year << "-"
+			  << pIn->start_day.month << "-" << pIn->start_day.day << "'";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res2 = exec(osSQL.str().c_str());
+
+		if (PQntuples(res2) == 0) {
+			return;
+		}
+
+		double old_price = atof(PQgetvalue(res2, 0, 0));
+		PQclear(res2);
+
+		if (m_bVerbose) {
+			cout << "old_price[" << i << "] = " << old_price << endl;
+		}
+
+		old_mkt_cap += s_num_out * old_price;
+		new_mkt_cap += s_num_out * new_price;
+	}
+	PQclear(res);
+
+	pOut->pct_change = 100.0 * (new_mkt_cap / old_mkt_cap - 1.0);
+
+	if (m_bVerbose) {
+		cout << "pct_change = " << pOut->pct_change << endl;
+	}
 }
 
 void
