@@ -289,6 +289,373 @@ CDBConnectionClientSide::execute(const TCustomerPositionFrame2Input *pIn,
 void
 CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 {
+	ostringstream osSQL;
+	PGresult *res = NULL;
+
+	if (strncmp(pIn->table_name, "ACCOUNT_PERMISSION", max_table_name) == 0) {
+		osSQL << "SELECT ap_acl" << endl
+			  << "FROM account_permission" << endl
+			  << "WHERE ap_ca_id = " << pIn->acct_id << endl
+			  << "ORDER BY ap_acl DESC" << endl
+			  << "LIMIT 1";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		char *ap_acl = PQgetvalue(res, 0, 0);
+
+		if (m_bVerbose) {
+			cout << "ap_acl = " << ap_acl << endl;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "UPDATE account_permission" << endl << "SET ap_acl = '";
+		if (strncmp(ap_acl, "1111", 4) != 0) {
+			osSQL << "1111";
+		} else {
+			osSQL << "0011";
+		}
+		osSQL << "'" << endl
+			  << "WHERE ap_ca_id = " << pIn->acct_id << endl
+			  << "  AND ap_acl = '" << ap_acl << "'";
+
+		PQclear(res);
+	} else if (strncmp(pIn->table_name, "ADDRESS", max_table_name) == 0) {
+		if (pIn->c_id != 0) {
+			osSQL << "SELECT ad_line2" << endl
+				  << "     , ad_id" << endl
+				  << "FROM address" << endl
+				  << "   , customer" << endl
+				  << "WHERE ad_id = c_ad_id" << endl
+				  << "  AND c_id = " << pIn->c_id;
+		} else {
+			osSQL << "SELECT ad_line2" << endl
+				  << "     , ad_id" << endl
+				  << "FROM address" << endl
+				  << "   , company" << endl
+				  << "WHERE ad_id = co_ad_id" << endl
+				  << "  AND co_id = " << pIn->co_id;
+		}
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		if (m_bVerbose) {
+			cout << "ad_line2 = " << PQgetvalue(res, 0, 0) << endl;
+			cout << "ad_id = " << PQgetvalue(res, 0, 1) << endl;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "UPDATE address" << endl << "SET ad_line2 = '";
+		if (strncmp(PQgetvalue(res, 0, 0), "Apt. 10C", 8) != 0) {
+			osSQL << "Apt. 10C" << endl;
+		} else {
+			osSQL << "Apt. 22" << endl;
+		}
+		osSQL << "'" << endl << "WHERE ad_id = " << PQgetvalue(res, 0, 1);
+
+		PQclear(res);
+	} else if (strncmp(pIn->table_name, "COMPANY", max_table_name) == 0) {
+		osSQL << "SELECT co_sp_rate" << endl
+			  << "FROM company" << endl
+			  << "WHERE co_id = " << pIn->co_id;
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		if (m_bVerbose) {
+			cout << "co_sp_rate = " << PQgetvalue(res, 0, 0) << endl;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "UPDATE company" << endl << "SET co_sp_rate = '";
+		if (strncmp(PQgetvalue(res, 0, 0), "ABA", 3) != 0) {
+			osSQL << "ABA";
+		} else {
+			osSQL << "AAA";
+		}
+		osSQL << "'" << endl << "WHERE co_id = " << pIn->co_id;
+
+		PQclear(res);
+	} else if (strncmp(pIn->table_name, "CUSTOMER", max_table_name) == 0) {
+		int lenMindspring = strlen("@mindspring.com");
+
+		osSQL << "SELECT c_email_2" << endl
+			  << "FROM customer" << endl
+			  << "WHERE c_id = " << pIn->c_id;
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		char *c_email_2 = PQgetvalue(res, 0, 0);
+		int len = strlen(c_email_2);
+
+		if (m_bVerbose) {
+			cout << "c_email_2 = " << c_email_2 << endl;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "UPDATE customer" << endl
+			  << "SET c_email_2 = substring(c_email_2" << endl
+			  << "                          FROM '#\"%@#\"%'" << endl
+			  << "                          FOR '#') || '";
+		if (((len - lenMindspring) > 0)
+				&& (strstr(c_email_2, "@mindspring.com") != NULL)) {
+			osSQL << "earthlink.com";
+		} else {
+			osSQL << "mindspring.com";
+		}
+		osSQL << "'" << endl << "WHERE c_id = " << pIn->c_id;
+
+		PQclear(res);
+	} else if (strncmp(pIn->table_name, "CUSTOMER_TAXRATE", max_table_name)
+			   == 0) {
+		osSQL << "SELECT cx_tx_id" << endl
+			  << "FROM customer_taxrate" << endl
+			  << "WHERE cx_c_id = " << pIn->c_id << endl
+			  << "  AND (cx_tx_id LIKE 'US%' OR cx_tx_id LIKE 'CN%')";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		char *cx_tx_id = PQgetvalue(res, 0, 0);
+
+		if (m_bVerbose) {
+			cout << "cx_tx_id = " << cx_tx_id << endl;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "UPDATE customer_taxrate" << endl << "SET cx_tx_id = '";
+		if (strncmp(cx_tx_id, "US", 2) == 0) {
+			if (cx_tx_id[2] == '5') {
+				osSQL << "US1";
+			} else if (cx_tx_id[2] == '4') {
+				osSQL << "US5";
+			} else if (cx_tx_id[2] == '3') {
+				osSQL << "US4";
+			} else if (cx_tx_id[2] == '2') {
+				osSQL << "US3";
+			} else if (cx_tx_id[2] == '1') {
+				osSQL << "US2";
+			}
+		} else {
+			if (cx_tx_id[2] == '4') {
+				osSQL << "CN1";
+			} else if (cx_tx_id[2] == '3') {
+				osSQL << "CN4";
+			} else if (cx_tx_id[2] == '2') {
+				osSQL << "CN3";
+			} else if (cx_tx_id[2] == '1') {
+				osSQL << "CN2";
+			}
+		}
+		osSQL << "'" << endl
+			  << "WHERE cx_c_id = " << pIn->c_id << endl
+			  << " AND cx_tx_id = '" << cx_tx_id << "'";
+
+		PQclear(res);
+	} else if (strncmp(pIn->table_name, "DAILY_MARKET", max_table_name) == 0) {
+		osSQL << "UPDATE daily_market" << endl
+			  << "SET dm_vol = dm_vol + " << pIn->vol_incr << endl
+			  << "WHERE dm_s_symb = '" << pIn->symbol << "'" << endl
+			  << "  AND extract(DAY FROM dm_date) = " << pIn->day_of_month;
+	} else if (strncmp(pIn->table_name, "EXCHANGE", max_table_name) == 0) {
+		osSQL << "SELECT count(*)" << endl
+			  << "FROM exchange" << endl
+			  << "WHERE ex_desc LIKE '%LAST UPDATED%'";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		if (m_bVerbose) {
+			cout << "count(*) = " << PQgetvalue(res, 0, 0) << endl;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		if (PQgetvalue(res, 0, 0)[0] == '0') {
+			osSQL << "UPDATE exchange" << endl
+				  << "SET ex_desc = ex_desc || ' LAST UPDATED ' || "
+					 "CURRENT_TIMESTAMP";
+		} else {
+			osSQL << "UPDATE exchange" << endl
+				  << "SET ex_desc = substring(ex_desc || ' LAST UPDATED ' || "
+					 "now()"
+				  << endl
+				  << "                        FROM 1 FOR "
+					 "(char_length(ex_desc) -"
+				  << endl
+				  << "                                    "
+					 "char_length(now()::TEXT))) || CURRENT_TIMESTAMP";
+		}
+
+		PQclear(res);
+	} else if (strncmp(pIn->table_name, "FINANCIAL", max_table_name) == 0) {
+		osSQL << "SELECT count(*)" << endl
+			  << "FROM financial" << endl
+			  << "WHERE fi_co_id = " << pIn->co_id << endl
+			  << "  AND extract(DAY FROM fi_qtr_start_date) = 1";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		osSQL.clear();
+		osSQL.str("");
+		if (atoi(PQgetvalue(res, 0, 0)) > 0) {
+			osSQL << "UPDATE financial" << endl
+				  << "SET fi_qtr_start_date = fi_qtr_start_date + INTERVAL '1 "
+					 "DAY'"
+				  << endl
+				  << "WHERE fi_co_id = " << pIn->co_id;
+		} else {
+			osSQL << "UPDATE financial" << endl
+				  << "SET fi_qtr_start_date = fi_qtr_start_date - INTERVAL '1 "
+					 "DAY'"
+				  << endl
+				  << "WHERE fi_co_id = " << pIn->co_id;
+		}
+
+		PQclear(res);
+	} else if (strncmp(pIn->table_name, "NEWS_ITEM", max_table_name) == 0) {
+		osSQL << "UPDATE news_item" << endl
+			  << "SET ni_dts = ni_dts + INTERVAL '1 day'" << endl
+			  << "WHERE ni_id IN (" << endl
+			  << "                   SELECT nx_ni_id" << endl
+			  << "                   FROM news_xref" << endl
+			  << "                   WHERE nx_co_id = " << pIn->co_id << endl
+			  << "               )";
+	} else if (strncmp(pIn->table_name, "SECURITY", max_table_name) == 0) {
+		osSQL << "UPDATE security" << endl
+			  << "SET s_exch_date = s_exch_date + INTERVAL '1 DAY'" << endl
+			  << "WHERE s_symb = '" << pIn->symbol << "'";
+	} else if (strncmp(pIn->table_name, "TAXRATE", max_table_name) == 0) {
+		osSQL << "SELECT tx_name" << endl
+			  << "FROM taxrate" << endl
+			  << "WHERE tx_id = '" << pIn->tx_id << "'";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		char *tx_name = PQgetvalue(res, 0, 0);
+		char *p;
+
+		if (m_bVerbose) {
+			cout << "tx_name = " << tx_name << endl;
+		}
+
+		if ((p = strstr(tx_name, " Tax ")) != NULL) {
+			p[1] = 't';
+		} else if ((p = strstr(tx_name, " tax ")) != NULL) {
+			p[1] = 'T';
+		} else {
+			cerr << "could not find 'tax' or 'Tax' in taxrate data maintenance"
+				 << endl;
+			return;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "UPDATE taxrate" << endl
+			  << "SET tx_name = '" << tx_name << "'" << endl
+			  << "WHERE tx_id = '" << pIn->tx_id << "'";
+
+		PQclear(res);
+	} else if (strncmp(pIn->table_name, "WATCH_ITEM", max_table_name) == 0) {
+		osSQL << "SELECT count(*)" << endl
+			  << "FROM watch_item" << endl
+			  << "   , watch_list" << endl
+			  << "WHERE wl_c_id = " << pIn->c_id << endl
+			  << "  AND wi_wl_id = wl_id";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		int cnt = (atoi(PQgetvalue(res, 0, 0)) + 1) / 2;
+		PQclear(res);
+
+		if (m_bVerbose) {
+			cout << "count(*) = " << PQgetvalue(res, 0, 0) << endl;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "SELECT wi_s_symb" << endl
+			  << "FROM (" << endl
+			  << "         SELECT wi_s_symb" << endl
+			  << "         FROM watch_item, watch_list" << endl
+			  << "         WHERE wl_c_id = " << pIn->c_id << endl
+			  << "           AND wi_wl_id = wl_id" << endl
+			  << "         ORDER BY wi_s_symb ASC" << endl
+			  << "     ) AS foo" << endl
+			  << "OFFSET " << cnt << endl
+			  << "LIMIT 1";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		char old_symbol[cSYMBOL_len + 1];
+		strncpy(old_symbol, PQgetvalue(res, 0, 0), cSYMBOL_len);
+		PQclear(res);
+
+		if (m_bVerbose) {
+			cout << "wi_s_symb = " << old_symbol << endl;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "SELECT s_symb" << endl
+			  << "FROM security" << endl
+			  << "WHERE s_symb > '" << old_symbol << "'" << endl
+			  << "  AND s_symb NOT IN (" << endl
+			  << "                        SELECT wi_s_symb" << endl
+			  << "                        FROM watch_item, watch_list" << endl
+			  << "                        WHERE wl_c_id = " << pIn->c_id
+			  << endl
+			  << "                          AND wi_wl_id = wl_id" << endl
+			  << "                    )" << endl
+			  << "ORDER BY s_symb ASC" << endl
+			  << "LIMIT 1";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		if (m_bVerbose) {
+			cout << "s_symb = " << PQgetvalue(res, 0, 0) << endl;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "UPDATE watch_item" << endl
+			  << "SET wi_s_symb = '" << old_symbol << "'" << endl
+			  << "FROM watch_list" << endl
+			  << "WHERE wl_c_id = " << pIn->c_id << endl
+			  << "  AND wi_wl_id = wl_id" << endl
+			  << "  AND wi_s_symb = '" << PQgetvalue(res, 0, 0) << "'";
+
+		PQclear(res);
+	}
+
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+	PQclear(res);
 }
 
 void
