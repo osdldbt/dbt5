@@ -230,6 +230,60 @@ void
 CDBConnectionClientSide::execute(const TCustomerPositionFrame2Input *pIn,
 		TCustomerPositionFrame2Output *pOut)
 {
+	ostringstream osSQL;
+	osSQL << "SELECT t_id" << endl
+		  << "     , t_s_symb" << endl
+		  << "     , t_qty" << endl
+		  << "     , st_name" << endl
+		  << "     , th_dts" << endl
+		  << "FROM (" << endl
+		  << "         SELECT t_id AS id" << endl
+		  << "         FROM trade" << endl
+		  << "         WHERE t_ca_id = " << pIn->acct_id << endl
+		  << "         ORDER BY t_dts DESC" << endl
+		  << "         LIMIT 10" << endl
+		  << "     ) AS t" << endl
+		  << "   , trade" << endl
+		  << "   , trade_history" << endl
+		  << "   , status_type" << endl
+		  << "WHERE t_id = id" << endl
+		  << "  AND th_t_id = t_id" << endl
+		  << "  AND st_id = th_st_id" << endl
+		  << "ORDER BY th_dts DESC";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	PGresult *res = exec(osSQL.str().c_str());
+
+	pOut->hist_len = PQntuples(res);
+	for (int i = 0; i < pOut->hist_len; i++) {
+		pOut->trade_id[i] = atoll(PQgetvalue(res, i, 0));
+		strncpy(pOut->symbol[i], PQgetvalue(res, i, 1), cSYMBOL_len);
+		pOut->qty[i] = atoi(PQgetvalue(res, i, 2));
+		strncpy(pOut->trade_status[i], PQgetvalue(res, i, 3), cST_NAME_len);
+		sscanf(PQgetvalue(res, i, 4), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+				&pOut->hist_dts[i].year, &pOut->hist_dts[i].month,
+				&pOut->hist_dts[i].day, &pOut->hist_dts[i].hour,
+				&pOut->hist_dts[i].minute, &pOut->hist_dts[i].second,
+				&pOut->hist_dts[i].fraction);
+	}
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << " = " << pOut->hist_len << endl;
+		for (int i = 0; i < pOut->hist_len; i++) {
+			cout << "trade_id[" << i << "] = " << pOut->trade_id[i] << endl;
+			cout << "symbol[" << i << "] = " << pOut->symbol[i] << endl;
+			cout << "qty[" << i << "] = " << pOut->qty[i] << endl;
+			cout << "trade_status[" << i << "] = " << pOut->trade_status[i]
+				 << endl;
+			cout << "hist_dts[" << i << "] = " << pOut->hist_dts[i].year << "-"
+				 << pOut->hist_dts[i].month << "-" << pOut->hist_dts[i].day
+				 << " " << pOut->hist_dts[i].hour << ":"
+				 << pOut->hist_dts[i].minute << ":" << pOut->hist_dts[i].second
+				 << "." << pOut->hist_dts[i].fraction << endl;
+		}
+	}
 }
 
 void
