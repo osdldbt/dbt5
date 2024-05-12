@@ -20,6 +20,56 @@ void
 CDBConnectionClientSide::execute(
 		const TBrokerVolumeFrame1Input *pIn, TBrokerVolumeFrame1Output *pOut)
 {
+	ostringstream osBrokers;
+	int i = 0;
+	osBrokers << pIn->broker_list[i];
+	for (i = 1; pIn->broker_list[i][0] != '\0' && i < max_broker_list_len;
+			i++) {
+		osBrokers << ", " << pIn->broker_list[i];
+	}
+
+	ostringstream osSQL;
+	osSQL << "SELECT b_name" << endl
+		  << "     , sum(tr_qty * tr_bid_price) AS vol" << endl
+		  << "FROM trade_request" << endl
+		  << "   , sector" << endl
+		  << "   , industry" << endl
+		  << "   , company" << endl
+		  << "   , broker" << endl
+		  << "   , security" << endl
+		  << "WHERE tr_b_id = b_id" << endl
+		  << "  AND tr_s_symb = s_symb" << endl
+		  << "  AND s_co_id = co_id" << endl
+		  << "  AND co_in_id = in_id" << endl
+		  << "  AND sc_id = in_sc_id" << endl
+		  << "  AND b_name = ANY ('{" << osBrokers.str() << "}')" << endl
+		  << "  AND sc_name = '" << pIn->sector_name << "'" << endl
+		  << "GROUP BY b_name" << endl
+		  << "ORDER BY 2 DESC";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	PGresult *res = exec(osSQL.str().c_str());
+
+	pOut->list_len = PQntuples(res);
+	if (pOut->list_len == 0) {
+		return;
+	}
+
+	for (i = 0; i < pOut->list_len; i++) {
+		strncpy(pOut->broker_name[i], PQgetvalue(res, i, 0), cB_NAME_len);
+		pOut->volume[i] = atof(PQgetvalue(res, i, 1));
+	}
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "list_len = " << pOut->list_len << endl;
+		for (i = 0; i < pOut->list_len; i++) {
+			cout << "broker_name[" << i << "] = " << pOut->broker_name[i]
+				 << endl;
+			cout << "volume[" << i << "] = " << pOut->volume[i] << endl;
+		}
+	}
 }
 
 void
