@@ -2125,6 +2125,31 @@ void
 CDBConnectionClientSide::execute(
 		const TTradeOrderFrame2Input *pIn, TTradeOrderFrame2Output *pOut)
 {
+	PGresult *res = NULL;
+	ostringstream osSQL;
+
+	osSQL << "SELECT ap_acl" << endl
+		  << "FROM account_permission" << endl
+		  << "WHERE ap_ca_id = " << pIn->acct_id << endl
+		  << "  AND ap_f_name = '" << pIn->exec_f_name << "'" << endl
+		  << "  AND ap_l_name = '" << pIn->exec_l_name << "'" << endl
+		  << "  AND ap_tax_id = '" << pIn->exec_tax_id << "'";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
+	strncpy(pOut->ap_acl, PQgetvalue(res, 0, 0), cACL_len);
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "ap_acl = " << pOut->ap_acl << endl;
+	}
 }
 
 void
