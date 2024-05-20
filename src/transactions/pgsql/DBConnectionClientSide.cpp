@@ -1958,6 +1958,81 @@ void
 CDBConnectionClientSide::execute(
 		const TTradeLookupFrame4Input *pIn, TTradeLookupFrame4Output *pOut)
 {
+	PGresult *res = NULL;
+	ostringstream osSQL;
+
+	osSQL << "SELECT t_id" << endl
+		  << "FROM trade" << endl
+		  << "WHERE t_ca_id = " << pIn->acct_id << endl
+		  << "  AND t_dts >= '" << pIn->trade_dts.year << "-"
+		  << pIn->trade_dts.month << "-" << pIn->trade_dts.day << " "
+		  << pIn->trade_dts.hour << ":" << pIn->trade_dts.minute << ":"
+		  << pIn->trade_dts.second << "." << pIn->trade_dts.fraction << "'"
+		  << endl
+		  << "ORDER BY t_dts ASC" << endl
+		  << "LIMIT 1";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	pOut->num_trades_found = PQntuples(res);
+	if (pOut->num_trades_found == 0) {
+		PQclear(res);
+		return;
+	}
+
+	pOut->trade_id = atoll(PQgetvalue(res, 0, 0));
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "t_id = " << pOut->trade_id << endl;
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT hh_h_t_id" << endl
+		  << "     , hh_t_id" << endl
+		  << "     , hh_before_qty" << endl
+		  << "     , hh_after_qty" << endl
+		  << "FROM holding_history" << endl
+		  << "WHERE hh_h_t_id IN (" << endl
+		  << "                       SELECT hh_h_t_id" << endl
+		  << "                       FROM holding_history" << endl
+		  << "                       WHERE hh_t_id = " << pOut->trade_id
+		  << endl
+		  << "                   )";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	pOut->num_found = PQntuples(res);
+	for (int i = 0; i < pOut->num_found; i++) {
+		pOut->trade_info[i].holding_history_id
+				= atoll(PQgetvalue(res, i, 0));
+		pOut->trade_info[i].holding_history_trade_id
+				= atoll(PQgetvalue(res, i, 1));
+		pOut->trade_info[i].quantity_before
+				= atoi(PQgetvalue(res, i, 2));
+		pOut->trade_info[i].quantity_after
+				= atoi(PQgetvalue(res, i, 3));
+	}
+	PQclear(res);
+
+	if (m_bVerbose) {
+		for (int i = 0; i < pOut->num_found; i++) {
+			cout << "holding_history_id[" << i
+				 << "] = " << pOut->trade_info[i].holding_history_id << endl;
+			cout << "holding_history_trade_id[" << i
+				 << "] = " << pOut->trade_info[i].holding_history_trade_id
+				 << endl;
+			cout << "quantity_before[" << i
+				 << "] = " << pOut->trade_info[i].quantity_before << endl;
+			cout << "quantity_after[" << i
+				 << "] = " << pOut->trade_info[i].quantity_after << endl;
+		}
+	}
 }
 
 void
