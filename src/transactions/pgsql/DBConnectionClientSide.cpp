@@ -2039,6 +2039,86 @@ void
 CDBConnectionClientSide::execute(
 		const TTradeOrderFrame1Input *pIn, TTradeOrderFrame1Output *pOut)
 {
+	PGresult *res = NULL;
+	ostringstream osSQL;
+
+	osSQL << "SELECT ca_name" << endl
+		  << "     , ca_b_id" << endl
+		  << "     , ca_c_id" << endl
+		  << "     , ca_tax_st" << endl
+		  << "FROM customer_account" << endl
+		  << "WHERE ca_id = " << pIn->acct_id;
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	pOut->num_found = PQntuples(res);
+	if (pOut->num_found == 0) {
+		PQclear(res);
+		return;
+	}
+
+	strncpy(pOut->acct_name, PQgetvalue(res, 0, 0), cCA_NAME_len);
+	pOut->broker_id = atoll(PQgetvalue(res, 0, 1));
+	pOut->cust_id = atoll(PQgetvalue(res, 0, 2));
+	pOut->tax_status = atoi(PQgetvalue(res, 0, 3));
+
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "acct_name = " << pOut->acct_name << endl;
+		cout << "broker_id = " << pOut->broker_id << endl;
+		cout << "cust_id = " << pOut->cust_id << endl;
+		cout << "tax_status = " << pOut->tax_status << endl;
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT c_f_name" << endl
+		  << "     , c_l_name" << endl
+		  << "     , c_tier" << endl
+		  << "     , c_tax_id" << endl
+		  << "FROM customer" << endl
+		  << "WHERE c_id = " << pOut->broker_id;
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) != 0) {
+		strncpy(pOut->cust_f_name, PQgetvalue(res, 0, 0), cF_NAME_len);
+		strncpy(pOut->cust_l_name, PQgetvalue(res, 0, 1), cL_NAME_len);
+		pOut->cust_tier = atoi(PQgetvalue(res, 0, 2));
+		strncpy(pOut->tax_id, PQgetvalue(res, 0, 3), cTAX_ID_len);
+	}
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "cust_f_name = " << pOut->cust_f_name << endl;
+		cout << "cust_l_name = " << pOut->cust_l_name << endl;
+		cout << "cust_tier = " << pOut->cust_tier << endl;
+		cout << "tax_id = " << pOut->tax_id << endl;
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT b_name" << endl
+		  << "FROM Broker" << endl
+		  << "WHERE b_id = " << pOut->broker_id;
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) != 0) {
+		strncpy(pOut->broker_name, PQgetvalue(res, 0, 0), cB_NAME_len);
+	}
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "broker_name = " << pOut->broker_name << endl;
+	}
 }
 
 void
