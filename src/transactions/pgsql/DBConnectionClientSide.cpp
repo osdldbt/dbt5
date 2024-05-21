@@ -2586,6 +2586,98 @@ void
 CDBConnectionClientSide::execute(
 		const TTradeOrderFrame4Input *pIn, TTradeOrderFrame4Output *pOut)
 {
+	PGresult *res = NULL;
+	PGresult *res2 = NULL;
+	ostringstream osSQL;
+
+	osSQL << "INSERT INTO trade(" << endl
+		  << "    t_id" << endl
+		  << "  , t_dts" << endl
+		  << "  , t_st_id" << endl
+		  << "  , t_tt_id" << endl
+		  << "  , t_is_cash" << endl
+		  << "  , t_s_symb" << endl
+		  << "  , t_qty" << endl
+		  << "  , t_bid_price" << endl
+		  << "  , t_ca_id" << endl
+		  << "  , t_exec_name" << endl
+		  << "  , t_trade_price" << endl
+		  << "  , t_chrg" << endl
+		  << "  , t_comm" << endl
+		  << "  , t_tax" << endl
+		  << "  , t_lifo" << endl
+		  << ")" << endl
+		  << "VALUES (" << endl
+		  << "    nextval('seq_trade_id')" << endl
+		  << "  , CURRENT_TIMESTAMP" << endl
+		  << "  , '" << pIn->status_id << "'" << endl
+		  << "  , '" << pIn->trade_type_id << "'" << endl
+		  << "  , " << (pIn->is_cash ? "true" : "false") << endl
+		  << "  , '" << pIn->symbol << "'" << endl
+		  << "  , " << pIn->trade_qty << endl
+		  << "  , " << pIn->requested_price << endl
+		  << "  , " << pIn->acct_id << endl
+		  << "  , '" << pIn->exec_name << "'" << endl
+		  << "  , NULL" << endl
+		  << "  , " << pIn->charge_amount << endl
+		  << "  , " << pIn->comm_amount << endl
+		  << "  , 0" << endl
+		  << "  , " << (pIn->is_lifo ? "true" : "false") << endl
+		  << ")" << endl
+		  << "RETURNING t_id" << endl
+		  << "        , t_dts";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	pOut->trade_id = atoll(PQgetvalue(res, 0, 0));
+
+	if (!pIn->type_is_market) {
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "INSERT INTO trade_request(" << endl
+			  << "    tr_t_id" << endl
+			  << "  , tr_tt_id" << endl
+			  << "  , tr_s_symb" << endl
+			  << "  , tr_qty" << endl
+			  << "  , tr_bid_price" << endl
+			  << "  , tr_b_id" << endl
+			  << ")" << endl
+			  << "VALUES (" << endl
+			  << "    " << pOut->trade_id << endl
+			  << "  , '" << pIn->trade_type_id << "'" << endl
+			  << "  , '" << pIn->symbol << "'" << endl
+			  << "  , " << pIn->trade_qty << endl
+			  << "  , " << pIn->requested_price << endl
+			  << "  , " << pIn->broker_id << endl
+			  << "  )";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res2 = exec(osSQL.str().c_str());
+		PQclear(res2);
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "INSERT INTO trade_history(" << endl
+		  << "    th_t_id" << endl
+		  << "  , th_dts" << endl
+		  << "  , th_st_id" << endl
+		  << ")" << endl
+		  << "VALUES(" << endl
+		  << "    " << pOut->trade_id << endl
+		  << "  , CURRENT_TIMESTAMP" << endl
+		  << "  , '" << pIn->status_id << "'" << endl
+		  << ")";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res2 = exec(osSQL.str().c_str());
+
+	PQclear(res2);
+	PQclear(res);
 }
 
 void
