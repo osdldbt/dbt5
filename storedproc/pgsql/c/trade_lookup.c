@@ -2086,7 +2086,7 @@ TradeLookupFrame3(PG_FUNCTION_ARGS)
 
 			trade_list_str = SPI_getvalue(tuple, tupdesc, 7);
 			strncat(values[i_trade_list], trade_list_str, length_tl);
-			length_tl -= strlen(tmp);
+			length_tl -= strlen(trade_list_str);
 			if (length_tl < 0) {
 				FAIL_FRAME("trade_list values needs to be increased");
 			}
