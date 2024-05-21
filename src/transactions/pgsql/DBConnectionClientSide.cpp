@@ -3344,6 +3344,57 @@ CDBConnectionClientSide::execute(
 void
 CDBConnectionClientSide::execute(const TTradeResultFrame5Input *pIn)
 {
+	PGresult *res = NULL;
+	ostringstream osSQL;
+
+	osSQL << "UPDATE trade" << endl
+		  << "SET t_comm = " << pIn->comm_amount << endl
+		  << "  , t_dts = '" << pIn->trade_dts.year << "-"
+		  << pIn->trade_dts.month << "-" << pIn->trade_dts.day << " "
+		  << pIn->trade_dts.hour << ":" << pIn->trade_dts.minute << ":"
+		  << pIn->trade_dts.second << "." << pIn->trade_dts.fraction << "'"
+		  << endl
+		  << "  , t_st_id = '" << pIn->st_completed_id << "'" << endl
+		  << "  , t_trade_price = " << pIn->trade_price << endl
+		  << "WHERE t_id = " << pIn->trade_id;
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+	PQclear(res);
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "INSERT INTO trade_history(" << endl
+		  << "    th_t_id" << endl
+		  << "  , th_dts" << endl
+		  << "  , th_st_id" << endl
+		  << ")" << endl
+		  << "VALUES (" << endl
+		  << "    " << pIn->trade_id << endl
+		  << "  , '" << pIn->trade_dts.year << "-" << pIn->trade_dts.month
+		  << "-" << pIn->trade_dts.day << " " << pIn->trade_dts.hour << ":"
+		  << pIn->trade_dts.minute << ":" << pIn->trade_dts.second << "."
+		  << pIn->trade_dts.fraction << "'" << endl
+		  << "  , '" << pIn->st_completed_id << "'" << endl
+		  << ")";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+	PQclear(res);
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "UPDATE broker" << endl
+		  << "SET b_comm_total = b_comm_total + " << pIn->comm_amount << endl
+		  << "  , b_num_trades = b_num_trades + 1" << endl
+		  << "WHERE b_id = " << pIn->broker_id;
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+	PQclear(res);
 }
 
 void
