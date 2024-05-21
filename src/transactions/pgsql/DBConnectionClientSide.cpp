@@ -2791,6 +2791,435 @@ void
 CDBConnectionClientSide::execute(
 		const TTradeResultFrame2Input *pIn, TTradeResultFrame2Output *pOut)
 {
+	PGresult *res = NULL;
+	ostringstream osSQL;
+
+	pOut->buy_value = pOut->sell_value = 0;
+	INT32 needed_qty = pIn->trade_qty;
+
+	res = exec("SELECT CURRENT_TIMESTAMP");
+	sscanf(PQgetvalue(res, 0, 0), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+			&pOut->trade_dts.year, &pOut->trade_dts.month,
+			&pOut->trade_dts.day, &pOut->trade_dts.hour,
+			&pOut->trade_dts.minute, &pOut->trade_dts.second,
+			&pOut->trade_dts.fraction);
+	PQclear(res);
+
+	osSQL << "SELECT ca_b_id" << endl
+		  << "     , ca_c_id" << endl
+		  << "     , ca_tax_st" << endl
+		  << "FROM customer_account" << endl
+		  << "WHERE ca_id = " << pIn->acct_id << endl
+		  << "FOR UPDATE";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
+	pOut->broker_id = atoll(PQgetvalue(res, 0, 0));
+	pOut->cust_id = atoll(PQgetvalue(res, 0, 1));
+	pOut->tax_status = atoi(PQgetvalue(res, 0, 2));
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "broker_id = " << pOut->broker_id << endl;
+		cout << "cust_id = " << pOut->cust_id << endl;
+		cout << "tax_status = " << pOut->tax_status << endl;
+	}
+
+	if (pIn->type_is_sell) {
+		if (pIn->hs_qty == 0) {
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "INSERT INTO holding_summary(" << endl
+				  << "    hs_ca_id" << endl
+				  << "  , hs_s_symb" << endl
+				  << "  , hs_qty" << endl
+				  << ")" << endl
+				  << "VALUES(" << endl
+				  << "    " << pIn->acct_id << endl
+				  << "  , '" << pIn->symbol << "'" << endl
+				  << "  , -" << pIn->trade_qty << endl
+				  << ")";
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res = exec(osSQL.str().c_str());
+			PQclear(res);
+		} else if (pIn->hs_qty != pIn->trade_qty) {
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "UPDATE holding_summary" << endl
+				  << "SET hs_qty = " << pIn->hs_qty << " - " << pIn->trade_qty
+				  << endl
+				  << "WHERE hs_ca_id = " << pIn->acct_id << endl
+				  << "  AND hs_s_symb = '" << pIn->symbol << "'";
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res = exec(osSQL.str().c_str());
+			PQclear(res);
+		} else if (pIn->hs_qty > 0) {
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "SELECT h_t_id" << endl
+				  << "     , h_qty" << endl
+				  << "     , h_price" << endl
+				  << "FROM holding" << endl
+				  << "WHERE h_ca_id = " << pIn->acct_id << endl
+				  << "  AND h_s_symb = '" << pIn->symbol << "'" << endl;
+			if (pIn->is_lifo) {
+				osSQL << "ORDER BY h_dts DESC" << endl;
+			} else {
+				osSQL << "ORDER BY h_dts ASC" << endl;
+			}
+			osSQL << "FOR UPDATE";
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res = exec(osSQL.str().c_str());
+
+			int count = PQntuples(res);
+			PGresult *res2 = NULL;
+			for (int i = 0; i < count || needed_qty == 0; i++) {
+				char *hold_id = PQgetvalue(res, 0, 0);
+				INT32 hold_qty = atoi(PQgetvalue(res, 0, 1));
+				double hold_price = atof(PQgetvalue(res, 0, 2));
+
+				if (m_bVerbose) {
+					cout << "hold_id[" << i << "] = " << hold_id << endl;
+					cout << "hold_qty[" << i << "] = " << hold_qty << endl;
+					cout << "hold_price[" << i << "] = " << hold_price << endl;
+				}
+
+				if (hold_qty > needed_qty) {
+					osSQL.clear();
+					osSQL.str("");
+					osSQL << "INSERT INTO holding_history(" << endl
+						  << "    hh_h_t_id" << endl
+						  << "  , hh_t_id" << endl
+						  << "  , hh_before_qty" << endl
+						  << "  , hh_after_qty" << endl
+						  << ")" << endl
+						  << "VALUES(" << endl
+						  << "    " << hold_id << endl
+						  << "  , " << pIn->trade_id << endl
+						  << "  , " << hold_qty << endl
+						  << "  , " << hold_qty - needed_qty << endl
+						  << ")";
+					if (m_bVerbose) {
+						cout << osSQL.str() << endl;
+					}
+					res2 = exec(osSQL.str().c_str());
+					PQclear(res2);
+
+					osSQL.clear();
+					osSQL.str("");
+					osSQL << "UPDATE holding" << endl
+						  << "SET h_qty = " << hold_qty - needed_qty << endl
+						  << "WHERE h_t_id = " << hold_id;
+					if (m_bVerbose) {
+						cout << osSQL.str() << endl;
+					}
+					res2 = exec(osSQL.str().c_str());
+					PQclear(res2);
+
+					pOut->buy_value += (double) needed_qty * hold_price;
+					pOut->sell_value += (double) needed_qty * pIn->trade_price;
+					needed_qty = 0;
+				} else {
+					osSQL.clear();
+					osSQL.str("");
+					osSQL << "INSERT INTO holding_history(" << endl
+						  << "    hh_h_t_id" << endl
+						  << "  , hh_t_id" << endl
+						  << "  , hh_before_qty" << endl
+						  << "  , hh_after_qty" << endl
+						  << ")" << endl
+						  << "VALUES(" << endl
+						  << "    " << hold_id << endl
+						  << "  , " << pIn->trade_id << endl
+						  << "  , " << hold_qty << endl
+						  << "  , 0" << endl
+						  << ")";
+					if (m_bVerbose) {
+						cout << osSQL.str() << endl;
+					}
+					res2 = exec(osSQL.str().c_str());
+					PQclear(res2);
+
+					osSQL.clear();
+					osSQL.str("");
+					osSQL << "DELETE FROM holding" << endl
+						  << "WHERE h_t_id = " << hold_id;
+					res2 = exec(osSQL.str().c_str());
+					PQclear(res2);
+
+					pOut->buy_value += (double) hold_qty * hold_price;
+					pOut->sell_value += (double) hold_qty * pIn->trade_price;
+					needed_qty -= hold_qty;
+				}
+			}
+			PQclear(res);
+		}
+
+		if (needed_qty > 0) {
+			PGresult *res2 = NULL;
+
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "INSERT INTO holding_history(" << endl
+				  << "    hh_h_t_id" << endl
+				  << "  , hh_t_id" << endl
+				  << "  , hh_before_qty" << endl
+				  << "  , hh_after_qty" << endl
+				  << ")" << endl
+				  << "VALUES(" << endl
+				  << "    " << pIn->trade_id << endl
+				  << "  , " << pIn->trade_id << endl
+				  << "  , 0" << endl
+				  << "  , -1 * " << needed_qty << endl
+				  << ")";
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res2 = exec(osSQL.str().c_str());
+			PQclear(res2);
+
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "INSERT INTO holding(" << endl
+				  << "    h_t_id" << endl
+				  << "  , h_ca_id" << endl
+				  << "  , h_s_symb" << endl
+				  << "  , h_dts" << endl
+				  << "  , h_price" << endl
+				  << "  , h_qty)" << endl
+				  << "VALUES (" << endl
+				  << "    " << pIn->trade_id << endl
+				  << "  , " << pIn->acct_id << endl
+				  << "  , '" << pIn->symbol << "'" << endl
+				  << "  , CURRENT_TIMESTAMP" << endl
+				  << "  , " << pIn->trade_price << endl
+				  << "  , -1 * " << needed_qty << endl
+				  << ")";
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res2 = exec(osSQL.str().c_str());
+			PQclear(res2);
+		} else if (pIn->hs_qty == pIn->trade_qty) {
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "DELETE FROM holding_summary" << endl
+				  << "WHERE hs_ca_id = " << pIn->acct_id << endl
+				  << "  AND hs_s_symb = '" << pIn->symbol << "'";
+			PGresult *res2 = exec(osSQL.str().c_str());
+			PQclear(res2);
+		}
+	} else {
+		PGresult *res2 = NULL;
+		if (pIn->hs_qty == 0) {
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "INSERT INTO holding_summary(" << endl
+				  << "    hs_ca_id" << endl
+				  << "  , hs_s_symb" << endl
+				  << "  , hs_qty" << endl
+				  << ")" << endl
+				  << "VALUES (" << endl
+				  << "    " << pIn->acct_id << endl
+				  << "  , '" << pIn->symbol << "'" << endl
+				  << "  , " << pIn->trade_qty << endl
+				  << ")";
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res2 = exec(osSQL.str().c_str());
+			PQclear(res2);
+		} else if ((-1 * pIn->hs_qty) != pIn->trade_qty) {
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "UPDATE holding_summary" << endl
+				  << "SET hs_qty = " << pIn->hs_qty + pIn->trade_qty << endl
+				  << "WHERE hs_ca_id = " << pIn->acct_id << endl
+				  << "  AND hs_s_symb = '" << pIn->symbol << "'";
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res2 = exec(osSQL.str().c_str());
+			PQclear(res2);
+		}
+
+		if (pIn->hs_qty < 0) {
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "SELECT h_t_id" << endl
+				  << "     , h_qty" << endl
+				  << "     , h_price" << endl
+				  << "FROM holding" << endl
+				  << "WHERE h_ca_id = " << pIn->acct_id << endl
+				  << "  AND h_s_symb = '" << pIn->symbol << "'" << endl;
+			if (pIn->is_lifo) {
+				osSQL << "ORDER BY h_dts DESC" << endl;
+			} else {
+				osSQL << "ORDER BY h_dts ASC" << endl;
+			}
+			osSQL << "FOR UPDATE";
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res = exec(osSQL.str().c_str());
+
+			int count = PQntuples(res);
+			PGresult *res2 = NULL;
+			for (int i = 0; i < count || needed_qty == 0; i++) {
+				char *hold_id = PQgetvalue(res, 0, 0);
+				INT32 hold_qty = atoi(PQgetvalue(res, 0, 1));
+				double hold_price = atof(PQgetvalue(res, 0, 2));
+
+				if (m_bVerbose) {
+					cout << "hold_id[" << i << "] = " << hold_id << endl;
+					cout << "hold_qty[" << i << "] = " << hold_qty << endl;
+					cout << "hold_price[" << i << "] = " << hold_price << endl;
+				}
+
+				if (hold_qty + needed_qty < 0) {
+					osSQL.clear();
+					osSQL.str("");
+					osSQL << "INSERT INTO holding_history(" << endl
+						  << "    hh_h_t_id" << endl
+						  << "  , hh_t_id" << endl
+						  << "  , hh_before_qty" << endl
+						  << "  , hh_after_qty" << endl
+						  << ")" << endl
+						  << "VALUES(" << endl
+						  << "    " << hold_id << endl
+						  << "  , " << pIn->trade_id << endl
+						  << "  , " << hold_qty << endl
+						  << "  , " << hold_qty + needed_qty << endl
+						  << ")";
+					if (m_bVerbose) {
+						cout << osSQL.str() << endl;
+					}
+					res2 = exec(osSQL.str().c_str());
+					PQclear(res2);
+
+					osSQL.clear();
+					osSQL.str("");
+					osSQL << "UPDATE holding" << endl
+						  << "SET h_qty = " << hold_qty + needed_qty << endl
+						  << "WHERE h_t_id = " << hold_id;
+					if (m_bVerbose) {
+						cout << osSQL.str() << endl;
+					}
+					res2 = exec(osSQL.str().c_str());
+					PQclear(res2);
+
+					pOut->sell_value += (double) needed_qty * hold_price;
+					pOut->buy_value += (double) needed_qty * pIn->trade_price;
+					needed_qty = 0;
+				} else {
+					osSQL.clear();
+					osSQL.str("");
+					osSQL << "INSERT INTO holding_history(" << endl
+						  << "    hh_h_t_id" << endl
+						  << "  , hh_t_id" << endl
+						  << "  , hh_before_qty" << endl
+						  << "  , hh_after_qty" << endl
+						  << ")" << endl
+						  << "VALUES(" << endl
+						  << "    " << hold_id << endl
+						  << "  , " << pIn->trade_id << endl
+						  << "  , " << hold_qty << endl
+						  << "  , 0" << endl
+						  << ")";
+					if (m_bVerbose) {
+						cout << osSQL.str() << endl;
+					}
+					res2 = exec(osSQL.str().c_str());
+					PQclear(res2);
+
+					osSQL.clear();
+					osSQL.str("");
+					osSQL << "DELETE FROM holding" << endl
+						  << "WHERE h_t_id = " << hold_id;
+					if (m_bVerbose) {
+						cout << osSQL.str() << endl;
+					}
+					res2 = exec(osSQL.str().c_str());
+					PQclear(res2);
+
+					hold_qty *= -1;
+					pOut->sell_value += (double) hold_qty * hold_price;
+					pOut->buy_value += (double) hold_qty * pIn->trade_price;
+					needed_qty -= hold_qty;
+				}
+			}
+			PQclear(res);
+		}
+
+		if (needed_qty > 0) {
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "INSERT INTO holding_history(" << endl
+				  << "    hh_h_t_id" << endl
+				  << "  , hh_t_id" << endl
+				  << "  , hh_before_qty" << endl
+				  << "  , hh_after_qty" << endl
+				  << ")" << endl
+				  << "VALUES(" << endl
+				  << "    " << pIn->trade_id << endl
+				  << "  , " << pIn->trade_id << endl
+				  << "  , 0" << endl
+				  << "  , " << needed_qty << endl
+				  << ")";
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res2 = exec(osSQL.str().c_str());
+			PQclear(res2);
+
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "INSERT INTO holding(" << endl
+				  << "    h_t_id" << endl
+				  << "  , h_ca_id" << endl
+				  << "  , h_s_symb" << endl
+				  << "  , h_dts" << endl
+				  << "  , h_price" << endl
+				  << "  , h_qty)" << endl
+				  << "VALUES (" << endl
+				  << "    " << pIn->trade_id << endl
+				  << "  , " << pIn->acct_id << endl
+				  << "  , '" << pIn->symbol << "'" << endl
+				  << "  , CURRENT_TIMESTAMP" << endl
+				  << "  , " << pIn->trade_price << endl
+				  << "  , " << needed_qty << endl
+				  << ")";
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res2 = exec(osSQL.str().c_str());
+			PQclear(res2);
+		} else if ((-1 * pIn->hs_qty) == pIn->trade_qty) {
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "DELETE FROM holding_summary" << endl
+				  << "WHERE hs_ca_id = " << pIn->acct_id << endl
+				  << "hs_s_symb = '" << pIn->symbol << "'";
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res2 = exec(osSQL.str().c_str());
+			PQclear(res2);
+		}
+	}
 }
 
 void
