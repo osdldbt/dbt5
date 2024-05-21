@@ -3270,6 +3270,75 @@ void
 CDBConnectionClientSide::execute(
 		const TTradeResultFrame4Input *pIn, TTradeResultFrame4Output *pOut)
 {
+	PGresult *res = NULL;
+	PGresult *res2 = NULL;
+	ostringstream osSQL;
+
+	osSQL << "SELECT s_ex_id" << endl
+		  << "     , s_name" << endl
+		  << "FROM security" << endl
+		  << "WHERE s_symb = '" << pIn->symbol << "'";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
+	strncpy(pOut->s_name, PQgetvalue(res, 0, 1), cS_NAME_len);
+
+	if (m_bVerbose) {
+		cout << "ex_id = " << PQgetvalue(res, 0, 0) << endl;
+		;
+		cout << "s_name = " << pOut->s_name << endl;
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT c_tier" << endl
+		  << "FROM customer" << endl
+		  << "WHERE c_id = " << pIn->cust_id;
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res2 = exec(osSQL.str().c_str());
+
+	if (PQntuples(res2) == 0) {
+		PQclear(res2);
+		return;
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT cr_rate" << endl
+		  << "FROM commission_rate" << endl
+		  << "WHERE cr_c_tier = '" << PQgetvalue(res2, 0, 0) << "'" << endl
+		  << "  AND cr_tt_id = '" << pIn->type_id << "'" << endl
+		  << "  AND cr_ex_id = '" << PQgetvalue(res, 0, 0) << "'" << endl
+		  << "  AND cr_from_qty <= " << pIn->trade_qty << endl
+		  << "  AND cr_to_qty >= " << pIn->trade_qty << endl
+		  << "LIMIT 1";
+	PQclear(res2);
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res2 = exec(osSQL.str().c_str());
+
+	if (PQntuples(res2) == 0) {
+		PQclear(res2);
+		return;
+	}
+
+	pOut->comm_rate = atof(PQgetvalue(res2, 0, 0));
+	PQclear(res2);
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "comm_rate = " << pOut->comm_rate << endl;
+	}
 }
 
 void
