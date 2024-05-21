@@ -3226,6 +3226,44 @@ void
 CDBConnectionClientSide::execute(
 		const TTradeResultFrame3Input *pIn, TTradeResultFrame3Output *pOut)
 {
+	PGresult *res = NULL;
+	ostringstream osSQL;
+
+	osSQL << "SELECT sum(tx_rate)" << endl
+		  << "FROM taxrate" << endl
+		  << "WHERE tx_id IN (" << endl
+		  << "                   SELECT cx_tx_id" << endl
+		  << "                   FROM customer_taxrate" << endl
+		  << "                   WHERE cx_c_id = " << pIn->cust_id << endl
+		  << "               )";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
+	if (m_bVerbose) {
+		cout << "sum = " << PQgetvalue(res, 0, 0) << endl;
+	}
+
+	pOut->tax_amount
+			= (pIn->sell_value - pIn->buy_value) * atof(PQgetvalue(res, 0, 0));
+	PQclear(res);
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "UPDATE trade" << endl
+		  << "SET t_tax = " << pOut->tax_amount << endl
+		  << "WHERE t_id = " << pIn->trade_id;
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+	PQclear(res);
 }
 
 void
