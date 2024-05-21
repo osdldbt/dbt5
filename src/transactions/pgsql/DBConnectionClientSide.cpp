@@ -2156,6 +2156,430 @@ void
 CDBConnectionClientSide::execute(
 		const TTradeOrderFrame3Input *pIn, TTradeOrderFrame3Output *pOut)
 {
+	PGresult *res = NULL;
+	ostringstream osSQL;
+
+	INT64 co_id = 0;
+	char ex_id[cEX_ID_len + 1];
+
+	if (pIn->symbol[0] == '\0') {
+		char *co_name
+				= PQescapeLiteral(m_Conn, pIn->co_name, strlen(pIn->co_name));
+		osSQL << "SELECT co_id" << endl
+			  << "FROM company" << endl
+			  << "WHERE co_name = '" << co_name << "'";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		if (PQntuples(res) == 0) {
+			PQclear(res);
+			return;
+		}
+
+		co_id = atoll(PQgetvalue(res, 0, 0));
+		PQclear(res);
+
+		if (m_bVerbose) {
+			cout << "co_id = " << co_id << endl;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "SELECT s_ex_id" << endl
+			  << "     , s_name" << endl
+			  << "     , s_symb" << endl
+			  << "FROM security" << endl
+			  << "WHERE s_co_id = " << co_id << endl
+			  << "  AND s_issue = '" << pIn->issue << "'";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		if (PQntuples(res) == 0) {
+			PQclear(res);
+			return;
+		}
+
+		strncpy(ex_id, PQgetvalue(res, 0, 0), cEX_ID_len);
+		strncpy(pOut->s_name, PQgetvalue(res, 0, 1), cS_NAME_len);
+		strncpy(pOut->symbol, PQgetvalue(res, 0, 2), cSYMBOL_len);
+		PQclear(res);
+
+		if (m_bVerbose) {
+			cout << "ex_id = " << ex_id << endl;
+			cout << "s_name = " << pOut->s_name << endl;
+			cout << "symbol = " << pOut->symbol << endl;
+		}
+	} else {
+		strncpy(pOut->symbol, pIn->symbol, cSYMBOL_len);
+
+		osSQL << "SELECT s_co_id" << endl
+			  << "     , s_ex_id" << endl
+			  << "     , s_name" << endl
+			  << "FROM security" << endl
+			  << "WHERE s_symb = '" << pIn->symbol << "'";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		if (PQntuples(res) == 0) {
+			PQclear(res);
+			return;
+		}
+
+		co_id = atoll(PQgetvalue(res, 0, 0));
+		strncpy(ex_id, PQgetvalue(res, 0, 1), cEX_ID_len);
+		strncpy(pOut->s_name, PQgetvalue(res, 0, 2), cS_NAME_len);
+		PQclear(res);
+
+		if (m_bVerbose) {
+			cout << "co_id = " << co_id << endl;
+			cout << "ex_id = " << ex_id << endl;
+			cout << "s_name = " << pOut->s_name << endl;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "SELECT co_name" << endl
+			  << "FROM company" << endl
+			  << "WHERE co_id = " << co_id;
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		if (PQntuples(res) == 0) {
+			PQclear(res);
+			return;
+		}
+
+		strncpy(pOut->co_name, PQgetvalue(res, 0, 0), cCO_NAME_len);
+		PQclear(res);
+
+		if (m_bVerbose) {
+			cout << "co_name = " << pOut->co_name << endl;
+		}
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT lt_price" << endl
+		  << "FROM last_trade" << endl
+		  << "WHERE lt_s_symb = '" << pOut->symbol << "'";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
+	pOut->market_price = atof(PQgetvalue(res, 0, 0));
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "market_price = " << pOut->market_price << endl;
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT tt_is_mrkt" << endl
+		  << "     , tt_is_sell" << endl
+		  << "FROM trade_type" << endl
+		  << "WHERE tt_id = '" << pIn->trade_type_id << "'";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
+	pOut->type_is_market = PQgetvalue(res, 0, 0)[0] == 't' ? 1 : 0;
+	pOut->type_is_sell = PQgetvalue(res, 0, 1)[0] == 't' ? 1 : 0;
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "type_is_market = " << pOut->type_is_market << endl;
+		cout << "type_is_sell = " << pOut->type_is_sell << endl;
+	}
+
+	if (pOut->type_is_market == 1) {
+		pOut->requested_price = pOut->market_price;
+	} else {
+		pOut->requested_price = pIn->requested_price;
+	}
+
+	pOut->buy_value = pOut->sell_value = 0;
+	INT32 needed_qty = pIn->trade_qty;
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT hs_qty" << endl
+		  << "FROM holding_summary" << endl
+		  << "WHERE hs_ca_id = " << pIn->acct_id << endl
+		  << "  AND hs_s_symb = '" << pOut->symbol << "'";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	int hs_qty = 0;
+
+	if (PQntuples(res) != 0) {
+		hs_qty = atoi(PQgetvalue(res, 0, 0));
+	}
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "hs_qty = " << hs_qty << endl;
+	}
+
+	if (pOut->type_is_sell == 1) {
+		if (hs_qty > 0) {
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "SELECT h_qty" << endl
+				  << "     , h_price" << endl
+				  << "FROM holding" << endl
+				  << "WHERE h_ca_id = " << pIn->acct_id << endl
+				  << "  AND h_s_symb = '" << pOut->symbol << "'" << endl;
+			if (pIn->is_lifo) {
+				osSQL << "ORDER BY h_dts DESC";
+			} else {
+				osSQL << "ORDER BY h_dts ASC";
+			}
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res = exec(osSQL.str().c_str());
+
+			INT32 hold_qty;
+			double hold_price;
+			int count = PQntuples(res);
+			for (int i = 0; i < count && needed_qty != 0; i++) {
+				hold_qty = atoll(PQgetvalue(res, i, 0));
+				hold_price = atof(PQgetvalue(res, i, 1));
+				if (hold_qty > needed_qty) {
+					pOut->buy_value += (double) needed_qty * hold_price;
+					pOut->sell_value
+							+= (double) needed_qty * pOut->requested_price;
+					needed_qty = 0;
+				} else {
+					pOut->buy_value += (double) hold_qty * hold_price;
+					pOut->sell_value
+							+= (double) hold_qty * pOut->requested_price;
+					needed_qty -= hold_qty;
+				}
+
+				if (m_bVerbose) {
+					cout << "hold_qty[" << i << "] = " << hold_qty << endl;
+					cout << "hold_price[" << i << "] = " << hold_price << endl;
+				}
+			}
+			PQclear(res);
+		}
+	} else {
+		if (hs_qty < 0) {
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "SELECT h_qty" << endl
+				  << "     , h_price" << endl
+				  << "FROM holding" << endl
+				  << "WHERE h_ca_id = " << pIn->acct_id << endl
+				  << "  AND h_s_symb = '" << pOut->symbol << "'" << endl;
+			if (pIn->is_lifo) {
+				osSQL << "ORDER BY h_dts DESC";
+			} else {
+				osSQL << "ORDER BY h_dts ASC";
+			}
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res = exec(osSQL.str().c_str());
+
+			INT32 hold_qty;
+			double hold_price;
+			int count = PQntuples(res);
+			for (int i = 0; i < count && needed_qty != 0; i++) {
+				hold_qty = atoll(PQgetvalue(res, i, 0));
+				hold_price = atof(PQgetvalue(res, i, 1));
+				if (hold_qty + needed_qty < 0) {
+					pOut->sell_value += (double) needed_qty * hold_price;
+					pOut->buy_value
+							+= (double) needed_qty * pOut->requested_price;
+					needed_qty = 0;
+				} else {
+					hold_qty *= -1;
+					pOut->sell_value += (double) hold_qty * hold_price;
+					pOut->buy_value
+							+= (double) hold_qty * pOut->requested_price;
+					needed_qty -= hold_qty;
+				}
+
+				if (m_bVerbose) {
+					cout << "hold_qty[" << i << "] = " << hold_qty << endl;
+					cout << "hold_price[" << i << "] = " << hold_price << endl;
+				}
+			}
+			PQclear(res);
+		}
+	}
+
+	if (m_bVerbose) {
+		cout << "sell_value = " << pOut->sell_value << endl;
+		cout << "buy_value = " << pOut->buy_value << endl;
+	}
+
+	pOut->tax_amount = 0;
+
+	if ((pOut->sell_value > pOut->buy_value)
+			&& ((pIn->tax_status == 1) || (pIn->tax_status == 2))) {
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "SELECT sum(tx_rate)" << endl
+			  << "FROM taxrate" << endl
+			  << "WHERE tx_id in (" << endl
+			  << "                   SELECT cx_tx_id" << endl
+			  << "                   FROM customer_taxrate" << endl
+			  << "                   WHERE cx_c_id = " << pIn->cust_id << endl
+			  << "               )";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		if (PQntuples(res) == 0) {
+			PQclear(res);
+			return;
+		}
+
+		pOut->tax_amount = (pOut->sell_value - pOut->buy_value)
+						   * atof(PQgetvalue(res, 0, 0));
+		PQclear(res);
+	}
+
+	if (m_bVerbose) {
+		cout << "tax_amount = " << pOut->tax_amount << endl;
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT cr_rate" << endl
+		  << "FROM commission_rate" << endl
+		  << "WHERE cr_c_tier = " << pIn->cust_tier << endl
+		  << "  AND cr_tt_id = '" << pIn->trade_type_id << "'" << endl
+		  << "  AND cr_ex_id = '" << ex_id << "'" << endl
+		  << "  AND cr_from_qty <= " << pIn->trade_qty << endl
+		  << "  AND cr_to_qty >= " << pIn->trade_qty;
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
+	pOut->comm_rate = atof(PQgetvalue(res, 0, 0));
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "comm_rate = " << pOut->comm_rate << endl;
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT ch_chrg" << endl
+		  << "FROM charge" << endl
+		  << "WHERE ch_c_tier = " << pIn->cust_tier << endl
+		  << "  AND ch_tt_id = '" << pIn->trade_type_id << "'";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
+	pOut->charge_amount = atof(PQgetvalue(res, 0, 0));
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "charge_amount = " << pOut->charge_amount << endl;
+	}
+
+	pOut->acct_assets = 0;
+
+	if (pIn->type_is_margin == 1) {
+		double acct_bal;
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "SELECT ca_bal" << endl
+			  << "FROM customer_account" << endl
+			  << "WHERE ca_id = " << pIn->acct_id;
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		if (PQntuples(res) == 0) {
+			PQclear(res);
+			return;
+		}
+
+		acct_bal = atof(PQgetvalue(res, 0, 0));
+		PQclear(res);
+
+		if (m_bVerbose) {
+			cout << "acct_bal = " << acct_bal << endl;
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "SELECT sum(hs_qty * lt_price)" << endl
+			  << "FROM holding_summary" << endl
+			  << "   , last_trade" << endl
+			  << "WHERE hs_ca_id = " << pIn->acct_id << endl
+			  << "  AND lt_s_symb = hs_s_symb";
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res = exec(osSQL.str().c_str());
+
+		if (PQntuples(res) == 0) {
+			pOut->acct_assets = acct_bal;
+		}
+
+		pOut->acct_assets = atof(PQgetvalue(res, 0, 0)) + acct_bal;
+		PQclear(res);
+
+		if (m_bVerbose) {
+			cout << "acct_assets = " << pOut->acct_assets << endl;
+		}
+	}
+
+	if (pOut->type_is_market == 1) {
+		strncpy(pOut->status_id, pIn->st_submitted_id, cST_ID_len);
+	} else {
+		strncpy(pOut->status_id, pIn->st_pending_id, cST_ID_len);
+	}
+
+	if (m_bVerbose) {
+		cout << "status_id = " << pOut->status_id << endl;
+	}
 }
 
 void
