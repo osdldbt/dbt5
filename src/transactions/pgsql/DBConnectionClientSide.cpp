@@ -2684,6 +2684,107 @@ void
 CDBConnectionClientSide::execute(
 		const TTradeResultFrame1Input *pIn, TTradeResultFrame1Output *pOut)
 {
+	PGresult *res = NULL;
+	ostringstream osSQL;
+
+	osSQL << "SELECT t_ca_id" << endl
+		  << "     , t_tt_id" << endl
+		  << "     , t_s_symb" << endl
+		  << "     , t_qty" << endl
+		  << "     , t_chrg," << endl
+		  << "       CASE WHEN t_lifo = true" << endl
+		  << "            THEN 1" << endl
+		  << "            ELSE 0 END" << endl
+		  << "     , CASE WHEN t_is_cash = true" << endl
+		  << "            THEN 1" << endl
+		  << "            ELSE 0 END" << endl
+		  << "FROM trade" << endl
+		  << "WHERE t_id = " << pIn->trade_id;
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
+	pOut->num_found = PQntuples(res);
+	pOut->acct_id = atoll(PQgetvalue(res, 0, 0));
+	strncpy(pOut->type_id, PQgetvalue(res, 0, 1), cTT_ID_len);
+	strncpy(pOut->symbol, PQgetvalue(res, 0, 2), cSYMBOL_len);
+	pOut->trade_qty = atoi(PQgetvalue(res, 0, 3));
+	pOut->charge = atof(PQgetvalue(res, 0, 4));
+	pOut->is_lifo = atoi(PQgetvalue(res, 0, 5));
+	pOut->trade_is_cash = atoi(PQgetvalue(res, 0, 6));
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "num_found = " << pOut->num_found << endl;
+		cout << "acct_id = " << pOut->acct_id << endl;
+		cout << "type_id = " << pOut->type_id << endl;
+		cout << "symbol = " << pOut->symbol << endl;
+		cout << "trade_qty = " << pOut->trade_qty << endl;
+		cout << "charge = " << pOut->charge << endl;
+		cout << "is_lifo = " << pOut->is_lifo << endl;
+		cout << "trade_is_cash = " << pOut->trade_is_cash << endl;
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT tt_name" << endl
+		  << "     , CASE WHEN tt_is_sell IS TRUE" << endl
+		  << "            THEN 1" << endl
+		  << "            ELSE 0 END" << endl
+		  << "     , CASE WHEN tt_is_mrkt IS TRUE" << endl
+		  << "            THEN 1" << endl
+		  << "            ELSE 0 END" << endl
+		  << "FROM trade_type" << endl
+		  << "WHERE tt_id = '" << pOut->type_id << "'";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
+	strncpy(pOut->type_name, PQgetvalue(res, 0, 0), cTT_NAME_len);
+	pOut->type_is_sell = atoi(PQgetvalue(res, 0, 1));
+	pOut->type_is_market = atoi(PQgetvalue(res, 0, 2));
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "type_name = " << pOut->type_name << endl;
+		cout << "type_is_sell = " << pOut->type_is_sell << endl;
+		cout << "type_is_market = " << pOut->type_is_market << endl;
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT hs_qty" << endl
+		  << "FROM holding_summary" << endl
+		  << "WHERE hs_ca_id = " << pOut->acct_id << endl
+		  << "  AND hs_s_symb = '" << pOut->symbol << "'";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
+	pOut->hs_qty = atoi(PQgetvalue(res, 0, 0));
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "hs_qty = " << pOut->hs_qty << endl;
+	}
 }
 
 void
