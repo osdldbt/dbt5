@@ -3401,6 +3401,90 @@ void
 CDBConnectionClientSide::execute(
 		const TTradeResultFrame6Input *pIn, TTradeResultFrame6Output *pOut)
 {
+	PGresult *res = NULL;
+	ostringstream osSQL;
+
+	osSQL << "INSERT INTO settlement(" << endl
+		  << "    se_t_id" << endl
+		  << "  , se_cash_type" << endl
+		  << "  , se_cash_due_date" << endl
+		  << "  , se_amt)" << endl
+		  << "VALUES (" << endl
+		  << "    " << pIn->trade_id << endl
+		  << "  , '";
+	if (pIn->trade_is_cash) {
+		osSQL << "Cash Account" << endl;
+	} else {
+		osSQL << "Margin" << endl;
+	}
+	osSQL << "'" << endl
+		  << "  , '" << pIn->due_date.year << "-" << pIn->due_date.month << "-"
+		  << pIn->due_date.day << "'"
+		  << "  , " << pIn->se_amount << endl
+		  << ")";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+	PQclear(res);
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "UPDATE customer_account" << endl
+		  << "SET ca_bal = ca_bal + " << pIn->se_amount << endl
+		  << "WHERE ca_id = " << pIn->acct_id;
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+	PQclear(res);
+
+	ostringstream os_ct_name;
+	os_ct_name << pIn->type_name << " " << pIn->trade_qty << " shares of "
+			   << pIn->s_name;
+	char *ct_name = escape(os_ct_name.str());
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "INSERT INTO cash_transaction(" << endl
+		  << "    ct_dts" << endl
+		  << "  , ct_t_id" << endl
+		  << "  , ct_amt" << endl
+		  << "  , ct_name" << endl
+		  << ")" << endl
+		  << "VALUES (" << endl
+		  << "    '" << pIn->trade_dts.year << "-" << pIn->trade_dts.month
+		  << "-" << pIn->trade_dts.day << " " << pIn->trade_dts.hour << ":"
+		  << pIn->trade_dts.minute << ":" << pIn->trade_dts.second << "."
+		  << pIn->trade_dts.fraction << "'" << endl
+		  << "  , " << pIn->trade_id << endl
+		  << "  , " << pIn->se_amount << endl
+		  << "  , e" << ct_name << endl
+		  << ")";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+	PQclear(res);
+	PQfreemem(ct_name);
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT ca_bal" << endl
+		  << "FROM customer_account" << endl
+		  << "WHERE ca_id = " << pIn->acct_id;
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
+	pOut->acct_bal = atof(PQgetvalue(res, 0, 0));
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "acct_bal = " << pOut->acct_bal << endl;
+	}
 }
 
 void

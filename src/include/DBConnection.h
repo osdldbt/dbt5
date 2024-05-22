@@ -24,9 +24,6 @@ using namespace TPCE;
 
 class CDBConnection
 {
-private:
-	PGconn *m_Conn;
-
 	char szConnectStr[iMaxConnectString + 1];
 	char name[16];
 
@@ -35,6 +32,7 @@ private:
 	TTradeRequest m_TriggeredLimitOrders;
 
 protected:
+	PGconn *m_Conn;
 	bool m_bVerbose;
 
 public:
