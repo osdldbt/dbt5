@@ -3491,6 +3491,112 @@ void
 CDBConnectionClientSide::execute(
 		const TTradeStatusFrame1Input *pIn, TTradeStatusFrame1Output *pOut)
 {
+	PGresult *res = NULL;
+	ostringstream osSQL;
+
+	osSQL << "SELECT t_id" << endl
+		  << "     , t_dts" << endl
+		  << "     , st_name" << endl
+		  << "     , tt_name" << endl
+		  << "     , t_s_symb" << endl
+		  << "     , t_qty" << endl
+		  << "     , t_exec_name" << endl
+		  << "     , t_chrg" << endl
+		  << "     , s_name" << endl
+		  << "     , ex_name" << endl
+		  << "FROM trade" << endl
+		  << "   , status_type" << endl
+		  << "   , trade_type" << endl
+		  << "   , security" << endl
+		  << "   , exchange" << endl
+		  << "WHERE t_ca_id = " << pIn->acct_id << endl
+		  << "  AND st_id = t_st_id" << endl
+		  << "  AND tt_id = t_tt_id" << endl
+		  << "  AND s_symb = t_s_symb" << endl
+		  << "  AND ex_id = s_ex_id" << endl
+		  << "ORDER BY t_dts DESC" << endl
+		  << "LIMIT 50";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
+	pOut->num_found = PQntuples(res);
+	for (int i = 0; i < pOut->num_found; i++) {
+		pOut->trade_id[i] = atoll(PQgetvalue(res, i, 0));
+		sscanf(PQgetvalue(res, i, 1), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+				&pOut->trade_dts[i].year, &pOut->trade_dts[i].month,
+				&pOut->trade_dts[i].day, &pOut->trade_dts[i].hour,
+				&pOut->trade_dts[i].minute, &pOut->trade_dts[i].second,
+				&pOut->trade_dts[i].fraction);
+		strncpy(pOut->status_name[i], PQgetvalue(res, i, 2), cST_NAME_len);
+		strncpy(pOut->type_name[i], PQgetvalue(res, i, 3), cTT_NAME_len);
+		strncpy(pOut->symbol[i], PQgetvalue(res, i, 4), cSYMBOL_len);
+		pOut->trade_qty[i] = atoll(PQgetvalue(res, i, 5));
+		strncpy(pOut->exec_name[i], PQgetvalue(res, i, 6), cEXEC_NAME_len);
+		pOut->charge[i] = atof(PQgetvalue(res, i, 7));
+		strncpy(pOut->s_name[i], PQgetvalue(res, i, 8), cS_NAME_len);
+		strncpy(pOut->ex_name[i], PQgetvalue(res, i, 9), cEX_NAME_len);
+	}
+	PQclear(res);
+
+	if (m_bVerbose) {
+		for (int i = 0; i < pOut->num_found; i++) {
+			cout << "trade_id[" << i << "] = " << pOut->trade_id[i] << endl;
+			cout << "trade_dts[" << i << "] = " << pOut->trade_dts[i].year
+				 << "-" << pOut->trade_dts[i].month << "-"
+				 << pOut->trade_dts[i].day << " " << pOut->trade_dts[i].hour
+				 << ":" << pOut->trade_dts[i].minute << ":"
+				 << pOut->trade_dts[i].second << "."
+				 << pOut->trade_dts[i].fraction << endl;
+			cout << "status_name[" << i << "] = " << pOut->status_name[i]
+				 << endl;
+			cout << "type_name[" << i << "] = " << pOut->type_name[i] << endl;
+			cout << "symbol[" << i << "] = " << pOut->symbol[i] << endl;
+			cout << "trade_qty[" << i << "] = " << pOut->trade_qty[i] << endl;
+			cout << "exec_name[" << i << "] = " << pOut->exec_name[i] << endl;
+			cout << "charge[" << i << "] = " << pOut->charge[i] << endl;
+			cout << "s_name[" << i << "] = " << pOut->s_name[i] << endl;
+			cout << "ex_name[" << i << "] = " << pOut->ex_name[i] << endl;
+		}
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT c_l_name" << endl
+		  << "     , c_f_name" << endl
+		  << "     , b_name" << endl
+		  << "FROM customer_account" << endl
+		  << "   , customer" << endl
+		  << "   , broker" << endl
+		  << "WHERE ca_id = " << pIn->acct_id << endl
+		  << "  AND c_id = ca_c_id" << endl
+		  << "  AND b_id = ca_b_id";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
+	strncpy(pOut->cust_l_name, PQgetvalue(res, 0, 0), cL_NAME_len);
+	strncpy(pOut->cust_f_name, PQgetvalue(res, 0, 1), cF_NAME_len);
+	strncpy(pOut->broker_name, PQgetvalue(res, 0, 2), cB_NAME_len);
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "cust_l_name = " << pOut->cust_l_name << endl;
+		cout << "cust_f_name = " << pOut->cust_f_name << endl;
+		cout << "broker_name = " << pOut->broker_name << endl;
+	}
 }
 
 void
