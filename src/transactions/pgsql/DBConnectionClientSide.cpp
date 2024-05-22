@@ -788,6 +788,418 @@ void
 CDBConnectionClientSide::execute(const TSecurityDetailFrame1Input *pIn,
 		TSecurityDetailFrame1Output *pOut)
 {
+	ostringstream osSQL;
+	PGresult *res = NULL;
+
+	osSQL << "SELECT s_name" << endl
+		  << "     , co_id" << endl
+		  << "     , co_name" << endl
+		  << "     , co_sp_rate" << endl
+		  << "     , co_ceo" << endl
+		  << "     , co_desc" << endl
+		  << "     , co_open_date" << endl
+		  << "     , co_st_id" << endl
+		  << "     , ca.ad_line1 AS ca_ad_line1" << endl
+		  << "     , ca.ad_line2 AS ca_ad_line2" << endl
+		  << "     , zca.zc_town AS zca_zc_town" << endl
+		  << "     , zca.zc_div AS zca_zc_div" << endl
+		  << "     , ca.ad_zc_code AS ca_ad_zc_code" << endl
+		  << "     , ca.ad_ctry AS ca_ad_ctry" << endl
+		  << "     , s_num_out" << endl
+		  << "     , s_start_date" << endl
+		  << "     , s_exch_date" << endl
+		  << "     , s_pe" << endl
+		  << "     , s_52wk_high" << endl
+		  << "     , s_52wk_high_date" << endl
+		  << "     , s_52wk_low" << endl
+		  << "     , s_52wk_low_date" << endl
+		  << "     , s_dividend" << endl
+		  << "     , s_yield" << endl
+		  << "     , zea.zc_div AS zea_zc_div" << endl
+		  << "     , ea.ad_ctry AS ea_ad_ctry" << endl
+		  << "     , ea.ad_line1 AS ea_ad_line1" << endl
+		  << "     , ea.ad_line2 AS ea_ad_line2" << endl
+		  << "     , zea.zc_town AS zea_zc_town" << endl
+		  << "     , ea.ad_zc_code AS ea_ad_zc_code" << endl
+		  << "     , ex_close" << endl
+		  << "     , ex_desc" << endl
+		  << "     , ex_name" << endl
+		  << "     , ex_num_symb" << endl
+		  << "     , ex_open" << endl
+		  << "FROM security" << endl
+		  << "   , company" << endl
+		  << "   , address ca" << endl
+		  << "   , address ea" << endl
+		  << "   , zip_code zca" << endl
+		  << "   , zip_code zea" << endl
+		  << "   , exchange" << endl
+		  << "WHERE s_symb = '" << pIn->symbol << "'" << endl
+		  << "  AND co_id = s_co_id" << endl
+		  << "  AND ca.ad_id = co_ad_id" << endl
+		  << "  AND ea.ad_id = ex_ad_id" << endl
+		  << "  AND ex_id = s_ex_id" << endl
+		  << "  AND ca.ad_zc_code = zca.zc_code" << endl
+		  << "  AND ea.ad_zc_code = zea.zc_code";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		return;
+	}
+
+	strncpy(pOut->s_name, PQgetvalue(res, 0, 0), cS_NAME_len);
+	INT64 co_id = atoll(PQgetvalue(res, 0, 1));
+	strncpy(pOut->co_name, PQgetvalue(res, 0, 2), cCO_NAME_len);
+	strncpy(pOut->sp_rate, PQgetvalue(res, 0, 3), cSP_RATE_len);
+	strncpy(pOut->ceo_name, PQgetvalue(res, 0, 4), cCEO_NAME_len);
+	strncpy(pOut->co_desc, PQgetvalue(res, 0, 5), cCO_DESC_len);
+	sscanf(PQgetvalue(res, 0, 6), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+			&pOut->open_date.year, &pOut->open_date.month,
+			&pOut->open_date.day, &pOut->open_date.hour,
+			&pOut->open_date.minute, &pOut->open_date.second,
+			&pOut->open_date.fraction);
+	strncpy(pOut->co_st_id, PQgetvalue(res, 0, 7), cST_ID_len);
+	strncpy(pOut->co_ad_line1, PQgetvalue(res, 0, 8), cAD_LINE_len);
+	strncpy(pOut->co_ad_line2, PQgetvalue(res, 0, 9), cAD_LINE_len);
+	strncpy(pOut->co_ad_town, PQgetvalue(res, 0, 10), cAD_TOWN_len);
+	strncpy(pOut->co_ad_div, PQgetvalue(res, 0, 11), cAD_DIV_len);
+	strncpy(pOut->co_ad_zip, PQgetvalue(res, 0, 12), cAD_ZIP_len);
+	strncpy(pOut->co_ad_cty, PQgetvalue(res, 0, 13), cAD_CTRY_len);
+	pOut->num_out = atoll(PQgetvalue(res, 0, 14));
+	sscanf(PQgetvalue(res, 0, 15), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+			&pOut->start_date.year, &pOut->start_date.month,
+			&pOut->start_date.day, &pOut->start_date.hour,
+			&pOut->start_date.minute, &pOut->start_date.second,
+			&pOut->start_date.fraction);
+	sscanf(PQgetvalue(res, 0, 16), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+			&pOut->ex_date.year, &pOut->ex_date.month, &pOut->ex_date.day,
+			&pOut->ex_date.hour, &pOut->ex_date.minute, &pOut->ex_date.second,
+			&pOut->ex_date.fraction);
+	pOut->pe_ratio = atof(PQgetvalue(res, 0, 17));
+	pOut->s52_wk_high = atof(PQgetvalue(res, 0, 18));
+	sscanf(PQgetvalue(res, 0, 19), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+			&pOut->s52_wk_high_date.year, &pOut->s52_wk_high_date.month,
+			&pOut->s52_wk_high_date.day, &pOut->s52_wk_high_date.hour,
+			&pOut->s52_wk_high_date.minute, &pOut->s52_wk_high_date.second,
+			&pOut->s52_wk_high_date.fraction);
+	pOut->s52_wk_low = atof(PQgetvalue(res, 0, 20));
+	sscanf(PQgetvalue(res, 0, 21), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+			&pOut->s52_wk_low_date.year, &pOut->s52_wk_low_date.month,
+			&pOut->s52_wk_low_date.day, &pOut->s52_wk_low_date.hour,
+			&pOut->s52_wk_low_date.minute, &pOut->s52_wk_low_date.second,
+			&pOut->s52_wk_low_date.fraction);
+	pOut->divid = atof(PQgetvalue(res, 0, 22));
+	pOut->yield = atof(PQgetvalue(res, 0, 23));
+	strncpy(pOut->ex_ad_div, PQgetvalue(res, 0, 24), cAD_DIV_len);
+	strncpy(pOut->ex_ad_cty, PQgetvalue(res, 0, 25), cAD_CTRY_len);
+	strncpy(pOut->ex_ad_line1, PQgetvalue(res, 0, 26), cAD_LINE_len);
+	strncpy(pOut->ex_ad_line2, PQgetvalue(res, 0, 27), cAD_LINE_len);
+	strncpy(pOut->ex_ad_town, PQgetvalue(res, 0, 28), cAD_TOWN_len);
+	strncpy(pOut->ex_ad_zip, PQgetvalue(res, 0, 29), cAD_ZIP_len);
+	pOut->ex_close = atoi(PQgetvalue(res, 0, 30));
+	strncpy(pOut->ex_desc, PQgetvalue(res, 0, 31), cEX_DESC_len);
+	strncpy(pOut->ex_name, PQgetvalue(res, 0, 32), cEX_NAME_len);
+	pOut->ex_num_symb = atoi(PQgetvalue(res, 0, 33));
+	pOut->ex_open = atoi(PQgetvalue(res, 0, 34));
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "s_name = " << pOut->s_name << endl;
+		cout << "co_id = " << co_id << endl;
+		cout << "co_name = " << pOut->co_name << endl;
+		cout << "sp_rate = " << pOut->sp_rate << endl;
+		cout << "ceo_name = " << pOut->ceo_name << endl;
+		cout << "co_desc = " << pOut->co_desc << endl;
+		cout << "open_date = " << pOut->open_date.year << "-"
+			 << pOut->open_date.month << "-" << pOut->open_date.day << " "
+			 << pOut->open_date.hour << ":" << pOut->open_date.minute << ":"
+			 << pOut->open_date.second << "." << pOut->open_date.fraction
+			 << endl;
+		cout << "co_st_id = " << pOut->co_st_id << endl;
+		cout << "co_ad_line1 = " << pOut->co_ad_line1 << endl;
+		cout << "co_ad_line2 = " << pOut->co_ad_line2 << endl;
+		cout << "co_ad_town = " << pOut->co_ad_town << endl;
+		cout << "co_ad_div = " << pOut->co_ad_div << endl;
+		cout << "co_ad_zip = " << pOut->co_ad_zip << endl;
+		cout << "co_ad_cty = " << pOut->co_ad_cty << endl;
+		cout << "num_out = " << pOut->num_out << endl;
+		cout << "start_date = " << pOut->start_date.year << "-"
+			 << pOut->start_date.month << "-" << pOut->start_date.day << " "
+			 << pOut->start_date.hour << ":" << pOut->start_date.minute << ":"
+			 << pOut->start_date.second << "." << pOut->start_date.fraction
+			 << endl;
+		cout << "ex_date = " << pOut->ex_date.year << "-"
+			 << pOut->ex_date.month << "-" << pOut->ex_date.day << " "
+			 << pOut->ex_date.hour << " " << pOut->ex_date.minute << ":"
+			 << pOut->ex_date.second << "." << pOut->ex_date.fraction << endl;
+		cout << "pe_ratio = " << pOut->pe_ratio << endl;
+		cout << "s52_wk_high = " << pOut->s52_wk_high << endl;
+		cout << "s52_wk_high_date = " << pOut->s52_wk_high_date.year << "-"
+			 << pOut->s52_wk_high_date.month << "-"
+			 << pOut->s52_wk_high_date.day << " "
+			 << pOut->s52_wk_high_date.hour << ":"
+			 << pOut->s52_wk_high_date.minute << ":"
+			 << pOut->s52_wk_high_date.second << "."
+			 << pOut->s52_wk_high_date.fraction << endl;
+		cout << "s52_wk_low = " << pOut->s52_wk_low << endl;
+		cout << "s52_wk_low_date = " << pOut->s52_wk_low_date.year << "-"
+			 << pOut->s52_wk_low_date.month << "-" << pOut->s52_wk_low_date.day
+			 << " " << pOut->s52_wk_low_date.hour << ":"
+			 << pOut->s52_wk_low_date.minute << ":"
+			 << pOut->s52_wk_low_date.second << "."
+			 << pOut->s52_wk_low_date.fraction << endl;
+		cout << "divid = " << pOut->divid << endl;
+		cout << "yield = " << pOut->yield << endl;
+		cout << "ex_ad_div = " << pOut->ex_ad_div << endl;
+		cout << "ex_ad_cty = " << pOut->ex_ad_cty << endl;
+		cout << "ex_ad_line1 = " << pOut->ex_ad_line1 << endl;
+		cout << "ex_ad_line2 = " << pOut->ex_ad_line2 << endl;
+		cout << "ex_ad_town = " << pOut->ex_ad_town << endl;
+		cout << "ex_ad_zip = " << pOut->ex_ad_zip << endl;
+		cout << "ex_close = " << pOut->ex_close << endl;
+		cout << "ex_desc = " << pOut->ex_desc << endl;
+		cout << "ex_name = " << pOut->ex_name << endl;
+		cout << "ex_num_symb = " << pOut->ex_num_symb << endl;
+		cout << "ex_open = " << pOut->ex_open << endl;
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT co_name" << endl
+		  << "     , in_name" << endl
+		  << "FROM company_competitor" << endl
+		  << "   , company" << endl
+		  << "   , industry" << endl
+		  << "WHERE cp_co_id = " << co_id << endl
+		  << "  AND co_id = cp_comp_co_id" << endl
+		  << "  AND in_id = cp_in_id" << endl
+		  << "LIMIT " << max_comp_len;
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	int count = PQntuples(res);
+	for (int i = 0; i < count; i++) {
+		strncpy(pOut->cp_co_name[i], PQgetvalue(res, i, 0), cCO_NAME_len);
+		strncpy(pOut->cp_in_name[i], PQgetvalue(res, i, 1), cIN_NAME_len);
+	}
+	PQclear(res);
+
+	if (m_bVerbose) {
+		for (int i = 0; i < count; i++) {
+			cout << "cp_co_name[" << i << "] = " << pOut->cp_co_name[i]
+				 << endl;
+			cout << "cp_in_name[" << i << "] = " << pOut->cp_in_name[i]
+				 << endl;
+		}
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT fi_year" << endl
+		  << "     , fi_qtr" << endl
+		  << "     , fi_qtr_start_date" << endl
+		  << "     , fi_revenue" << endl
+		  << "     , fi_net_earn" << endl
+		  << "     , fi_basic_eps" << endl
+		  << "     , fi_dilut_eps" << endl
+		  << "     , fi_margin" << endl
+		  << "     , fi_inventory" << endl
+		  << "     , fi_assets" << endl
+		  << "     , fi_liability" << endl
+		  << "     , fi_out_basic" << endl
+		  << "     , fi_out_dilut" << endl
+		  << "FROM financial" << endl
+		  << "WHERE fi_co_id = " << co_id << endl
+		  << "ORDER BY fi_year ASC" << endl
+		  << "       , fi_qtr" << endl
+		  << "LIMIT " << max_fin_len;
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	pOut->fin_len = PQntuples(res);
+	for (int i = 0; i < pOut->fin_len; i++) {
+		pOut->fin[i].year = atoi(PQgetvalue(res, i, 0));
+		pOut->fin[i].qtr = atoi(PQgetvalue(res, i, 1));
+		sscanf(PQgetvalue(res, i, 2), "%hd-%hd-%hd",
+				&pOut->fin[i].start_date.year, &pOut->fin[i].start_date.month,
+				&pOut->fin[i].start_date.day);
+		pOut->fin[i].rev = atof(PQgetvalue(res, i, 3));
+		pOut->fin[i].net_earn = atof(PQgetvalue(res, i, 4));
+		pOut->fin[i].basic_eps = atof(PQgetvalue(res, i, 5));
+		pOut->fin[i].dilut_eps = atof(PQgetvalue(res, i, 6));
+		pOut->fin[i].margin = atof(PQgetvalue(res, i, 7));
+		pOut->fin[i].invent = atof(PQgetvalue(res, i, 8));
+		pOut->fin[i].assets = atof(PQgetvalue(res, i, 9));
+		pOut->fin[i].liab = atof(PQgetvalue(res, i, 10));
+		pOut->fin[i].out_basic = atof(PQgetvalue(res, i, 11));
+		pOut->fin[i].out_dilut = atof(PQgetvalue(res, i, 12));
+	}
+	PQclear(res);
+
+	if (m_bVerbose) {
+		for (int i = 0; i < pOut->fin_len; i++) {
+			cout << "year[" << i << "] = " << pOut->fin[i].year << endl;
+			cout << "qtr[" << i << "] = " << pOut->fin[i].qtr << endl;
+			cout << "start_date[" << i
+				 << "] = " << pOut->fin[i].start_date.year << "-"
+				 << pOut->fin[i].start_date.month << "-"
+				 << pOut->fin[i].start_date.day << endl;
+			cout << "rev[" << i << "] = " << pOut->fin[i].rev << endl;
+			cout << "net_earn[" << i << "] = " << pOut->fin[i].net_earn
+				 << endl;
+			cout << "basic_eps[" << i << "] = " << pOut->fin[i].basic_eps
+				 << endl;
+			cout << "dilut_eps[" << i << "] = " << pOut->fin[i].dilut_eps
+				 << endl;
+			cout << "margin[" << i << "] = " << pOut->fin[i].margin << endl;
+			cout << "invent[" << i << "] = " << pOut->fin[i].invent << endl;
+			cout << "assets[" << i << "] = " << pOut->fin[i].assets << endl;
+			cout << "liab[" << i << "] = " << pOut->fin[i].liab << endl;
+			cout << "out_basic[" << i << "] = " << pOut->fin[i].out_basic
+				 << endl;
+			cout << "out_dilut[" << i << "] = " << pOut->fin[i].out_dilut
+				 << endl;
+		}
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT dm_date" << endl
+		  << "     , dm_close" << endl
+		  << "     , dm_high" << endl
+		  << "     , dm_low" << endl
+		  << "     , dm_vol" << endl
+		  << "FROM daily_market" << endl
+		  << "WHERE dm_s_symb = '" << pIn->symbol << "'" << endl
+		  << "  AND dm_date >= '" << pIn->start_day.year << "-"
+		  << pIn->start_day.month << "-" << pIn->start_day.day << "'" << endl
+		  << "ORDER BY dm_date ASC" << endl
+		  << "LIMIT " << pIn->max_rows_to_return;
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	pOut->day_len = PQntuples(res);
+	for (int i = 0; i < pOut->day_len; i++) {
+		sscanf(PQgetvalue(res, i, 0), "%hd-%hd-%hd", &pOut->day[i].date.year,
+				&pOut->day[i].date.month, &pOut->day[i].date.day);
+		pOut->day[i].close = atof(PQgetvalue(res, i, 1));
+		pOut->day[i].high = atof(PQgetvalue(res, i, 2));
+		pOut->day[i].low = atof(PQgetvalue(res, i, 3));
+		pOut->day[i].vol = atoll(PQgetvalue(res, i, 4));
+	}
+	PQclear(res);
+
+	if (m_bVerbose) {
+		for (int i = 0; i < pOut->day_len; i++) {
+			cout << "date[" << i << "] = " << pOut->day[i].date.year << "-"
+				 << pOut->day[i].date.month << "-" << pOut->day[i].date.day
+				 << endl;
+			cout << "close[" << i << "] = " << pOut->day[i].close << endl;
+			cout << "high[" << i << "] = " << pOut->day[i].high << endl;
+			cout << "low[" << i << "] = " << pOut->day[i].low << endl;
+			cout << "vol[" << i << "] = " << pOut->day[i].vol << endl;
+		}
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	osSQL << "SELECT lt_price" << endl
+		  << "     , lt_open_price" << endl
+		  << "     , lt_vol" << endl
+		  << "FROM last_trade" << endl
+		  << "WHERE lt_s_symb = '" << pIn->symbol << "'";
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	if (PQntuples(res) == 0) {
+		return;
+	}
+
+	pOut->last_price = atof(PQgetvalue(res, 0, 0));
+	pOut->last_open = atof(PQgetvalue(res, 0, 1));
+	pOut->last_vol = atoll(PQgetvalue(res, 0, 2));
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "last_price = " << pOut->last_price << endl;
+		cout << "last_open = " << pOut->last_open << endl;
+		cout << "last_vol = " << pOut->last_vol << endl;
+	}
+
+	osSQL.clear();
+	osSQL.str("");
+	if (pIn->access_lob_flag == 1) {
+		osSQL << "SELECT ni_item" << endl
+			  << "     , ni_dts" << endl
+			  << "     , ni_source" << endl
+			  << "     , ni_author" << endl
+			  << "     ,'' AS ni_headline" << endl
+			  << "     ,'' AS ni_summary" << endl
+			  << "FROM news_xref" << endl
+			  << "   ,  news_item" << endl
+			  << "WHERE ni_id = nx_ni_id" << endl
+			  << "  AND nx_co_id = " << co_id << endl
+			  << "LIMIT " << max_news_len;
+	} else {
+		osSQL << "SELECT '' AS ni_item" << endl
+			  << "     , ni_dts" << endl
+			  << "     , ni_source" << endl
+			  << "     , ni_author" << endl
+			  << "     , ni_headline" << endl
+			  << "     , ni_summary" << endl
+			  << "FROM news_xref" << endl
+			  << "   , news_item" << endl
+			  << "WHERE ni_id = nx_ni_id" << endl
+			  << "  AND nx_co_id = " << co_id << endl
+			  << "LIMIT " << max_news_len;
+	}
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	pOut->news_len = PQntuples(res);
+	for (int i = 0; i < pOut->news_len; i++) {
+		strncpy(pOut->news[i].item, PQgetvalue(res, i, 0), cNI_ITEM_len);
+		sscanf(PQgetvalue(res, i, 1), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+				&pOut->news[i].dts.year, &pOut->news[i].dts.month,
+				&pOut->news[i].dts.day, &pOut->news[i].dts.hour,
+				&pOut->news[i].dts.minute, &pOut->news[i].dts.second,
+				&pOut->news[i].dts.fraction);
+		strncpy(pOut->news[i].src, PQgetvalue(res, i, 2), cNI_SOURCE_len);
+		strncpy(pOut->news[i].auth, PQgetvalue(res, i, 3), cNI_AUTHOR_len);
+		strncpy(pOut->news[i].headline, PQgetvalue(res, i, 4),
+				cNI_HEADLINE_len);
+		strncpy(pOut->news[i].summary, PQgetvalue(res, i, 5), cNI_SUMMARY_len);
+	}
+	PQclear(res);
+
+	if (m_bVerbose) {
+		for (int i = 0; i < pOut->news_len; i++) {
+			cout << "item[" << i << "] = " << pOut->news[i].item << endl;
+			cout << "news[" << i << "] = " << pOut->news[i].dts.year << "-"
+				 << pOut->news[i].dts.month << "-" << pOut->news[i].dts.day
+				 << " " << pOut->news[i].dts.hour << ":"
+				 << pOut->news[i].dts.minute << ":"
+				 << &pOut->news[i].dts.second << "."
+				 << pOut->news[i].dts.fraction << endl;
+			cout << "src[" << i << "] = " << pOut->news[i].src << endl;
+			cout << "auth[" << i << "] = " << pOut->news[i].auth << endl;
+			cout << "headline[" << i << "] = " << pOut->news[i].headline
+				 << endl;
+			cout << "summary[" << i << "] = " << pOut->news[i].summary << endl;
+		}
+	}
 }
 
 void
