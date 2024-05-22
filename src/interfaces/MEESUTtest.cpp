@@ -28,7 +28,8 @@ TradeResultAsync(void *data)
 	const char *server = "localhost";
 	const char *db = "dbt5";
 	const char *port = "5432";
-	CDBConnection *m_pConn = new CDBConnectionServerSide(server, db, port);
+	CDBConnection *m_pConn
+			= new CDBConnectionServerSide(server, db, port, false);
 
 	// trade result harness code (TPC provided)
 	// this class uses our implementation of CTradeResultDB class
@@ -103,7 +104,8 @@ MarketFeedAsync(void *data)
 	const char *server = "localhost";
 	const char *db = "dbt5";
 	const char *port = "5432";
-	CDBConnection *m_pConn = new CDBConnectionServerSide(server, db, port);
+	CDBConnection *m_pConn
+			= new CDBConnectionServerSide(server, db, port, false);
 
 	// trade result harness code (TPC provided)
 	// this class uses our implementation of CMarketFeedDB class

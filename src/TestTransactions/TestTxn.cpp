@@ -507,9 +507,11 @@ main(int argc, char *argv[])
 		CDBConnection *m_Conn;
 
 		if (iClientSide == 1) {
-			m_Conn = new CDBConnectionClientSide(szDBHost, szDBName, szPort);
+			m_Conn = new CDBConnectionClientSide(
+					szDBHost, szDBName, szPort, true);
 		} else {
-			m_Conn = new CDBConnectionServerSide(szDBHost, szDBName, szPort);
+			m_Conn = new CDBConnectionServerSide(
+					szDBHost, szDBName, szPort, true);
 		}
 
 		// initialize Input Generator

@@ -34,9 +34,12 @@ private:
 
 	TTradeRequest m_TriggeredLimitOrders;
 
+protected:
+	bool m_bVerbose;
+
 public:
 	CDBConnection(const char *szHost, const char *szDBName,
-			const char *szDBPort);
+			const char *szDBPort, bool bVerbose = false);
 	~CDBConnection();
 
 	void begin();

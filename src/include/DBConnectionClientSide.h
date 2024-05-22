@@ -28,7 +28,7 @@ class CDBConnectionClientSide: public CDBConnection
 {
 public:
 	CDBConnectionClientSide(const char *szHost, const char *szDBName,
-			const char *szDBPort);
+			const char *szDBPort, bool bVerbose = false);
 	~CDBConnectionClientSide();
 
 	void execute(
