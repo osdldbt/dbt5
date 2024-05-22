@@ -2009,14 +2009,11 @@ CDBConnectionClientSide::execute(
 
 	pOut->num_found = PQntuples(res);
 	for (int i = 0; i < pOut->num_found; i++) {
-		pOut->trade_info[i].holding_history_id
-				= atoll(PQgetvalue(res, i, 0));
+		pOut->trade_info[i].holding_history_id = atoll(PQgetvalue(res, i, 0));
 		pOut->trade_info[i].holding_history_trade_id
 				= atoll(PQgetvalue(res, i, 1));
-		pOut->trade_info[i].quantity_before
-				= atoi(PQgetvalue(res, i, 2));
-		pOut->trade_info[i].quantity_after
-				= atoi(PQgetvalue(res, i, 3));
+		pOut->trade_info[i].quantity_before = atoi(PQgetvalue(res, i, 2));
+		pOut->trade_info[i].quantity_after = atoi(PQgetvalue(res, i, 3));
 	}
 	PQclear(res);
 
@@ -3853,6 +3850,259 @@ void
 CDBConnectionClientSide::execute(
 		const TTradeUpdateFrame2Input *pIn, TTradeUpdateFrame2Output *pOut)
 {
+	PGresult *res = NULL;
+	PGresult *res2 = NULL;
+	ostringstream osSQL;
+
+	osSQL << "SELECT t_bid_price" << endl
+		  << "     , t_exec_name" << endl
+		  << "     , t_is_cash" << endl
+		  << "     , t_id" << endl
+		  << "     , t_trade_price" << endl
+		  << "FROM trade" << endl
+		  << "WHERE t_ca_id = " << pIn->acct_id << endl
+		  << "  AND t_dts >= '" << pIn->start_trade_dts.year << "-"
+		  << pIn->start_trade_dts.month << "-" << pIn->start_trade_dts.day
+		  << " " << pIn->start_trade_dts.hour << ":"
+		  << pIn->start_trade_dts.minute << ":" << pIn->start_trade_dts.second
+		  << "." << pIn->start_trade_dts.fraction << "'" << endl
+		  << "  AND t_dts <= '" << pIn->end_trade_dts.year << "-"
+		  << pIn->end_trade_dts.month << "-" << pIn->end_trade_dts.day << " "
+		  << pIn->end_trade_dts.hour << ":" << pIn->end_trade_dts.minute << ":"
+		  << pIn->end_trade_dts.second << "." << pIn->end_trade_dts.fraction
+		  << "'" << endl
+		  << "ORDER BY t_dts ASC" << endl
+		  << "LIMIT " << pIn->max_trades;
+	if (m_bVerbose) {
+		cout << osSQL.str() << endl;
+	}
+	res = exec(osSQL.str().c_str());
+
+	pOut->num_updated = 0;
+	pOut->num_found = PQntuples(res);
+	for (int i = 0; i < pOut->num_found; i++) {
+		pOut->trade_info[i].bid_price = atof(PQgetvalue(res, i, 0));
+		strncpy(pOut->trade_info[i].exec_name, PQgetvalue(res, i, 1),
+				cEXEC_NAME_len);
+		if (PQgetvalue(res, 0, 2)[0] == 't') {
+			pOut->trade_info[i].is_cash = true;
+		} else {
+			pOut->trade_info[i].is_cash = false;
+		}
+		pOut->trade_info[i].trade_id = atoll(PQgetvalue(res, i, 3));
+		pOut->trade_info[i].trade_price = atof(PQgetvalue(res, i, 4));
+
+		if (m_bVerbose) {
+			cout << "bid_price[" << i
+				 << "] = " << pOut->trade_info[i].bid_price << endl;
+			cout << "exec_name[" << i
+				 << "] = " << pOut->trade_info[i].exec_name << endl;
+			cout << "is_cash[" << i << "] = " << pOut->trade_info[i].is_cash
+				 << endl;
+			cout << "trade_id[" << i << "] = " << pOut->trade_info[i].trade_id
+				 << endl;
+			cout << "trade_price[" << i
+				 << "] = " << pOut->trade_info[i].trade_price << endl;
+		}
+
+		if (pOut->num_updated < pIn->max_updates) {
+			char cash_type[cSE_CASH_TYPE_len + 1];
+
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "SELECT se_cash_type" << endl
+				  << "FROM settlement" << endl
+				  << "WHERE se_t_id = " << pOut->trade_info[i].trade_id;
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res2 = exec(osSQL.str().c_str());
+
+			strncpy(cash_type, PQgetvalue(res2, 0, 0), cSE_CASH_TYPE_len);
+			PQclear(res2);
+
+			if (m_bVerbose) {
+				cout << "cash_type[" << i << "] = " << cash_type << endl;
+			}
+
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "UPDATE settlement" << endl;
+			if (pOut->trade_info[i].is_cash) {
+				if (strncmp(cash_type, "Cash Account", cSE_CASH_TYPE_len)
+						== 0) {
+					osSQL << "SET se_cash_type = 'Cash'" << endl;
+				} else {
+					osSQL << "SET se_cash_type = 'Cash Account'" << endl;
+				}
+			} else {
+				if (strncmp(cash_type, "Margin Account", cSE_CASH_TYPE_len)
+						== 0) {
+					osSQL << "SET se_cash_type = 'Margin'" << endl;
+				} else {
+					osSQL << "SET se_cash_type = 'Margin Account'" << endl;
+				}
+			}
+			osSQL << "WHERE se_t_id = " << pOut->trade_info[i].trade_id;
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res2 = exec(osSQL.str().c_str());
+
+			if (m_bVerbose) {
+				cout << "PQcmdTuples = " << PQcmdTuples(res) << endl;
+			}
+			pOut->num_updated += atoi(PQcmdTuples(res2));
+			PQclear(res2);
+		}
+
+		osSQL.clear();
+		osSQL.str("");
+		osSQL << "SELECT se_amt" << endl
+			  << "     , se_cash_due_date" << endl
+			  << "     , se_cash_type" << endl
+			  << "FROM settlement" << endl
+			  << "WHERE se_t_id = " << pOut->trade_info[i].trade_id;
+		if (m_bVerbose) {
+			cout << osSQL.str() << endl;
+		}
+		res2 = exec(osSQL.str().c_str());
+
+		if (PQntuples(res2) == 0) {
+			PQclear(res2);
+			return;
+		}
+
+		pOut->trade_info[i].settlement_amount = atof(PQgetvalue(res2, 0, 0));
+		sscanf(PQgetvalue(res2, 0, 1), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+				&pOut->trade_info[i].settlement_cash_due_date.year,
+				&pOut->trade_info[i].settlement_cash_due_date.month,
+				&pOut->trade_info[i].settlement_cash_due_date.day,
+				&pOut->trade_info[i].settlement_cash_due_date.hour,
+				&pOut->trade_info[i].settlement_cash_due_date.minute,
+				&pOut->trade_info[i].settlement_cash_due_date.second,
+				&pOut->trade_info[i].settlement_cash_due_date.fraction);
+		strncpy(pOut->trade_info[i].settlement_cash_type,
+				PQgetvalue(res2, 0, 2), cSE_CASH_TYPE_len);
+		PQclear(res2);
+
+		if (m_bVerbose) {
+			cout << "settlement_amount[" << i
+				 << "] = " << pOut->trade_info[i].settlement_amount << endl;
+			cout << "settlement_cash_due_date[" << i
+				 << "] = " << pOut->trade_info[i].settlement_cash_due_date.year
+				 << "-" << pOut->trade_info[i].settlement_cash_due_date.month
+				 << "-" << pOut->trade_info[i].settlement_cash_due_date.day
+				 << " " << pOut->trade_info[i].settlement_cash_due_date.hour
+				 << ":" << pOut->trade_info[i].settlement_cash_due_date.minute
+				 << ":" << pOut->trade_info[i].settlement_cash_due_date.second
+				 << "."
+				 << pOut->trade_info[i].settlement_cash_due_date.fraction
+				 << endl;
+			cout << "settlement_cash_type[" << i
+				 << "] = " << pOut->trade_info[i].settlement_cash_type << endl;
+		}
+
+		if (pOut->trade_info[i].is_cash) {
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "SELECT ct_amt" << endl
+				  << "     , ct_dts" << endl
+				  << "     , ct_name" << endl
+				  << "FROM cash_transaction" << endl
+				  << "WHERE ct_t_id = " << pOut->trade_info[i].trade_id;
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res2 = exec(osSQL.str().c_str());
+
+			if (PQntuples(res2) > 0) {
+				pOut->trade_info[i].cash_transaction_amount
+						= atof(PQgetvalue(res2, 0, 0));
+				sscanf(PQgetvalue(res2, 0, 1), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+						&pOut->trade_info[i].cash_transaction_dts.year,
+						&pOut->trade_info[i].cash_transaction_dts.month,
+						&pOut->trade_info[i].cash_transaction_dts.day,
+						&pOut->trade_info[i].cash_transaction_dts.hour,
+						&pOut->trade_info[i].cash_transaction_dts.minute,
+						&pOut->trade_info[i].cash_transaction_dts.second,
+						&pOut->trade_info[i].cash_transaction_dts.fraction);
+				strncpy(pOut->trade_info[i].cash_transaction_name,
+						PQgetvalue(res2, 0, 2), cCT_NAME_len);
+			}
+			PQclear(res2);
+
+			if (m_bVerbose) {
+				cout << "cash_transaction_amount[" << i
+					 << "] = " << pOut->trade_info[i].cash_transaction_amount
+					 << endl;
+				cout << "cash_transaction_dts[" << i
+					 << "] = " << pOut->trade_info[i].cash_transaction_dts.year
+					 << "-" << pOut->trade_info[i].cash_transaction_dts.month
+					 << "-" << pOut->trade_info[i].cash_transaction_dts.day
+					 << " " << pOut->trade_info[i].cash_transaction_dts.hour
+					 << ":" << pOut->trade_info[i].cash_transaction_dts.minute
+					 << ":" << pOut->trade_info[i].cash_transaction_dts.second
+					 << "."
+					 << pOut->trade_info[i].cash_transaction_dts.fraction
+					 << endl;
+				cout << "cash_transaction_name[" << i
+					 << "] = " << pOut->trade_info[i].cash_transaction_name
+					 << endl;
+			}
+
+			osSQL.clear();
+			osSQL.str("");
+			osSQL << "SELECT th_dts" << endl
+				  << "     , th_st_id" << endl
+				  << "FROM trade_history" << endl
+				  << "WHERE th_t_id = " << pOut->trade_info[i].trade_id << endl
+				  << "ORDER BY th_dts" << endl
+				  << "LIMIT 3";
+			if (m_bVerbose) {
+				cout << osSQL.str() << endl;
+			}
+			res2 = exec(osSQL.str().c_str());
+
+			int count = PQntuples(res2);
+			for (int j = 0; j < count; j++) {
+				sscanf(PQgetvalue(res2, j, 0), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+						&pOut->trade_info[i].trade_history_dts[j].year,
+						&pOut->trade_info[i].trade_history_dts[j].month,
+						&pOut->trade_info[i].trade_history_dts[j].day,
+						&pOut->trade_info[i].trade_history_dts[j].hour,
+						&pOut->trade_info[i].trade_history_dts[j].minute,
+						&pOut->trade_info[i].trade_history_dts[j].second,
+						&pOut->trade_info[i].trade_history_dts[j].fraction);
+				strncpy(pOut->trade_info[i].trade_history_status_id[j],
+						PQgetvalue(res2, j, 1), cTH_ST_ID_len);
+			}
+			PQclear(res2);
+
+			if (m_bVerbose) {
+				for (int j = 0; j < count; j++) {
+					cout << "trade_history_dts[" << j << "] = "
+						 << pOut->trade_info[i].trade_history_dts[j].year
+						 << "-"
+						 << pOut->trade_info[i].trade_history_dts[j].month
+						 << "-" << pOut->trade_info[i].trade_history_dts[j].day
+						 << " "
+						 << pOut->trade_info[i].trade_history_dts[j].hour
+						 << ":"
+						 << pOut->trade_info[i].trade_history_dts[j].minute
+						 << ":"
+						 << pOut->trade_info[i].trade_history_dts[j].second
+						 << "."
+						 << pOut->trade_info[i].trade_history_dts[j].fraction
+						 << endl;
+					cout << "trade_history_status_id[" << j << "] = "
+						 << pOut->trade_info[i].trade_history_status_id[j]
+						 << endl;
+				}
+			}
+		}
+	}
+	PQclear(res);
 }
 
 void
