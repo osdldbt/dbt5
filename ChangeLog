@@ -7,6 +7,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: fix bug that truncated trade_id in market feed transaction
 - pgsql: increase t_comm to FLOAT8 from FLOAT4 as S_PRICE_T needs to be bigger
   than the specification says it should be
+- pgsql: add client side transaction logic
 
 v0.9.4 (2024-04-23)
 
