@@ -364,7 +364,7 @@ static cached_statement TRF4_statements[] = {
 
 static cached_statement TRF5_statements[] = {
 
-	{ SQLTRF5_1, 5, { FLOAT4OID, TIMESTAMPOID, TEXTOID, FLOAT8OID, INT8OID } },
+	{ SQLTRF5_1, 5, { FLOAT8OID, TIMESTAMPOID, TEXTOID, FLOAT8OID, INT8OID } },
 
 	{ SQLTRF5_2, 3, { INT8OID, TIMESTAMPOID, TEXTOID } },
 
