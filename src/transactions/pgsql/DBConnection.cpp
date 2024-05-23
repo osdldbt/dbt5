@@ -570,7 +570,7 @@ CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 			strncpy(m_TriggeredLimitOrders.symbol, pIn->Entries[i].symbol,
 					cSYMBOL_len);
 			m_TriggeredLimitOrders.trade_id
-					= atoi(PQgetvalue(res, j, i_tr_t_id));
+					= atoll(PQgetvalue(res, j, i_tr_t_id));
 			m_TriggeredLimitOrders.price_quote
 					= atof(PQgetvalue(res, j, i_tr_bid_price));
 			m_TriggeredLimitOrders.trade_qty

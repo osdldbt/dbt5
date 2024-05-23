@@ -4,6 +4,7 @@ vX.Y.Z (YYYY-MM-DD)
   functions
 - pgsql: update scripts and EGenLoader to not load .psqlrc
 - pgsql: fix bug building trade_list var in pl/C trade_lookup
+- pgsql: fix bug that truncated trade_id in market feed transaction
 
 v0.9.4 (2024-04-23)
 
