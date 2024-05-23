@@ -47,12 +47,14 @@ workerThread(void *data)
 			pDBConnection = new CDBConnectionClientSide(
 					pThrParam->pBrokerageHouse->m_szHost,
 					pThrParam->pBrokerageHouse->m_szDBName,
-					pThrParam->pBrokerageHouse->m_szDBPort);
+					pThrParam->pBrokerageHouse->m_szDBPort,
+					pThrParam->pBrokerageHouse->verbose());
 		} else {
 			pDBConnection = new CDBConnectionServerSide(
 					pThrParam->pBrokerageHouse->m_szHost,
 					pThrParam->pBrokerageHouse->m_szDBName,
-					pThrParam->pBrokerageHouse->m_szDBPort);
+					pThrParam->pBrokerageHouse->m_szDBPort,
+					pThrParam->pBrokerageHouse->verbose());
 		}
 		pDBConnection->setBrokerageHouse(pThrParam->pBrokerageHouse);
 		CSendToMarket sendToMarket
