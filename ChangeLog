@@ -5,6 +5,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: update scripts and EGenLoader to not load .psqlrc
 - pgsql: fix bug building trade_list var in pl/C trade_lookup
 - pgsql: fix bug that truncated trade_id in market feed transaction
+- pgsql: increase t_comm to FLOAT8 from FLOAT4 as S_PRICE_T needs to be bigger
+  than the specification says it should be
 
 v0.9.4 (2024-04-23)
 
