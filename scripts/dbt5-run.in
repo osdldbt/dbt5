@@ -279,6 +279,8 @@ Usage:
 General options:
   -b PARAMETERS  database PARAMETERS
   -c CUSTOMERS   active CUSTOMERS, default ${CUSTOMERS_INSTANCE}
+  --client-side  use client side application logic, default is to used server
+                 side
   --config=FILE  config FILE to use for executing a test where these settings
                  will override any conflicting command line arguments
   -d SECONDS     test duration in SECONDS
@@ -320,6 +322,7 @@ validate_parameter()
 }
 
 BROKERAGELIST=""
+CLIENTSIDEARG=""
 DB_NAME="dbt5"
 DBAAS=0
 DBLIST=""
@@ -359,6 +362,9 @@ while [ "${#}" -gt 0 ] ; do
 		# Configured customer count
 		CUSTOMERS_INSTANCE="$(echo "${1}" | grep -E "^[0-9]+$")"
 		validate_parameter "c" "${1}" "${CUSTOMERS_INSTANCE}"
+		;;
+	(--client-side)
+		CLIENTSIDEARG="-1"
 		;;
 	(--config)
 		shift
@@ -649,7 +655,8 @@ echo
 
 if [ "${CONFIGFILE}" = "" ]; then
 	eval "${EGENHOME}/bin/BrokerageHouseMain ${DB_HOSTNAME_ARG} -d ${DB_NAME} \
-			${DB_PORT_ARG} -o ${BH_OUTPUT_DIR} > ${BH_OUTPUT_DIR}/bh.out 2>&1" &
+			${DB_PORT_ARG} -o ${BH_OUTPUT_DIR} ${CLIENTSIDEARG} \
+			> ${BH_OUTPUT_DIR}/bh.out 2>&1" &
 else
 	BROKERAGES="$(toml get "${CONFIGFILE}" . | jq -r '.brokerage | length')"
 

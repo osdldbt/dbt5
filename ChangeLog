@@ -10,6 +10,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: add client side transaction logic
 - pgsql: ensure use of atoll() for 64bit integers in C stored functions and
   server side transaction handling code
+- add --client-side flag to run script to use client side application logic
 
 v0.9.4 (2024-04-23)
 

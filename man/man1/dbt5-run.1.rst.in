@@ -31,6 +31,8 @@ OPTIONS
 
 -b PARAMETERS  Database *parameters*.
 -c CUSTOMERS  Active *customers*, default 5000.
+--client-side  Use client side application logic, default is to used server
+        side
 -d SECONDS  Test duration in *seconds*.
 --dbaas  Flag to signify that the database is a service so only collect
         database statistics.
