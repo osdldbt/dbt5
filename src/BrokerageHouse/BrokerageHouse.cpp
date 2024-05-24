@@ -194,11 +194,11 @@ workerThread(void *data)
 					cout << "wrong txn type" << endl;
 					iRet = ERR_TYPE_WRONGTXN;
 				}
-			} catch (const char *str) {
+			} catch (std::string const &e) {
 				pid_t pid = syscall(SYS_gettid);
 				ostringstream msg;
 				msg << time(NULL) << " " << pid << " "
-					<< szTransactionName[pMessage->TxnType] << endl;
+					<< szTransactionName[pMessage->TxnType] << " " << e << endl;
 				pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
 				iRet = CBaseTxnErr::EXPECTED_ROLLBACK;
 			}

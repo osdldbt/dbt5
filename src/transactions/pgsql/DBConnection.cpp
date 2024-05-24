@@ -217,7 +217,7 @@ CDBConnection::exec(const char *sql, int nParams = 0,
 			<< "SQL: " << sql << endl
 			<< PQresultErrorMessage(res) << endl;
 		rollback();
-		throw msg.str().c_str();
+		throw msg.str();
 		break;
 	case PGRES_EMPTY_QUERY:
 	case PGRES_COPY_OUT:
