@@ -7,6 +7,7 @@
  * Based on TPC-E Standard Specification Revision 1.14.0.
  */
 
+#include <stdint.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <postgres.h>
@@ -906,12 +907,12 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				tuptable = SPI_tuptable;
 				n = SPI_processed;
 				while (needed_qty > 0 && i < n) {
-					long hold_id;
+					int64_t hold_id;
 					int hold_qty;
 					double hold_price;
 
 					tuple = tuptable->vals[i++];
-					hold_id = atol(SPI_getvalue(tuple, tupdesc, 1));
+					hold_id = atoll(SPI_getvalue(tuple, tupdesc, 1));
 					hold_qty = atoi(SPI_getvalue(tuple, tupdesc, 2));
 					hold_price = atof(SPI_getvalue(tuple, tupdesc, 3));
 
@@ -1147,12 +1148,12 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				i = 0;
 				n = SPI_processed;
 				while (needed_qty > 0 && i < n) {
-					long hold_id;
+					int64_t hold_id;
 					int hold_qty;
 					double hold_price;
 
 					tuple = tuptable->vals[i++];
-					hold_id = atol(SPI_getvalue(tuple, tupdesc, 1));
+					hold_id = atoll(SPI_getvalue(tuple, tupdesc, 1));
 					hold_qty = atoi(SPI_getvalue(tuple, tupdesc, 2));
 					hold_price = atof(SPI_getvalue(tuple, tupdesc, 3));
 

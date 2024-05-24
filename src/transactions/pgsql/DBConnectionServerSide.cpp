@@ -205,7 +205,7 @@ CDBConnectionServerSide::execute(const TCustomerPositionFrame1Input *pIn,
 	int i_cash_bal = get_col_num(res, "cash_bal");
 
 	pOut->acct_len = atoi(PQgetvalue(res, 0, i_acct_len));
-	pOut->cust_id = atol(PQgetvalue(res, 0, i_cust_id));
+	pOut->cust_id = atoll(PQgetvalue(res, 0, i_cust_id));
 
 	vector<string> vAux;
 	vector<string>::iterator p;
@@ -213,7 +213,7 @@ CDBConnectionServerSide::execute(const TCustomerPositionFrame1Input *pIn,
 	TokenizeSmart(PQgetvalue(res, 0, i_acct_id), vAux);
 	int i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->acct_id[i] = atol((*p).c_str());
+		pOut->acct_id[i] = atoll((*p).c_str());
 		++i;
 	}
 	check_count(pOut->acct_len, vAux.size(), __FILE__, __LINE__);
@@ -228,7 +228,7 @@ CDBConnectionServerSide::execute(const TCustomerPositionFrame1Input *pIn,
 	check_count(pOut->acct_len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	pOut->c_ad_id = atol(PQgetvalue(res, 0, i_c_ad_id));
+	pOut->c_ad_id = atoll(PQgetvalue(res, 0, i_c_ad_id));
 
 	strncpy(pOut->c_area_1, PQgetvalue(res, 0, i_c_area_1), cAREA_len);
 	pOut->c_area_1[cAREA_len] = '\0';
@@ -345,7 +345,7 @@ CDBConnectionServerSide::execute(const TCustomerPositionFrame2Input *pIn,
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_id), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->trade_id[i] = atol((*p).c_str());
+		pOut->trade_id[i] = atoll((*p).c_str());
 		++i;
 	}
 	check_count(pOut->hist_len, vAux.size(), __FILE__, __LINE__);
@@ -631,7 +631,7 @@ CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 	pOut->pe_ratio = atof(PQgetvalue(res, 0, i_pe_ratio));
 	strncpy(pOut->s_name, PQgetvalue(res, 0, i_s_name), cS_NAME_len);
 	pOut->s_name[cS_NAME_len] = '\0';
-	pOut->num_out = atol(PQgetvalue(res, 0, i_num_out));
+	pOut->num_out = atoll(PQgetvalue(res, 0, i_num_out));
 	strncpy(pOut->sp_rate, PQgetvalue(res, 0, i_sp_rate), cSP_RATE_len);
 	pOut->sp_rate[cSP_RATE_len] = '\0';
 	sscanf(PQgetvalue(res, 0, i_start_date), "%hd-%hd-%hd",
@@ -1028,7 +1028,7 @@ CDBConnectionServerSide::execute(
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_list), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->trade_info[i].trade_id = atol((*p).c_str());
+		pOut->trade_info[i].trade_id = atoll((*p).c_str());
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -1090,7 +1090,7 @@ CDBConnectionServerSide::execute(
 	TokenizeSmart(PQgetvalue(res, 0, i_acct_id), vAux);
 	int i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->trade_info[i].acct_id = atol((*p).c_str());
+		pOut->trade_info[i].acct_id = atoll((*p).c_str());
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -1260,7 +1260,7 @@ CDBConnectionServerSide::execute(
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_list), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->trade_info[i].trade_id = atol((*p).c_str());
+		pOut->trade_info[i].trade_id = atoll((*p).c_str());
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -1307,7 +1307,7 @@ CDBConnectionServerSide::execute(
 	TokenizeSmart(PQgetvalue(res, 0, i_holding_history_id), vAux);
 	int i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->trade_info[i].holding_history_id = atol((*p).c_str());
+		pOut->trade_info[i].holding_history_id = atoll((*p).c_str());
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -1316,7 +1316,7 @@ CDBConnectionServerSide::execute(
 	TokenizeSmart(PQgetvalue(res, 0, i_holding_history_trade_id), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->trade_info[i].holding_history_trade_id = atol((*p).c_str());
+		pOut->trade_info[i].holding_history_trade_id = atoll((*p).c_str());
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -1325,7 +1325,7 @@ CDBConnectionServerSide::execute(
 	TokenizeSmart(PQgetvalue(res, 0, i_quantity_after), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->trade_info[i].quantity_after = atol((*p).c_str());
+		pOut->trade_info[i].quantity_after = atoi((*p).c_str());
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -1334,13 +1334,13 @@ CDBConnectionServerSide::execute(
 	TokenizeSmart(PQgetvalue(res, 0, i_quantity_before), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->trade_info[i].quantity_before = atol((*p).c_str());
+		pOut->trade_info[i].quantity_before = atoi((*p).c_str());
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	pOut->trade_id = atol(PQgetvalue(res, 0, i_trade_id));
+	pOut->trade_id = atoll(PQgetvalue(res, 0, i_trade_id));
 	PQclear(res);
 }
 
@@ -1365,12 +1365,12 @@ CDBConnectionServerSide::execute(
 
 	strncpy(pOut->acct_name, PQgetvalue(res, 0, i_acct_name), cCA_NAME_len);
 	pOut->acct_name[cCA_NAME_len] = '\0';
-	pOut->broker_id = atol(PQgetvalue(res, 0, i_broker_id));
+	pOut->broker_id = atoll(PQgetvalue(res, 0, i_broker_id));
 	strncpy(pOut->broker_name, PQgetvalue(res, 0, i_broker_name), cB_NAME_len);
 	pOut->broker_name[cB_NAME_len] = '\0';
 	strncpy(pOut->cust_f_name, PQgetvalue(res, 0, i_cust_f_name), cF_NAME_len);
 	pOut->cust_f_name[cF_NAME_len] = '\0';
-	pOut->cust_id = atol(PQgetvalue(res, 0, i_cust_id));
+	pOut->cust_id = atoll(PQgetvalue(res, 0, i_cust_id));
 	strncpy(pOut->cust_l_name, PQgetvalue(res, 0, i_cust_l_name), cL_NAME_len);
 	pOut->cust_l_name[cL_NAME_len] = '\0';
 	pOut->cust_tier = atoi(PQgetvalue(res, 0, i_cust_tier));
@@ -1482,7 +1482,7 @@ CDBConnectionServerSide::execute(
 
 	PGresult *res = exec(osSQL.str().c_str());
 
-	pOut->trade_id = atol(PQgetvalue(res, 0, 0));
+	pOut->trade_id = atoll(PQgetvalue(res, 0, 0));
 	PQclear(res);
 }
 
@@ -1507,7 +1507,7 @@ CDBConnectionServerSide::execute(
 	int i_type_is_sell = get_col_num(res, "type_is_sell");
 	int i_type_name = get_col_num(res, "type_name");
 
-	pOut->acct_id = atol(PQgetvalue(res, 0, i_acct_id));
+	pOut->acct_id = atoll(PQgetvalue(res, 0, i_acct_id));
 	pOut->charge = atof(PQgetvalue(res, 0, i_charge));
 	pOut->hs_qty = atoi(PQgetvalue(res, 0, i_hs_qty));
 	pOut->is_lifo = atoi(PQgetvalue(res, 0, i_is_lifo));
@@ -1538,9 +1538,9 @@ CDBConnectionServerSide::execute(
 
 	PGresult *res = exec(osSQL.str().c_str());
 
-	pOut->broker_id = atol(PQgetvalue(res, 0, 0));
+	pOut->broker_id = atoll(PQgetvalue(res, 0, 0));
 	pOut->buy_value = atof(PQgetvalue(res, 0, 1));
-	pOut->cust_id = atol(PQgetvalue(res, 0, 2));
+	pOut->cust_id = atoll(PQgetvalue(res, 0, 2));
 	pOut->sell_value = atof(PQgetvalue(res, 0, 3));
 	pOut->tax_status = atoi(PQgetvalue(res, 0, 4));
 	sscanf(PQgetvalue(res, 0, 5), "%hd-%hd-%hd %hd:%hd:%hd.%*d",
@@ -1737,7 +1737,7 @@ CDBConnectionServerSide::execute(
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_id), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->trade_id[i] = atol((*p).c_str());
+		pOut->trade_id[i] = atoll((*p).c_str());
 		++i;
 	}
 	check_count(len, vAux.size(), __FILE__, __LINE__);
@@ -2176,7 +2176,7 @@ CDBConnectionServerSide::execute(
 	this->bh = bh;
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->trade_info[i].trade_id = atol((*p).c_str());
+		pOut->trade_info[i].trade_id = atoll((*p).c_str());
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -2242,7 +2242,7 @@ CDBConnectionServerSide::execute(
 	TokenizeSmart(PQgetvalue(res, 0, i_acct_id), vAux);
 	int i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->trade_info[i].acct_id = atol((*p).c_str());
+		pOut->trade_info[i].acct_id = atoll((*p).c_str());
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -2422,7 +2422,7 @@ CDBConnectionServerSide::execute(
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_list), vAux);
 	i = 0;
 	for (p = vAux.begin(); p != vAux.end(); ++p) {
-		pOut->trade_info[i].trade_id = atol((*p).c_str());
+		pOut->trade_info[i].trade_id = atoll((*p).c_str());
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);

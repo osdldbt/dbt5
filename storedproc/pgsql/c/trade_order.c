@@ -7,6 +7,7 @@
  * Based on TPC-E Standard Specification Revision 1.14.0.
  */
 
+#include <stdint.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <inttypes.h>
@@ -479,7 +480,7 @@ TradeOrderFrame1(PG_FUNCTION_ARGS)
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLTOF1_2);
 #endif /* DEBUG */
-		args[0] = Int64GetDatum(atol(values[i_cust_id]));
+		args[0] = Int64GetDatum(atoll(values[i_cust_id]));
 
 		ret = SPI_execute_plan(TOF1_2, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
@@ -503,7 +504,7 @@ TradeOrderFrame1(PG_FUNCTION_ARGS)
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLTOF1_3);
 #endif /* DEBUG */
-		args[0] = Int64GetDatum(atol(values[i_broker_id]));
+		args[0] = Int64GetDatum(atoll(values[i_broker_id]));
 
 		ret = SPI_execute_plan(TOF1_3, args, nulls, true, 0);
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
@@ -818,7 +819,7 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 #ifdef DEBUG
 			elog(DEBUG1, "%s", SQLTOF3_2a);
 #endif /* DEBUG */
-			args[0] = Int64GetDatum(atol(co_id));
+			args[0] = Int64GetDatum(atoll(co_id));
 			args[1] = CStringGetTextDatum(issue);
 
 			ret = SPI_execute_plan(TOF3_2a, args, nulls, true, 0);
@@ -866,7 +867,7 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 #ifdef DEBUG
 			elog(DEBUG1, "%s", SQLTOF3_2b);
 #endif /* DEBUG */
-			args[0] = Int64GetDatum(atol(co_id));
+			args[0] = Int64GetDatum(atoll(co_id));
 
 			ret = SPI_execute_plan(TOF3_2b, args, nulls, true, 0);
 			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
@@ -1277,7 +1278,7 @@ TradeOrderFrame4(PG_FUNCTION_ARGS)
 	SPITupleTable *tuptable = NULL;
 	HeapTuple tuple = NULL;
 
-	long trade_id = 0;
+	int64_t trade_id = 0;
 	Datum args[11];
 	char nulls[11] = { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
 
@@ -1335,7 +1336,7 @@ TradeOrderFrame4(PG_FUNCTION_ARGS)
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
 		tuple = tuptable->vals[0];
-		trade_id = atol(SPI_getvalue(tuple, tupdesc, 1));
+		trade_id = atoll(SPI_getvalue(tuple, tupdesc, 1));
 	} else {
 #ifdef DEBUG
 		dump_tof4_inputs(acct_id, broker_id, charge_amount, exec_name, is_cash,

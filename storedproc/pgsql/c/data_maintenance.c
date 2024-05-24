@@ -7,6 +7,7 @@
  * Based on TPC-E Standard Specification Revision 1.14.0.
  */
 
+#include <stdint.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <postgres.h>
@@ -392,7 +393,7 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			PG_RETURN_INT32(1);
 		}
 	} else if (strcmp(table_name, "ADDRESS") == 0) {
-		long ad_id = 0;
+		int64_t ad_id = 0;
 		char *line2 = NULL;
 		if (c_id != 0) {
 #ifdef DEBUG
@@ -412,7 +413,7 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 			line2 = SPI_getvalue(tuple, tupdesc, 1);
-			ad_id = atol(SPI_getvalue(tuple, tupdesc, 2));
+			ad_id = atoll(SPI_getvalue(tuple, tupdesc, 2));
 		} else {
 			FAIL_FRAME(c_id != 0 ? DMF1_statements[2].sql
 								 : DMF1_statements[3].sql);

@@ -8,6 +8,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: increase t_comm to FLOAT8 from FLOAT4 as S_PRICE_T needs to be bigger
   than the specification says it should be
 - pgsql: add client side transaction logic
+- pgsql: ensure use of atoll() for 64bit integers in C stored functions and
+  server side transaction handling code
 
 v0.9.4 (2024-04-23)
 
