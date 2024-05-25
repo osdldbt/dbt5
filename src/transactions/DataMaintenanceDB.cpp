@@ -10,8 +10,8 @@
 #include "DataMaintenanceDB.h"
 
 CDataMaintenanceDB::CDataMaintenanceDB(
-		CDBConnection *pDBConn, bool verbose = false)
-: CTxnBaseDB(pDBConn), m_Verbose(verbose)
+		CDBConnection *pDBConn, bool bVerbose = false)
+: CTxnBaseDB(pDBConn, bVerbose)
 {
 	m_pid = syscall(SYS_gettid);
 }
@@ -21,7 +21,7 @@ void
 CDataMaintenanceDB::DoDataMaintenanceFrame1(
 		const TDataMaintenanceFrame1Input *pIn)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< DMF1" << endl
 			 << m_pid << " - Data Maintenance Frame 1 (input)" << endl
 			 << m_pid << " -- c_id: " << pIn->c_id << endl
@@ -39,7 +39,7 @@ CDataMaintenanceDB::DoDataMaintenanceFrame1(
 	execute(pIn);
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Data Maintenance Frame 1 (output)" << endl
 			 << m_pid << " >>> DMF1" << endl;
 	}

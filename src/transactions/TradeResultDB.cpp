@@ -9,8 +9,8 @@
 
 #include "TradeResultDB.h"
 
-CTradeResultDB::CTradeResultDB(CDBConnection *pDBConn, bool verbose = false)
-: CTxnBaseDB(pDBConn), m_Verbose(verbose)
+CTradeResultDB::CTradeResultDB(CDBConnection *pDBConn, bool bVerbose = false)
+: CTxnBaseDB(pDBConn, bVerbose)
 {
 	m_pid = syscall(SYS_gettid);
 }
@@ -20,7 +20,7 @@ void
 CTradeResultDB::DoTradeResultFrame1(
 		const TTradeResultFrame1Input *pIn, TTradeResultFrame1Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TRF1" << endl
 			 << m_pid << " - Trade Result Frame 1 (input)" << endl
 			 << m_pid << " -- trade_id: " << pIn->trade_id << endl;
@@ -32,7 +32,7 @@ CTradeResultDB::DoTradeResultFrame1(
 	setSerializable();
 	execute(pIn, pOut);
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Result Frame 1 (output)" << endl
 			 << m_pid << " -- acct_id: " << pOut->acct_id << endl
 			 << m_pid << " -- charge: " << pOut->charge << endl
@@ -55,7 +55,7 @@ void
 CTradeResultDB::DoTradeResultFrame2(
 		const TTradeResultFrame2Input *pIn, TTradeResultFrame2Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TRF2" << endl
 			 << m_pid << " - Trade Result Frame 2 (input)" << endl
 			 << m_pid << " -- acct_id: " << pIn->acct_id << endl
@@ -70,7 +70,7 @@ CTradeResultDB::DoTradeResultFrame2(
 
 	execute(pIn, pOut);
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Result Frame 2 (output)" << endl
 			 << m_pid << " -- broker_id: " << pOut->broker_id << endl
 			 << m_pid << " -- buy_value: " << pOut->buy_value << endl
@@ -90,7 +90,7 @@ void
 CTradeResultDB::DoTradeResultFrame3(
 		const TTradeResultFrame3Input *pIn, TTradeResultFrame3Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TRF3" << endl
 			 << m_pid << " --Trade Result Frame 3 (input)" << endl
 			 << m_pid << " -- buy_value: " << pIn->buy_value << endl
@@ -101,7 +101,7 @@ CTradeResultDB::DoTradeResultFrame3(
 
 	execute(pIn, pOut);
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Result Frame 3 (output)" << endl
 			 << m_pid << " -- tax_amount:" << pOut->tax_amount << endl
 			 << m_pid << " >>> TRF3" << endl;
@@ -113,7 +113,7 @@ void
 CTradeResultDB::DoTradeResultFrame4(
 		const TTradeResultFrame4Input *pIn, TTradeResultFrame4Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TRF4" << endl
 			 << m_pid << " - Trade Result Frame 4 (input)" << endl
 			 << m_pid << " -- cust_id: " << pIn->cust_id << endl
@@ -124,7 +124,7 @@ CTradeResultDB::DoTradeResultFrame4(
 
 	execute(pIn, pOut);
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Result Frame 4 (output)" << endl
 			 << m_pid << " -- comm_rate: " << pOut->comm_rate << endl
 			 << m_pid << " -- s_name: " << pOut->s_name << endl
@@ -136,7 +136,7 @@ CTradeResultDB::DoTradeResultFrame4(
 void
 CTradeResultDB::DoTradeResultFrame5(const TTradeResultFrame5Input *pIn)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TRF5" << endl
 			 << m_pid << " - Trade Result Frame 5 (input)" << endl
 			 << m_pid << " -- broker_id: " << pIn->broker_id << endl
@@ -153,7 +153,7 @@ CTradeResultDB::DoTradeResultFrame5(const TTradeResultFrame5Input *pIn)
 
 	execute(pIn);
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Result Frame 5 (output)" << endl
 			 << m_pid << " >>> TRF5" << endl;
 	}
@@ -164,7 +164,7 @@ void
 CTradeResultDB::DoTradeResultFrame6(
 		const TTradeResultFrame6Input *pIn, TTradeResultFrame6Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TRF6" << endl
 			 << m_pid << " - Trade Result Frame 6 (input)" << endl
 			 << m_pid << " -- acct_id: " << pIn->acct_id << endl
@@ -187,7 +187,7 @@ CTradeResultDB::DoTradeResultFrame6(
 	execute(pIn, pOut);
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " Trade Result Frame 6 (output)" << endl
 			 << m_pid << " - acct_bal:" << pOut->acct_bal << endl
 			 << m_pid << " >>> TRF6" << endl;

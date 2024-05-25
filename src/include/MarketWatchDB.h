@@ -17,7 +17,6 @@
 class CMarketWatchDB: public CTxnBaseDB, public CMarketWatchDBInterface
 {
 private:
-	bool m_Verbose;
 	pid_t m_pid;
 
 public:

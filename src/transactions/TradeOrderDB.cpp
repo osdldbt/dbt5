@@ -9,8 +9,8 @@
 
 #include "TradeOrderDB.h"
 
-CTradeOrderDB::CTradeOrderDB(CDBConnection *pDBConn, bool verbose)
-: CTxnBaseDB(pDBConn), m_Verbose(verbose)
+CTradeOrderDB::CTradeOrderDB(CDBConnection *pDBConn, bool bVerbose)
+: CTxnBaseDB(pDBConn, bVerbose)
 {
 	m_pid = syscall(SYS_gettid);
 }
@@ -20,7 +20,7 @@ void
 CTradeOrderDB::DoTradeOrderFrame1(
 		const TTradeOrderFrame1Input *pIn, TTradeOrderFrame1Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TOF1" << endl
 			 << m_pid << " - Trade Order Frame 1 (input)" << endl
 			 << m_pid << " -- acct_id: " << pIn->acct_id << endl;
@@ -31,7 +31,7 @@ CTradeOrderDB::DoTradeOrderFrame1(
 	setRepeatableRead();
 	execute(pIn, pOut);
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Order Frame 1 (output)" << endl
 			 << m_pid << " -- acct_name: " << pOut->acct_name << endl
 			 << m_pid << " -- broker_id: " << pOut->broker_id << endl
@@ -52,7 +52,7 @@ void
 CTradeOrderDB::DoTradeOrderFrame2(
 		const TTradeOrderFrame2Input *pIn, TTradeOrderFrame2Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TOF2" << endl
 			 << m_pid << " - Trade Order Frame 2 (input)" << endl
 			 << m_pid << " -- acct_id: " << pIn->acct_id << endl
@@ -65,7 +65,7 @@ CTradeOrderDB::DoTradeOrderFrame2(
 
 	execute(pIn, pOut);
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Order Frame 2 (output)" << endl
 			 << m_pid << " -- ap_acl: " << pOut->ap_acl << endl
 			 << m_pid << " >>> TOF2" << endl;
@@ -77,7 +77,7 @@ void
 CTradeOrderDB::DoTradeOrderFrame3(
 		const TTradeOrderFrame3Input *pIn, TTradeOrderFrame3Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TOF3" << endl
 			 << m_pid << " - Trade Order Frame 3 (input)" << endl
 			 << m_pid << " -- acct_id: " << pIn->acct_id << endl
@@ -100,7 +100,7 @@ CTradeOrderDB::DoTradeOrderFrame3(
 
 	execute(pIn, pOut);
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Order Frame 3 (output)" << endl
 			 << m_pid << " -- co_name: " << pOut->co_name << endl
 			 << m_pid << " -- requested_price: " << pOut->requested_price
@@ -126,7 +126,7 @@ void
 CTradeOrderDB::DoTradeOrderFrame4(
 		const TTradeOrderFrame4Input *pIn, TTradeOrderFrame4Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TOF4" << endl
 			 << m_pid << " -Trade Order Frame 4 (input)" << endl
 			 << m_pid << " -- acct_id: " << pIn->acct_id << endl
@@ -148,7 +148,7 @@ CTradeOrderDB::DoTradeOrderFrame4(
 	// we are inside a transaction
 	execute(pIn, pOut);
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Order Frame 4 (output)" << endl
 			 << m_pid << " -- trade_id: " << pOut->trade_id << endl
 			 << m_pid << " >>> TOF4" << endl;
@@ -159,14 +159,14 @@ CTradeOrderDB::DoTradeOrderFrame4(
 void
 CTradeOrderDB::DoTradeOrderFrame5()
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TOF5" << endl;
 	}
 
 	// rollback the transaction we are inside
 	rollbackTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " >>> TOF5" << endl;
 	}
 }
@@ -175,14 +175,14 @@ CTradeOrderDB::DoTradeOrderFrame5()
 void
 CTradeOrderDB::DoTradeOrderFrame6()
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TOF6" << endl;
 	}
 
 	// commit the transaction we are inside
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " >>> TOF6" << endl;
 	}
 }

@@ -20,7 +20,6 @@ class CCustomerPositionDB: public CTxnBaseDB,
 						   public CCustomerPositionDBInterface
 {
 private:
-	bool m_Verbose;
 	pid_t m_pid;
 
 public:

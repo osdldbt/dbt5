@@ -10,8 +10,8 @@
 #include "CustomerPositionDB.h"
 
 CCustomerPositionDB::CCustomerPositionDB(
-		CDBConnection *pDBConn, bool verbose = false)
-: CTxnBaseDB(pDBConn), m_Verbose(verbose)
+		CDBConnection *pDBConn, bool bVerbose = false)
+: CTxnBaseDB(pDBConn, bVerbose)
 {
 	m_pid = syscall(SYS_gettid);
 }
@@ -22,7 +22,7 @@ CCustomerPositionDB::DoCustomerPositionFrame1(
 		const TCustomerPositionFrame1Input *pIn,
 		TCustomerPositionFrame1Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< CPF1" << endl
 			 << m_pid << " - Customer Position Frame 1 (input)" << endl
 			 << m_pid << " -- cust_id: " << pIn->cust_id << endl
@@ -34,7 +34,7 @@ CCustomerPositionDB::DoCustomerPositionFrame1(
 	setReadCommitted();
 	execute(pIn, pOut);
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Customer Position Frame 1 (output)" << endl
 			 << m_pid << " -- cust_id: " << pOut->cust_id << endl
 			 << m_pid << " -- acct_len: " << pOut->acct_len << endl;
@@ -81,7 +81,7 @@ CCustomerPositionDB::DoCustomerPositionFrame2(
 		const TCustomerPositionFrame2Input *pIn,
 		TCustomerPositionFrame2Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< CPF2" << endl
 			 << m_pid << " - Customer Position Frame 2 (input)" << endl
 			 << m_pid << " -- cust_id: " << pIn->acct_id << endl;
@@ -90,7 +90,7 @@ CCustomerPositionDB::DoCustomerPositionFrame2(
 	execute(pIn, pOut);
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Customer Position Frame 2 (output)" << endl
 			 << m_pid << " -- hist_len: " << pOut->hist_len << endl;
 		for (int i = 0; i < pOut->hist_len; i++) {
@@ -116,13 +116,13 @@ CCustomerPositionDB::DoCustomerPositionFrame2(
 void
 CCustomerPositionDB::DoCustomerPositionFrame3()
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< CPF3" << endl;
 	}
 
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " >>> CPF3" << endl;
 	}
 }

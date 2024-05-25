@@ -9,8 +9,8 @@
 
 #include "TradeLookupDB.h"
 
-CTradeLookupDB::CTradeLookupDB(CDBConnection *pDBConn, bool verbose = false)
-: CTxnBaseDB(pDBConn), m_Verbose(verbose)
+CTradeLookupDB::CTradeLookupDB(CDBConnection *pDBConn, bool bVerbose = false)
+: CTxnBaseDB(pDBConn, bVerbose)
 {
 	m_pid = syscall(SYS_gettid);
 }
@@ -20,7 +20,7 @@ void
 CTradeLookupDB::DoTradeLookupFrame1(
 		const TTradeLookupFrame1Input *pIn, TTradeLookupFrame1Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TLF1" << endl;
 		cout << m_pid << " - Trade Lookup Frame 1 (input)" << endl
 			 << m_pid << " -- max_trades: " << pIn->max_trades << endl;
@@ -35,7 +35,7 @@ CTradeLookupDB::DoTradeLookupFrame1(
 	execute(pIn, pOut);
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Lookup Frame 1 (output)" << endl
 			 << m_pid << " -- num_found: " << pOut->num_found << endl;
 		for (int i = 0; i < pOut->num_found; i++) {
@@ -113,7 +113,7 @@ void
 CTradeLookupDB::DoTradeLookupFrame2(
 		const TTradeLookupFrame2Input *pIn, TTradeLookupFrame2Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TLF2" << endl
 			 << m_pid << " - Trade Lookup Frame 2 (input)" << endl
 			 << m_pid << " -- acct_id: " << pIn->acct_id << endl
@@ -131,7 +131,7 @@ CTradeLookupDB::DoTradeLookupFrame2(
 	execute(pIn, pOut);
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Lookup Frame 2 (output)" << endl
 			 << m_pid << " -- num_found: " << pOut->num_found << endl;
 		for (int i = 0; i < pOut->num_found; i++) {
@@ -209,7 +209,7 @@ void
 CTradeLookupDB::DoTradeLookupFrame3(
 		const TTradeLookupFrame3Input *pIn, TTradeLookupFrame3Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TLF3" << endl
 			 << m_pid << " - Trade Lookup Frame 3 (input)" << endl
 			 << m_pid << " -- trade_dts: " << pIn->end_trade_dts.year << "-"
@@ -233,7 +233,7 @@ CTradeLookupDB::DoTradeLookupFrame3(
 	execute(pIn, pOut);
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Lookup Frame 3 (output)" << endl
 			 << m_pid << " -- num_found: " << pOut->num_found << endl;
 		for (int i = 0; i < pOut->num_found; i++) {
@@ -324,7 +324,7 @@ void
 CTradeLookupDB::DoTradeLookupFrame4(
 		const TTradeLookupFrame4Input *pIn, TTradeLookupFrame4Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TLF4" << endl
 			 << m_pid << " - Trade Lookup Frame 4 (input)" << endl
 			 << m_pid << " -- acct_id: " << pIn->acct_id << endl
@@ -340,7 +340,7 @@ CTradeLookupDB::DoTradeLookupFrame4(
 	execute(pIn, pOut);
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Lookup Frame 4 (output)" << endl
 			 << m_pid << " -- num_found: " << pOut->num_found << endl
 			 << m_pid << " -- num_trades_found: " << pOut->num_trades_found

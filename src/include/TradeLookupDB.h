@@ -19,7 +19,6 @@ using namespace TPCE;
 class CTradeLookupDB: public CTxnBaseDB, public CTradeLookupDBInterface
 {
 private:
-	bool m_Verbose;
 	pid_t m_pid;
 
 public:

@@ -9,8 +9,8 @@
 
 #include "MarketFeedDB.h"
 
-CMarketFeedDB::CMarketFeedDB(CDBConnection *pDBConn, bool verbose = false)
-: CTxnBaseDB(pDBConn), m_Verbose(verbose)
+CMarketFeedDB::CMarketFeedDB(CDBConnection *pDBConn, bool bVerbose = false)
+: CTxnBaseDB(pDBConn, bVerbose)
 {
 	m_pid = syscall(SYS_gettid);
 }
@@ -20,7 +20,7 @@ void
 CMarketFeedDB::DoMarketFeedFrame1(const TMarketFeedFrame1Input *pIn,
 		TMarketFeedFrame1Output *pOut, CSendToMarketInterface *pMarketExchange)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< MFF1" << endl
 			 << m_pid << " - Market Feed Frame 1 (input)" << endl
 			 << m_pid << " -- max_feed_len: " << max_feed_len << endl
@@ -44,7 +44,7 @@ CMarketFeedDB::DoMarketFeedFrame1(const TMarketFeedFrame1Input *pIn,
 
 	execute(pIn, pOut, pMarketExchange);
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Market Feed Frame 1 (output)" << endl
 			 << m_pid << " -- num_updated: " << pOut->num_updated << endl
 			 << m_pid << " -- send_len: " << pOut->send_len << endl

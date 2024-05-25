@@ -26,6 +26,8 @@ using namespace TPCE;
 class CTxnBaseDB
 {
 protected:
+	bool m_bVerbose;
+
 	CDBConnection *pDB;
 
 	void commitTransaction();
@@ -86,7 +88,7 @@ protected:
 	void startTransaction();
 
 public:
-	CTxnBaseDB(CDBConnection *pDB);
+	CTxnBaseDB(CDBConnection *pDB, bool bVerbose = false);
 	~CTxnBaseDB();
 };
 

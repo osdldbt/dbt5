@@ -17,7 +17,6 @@
 class CDataMaintenanceDB: public CTxnBaseDB, public CDataMaintenanceDBInterface
 {
 private:
-	bool m_Verbose;
 	pid_t m_pid;
 
 public:

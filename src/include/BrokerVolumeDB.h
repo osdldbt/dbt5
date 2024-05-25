@@ -18,7 +18,6 @@ using namespace TPCE;
 class CBrokerVolumeDB: public CTxnBaseDB, public CBrokerVolumeDBInterface
 {
 private:
-	bool m_Verbose;
 	pid_t m_pid;
 
 public:

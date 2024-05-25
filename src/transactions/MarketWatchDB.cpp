@@ -9,8 +9,8 @@
 
 #include "MarketWatchDB.h"
 
-CMarketWatchDB::CMarketWatchDB(CDBConnection *pDBConn, bool verbose = false)
-: CTxnBaseDB(pDBConn), m_Verbose(verbose)
+CMarketWatchDB::CMarketWatchDB(CDBConnection *pDBConn, bool bVerbose = false)
+: CTxnBaseDB(pDBConn, bVerbose)
 {
 	m_pid = syscall(SYS_gettid);
 }
@@ -20,7 +20,7 @@ void
 CMarketWatchDB::DoMarketWatchFrame1(
 		const TMarketWatchFrame1Input *pIn, TMarketWatchFrame1Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< MWF1" << endl
 			 << m_pid << " - Market Watch Frame 1 (input)" << endl
 			 << m_pid << " -- acct_id: " << pIn->acct_id << endl
@@ -39,7 +39,7 @@ CMarketWatchDB::DoMarketWatchFrame1(
 
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Market Watch Frame 1 (output)" << endl
 			 << m_pid << " -- pct_change: " << pOut->pct_change << endl
 			 << m_pid << " >>> MWF1" << endl;

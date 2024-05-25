@@ -17,7 +17,6 @@
 class CSecurityDetailDB: public CTxnBaseDB, public CSecurityDetailDBInterface
 {
 private:
-	bool m_Verbose;
 	pid_t m_pid;
 
 public:

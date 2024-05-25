@@ -9,8 +9,8 @@
 
 #include "TradeUpdateDB.h"
 
-CTradeUpdateDB::CTradeUpdateDB(CDBConnection *pDBConn, bool verbose = false)
-: CTxnBaseDB(pDBConn), m_Verbose(verbose)
+CTradeUpdateDB::CTradeUpdateDB(CDBConnection *pDBConn, bool bVerbose = false)
+: CTxnBaseDB(pDBConn, bVerbose)
 {
 	m_pid = syscall(SYS_gettid);
 }
@@ -20,7 +20,7 @@ void
 CTradeUpdateDB::DoTradeUpdateFrame1(
 		const TTradeUpdateFrame1Input *pIn, TTradeUpdateFrame1Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TUF1" << endl
 			 << m_pid << " - Trade Update Frame 1 (input)" << endl
 			 << m_pid << " -- max_trades: " << pIn->max_trades << endl
@@ -35,7 +35,7 @@ CTradeUpdateDB::DoTradeUpdateFrame1(
 	execute(pIn, pOut);
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Update Frame 1 (output)" << endl
 			 << m_pid << " -- num_found: " << pOut->num_found << endl
 			 << m_pid << " -- num_updated: " << pOut->num_updated << endl;
@@ -114,7 +114,7 @@ void
 CTradeUpdateDB::DoTradeUpdateFrame2(
 		const TTradeUpdateFrame2Input *pIn, TTradeUpdateFrame2Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TUF2" << endl
 			 << m_pid << " - Trade Update Frame 2 (input)" << endl
 			 << m_pid << " -- acct_id: " << pIn->acct_id << endl
@@ -137,7 +137,7 @@ CTradeUpdateDB::DoTradeUpdateFrame2(
 	execute(pIn, pOut);
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " -- Trade Update Frame 2 (output)" << endl
 			 << m_pid << " -- num_found: " << pOut->num_found << endl
 			 << m_pid << " -- num_updated: " << pOut->num_updated << endl;
@@ -216,7 +216,7 @@ void
 CTradeUpdateDB::DoTradeUpdateFrame3(
 		const TTradeUpdateFrame3Input *pIn, TTradeUpdateFrame3Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TUF3" << endl
 			 << m_pid << " - Trade Update Frame 3 (input)" << endl
 			 << m_pid << " -- end_trade_dts: " << pIn->end_trade_dts.year
@@ -240,7 +240,7 @@ CTradeUpdateDB::DoTradeUpdateFrame3(
 	execute(pIn, pOut);
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Update Frame 3 (output)" << endl
 			 << m_pid << " -- num_found: " << pOut->num_found << endl
 			 << m_pid << " -- num_updated: " << pOut->num_updated << endl;

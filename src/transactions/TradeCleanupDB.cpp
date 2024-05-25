@@ -9,8 +9,8 @@
 
 #include "TradeCleanupDB.h"
 
-CTradeCleanupDB::CTradeCleanupDB(CDBConnection *pDBConn, bool verbose = false)
-: CTxnBaseDB(pDBConn), m_Verbose(verbose)
+CTradeCleanupDB::CTradeCleanupDB(CDBConnection *pDBConn, bool bVerbose = false)
+: CTxnBaseDB(pDBConn, bVerbose)
 {
 	m_pid = syscall(SYS_gettid);
 }
@@ -19,7 +19,7 @@ CTradeCleanupDB::CTradeCleanupDB(CDBConnection *pDBConn, bool verbose = false)
 void
 CTradeCleanupDB::DoTradeCleanupFrame1(const TTradeCleanupFrame1Input *pIn)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Cleanup Frame 1 (input)" << endl
 			 << m_pid << " -- st_canceled_id: " << pIn->st_canceled_id << endl
 			 << m_pid << " -- st_pending_id: " << pIn->st_pending_id << endl
@@ -32,7 +32,7 @@ CTradeCleanupDB::DoTradeCleanupFrame1(const TTradeCleanupFrame1Input *pIn)
 	execute(pIn);
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Cleanup Frame 1 (output)" << endl
 			 << m_pid << " >>> TCF1" << endl;
 	}

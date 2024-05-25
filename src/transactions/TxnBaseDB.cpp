@@ -11,9 +11,9 @@
 
 #include "TxnHarnessSendToMarketInterface.h"
 
-CTxnBaseDB::CTxnBaseDB(CDBConnection *pDB)
+CTxnBaseDB::CTxnBaseDB(CDBConnection *pDB, bool bVerbose)
+: m_bVerbose(bVerbose), pDB(pDB)
 {
-	this->pDB = pDB;
 }
 
 CTxnBaseDB::~CTxnBaseDB() {}

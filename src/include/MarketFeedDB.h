@@ -17,7 +17,6 @@
 class CMarketFeedDB: public CTxnBaseDB, public CMarketFeedDBInterface
 {
 private:
-	bool m_Verbose;
 	pid_t m_pid;
 
 public:

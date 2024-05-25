@@ -19,7 +19,6 @@ using namespace TPCE;
 class CTradeStatusDB: public CTxnBaseDB, public CTradeStatusDBInterface
 {
 private:
-	bool m_Verbose;
 	pid_t m_pid;
 
 public:

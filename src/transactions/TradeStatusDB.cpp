@@ -9,8 +9,8 @@
 
 #include "TradeStatusDB.h"
 
-CTradeStatusDB::CTradeStatusDB(CDBConnection *pDBConn, bool verbose = false)
-: CTxnBaseDB(pDBConn), m_Verbose(verbose)
+CTradeStatusDB::CTradeStatusDB(CDBConnection *pDBConn, bool bVerbose = false)
+: CTxnBaseDB(pDBConn, bVerbose)
 {
 	m_pid = syscall(SYS_gettid);
 }
@@ -20,7 +20,7 @@ void
 CTradeStatusDB::DoTradeStatusFrame1(
 		const TTradeStatusFrame1Input *pIn, TTradeStatusFrame1Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< TSF1" << endl
 			 << m_pid << " - Trade Status Frame 1 (input)" << endl
 			 << m_pid << " -- acct_id: " << pIn->acct_id << endl;
@@ -32,7 +32,7 @@ CTradeStatusDB::DoTradeStatusFrame1(
 	execute(pIn, pOut);
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Trade Status Frame 1 (output)" << endl
 			 << m_pid << " -- cust_l_name: " << pOut->cust_l_name << endl
 			 << m_pid << " -- cust_f_name: " << pOut->cust_f_name << endl

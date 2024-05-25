@@ -10,8 +10,8 @@
 #include "SecurityDetailDB.h"
 
 CSecurityDetailDB::CSecurityDetailDB(
-		CDBConnection *pDBConn, bool verbose = false)
-: CTxnBaseDB(pDBConn), m_Verbose(verbose)
+		CDBConnection *pDBConn, bool bVerbose = false)
+: CTxnBaseDB(pDBConn, bVerbose)
 {
 	m_pid = syscall(SYS_gettid);
 }
@@ -22,7 +22,7 @@ CSecurityDetailDB::DoSecurityDetailFrame1(
 		const TSecurityDetailFrame1Input *pIn,
 		TSecurityDetailFrame1Output *pOut)
 {
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " <<< SDF1" << endl
 			 << m_pid << " - Security Detail Frame 1 (input)" << endl
 			 << m_pid << " -- access_lob_flag: " << pIn->access_lob_flag
@@ -42,7 +42,7 @@ CSecurityDetailDB::DoSecurityDetailFrame1(
 	execute(pIn, pOut);
 	commitTransaction();
 
-	if (m_Verbose) {
+	if (m_bVerbose) {
 		cout << m_pid << " - Security Detail Frame 1 (output)" << endl
 			 << m_pid << " -- fin_len: " << pOut->fin_len << endl
 			 << m_pid << " -- day_len: " << pOut->day_len << endl
