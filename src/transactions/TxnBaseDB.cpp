@@ -21,6 +21,9 @@ CTxnBaseDB::~CTxnBaseDB() {}
 void
 CTxnBaseDB::commitTransaction()
 {
+	if (m_bVerbose) {
+		cout << "COMMIT" << endl;
+	}
 	pDB->commit();
 }
 
@@ -212,12 +215,18 @@ CTxnBaseDB::execute(
 void
 CTxnBaseDB::rollbackTransaction()
 {
+	if (m_bVerbose) {
+		cout << "ROLLBACK" << endl;
+	}
 	pDB->rollback();
 }
 
 void
 CTxnBaseDB::startTransaction()
 {
+	if (m_bVerbose) {
+		cout << "BEGIN" << endl;
+	}
 	pDB->begin();
 }
 
