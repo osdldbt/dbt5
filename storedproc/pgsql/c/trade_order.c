@@ -70,7 +70,7 @@
 	"     , s_ex_id\n"                                                        \
 	"     , s_name\n"                                                         \
 	"FROM security\n"                                                         \
-	"WHERE s_symb = $1\n"
+	"WHERE s_symb = $1"
 
 #define SQLTOF3_2b                                                            \
 	"SELECT co_name\n"                                                        \
@@ -117,14 +117,14 @@
 	"                   SELECT cx_tx_id\n"                                    \
 	"                   FROM customer_taxrate\n"                              \
 	"                   WHERE cx_c_id = $1\n"                                 \
-	"               )\n"
+	"               )"
 
 #define SQLTOF3_8                                                             \
 	"SELECT cr_rate\n"                                                        \
 	"FROM commission_rate\n"                                                  \
 	"WHERE cr_c_tier = $1\n"                                                  \
 	"  AND cr_tt_id = $2\n"                                                   \
-	"  AND cr_ex_id = $3 \n"                                                  \
+	"  AND cr_ex_id = $3\n"                                                  \
 	"  AND cr_from_qty <= $4\n"                                               \
 	"  AND cr_to_qty >= $5"
 
@@ -132,7 +132,7 @@
 	"SELECT ch_chrg\n"                                                        \
 	"FROM charge\n"                                                           \
 	"WHERE ch_c_tier = $1\n"                                                  \
-	"  AND ch_tt_id = $2\n"
+	"  AND ch_tt_id = $2"
 
 #define SQLTOF3_10                                                            \
 	"SELECT ca_bal\n"                                                         \
@@ -612,7 +612,7 @@ TradeOrderFrame2(PG_FUNCTION_ARGS)
 	plan_queries(TOF2_statements);
 
 #ifdef DEBUG
-	elog(DEBUG1, "%s", SQLTOF1_3);
+	elog(DEBUG1, "%s", SQLTOF2_1);
 #endif /* DEBUG */
 
 	args[0] = Int64GetDatum(acct_id);

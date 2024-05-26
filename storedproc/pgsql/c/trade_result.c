@@ -178,7 +178,7 @@ PG_MODULE_MAGIC;
 	"                   SELECT cx_tx_id\n"                                    \
 	"                   FROM customer_taxrate\n"                              \
 	"                   WHERE cx_c_id = $1\n"                                 \
-	"               )\n"
+	"               )"
 
 #define SQLTRF3_2                                                             \
 	"UPDATE trade\n"                                                          \
