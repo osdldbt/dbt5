@@ -374,6 +374,7 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		elog(DEBUG1, "acl = '%s'", acl);
+		elog(DEBUG1, "%s", SQLDMF1_2);
 #endif /* DEBUG */
 		if (strcmp(acl, "1111") != 0) {
 			args[0] = CStringGetTextDatum("1111");
