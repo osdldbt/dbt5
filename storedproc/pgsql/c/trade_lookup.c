@@ -828,35 +828,6 @@ TradeLookupFrame1(PG_FUNCTION_ARGS)
 			for (j = 0; j < SPI_processed; j++) {
 				tuple = tuptable->vals[j];
 
-				/*
-				if (j == 0) {
-					strncat(values[i_trade_history_dts], "{", length_thd--);
-					if (length_thd < 0) {
-						FAIL_FRAME("trade_history_dts values needs to be "
-								   "increased");
-					}
-
-					strncat(values[i_trade_history_status_id], "{",
-							length_thsi--);
-					if (length_thsi < 0) {
-						FAIL_FRAME("trade_history_status_id values needs "
-								   "to be increased");
-					}
-				} else if (j > 0) {
-					strncat(values[i_trade_history_dts], ",", length_thd--);
-					if (length_thd < 0) {
-						FAIL_FRAME("trade_history_dts values needs to be "
-								   "increased");
-					}
-
-					strncat(values[i_trade_history_status_id], ",",
-							length_thsi--);
-					if (length_thsi < 0) {
-						FAIL_FRAME("trade_history_status_id values needs "
-								   "to be increased");
-					}
-				}
-				*/
 				if (j > 0) {
 					strncat(values[i_trade_history_dts], ",", length_thd--);
 					if (length_thd < 0) {
