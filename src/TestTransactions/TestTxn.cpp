@@ -612,8 +612,8 @@ main(int argc, char *argv[])
 			cout << endl;
 		}
 		return 1;
-	} catch (const char *str) {
-		cerr << "### OHNOES THERE HAS BEEN A PROBLEM" << endl;
+	} catch (std::string const &e) {
+		cerr << "### OHNOES THERE HAS BEEN A PROBLEM:" << e << endl;
 		return 3;
 	}
 

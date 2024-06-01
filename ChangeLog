@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Improve TestTxn exception handling messages
+
 v0.10.0 (2024-05-25)
 
 - pgsql: remove accidentally committed debug code in TradeResultsFrame1 stored
