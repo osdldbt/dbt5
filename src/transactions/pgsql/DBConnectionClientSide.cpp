@@ -26,40 +26,47 @@ CDBConnectionClientSide::execute(
 {
 	ostringstream osBrokers;
 	int i = 0;
-	osBrokers << pIn->broker_list[i];
+	osBrokers << "{" << pIn->broker_list[i];
 	for (i = 1; pIn->broker_list[i][0] != '\0' && i < max_broker_list_len;
 			i++) {
 		osBrokers << ", " << pIn->broker_list[i];
 	}
+	osBrokers << "}";
 
-	ostringstream osSQL;
-	osSQL << "SELECT b_name" << endl
-		  << "     , sum(tr_qty * tr_bid_price) AS vol" << endl
-		  << "FROM trade_request" << endl
-		  << "   , sector" << endl
-		  << "   , industry" << endl
-		  << "   , company" << endl
-		  << "   , broker" << endl
-		  << "   , security" << endl
-		  << "WHERE tr_b_id = b_id" << endl
-		  << "  AND tr_s_symb = s_symb" << endl
-		  << "  AND s_co_id = co_id" << endl
-		  << "  AND co_in_id = in_id" << endl
-		  << "  AND sc_id = in_sc_id" << endl
-		  << "  AND b_name = ANY ('{" << osBrokers.str() << "}')" << endl
-		  << "  AND sc_name = '" << pIn->sector_name << "'" << endl
-		  << "GROUP BY b_name" << endl
-		  << "ORDER BY 2 DESC";
-	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
-	}
-	PGresult *res = exec(osSQL.str().c_str());
+	char brokers[osBrokers.str().length() + 1];
+	strncpy(brokers, osBrokers.str().c_str(), osBrokers.str().length());
+	brokers[osBrokers.str().length()] = '\0';
+
+#define BVF1Q1                                                                \
+	"SELECT b_name\n"                                                         \
+	"     , sum(tr_qty * tr_bid_price) AS vol\n"                              \
+	"FROM trade_request\n"                                                    \
+	"   , sector\n"                                                           \
+	"   , industry\n"                                                         \
+	"   , company\n"                                                          \
+	"   , broker\n"                                                           \
+	"   , security\n"                                                         \
+	"WHERE tr_b_id = b_id\n"                                                  \
+	"  AND tr_s_symb = s_symb\n"                                              \
+	"  AND s_co_id = co_id\n"                                                 \
+	"  AND co_in_id = in_id\n"                                                \
+	"  AND sc_id = in_sc_id\n"                                                \
+	"  AND b_name = ANY ($1)\n"                                               \
+	"  AND sc_name = $2\n"                                                    \
+	"GROUP BY b_name\n"                                                       \
+	"ORDER BY 2 DESC"
+
+	const char *paramValues[2]
+			= { (char *) brokers, (char *) pIn->sector_name };
+	const int paramLengths[2]
+			= { (int) sizeof(char) * ((int) osBrokers.str().length() + 1),
+				  sizeof(char) * (cSC_NAME_len + 1) };
+	const int paramFormats[2] = { 0, 0 };
+
+	PGresult *res = exec(
+			BVF1Q1, 2, NULL, paramValues, paramLengths, paramFormats, 0);
 
 	pOut->list_len = PQntuples(res);
-	if (pOut->list_len == 0) {
-		return;
-	}
-
 	for (i = 0; i < pOut->list_len; i++) {
 		strncpy(pOut->broker_name[i], PQgetvalue(res, i, 0), cB_NAME_len);
 		pOut->volume[i] = atof(PQgetvalue(res, i, 1));
@@ -67,6 +74,9 @@ CDBConnectionClientSide::execute(
 	PQclear(res);
 
 	if (m_bVerbose) {
+		cout << BVF1Q1 << endl;
+		cout << "$1 = " << paramValues[0] << endl;
+		cout << "$2 = " << paramValues[1] << endl;
 		cout << "list_len = " << pOut->list_len << endl;
 		for (i = 0; i < pOut->list_len; i++) {
 			cout << "broker_name[" << i << "] = " << pOut->broker_name[i]
