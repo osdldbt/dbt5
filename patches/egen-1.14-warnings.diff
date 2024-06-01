@@ -108,6 +108,24 @@ Index: dbt5/egen/src/EGenLoader.cpp
          break;
        case 'f':
          iScaleFactor = (UINT) atoi( vp );
+@@ -201,7 +201,7 @@ char  *vp;
+           strncpy(szInDir, vp, sizeof(szInDir));
+           if(( '/' != szInDir[ strlen(szInDir) - 1 ] ) && ( '\\' != szInDir[ strlen(szInDir) - 1 ] ))
+           {
+-              strncat( szInDir, "/", sizeof(szInDir) );
++              strncat( szInDir, "/", sizeof(szInDir) - strlen(szInDir) - 1);
+           }
+           break;
+ 
+@@ -257,7 +257,7 @@ char  *vp;
+           strncpy(szOutDir, vp, sizeof(szOutDir));
+           if(( '/' != szOutDir[ strlen(szOutDir) - 1 ] ) && ( '\\' != szOutDir[ strlen(szOutDir) - 1 ] ))
+           {
+-              strncat( szOutDir, "/", sizeof(szOutDir) );
++              strncat( szOutDir, "/", sizeof(szOutDir) - strlen(szOutDir) - 1);
+           }
+           break;
+ #endif
 Index: dbt5/egen/src/MEETickerTape.cpp
 ===================================================================
 --- dbt5.orig/egen/src/MEETickerTape.cpp

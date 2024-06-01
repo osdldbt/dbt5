@@ -1,6 +1,7 @@
 vX.Y.Z (YYYY-MM-DD)
 
 - Improve TestTxn exception handling messages
+- Update patch to quiet EGen build warnings
 
 v0.10.0 (2024-05-25)
 
