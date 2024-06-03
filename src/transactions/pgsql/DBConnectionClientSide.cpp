@@ -265,30 +265,39 @@ void
 CDBConnectionClientSide::execute(const TCustomerPositionFrame2Input *pIn,
 		TCustomerPositionFrame2Output *pOut)
 {
-	ostringstream osSQL;
-	osSQL << "SELECT t_id" << endl
-		  << "     , t_s_symb" << endl
-		  << "     , t_qty" << endl
-		  << "     , st_name" << endl
-		  << "     , th_dts" << endl
-		  << "FROM (" << endl
-		  << "         SELECT t_id AS id" << endl
-		  << "         FROM trade" << endl
-		  << "         WHERE t_ca_id = " << pIn->acct_id << endl
-		  << "         ORDER BY t_dts DESC" << endl
-		  << "         LIMIT 10" << endl
-		  << "     ) AS t" << endl
-		  << "   , trade" << endl
-		  << "   , trade_history" << endl
-		  << "   , status_type" << endl
-		  << "WHERE t_id = id" << endl
-		  << "  AND th_t_id = t_id" << endl
-		  << "  AND st_id = th_st_id" << endl
-		  << "ORDER BY th_dts DESC";
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+
+	const char *paramValues[1] = { (char *) &acct_id };
+	const int paramLengths[1] = { sizeof(uint64_t) };
+	const int paramFormats[1] = { 1 };
+
+#define CPF2Q1                                                                \
+	"SELECT t_id\n"                                                           \
+	"     , t_s_symb\n"                                                       \
+	"     , t_qty\n"                                                          \
+	"     , st_name\n"                                                        \
+	"     , th_dts\n"                                                         \
+	"FROM (\n"                                                                \
+	"         SELECT t_id AS id\n"                                            \
+	"         FROM trade\n"                                                   \
+	"         WHERE t_ca_id = $1\n"                                           \
+	"         ORDER BY t_dts DESC\n"                                          \
+	"         LIMIT 10\n"                                                     \
+	"     ) AS t\n"                                                           \
+	"   , trade\n"                                                            \
+	"   , trade_history\n"                                                    \
+	"   , status_type\n"                                                      \
+	"WHERE t_id = id\n"                                                       \
+	"  AND th_t_id = t_id\n"                                                  \
+	"  AND st_id = th_st_id\n"                                                \
+	"ORDER BY th_dts DESC"
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << CPF2Q1 << endl;
 	}
-	PGresult *res = exec(osSQL.str().c_str());
+
+	PGresult *res = exec(
+			CPF2Q1, 1, NULL, paramValues, paramLengths, paramFormats, 0);
 
 	pOut->hist_len = PQntuples(res);
 	for (int i = 0; i < pOut->hist_len; i++) {
