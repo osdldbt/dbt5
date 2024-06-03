@@ -90,19 +90,29 @@ void
 CDBConnectionClientSide::execute(const TCustomerPositionFrame1Input *pIn,
 		TCustomerPositionFrame1Output *pOut)
 {
-	ostringstream osSQL;
 	PGresult *res = NULL;
+
+	const char *paramValues[1];
 
 	pOut->cust_id = pIn->cust_id;
 
 	if (pOut->cust_id == 0) {
-		osSQL << "SELECT c_id" << endl
-			  << "FROM   customer" << endl
-			  << "WHERE  c_tax_id = '" << pIn->tax_id << "'";
+#define CPF1Q1                                                                \
+	"SELECT c_id\n"                                                           \
+	"FROM customer\n"                                                         \
+	"WHERE c_tax_id = $1"
+
+		paramValues[0] = (char *) pIn->tax_id;
+		const int paramLengths[1] = { sizeof(char) * (cTAX_ID_len + 1) };
+		const int paramFormats[1] = { 0 };
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << CPF1Q1 << endl;
+			cout << "$1 = " << paramValues[0] << endl;
 		}
-		res = exec(osSQL.str().c_str());
+
+		res = exec(
+				CPF1Q1, 1, NULL, paramValues, paramLengths, paramFormats, 0);
 
 		if (PQntuples(res) == 0) {
 			return;
@@ -116,38 +126,47 @@ CDBConnectionClientSide::execute(const TCustomerPositionFrame1Input *pIn,
 		}
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT c_st_id" << endl
-		  << "     , c_l_name" << endl
-		  << "     , c_f_name" << endl
-		  << "     , c_m_name" << endl
-		  << "     , c_gndr" << endl
-		  << "     , c_tier" << endl
-		  << "     , c_dob" << endl
-		  << "     , c_ad_id" << endl
-		  << "     , c_ctry_1" << endl
-		  << "     , c_area_1" << endl
-		  << "     , c_local_1" << endl
-		  << "     , c_ext_1" << endl
-		  << "     , c_ctry_2" << endl
-		  << "     , c_area_2" << endl
-		  << "     , c_local_2" << endl
-		  << "     , c_ext_2" << endl
-		  << "     , c_ctry_3" << endl
-		  << "     , c_area_3" << endl
-		  << "     , c_local_3" << endl
-		  << "     , c_ext_3" << endl
-		  << "     , c_email_1" << endl
-		  << "     , c_email_2" << endl
-		  << "FROM customer" << endl
-		  << "WHERE c_id = " << pOut->cust_id;
+	uint64_t cust_id = htobe64((uint64_t) pOut->cust_id);
+
+	paramValues[0] = (char *) &cust_id;
+	const int paramLengths[1] = { sizeof(uint64_t) };
+	const int paramFormats[1] = { 1 };
+
+#define CPF1Q2                                                                \
+	"SELECT c_st_id\n"                                                        \
+	"     , c_l_name\n"                                                       \
+	"     , c_f_name\n"                                                       \
+	"     , c_m_name\n"                                                       \
+	"     , c_gndr\n"                                                         \
+	"     , c_tier\n"                                                         \
+	"     , c_dob\n"                                                          \
+	"     , c_ad_id\n"                                                        \
+	"     , c_ctry_1\n"                                                       \
+	"     , c_area_1\n"                                                       \
+	"     , c_local_1\n"                                                      \
+	"     , c_ext_1\n"                                                        \
+	"     , c_ctry_2\n"                                                       \
+	"     , c_area_2\n"                                                       \
+	"     , c_local_2\n"                                                      \
+	"     , c_ext_2\n"                                                        \
+	"     , c_ctry_3\n"                                                       \
+	"     , c_area_3\n"                                                       \
+	"     , c_local_3\n"                                                      \
+	"     , c_ext_3\n"                                                        \
+	"     , c_email_1\n"                                                      \
+	"     , c_email_2\n"                                                      \
+	"FROM customer\n"                                                         \
+	"WHERE c_id = $1"
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << CPF1Q2 << endl;
+		cout << "$1 = " << be64toh(cust_id) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	res = exec(CPF1Q2, 1, NULL, paramValues, paramLengths, paramFormats, 0);
 
 	if (PQntuples(res) == 0) {
+		PQclear(res);
 		return;
 	}
 
@@ -202,24 +221,26 @@ CDBConnectionClientSide::execute(const TCustomerPositionFrame1Input *pIn,
 		cout << "c_email_2 = " << pOut->c_email_2 << endl;
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT ca_id" << endl
-		  << "    ,  ca_bal" << endl
-		  << "    ,  coalesce(sum(hs_qty * lt_price), 0) AS soma" << endl
-		  << "FROM customer_account" << endl
-		  << "     LEFT OUTER JOIN holding_summary" << endl
-		  << "                  ON hs_ca_id = ca_id," << endl
-		  << "     last_trade" << endl
-		  << "WHERE ca_c_id = " << pOut->cust_id << endl
-		  << " AND lt_s_symb = hs_s_symb" << endl
-		  << "GROUP BY ca_id, ca_bal" << endl
-		  << "ORDER BY 3 ASC" << endl
-		  << "LIMIT 10";
+#define CPF1Q3                                                                \
+	"SELECT ca_id\n"                                                          \
+	"    ,  ca_bal\n"                                                         \
+	"    ,  coalesce(sum(hs_qty * lt_price), 0) AS soma\n"                    \
+	"FROM customer_account\n"                                                 \
+	"     LEFT OUTER JOIN holding_summary\n"                                  \
+	"                  ON hs_ca_id = ca_id,\n"                                \
+	"     last_trade\n"                                                       \
+	"WHERE ca_c_id = $1\n"                                                    \
+	" AND lt_s_symb = hs_s_symb\n"                                            \
+	"GROUP BY ca_id, ca_bal\n"                                                \
+	"ORDER BY 3 ASC\n"                                                        \
+	"LIMIT 10"
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << CPF1Q3 << endl;
+		cout << "$1 = " << be64toh(cust_id) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	res = exec(CPF1Q3, 1, NULL, paramValues, paramLengths, paramFormats, 0);
 
 	pOut->acct_len = PQntuples(res);
 	for (int i = 0; i < pOut->acct_len; i++) {
