@@ -12,6 +12,8 @@
 #include "DBConnection.h"
 #include "DBConnectionClientSide.h"
 
+#define DATELEN 11
+
 CDBConnectionClientSide::CDBConnectionClientSide(const char *szHost,
 		const char *szDBName, const char *szDBPort, bool bVerbose)
 : CDBConnection(szHost, szDBName, szDBPort, bVerbose)
@@ -706,40 +708,89 @@ void
 CDBConnectionClientSide::execute(
 		const TMarketWatchFrame1Input *pIn, TMarketWatchFrame1Output *pOut)
 {
-	ostringstream osSQL;
 	PGresult *res = NULL;
 
 	double old_mkt_cap = 0.0;
 	double new_mkt_cap = 0.0;
 
 	if (pIn->c_id != 0) {
-		osSQL << "SELECT wi_s_symb" << endl
-			  << "FROM watch_item" << endl
-			  << "   , watch_list" << endl
-			  << "WHERE wi_wl_id = wl_id" << endl
-			  << "  AND wl_c_id = " << pIn->c_id;
+#define MWF1Q1A                                                               \
+	"SELECT wi_s_symb\n"                                                      \
+	"FROM watch_item\n"                                                       \
+	"   , watch_list\n"                                                       \
+	"WHERE wi_wl_id = wl_id\n"                                                \
+	"  AND wl_c_id = $1"
+
+		uint64_t c_id = htobe64((uint64_t) pIn->c_id);
+
+		if (m_bVerbose) {
+			cout << MWF1Q1A << endl;
+			cout << "$1 = " << be64toh(c_id) << endl;
+		}
+
+		const char *paramValues[1] = { (char *) &c_id };
+		const int paramLengths[1] = { sizeof(uint64_t) };
+		const int paramFormats[1] = { 1 };
+
+		res = exec(
+				MWF1Q1A, 1, NULL, paramValues, paramLengths, paramFormats, 0);
 	} else if (pIn->industry_name[0] != '\0') {
-		osSQL << "SELECT s_symb" << endl
-			  << "FROM industry" << endl
-			  << "   , company" << endl
-			  << "   , security" << endl
-			  << "WHERE in_name = '" << pIn->industry_name << "'" << endl
-			  << "  AND co_in_id = in_id" << endl
-			  << "  AND co_id BETWEEN " << pIn->starting_co_id << " AND "
-			  << pIn->ending_co_id << endl
-			  << "  AND s_co_id = co_id";
+#define MWF1Q1B                                                               \
+	"SELECT s_symb\n"                                                         \
+	"FROM industry\n"                                                         \
+	"   , company\n"                                                          \
+	"   , security\n"                                                         \
+	"WHERE in_name = $1\n"                                                    \
+	"  AND co_in_id = in_id\n"                                                \
+	"  AND co_id BETWEEN  $2 AND $3\n"                                        \
+	"  AND s_co_id = co_id"
+
+		uint64_t starting_co_id = htobe64((uint64_t) pIn->starting_co_id);
+		uint64_t ending_co_id = htobe64((uint64_t) pIn->ending_co_id);
+
+		if (m_bVerbose) {
+			cout << MWF1Q1B << endl;
+			cout << "$1 = " << pIn->industry_name << endl;
+			cout << "$2 = " << be64toh(starting_co_id) << endl;
+			cout << "$3 = " << be64toh(ending_co_id) << endl;
+		}
+
+		const Oid paramTypes[3] = { TEXTOID, INT8OID, INT8OID };
+		const char *paramValues[3] = { pIn->industry_name,
+			(char *) &starting_co_id, (char *) &ending_co_id };
+		const int paramLengths[3] = { sizeof(char) * (cIN_NAME_len + 1),
+			sizeof(uint64_t), sizeof(uint64_t) };
+		const int paramFormats[3] = { 0, 1, 1 };
+
+		res = exec(MWF1Q1B, 3, paramTypes, paramValues, paramLengths,
+				paramFormats, 0);
 	} else if (pIn->acct_id != 0) {
-		osSQL << "SELECT hs_s_symb" << endl
-			  << "FROM holding_summary" << endl
-			  << "WHERE  hs_ca_id = " << pIn->acct_id;
+#define MWF1Q1C                                                               \
+	"SELECT hs_s_symb\n"                                                      \
+	"FROM holding_summary\n"                                                  \
+	"WHERE  hs_ca_id = $1"
+
+		uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+
+		if (m_bVerbose) {
+			cout << MWF1Q1C << endl;
+			cout << "$1 = " << be64toh(acct_id) << endl;
+		}
+
+		const char *paramValues[1] = { (char *) &acct_id };
+		const int paramLengths[1] = { sizeof(uint64_t) };
+		const int paramFormats[1] = { 1 };
+
+		res = exec(
+				MWF1Q1C, 1, NULL, paramValues, paramLengths, paramFormats, 0);
 	} else {
 		cerr << "MarketWatchFrame1 error figuring out what to do" << endl;
 		return;
 	}
-	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
-	}
-	res = exec(osSQL.str().c_str());
+
+	char start_day[DATELEN + 1];
+	snprintf(start_day, DATELEN, "%d-%d-%d", pIn->start_day.year,
+			pIn->start_day.month, pIn->start_day.day);
 
 	int count = PQntuples(res);
 	for (int i = 0; i < count; i++) {
@@ -751,17 +802,29 @@ CDBConnectionClientSide::execute(
 			cout << "s_symb[" << i << "] = " << s_symb << endl;
 		}
 
-		osSQL.clear();
-		osSQL.str("");
-		osSQL << "SELECT lt_price" << endl
-			  << "FROM last_trade" << endl
-			  << "WHERE lt_s_symb = '" << s_symb << "'";
+#define MWF1Q2                                                                \
+	"SELECT lt_price\n"                                                       \
+	"FROM last_trade\n"                                                       \
+	"WHERE lt_s_symb = $1"
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << MWF1Q2 << endl;
+			cout << "$1 = " << s_symb << endl;
 		}
-		res2 = exec(osSQL.str().c_str());
+
+		const char *paramValues[2] = { s_symb, start_day };
+		const int paramLengths[2] = { sizeof(char) * (cSYMBOL_len + 1),
+			sizeof(char) * (DATELEN + 1) };
+		const int paramFormats[2] = { 0, 0 };
+
+		res2 = exec(
+				MWF1Q2, 1, NULL, paramValues, paramLengths, paramFormats, 0);
 
 		if (PQntuples(res2) == 0) {
+			cerr << __FILE__ << ":" << __LINE__ << " WARNING: NO ROWS RETURNED"
+				 << endl;
+			PQclear(res2);
+			PQclear(res);
 			return;
 		}
 
@@ -772,17 +835,24 @@ CDBConnectionClientSide::execute(
 			cout << "new_price[" << i << "] = " << new_price << endl;
 		}
 
-		osSQL.clear();
-		osSQL.str("");
-		osSQL << "SELECT s_num_out" << endl
-			  << "FROM security" << endl
-			  << "WHERE s_symb = '" << s_symb << "'";
+#define MWF1Q3                                                                \
+	"SELECT s_num_out\n"                                                      \
+	"FROM security\n"                                                         \
+	"WHERE s_symb = $1"
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << MWF1Q3 << endl;
+			cout << "$1 = " << s_symb << endl;
 		}
-		res2 = exec(osSQL.str().c_str());
+
+		res2 = exec(
+				MWF1Q3, 1, NULL, paramValues, paramLengths, paramFormats, 0);
 
 		if (PQntuples(res2) == 0) {
+			cerr << __FILE__ << ":" << __LINE__ << " WARNING: NO ROWS RETURNED"
+				 << endl;
+			PQclear(res2);
+			PQclear(res);
 			return;
 		}
 
@@ -793,19 +863,27 @@ CDBConnectionClientSide::execute(
 			cout << "s_num_out[" << i << "] = " << s_num_out << endl;
 		}
 
-		osSQL.clear();
-		osSQL.str("");
-		osSQL << "SELECT dm_close" << endl
-			  << "FROM daily_market" << endl
-			  << "WHERE dm_s_symb = '" << s_symb << "'" << endl
-			  << "  AND dm_date = '" << pIn->start_day.year << "-"
-			  << pIn->start_day.month << "-" << pIn->start_day.day << "'";
+#define MWF1Q4                                                                \
+	"SELECT dm_close\n"                                                       \
+	"FROM daily_market\n"                                                     \
+	"WHERE dm_s_symb = $1\n"                                                  \
+	"  AND dm_date = $2"
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << MWF1Q4 << endl;
+			cout << "$1 = " << s_symb << endl;
+			cout << "$2 = " << pIn->start_day.year << "-"
+				 << pIn->start_day.month << "-" << pIn->start_day.day << endl;
 		}
-		res2 = exec(osSQL.str().c_str());
+
+		res2 = exec(
+				MWF1Q4, 2, NULL, paramValues, paramLengths, paramFormats, 0);
 
 		if (PQntuples(res2) == 0) {
+			cerr << __FILE__ << ":" << __LINE__ << " WARNING: NO ROWS RETURNED"
+				 << endl;
+			PQclear(res2);
+			PQclear(res);
 			return;
 		}
 
