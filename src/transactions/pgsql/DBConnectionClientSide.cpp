@@ -910,69 +910,76 @@ void
 CDBConnectionClientSide::execute(const TSecurityDetailFrame1Input *pIn,
 		TSecurityDetailFrame1Output *pOut)
 {
-	ostringstream osSQL;
 	PGresult *res = NULL;
 
-	osSQL << "SELECT s_name" << endl
-		  << "     , co_id" << endl
-		  << "     , co_name" << endl
-		  << "     , co_sp_rate" << endl
-		  << "     , co_ceo" << endl
-		  << "     , co_desc" << endl
-		  << "     , co_open_date" << endl
-		  << "     , co_st_id" << endl
-		  << "     , ca.ad_line1 AS ca_ad_line1" << endl
-		  << "     , ca.ad_line2 AS ca_ad_line2" << endl
-		  << "     , zca.zc_town AS zca_zc_town" << endl
-		  << "     , zca.zc_div AS zca_zc_div" << endl
-		  << "     , ca.ad_zc_code AS ca_ad_zc_code" << endl
-		  << "     , ca.ad_ctry AS ca_ad_ctry" << endl
-		  << "     , s_num_out" << endl
-		  << "     , s_start_date" << endl
-		  << "     , s_exch_date" << endl
-		  << "     , s_pe" << endl
-		  << "     , s_52wk_high" << endl
-		  << "     , s_52wk_high_date" << endl
-		  << "     , s_52wk_low" << endl
-		  << "     , s_52wk_low_date" << endl
-		  << "     , s_dividend" << endl
-		  << "     , s_yield" << endl
-		  << "     , zea.zc_div AS zea_zc_div" << endl
-		  << "     , ea.ad_ctry AS ea_ad_ctry" << endl
-		  << "     , ea.ad_line1 AS ea_ad_line1" << endl
-		  << "     , ea.ad_line2 AS ea_ad_line2" << endl
-		  << "     , zea.zc_town AS zea_zc_town" << endl
-		  << "     , ea.ad_zc_code AS ea_ad_zc_code" << endl
-		  << "     , ex_close" << endl
-		  << "     , ex_desc" << endl
-		  << "     , ex_name" << endl
-		  << "     , ex_num_symb" << endl
-		  << "     , ex_open" << endl
-		  << "FROM security" << endl
-		  << "   , company" << endl
-		  << "   , address ca" << endl
-		  << "   , address ea" << endl
-		  << "   , zip_code zca" << endl
-		  << "   , zip_code zea" << endl
-		  << "   , exchange" << endl
-		  << "WHERE s_symb = '" << pIn->symbol << "'" << endl
-		  << "  AND co_id = s_co_id" << endl
-		  << "  AND ca.ad_id = co_ad_id" << endl
-		  << "  AND ea.ad_id = ex_ad_id" << endl
-		  << "  AND ex_id = s_ex_id" << endl
-		  << "  AND ca.ad_zc_code = zca.zc_code" << endl
-		  << "  AND ea.ad_zc_code = zea.zc_code";
-	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
-	}
-	res = exec(osSQL.str().c_str());
+#define SDF1Q1                                                                \
+	"SELECT s_name\n"                                                         \
+	"     , co_id\n"                                                          \
+	"     , co_name\n"                                                        \
+	"     , co_sp_rate\n"                                                     \
+	"     , co_ceo\n"                                                         \
+	"     , co_desc\n"                                                        \
+	"     , co_open_date\n"                                                   \
+	"     , co_st_id\n"                                                       \
+	"     , ca.ad_line1 AS ca_ad_line1\n"                                     \
+	"     , ca.ad_line2 AS ca_ad_line2\n"                                     \
+	"     , zca.zc_town AS zca_zc_town\n"                                     \
+	"     , zca.zc_div AS zca_zc_div\n"                                       \
+	"     , ca.ad_zc_code AS ca_ad_zc_code\n"                                 \
+	"     , ca.ad_ctry AS ca_ad_ctry\n"                                       \
+	"     , s_num_out\n"                                                      \
+	"     , s_start_date\n"                                                   \
+	"     , s_exch_date\n"                                                    \
+	"     , s_pe\n"                                                           \
+	"     , s_52wk_high\n"                                                    \
+	"     , s_52wk_high_date\n"                                               \
+	"     , s_52wk_low\n"                                                     \
+	"     , s_52wk_low_date\n"                                                \
+	"     , s_dividend\n"                                                     \
+	"     , s_yield\n"                                                        \
+	"     , zea.zc_div AS zea_zc_div\n"                                       \
+	"     , ea.ad_ctry AS ea_ad_ctry\n"                                       \
+	"     , ea.ad_line1 AS ea_ad_line1\n"                                     \
+	"     , ea.ad_line2 AS ea_ad_line2\n"                                     \
+	"     , zea.zc_town AS zea_zc_town\n"                                     \
+	"     , ea.ad_zc_code AS ea_ad_zc_code\n"                                 \
+	"     , ex_close\n"                                                       \
+	"     , ex_desc\n"                                                        \
+	"     , ex_name\n"                                                        \
+	"     , ex_num_symb\n"                                                    \
+	"     , ex_open\n"                                                        \
+	"FROM security\n"                                                         \
+	"   , company\n"                                                          \
+	"   , address ca\n"                                                       \
+	"   , address ea\n"                                                       \
+	"   , zip_code zca\n"                                                     \
+	"   , zip_code zea\n"                                                     \
+	"   , exchange\n"                                                         \
+	"WHERE s_symb = $1\n"                                                     \
+	"  AND co_id = s_co_id\n"                                                 \
+	"  AND ca.ad_id = co_ad_id\n"                                             \
+	"  AND ea.ad_id = ex_ad_id\n"                                             \
+	"  AND ex_id = s_ex_id\n"                                                 \
+	"  AND ca.ad_zc_code = zca.zc_code\n"                                     \
+	"  AND ea.ad_zc_code = zea.zc_code"
 
+	if (m_bVerbose) {
+		cout << SDF1Q1 << endl;
+		cout << "$1 = " << pIn->symbol << endl;
+	}
+
+	const char *paramValues1[1] = { pIn->symbol };
+	const int paramLengths1[1] = { sizeof(char) * (cSYMBOL_len + 1) };
+	const int paramFormats1[1] = { 0 };
+
+	res = exec(SDF1Q1, 1, NULL, paramValues1, paramLengths1, paramFormats1, 0);
 	if (PQntuples(res) == 0) {
+		PQclear(res);
 		return;
 	}
 
 	strncpy(pOut->s_name, PQgetvalue(res, 0, 0), cS_NAME_len);
-	INT64 co_id = atoll(PQgetvalue(res, 0, 1));
+	uint64_t co_id = htobe64((uint64_t) atoll(PQgetvalue(res, 0, 1)));
 	strncpy(pOut->co_name, PQgetvalue(res, 0, 2), cCO_NAME_len);
 	strncpy(pOut->sp_rate, PQgetvalue(res, 0, 3), cSP_RATE_len);
 	strncpy(pOut->ceo_name, PQgetvalue(res, 0, 4), cCEO_NAME_len);
@@ -1087,21 +1094,32 @@ CDBConnectionClientSide::execute(const TSecurityDetailFrame1Input *pIn,
 		cout << "ex_open = " << pOut->ex_open << endl;
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT co_name" << endl
-		  << "     , in_name" << endl
-		  << "FROM company_competitor" << endl
-		  << "   , company" << endl
-		  << "   , industry" << endl
-		  << "WHERE cp_co_id = " << co_id << endl
-		  << "  AND co_id = cp_comp_co_id" << endl
-		  << "  AND in_id = cp_in_id" << endl
-		  << "LIMIT " << max_comp_len;
+#define SDF1Q2                                                                \
+	"SELECT co_name\n"                                                        \
+	"     , in_name\n"                                                        \
+	"FROM company_competitor\n"                                               \
+	"   , company\n"                                                          \
+	"   , industry\n"                                                         \
+	"WHERE cp_co_id = $1\n"                                                   \
+	"  AND co_id = cp_comp_co_id\n"                                           \
+	"  AND in_id = cp_in_id\n"                                                \
+	"LIMIT $2"
+
+	uint32_t limit = htobe32((uint32_t) max_comp_len);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << SDF1Q2 << endl;
+		cout << "$1 = " << be64toh(co_id) << endl;
+		cout << "$2 = " << be32toh(limit) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const Oid paramTypes2[3] = { INT8OID, INT4OID };
+	const char *paramValues2[2] = { (char *) &co_id, (char *) &limit };
+	const int paramLengths2[2] = { sizeof(uint64_t), sizeof(uint32_t) };
+	const int paramFormats2[2] = { 1, 1 };
+
+	res = exec(SDF1Q2, 2, paramTypes2, paramValues2, paramLengths2,
+			paramFormats2, 0);
 
 	int count = PQntuples(res);
 	for (int i = 0; i < count; i++) {
@@ -1119,30 +1137,36 @@ CDBConnectionClientSide::execute(const TSecurityDetailFrame1Input *pIn,
 		}
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT fi_year" << endl
-		  << "     , fi_qtr" << endl
-		  << "     , fi_qtr_start_date" << endl
-		  << "     , fi_revenue" << endl
-		  << "     , fi_net_earn" << endl
-		  << "     , fi_basic_eps" << endl
-		  << "     , fi_dilut_eps" << endl
-		  << "     , fi_margin" << endl
-		  << "     , fi_inventory" << endl
-		  << "     , fi_assets" << endl
-		  << "     , fi_liability" << endl
-		  << "     , fi_out_basic" << endl
-		  << "     , fi_out_dilut" << endl
-		  << "FROM financial" << endl
-		  << "WHERE fi_co_id = " << co_id << endl
-		  << "ORDER BY fi_year ASC" << endl
-		  << "       , fi_qtr" << endl
-		  << "LIMIT " << max_fin_len;
+#define SDF1Q3                                                                \
+	"SELECT fi_year\n"                                                        \
+	"     , fi_qtr\n"                                                         \
+	"     , fi_qtr_start_date\n"                                              \
+	"     , fi_revenue\n"                                                     \
+	"     , fi_net_earn\n"                                                    \
+	"     , fi_basic_eps\n"                                                   \
+	"     , fi_dilut_eps\n"                                                   \
+	"     , fi_margin\n"                                                      \
+	"     , fi_inventory\n"                                                   \
+	"     , fi_assets\n"                                                      \
+	"     , fi_liability\n"                                                   \
+	"     , fi_out_basic\n"                                                   \
+	"     , fi_out_dilut\n"                                                   \
+	"FROM financial\n"                                                        \
+	"WHERE fi_co_id = $1\n"                                                   \
+	"ORDER BY fi_year ASC\n"                                                  \
+	"       , fi_qtr\n"                                                       \
+	"LIMIT $2"
+
+	limit = htobe32((uint32_t) max_fin_len);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << SDF1Q3 << endl;
+		cout << "$1 = " << be64toh(co_id) << endl;
+		cout << "$2 = " << be32toh(limit) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	res = exec(SDF1Q3, 2, paramTypes2, paramValues2, paramLengths2,
+			paramFormats2, 0);
 
 	pOut->fin_len = PQntuples(res);
 	for (int i = 0; i < pOut->fin_len; i++) {
@@ -1190,23 +1214,45 @@ CDBConnectionClientSide::execute(const TSecurityDetailFrame1Input *pIn,
 		}
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT dm_date" << endl
-		  << "     , dm_close" << endl
-		  << "     , dm_high" << endl
-		  << "     , dm_low" << endl
-		  << "     , dm_vol" << endl
-		  << "FROM daily_market" << endl
-		  << "WHERE dm_s_symb = '" << pIn->symbol << "'" << endl
-		  << "  AND dm_date >= '" << pIn->start_day.year << "-"
-		  << pIn->start_day.month << "-" << pIn->start_day.day << "'" << endl
-		  << "ORDER BY dm_date ASC" << endl
-		  << "LIMIT " << pIn->max_rows_to_return;
+#define SDF1Q4                                                                \
+	"SELECT dm_date\n"                                                        \
+	"     , dm_close\n"                                                       \
+	"     , dm_high\n"                                                        \
+	"     , dm_low\n"                                                         \
+	"     , dm_vol\n"                                                         \
+	"FROM daily_market\n"                                                     \
+	"WHERE dm_s_symb = $1\n"                                                  \
+	"  AND dm_date >= $2\n"                                                   \
+	"ORDER BY dm_date ASC\n"                                                  \
+	"LIMIT $3"
+
+	limit = htobe32((uint32_t) pIn->max_rows_to_return);
+	struct tm tm = { 0 };
+	tm.tm_year = pIn->start_day.year - 1900;
+	tm.tm_mon = pIn->start_day.month - 1;
+	tm.tm_mday = pIn->start_day.day;
+	mktime(&tm);
+	uint32_t start_day
+			= htobe32((uint32_t) ((tm.tm_year - 100) * 365
+								  + (tm.tm_year - 100) / 4 + tm.tm_yday));
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << SDF1Q4 << endl;
+		cout << "$1 = " << pIn->symbol << endl;
+		cout << "$2 = " << pIn->start_day.year << "-" << pIn->start_day.month
+			 << "-" << pIn->start_day.day << endl;
+		cout << "$3 = " << be32toh(limit) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const Oid paramTypes3[3] = { TEXTOID, DATEOID, INT4OID };
+	const char *paramValues3[3]
+			= { pIn->symbol, (char *) &start_day, (char *) &limit };
+	const int paramLengths3[3] = { sizeof(char) * (cSYMBOL_len + 1),
+		sizeof(uint32_t), sizeof(uint32_t) };
+	const int paramFormats3[3] = { 0, 1, 1 };
+
+	res = exec(SDF1Q4, 3, paramTypes3, paramValues3, paramLengths3,
+			paramFormats3, 0);
 
 	pOut->day_len = PQntuples(res);
 	for (int i = 0; i < pOut->day_len; i++) {
@@ -1231,19 +1277,24 @@ CDBConnectionClientSide::execute(const TSecurityDetailFrame1Input *pIn,
 		}
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT lt_price" << endl
-		  << "     , lt_open_price" << endl
-		  << "     , lt_vol" << endl
-		  << "FROM last_trade" << endl
-		  << "WHERE lt_s_symb = '" << pIn->symbol << "'";
+#define SDF1Q5                                                                \
+	"SELECT lt_price\n"                                                       \
+	"     , lt_open_price\n"                                                  \
+	"     , lt_vol\n"                                                         \
+	"FROM last_trade\n"                                                       \
+	"WHERE lt_s_symb = $1\n"
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << SDF1Q5 << endl;
+		cout << "$1 = " << pIn->symbol << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	res = exec(SDF1Q5, 1, NULL, paramValues3, paramLengths3, paramFormats3, 0);
 
 	if (PQntuples(res) == 0) {
+		cerr << __FILE__ << ":" << __LINE__ << " WARNING: NO ROWS RETURNED"
+			 << endl;
+		PQclear(res);
 		return;
 	}
 
@@ -1258,37 +1309,53 @@ CDBConnectionClientSide::execute(const TSecurityDetailFrame1Input *pIn,
 		cout << "last_vol = " << pOut->last_vol << endl;
 	}
 
-	osSQL.clear();
-	osSQL.str("");
+	limit = htobe32((uint32_t) max_fin_len);
+
 	if (pIn->access_lob_flag == 1) {
-		osSQL << "SELECT ni_item" << endl
-			  << "     , ni_dts" << endl
-			  << "     , ni_source" << endl
-			  << "     , ni_author" << endl
-			  << "     ,'' AS ni_headline" << endl
-			  << "     ,'' AS ni_summary" << endl
-			  << "FROM news_xref" << endl
-			  << "   ,  news_item" << endl
-			  << "WHERE ni_id = nx_ni_id" << endl
-			  << "  AND nx_co_id = " << co_id << endl
-			  << "LIMIT " << max_news_len;
+#define SDF1Q6A                                                               \
+	"SELECT ni_item\n"                                                        \
+	"     , ni_dts\n"                                                         \
+	"     , ni_source\n"                                                      \
+	"     , ni_author\n"                                                      \
+	"     ,'' AS ni_headline\n"                                               \
+	"     ,'' AS ni_summary\n"                                                \
+	"FROM news_xref\n"                                                        \
+	"   ,  news_item\n"                                                       \
+	"WHERE ni_id = nx_ni_id\n"                                                \
+	"  AND nx_co_id = $1\n"                                                   \
+	"LIMIT $2"
+
+		if (m_bVerbose) {
+			cout << SDF1Q6A << endl;
+			cout << "$1 = " << be64toh(co_id) << endl;
+			cout << "$2 = " << be32toh(limit) << endl;
+		}
+
+		res = exec(SDF1Q6A, 2, paramTypes2, paramValues2, paramLengths2,
+				paramFormats2, 0);
 	} else {
-		osSQL << "SELECT '' AS ni_item" << endl
-			  << "     , ni_dts" << endl
-			  << "     , ni_source" << endl
-			  << "     , ni_author" << endl
-			  << "     , ni_headline" << endl
-			  << "     , ni_summary" << endl
-			  << "FROM news_xref" << endl
-			  << "   , news_item" << endl
-			  << "WHERE ni_id = nx_ni_id" << endl
-			  << "  AND nx_co_id = " << co_id << endl
-			  << "LIMIT " << max_news_len;
+#define SDF1Q6B                                                               \
+	"SELECT '' AS ni_item\n"                                                  \
+	"     , ni_dts\n"                                                         \
+	"     , ni_source\n"                                                      \
+	"     , ni_author\n"                                                      \
+	"     , ni_headline\n"                                                    \
+	"     , ni_summary\n"                                                     \
+	"FROM news_xref\n"                                                        \
+	"   , news_item\n"                                                        \
+	"WHERE ni_id = nx_ni_id\n"                                                \
+	"  AND nx_co_id = $1\n"                                                   \
+	"LIMIT $2"
+
+		if (m_bVerbose) {
+			cout << SDF1Q6B << endl;
+			cout << "$1 = " << be64toh(co_id) << endl;
+			cout << "$2 = " << be32toh(limit) << endl;
+		}
+
+		res = exec(SDF1Q6B, 2, paramTypes2, paramValues2, paramLengths2,
+				paramFormats2, 0);
 	}
-	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
-	}
-	res = exec(osSQL.str().c_str());
 
 	pOut->news_len = PQntuples(res);
 	for (int i = 0; i < pOut->news_len; i++) {
