@@ -1603,31 +1603,73 @@ CDBConnectionClientSide::execute(
 		const TTradeLookupFrame2Input *pIn, TTradeLookupFrame2Output *pOut)
 {
 	PGresult *res = NULL;
-	ostringstream osSQL;
 
-	osSQL << "SELECT t_bid_price" << endl
-		  << "     , t_exec_name" << endl
-		  << "     , t_is_cash" << endl
-		  << "     , t_id" << endl
-		  << "     , t_trade_price" << endl
-		  << "FROM trade" << endl
-		  << "WHERE t_ca_id = " << pIn->acct_id << endl
-		  << "  AND t_dts >= '" << pIn->start_trade_dts.year << "-"
-		  << pIn->start_trade_dts.month << "-" << pIn->start_trade_dts.day
-		  << " " << pIn->start_trade_dts.hour << ":"
-		  << pIn->start_trade_dts.minute << ":" << pIn->start_trade_dts.second
-		  << "." << pIn->start_trade_dts.fraction << "'" << endl
-		  << "  AND t_dts <= '" << pIn->end_trade_dts.year << "-"
-		  << pIn->end_trade_dts.month << "-" << pIn->end_trade_dts.day << " "
-		  << pIn->end_trade_dts.hour << ":" << pIn->end_trade_dts.minute << ":"
-		  << pIn->end_trade_dts.second << "." << pIn->end_trade_dts.fraction
-		  << "'" << endl
-		  << "ORDER BY t_dts" << endl
-		  << "LIMIT " << pIn->max_trades;
+#define TLF2Q1                                                                \
+	"SELECT t_bid_price\n"                                                    \
+	"     , t_exec_name\n"                                                    \
+	"     , t_is_cash\n"                                                      \
+	"     , t_id\n"                                                           \
+	"     , t_trade_price\n"                                                  \
+	"FROM trade\n"                                                            \
+	"WHERE t_ca_id = $1\n"                                                    \
+	"  AND t_dts >= $2\n"                                                     \
+	"  AND t_dts <= $3\n"                                                     \
+	"ORDER BY t_dts\n"                                                        \
+	"LIMIT $4"
+
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+
+	struct tm start_trade = { 0 };
+	start_trade.tm_year = pIn->start_trade_dts.year - 1900;
+	start_trade.tm_mon = pIn->start_trade_dts.month - 1;
+	start_trade.tm_mday = pIn->start_trade_dts.day;
+	start_trade.tm_hour = pIn->start_trade_dts.hour - 1;
+	start_trade.tm_min = pIn->start_trade_dts.minute;
+	start_trade.tm_sec = pIn->start_trade_dts.second;
+	uint64_t start_trade_dts
+			= htobe64(((uint64_t) mktime(&start_trade) - (uint64_t) 946684800)
+					  * (uint64_t) 1000000);
+
+	struct tm end_trade = { 0 };
+	end_trade.tm_year = pIn->end_trade_dts.year - 1900;
+	end_trade.tm_mon = pIn->end_trade_dts.month - 1;
+	end_trade.tm_mday = pIn->end_trade_dts.day;
+	end_trade.tm_hour = pIn->end_trade_dts.hour - 1;
+	end_trade.tm_min = pIn->end_trade_dts.minute;
+	end_trade.tm_sec = pIn->end_trade_dts.second;
+	uint64_t end_trade_dts
+			= htobe64(((uint64_t) mktime(&end_trade) - (uint64_t) 946684800)
+					  * (uint64_t) 1000000);
+
+	uint32_t max_trades = htobe32((uint32_t) pIn->max_trades);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TLF2Q1 << endl;
+		cout << "$1 = " << be64toh(acct_id) << endl;
+		cout << "$2 = " << pIn->start_trade_dts.year << "-"
+			 << pIn->start_trade_dts.month << "-" << pIn->start_trade_dts.day
+			 << " " << pIn->start_trade_dts.hour << ":"
+			 << pIn->start_trade_dts.minute << ":"
+			 << pIn->start_trade_dts.second << endl;
+		cout << "$3 = " << pIn->end_trade_dts.year << "-"
+			 << pIn->end_trade_dts.month << "-" << pIn->end_trade_dts.day
+			 << " " << pIn->end_trade_dts.hour << ":"
+			 << pIn->end_trade_dts.minute << ":" << pIn->end_trade_dts.second
+			 << endl;
+		cout << "$4 = " << be32toh(max_trades) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const Oid paramTypes1[4]
+			= { INT8OID, TIMESTAMPOID, TIMESTAMPOID, INT4OID };
+	const char *paramValues1[4]
+			= { (char *) &acct_id, (char *) &start_trade_dts,
+				  (char *) &end_trade_dts, (char *) &max_trades };
+	const int paramFormats1[4] = { 1, 1, 1, 1 };
+	const int paramLengths1[4] = { sizeof(uint64_t), sizeof(uint64_t),
+		sizeof(uint64_t), sizeof(uint32_t) };
+
+	res = exec(TLF2Q1, 4, paramTypes1, paramValues1, paramLengths1,
+			paramFormats1, 0);
 
 	pOut->num_found = PQntuples(res);
 	for (int i = 0; i < pOut->num_found; i++) {
@@ -1654,17 +1696,26 @@ CDBConnectionClientSide::execute(
 				 << "] = " << pOut->trade_info[i].trade_price << endl;
 		}
 
-		osSQL.clear();
-		osSQL.str("");
-		osSQL << "SELECT se_amt" << endl
-			  << "     , se_cash_due_date" << endl
-			  << "     , se_cash_type" << endl
-			  << "FROM settlement" << endl
-			  << "WHERE se_t_id = " << pOut->trade_info[i].trade_id;
+#define TLF2Q2                                                                \
+	"SELECT se_amt\n"                                                         \
+	"     , se_cash_due_date\n"                                               \
+	"     , se_cash_type\n"                                                   \
+	"FROM settlement\n"                                                       \
+	"WHERE se_t_id = $1"
+
+		uint64_t trade_id = htobe64((uint64_t) pOut->trade_info[i].trade_id);
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << TLF2Q2 << endl;
+			cout << "$1 = " << be64toh(trade_id) << endl;
 		}
-		res2 = exec(osSQL.str().c_str());
+
+		const char *paramValues2[1] = { (char *) &trade_id };
+		const int paramFormats2[1] = { 1 };
+		const int paramLengths2[1] = { sizeof(uint64_t) };
+
+		res2 = exec(TLF2Q2, 1, NULL, paramValues2, paramLengths2,
+				paramFormats2, 0);
 
 		if (PQntuples(res2) > 0) {
 			pOut->trade_info[i].settlement_amount
@@ -1690,17 +1741,20 @@ CDBConnectionClientSide::execute(
 				 << "] = " << pOut->trade_info[i].settlement_cash_type << endl;
 		}
 
-		osSQL.clear();
-		osSQL.str("");
-		osSQL << "SELECT ct_amt" << endl
-			  << "     , ct_dts" << endl
-			  << "     , ct_name" << endl
-			  << "FROM cash_transaction" << endl
-			  << "WHERE ct_t_id = " << pOut->trade_info[i].trade_id;
+#define TLF2Q3                                                                \
+	"SELECT ct_amt\n"                                                         \
+	"     , ct_dts\n"                                                         \
+	"     , ct_name\n"                                                        \
+	"FROM cash_transaction\n"                                                 \
+	"WHERE ct_t_id = $1"
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << TLF2Q3 << endl;
+			cout << "$1 = " << be64toh(trade_id) << endl;
 		}
-		res2 = exec(osSQL.str().c_str());
+
+		res2 = exec(TLF2Q3, 1, NULL, paramValues2, paramLengths2,
+				paramFormats2, 0);
 
 		if (PQntuples(res) > 0) {
 			pOut->trade_info[i].cash_transaction_amount
@@ -1735,18 +1789,21 @@ CDBConnectionClientSide::execute(
 				 << endl;
 		}
 
-		osSQL.clear();
-		osSQL.str("");
-		osSQL << "SELECT th_dts" << endl
-			  << "     , th_st_id" << endl
-			  << "FROM trade_history" << endl
-			  << "WHERE th_t_id = " << pOut->trade_info[i].trade_id << endl
-			  << "ORDER BY th_dts" << endl
-			  << "LIMIT 3";
+#define TLF2Q4                                                                \
+	"SELECT th_dts\n"                                                         \
+	"     , th_st_id\n"                                                       \
+	"FROM trade_history\n"                                                    \
+	"WHERE th_t_id = $1\n"                                                    \
+	"ORDER BY th_dts\n"                                                       \
+	"LIMIT 3"
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << TLF2Q4 << endl;
+			cout << "$1 = " << be64toh(trade_id) << endl;
 		}
-		res2 = exec(osSQL.str().c_str());
+
+		res2 = exec(TLF2Q4, 1, NULL, paramValues2, paramLengths2,
+				paramFormats2, 0);
 
 		int count = PQntuples(res);
 		for (int j = 0; j < count; j++) {
