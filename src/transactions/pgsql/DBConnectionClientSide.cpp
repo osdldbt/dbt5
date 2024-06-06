@@ -3075,25 +3075,34 @@ CDBConnectionClientSide::execute(
 		const TTradeResultFrame1Input *pIn, TTradeResultFrame1Output *pOut)
 {
 	PGresult *res = NULL;
-	ostringstream osSQL;
 
-	osSQL << "SELECT t_ca_id" << endl
-		  << "     , t_tt_id" << endl
-		  << "     , t_s_symb" << endl
-		  << "     , t_qty" << endl
-		  << "     , t_chrg," << endl
-		  << "       CASE WHEN t_lifo = true" << endl
-		  << "            THEN 1" << endl
-		  << "            ELSE 0 END" << endl
-		  << "     , CASE WHEN t_is_cash = true" << endl
-		  << "            THEN 1" << endl
-		  << "            ELSE 0 END" << endl
-		  << "FROM trade" << endl
-		  << "WHERE t_id = " << pIn->trade_id;
+#define TRF1Q1                                                                \
+	"SELECT t_ca_id\n"                                                        \
+	"     , t_tt_id\n"                                                        \
+	"     , t_s_symb\n"                                                       \
+	"     , t_qty\n"                                                          \
+	"     , t_chrg,\n"                                                        \
+	"       CASE WHEN t_lifo = true\n"                                        \
+	"            THEN 1\n"                                                    \
+	"            ELSE 0 END\n"                                                \
+	"     , CASE WHEN t_is_cash = true\n"                                     \
+	"            THEN 1\n"                                                    \
+	"            ELSE 0 END\n"                                                \
+	"FROM trade\n"                                                            \
+	"WHERE t_id = $1"
+
+	uint64_t trade_id = htobe64((uint64_t) pIn->trade_id);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TRF1Q1 << endl;
+		cout << "$1 = " << be64toh(trade_id) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues1[1] = { (char *) &trade_id };
+	const int paramLengths1[1] = { sizeof(uint64_t) };
+	const int paramFormats1[1] = { 1 };
+
+	res = exec(TRF1Q1, 1, NULL, paramValues1, paramLengths1, paramFormats1, 0);
 
 	if (PQntuples(res) == 0) {
 		PQclear(res);
@@ -3121,21 +3130,27 @@ CDBConnectionClientSide::execute(
 		cout << "trade_is_cash = " << pOut->trade_is_cash << endl;
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT tt_name" << endl
-		  << "     , CASE WHEN tt_is_sell IS TRUE" << endl
-		  << "            THEN 1" << endl
-		  << "            ELSE 0 END" << endl
-		  << "     , CASE WHEN tt_is_mrkt IS TRUE" << endl
-		  << "            THEN 1" << endl
-		  << "            ELSE 0 END" << endl
-		  << "FROM trade_type" << endl
-		  << "WHERE tt_id = '" << pOut->type_id << "'";
+#define TRF1Q2                                                                \
+	"SELECT tt_name\n"                                                        \
+	"     , CASE WHEN tt_is_sell IS TRUE\n"                                   \
+	"            THEN 1\n"                                                    \
+	"            ELSE 0 END\n"                                                \
+	"     , CASE WHEN tt_is_mrkt IS TRUE\n"                                   \
+	"            THEN 1\n"                                                    \
+	"            ELSE 0 END\n"                                                \
+	"FROM trade_type\n"                                                       \
+	"WHERE tt_id = $1"
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TRF1Q2 << endl;
+		cout << "$1 = " << be64toh(trade_id) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues2[1] = { pOut->type_id };
+	const int paramLengths2[1] = { sizeof(char) * (cTT_ID_len + 1) };
+	const int paramFormats2[1] = { 0 };
+
+	res = exec(TRF1Q2, 1, NULL, paramValues2, paramLengths2, paramFormats2, 0);
 
 	if (PQntuples(res) == 0) {
 		PQclear(res);
@@ -3153,16 +3168,26 @@ CDBConnectionClientSide::execute(
 		cout << "type_is_market = " << pOut->type_is_market << endl;
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT hs_qty" << endl
-		  << "FROM holding_summary" << endl
-		  << "WHERE hs_ca_id = " << pOut->acct_id << endl
-		  << "  AND hs_s_symb = '" << pOut->symbol << "'";
+#define TRF1Q3                                                                \
+	"SELECT hs_qty\n"                                                         \
+	"FROM holding_summary\n"                                                  \
+	"WHERE hs_ca_id = $1\n"                                                   \
+	"  AND hs_s_symb = $2"
+
+	uint64_t acct_id = htobe64((uint64_t) pOut->acct_id);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TRF1Q3 << endl;
+		cout << "$1 = " << be64toh(acct_id) << endl;
+		cout << "$2 = " << pOut->symbol << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues3[2] = { (char *) &acct_id, pOut->symbol };
+	const int paramLengths3[2]
+			= { sizeof(uint64_t), sizeof(char) * (cSYMBOL_len + 1) };
+	const int paramFormats3[2] = { 1, 0 };
+
+	res = exec(TRF1Q3, 2, NULL, paramValues3, paramLengths3, paramFormats3, 0);
 
 	if (PQntuples(res) == 0) {
 		PQclear(res);
