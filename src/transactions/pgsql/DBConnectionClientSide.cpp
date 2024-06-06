@@ -2912,96 +2912,161 @@ CDBConnectionClientSide::execute(
 		const TTradeOrderFrame4Input *pIn, TTradeOrderFrame4Output *pOut)
 {
 	PGresult *res = NULL;
-	PGresult *res2 = NULL;
-	ostringstream osSQL;
 
-	osSQL << "INSERT INTO trade(" << endl
-		  << "    t_id" << endl
-		  << "  , t_dts" << endl
-		  << "  , t_st_id" << endl
-		  << "  , t_tt_id" << endl
-		  << "  , t_is_cash" << endl
-		  << "  , t_s_symb" << endl
-		  << "  , t_qty" << endl
-		  << "  , t_bid_price" << endl
-		  << "  , t_ca_id" << endl
-		  << "  , t_exec_name" << endl
-		  << "  , t_trade_price" << endl
-		  << "  , t_chrg" << endl
-		  << "  , t_comm" << endl
-		  << "  , t_tax" << endl
-		  << "  , t_lifo" << endl
-		  << ")" << endl
-		  << "VALUES (" << endl
-		  << "    nextval('seq_trade_id')" << endl
-		  << "  , CURRENT_TIMESTAMP" << endl
-		  << "  , '" << pIn->status_id << "'" << endl
-		  << "  , '" << pIn->trade_type_id << "'" << endl
-		  << "  , " << (pIn->is_cash ? "true" : "false") << endl
-		  << "  , '" << pIn->symbol << "'" << endl
-		  << "  , " << pIn->trade_qty << endl
-		  << "  , " << pIn->requested_price << endl
-		  << "  , " << pIn->acct_id << endl
-		  << "  , '" << pIn->exec_name << "'" << endl
-		  << "  , NULL" << endl
-		  << "  , " << pIn->charge_amount << endl
-		  << "  , " << pIn->comm_amount << endl
-		  << "  , 0" << endl
-		  << "  , " << (pIn->is_lifo ? "true" : "false") << endl
-		  << ")" << endl
-		  << "RETURNING t_id" << endl
-		  << "        , t_dts";
+#define TOF4Q1                                                                \
+	"INSERT INTO trade(\n"                                                    \
+	"    t_id\n"                                                              \
+	"  , t_dts\n"                                                             \
+	"  , t_st_id\n"                                                           \
+	"  , t_tt_id\n"                                                           \
+	"  , t_is_cash\n"                                                         \
+	"  , t_s_symb\n"                                                          \
+	"  , t_qty\n"                                                             \
+	"  , t_bid_price\n"                                                       \
+	"  , t_ca_id\n"                                                           \
+	"  , t_exec_name\n"                                                       \
+	"  , t_trade_price\n"                                                     \
+	"  , t_chrg\n"                                                            \
+	"  , t_comm\n"                                                            \
+	"  , t_tax\n"                                                             \
+	"  , t_lifo\n"                                                            \
+	")\n"                                                                     \
+	"VALUES (\n"                                                              \
+	"    nextval('seq_trade_id')\n"                                           \
+	"  , CURRENT_TIMESTAMP\n"                                                 \
+	"  , $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	"  , $4\n"                                                                \
+	"  , $5\n"                                                                \
+	"  , $6\n"                                                                \
+	"  , $7\n"                                                                \
+	"  , $8\n"                                                                \
+	"  , NULL\n"                                                              \
+	"  , $9\n"                                                                \
+	"  , $10\n"                                                               \
+	"  , 0\n"                                                                 \
+	"  , $11\n"                                                               \
+	")\n"                                                                     \
+	"RETURNING t_id\n"                                                        \
+	"        , t_dts"
+
+	unsigned char is_cash = (unsigned char) pIn->is_cash;
+	uint32_t trade_qty = htobe32((uint32_t) pIn->trade_qty);
+	char requested_price[14];
+	snprintf(requested_price, 13, "%f", pIn->requested_price);
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+	char charge_amount[14];
+	snprintf(charge_amount, 13, "%f", pIn->charge_amount);
+	char comm_amount[14];
+	snprintf(comm_amount, 13, "%f", pIn->comm_amount);
+	unsigned char is_lifo = (unsigned char) pIn->is_lifo;
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TOF4Q1 << endl;
+		cout << "$1 = " << pIn->status_id << endl;
+		cout << "$2 = " << pIn->trade_type_id << endl;
+		cout << "$3 = " << is_cash << endl;
+		cout << "$4 = " << pIn->symbol << endl;
+		cout << "$5 = " << be32toh(trade_qty) << endl;
+		cout << "$6 = " << requested_price << endl;
+		cout << "$7 = " << be64toh(acct_id) << endl;
+		cout << "$8 = " << pIn->exec_name << endl;
+		cout << "$9 = " << charge_amount << endl;
+		cout << "$10 = " << comm_amount << endl;
+		cout << "$11 = " << is_lifo << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues1[11] = { pIn->status_id, pIn->trade_type_id,
+		(char *) &is_cash, pIn->symbol, (char *) &trade_qty, requested_price,
+		(char *) &acct_id, pIn->exec_name, charge_amount, comm_amount,
+		(char *) &is_lifo };
+	const int paramLengths1[11] = { sizeof(char) * (cST_ID_len + 1),
+		sizeof(char) * (cTT_ID_len + 1), sizeof(unsigned char),
+		sizeof(char) * (cSYMBOL_len + 1), sizeof(uint32_t), sizeof(char) * 14,
+		sizeof(uint64_t), sizeof(char) * (cEXEC_NAME_len + 1),
+		sizeof(char) * 14, sizeof(char) * 14, sizeof(unsigned char) };
+	const int paramFormats1[11] = { 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1 };
+
+	res = exec(
+			TOF4Q1, 11, NULL, paramValues1, paramLengths1, paramFormats1, 0);
 
 	pOut->trade_id = atoll(PQgetvalue(res, 0, 0));
+	uint64_t trade_id = htobe64((uint64_t) pOut->trade_id);
+	PQclear(res);
+
+	if (m_bVerbose) {
+		cout << "trade_id = " << pOut->trade_id << endl;
+	}
 
 	if (!pIn->type_is_market) {
-		osSQL.clear();
-		osSQL.str("");
-		osSQL << "INSERT INTO trade_request(" << endl
-			  << "    tr_t_id" << endl
-			  << "  , tr_tt_id" << endl
-			  << "  , tr_s_symb" << endl
-			  << "  , tr_qty" << endl
-			  << "  , tr_bid_price" << endl
-			  << "  , tr_b_id" << endl
-			  << ")" << endl
-			  << "VALUES (" << endl
-			  << "    " << pOut->trade_id << endl
-			  << "  , '" << pIn->trade_type_id << "'" << endl
-			  << "  , '" << pIn->symbol << "'" << endl
-			  << "  , " << pIn->trade_qty << endl
-			  << "  , " << pIn->requested_price << endl
-			  << "  , " << pIn->broker_id << endl
-			  << "  )";
+#define TOF4Q2                                                                \
+	"INSERT INTO trade_request(\n"                                            \
+	"    tr_t_id\n"                                                           \
+	"  , tr_tt_id\n"                                                          \
+	"  , tr_s_symb\n"                                                         \
+	"  , tr_qty\n"                                                            \
+	"  , tr_bid_price\n"                                                      \
+	"  , tr_b_id\n"                                                           \
+	")\n"                                                                     \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	"  , $4\n"                                                                \
+	"  , $5\n"                                                                \
+	"  , $6\n"                                                                \
+	")"
+
+		uint64_t broker_id = htobe64((uint64_t) pIn->broker_id);
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << TOF4Q2 << endl;
+			cout << "$1 = " << be64toh(trade_id) << endl;
+			cout << "$2 = " << pIn->trade_type_id << endl;
+			cout << "$3 = " << pIn->symbol << endl;
+			cout << "$4 = " << be32toh(trade_qty) << endl;
+			cout << "$5 = " << requested_price << endl;
+			cout << "$6 = " << be64toh(broker_id) << endl;
 		}
-		res2 = exec(osSQL.str().c_str());
-		PQclear(res2);
+
+		const char *paramValues2[6] = { (char *) &trade_id, pIn->trade_type_id,
+			pIn->symbol, (char *) &trade_qty, requested_price,
+			(char *) &broker_id };
+		const int paramLengths2[6] = { sizeof(uint64_t),
+			sizeof(char) * (cTT_ID_len + 1), sizeof(char) * (cSYMBOL_len + 1),
+			sizeof(uint32_t), sizeof(char) * 14, sizeof(uint64_t) };
+		const int paramFormats2[6] = { 1, 0, 0, 1, 0, 1 };
+
+		res = exec(TOF4Q2, 6, NULL, paramValues2, paramLengths2, paramFormats2,
+				0);
+		PQclear(res);
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "INSERT INTO trade_history(" << endl
-		  << "    th_t_id" << endl
-		  << "  , th_dts" << endl
-		  << "  , th_st_id" << endl
-		  << ")" << endl
-		  << "VALUES(" << endl
-		  << "    " << pOut->trade_id << endl
-		  << "  , CURRENT_TIMESTAMP" << endl
-		  << "  , '" << pIn->status_id << "'" << endl
-		  << ")";
+#define TOF4Q3                                                                \
+	"INSERT INTO trade_history(\n"                                            \
+	"    th_t_id\n"                                                           \
+	"  , th_dts\n"                                                            \
+	"  , th_st_id\n"                                                          \
+	")\n"                                                                     \
+	"VALUES(\n"                                                               \
+	"    $1\n"                                                                \
+	"  , CURRENT_TIMESTAMP\n"                                                 \
+	"  , $2\n"                                                                \
+	")"
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TOF4Q3 << endl;
+		cout << "$1 = " << be64toh(trade_id) << endl;
+		cout << "$2 = " << pIn->status_id << endl;
 	}
-	res2 = exec(osSQL.str().c_str());
 
-	PQclear(res2);
+	const char *paramValues3[2] = { (char *) &trade_id, pIn->status_id };
+	const int paramLengths3[2]
+			= { sizeof(uint64_t), sizeof(char) * (cST_ID_len + 1) };
+	const int paramFormats3[2] = { 1, 0 };
+
+	res = exec(TOF4Q3, 2, NULL, paramValues3, paramLengths3, paramFormats3, 0);
 	PQclear(res);
 }
 
