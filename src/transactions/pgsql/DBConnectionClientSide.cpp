@@ -2317,18 +2317,33 @@ CDBConnectionClientSide::execute(
 		const TTradeOrderFrame2Input *pIn, TTradeOrderFrame2Output *pOut)
 {
 	PGresult *res = NULL;
-	ostringstream osSQL;
 
-	osSQL << "SELECT ap_acl" << endl
-		  << "FROM account_permission" << endl
-		  << "WHERE ap_ca_id = " << pIn->acct_id << endl
-		  << "  AND ap_f_name = '" << pIn->exec_f_name << "'" << endl
-		  << "  AND ap_l_name = '" << pIn->exec_l_name << "'" << endl
-		  << "  AND ap_tax_id = '" << pIn->exec_tax_id << "'";
+#define TOF2Q1                                                                \
+	"SELECT ap_acl\n"                                                         \
+	"FROM account_permission\n"                                               \
+	"WHERE ap_ca_id = $1\n"                                                   \
+	"  AND ap_f_name = $2\n"                                                  \
+	"  AND ap_l_name = $3\n"                                                  \
+	"  AND ap_tax_id = $4"
+
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TOF2Q1 << endl;
+		cout << "$1 = " << be64toh(acct_id) << endl;
+		cout << "$2 = " << pIn->exec_f_name << endl;
+		cout << "$3 = " << pIn->exec_l_name << endl;
+		cout << "$4 = " << pIn->exec_tax_id << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues[4] = { (char *) &acct_id, pIn->exec_f_name,
+		pIn->exec_l_name, pIn->exec_tax_id };
+	const int paramLengths[4] = { sizeof(uint64_t),
+		sizeof(char) * (cF_NAME_len + 1), sizeof(char) * (cL_NAME_len + 1),
+		sizeof(char) * (cTAX_ID_len + 1) };
+	const int paramFormats[4] = { 1, 0, 0, 0 };
+
+	res = exec(TOF2Q1, 4, NULL, paramValues, paramLengths, paramFormats, 0);
 
 	if (PQntuples(res) == 0) {
 		PQclear(res);
