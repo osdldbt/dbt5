@@ -2211,18 +2211,27 @@ CDBConnectionClientSide::execute(
 		const TTradeOrderFrame1Input *pIn, TTradeOrderFrame1Output *pOut)
 {
 	PGresult *res = NULL;
-	ostringstream osSQL;
 
-	osSQL << "SELECT ca_name" << endl
-		  << "     , ca_b_id" << endl
-		  << "     , ca_c_id" << endl
-		  << "     , ca_tax_st" << endl
-		  << "FROM customer_account" << endl
-		  << "WHERE ca_id = " << pIn->acct_id;
+#define TOF1Q1                                                                \
+	"SELECT ca_name\n"                                                        \
+	"     , ca_b_id\n"                                                        \
+	"     , ca_c_id\n"                                                        \
+	"     , ca_tax_st\n"                                                      \
+	"FROM customer_account\n"                                                 \
+	"WHERE ca_id = $1"
+
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TOF1Q1 << endl;
+		cout << "$1 = " << be64toh(acct_id) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues1[1] = { (char *) &acct_id };
+	const int paramLengths1[1] = { sizeof(uint64_t) };
+	const int paramFormats1[1] = { 1 };
+
+	res = exec(TOF1Q1, 1, NULL, paramValues1, paramLengths1, paramFormats1, 0);
 
 	pOut->num_found = PQntuples(res);
 	if (pOut->num_found == 0) {
@@ -2234,7 +2243,6 @@ CDBConnectionClientSide::execute(
 	pOut->broker_id = atoll(PQgetvalue(res, 0, 1));
 	pOut->cust_id = atoll(PQgetvalue(res, 0, 2));
 	pOut->tax_status = atoi(PQgetvalue(res, 0, 3));
-
 	PQclear(res);
 
 	if (m_bVerbose) {
@@ -2244,18 +2252,24 @@ CDBConnectionClientSide::execute(
 		cout << "tax_status = " << pOut->tax_status << endl;
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT c_f_name" << endl
-		  << "     , c_l_name" << endl
-		  << "     , c_tier" << endl
-		  << "     , c_tax_id" << endl
-		  << "FROM customer" << endl
-		  << "WHERE c_id = " << pOut->broker_id;
+#define TOF1Q2                                                                \
+	"SELECT c_f_name\n"                                                       \
+	"     , c_l_name\n"                                                       \
+	"     , c_tier\n"                                                         \
+	"     , c_tax_id\n"                                                       \
+	"FROM customer\n"                                                         \
+	"WHERE c_id = $1"
+
+	uint64_t cust_id = htobe64((uint64_t) pOut->cust_id);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TOF1Q2 << endl;
+		cout << "$1 = " << be64toh(cust_id) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	paramValues1[0] = (char *) &cust_id;
+
+	res = exec(TOF1Q2, 1, NULL, paramValues1, paramLengths1, paramFormats1, 0);
 
 	if (PQntuples(res) != 0) {
 		strncpy(pOut->cust_f_name, PQgetvalue(res, 0, 0), cF_NAME_len);
@@ -2272,15 +2286,21 @@ CDBConnectionClientSide::execute(
 		cout << "tax_id = " << pOut->tax_id << endl;
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT b_name" << endl
-		  << "FROM Broker" << endl
-		  << "WHERE b_id = " << pOut->broker_id;
+#define TOF1Q3                                                                \
+	"SELECT b_name\n"                                                         \
+	"FROM Broker\n"                                                           \
+	"WHERE b_id = $1"
+
+	uint64_t broker_id = htobe64((uint64_t) pOut->broker_id);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TOF1Q3 << endl;
+		cout << "$1 = " << be64toh(broker_id) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	paramValues1[0] = (char *) &broker_id;
+
+	res = exec(TOF1Q3, 1, NULL, paramValues1, paramLengths1, paramFormats1, 0);
 
 	if (PQntuples(res) != 0) {
 		strncpy(pOut->broker_name, PQgetvalue(res, 0, 0), cB_NAME_len);
