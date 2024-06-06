@@ -2363,46 +2363,57 @@ CDBConnectionClientSide::execute(
 		const TTradeOrderFrame3Input *pIn, TTradeOrderFrame3Output *pOut)
 {
 	PGresult *res = NULL;
-	ostringstream osSQL;
 
-	INT64 co_id = 0;
+	uint64_t co_id = 0;
 	char ex_id[cEX_ID_len + 1];
 
 	if (pIn->symbol[0] == '\0') {
-		char *co_name
-				= PQescapeLiteral(m_Conn, pIn->co_name, strlen(pIn->co_name));
-		osSQL << "SELECT co_id" << endl
-			  << "FROM company" << endl
-			  << "WHERE co_name = e" << co_name;
+#define TOF3Q1A                                                               \
+	"SELECT co_id\n"                                                          \
+	"FROM company\n"                                                          \
+	"WHERE co_name = $1"
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << TOF3Q1A << endl;
+			cout << "$1 = " << pIn->co_name << endl;
 		}
-		res = exec(osSQL.str().c_str());
+
+		const char *paramValues1[1] = { (char *) pIn->co_name };
+		const int paramLengths1[1] = { sizeof(char) * (cCO_NAME_len + 1) };
+		const int paramFormats1[1] = { 0 };
+
+		res = exec(TOF3Q1A, 1, NULL, paramValues1, paramLengths1,
+				paramFormats1, 0);
 
 		if (PQntuples(res) == 0) {
 			PQclear(res);
 			return;
 		}
 
-		co_id = atoll(PQgetvalue(res, 0, 0));
+		co_id = htobe64((uint64_t) atoll(PQgetvalue(res, 0, 0)));
 		PQclear(res);
 
+#define TOF3Q2A                                                               \
+	"SELECT s_ex_id\n"                                                        \
+	"     , s_name\n"                                                         \
+	"     , s_symb\n"                                                         \
+	"FROM security\n"                                                         \
+	"WHERE s_co_id = $1\n"                                                    \
+	"  AND s_issue = $2"
+
 		if (m_bVerbose) {
-			cout << "co_id = " << co_id << endl;
+			cout << TOF3Q2A << endl;
+			cout << "$1 = " << be64toh(co_id) << endl;
+			cout << "$2 = " << pIn->issue << endl;
 		}
 
-		osSQL.clear();
-		osSQL.str("");
-		osSQL << "SELECT s_ex_id" << endl
-			  << "     , s_name" << endl
-			  << "     , s_symb" << endl
-			  << "FROM security" << endl
-			  << "WHERE s_co_id = " << co_id << endl
-			  << "  AND s_issue = '" << pIn->issue << "'";
-		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
-		}
-		res = exec(osSQL.str().c_str());
+		const char *paramValues2[2] = { (char *) &co_id, pIn->issue };
+		const int paramLengths2[2]
+				= { sizeof(uint64_t), sizeof(char) * (cCO_NAME_len + 1) };
+		const int paramFormats2[2] = { 1, 0 };
+
+		res = exec(TOF3Q2A, 2, NULL, paramValues2, paramLengths2,
+				paramFormats2, 0);
 
 		if (PQntuples(res) == 0) {
 			PQclear(res);
@@ -2422,41 +2433,56 @@ CDBConnectionClientSide::execute(
 	} else {
 		strncpy(pOut->symbol, pIn->symbol, cSYMBOL_len);
 
-		osSQL << "SELECT s_co_id" << endl
-			  << "     , s_ex_id" << endl
-			  << "     , s_name" << endl
-			  << "FROM security" << endl
-			  << "WHERE s_symb = '" << pIn->symbol << "'";
+#define TOF3Q1B                                                               \
+	"SELECT s_co_id\n"                                                        \
+	"     , s_ex_id\n"                                                        \
+	"     , s_name\n"                                                         \
+	"FROM security\n"                                                         \
+	"WHERE s_symb = $1"
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << TOF3Q1B << endl;
+			cout << "$1 = " << pIn->symbol << endl;
 		}
-		res = exec(osSQL.str().c_str());
+
+		const char *paramValues1[1] = { (char *) pIn->symbol };
+		const int paramLengths1[1] = { sizeof(char) * (cSYMBOL_len + 1) };
+		const int paramFormats1[1] = { 0 };
+
+		res = exec(TOF3Q1B, 1, NULL, paramValues1, paramLengths1,
+				paramFormats1, 0);
 
 		if (PQntuples(res) == 0) {
 			PQclear(res);
 			return;
 		}
 
-		co_id = atoll(PQgetvalue(res, 0, 0));
+		co_id = htobe64((uint64_t) atoll(PQgetvalue(res, 0, 0)));
 		strncpy(ex_id, PQgetvalue(res, 0, 1), cEX_ID_len);
 		strncpy(pOut->s_name, PQgetvalue(res, 0, 2), cS_NAME_len);
 		PQclear(res);
 
 		if (m_bVerbose) {
-			cout << "co_id = " << co_id << endl;
 			cout << "ex_id = " << ex_id << endl;
 			cout << "s_name = " << pOut->s_name << endl;
 		}
 
-		osSQL.clear();
-		osSQL.str("");
-		osSQL << "SELECT co_name" << endl
-			  << "FROM company" << endl
-			  << "WHERE co_id = " << co_id;
+#define TOF3Q2B                                                               \
+	"SELECT co_name\n"                                                        \
+	"FROM company\n"                                                          \
+	"WHERE co_id = $1"
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << TOF3Q2B << endl;
+			cout << "$1 = " << be64toh(co_id) << endl;
 		}
-		res = exec(osSQL.str().c_str());
+
+		const char *paramValues2[1] = { (char *) &co_id };
+		const int paramLengths2[1] = { sizeof(uint64_t) };
+		const int paramFormats2[1] = { 1 };
+
+		res = exec(TOF3Q2B, 1, NULL, paramValues2, paramLengths2,
+				paramFormats2, 0);
 
 		if (PQntuples(res) == 0) {
 			PQclear(res);
@@ -2471,15 +2497,21 @@ CDBConnectionClientSide::execute(
 		}
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT lt_price" << endl
-		  << "FROM last_trade" << endl
-		  << "WHERE lt_s_symb = '" << pOut->symbol << "'";
+#define TOF3Q3                                                                \
+	"SELECT lt_price\n"                                                       \
+	"FROM last_trade\n"                                                       \
+	"WHERE lt_s_symb = $1"
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TOF3Q3 << endl;
+		cout << "$1 = " << pOut->symbol << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues3[1] = { pOut->symbol };
+	const int paramLengths3[1] = { sizeof(char) * (cSYMBOL_len + 1) };
+	const int paramFormats3[1] = { 0 };
+
+	res = exec(TOF3Q3, 1, NULL, paramValues3, paramLengths3, paramFormats3, 0);
 
 	if (PQntuples(res) == 0) {
 		PQclear(res);
@@ -2493,16 +2525,22 @@ CDBConnectionClientSide::execute(
 		cout << "market_price = " << pOut->market_price << endl;
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT tt_is_mrkt" << endl
-		  << "     , tt_is_sell" << endl
-		  << "FROM trade_type" << endl
-		  << "WHERE tt_id = '" << pIn->trade_type_id << "'";
+#define TOF3Q4                                                                \
+	"SELECT tt_is_mrkt\n"                                                     \
+	"     , tt_is_sell\n"                                                     \
+	"FROM trade_type\n"                                                       \
+	"WHERE tt_id = $1"
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TOF3Q4 << endl;
+		cout << "$1 = " << pIn->trade_type_id << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues4[1] = { pIn->trade_type_id };
+	const int paramLengths4[1] = { sizeof(char) * (cSYMBOL_len + 1) };
+	const int paramFormats4[1] = { 0 };
+
+	res = exec(TOF3Q4, 1, NULL, paramValues4, paramLengths4, paramFormats4, 0);
 
 	if (PQntuples(res) == 0) {
 		PQclear(res);
@@ -2527,16 +2565,26 @@ CDBConnectionClientSide::execute(
 	pOut->buy_value = pOut->sell_value = 0;
 	INT32 needed_qty = pIn->trade_qty;
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT hs_qty" << endl
-		  << "FROM holding_summary" << endl
-		  << "WHERE hs_ca_id = " << pIn->acct_id << endl
-		  << "  AND hs_s_symb = '" << pOut->symbol << "'";
+#define TOF3Q5                                                                \
+	"SELECT hs_qty\n"                                                         \
+	"FROM holding_summary\n"                                                  \
+	"WHERE hs_ca_id = $1\n"                                                   \
+	"  AND hs_s_symb = $2"
+
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TOF3Q5 << endl;
+		cout << "$1 = " << be64toh(acct_id) << endl;
+		cout << "$2 = " << pOut->symbol << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues5[2] = { (char *) &acct_id, pOut->symbol };
+	const int paramLengths5[2]
+			= { sizeof(uint64_t), sizeof(char) * (cSYMBOL_len + 1) };
+	const int paramFormats5[2] = { 1, 0 };
+
+	res = exec(TOF3Q5, 2, NULL, paramValues5, paramLengths5, paramFormats5, 0);
 
 	int hs_qty = 0;
 
@@ -2551,22 +2599,41 @@ CDBConnectionClientSide::execute(
 
 	if (pOut->type_is_sell == 1) {
 		if (hs_qty > 0) {
-			osSQL.clear();
-			osSQL.str("");
-			osSQL << "SELECT h_qty" << endl
-				  << "     , h_price" << endl
-				  << "FROM holding" << endl
-				  << "WHERE h_ca_id = " << pIn->acct_id << endl
-				  << "  AND h_s_symb = '" << pOut->symbol << "'" << endl;
 			if (pIn->is_lifo) {
-				osSQL << "ORDER BY h_dts DESC";
+#define TOF3Q6A1                                                              \
+	"SELECT h_qty\n"                                                          \
+	"     , h_price\n"                                                        \
+	"FROM holding\n"                                                          \
+	"WHERE h_ca_id = $1\n"                                                    \
+	" AND h_s_symb = $2\n"                                                    \
+	" ORDER BY h_dts DESC "
+
+				if (m_bVerbose) {
+					cout << TOF3Q6A1 << endl;
+					cout << "$1 = " << be64toh(acct_id) << endl;
+					cout << "$2 = " << pOut->symbol << endl;
+				}
+
+				res = exec(TOF3Q6A1, 2, NULL, paramValues5, paramLengths5,
+						paramFormats5, 0);
 			} else {
-				osSQL << "ORDER BY h_dts ASC";
+#define TOF3Q6A2                                                              \
+	"SELECT h_qty\n"                                                          \
+	"     , h_price\n"                                                        \
+	"FROM holding\n"                                                          \
+	"WHERE h_ca_id = $1\n"                                                    \
+	" AND h_s_symb = $2\n"                                                    \
+	" ORDER BY h_dts ASC "
+
+				if (m_bVerbose) {
+					cout << TOF3Q6A2 << endl;
+					cout << "$1 = " << be64toh(acct_id) << endl;
+					cout << "$2 = " << pOut->symbol << endl;
+				}
+
+				res = exec(TOF3Q6A2, 2, NULL, paramValues5, paramLengths5,
+						paramFormats5, 0);
 			}
-			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
-			}
-			res = exec(osSQL.str().c_str());
 
 			INT32 hold_qty;
 			double hold_price;
@@ -2595,22 +2662,41 @@ CDBConnectionClientSide::execute(
 		}
 	} else {
 		if (hs_qty < 0) {
-			osSQL.clear();
-			osSQL.str("");
-			osSQL << "SELECT h_qty" << endl
-				  << "     , h_price" << endl
-				  << "FROM holding" << endl
-				  << "WHERE h_ca_id = " << pIn->acct_id << endl
-				  << "  AND h_s_symb = '" << pOut->symbol << "'" << endl;
 			if (pIn->is_lifo) {
-				osSQL << "ORDER BY h_dts DESC";
+#define TOF3Q6B1                                                              \
+	"SELECT h_qty\n"                                                          \
+	"     , h_price\n"                                                        \
+	"FROM holding\n"                                                          \
+	"WHERE h_ca_id = $1\n"                                                    \
+	"  AND h_s_symb = $2\n"                                                   \
+	"ORDER BY h_dts DESC"
+
+				if (m_bVerbose) {
+					cout << TOF3Q6B1 << endl;
+					cout << "$1 = " << be64toh(acct_id) << endl;
+					cout << "$2 = " << pOut->symbol << endl;
+				}
+
+				res = exec(TOF3Q6B1, 2, NULL, paramValues5, paramLengths5,
+						paramFormats5, 0);
 			} else {
-				osSQL << "ORDER BY h_dts ASC";
+#define TOF3Q6B2                                                              \
+	"SELECT h_qty\n"                                                          \
+	"     , h_price\n"                                                        \
+	"FROM holding\n"                                                          \
+	"WHERE h_ca_id = $1\n"                                                    \
+	"  AND h_s_symb = $2\n"                                                   \
+	"ORDER BY h_dts ASC"
+
+				if (m_bVerbose) {
+					cout << TOF3Q6B2 << endl;
+					cout << "$1 = " << be64toh(acct_id) << endl;
+					cout << "$2 = " << pOut->symbol << endl;
+				}
+
+				res = exec(TOF3Q6B2, 2, NULL, paramValues5, paramLengths5,
+						paramFormats5, 0);
 			}
-			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
-			}
-			res = exec(osSQL.str().c_str());
 
 			INT32 hold_qty;
 			double hold_price;
@@ -2649,19 +2735,28 @@ CDBConnectionClientSide::execute(
 
 	if ((pOut->sell_value > pOut->buy_value)
 			&& ((pIn->tax_status == 1) || (pIn->tax_status == 2))) {
-		osSQL.clear();
-		osSQL.str("");
-		osSQL << "SELECT sum(tx_rate)" << endl
-			  << "FROM taxrate" << endl
-			  << "WHERE tx_id in (" << endl
-			  << "                   SELECT cx_tx_id" << endl
-			  << "                   FROM customer_taxrate" << endl
-			  << "                   WHERE cx_c_id = " << pIn->cust_id << endl
-			  << "               )";
+#define TOF3Q7                                                                \
+	"SELECT sum(tx_rate)\n"                                                   \
+	"FROM taxrate\n"                                                          \
+	"WHERE tx_id in (\n"                                                      \
+	"                   SELECT cx_tx_id\n"                                    \
+	"                   FROM customer_taxrate\n"                              \
+	"                   WHERE cx_c_id = $1\n"                                 \
+	"               )"
+
+		uint64_t cust_id = htobe64((uint64_t) pIn->cust_id);
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << TOF3Q7 << endl;
+			cout << "$1 = " << be64toh(cust_id) << endl;
 		}
-		res = exec(osSQL.str().c_str());
+
+		const char *paramValues7[2] = { (char *) &cust_id };
+		const int paramLengths7[2] = { sizeof(uint64_t) };
+		const int paramFormats7[2] = { 1 };
+
+		res = exec(TOF3Q7, 1, NULL, paramValues7, paramLengths7, paramFormats7,
+				0);
 
 		if (PQntuples(res) == 0) {
 			PQclear(res);
@@ -2677,19 +2772,34 @@ CDBConnectionClientSide::execute(
 		cout << "tax_amount = " << pOut->tax_amount << endl;
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT cr_rate" << endl
-		  << "FROM commission_rate" << endl
-		  << "WHERE cr_c_tier = " << pIn->cust_tier << endl
-		  << "  AND cr_tt_id = '" << pIn->trade_type_id << "'" << endl
-		  << "  AND cr_ex_id = '" << ex_id << "'" << endl
-		  << "  AND cr_from_qty <= " << pIn->trade_qty << endl
-		  << "  AND cr_to_qty >= " << pIn->trade_qty;
+#define TOF3Q8                                                                \
+	"SELECT cr_rate\n"                                                        \
+	"FROM commission_rate\n"                                                  \
+	"WHERE cr_c_tier = $1\n"                                                  \
+	"  AND cr_tt_id = $2\n"                                                   \
+	"  AND cr_ex_id = $3\n"                                                   \
+	"  AND cr_from_qty <= $4\n"                                               \
+	"  AND cr_to_qty >= $4"
+
+	uint16_t cust_tier = htobe16((uint16_t) pIn->cust_tier);
+	uint32_t trade_qty = htobe32((uint32_t) pIn->trade_qty);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TOF3Q8 << endl;
+		cout << "$1 = " << be16toh(cust_tier) << endl;
+		cout << "$2 = " << pIn->trade_type_id << endl;
+		cout << "$3 = " << ex_id << endl;
+		cout << "$4 = " << be32toh(trade_qty) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues8[4] = { (char *) &cust_tier, pIn->trade_type_id,
+		ex_id, (char *) &trade_qty };
+	const int paramLengths8[4]
+			= { sizeof(uint16_t), sizeof(char) * (cTT_ID_len + 1),
+				  sizeof(char) * (cEX_ID_len + 1), sizeof(uint32_t) };
+	const int paramFormats8[4] = { 1, 0, 0, 1 };
+
+	res = exec(TOF3Q8, 4, NULL, paramValues8, paramLengths8, paramFormats8, 0);
 
 	if (PQntuples(res) == 0) {
 		PQclear(res);
@@ -2703,16 +2813,19 @@ CDBConnectionClientSide::execute(
 		cout << "comm_rate = " << pOut->comm_rate << endl;
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT ch_chrg" << endl
-		  << "FROM charge" << endl
-		  << "WHERE ch_c_tier = " << pIn->cust_tier << endl
-		  << "  AND ch_tt_id = '" << pIn->trade_type_id << "'";
+#define TOF3Q9                                                                \
+	"SELECT ch_chrg\n"                                                        \
+	"FROM charge\n"                                                           \
+	"WHERE ch_c_tier = $1\n"                                                  \
+	"  AND ch_tt_id = $2"
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TOF3Q9 << endl;
+		cout << "$1 = " << be16toh(cust_tier) << endl;
+		cout << "$2 = " << pIn->trade_type_id << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	res = exec(TOF3Q9, 2, NULL, paramValues8, paramLengths8, paramFormats8, 0);
 
 	if (PQntuples(res) == 0) {
 		PQclear(res);
@@ -2731,15 +2844,18 @@ CDBConnectionClientSide::execute(
 	if (pIn->type_is_margin == 1) {
 		double acct_bal;
 
-		osSQL.clear();
-		osSQL.str("");
-		osSQL << "SELECT ca_bal" << endl
-			  << "FROM customer_account" << endl
-			  << "WHERE ca_id = " << pIn->acct_id;
+#define TOF3Q10                                                               \
+	"SELECT ca_bal\n"                                                         \
+	"FROM customer_account\n"                                                 \
+	"WHERE ca_id = $1"
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << TOF3Q10 << endl;
+			cout << "$1 = " << be64toh(acct_id) << endl;
 		}
-		res = exec(osSQL.str().c_str());
+
+		res = exec(TOF3Q10, 1, NULL, paramValues5, paramLengths5,
+				paramFormats5, 0);
 
 		if (PQntuples(res) == 0) {
 			PQclear(res);
@@ -2753,17 +2869,20 @@ CDBConnectionClientSide::execute(
 			cout << "acct_bal = " << acct_bal << endl;
 		}
 
-		osSQL.clear();
-		osSQL.str("");
-		osSQL << "SELECT sum(hs_qty * lt_price)" << endl
-			  << "FROM holding_summary" << endl
-			  << "   , last_trade" << endl
-			  << "WHERE hs_ca_id = " << pIn->acct_id << endl
-			  << "  AND lt_s_symb = hs_s_symb";
+#define TOF3Q11                                                               \
+	"SELECT sum(hs_qty * lt_price)\n"                                         \
+	"FROM holding_summary\n"                                                  \
+	"   , last_trade\n"                                                       \
+	"WHERE hs_ca_id = $1\n"                                                   \
+	"  AND lt_s_symb = hs_s_symb"
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << TOF3Q11 << endl;
+			cout << "$1 = " << be64toh(acct_id) << endl;
 		}
-		res = exec(osSQL.str().c_str());
+
+		res = exec(TOF3Q11, 1, NULL, paramValues5, paramLengths5,
+				paramFormats5, 0);
 
 		if (PQntuples(res) == 0) {
 			pOut->acct_assets = acct_bal;
