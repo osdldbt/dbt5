@@ -3817,19 +3817,28 @@ CDBConnectionClientSide::execute(
 		const TTradeResultFrame3Input *pIn, TTradeResultFrame3Output *pOut)
 {
 	PGresult *res = NULL;
-	ostringstream osSQL;
 
-	osSQL << "SELECT sum(tx_rate)" << endl
-		  << "FROM taxrate" << endl
-		  << "WHERE tx_id IN (" << endl
-		  << "                   SELECT cx_tx_id" << endl
-		  << "                   FROM customer_taxrate" << endl
-		  << "                   WHERE cx_c_id = " << pIn->cust_id << endl
-		  << "               )";
+#define TRF3Q1                                                                \
+	"SELECT sum(tx_rate)\n"                                                   \
+	"FROM taxrate\n"                                                          \
+	"WHERE tx_id IN (\n"                                                      \
+	"                   SELECT cx_tx_id\n"                                    \
+	"                   FROM customer_taxrate\n"                              \
+	"                   WHERE cx_c_id = $1\n"                                 \
+	"               )"
+
+	uint64_t cust_id = htobe64((uint64_t) pIn->cust_id);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TRF3Q1 << endl;
+		cout << "$1 = " << be64toh(cust_id) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues1[1] = { (char *) &cust_id };
+	const int paramLengths1[1] = { sizeof(uint64_t) };
+	const int paramFormats1[1] = { 1 };
+
+	res = exec(TRF3Q1, 1, NULL, paramValues1, paramLengths1, paramFormats1, 0);
 
 	if (PQntuples(res) == 0) {
 		PQclear(res);
@@ -3844,15 +3853,26 @@ CDBConnectionClientSide::execute(
 			= (pIn->sell_value - pIn->buy_value) * atof(PQgetvalue(res, 0, 0));
 	PQclear(res);
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "UPDATE trade" << endl
-		  << "SET t_tax = " << pOut->tax_amount << endl
-		  << "WHERE t_id = " << pIn->trade_id;
+#define TRF3Q2                                                                \
+	"UPDATE trade\n"                                                          \
+	"SET t_tax = $1\n"                                                        \
+	"WHERE t_id = $2"
+
+	uint64_t trade_id = htobe64((uint64_t) pIn->trade_id);
+	char t_tax[14];
+	snprintf(t_tax, 13, "%f", pOut->tax_amount);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TRF3Q2 << endl;
+		cout << "$1 = " << t_tax << endl;
+		cout << "$2 = " << be64toh(trade_id) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues2[2] = { t_tax, (char *) &trade_id };
+	const int paramLengths2[2] = { sizeof(char) * 14, sizeof(uint64_t) };
+	const int paramFormats2[2] = { 0, 1 };
+
+	res = exec(TRF3Q2, 2, NULL, paramValues2, paramLengths2, paramFormats2, 0);
 	PQclear(res);
 }
 
