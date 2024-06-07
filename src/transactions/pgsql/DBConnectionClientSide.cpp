@@ -4263,34 +4263,43 @@ CDBConnectionClientSide::execute(
 		const TTradeStatusFrame1Input *pIn, TTradeStatusFrame1Output *pOut)
 {
 	PGresult *res = NULL;
-	ostringstream osSQL;
 
-	osSQL << "SELECT t_id" << endl
-		  << "     , t_dts" << endl
-		  << "     , st_name" << endl
-		  << "     , tt_name" << endl
-		  << "     , t_s_symb" << endl
-		  << "     , t_qty" << endl
-		  << "     , t_exec_name" << endl
-		  << "     , t_chrg" << endl
-		  << "     , s_name" << endl
-		  << "     , ex_name" << endl
-		  << "FROM trade" << endl
-		  << "   , status_type" << endl
-		  << "   , trade_type" << endl
-		  << "   , security" << endl
-		  << "   , exchange" << endl
-		  << "WHERE t_ca_id = " << pIn->acct_id << endl
-		  << "  AND st_id = t_st_id" << endl
-		  << "  AND tt_id = t_tt_id" << endl
-		  << "  AND s_symb = t_s_symb" << endl
-		  << "  AND ex_id = s_ex_id" << endl
-		  << "ORDER BY t_dts DESC" << endl
-		  << "LIMIT 50";
+#define TSF1Q1                                                                \
+	"SELECT t_id\n"                                                           \
+	"     , t_dts\n"                                                          \
+	"     , st_name\n"                                                        \
+	"     , tt_name\n"                                                        \
+	"     , t_s_symb\n"                                                       \
+	"     , t_qty\n"                                                          \
+	"     , t_exec_name\n"                                                    \
+	"     , t_chrg\n"                                                         \
+	"     , s_name\n"                                                         \
+	"     , ex_name\n"                                                        \
+	"FROM trade\n"                                                            \
+	"   , status_type\n"                                                      \
+	"   , trade_type\n"                                                       \
+	"   , security\n"                                                         \
+	"   , exchange\n"                                                         \
+	"WHERE t_ca_id = $1\n"                                                    \
+	"  AND st_id = t_st_id\n"                                                 \
+	"  AND tt_id = t_tt_id\n"                                                 \
+	"  AND s_symb = t_s_symb\n"                                               \
+	"  AND ex_id = s_ex_id\n"                                                 \
+	"ORDER BY t_dts DESC\n"                                                   \
+	"LIMIT 50"
+
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TSF1Q1 << endl;
+		cout << "$1 = " << be64toh(acct_id) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues[1] = { (char *) &acct_id };
+	const int paramLengths[1] = { sizeof(uint64_t) };
+	const int paramFormats[1] = { 1 };
+
+	res = exec(TSF1Q1, 1, NULL, paramValues, paramLengths, paramFormats, 0);
 
 	if (PQntuples(res) == 0) {
 		PQclear(res);
@@ -4337,21 +4346,23 @@ CDBConnectionClientSide::execute(
 		}
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT c_l_name" << endl
-		  << "     , c_f_name" << endl
-		  << "     , b_name" << endl
-		  << "FROM customer_account" << endl
-		  << "   , customer" << endl
-		  << "   , broker" << endl
-		  << "WHERE ca_id = " << pIn->acct_id << endl
-		  << "  AND c_id = ca_c_id" << endl
-		  << "  AND b_id = ca_b_id";
+#define TSF1Q2                                                                \
+	"SELECT c_l_name\n"                                                       \
+	"     , c_f_name\n"                                                       \
+	"     , b_name\n"                                                         \
+	"FROM customer_account\n"                                                 \
+	"   , customer\n"                                                         \
+	"   , broker\n"                                                           \
+	"WHERE ca_id = $1\n"                                                      \
+	"  AND c_id = ca_c_id\n"                                                  \
+	"  AND b_id = ca_b_id"
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TSF1Q2 << endl;
+		cout << "$1 = " << be64toh(acct_id) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	res = exec(TSF1Q2, 1, NULL, paramValues, paramLengths, paramFormats, 0);
 
 	if (PQntuples(res) == 0) {
 		PQclear(res);
