@@ -118,11 +118,16 @@ CTradeLookupDB::DoTradeLookupFrame2(
 			 << m_pid << " - Trade Lookup Frame 2 (input)" << endl
 			 << m_pid << " -- acct_id: " << pIn->acct_id << endl
 			 << m_pid << " -- max_trades: " << pIn->max_trades << endl
-			 << m_pid << " -- trade_dts: " << pIn->end_trade_dts.year << "-"
-			 << pIn->end_trade_dts.month << "-" << pIn->end_trade_dts.day
-			 << " " << pIn->end_trade_dts.hour << ":"
+			 << m_pid << " -- end_trade_dts: " << pIn->end_trade_dts.year
+			 << "-" << pIn->end_trade_dts.month << "-"
+			 << pIn->end_trade_dts.day << " " << pIn->end_trade_dts.hour << ":"
 			 << pIn->end_trade_dts.minute << ":" << pIn->end_trade_dts.second
-			 << endl;
+			 << endl
+			 << m_pid << " -- start_trade_dts: " << pIn->start_trade_dts.year
+			 << "-" << pIn->start_trade_dts.month << "-"
+			 << pIn->start_trade_dts.day << " " << pIn->start_trade_dts.hour
+			 << ":" << pIn->start_trade_dts.minute << ":"
+			 << pIn->start_trade_dts.second << endl;
 	}
 
 	startTransaction();
@@ -212,17 +217,17 @@ CTradeLookupDB::DoTradeLookupFrame3(
 	if (m_bVerbose) {
 		cout << m_pid << " <<< TLF3" << endl
 			 << m_pid << " - Trade Lookup Frame 3 (input)" << endl
-			 << m_pid << " -- trade_dts: " << pIn->end_trade_dts.year << "-"
-			 << pIn->end_trade_dts.month << "-" << pIn->end_trade_dts.day
-			 << " " << pIn->end_trade_dts.hour << ":"
+			 << m_pid << " -- end_trade_dts: " << pIn->end_trade_dts.year
+			 << "-" << pIn->end_trade_dts.month << "-"
+			 << pIn->end_trade_dts.day << " " << pIn->end_trade_dts.hour << ":"
 			 << pIn->end_trade_dts.minute << ":" << pIn->end_trade_dts.second
 			 << endl
 			 << m_pid << " -- max_acct_id: " << pIn->max_acct_id << endl
 			 << m_pid << " -- max_trades: " << pIn->max_trades << endl
-			 << m_pid << " -- trade_dts: " << pIn->start_trade_dts.year << "-"
-			 << pIn->start_trade_dts.month << "-" << pIn->start_trade_dts.day
-			 << " " << pIn->start_trade_dts.hour << ":"
-			 << pIn->start_trade_dts.minute << ":"
+			 << m_pid << " -- start_trade_dts: " << pIn->start_trade_dts.year
+			 << "-" << pIn->start_trade_dts.month << "-"
+			 << pIn->start_trade_dts.day << " " << pIn->start_trade_dts.hour
+			 << ":" << pIn->start_trade_dts.minute << ":"
 			 << pIn->start_trade_dts.second << endl
 			 << m_pid << " -- symbol: " << pIn->symbol << endl;
 	}
@@ -328,7 +333,7 @@ CTradeLookupDB::DoTradeLookupFrame4(
 		cout << m_pid << " <<< TLF4" << endl
 			 << m_pid << " - Trade Lookup Frame 4 (input)" << endl
 			 << m_pid << " -- acct_id: " << pIn->acct_id << endl
-			 << m_pid << " -- start_trade_dts: " << pIn->trade_dts.year << "-"
+			 << m_pid << " -- trade_dts: " << pIn->trade_dts.year << "-"
 			 << pIn->trade_dts.month << "-" << pIn->trade_dts.day << " "
 			 << pIn->trade_dts.hour << ":" << pIn->trade_dts.minute << ":"
 			 << pIn->trade_dts.second << endl;
