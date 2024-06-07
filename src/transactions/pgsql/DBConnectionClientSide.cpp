@@ -3207,7 +3207,6 @@ CDBConnectionClientSide::execute(
 		const TTradeResultFrame2Input *pIn, TTradeResultFrame2Output *pOut)
 {
 	PGresult *res = NULL;
-	ostringstream osSQL;
 
 	pOut->buy_value = pOut->sell_value = 0;
 	INT32 needed_qty = pIn->trade_qty;
@@ -3220,16 +3219,26 @@ CDBConnectionClientSide::execute(
 			&pOut->trade_dts.fraction);
 	PQclear(res);
 
-	osSQL << "SELECT ca_b_id" << endl
-		  << "     , ca_c_id" << endl
-		  << "     , ca_tax_st" << endl
-		  << "FROM customer_account" << endl
-		  << "WHERE ca_id = " << pIn->acct_id << endl
-		  << "FOR UPDATE";
+#define TRF2Q2                                                                \
+	"SELECT ca_b_id\n"                                                        \
+	"     , ca_c_id\n"                                                        \
+	"     , ca_tax_st\n"                                                      \
+	"FROM customer_account\n"                                                 \
+	"WHERE ca_id = $1\n"                                                      \
+	"FOR UPDATE"
+
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TRF2Q2 << endl;
+		cout << "$1 = " << be64toh(acct_id) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues1[1] = { (char *) &acct_id };
+	const int paramLengths1[1] = { sizeof(uint64_t) };
+	const int paramFormats1[1] = { 1 };
+
+	res = exec(TRF2Q2, 1, NULL, paramValues1, paramLengths1, paramFormats1, 0);
 
 	if (PQntuples(res) == 0) {
 		PQclear(res);
@@ -3247,65 +3256,170 @@ CDBConnectionClientSide::execute(
 		cout << "tax_status = " << pOut->tax_status << endl;
 	}
 
+	uint64_t trade_id = htobe64((uint64_t) pIn->trade_id);
+
+#define TRF2Q3A                                                               \
+	"INSERT INTO holding_summary(\n"                                          \
+	"    hs_ca_id\n"                                                          \
+	"  , hs_s_symb\n"                                                         \
+	"  , hs_qty\n"                                                            \
+	")\n"                                                                     \
+	"VALUES(\n"                                                               \
+	"    $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	")"
+
+#define TRF2Q3B                                                               \
+	"UPDATE holding_summary\n"                                                \
+	"SET hs_qty = $1\n"                                                       \
+	"WHERE hs_ca_id = $2\n"                                                   \
+	"  AND hs_s_symb = $3"
+
+#define TRF2Q3C1                                                              \
+	"SELECT h_t_id\n"                                                         \
+	"     , h_qty\n"                                                          \
+	"     , h_price\n"                                                        \
+	"FROM holding\n"                                                          \
+	"WHERE h_ca_id = $1\n"                                                    \
+	"  AND h_s_symb = $2\n"                                                   \
+	"ORDER BY h_dts DESC\n"                                                   \
+	"FOR UPDATE"
+
+#define TRF2Q3C2                                                              \
+	"SELECT h_t_id\n"                                                         \
+	"     , h_qty\n"                                                          \
+	"     , h_price\n"                                                        \
+	"FROM holding\n"                                                          \
+	"WHERE h_ca_id = $1\n"                                                    \
+	"  AND h_s_symb = $2\n"                                                   \
+	"ORDER BY h_dts DESC\n"                                                   \
+	"FOR UPDATE"
+
+#define TRF2Q4                                                                \
+	"INSERT INTO holding_history(\n"                                          \
+	"    hh_h_t_id\n"                                                         \
+	"  , hh_t_id\n"                                                           \
+	"  , hh_before_qty\n"                                                     \
+	"  , hh_after_qty\n"                                                      \
+	")\n"                                                                     \
+	"VALUES(\n"                                                               \
+	"    $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	"  , $4\n"                                                                \
+	")"
+
+#define TRF2Q5                                                                \
+	"UPDATE holding\n"                                                        \
+	"SET h_qty = $1\n"                                                        \
+	"WHERE h_t_id = $2"
+
+#define TRF2Q6                                                                \
+	"DELETE FROM holding\n"                                                   \
+	"WHERE h_t_id = $1"
+
+#define TRF2Q7                                                                \
+	"INSERT INTO holding(\n"                                                  \
+	"    h_t_id\n"                                                            \
+	"  , h_ca_id\n"                                                           \
+	"  , h_s_symb\n"                                                          \
+	"  , h_dts\n"                                                             \
+	"  , h_price\n"                                                           \
+	"  , h_qty)\n"                                                            \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	"  , CURRENT_TIMESTAMP\n"                                                 \
+	"  , $4\n"                                                                \
+	"  , $5\n"                                                                \
+	")"
+
+#define TRF2Q8                                                                \
+	"DELETE FROM holding_summary\n"                                           \
+	"WHERE hs_ca_id = $1\n"                                                   \
+	"  AND hs_s_symb = $2"
+
 	if (pIn->type_is_sell) {
 		if (pIn->hs_qty == 0) {
-			osSQL.clear();
-			osSQL.str("");
-			osSQL << "INSERT INTO holding_summary(" << endl
-				  << "    hs_ca_id" << endl
-				  << "  , hs_s_symb" << endl
-				  << "  , hs_qty" << endl
-				  << ")" << endl
-				  << "VALUES(" << endl
-				  << "    " << pIn->acct_id << endl
-				  << "  , '" << pIn->symbol << "'" << endl
-				  << "  , -" << pIn->trade_qty << endl
-				  << ")";
+			uint32_t trade_qty = htobe32((uint32_t) (-1 * pIn->trade_qty));
+
 			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
+				cout << TRF2Q3A << endl;
+				cout << "$1 = " << be64toh(acct_id) << endl;
+				cout << "$2 = " << pIn->symbol << endl;
+				cout << "$3 = " << be32toh(trade_qty) << endl;
 			}
-			res = exec(osSQL.str().c_str());
+
+			const char *paramValues2[3]
+					= { (char *) &acct_id, pIn->symbol, (char *) &trade_qty };
+			const int paramLengths2[3] = { sizeof(uint64_t),
+				sizeof(char) * (cSYMBOL_len + 1), sizeof(uint32_t) };
+			const int paramFormats2[3] = { 1, 0, 1 };
+
+			res = exec(TRF2Q3A, 3, NULL, paramValues2, paramLengths2,
+					paramFormats2, 0);
 			PQclear(res);
 		} else if (pIn->hs_qty != pIn->trade_qty) {
-			osSQL.clear();
-			osSQL.str("");
-			osSQL << "UPDATE holding_summary" << endl
-				  << "SET hs_qty = " << pIn->hs_qty << " - " << pIn->trade_qty
-				  << endl
-				  << "WHERE hs_ca_id = " << pIn->acct_id << endl
-				  << "  AND hs_s_symb = '" << pIn->symbol << "'";
+			uint32_t hs_qty
+					= htobe32((uint32_t) (pIn->trade_qty - pIn->trade_qty));
+
 			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
+				cout << TRF2Q3B << endl;
+				cout << "$1 = " << be32toh(hs_qty) << endl;
+				cout << "$2 = " << be64toh(acct_id) << endl;
+				cout << "$3 = " << pIn->symbol << endl;
 			}
-			res = exec(osSQL.str().c_str());
+
+			const char *paramValues2[3]
+					= { (char *) &hs_qty, (char *) &acct_id, pIn->symbol };
+			const int paramLengths2[3] = { sizeof(uint32_t), sizeof(uint64_t),
+				sizeof(char) * (cSYMBOL_len + 1) };
+			const int paramFormats2[3] = { 1, 1, 0 };
+
+			res = exec(TRF2Q3B, 3, NULL, paramValues2, paramLengths2,
+					paramFormats2, 0);
 			PQclear(res);
 		} else if (pIn->hs_qty > 0) {
-			osSQL.clear();
-			osSQL.str("");
-			osSQL << "SELECT h_t_id" << endl
-				  << "     , h_qty" << endl
-				  << "     , h_price" << endl
-				  << "FROM holding" << endl
-				  << "WHERE h_ca_id = " << pIn->acct_id << endl
-				  << "  AND h_s_symb = '" << pIn->symbol << "'" << endl;
 			if (pIn->is_lifo) {
-				osSQL << "ORDER BY h_dts DESC" << endl;
-			} else {
-				osSQL << "ORDER BY h_dts ASC" << endl;
-			}
-			osSQL << "FOR UPDATE";
-			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
-			}
-			res = exec(osSQL.str().c_str());
+				if (m_bVerbose) {
+					cout << TRF2Q3C1 << endl;
+				}
 
+				const char *paramValues2[2]
+						= { (char *) &acct_id, pIn->symbol };
+				const int paramLengths2[2] = { sizeof(uint64_t),
+					sizeof(char) * (cSYMBOL_len + 1) };
+				const int paramFormats2[2] = { 1, 0 };
+
+				res = exec(TRF2Q3C1, 2, NULL, paramValues2, paramLengths2,
+						paramFormats2, 0);
+			} else {
+				if (m_bVerbose) {
+					cout << TRF2Q3C2 << endl;
+					cout << "$1 = " << be64toh(acct_id) << endl;
+					cout << "$2 = " << pIn->symbol << endl;
+				}
+
+				const char *paramValues2[2]
+						= { (char *) &acct_id, pIn->symbol };
+				const int paramLengths2[2] = { sizeof(uint64_t),
+					sizeof(char) * (cSYMBOL_len + 1) };
+				const int paramFormats2[2] = { 1, 0 };
+
+				res = exec(TRF2Q3C2, 2, NULL, paramValues2, paramLengths2,
+						paramFormats2, 0);
+			}
+
+            PGresult *res2 = NULL;
 			int count = PQntuples(res);
-			PGresult *res2 = NULL;
 			for (int i = 0; i < count; i++) {
 				if (needed_qty == 0)
 					break;
 
-				char *hold_id = PQgetvalue(res, i, 0);
+				uint64_t hold_id
+						= htobe64((uint64_t) atoll(PQgetvalue(res, i, 0)));
 				INT32 hold_qty = atoi(PQgetvalue(res, i, 1));
 				double hold_price = atof(PQgetvalue(res, i, 2));
 
@@ -3314,68 +3428,79 @@ CDBConnectionClientSide::execute(
 					cout << "hold_qty[" << i << "] = " << hold_qty << endl;
 					cout << "hold_price[" << i << "] = " << hold_price << endl;
 				}
+				uint32_t before_qty = htobe32((uint32_t) hold_qty);
 
 				if (hold_qty > needed_qty) {
-					osSQL.clear();
-					osSQL.str("");
-					osSQL << "INSERT INTO holding_history(" << endl
-						  << "    hh_h_t_id" << endl
-						  << "  , hh_t_id" << endl
-						  << "  , hh_before_qty" << endl
-						  << "  , hh_after_qty" << endl
-						  << ")" << endl
-						  << "VALUES(" << endl
-						  << "    " << hold_id << endl
-						  << "  , " << pIn->trade_id << endl
-						  << "  , " << hold_qty << endl
-						  << "  , " << hold_qty - needed_qty << endl
-						  << ")";
+					uint32_t after_qty
+							= htobe32((uint32_t) (hold_qty - needed_qty));
+
 					if (m_bVerbose) {
-						cout << osSQL.str() << endl;
+						cout << TRF2Q4 << endl;
+						cout << "$1 = " << be64toh(hold_id) << endl;
+						cout << "$2 = " << be64toh(trade_id) << endl;
+						cout << "$3 = " << be32toh(before_qty) << endl;
+						cout << "$4 = " << be32toh(after_qty) << endl;
 					}
-					res2 = exec(osSQL.str().c_str());
+
+					const char *paramValues3[4]
+							= { (char *) &hold_id, (char *) &trade_id,
+								  (char *) &before_qty, (char *) &after_qty };
+					const int paramLengths3[4] = { sizeof(uint64_t),
+						sizeof(uint64_t), sizeof(uint32_t), sizeof(uint32_t) };
+					const int paramFormats3[4] = { 1, 1, 1, 1 };
+
+					res2 = exec(TRF2Q4, 4, NULL, paramValues3, paramLengths3,
+							paramFormats3, 0);
 					PQclear(res2);
 
-					osSQL.clear();
-					osSQL.str("");
-					osSQL << "UPDATE holding" << endl
-						  << "SET h_qty = " << hold_qty - needed_qty << endl
-						  << "WHERE h_t_id = " << hold_id;
 					if (m_bVerbose) {
-						cout << osSQL.str() << endl;
+						cout << TRF2Q5 << endl;
+						cout << "$1 = " << be32toh(after_qty) << endl;
+						cout << "$2 = " << be64toh(hold_id) << endl;
 					}
-					res2 = exec(osSQL.str().c_str());
+
+					const char *paramValues4[2]
+							= { (char *) &after_qty, (char *) &hold_id };
+					const int paramLengths4[2]
+							= { sizeof(uint32_t), sizeof(uint64_t) };
+					const int paramFormats4[2] = { 1, 1 };
+
+					res2 = exec(TRF2Q5, 2, NULL, paramValues4, paramLengths4,
+							paramFormats4, 0);
 					PQclear(res2);
 
 					pOut->buy_value += (double) needed_qty * hold_price;
 					pOut->sell_value += (double) needed_qty * pIn->trade_price;
 					needed_qty = 0;
 				} else {
-					osSQL.clear();
-					osSQL.str("");
-					osSQL << "INSERT INTO holding_history(" << endl
-						  << "    hh_h_t_id" << endl
-						  << "  , hh_t_id" << endl
-						  << "  , hh_before_qty" << endl
-						  << "  , hh_after_qty" << endl
-						  << ")" << endl
-						  << "VALUES(" << endl
-						  << "    " << hold_id << endl
-						  << "  , " << pIn->trade_id << endl
-						  << "  , " << hold_qty << endl
-						  << "  , 0" << endl
-						  << ")";
+					uint32_t after_qty = 0;
+
 					if (m_bVerbose) {
-						cout << osSQL.str() << endl;
+						cout << TRF2Q4 << endl;
+						cout << "$1 = " << be64toh(hold_id) << endl;
+						cout << "$2 = " << be64toh(trade_id) << endl;
+						cout << "$3 = " << be32toh(before_qty) << endl;
+						cout << "$4 = " << be32toh(after_qty) << endl;
 					}
-					res2 = exec(osSQL.str().c_str());
+
+					const char *paramValues3[4]
+							= { (char *) &hold_id, (char *) &trade_id,
+								  (char *) &before_qty, (char *) &after_qty };
+					const int paramLengths3[4] = { sizeof(uint64_t),
+						sizeof(uint64_t), sizeof(uint32_t), sizeof(uint32_t) };
+					const int paramFormats3[4] = { 1, 1, 1, 1 };
+
+					res2 = exec(TRF2Q4, 4, NULL, paramValues3, paramLengths3,
+							paramFormats3, 0);
 					PQclear(res2);
 
-					osSQL.clear();
-					osSQL.str("");
-					osSQL << "DELETE FROM holding" << endl
-						  << "WHERE h_t_id = " << hold_id;
-					res2 = exec(osSQL.str().c_str());
+					if (m_bVerbose) {
+						cout << TRF2Q6 << endl;
+						cout << "$1 = " << be64toh(hold_id) << endl;
+					}
+
+					res2 = exec(TRF2Q6, 1, NULL, paramValues3, paramLengths3,
+							paramFormats3, 0);
 					PQclear(res2);
 
 					pOut->buy_value += (double) hold_qty * hold_price;
@@ -3387,122 +3512,150 @@ CDBConnectionClientSide::execute(
 		}
 
 		if (needed_qty > 0) {
-			PGresult *res2 = NULL;
+			uint32_t before_qty = 0;
+			uint32_t after_qty = htobe32((uint32_t) (-1 * needed_qty));
 
-			osSQL.clear();
-			osSQL.str("");
-			osSQL << "INSERT INTO holding_history(" << endl
-				  << "    hh_h_t_id" << endl
-				  << "  , hh_t_id" << endl
-				  << "  , hh_before_qty" << endl
-				  << "  , hh_after_qty" << endl
-				  << ")" << endl
-				  << "VALUES(" << endl
-				  << "    " << pIn->trade_id << endl
-				  << "  , " << pIn->trade_id << endl
-				  << "  , 0" << endl
-				  << "  , -1 * " << needed_qty << endl
-				  << ")";
 			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
+				cout << TRF2Q4 << endl;
+				cout << "$1 = " << be64toh(trade_id) << endl;
+				cout << "$2 = " << be64toh(trade_id) << endl;
+				cout << "$3 = " << be32toh(before_qty) << endl;
+				cout << "$4 = " << be32toh(after_qty) << endl;
 			}
-			res2 = exec(osSQL.str().c_str());
-			PQclear(res2);
 
-			osSQL.clear();
-			osSQL.str("");
-			osSQL << "INSERT INTO holding(" << endl
-				  << "    h_t_id" << endl
-				  << "  , h_ca_id" << endl
-				  << "  , h_s_symb" << endl
-				  << "  , h_dts" << endl
-				  << "  , h_price" << endl
-				  << "  , h_qty)" << endl
-				  << "VALUES (" << endl
-				  << "    " << pIn->trade_id << endl
-				  << "  , " << pIn->acct_id << endl
-				  << "  , '" << pIn->symbol << "'" << endl
-				  << "  , CURRENT_TIMESTAMP" << endl
-				  << "  , " << pIn->trade_price << endl
-				  << "  , -1 * " << needed_qty << endl
-				  << ")";
+			const char *paramValues3[4]
+					= { (char *) &trade_id, (char *) &trade_id,
+						  (char *) &before_qty, (char *) &after_qty };
+			const int paramLengths3[4] = { sizeof(uint64_t), sizeof(uint64_t),
+				sizeof(uint32_t), sizeof(uint32_t) };
+			const int paramFormats3[4] = { 1, 1, 1, 1 };
+
+			res = exec(TRF2Q4, 4, NULL, paramValues3, paramLengths3,
+					paramFormats3, 0);
+			PQclear(res);
+
+			char h_price[14];
+			snprintf(h_price, 13, "%f", pIn->trade_price);
+			uint32_t h_qty = htobe32((uint32_t) (-1 * needed_qty));
+
 			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
+				cout << TRF2Q7 << endl;
+				cout << "$1 = " << be64toh(trade_id) << endl;
+				cout << "$2 = " << be64toh(acct_id) << endl;
+				cout << "$3 = " << pIn->symbol << endl;
+				cout << "$4 = " << h_price << endl;
+				cout << "$5 = " << be32toh(h_qty) << endl;
 			}
-			res2 = exec(osSQL.str().c_str());
-			PQclear(res2);
+
+			const char *paramValues6[5] = { (char *) &trade_id,
+				(char *) &acct_id, pIn->symbol, h_price, (char *) &h_qty };
+			const int paramLengths6[5] = { sizeof(uint64_t), sizeof(uint64_t),
+				sizeof(char) * (cSYMBOL_len + 1), sizeof(char) * 14,
+				sizeof(uint32_t) };
+			const int paramFormats6[5] = { 1, 1, 0, 0, 1 };
+
+			res = exec(TRF2Q7, 5, NULL, paramValues6, paramLengths6,
+					paramFormats6, 0);
+			PQclear(res);
 		} else if (pIn->hs_qty == pIn->trade_qty) {
-			osSQL.clear();
-			osSQL.str("");
-			osSQL << "DELETE FROM holding_summary" << endl
-				  << "WHERE hs_ca_id = " << pIn->acct_id << endl
-				  << "  AND hs_s_symb = '" << pIn->symbol << "'";
-			PGresult *res2 = exec(osSQL.str().c_str());
-			PQclear(res2);
+			if (m_bVerbose) {
+				cout << TRF2Q8 << endl;
+				cout << "$1 = " << be64toh(acct_id) << endl;
+				cout << "$2 = " << pIn->symbol << endl;
+			}
+
+			const char *paramValues2[2] = { (char *) &acct_id, pIn->symbol };
+			const int paramLengths2[2]
+					= { sizeof(uint64_t), sizeof(char) * (cSYMBOL_len + 1) };
+			const int paramFormats2[2] = { 1, 0 };
+
+			res = exec(TRF2Q8, 2, NULL, paramValues2, paramLengths2,
+					paramFormats2, 0);
+			PQclear(res);
 		}
 	} else {
-		PGresult *res2 = NULL;
 		if (pIn->hs_qty == 0) {
-			osSQL.clear();
-			osSQL.str("");
-			osSQL << "INSERT INTO holding_summary(" << endl
-				  << "    hs_ca_id" << endl
-				  << "  , hs_s_symb" << endl
-				  << "  , hs_qty" << endl
-				  << ")" << endl
-				  << "VALUES (" << endl
-				  << "    " << pIn->acct_id << endl
-				  << "  , '" << pIn->symbol << "'" << endl
-				  << "  , " << pIn->trade_qty << endl
-				  << ")";
+			uint32_t trade_qty = htobe32((uint32_t) pIn->trade_qty);
+
 			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
+				cout << TRF2Q3A << endl;
+				cout << "$1 = " << be64toh(acct_id) << endl;
+				cout << "$2 = " << pIn->symbol << endl;
+				cout << "$3 = " << be32toh(trade_qty) << endl;
 			}
-			res2 = exec(osSQL.str().c_str());
-			PQclear(res2);
+
+			const char *paramValues2[3]
+					= { (char *) &acct_id, pIn->symbol, (char *) &trade_qty };
+			const int paramLengths2[3] = { sizeof(uint64_t),
+				sizeof(char) * (cSYMBOL_len + 1), sizeof(uint32_t) };
+			const int paramFormats2[3] = { 1, 0, 1 };
+
+			res = exec(TRF2Q3A, 3, NULL, paramValues2, paramLengths2,
+					paramFormats2, 0);
+			PQclear(res);
 		} else if ((-1 * pIn->hs_qty) != pIn->trade_qty) {
-			osSQL.clear();
-			osSQL.str("");
-			osSQL << "UPDATE holding_summary" << endl
-				  << "SET hs_qty = " << pIn->hs_qty + pIn->trade_qty << endl
-				  << "WHERE hs_ca_id = " << pIn->acct_id << endl
-				  << "  AND hs_s_symb = '" << pIn->symbol << "'";
+			uint32_t hs_qty
+					= htobe32((uint32_t) (pIn->hs_qty + pIn->trade_qty));
+
 			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
+				cout << TRF2Q3B << endl;
+				cout << "$1 = " << be32toh(hs_qty) << endl;
+				cout << "$2 = " << be64toh(acct_id) << endl;
+				cout << "$3 = " << pIn->symbol << endl;
 			}
-			res2 = exec(osSQL.str().c_str());
-			PQclear(res2);
+
+			const char *paramValues2[3]
+					= { (char *) &hs_qty, (char *) &acct_id, pIn->symbol };
+			const int paramLengths2[3] = { sizeof(uint32_t), sizeof(uint64_t),
+				sizeof(char) * (cSYMBOL_len + 1) };
+			const int paramFormats2[3] = { 1, 1, 0 };
+
+			res = exec(TRF2Q3B, 3, NULL, paramValues2, paramLengths2,
+					paramFormats2, 0);
+			PQclear(res);
 		}
 
 		if (pIn->hs_qty < 0) {
-			osSQL.clear();
-			osSQL.str("");
-			osSQL << "SELECT h_t_id" << endl
-				  << "     , h_qty" << endl
-				  << "     , h_price" << endl
-				  << "FROM holding" << endl
-				  << "WHERE h_ca_id = " << pIn->acct_id << endl
-				  << "  AND h_s_symb = '" << pIn->symbol << "'" << endl;
 			if (pIn->is_lifo) {
-				osSQL << "ORDER BY h_dts DESC" << endl;
+				if (m_bVerbose) {
+					cout << TRF2Q3C1 << endl;
+				}
+
+				const char *paramValues2[2]
+						= { (char *) &acct_id, pIn->symbol };
+				const int paramLengths2[2] = { sizeof(uint64_t),
+					sizeof(char) * (cSYMBOL_len + 1) };
+				const int paramFormats2[2] = { 1, 0 };
+
+				res = exec(TRF2Q3C1, 2, NULL, paramValues2, paramLengths2,
+						paramFormats2, 0);
 			} else {
-				osSQL << "ORDER BY h_dts ASC" << endl;
-			}
-			osSQL << "FOR UPDATE";
-			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
-			}
-			res = exec(osSQL.str().c_str());
+				if (m_bVerbose) {
+					cout << TRF2Q3C2 << endl;
+					cout << "$1 = " << be64toh(acct_id) << endl;
+					cout << "$2 = " << pIn->symbol << endl;
+				}
 
+				const char *paramValues2[2]
+						= { (char *) &acct_id, pIn->symbol };
+				const int paramLengths2[2] = { sizeof(uint64_t),
+					sizeof(char) * (cSYMBOL_len + 1) };
+				const int paramFormats2[2] = { 1, 0 };
+
+				res = exec(TRF2Q3C2, 2, NULL, paramValues2, paramLengths2,
+						paramFormats2, 0);
+			}
+
+            PGresult *res2 = NULL;
 			int count = PQntuples(res);
-			PGresult *res2 = NULL;
 			for (int i = 0; i < count; i++) {
-				if (needed_qty == 0)
-					break;
+                if (needed_qty == 0)
+                    break;
 
-				char *hold_id = PQgetvalue(res, 0, 0);
-				INT32 hold_qty = atoi(PQgetvalue(res, 0, 1));
-				double hold_price = atof(PQgetvalue(res, 0, 2));
+				uint64_t hold_id
+						= htobe64((uint64_t) atoll(PQgetvalue(res, i, 0)));
+				INT32 hold_qty = atoi(PQgetvalue(res, i, 1));
+				double hold_price = atof(PQgetvalue(res, i, 2));
 
 				if (m_bVerbose) {
 					cout << "hold_id[" << i << "] = " << hold_id << endl;
@@ -3511,69 +3664,78 @@ CDBConnectionClientSide::execute(
 				}
 
 				if (hold_qty + needed_qty < 0) {
-					osSQL.clear();
-					osSQL.str("");
-					osSQL << "INSERT INTO holding_history(" << endl
-						  << "    hh_h_t_id" << endl
-						  << "  , hh_t_id" << endl
-						  << "  , hh_before_qty" << endl
-						  << "  , hh_after_qty" << endl
-						  << ")" << endl
-						  << "VALUES(" << endl
-						  << "    " << hold_id << endl
-						  << "  , " << pIn->trade_id << endl
-						  << "  , " << hold_qty << endl
-						  << "  , " << hold_qty + needed_qty << endl
-						  << ")";
+					uint32_t before_qty = htobe32((uint32_t) (hold_qty));
+					uint32_t after_qty
+							= htobe32((uint32_t) (hold_qty + needed_qty));
+
 					if (m_bVerbose) {
-						cout << osSQL.str() << endl;
+						cout << TRF2Q4 << endl;
+						cout << "$1 = " << be64toh(hold_id) << endl;
+						cout << "$2 = " << be64toh(trade_id) << endl;
+						cout << "$3 = " << be32toh(before_qty) << endl;
+						cout << "$4 = " << be32toh(after_qty) << endl;
 					}
-					res2 = exec(osSQL.str().c_str());
+
+					const char *paramValues3[4]
+							= { (char *) &hold_id, (char *) &trade_id,
+								  (char *) &before_qty, (char *) &after_qty };
+					const int paramLengths3[4] = { sizeof(uint64_t),
+						sizeof(uint64_t), sizeof(uint32_t), sizeof(uint32_t) };
+					const int paramFormats3[4] = { 1, 1, 1, 1 };
+
+					res2 = exec(TRF2Q4, 4, NULL, paramValues3, paramLengths3,
+							paramFormats3, 0);
 					PQclear(res2);
 
-					osSQL.clear();
-					osSQL.str("");
-					osSQL << "UPDATE holding" << endl
-						  << "SET h_qty = " << hold_qty + needed_qty << endl
-						  << "WHERE h_t_id = " << hold_id;
 					if (m_bVerbose) {
-						cout << osSQL.str() << endl;
+						cout << TRF2Q5 << endl;
+						cout << "$1 = " << be32toh(after_qty) << endl;
+						cout << "$2 = " << be64toh(hold_id) << endl;
 					}
-					res2 = exec(osSQL.str().c_str());
+
+					const char *paramValues4[2]
+							= { (char *) &after_qty, (char *) &hold_id };
+					const int paramLengths4[2]
+							= { sizeof(uint32_t), sizeof(uint64_t) };
+					const int paramFormats4[2] = { 1, 1 };
+
+					res2 = exec(TRF2Q5, 2, NULL, paramValues4, paramLengths4,
+							paramFormats4, 0);
 					PQclear(res2);
 
 					pOut->sell_value += (double) needed_qty * hold_price;
 					pOut->buy_value += (double) needed_qty * pIn->trade_price;
 					needed_qty = 0;
 				} else {
-					osSQL.clear();
-					osSQL.str("");
-					osSQL << "INSERT INTO holding_history(" << endl
-						  << "    hh_h_t_id" << endl
-						  << "  , hh_t_id" << endl
-						  << "  , hh_before_qty" << endl
-						  << "  , hh_after_qty" << endl
-						  << ")" << endl
-						  << "VALUES(" << endl
-						  << "    " << hold_id << endl
-						  << "  , " << pIn->trade_id << endl
-						  << "  , " << hold_qty << endl
-						  << "  , 0" << endl
-						  << ")";
+					uint32_t before_qty = htobe32((uint32_t) hold_qty);
+					uint32_t after_qty = 0;
+
 					if (m_bVerbose) {
-						cout << osSQL.str() << endl;
+						cout << TRF2Q4 << endl;
+						cout << "$1 = " << be64toh(hold_id) << endl;
+						cout << "$2 = " << be64toh(trade_id) << endl;
+						cout << "$3 = " << be32toh(before_qty) << endl;
+						cout << "$4 = " << be32toh(after_qty) << endl;
 					}
-					res2 = exec(osSQL.str().c_str());
+
+					const char *paramValues3[4]
+							= { (char *) &hold_id, (char *) &trade_id,
+								  (char *) &before_qty, (char *) &after_qty };
+					const int paramLengths3[4] = { sizeof(uint64_t),
+						sizeof(uint64_t), sizeof(uint32_t), sizeof(uint32_t) };
+					const int paramFormats3[4] = { 1, 1, 1, 1 };
+
+					res2 = exec(TRF2Q4, 4, NULL, paramValues3, paramLengths3,
+							paramFormats3, 0);
 					PQclear(res2);
 
-					osSQL.clear();
-					osSQL.str("");
-					osSQL << "DELETE FROM holding" << endl
-						  << "WHERE h_t_id = " << hold_id;
 					if (m_bVerbose) {
-						cout << osSQL.str() << endl;
+						cout << TRF2Q6 << endl;
+						cout << "$1 = " << be64toh(hold_id) << endl;
 					}
-					res2 = exec(osSQL.str().c_str());
+
+					res2 = exec(TRF2Q6, 1, NULL, paramValues3, paramLengths3,
+							paramFormats3, 0);
 					PQclear(res2);
 
 					hold_qty *= -1;
@@ -3586,59 +3748,66 @@ CDBConnectionClientSide::execute(
 		}
 
 		if (needed_qty > 0) {
-			osSQL.clear();
-			osSQL.str("");
-			osSQL << "INSERT INTO holding_history(" << endl
-				  << "    hh_h_t_id" << endl
-				  << "  , hh_t_id" << endl
-				  << "  , hh_before_qty" << endl
-				  << "  , hh_after_qty" << endl
-				  << ")" << endl
-				  << "VALUES(" << endl
-				  << "    " << pIn->trade_id << endl
-				  << "  , " << pIn->trade_id << endl
-				  << "  , 0" << endl
-				  << "  , " << needed_qty << endl
-				  << ")";
-			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
-			}
-			res2 = exec(osSQL.str().c_str());
-			PQclear(res2);
+			uint32_t before_qty = 0;
+			uint32_t after_qty = htobe32((uint32_t) needed_qty);
 
-			osSQL.clear();
-			osSQL.str("");
-			osSQL << "INSERT INTO holding(" << endl
-				  << "    h_t_id" << endl
-				  << "  , h_ca_id" << endl
-				  << "  , h_s_symb" << endl
-				  << "  , h_dts" << endl
-				  << "  , h_price" << endl
-				  << "  , h_qty)" << endl
-				  << "VALUES (" << endl
-				  << "    " << pIn->trade_id << endl
-				  << "  , " << pIn->acct_id << endl
-				  << "  , '" << pIn->symbol << "'" << endl
-				  << "  , CURRENT_TIMESTAMP" << endl
-				  << "  , " << pIn->trade_price << endl
-				  << "  , " << needed_qty << endl
-				  << ")";
 			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
+				cout << TRF2Q4 << endl;
+				cout << "$1 = " << be64toh(trade_id) << endl;
+				cout << "$2 = " << be64toh(trade_id) << endl;
+				cout << "$3 = " << be32toh(before_qty) << endl;
+				cout << "$4 = " << be32toh(after_qty) << endl;
 			}
-			res2 = exec(osSQL.str().c_str());
-			PQclear(res2);
+
+			const char *paramValues3[4]
+					= { (char *) &trade_id, (char *) &trade_id,
+						  (char *) &before_qty, (char *) &after_qty };
+			const int paramLengths3[4] = { sizeof(uint64_t), sizeof(uint64_t),
+				sizeof(uint32_t), sizeof(uint32_t) };
+			const int paramFormats3[4] = { 1, 1, 1, 1 };
+
+			res = exec(TRF2Q4, 4, NULL, paramValues3, paramLengths3,
+					paramFormats3, 0);
+			PQclear(res);
+
+			char h_price[14];
+			snprintf(h_price, 13, "%f", pIn->trade_price);
+			uint32_t h_qty = htobe32((uint32_t) needed_qty);
+
+			if (m_bVerbose) {
+				cout << TRF2Q7 << endl;
+				cout << "$1 = " << be64toh(trade_id) << endl;
+				cout << "$2 = " << be64toh(acct_id) << endl;
+				cout << "$3 = " << pIn->symbol << endl;
+				cout << "$4 " << h_price << endl;
+				cout << "$5 = " << be32toh(h_qty) << endl;
+			}
+
+			const char *paramValues6[5] = { (char *) &trade_id,
+				(char *) &acct_id, pIn->symbol, h_price, (char *) &h_qty };
+			const int paramLengths6[5] = { sizeof(uint64_t), sizeof(uint64_t),
+				sizeof(char) * (cSYMBOL_len + 1), sizeof(char) * 14,
+				sizeof(uint32_t) };
+			const int paramFormats6[5] = { 1, 1, 0, 0, 1 };
+
+			res = exec(TRF2Q7, 5, NULL, paramValues6, paramLengths6,
+					paramFormats6, 0);
+			PQclear(res);
 		} else if ((-1 * pIn->hs_qty) == pIn->trade_qty) {
-			osSQL.clear();
-			osSQL.str("");
-			osSQL << "DELETE FROM holding_summary" << endl
-				  << "WHERE hs_ca_id = " << pIn->acct_id << endl
-				  << "hs_s_symb = '" << pIn->symbol << "'";
 			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
+				cout << TRF2Q8 << endl;
+				cout << "$1 = " << be64toh(acct_id) << endl;
+				cout << "$2 = " << pIn->symbol << endl;
 			}
-			res2 = exec(osSQL.str().c_str());
-			PQclear(res2);
+
+			const char *paramValues2[2] = { (char *) &acct_id, pIn->symbol };
+			const int paramLengths2[2]
+					= { sizeof(uint64_t), sizeof(char) * (cSYMBOL_len + 1) };
+			const int paramFormats2[2] = { 1, 0 };
+
+			res = exec(TRF2Q8, 2, NULL, paramValues2, paramLengths2,
+					paramFormats2, 0);
+			PQclear(res);
 		}
 	}
 }
