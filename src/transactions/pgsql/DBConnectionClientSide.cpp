@@ -3986,55 +3986,103 @@ void
 CDBConnectionClientSide::execute(const TTradeResultFrame5Input *pIn)
 {
 	PGresult *res = NULL;
-	ostringstream osSQL;
 
-	osSQL << "UPDATE trade" << endl
-		  << "SET t_comm = " << pIn->comm_amount << endl
-		  << "  , t_dts = '" << pIn->trade_dts.year << "-"
-		  << pIn->trade_dts.month << "-" << pIn->trade_dts.day << " "
-		  << pIn->trade_dts.hour << ":" << pIn->trade_dts.minute << ":"
-		  << pIn->trade_dts.second << "." << pIn->trade_dts.fraction << "'"
-		  << endl
-		  << "  , t_st_id = '" << pIn->st_completed_id << "'" << endl
-		  << "  , t_trade_price = " << pIn->trade_price << endl
-		  << "WHERE t_id = " << pIn->trade_id;
+#define TRF5Q1                                                                \
+	"UPDATE trade\n"                                                          \
+	"SET t_comm = $1\n"                                                       \
+	"  , t_dts = $2\n"                                                        \
+	"  , t_st_id = $3\n"                                                      \
+	"  , t_trade_price = $4\n"                                                \
+	"WHERE t_id = $5"
+
+	char comm_amount[14];
+	snprintf(comm_amount, 13, "%f", pIn->comm_amount);
+
+	struct tm trade_dts_tm = { 0 };
+	trade_dts_tm.tm_year = pIn->trade_dts.year - 1900;
+	trade_dts_tm.tm_mon = pIn->trade_dts.month - 1;
+	trade_dts_tm.tm_mday = pIn->trade_dts.day;
+	trade_dts_tm.tm_hour = pIn->trade_dts.hour - 1;
+	trade_dts_tm.tm_min = pIn->trade_dts.minute;
+	trade_dts_tm.tm_sec = pIn->trade_dts.second;
+	uint64_t trade_dts
+			= htobe64(((uint64_t) mktime(&trade_dts_tm) - (uint64_t) 946684800)
+					  * (uint64_t) 1000000);
+
+	char trade_price[14];
+	snprintf(trade_price, 13, "%f", pIn->trade_price);
+
+	uint64_t trade_id = htobe64((uint64_t) pIn->trade_id);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TRF5Q1 << endl;
+		cout << "$1 = " << comm_amount << endl;
+		cout << "$2 = " << pIn->trade_dts.year << "-" << pIn->trade_dts.month
+			 << "-" << pIn->trade_dts.day << " " << pIn->trade_dts.hour << ":"
+			 << pIn->trade_dts.minute << ":" << pIn->trade_dts.second << endl;
+		cout << "$3 = " << pIn->st_completed_id << endl;
+		cout << "$4 = " << trade_price << endl;
+		cout << "$5 = " << be64toh(trade_id) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues1[5] = { comm_amount, (char *) &trade_dts,
+		pIn->st_completed_id, trade_price, (char *) &trade_id };
+	const int paramLengths1[5] = { sizeof(char) * 14, sizeof(uint64_t),
+		sizeof(char) * (cST_ID_len + 1), sizeof(char) * 14, sizeof(uint64_t) };
+	const int paramFormats1[5] = { 0, 1, 0, 0, 1 };
+
+	res = exec(TRF5Q1, 5, NULL, paramValues1, paramLengths1, paramFormats1, 0);
 	PQclear(res);
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "INSERT INTO trade_history(" << endl
-		  << "    th_t_id" << endl
-		  << "  , th_dts" << endl
-		  << "  , th_st_id" << endl
-		  << ")" << endl
-		  << "VALUES (" << endl
-		  << "    " << pIn->trade_id << endl
-		  << "  , '" << pIn->trade_dts.year << "-" << pIn->trade_dts.month
-		  << "-" << pIn->trade_dts.day << " " << pIn->trade_dts.hour << ":"
-		  << pIn->trade_dts.minute << ":" << pIn->trade_dts.second << "."
-		  << pIn->trade_dts.fraction << "'" << endl
-		  << "  , '" << pIn->st_completed_id << "'" << endl
-		  << ")";
+#define TRF5Q2                                                                \
+	"INSERT INTO trade_history(\n"                                            \
+	"    th_t_id\n"                                                           \
+	"  , th_dts\n"                                                            \
+	"  , th_st_id\n"                                                          \
+	")\n"                                                                     \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	")"
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TRF5Q2 << endl;
+		cout << "$1 = " << be64toh(trade_id) << endl;
+		cout << "$2 = " << pIn->trade_dts.year << "-" << pIn->trade_dts.month
+			 << "-" << pIn->trade_dts.day << " " << pIn->trade_dts.hour << ":"
+			 << pIn->trade_dts.minute << ":" << pIn->trade_dts.second << endl;
+		cout << "$3 = " << pIn->st_completed_id << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues2[3] = { (char *) &trade_id, (char *) &trade_dts,
+		pIn->st_completed_id };
+	const int paramLengths2[3] = { sizeof(uint64_t), sizeof(uint64_t),
+		sizeof(char) * (cST_ID_len + 1) };
+	const int paramFormats2[3] = { 1, 1, 0 };
+
+	res = exec(TRF5Q2, 3, NULL, paramValues2, paramLengths2, paramFormats2, 0);
 	PQclear(res);
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "UPDATE broker" << endl
-		  << "SET b_comm_total = b_comm_total + " << pIn->comm_amount << endl
-		  << "  , b_num_trades = b_num_trades + 1" << endl
-		  << "WHERE b_id = " << pIn->broker_id;
+#define TRF5Q3                                                                \
+	"UPDATE broker\n"                                                         \
+	"SET b_comm_total = b_comm_total + $1\n"                                  \
+	"  , b_num_trades = b_num_trades + 1\n"                                   \
+	"WHERE b_id = $2"
+
+	uint64_t broker_id = htobe64((uint64_t) pIn->broker_id);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TRF5Q3 << endl;
+		cout << "$1 = " << comm_amount << endl;
+		cout << "$2 = " << be64toh(broker_id) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues3[2] = { comm_amount, (char *) &broker_id };
+	const int paramLengths3[2] = { sizeof(char) * 14, sizeof(uint64_t) };
+	const int paramFormats3[2] = { 0, 1 };
+
+	res = exec(TRF5Q3, 2, NULL, paramValues3, paramLengths3, paramFormats3, 0);
 	PQclear(res);
 }
 
