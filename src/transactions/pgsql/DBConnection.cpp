@@ -11,6 +11,8 @@
  * 13 June 2006
  */
 
+#include <catalog/pg_type_d.h>
+
 #include "DBConnection.h"
 
 // Constructor: Creates PgSQL connection
@@ -137,106 +139,155 @@ void
 CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 		TMarketFeedFrame1Output *pOut, CSendToMarketInterface *pMarketExchange)
 {
-	PGresult *res, *res2;
-	ostringstream osSQL;
-
-	char now_dts[30];
-	now_dts[29] = '\0';
-
-	res = exec("SELECT CURRENT_TIMESTAMP");
-	strncpy(now_dts, PQgetvalue(res, 0, 0), 29);
-	PQclear(res);
-
-	if (m_bVerbose) {
-		cout << "now_dts = " << now_dts << endl;
-	}
+	PGresult *res;
+	PGresult *res2;
 
 	pOut->num_updated = 0;
 	pOut->send_len = 0;
 
 	for (int i = 0; i < 20; i++) {
-
 		begin();
 		setRepeatableRead();
 
-		osSQL.str("");
-		osSQL << "UPDATE last_trade SET lt_price = "
-			  << pIn->Entries[i].price_quote << ", lt_vol = lt_vol + "
-			  << pIn->Entries[i].trade_qty << ", lt_dts = '" << now_dts
-			  << "' WHERE lt_s_symb = '" << pIn->Entries[i].symbol << "'";
+#define MFF1Q1                                                                \
+	"UPDATE last_trade\n"                                                     \
+	"SET lt_price = $1\n"                                                     \
+	"  , lt_vol = lt_vol + $2\n"                                              \
+	"  , lt_dts = CURRENT_TIMESTAMP\n"                                        \
+	"WHERE lt_s_symb = $3"
+
+		char price_quote[14];
+		snprintf(price_quote, 13, "%f", pIn->Entries[i].price_quote);
+		uint32_t trade_qty = htobe32((uint32_t) pIn->Entries[i].trade_qty);
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << MFF1Q1 << endl;
+			cout << "$1 = " << price_quote << endl;
+			cout << "$2 = " << be32toh(trade_qty) << endl;
+			cout << "$3 = " << pIn->Entries[i].symbol << endl;
 		}
-		res = exec(osSQL.str().c_str());
+
+		const Oid paramTypes1[3] = { NUMERICOID, INT4OID, TEXTOID };
+		const char *paramValues1[3]
+				= { price_quote, (char *) &trade_qty, pIn->Entries[i].symbol };
+		const int paramLengths1[3] = { sizeof(char) * 14, sizeof(uint32_t),
+			sizeof(char) * (cSYMBOL_len + 1) };
+		const int paramFormats1[3] = { 0, 1, 0 };
+
+		res = exec(MFF1Q1, 3, paramTypes1, paramValues1, paramLengths1,
+				paramFormats1, 0);
 		pOut->num_updated += atoi(PQcmdTuples(res));
 		PQclear(res);
 
-		osSQL.str("");
-		osSQL << "SELECT tr_t_id" << endl
-			  << "     , tr_bid_price" << endl
-			  << "     , tr_tt_id" << endl
-			  << "     , tr_qty" << endl
-			  << "FROM trade_request" << endl
-			  << "WHERE tr_s_symb = '" << pIn->Entries[i].symbol
-			  << "' AND ((tr_tt_id = '"
-			  << pIn->StatusAndTradeType.type_stop_loss
-			  << "' AND tr_bid_price >= " << pIn->Entries[i].price_quote
-			  << ") OR (tr_tt_id = '"
-			  << pIn->StatusAndTradeType.type_limit_sell
-			  << "' AND tr_bid_price <= " << pIn->Entries[i].price_quote
-			  << ") OR (tr_tt_id = '" << pIn->StatusAndTradeType.type_limit_buy
-			  << "' AND tr_bid_price >= " << pIn->Entries[i].price_quote
-			  << "))";
+#define MFF1Q2                                                                \
+	"SELECT tr_t_id\n"                                                        \
+	"     , tr_bid_price\n"                                                   \
+	"     , tr_tt_id\n"                                                       \
+	"     , tr_qty\n"                                                         \
+	"FROM trade_request\n"                                                    \
+	"WHERE tr_s_symb = $1\n"                                                  \
+	"  AND (\n"                                                               \
+	"           (tr_tt_id = $2 AND tr_bid_price >= $3)\n"                     \
+	"        OR (tr_tt_id = $4 AND tr_bid_price <= $3)\n"                     \
+	"        OR (tr_tt_id = $5 AND tr_bid_price >= $3)\n"                     \
+	"      )"
+
+		const char *paramValues2[5] = { pIn->Entries[i].symbol,
+			pIn->StatusAndTradeType.type_stop_loss, price_quote,
+			pIn->StatusAndTradeType.type_limit_sell,
+			pIn->StatusAndTradeType.type_limit_buy };
+		const int paramLengths2[5] = { sizeof(char) * (cSYMBOL_len + 1),
+			sizeof(char) * (cTT_ID_len + 1), sizeof(char) * 14,
+			sizeof(char) * (cTT_ID_len + 1), sizeof(char) * (cTT_ID_len + 1) };
+		const int paramFormats2[5] = { 0, 0, 0, 0, 0 };
+
 		if (m_bVerbose) {
-			cout << osSQL.str() << endl;
+			cout << MFF1Q2 << endl;
+			cout << "$1 = " << pIn->Entries[i].symbol << endl;
+			cout << "$2 = " << pIn->StatusAndTradeType.type_stop_loss << endl;
+			cout << "$3 = " << price_quote << endl;
+			cout << "$4 = " << pIn->StatusAndTradeType.type_limit_sell << endl;
+			cout << "$5 = " << pIn->StatusAndTradeType.type_limit_buy << endl;
 		}
-		res = exec(osSQL.str().c_str());
 
-		for (int j = 0; j < PQntuples(res); j++) {
+		res = exec(MFF1Q2, 5, NULL, paramValues2, paramLengths2, paramFormats2,
+				0);
+
+		int count = PQntuples(res);
+		for (int j = 0; j < count; j++) {
+			uint64_t trade_id
+					= htobe64((uint64_t) atoll(PQgetvalue(res, j, 0)));
+
 			if (m_bVerbose) {
-				cout << "t_id[" << j << "] = " << PQgetvalue(res, j, 0);
-				cout << "bid_price[" << j << "] = " << PQgetvalue(res, j, 1);
-				cout << "tt_id[" << j << "] = " << PQgetvalue(res, j, 2);
-				cout << "qty[" << j << "] = " << PQgetvalue(res, j, 3);
+				cout << "t_id[" << j << "] = " << be64toh(trade_id);
 			}
 
-			osSQL.str("");
-			osSQL << "UPDATE trade SET t_dts = '" << now_dts
-				  << "', t_st_id = '"
-				  << pIn->StatusAndTradeType.status_submitted
-				  << "' WHERE t_id = " << PQgetvalue(res, j, 0);
+#define MFF1Q3                                                                \
+	"UPDATE trade\n"                                                          \
+	"SET t_dts = CURRENT_TIMESTAMP\n"                                         \
+	"  , t_st_id = $1\n"                                                      \
+	"WHERE t_id = $2"
+
 			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
+				cout << MFF1Q3 << endl;
+				cout << "$1 = " << pIn->StatusAndTradeType.status_submitted
+					 << endl;
+				cout << "$2 = " << be64toh(trade_id) << endl;
 			}
-			res2 = exec(osSQL.str().c_str());
+
+			const char *paramValues3[2]
+					= { pIn->StatusAndTradeType.status_submitted,
+						  (char *) &trade_id };
+			const int paramLengths3[2]
+					= { sizeof(char) * (cST_ID_len + 1), sizeof(uint64_t) };
+			const int paramFormats3[2] = { 0, 1 };
+
+			res2 = exec(MFF1Q3, 2, NULL, paramValues3, paramLengths3,
+					paramFormats3, 0);
 			PQclear(res2);
 
-			osSQL.str("");
-			osSQL << "DELETE FROM trade_request WHERE tr_t_id = "
-				  << PQgetvalue(res, j, 0);
+#define MFF1Q4                                                                \
+	"DELETE FROM trade_request\n"                                             \
+	"WHERE tr_t_id = $1"
+
 			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
+				cout << MFF1Q4 << endl;
+				cout << "$1 = " << be64toh(trade_id) << endl;
 			}
-			res2 = exec(osSQL.str().c_str());
+
+			const char *paramValues4[2] = { (char *) &trade_id,
+				pIn->StatusAndTradeType.status_submitted };
+			const int paramLengths4[2]
+					= { sizeof(uint64_t), sizeof(char) * (cST_ID_len + 1) };
+			const int paramFormats4[2] = { 1, 0 };
+
+			res2 = exec(MFF1Q4, 1, NULL, paramValues4, paramLengths4,
+					paramFormats4, 0);
 			PQclear(res2);
 
-			osSQL.str("");
-			osSQL << "INSERT INTO trade_history" << endl
-				  << "VALUES (" << PQgetvalue(res, j, 0) << ", '" << now_dts
-				  << "', '" << pIn->StatusAndTradeType.status_submitted
-				  << "')";
+#define MFF1Q5                                                                \
+	"INSERT INTO trade_history\n"                                             \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , CURRENT_TIMESTAMP\n"                                                 \
+	"  , $2\n"                                                                \
+	")"
+
 			if (m_bVerbose) {
-				cout << osSQL.str() << endl;
+				cout << MFF1Q5 << endl;
+				cout << "$1 = " << be64toh(trade_id) << endl;
+				cout << "$2 = " << pIn->StatusAndTradeType.status_submitted
+					 << endl;
 			}
-			res2 = exec(osSQL.str().c_str());
+
+			res2 = exec(MFF1Q5, 2, NULL, paramValues4, paramLengths4,
+					paramFormats4, 0);
 			PQclear(res2);
 		}
 
 		commit();
 
-		m_TriggeredLimitOrders.symbol[cSYMBOL_len] = '\0';
-		m_TriggeredLimitOrders.trade_type_id[cTT_ID_len] = '\0';
-		for (int j = 0; j < PQntuples(res); j++) {
+		for (int j = 0; j < count; j++) {
 			strncpy(m_TriggeredLimitOrders.symbol, pIn->Entries[i].symbol,
 					cSYMBOL_len);
 			m_TriggeredLimitOrders.trade_id = atoll(PQgetvalue(res, j, 0));
