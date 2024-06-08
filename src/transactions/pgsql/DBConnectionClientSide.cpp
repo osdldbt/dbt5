@@ -4091,77 +4091,159 @@ CDBConnectionClientSide::execute(
 		const TTradeResultFrame6Input *pIn, TTradeResultFrame6Output *pOut)
 {
 	PGresult *res = NULL;
-	ostringstream osSQL;
 
-	osSQL << "INSERT INTO settlement(" << endl
-		  << "    se_t_id" << endl
-		  << "  , se_cash_type" << endl
-		  << "  , se_cash_due_date" << endl
-		  << "  , se_amt)" << endl
-		  << "VALUES (" << endl
-		  << "    " << pIn->trade_id << endl
-		  << "  , '";
+	uint64_t trade_id = htobe64((uint64_t) pIn->trade_id);
+	struct tm tm = { 0 };
+	tm.tm_year = pIn->due_date.year - 1900;
+	tm.tm_mon = pIn->due_date.month - 1;
+	tm.tm_mday = pIn->due_date.day;
+	mktime(&tm);
+	uint32_t due_date
+			= htobe32((uint32_t) ((tm.tm_year - 100) * 365
+								  + (tm.tm_year - 100) / 4 + tm.tm_yday));
+	char se_amount[14];
+	snprintf(se_amount, 14, "%f", pIn->se_amount);
+
+	const char *paramValues1[3]
+			= { (char *) &trade_id, (char *) &due_date, se_amount };
+	const int paramLengths1[3]
+			= { sizeof(uint64_t), sizeof(uint32_t), sizeof(char) * 14 };
+	const int paramFormats1[3] = { 1, 1, 0 };
+
 	if (pIn->trade_is_cash) {
-		osSQL << "Cash Account" << endl;
+#define TRF6Q1A                                                               \
+	"INSERT INTO settlement(\n"                                               \
+	"    se_t_id\n"                                                           \
+	"  , se_cash_type\n"                                                      \
+	"  , se_cash_due_date\n"                                                  \
+	"  , se_amt)\n"                                                           \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , 'Cash Account'\n"                                                    \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	")"
+
+		if (m_bVerbose) {
+			cout << TRF6Q1A << endl;
+			cout << "$1 = " << be64toh(trade_id) << endl;
+			cout << "$2 = " << pIn->due_date.year << "-" << pIn->due_date.month
+				 << "-" << pIn->due_date.day << endl;
+			cout << "$3 = " << se_amount << endl;
+		}
+
+		res = exec(TRF6Q1A, 3, NULL, paramValues1, paramLengths1,
+				paramFormats1, 0);
 	} else {
-		osSQL << "Margin" << endl;
+#define TRF6Q1B                                                               \
+	"INSERT INTO settlement(\n"                                               \
+	"    se_t_id\n"                                                           \
+	"  , se_cash_type\n"                                                      \
+	"  , se_cash_due_date\n"                                                  \
+	"  , se_amt)\n"                                                           \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , 'Margin'\n"                                                          \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	")"
+
+		if (m_bVerbose) {
+			cout << TRF6Q1B << endl;
+			cout << "$1 = " << be64toh(trade_id) << endl;
+			cout << "$2 = " << pIn->due_date.year << "-" << pIn->due_date.month
+				 << "-" << pIn->due_date.day << endl;
+			cout << "$3 = " << se_amount << endl;
+		}
+
+		res = exec(TRF6Q1B, 3, NULL, paramValues1, paramLengths1,
+				paramFormats1, 0);
 	}
-	osSQL << "'" << endl
-		  << "  , '" << pIn->due_date.year << "-" << pIn->due_date.month << "-"
-		  << pIn->due_date.day << "'"
-		  << "  , " << pIn->se_amount << endl
-		  << ")";
-	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
-	}
-	res = exec(osSQL.str().c_str());
 	PQclear(res);
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "UPDATE customer_account" << endl
-		  << "SET ca_bal = ca_bal + " << pIn->se_amount << endl
-		  << "WHERE ca_id = " << pIn->acct_id;
+#define TRF6Q2                                                                \
+	"UPDATE customer_account\n"                                               \
+	"SET ca_bal = ca_bal + $1\n"                                              \
+	"WHERE ca_id = $2"
+
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TRF6Q2 << endl;
+		cout << "$1 = " << se_amount << endl;
+		cout << "$2 = " << be64toh(acct_id) << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues2[2] = { (char *) &se_amount, (char *) &acct_id };
+	const int paramLengths2[2] = { sizeof(uint64_t), sizeof(uint64_t) };
+	const int paramFormats2[2] = { 0, 1 };
+
+	res = exec(TRF6Q2, 2, NULL, paramValues2, paramLengths2, paramFormats2, 0);
 	PQclear(res);
 
-	ostringstream os_ct_name;
-	os_ct_name << pIn->type_name << " " << pIn->trade_qty << " shares of "
-			   << pIn->s_name;
-	char *ct_name = escape(os_ct_name.str());
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "INSERT INTO cash_transaction(" << endl
-		  << "    ct_dts" << endl
-		  << "  , ct_t_id" << endl
-		  << "  , ct_amt" << endl
-		  << "  , ct_name" << endl
-		  << ")" << endl
-		  << "VALUES (" << endl
-		  << "    '" << pIn->trade_dts.year << "-" << pIn->trade_dts.month
-		  << "-" << pIn->trade_dts.day << " " << pIn->trade_dts.hour << ":"
-		  << pIn->trade_dts.minute << ":" << pIn->trade_dts.second << "."
-		  << pIn->trade_dts.fraction << "'" << endl
-		  << "  , " << pIn->trade_id << endl
-		  << "  , " << pIn->se_amount << endl
-		  << "  , e" << ct_name << endl
-		  << ")";
-	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
-	}
-	res = exec(osSQL.str().c_str());
-	PQclear(res);
-	PQfreemem(ct_name);
+	char ct_name[cCT_NAME_len + 1];
+	snprintf(ct_name, cCT_NAME_len, "%s %d shares of %s", pIn->type_name,
+			pIn->trade_qty, pIn->s_name);
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT ca_bal" << endl
-		  << "FROM customer_account" << endl
-		  << "WHERE ca_id = " << pIn->acct_id;
-	res = exec(osSQL.str().c_str());
+#define TRF6Q3                                                                \
+	"INSERT INTO cash_transaction(\n"                                         \
+	"    ct_dts\n"                                                            \
+	"  , ct_t_id\n"                                                           \
+	"  , ct_amt\n"                                                            \
+	"  , ct_name\n"                                                           \
+	")\n"                                                                     \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , $2\n"                                                                \
+	"  , $3\n"                                                                \
+	"  , $4\n"                                                                \
+	")"
+
+	struct tm trade_dts_tm = { 0 };
+	trade_dts_tm.tm_year = pIn->trade_dts.year - 1900;
+	trade_dts_tm.tm_mon = pIn->trade_dts.month - 1;
+	trade_dts_tm.tm_mday = pIn->trade_dts.day;
+	trade_dts_tm.tm_hour = pIn->trade_dts.hour - 1;
+	trade_dts_tm.tm_min = pIn->trade_dts.minute;
+	trade_dts_tm.tm_sec = pIn->trade_dts.second;
+	uint64_t trade_dts
+			= htobe64(((uint64_t) mktime(&trade_dts_tm) - (uint64_t) 946684800)
+					  * (uint64_t) 1000000);
+
+	if (m_bVerbose) {
+		cout << TRF6Q3 << endl;
+		cout << "$1 = " << pIn->trade_dts.year << "-" << pIn->trade_dts.month
+			 << "-" << pIn->trade_dts.day << " " << pIn->trade_dts.hour << ":"
+			 << pIn->trade_dts.minute << ":" << pIn->trade_dts.second << endl;
+		cout << "$2 = " << be64toh(trade_id) << endl;
+		cout << "$3 = " << se_amount << endl;
+		cout << "$4 = " << ct_name << endl;
+	}
+
+	const char *paramValues3[4] = { (char *) &trade_dts, (char *) &trade_id,
+		(char *) &se_amount, ct_name };
+	const int paramLengths3[4] = { sizeof(uint64_t), sizeof(uint64_t),
+		sizeof(uint64_t), sizeof(char) * (cCT_NAME_len + 1) };
+	const int paramFormats3[4] = { 1, 1, 0, 0 };
+
+	res = exec(TRF6Q3, 4, NULL, paramValues3, paramLengths3, paramFormats3, 0);
+	PQclear(res);
+
+#define TRF6Q4                                                                \
+	"SELECT ca_bal\n"                                                         \
+	"FROM customer_account\n"                                                 \
+	"WHERE ca_id = $1"
+
+	if (m_bVerbose) {
+		cout << TRF6Q4 << endl;
+		cout << "$1 = " << be64toh(acct_id) << endl;
+	}
+
+	const char *paramValues4[1] = { (char *) &acct_id };
+	const int paramLengths4[1] = { sizeof(uint64_t) };
+	const int paramFormats4[1] = { 1 };
+
+	res = exec(TRF6Q4, 1, NULL, paramValues4, paramLengths4, paramFormats4, 0);
 
 	if (PQntuples(res) == 0) {
 		PQclear(res);
