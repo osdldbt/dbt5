@@ -1395,13 +1395,26 @@ void
 CDBConnectionServerSide::execute(
 		const TTradeLookupFrame4Input *pIn, TTradeLookupFrame4Output *pOut)
 {
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeLookupFrame4(" << pIn->acct_id << ",'"
-		  << pIn->trade_dts.year << "-" << pIn->trade_dts.month << "-"
-		  << pIn->trade_dts.day << " " << pIn->trade_dts.hour << ":"
-		  << pIn->trade_dts.minute << ":" << pIn->trade_dts.second << "')";
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
 
-	PGresult *res = exec(osSQL.str().c_str());
+	struct tm tm = { 0 };
+	tm.tm_year = pIn->trade_dts.year - 1900;
+	tm.tm_mon = pIn->trade_dts.month - 1;
+	tm.tm_mday = pIn->trade_dts.day;
+	tm.tm_hour = pIn->trade_dts.hour - 1;
+	tm.tm_min = pIn->trade_dts.minute;
+	tm.tm_sec = pIn->trade_dts.second;
+	uint64_t trade_dts
+			= htobe64(((uint64_t) mktime(&tm) - (uint64_t) 946684800)
+					  * (uint64_t) 1000000);
+
+	const char *paramValues[2] = { (char *) &acct_id, (char *) &trade_dts };
+	const int paramLengths[2] = { sizeof(uint64_t), sizeof(uint64_t) } ;
+	const int paramFormats[2] = { 1, 1};
+
+	PGresult *res = exec("SELECT * FROM TradeLookupFrame4($1, $2)", 2, NULL,
+			paramValues, paramLengths, paramFormats, 0);
+
 	int i_holding_history_id = get_col_num(res, "holding_history_id");
 	int i_holding_history_trade_id
 			= get_col_num(res, "holding_history_trade_id");
