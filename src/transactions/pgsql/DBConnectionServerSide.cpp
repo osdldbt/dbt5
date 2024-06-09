@@ -171,11 +171,16 @@ void
 CDBConnectionServerSide::execute(const TCustomerPositionFrame1Input *pIn,
 		TCustomerPositionFrame1Output *pOut)
 {
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM CustomerPositionFrame1(" << pIn->cust_id << ",'"
-		  << pIn->tax_id << "')";
+	uint64_t cust_id = htobe64((uint64_t) pIn->cust_id);
 
-	PGresult *res = exec(osSQL.str().c_str());
+	const char *paramValues[2] = { (char *) &cust_id, pIn->tax_id };
+	const int paramLengths[2]
+			= { sizeof(uint64_t), sizeof(char) * (cTAX_ID_len + 1) };
+	const int paramFormats[2] = { 1, 0 };
+
+	PGresult *res = exec("SELECT * FROM CustomerPositionFrame1($1, $2)", 2,
+			NULL, paramValues, paramLengths, paramFormats, 0);
+
 	int i_cust_id = get_col_num(res, "cust_id");
 	int i_acct_id = get_col_num(res, "acct_id");
 	int i_acct_len = get_col_num(res, "acct_len");
