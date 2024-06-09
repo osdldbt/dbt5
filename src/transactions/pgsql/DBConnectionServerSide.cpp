@@ -1138,18 +1138,42 @@ void
 CDBConnectionServerSide::execute(
 		const TTradeLookupFrame3Input *pIn, TTradeLookupFrame3Output *pOut)
 {
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeLookupFrame3('" << pIn->end_trade_dts.year
-		  << "-" << pIn->end_trade_dts.month << "-" << pIn->end_trade_dts.day
-		  << " " << pIn->end_trade_dts.hour << ":" << pIn->end_trade_dts.minute
-		  << ":" << pIn->end_trade_dts.second << "'," << pIn->max_acct_id
-		  << "," << pIn->max_trades << ",'" << pIn->start_trade_dts.year << "-"
-		  << pIn->start_trade_dts.month << "-" << pIn->start_trade_dts.day
-		  << " " << pIn->start_trade_dts.hour << ":"
-		  << pIn->start_trade_dts.minute << ":" << pIn->start_trade_dts.second
-		  << "','" << pIn->symbol << "')";
+	struct tm end_trade = { 0 };
+	end_trade.tm_year = pIn->end_trade_dts.year - 1900;
+	end_trade.tm_mon = pIn->end_trade_dts.month - 1;
+	end_trade.tm_mday = pIn->end_trade_dts.day;
+	end_trade.tm_hour = pIn->end_trade_dts.hour - 1;
+	end_trade.tm_min = pIn->end_trade_dts.minute;
+	end_trade.tm_sec = pIn->end_trade_dts.second;
+	uint64_t end_trade_dts
+			= htobe64(((uint64_t) mktime(&end_trade) - (uint64_t) 946684800)
+					  * (uint64_t) 1000000);
 
-	PGresult *res = exec(osSQL.str().c_str());
+	uint64_t max_acct_id = htobe64((uint64_t) pIn->max_acct_id);
+
+	uint32_t max_trades = htobe32((uint32_t) pIn->max_trades);
+
+	struct tm start_trade = { 0 };
+	start_trade.tm_year = pIn->start_trade_dts.year - 1900;
+	start_trade.tm_mon = pIn->start_trade_dts.month - 1;
+	start_trade.tm_mday = pIn->start_trade_dts.day;
+	start_trade.tm_hour = pIn->start_trade_dts.hour - 1;
+	start_trade.tm_min = pIn->start_trade_dts.minute;
+	start_trade.tm_sec = pIn->start_trade_dts.second;
+	uint64_t start_trade_dts
+			= htobe64(((uint64_t) mktime(&start_trade) - (uint64_t) 946684800)
+					  * (uint64_t) 1000000);
+
+	const char *paramValues[5] = { (char *) &end_trade_dts,
+		(char *) &max_acct_id, (char *) &max_trades, (char *) &start_trade_dts,
+		pIn->symbol };
+	const int paramLengths[5] = { sizeof(uint64_t), sizeof(uint64_t),
+		sizeof(uint32_t), sizeof(uint64_t), sizeof(char) * (cSYMBOL_len + 1) };
+	const int paramFormats[5] = { 1, 1, 1, 1, 0 };
+
+	PGresult *res = exec("SELECT * FROM TradeLookupFrame3($1, $2, $3, $4, $5)",
+			5, NULL, paramValues, paramLengths, paramFormats, 0);
+
 	int i_acct_id = get_col_num(res, "acct_id");
 	int i_cash_transaction_amount
 			= get_col_num(res, "cash_transaction_amount");
