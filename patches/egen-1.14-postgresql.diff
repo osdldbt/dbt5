@@ -166,9 +166,9 @@ Index: dbt5/egen/prj/Makefile
 +				$(DBT5Socket_obj) \
 +				$(DBT5Transaction_obj) \
 +				$(DriverMain_obj) \
++                $(BrokerageHouseMain_obj) \
 +				$(MarketExchangeMain_obj) \
-+				$(BrokerageHouse_obj) \
-+				$(TextTxn_obj); \
++				$(TestTxn_obj); \
  	cd $(LIB); \
  	rm -f			$(EGenDriverLib_lib); \
  	cd $(EXE); \
