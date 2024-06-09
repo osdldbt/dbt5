@@ -376,13 +376,24 @@ CDBConnectionServerSide::execute(const TCustomerPositionFrame2Input *pIn,
 void
 CDBConnectionServerSide::execute(const TDataMaintenanceFrame1Input *pIn)
 {
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM DataMaintenanceFrame1(" << pIn->acct_id << ", "
-		  << pIn->c_id << ", " << pIn->co_id << ", " << pIn->day_of_month
-		  << ", '" << pIn->symbol << "', '" << pIn->table_name << "', '"
-		  << pIn->tx_id << "', " << pIn->vol_incr << ")";
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+	uint64_t c_id = htobe64((uint64_t) pIn->c_id);
+	uint64_t co_id = htobe64((uint64_t) pIn->co_id);
+	uint32_t day_of_month = htobe32((uint32_t) pIn->day_of_month);
+	uint32_t vol_incr = htobe32((uint32_t) pIn->vol_incr);
 
-	PGresult *res = exec(osSQL.str().c_str());
+	const char *paramValues[8] = { (char *) &acct_id, (char *) &c_id,
+		(char *) &co_id, (char *) &day_of_month, pIn->symbol, pIn->table_name,
+		pIn->tx_id, (char *) &vol_incr };
+	const int paramLengths[8] = { sizeof(uint64_t), sizeof(uint64_t),
+		sizeof(uint64_t), sizeof(uint32_t), sizeof(char) * (cSYMBOL_len + 1),
+		sizeof(char) * (max_table_name + 1),
+		sizeof(char) * (cTAX_ID_len + 1), sizeof(uint32_t) };
+	const int paramFormats[8] = { 1, 1, 1, 1, 0, 0, 0, 1 };
+
+	PGresult *res = exec("SELECT * FROM DataMaintenanceFrame1($1, $2, $3, $4, "
+						 "$5, $6, $7, $8)",
+			8, NULL, paramValues, paramLengths, paramFormats, 0);
 	PQclear(res);
 }
 
