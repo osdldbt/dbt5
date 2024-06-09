@@ -1409,8 +1409,8 @@ CDBConnectionServerSide::execute(
 					  * (uint64_t) 1000000);
 
 	const char *paramValues[2] = { (char *) &acct_id, (char *) &trade_dts };
-	const int paramLengths[2] = { sizeof(uint64_t), sizeof(uint64_t) } ;
-	const int paramFormats[2] = { 1, 1};
+	const int paramLengths[2] = { sizeof(uint64_t), sizeof(uint64_t) };
+	const int paramFormats[2] = { 1, 1 };
 
 	PGresult *res = exec("SELECT * FROM TradeLookupFrame4($1, $2)", 2, NULL,
 			paramValues, paramLengths, paramFormats, 0);
@@ -1474,10 +1474,15 @@ void
 CDBConnectionServerSide::execute(
 		const TTradeOrderFrame1Input *pIn, TTradeOrderFrame1Output *pOut)
 {
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeOrderFrame1(" << pIn->acct_id << ")";
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
 
-	PGresult *res = exec(osSQL.str().c_str());
+	const char *paramValues[1] = { (char *) &acct_id };
+	const int paramLengths[1] = { sizeof(uint64_t) };
+	const int paramFormats[1] = { 1 };
+
+	PGresult *res = exec("SELECT * FROM TradeOrderFrame1($1)", 1, NULL,
+			paramValues, paramLengths, paramFormats, 0);
+
 	int i_acct_name = get_col_num(res, "acct_name");
 	int i_broker_id = get_col_num(res, "broker_id");
 	int i_broker_name = get_col_num(res, "broker_name");
