@@ -698,13 +698,15 @@ CDBConnectionServerSide::execute(const TTradeCleanupFrame1Input *pIn)
 {
 	uint64_t start_trade_id = htobe64((uint64_t) pIn->start_trade_id);
 
-	const char *paramValues[4] = { pIn->st_canceled_id, pIn->st_pending_id, pIn->st_submitted_id,
-		(char *) &start_trade_id};
-	const int paramLengths[4] = { sizeof(char) *(cST_ID_len+1),sizeof(char) *(cST_ID_len+1),  sizeof(char) *(cST_ID_len+1), sizeof(uint64_t) };
+	const char *paramValues[4] = { pIn->st_canceled_id, pIn->st_pending_id,
+		pIn->st_submitted_id, (char *) &start_trade_id };
+	const int paramLengths[4] = { sizeof(char) * (cST_ID_len + 1),
+		sizeof(char) * (cST_ID_len + 1), sizeof(char) * (cST_ID_len + 1),
+		sizeof(uint64_t) };
 	const int paramFormats[4] = { 0, 0, 0, 1 };
 
-	PGresult *res = exec("SELECT * FROM TradeCleanupFrame1($1, $2, $3, $4)",
-			4, NULL, paramValues, paramLengths, paramFormats, 0);
+	PGresult *res = exec("SELECT * FROM TradeCleanupFrame1($1, $2, $3, $4)", 4,
+			NULL, paramValues, paramLengths, paramFormats, 0);
 	PQclear(res);
 }
 
@@ -714,16 +716,26 @@ CDBConnectionServerSide::execute(
 {
 	ostringstream osTrades;
 	int i = 0;
-	osTrades << pIn->trade_id[i];
+	osTrades << "{" << pIn->trade_id[i];
 	for (i = 1; i < pIn->max_trades; i++) {
 		osTrades << "," << pIn->trade_id[i];
 	}
+	osTrades << "}";
 
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeLookupFrame1(" << pIn->max_trades << ",'{"
-		  << osTrades.str() << "}')";
+	char trade_id[osTrades.str().length() + 1];
+	strncpy(trade_id, osTrades.str().c_str(), osTrades.str().length());
+	trade_id[osTrades.str().length()] = '\0';
 
-	PGresult *res = exec(osSQL.str().c_str());
+	uint32_t max_trades = htobe32((uint32_t) pIn->max_trades);
+
+	const char *paramValues[2] = { (char *) &max_trades, trade_id };
+	const int paramLengths[2] = { sizeof(uint32_t),
+		(int) sizeof(char) * ((int) osTrades.str().length() + 1) };
+	const int paramFormats[2] = { 1, 0 };
+
+	PGresult *res = exec("SELECT * FROM TradeLookupFrame1($1, $2)", 2, NULL,
+			paramValues, paramLengths, paramFormats, 0);
+
 	int i_bid_price = get_col_num(res, "bid_price");
 	int i_cash_transaction_amount
 			= get_col_num(res, "cash_transaction_amount");
