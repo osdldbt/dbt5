@@ -1541,21 +1541,37 @@ void
 CDBConnectionServerSide::execute(
 		const TTradeOrderFrame3Input *pIn, TTradeOrderFrame3Output *pOut)
 {
-	ostringstream osSQL;
-	char *tmpstr;
-	osSQL << "SELECT * FROM TradeOrderFrame3(" << pIn->acct_id << ","
-		  << pIn->cust_id << "," << pIn->cust_tier << "::SMALLINT,"
-		  << pIn->is_lifo << "::SMALLINT,'" << pIn->issue << "','"
-		  << pIn->st_pending_id << "','" << pIn->st_submitted_id << "',"
-		  << pIn->tax_status << "::SMALLINT," << pIn->trade_qty << ",'"
-		  << pIn->trade_type_id << "'," << pIn->type_is_margin
-		  << "::SMALLINT,";
-	tmpstr = escape(pIn->co_name);
-	osSQL << tmpstr;
-	PQfreemem(tmpstr);
-	osSQL << "," << pIn->requested_price << ",'" << pIn->symbol << "')";
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+	uint64_t cust_id = htobe64((uint64_t) pIn->cust_id);
+	uint16_t cust_tier = htobe16((uint16_t) pIn->cust_tier);
+	uint16_t is_lifo = htobe16((uint16_t) pIn->is_lifo);
+	uint16_t tax_status = htobe16((uint16_t) pIn->tax_status);
+	uint32_t trade_qty = htobe32((uint32_t) pIn->trade_qty);
+	uint16_t type_is_margin = htobe16((uint16_t) pIn->type_is_margin);
+	char requested_price[14];
+	snprintf(requested_price, 13, "%f", pIn->requested_price);
 
-	PGresult *res = exec(osSQL.str().c_str());
+	const char *paramValues[14] = { (char *) &acct_id, (char *) &cust_id,
+		(char *) &cust_tier, (char *) &is_lifo, pIn->issue, pIn->st_pending_id,
+		pIn->st_submitted_id, (char *) &tax_status, (char *) &trade_qty,
+		pIn->trade_type_id, (char *) &type_is_margin, pIn->co_name,
+		requested_price, pIn->symbol };
+	const int paramLengths[14] = { sizeof(uint64_t), sizeof(uint64_t),
+		sizeof(uint16_t), sizeof(uint16_t), sizeof(char) * (cS_ISSUE_len + 1),
+		sizeof(char) * (cST_ID_len + 1), sizeof(char) * (cST_ID_len + 1),
+		sizeof(uint16_t), sizeof(uint32_t), sizeof(char) * (cTT_ID_len + 1),
+		sizeof(uint16_t), sizeof(char) * (cCO_NAME_len + 1), sizeof(char) * 14,
+		sizeof(char) * (cSYMBOL_len + 1) };
+	const int paramFormats[14] = { 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0 };
+
+	PGresult *res = exec("SELECT * FROM TradeOrderFrame3($1, $2, $3, $4, $5, "
+						 "$6, $7, $8, $9, $10, $11, $12, $13, $14)",
+			14, NULL, paramValues, paramLengths, paramFormats, 0);
+
+	if (PQntuples(res) == 0) {
+		return;
+	}
+
 	int i_co_name = get_col_num(res, "co_name");
 	int i_requested_price = get_col_num(res, "requested_price");
 	int i_symbol = get_col_num(res, "symbol");
