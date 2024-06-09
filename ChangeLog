@@ -8,6 +8,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql market feed now uses parameterized sql
 - Fix array out of bounds bug in server size pgsql trade update frame 1 & 2
 - Fix clean rule in EGen Makefile patch
+- Fix build-egen to use LIBS env var for setting libraries for linkers
+  sensitive to where -l flags are used
 
 v0.10.0 (2024-05-25)
 

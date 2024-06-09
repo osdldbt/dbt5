@@ -150,6 +150,7 @@ fi
 (cd "${EGENDIR}/prj" && \
 		make -f Makefile clean && \
 		CCFLAGS="-Wall -D__unix -g -std=c++98 -ansi -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D_LARGEFILE64_SOURCE -DCOMPILE_CUSTOM_LOAD -DPGSQL -I${EGENDIR}/inc ${INCLUDEDIR} -I${EGENDIR}/Utilities/inc ${EXTRAINCLUDE}" \
-		LDFLAGS="-lpthread -lpq ${EXTRALDDIR}" \
+		LDFLAGS="${EXTRALDDIR}" \
+		LIBS="-lpthread -lpq" \
 		make -j$(nproc) -f Makefile) \
 		|| (echo "ERROR: cannot build egen" && exit 1)
