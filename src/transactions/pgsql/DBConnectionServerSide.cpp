@@ -1958,9 +1958,9 @@ CDBConnectionServerSide::execute(
 		strncpy(pOut->trade_info[i].trade_history_status_id[1],
 				(*p2++).c_str(), cTH_ST_ID_len);
 		pOut->trade_info[i].trade_history_status_id[1][cTH_ST_ID_len] = '\0';
-		strncpy(pOut->trade_info[i].trade_history_status_id[3], (*p2).c_str(),
+		strncpy(pOut->trade_info[i].trade_history_status_id[2], (*p2).c_str(),
 				cTH_ST_ID_len);
-		pOut->trade_info[i].trade_history_status_id[3][cTH_ST_ID_len] = '\0';
+		pOut->trade_info[i].trade_history_status_id[2][cTH_ST_ID_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -2164,9 +2164,9 @@ CDBConnectionServerSide::execute(
 		strncpy(pOut->trade_info[i].trade_history_status_id[1],
 				(*p2++).c_str(), cTH_ST_ID_len);
 		pOut->trade_info[i].trade_history_status_id[1][cTH_ST_ID_len] = '\0';
-		strncpy(pOut->trade_info[i].trade_history_status_id[3], (*p2).c_str(),
+		strncpy(pOut->trade_info[i].trade_history_status_id[2], (*p2).c_str(),
 				cTH_ST_ID_len);
-		pOut->trade_info[i].trade_history_status_id[3][cTH_ST_ID_len] = '\0';
+		pOut->trade_info[i].trade_history_status_id[2][cTH_ST_ID_len] = '\0';
 		++i;
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
