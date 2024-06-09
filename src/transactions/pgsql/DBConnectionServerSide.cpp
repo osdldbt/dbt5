@@ -387,8 +387,8 @@ CDBConnectionServerSide::execute(const TDataMaintenanceFrame1Input *pIn)
 		pIn->tx_id, (char *) &vol_incr };
 	const int paramLengths[8] = { sizeof(uint64_t), sizeof(uint64_t),
 		sizeof(uint64_t), sizeof(uint32_t), sizeof(char) * (cSYMBOL_len + 1),
-		sizeof(char) * (max_table_name + 1),
-		sizeof(char) * (cTAX_ID_len + 1), sizeof(uint32_t) };
+		sizeof(char) * (max_table_name + 1), sizeof(char) * (cTAX_ID_len + 1),
+		sizeof(uint32_t) };
 	const int paramFormats[8] = { 1, 1, 1, 1, 0, 0, 0, 1 };
 
 	PGresult *res = exec("SELECT * FROM DataMaintenanceFrame1($1, $2, $3, $4, "
@@ -401,14 +401,30 @@ void
 CDBConnectionServerSide::execute(
 		const TMarketWatchFrame1Input *pIn, TMarketWatchFrame1Output *pOut)
 {
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM MarketWatchFrame1(" << pIn->acct_id << ","
-		  << pIn->c_id << "," << pIn->ending_co_id << ",'"
-		  << pIn->industry_name << "','" << pIn->start_day.year << "-"
-		  << pIn->start_day.month << "-" << pIn->start_day.day << "',"
-		  << pIn->starting_co_id << ")";
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+	uint64_t c_id = htobe64((uint64_t) pIn->c_id);
+	uint64_t ending_co_id = htobe64((uint64_t) pIn->ending_co_id);
+	struct tm tm = { 0 };
+	tm.tm_year = pIn->start_day.year - 1900;
+	tm.tm_mon = pIn->start_day.month - 1;
+	tm.tm_mday = pIn->start_day.day;
+	mktime(&tm);
+	uint32_t start_day
+			= htobe32((uint32_t) ((tm.tm_year - 100) * 365
+								  + (tm.tm_year - 100) / 4 + tm.tm_yday));
+	uint64_t starting_co_id = htobe64((uint64_t) pIn->starting_co_id);
 
-	PGresult *res = exec(osSQL.str().c_str());
+	const char *paramValues[6] = { (char *) &acct_id, (char *) &c_id,
+		(char *) &ending_co_id, pIn->industry_name, (char *) &start_day,
+		(char *) &starting_co_id };
+	const int paramLengths[6] = { sizeof(uint64_t), sizeof(uint64_t),
+		sizeof(uint64_t), sizeof(char) * (cIN_NAME_len + 1), sizeof(uint32_t),
+		sizeof(uint64_t) };
+	const int paramFormats[6] = { 1, 1, 1, 0, 1, 1 };
+
+	PGresult *res
+			= exec("SELECT * FROM MarketWatchFrame1($1, $2, $3, $4, $5, $6)",
+					6, NULL, paramValues, paramLengths, paramFormats, 0);
 
 	pOut->pct_change = atof(PQgetvalue(res, 0, 0));
 	PQclear(res);
