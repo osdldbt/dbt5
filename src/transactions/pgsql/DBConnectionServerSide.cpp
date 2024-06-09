@@ -1516,19 +1516,17 @@ void
 CDBConnectionServerSide::execute(
 		const TTradeOrderFrame2Input *pIn, TTradeOrderFrame2Output *pOut)
 {
-	ostringstream osSQL;
-	char *tmpstr;
-	osSQL << "SELECT * FROM TradeOrderFrame2(" << pIn->acct_id << ",";
-	tmpstr = escape(pIn->exec_f_name);
-	osSQL << tmpstr;
-	PQfreemem(tmpstr);
-	osSQL << ",";
-	tmpstr = escape(pIn->exec_l_name);
-	osSQL << tmpstr;
-	PQfreemem(tmpstr);
-	osSQL << ",'" << pIn->exec_tax_id << "')";
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
 
-	PGresult *res = exec(osSQL.str().c_str());
+	const char *paramValues[4] = { (char *) &acct_id, pIn->exec_f_name,
+		pIn->exec_l_name, pIn->exec_tax_id };
+	const int paramLengths[4] = { sizeof(uint64_t),
+		sizeof(char) * (cF_NAME_len + 1), sizeof(char) * (cL_NAME_len + 1),
+		sizeof(char) * (cTAX_ID_len + 1) };
+	const int paramFormats[4] = { 1, 0, 0, 0 };
+
+	PGresult *res = exec("SELECT * FROM TradeOrderFrame2($1, $2, $3, $4)", 4,
+			NULL, paramValues, paramLengths, paramFormats, 0);
 
 	if (PQgetvalue(res, 0, 0) != NULL) {
 		strncpy(pOut->ap_acl, PQgetvalue(res, 0, 0), cACL_len);
