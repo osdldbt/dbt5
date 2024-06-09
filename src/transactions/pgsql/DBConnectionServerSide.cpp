@@ -299,10 +299,15 @@ void
 CDBConnectionServerSide::execute(const TCustomerPositionFrame2Input *pIn,
 		TCustomerPositionFrame2Output *pOut)
 {
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM CustomerPositionFrame2(" << pIn->acct_id << ")";
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
 
-	PGresult *res = exec(osSQL.str().c_str());
+	const char *paramValues[1] = { (char *) &acct_id };
+	const int paramLengths[1] = { sizeof(uint64_t) };
+	const int paramFormats[1] = { 1 };
+
+	PGresult *res = exec("SELECT * FROM CustomerPositionFrame2($1)", 1, NULL,
+			paramValues, paramLengths, paramFormats, 0);
+
 	int i_hist_dts = get_col_num(res, "hist_dts");
 	int i_hist_len = get_col_num(res, "hist_len");
 	int i_qty = get_col_num(res, "qty");
