@@ -5,6 +5,8 @@
  * Copyright The DBT-5 Authors
  */
 
+#include <catalog/pg_type_d.h>
+
 #include "DBConnectionServerSide.h"
 
 // These are inlined function that should only be used here.
@@ -434,13 +436,26 @@ void
 CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 		TSecurityDetailFrame1Output *pOut)
 {
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM SecurityDetailFrame1(" << pIn->access_lob_flag
-		  << "::SMALLINT," << pIn->max_rows_to_return << ",'"
-		  << pIn->start_day.year << "-" << pIn->start_day.month << "-"
-		  << pIn->start_day.day << "','" << pIn->symbol << "')";
+	uint16_t access_lob_flag = htobe16(pIn->access_lob_flag ? 1 : 0);
+	uint32_t max_rows_to_return = htobe32((uint32_t) pIn->max_rows_to_return);
+	struct tm tm = { 0 };
+	tm.tm_year = pIn->start_day.year - 1900;
+	tm.tm_mon = pIn->start_day.month - 1;
+	tm.tm_mday = pIn->start_day.day;
+	mktime(&tm);
+	uint32_t start_day
+			= htobe32((uint32_t) ((tm.tm_year - 100) * 365
+								  + (tm.tm_year - 100) / 4 + tm.tm_yday));
 
-	PGresult *res = exec(osSQL.str().c_str());
+	const char *paramValues[4] = { (char *) &access_lob_flag,
+		(char *) &max_rows_to_return, (char *) &start_day, pIn->symbol };
+	const int paramLengths[4] = { sizeof(uint16_t), sizeof(uint32_t),
+		sizeof(uint32_t), sizeof(char) * (cSYMBOL_len + 1) };
+	const int paramFormats[4] = { 1, 1, 1, 0 };
+
+	PGresult *res = exec("SELECT * FROM SecurityDetailFrame1($1, $2, $3, $4)",
+			4, NULL, paramValues, paramLengths, paramFormats, 0);
+
 	int i_s52_wk_high = get_col_num(res, "x52_wk_high");
 	int i_s52_wk_high_date = get_col_num(res, "x52_wk_high_date");
 	int i_s52_wk_low = get_col_num(res, "x52_wk_low");
