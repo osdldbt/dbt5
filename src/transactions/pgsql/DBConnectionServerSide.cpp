@@ -694,23 +694,6 @@ CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 }
 
 void
-CDBConnectionServerSide::execute(const TTradeCleanupFrame1Input *pIn)
-{
-	uint64_t start_trade_id = htobe64((uint64_t) pIn->start_trade_id);
-
-	const char *paramValues[4] = { pIn->st_canceled_id, pIn->st_pending_id,
-		pIn->st_submitted_id, (char *) &start_trade_id };
-	const int paramLengths[4] = { sizeof(char) * (cST_ID_len + 1),
-		sizeof(char) * (cST_ID_len + 1), sizeof(char) * (cST_ID_len + 1),
-		sizeof(uint64_t) };
-	const int paramFormats[4] = { 0, 0, 0, 1 };
-
-	PGresult *res = exec("SELECT * FROM TradeCleanupFrame1($1, $2, $3, $4)", 4,
-			NULL, paramValues, paramLengths, paramFormats, 0);
-	PQclear(res);
-}
-
-void
 CDBConnectionServerSide::execute(
 		const TTradeLookupFrame1Input *pIn, TTradeLookupFrame1Output *pOut)
 {

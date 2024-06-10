@@ -11,6 +11,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix build-egen to use LIBS env var for setting libraries for linkers
   sensitive to where -l flags are used
 - pgsql now uses parameterized sql to execute server side logic
+- Remove pgsql server-side implementations of trade cleanup, keeping
+  client-side
 
 v0.10.0 (2024-05-25)
 

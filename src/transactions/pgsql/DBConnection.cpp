@@ -324,6 +324,197 @@ CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 }
 
 void
+CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
+{
+	PGresult *res = NULL;
+
+#define TCF1Q1                                                                \
+	"SELECT tr_t_id\n"                                                        \
+	"FROM trade_request\n"                                                    \
+	"ORDER BY tr_t_id"
+
+	if (m_bVerbose) {
+		cout << TCF1Q1 << endl;
+	}
+
+	res = exec(TCF1Q1);
+
+	int n = PQntuples(res);
+	for (int i = 0; i < n; i++) {
+		PGresult *res2 = NULL;
+
+		uint64_t tr_t_id = htobe64((uint64_t) atoll(PQgetvalue(res, i, 0)));
+
+#define TCF1Q2                                                                \
+	"INSERT INTO trade_history(\n"                                            \
+	"    th_t_id\n"                                                           \
+	"  , th_dts\n"                                                            \
+	"  , th_st_id\n"                                                          \
+	")\n"                                                                     \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , CURRENT_TIMESTAMP\n"                                                 \
+	"  , $2\n"                                                                \
+	")\n"                                                                     \
+	"ON CONFLICT DO NOTHING"
+
+		if (m_bVerbose) {
+			cout << TCF1Q2 << endl;
+			cout << "$1 = " << be64toh(tr_t_id) << endl;
+			cout << "$2 = " << pIn->st_submitted_id << endl;
+		}
+
+		const char *paramValues1[2]
+				= { (char *) &tr_t_id, pIn->st_submitted_id };
+		const int paramLengths1[2]
+				= { sizeof(uint64_t), sizeof(char) * (cST_ID_len + 1) };
+		const int paramFormats1[2] = { 1, 0 };
+
+		res2 = exec(TCF1Q2, 2, NULL, paramValues1, paramLengths1,
+				paramFormats1, 0);
+		PQclear(res2);
+
+#define TCF1Q3                                                                \
+	"UPDATE trade\n"                                                          \
+	"SET t_st_id = $1\n"                                                      \
+	"  , t_dts = CURRENT_TIMESTAMP\n"                                         \
+	"WHERE t_id = $2"
+
+		if (m_bVerbose) {
+			cout << TCF1Q3 << endl;
+			cout << "$1 = " << pIn->st_canceled_id << endl;
+			cout << "$2 = " << be64toh(tr_t_id) << endl;
+		}
+
+		const char *paramValues2[2]
+				= { pIn->st_canceled_id, (char *) &tr_t_id };
+		const int paramLengths2[2]
+				= { sizeof(char) * (cST_ID_len + 1), sizeof(uint64_t) };
+		const int paramFormats2[2] = { 0, 1 };
+
+		res2 = exec(TCF1Q3, 2, NULL, paramValues2, paramLengths2,
+				paramFormats2, 0);
+		PQclear(res2);
+
+#define TCF1Q4                                                                \
+	"INSERT INTO trade_history(\n"                                            \
+	"    th_t_id\n"                                                           \
+	"  , th_dts\n"                                                            \
+	"  , th_st_id\n"                                                          \
+	")\n"                                                                     \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , now()\n"                                                             \
+	"  , $2\n"                                                                \
+	")\n"                                                                     \
+	"ON CONFLICT DO NOTHING"
+
+		if (m_bVerbose) {
+			cout << TCF1Q4 << endl;
+			cout << "$1 = " << pIn->st_canceled_id << endl;
+			cout << "$2 = " << be64toh(tr_t_id) << endl;
+		}
+
+		paramValues1[1] = pIn->st_canceled_id;
+
+		res2 = exec(TCF1Q4, 2, NULL, paramValues1, paramLengths1,
+				paramFormats1, 0);
+		PQclear(res2);
+	}
+	PQclear(res);
+
+#define TCF1Q5 "DELETE FROM trade_request"
+
+	if (m_bVerbose) {
+		cout << TCF1Q5 << endl;
+	}
+	res = exec(TCF1Q5);
+	PQclear(res);
+
+#define TCF1Q6                                                                \
+	"SELECT t_id\n"                                                           \
+	"FROM trade\n"                                                            \
+	"WHERE t_id >= $1\n"                                                      \
+	"  AND t_st_id = $2"
+
+	uint64_t start_trade_id = htobe64((uint64_t) pIn->start_trade_id);
+
+	if (m_bVerbose) {
+		cout << TCF1Q6 << endl;
+		cout << "$1 = " << be64toh(start_trade_id) << endl;
+		cout << "$2 = " << pIn->st_submitted_id << endl;
+	}
+
+	const char *paramValues[2]
+			= { (char *) &start_trade_id, pIn->st_submitted_id };
+	const int paramLengths[2]
+			= { sizeof(uint64_t), sizeof(char) * (cST_ID_len + 1) };
+	const int paramFormats[2] = { 1, 0 };
+
+	res = exec(TCF1Q6, 2, NULL, paramValues, paramLengths, paramFormats, 0);
+
+	n = PQntuples(res);
+	for (int i = 0; i < n; i++) {
+		PGresult *res2 = NULL;
+
+		uint64_t tr_t_id = htobe64((uint64_t) atoll(PQgetvalue(res, i, 0)));
+
+#define TCF1Q7                                                                \
+	"UPDATE trade\n"                                                          \
+	"SET t_st_id = $1\n"                                                      \
+	"  , t_dts = CURRENT_TIMESTAMP\n"                                         \
+	"WHERE t_id = $2"
+
+		if (m_bVerbose) {
+			cout << TCF1Q7 << endl;
+			cout << "$1 = " << pIn->st_canceled_id << endl;
+			cout << "$2 = " << be64toh(tr_t_id) << endl;
+		}
+
+		const char *paramValues2[2]
+				= { pIn->st_canceled_id, (char *) &tr_t_id };
+		const int paramLengths2[2]
+				= { sizeof(char) * (cST_ID_len + 1), sizeof(uint64_t) };
+		const int paramFormats2[2] = { 0, 1 };
+
+		res2 = exec(TCF1Q3, 2, NULL, paramValues2, paramLengths2,
+				paramFormats2, 0);
+		PQclear(res2);
+
+#define TCF1Q8                                                                \
+	"INSERT INTO trade_history(\n"                                            \
+	"    th_t_id\n"                                                           \
+	"  , th_dts\n"                                                            \
+	"  , th_st_id\n"                                                          \
+	")\n"                                                                     \
+	"VALUES (\n"                                                              \
+	"    $1\n"                                                                \
+	"  , CURRENT_TIMESTAMP\n"                                                 \
+	"  , $2\n"                                                                \
+	")\n"                                                                     \
+	"ON CONFLICT DO NOTHING"
+
+		if (m_bVerbose) {
+			cout << TCF1Q8 << endl;
+			cout << "$1 = " << be64toh(tr_t_id) << endl;
+			cout << "$2 = " << pIn->st_submitted_id << endl;
+		}
+
+		const char *paramValues1[2]
+				= { (char *) &tr_t_id, pIn->st_canceled_id };
+		const int paramLengths1[2]
+				= { sizeof(uint64_t), sizeof(char) * (cST_ID_len + 1) };
+		const int paramFormats1[2] = { 1, 0 };
+
+		res2 = exec(TCF1Q8, 2, NULL, paramValues1, paramLengths1,
+				paramFormats1, 0);
+		PQclear(res2);
+	}
+	PQclear(res);
+}
+
+
+void
 CDBConnection::reconnect()
 {
 	disconnect();

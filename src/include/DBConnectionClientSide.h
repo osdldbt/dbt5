@@ -46,8 +46,6 @@ public:
 	void execute(
 			const TSecurityDetailFrame1Input *, TSecurityDetailFrame1Output *);
 
-	void execute(const TTradeCleanupFrame1Input *);
-
 	void execute(const TTradeLookupFrame1Input *, TTradeLookupFrame1Output *);
 	void execute(const TTradeLookupFrame2Input *, TTradeLookupFrame2Output *);
 	void execute(const TTradeLookupFrame3Input *, TTradeLookupFrame3Output *);

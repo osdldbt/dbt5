@@ -74,7 +74,7 @@ public:
 			const TSecurityDetailFrame1Input *, TSecurityDetailFrame1Output *)
 			= 0;
 
-	virtual void execute(const TTradeCleanupFrame1Input *) = 0;
+	virtual void execute(const TTradeCleanupFrame1Input *);
 
 	virtual void execute(
 			const TTradeLookupFrame1Input *, TTradeLookupFrame1Output *)
