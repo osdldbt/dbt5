@@ -1733,12 +1733,21 @@ void
 CDBConnectionServerSide::execute(
 		const TTradeResultFrame3Input *pIn, TTradeResultFrame3Output *pOut)
 {
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeResultFrame3(" << pIn->buy_value << ","
-		  << pIn->cust_id << "," << pIn->sell_value << "," << pIn->trade_id
-		  << ")";
+	char buy_value[14];
+	snprintf(buy_value, 13, "%f", pIn->buy_value);
+	uint64_t cust_id = htobe64((uint64_t) pIn->cust_id);
+	char sell_value[14];
+	snprintf(sell_value, 13, "%f", pIn->sell_value);
+	uint64_t trade_id = htobe64((uint64_t) pIn->trade_id);
 
-	PGresult *res = exec(osSQL.str().c_str());
+	const char *paramValues[4]
+			= { buy_value, (char *) &cust_id, sell_value, (char *) &trade_id };
+	const int paramLengths[4] = { sizeof(char) * 14, sizeof(uint64_t),
+		sizeof(char) * 14, sizeof(uint64_t) };
+	const int paramFormats[4] = { 0, 1, 0, 1 };
+
+	PGresult *res = exec("SELECT * FROM TradeResultFrame3($1, $2, $3, $4)", 4,
+			NULL, paramValues, paramLengths, paramFormats, 0);
 
 	pOut->tax_amount = atof(PQgetvalue(res, 0, 0));
 	PQclear(res);
