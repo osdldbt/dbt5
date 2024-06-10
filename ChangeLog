@@ -2,6 +2,7 @@ vX.Y.Z (YYYY-MM-DD)
 
 - pgsql fix client-side trade result frame 2 bug in looping over results of
   query
+- pgsql fix for loops in trade result frame 2
 
 v0.10.1 (2024-06-10)
 
