@@ -243,7 +243,7 @@ CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 			m_TriggeredLimitOrders.price_quote = atof(PQgetvalue(res, j, 1));
 			strncpy(m_TriggeredLimitOrders.trade_type_id,
 					PQgetvalue(res, j, 2), cTT_ID_len);
-			m_TriggeredLimitOrders.trade_qty = atoi(PQgetvalue(res, j, 1));
+			m_TriggeredLimitOrders.trade_qty = atoi(PQgetvalue(res, j, 3));
 
 			if (m_bVerbose) {
 				cout << "symbol[" << j

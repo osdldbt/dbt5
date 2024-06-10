@@ -4,6 +4,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Update patch to quiet EGen build warnings
 - pgsql client side logic now handles settlement_cash_due as a date instead of a
   timestamp
+- pgsql market feed fix setting trade_qty in triggered limit orders
 
 v0.10.0 (2024-05-25)
 
