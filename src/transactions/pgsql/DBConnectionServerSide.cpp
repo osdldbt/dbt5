@@ -1650,10 +1650,15 @@ void
 CDBConnectionServerSide::execute(
 		const TTradeResultFrame1Input *pIn, TTradeResultFrame1Output *pOut)
 {
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeResultFrame1(" << pIn->trade_id << ")";
+	uint64_t trade_id = htobe64((uint64_t) pIn->trade_id);
 
-	PGresult *res = exec(osSQL.str().c_str());
+	const char *paramValues[1] = { (char *) &trade_id };
+	const int paramLengths[1] = { sizeof(uint64_t) };
+	const int paramFormats[1] = { 1 };
+
+	PGresult *res = exec("SELECT * FROM TradeResultFrame1($1)", 1, NULL,
+			paramValues, paramLengths, paramFormats, 0);
+
 	int i_acct_id = get_col_num(res, "acct_id");
 	int i_charge = get_col_num(res, "charge");
 	int i_hs_qty = get_col_num(res, "hs_qty");
