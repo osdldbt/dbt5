@@ -1694,14 +1694,28 @@ void
 CDBConnectionServerSide::execute(
 		const TTradeResultFrame2Input *pIn, TTradeResultFrame2Output *pOut)
 {
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeResultFrame2(" << pIn->acct_id << ","
-		  << pIn->hs_qty << "," << pIn->is_lifo << "::SMALLINT,'"
-		  << pIn->symbol << "'," << pIn->trade_id << "," << pIn->trade_price
-		  << "," << pIn->trade_qty << "," << pIn->type_is_sell
-		  << "::SMALLINT)";
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+	uint32_t hs_qty = htobe32((uint32_t) pIn->hs_qty);
+	uint16_t is_lifo = htobe16((uint16_t) pIn->is_lifo);
+	uint64_t trade_id = htobe64((uint64_t) pIn->trade_id);
+	char trade_price[14];
+	snprintf(trade_price, 13, "%f", pIn->trade_price);
+	uint32_t trade_qty = htobe32((uint32_t) pIn->trade_qty);
+	uint16_t type_is_sell = htobe16((uint16_t) pIn->type_is_sell);
 
-	PGresult *res = exec(osSQL.str().c_str());
+	const char *paramValues[8] = { (char *) &acct_id, (char *) &hs_qty,
+		(char *) &is_lifo, pIn->symbol, (char *) &trade_id, trade_price,
+		(char *) &trade_qty, (char *) &type_is_sell };
+
+	const int paramLengths[8] = { sizeof(uint64_t), sizeof(uint32_t),
+		sizeof(uint16_t), sizeof(char) * (cSYMBOL_len + 1), sizeof(uint64_t),
+		sizeof(char) * 14, sizeof(uint32_t), sizeof(uint16_t) };
+
+	const int paramFormats[8] = { 1, 1, 1, 0, 1, 0, 1, 1 };
+
+	PGresult *res = exec("SELECT * FROM TradeResultFrame2($1, $2, $3, $4, $5, "
+						 "$6, $7, $8)",
+			8, NULL, paramValues, paramLengths, paramFormats, 0);
 
 	pOut->broker_id = atoll(PQgetvalue(res, 0, 0));
 	pOut->buy_value = atof(PQgetvalue(res, 0, 1));
