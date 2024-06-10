@@ -1779,19 +1779,35 @@ CDBConnectionServerSide::execute(
 void
 CDBConnectionServerSide::execute(const TTradeResultFrame5Input *pIn)
 {
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeResultFrame5(" << pIn->broker_id << ","
-		  << pIn->comm_amount << ",'" << pIn->st_completed_id << "','"
-		  << pIn->trade_dts.year << "-" << pIn->trade_dts.month << "-"
-		  << pIn->trade_dts.day << " " << pIn->trade_dts.hour << ":"
-		  << pIn->trade_dts.minute << ":" << pIn->trade_dts.second << "',"
-		  << pIn->trade_id << "," << pIn->trade_price << ")";
+	uint64_t broker_id = htobe64((uint64_t) pIn->broker_id);
+	char comm_amount[14];
+	snprintf(comm_amount, 13, "%f", pIn->comm_amount);
+	struct tm tm = { 0 };
+	tm.tm_year = pIn->trade_dts.year - 1900;
+	tm.tm_mon = pIn->trade_dts.month - 1;
+	tm.tm_mday = pIn->trade_dts.day;
+	tm.tm_hour = pIn->trade_dts.hour - 1;
+	tm.tm_min = pIn->trade_dts.minute;
+	tm.tm_sec = pIn->trade_dts.second;
+	uint64_t trade_dts
+			= htobe64(((uint64_t) mktime(&tm) - (uint64_t) 946684800)
+					  * (uint64_t) 1000000);
 
-	// For PostgreSQL, see comment in the Concurrency Control chapter, under
-	// the Transaction Isolation section for dealing with serialization
-	// failures.  These serialization failures can occur with REPEATABLE READS
-	// or SERIALIZABLE.
-	PGresult *res = exec(osSQL.str().c_str());
+	uint64_t trade_id = htobe64((uint64_t) pIn->trade_id);
+	char trade_price[14];
+	snprintf(trade_price, 13, "%f", pIn->trade_price);
+
+	const char *paramValues[6]
+			= { (char *) &broker_id, comm_amount, pIn->st_completed_id,
+				  (char *) &trade_dts, (char *) &trade_id, trade_price };
+	const int paramLengths[6] = { sizeof(uint64_t), sizeof(char) * 14,
+		sizeof(char) * (cST_ID_len + 1), sizeof(uint64_t), sizeof(uint64_t),
+		sizeof(char) * 14 };
+	const int paramFormats[6] = { 1, 0, 0, 1, 1, 0 };
+
+	PGresult *res
+			= exec("SELECT * FROM TradeResultFrame5($1, $2, $3, $4, $5, $6)",
+					6, NULL, paramValues, paramLengths, paramFormats, 0);
 	PQclear(res);
 }
 
