@@ -1611,21 +1611,36 @@ void
 CDBConnectionServerSide::execute(
 		const TTradeOrderFrame4Input *pIn, TTradeOrderFrame4Output *pOut)
 {
-	ostringstream osSQL;
-	char *tmpstr;
-	osSQL << "SELECT * FROM TradeOrderFrame4(" << pIn->acct_id << ","
-		  << pIn->broker_id << "," << pIn->charge_amount << ","
-		  << pIn->comm_amount << ",";
-	tmpstr = escape(pIn->exec_name);
-	osSQL << tmpstr;
-	PQfreemem(tmpstr);
-	osSQL << "," << pIn->is_cash << "::SMALLINT," << pIn->is_lifo
-		  << "::SMALLINT," << pIn->requested_price << ",'" << pIn->status_id
-		  << "','" << pIn->symbol << "'," << pIn->trade_qty << ",'"
-		  << pIn->trade_type_id << "'," << pIn->type_is_market
-		  << "::SMALLINT)";
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+	uint64_t broker_id = htobe64((uint64_t) pIn->broker_id);
+	char charge_amount[14];
+	snprintf(charge_amount, 13, "%f", pIn->charge_amount);
+	char comm_amount[14];
+	snprintf(comm_amount, 13, "%f", pIn->comm_amount);
+	uint16_t is_cash = htobe16((uint16_t) pIn->is_cash);
+	uint16_t is_lifo = htobe16((uint16_t) pIn->is_lifo);
+	char requested_price[14];
+	snprintf(requested_price, 13, "%f", pIn->requested_price);
+	uint32_t trade_qty = htobe32((uint32_t) pIn->trade_qty);
+	uint16_t type_is_market = htobe16((uint16_t) pIn->type_is_market);
 
-	PGresult *res = exec(osSQL.str().c_str());
+	const char *paramValues[13] = { (char *) &acct_id, (char *) &broker_id,
+		charge_amount, comm_amount, pIn->exec_name, (char *) &is_cash,
+		(char *) &is_lifo, requested_price, pIn->status_id, pIn->symbol,
+		(char *) &trade_qty, pIn->trade_type_id, (char *) &type_is_market };
+
+	const int paramLengths[13] = { sizeof(uint64_t), sizeof(uint64_t),
+		sizeof(char) * 14, sizeof(char) * 14,
+		sizeof(char) * (cEXEC_NAME_len + 1), sizeof(uint16_t),
+		sizeof(uint16_t), sizeof(char) * 14, sizeof(char) * (cST_ID_len + 1),
+		sizeof(char) * (cSYMBOL_len + 1), sizeof(uint32_t),
+		sizeof(char) * (cTT_ID_len + 1), sizeof(uint16_t) };
+
+	const int paramFormats[13] = { 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1 };
+
+	PGresult *res = exec("SELECT * FROM TradeOrderFrame4($1, $2, $3, $4, $5, "
+						 "$6, $7, $8, $9, $10, $11, $12, $13)",
+			13, NULL, paramValues, paramLengths, paramFormats, 0);
 
 	pOut->trade_id = atoll(PQgetvalue(res, 0, 0));
 	PQclear(res);
