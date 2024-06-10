@@ -2717,9 +2717,9 @@ CDBConnectionClientSide::execute(
 			int count = PQntuples(res);
 			PGresult *res2 = NULL;
 			for (int i = 0; i < count || needed_qty == 0; i++) {
-				char *hold_id = PQgetvalue(res, 0, 0);
-				INT32 hold_qty = atoi(PQgetvalue(res, 0, 1));
-				double hold_price = atof(PQgetvalue(res, 0, 2));
+				char *hold_id = PQgetvalue(res, i, 0);
+				INT32 hold_qty = atoi(PQgetvalue(res, i, 1));
+				double hold_price = atof(PQgetvalue(res, i, 2));
 
 				if (m_bVerbose) {
 					cout << "hold_id[" << i << "] = " << hold_id << endl;
