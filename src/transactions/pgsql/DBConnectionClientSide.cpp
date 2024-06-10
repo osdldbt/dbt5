@@ -3881,69 +3881,100 @@ CDBConnectionClientSide::execute(
 		const TTradeResultFrame4Input *pIn, TTradeResultFrame4Output *pOut)
 {
 	PGresult *res = NULL;
-	PGresult *res2 = NULL;
-	ostringstream osSQL;
 
-	osSQL << "SELECT s_ex_id" << endl
-		  << "     , s_name" << endl
-		  << "FROM security" << endl
-		  << "WHERE s_symb = '" << pIn->symbol << "'";
+#define TRF4Q1                                                                \
+	"SELECT s_ex_id\n"                                                        \
+	"     , s_name\n"                                                         \
+	"FROM security\n"                                                         \
+	"WHERE s_symb = $1"
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TRF4Q1 << endl;
+		cout << "$1 = " << pIn->symbol << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const char *paramValues1[1] = { pIn->symbol };
+	const int paramLengths1[1] = { sizeof(char) * (cSYMBOL_len + 1) };
+	const int paramFormats1[1] = { 0 };
+
+	res = exec(TRF4Q1, 1, NULL, paramValues1, paramLengths1, paramFormats1, 0);
 
 	if (PQntuples(res) == 0) {
 		PQclear(res);
 		return;
 	}
 
+	char ex_id[cEX_ID_len + 1];
+	strncpy(ex_id, PQgetvalue(res, 0, 0), cEX_ID_len);
 	strncpy(pOut->s_name, PQgetvalue(res, 0, 1), cS_NAME_len);
+	PQclear(res);
 
 	if (m_bVerbose) {
-		cout << "ex_id = " << PQgetvalue(res, 0, 0) << endl;
-		;
+		cout << "ex_id = " << ex_id << endl;
 		cout << "s_name = " << pOut->s_name << endl;
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT c_tier" << endl
-		  << "FROM customer" << endl
-		  << "WHERE c_id = " << pIn->cust_id;
-	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
-	}
-	res2 = exec(osSQL.str().c_str());
+#define TRF4Q2                                                                \
+	"SELECT c_tier\n"                                                         \
+	"FROM customer\n"                                                         \
+	"WHERE c_id = $1"
 
-	if (PQntuples(res2) == 0) {
-		PQclear(res2);
+	uint64_t cust_id = htobe64((uint64_t) pIn->cust_id);
+
+	if (m_bVerbose) {
+		cout << TRF4Q2 << endl;
+		cout << "$1 = " << be64toh(cust_id) << endl;
+	}
+
+	const char *paramValues2[1] = { (char *) &cust_id };
+	const int paramLengths2[1] = { sizeof(uint64_t) };
+	const int paramFormats2[1] = { 1 };
+
+	res = exec(TRF4Q2, 1, NULL, paramValues2, paramLengths2, paramFormats2, 0);
+
+	uint16_t c_tier = htobe16((uint16_t) atoi(PQgetvalue(res, 0, 0)));
+	PQclear(res);
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
 		return;
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT cr_rate" << endl
-		  << "FROM commission_rate" << endl
-		  << "WHERE cr_c_tier = '" << PQgetvalue(res2, 0, 0) << "'" << endl
-		  << "  AND cr_tt_id = '" << pIn->type_id << "'" << endl
-		  << "  AND cr_ex_id = '" << PQgetvalue(res, 0, 0) << "'" << endl
-		  << "  AND cr_from_qty <= " << pIn->trade_qty << endl
-		  << "  AND cr_to_qty >= " << pIn->trade_qty << endl
-		  << "LIMIT 1";
-	PQclear(res2);
-	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
-	}
-	res2 = exec(osSQL.str().c_str());
+#define TRF4Q3                                                                \
+	"SELECT cr_rate\n"                                                        \
+	"FROM commission_rate\n"                                                  \
+	"WHERE cr_c_tier = $1\n"                                                  \
+	"  AND cr_tt_id = $2\n"                                                   \
+	"  AND cr_ex_id = $3\n"                                                   \
+	"  AND cr_from_qty <= $4\n"                                               \
+	"  AND cr_to_qty >= $4\n"                                                 \
+	"LIMIT 1"
 
-	if (PQntuples(res2) == 0) {
-		PQclear(res2);
+	uint32_t trade_qty = htobe32((uint32_t) pIn->trade_qty);
+
+	if (m_bVerbose) {
+		cout << TRF4Q3 << endl;
+		cout << "$1 = " << be16toh(c_tier) << endl;
+		cout << "$2 = " << pIn->type_id << endl;
+		cout << "$3 = " << ex_id << endl;
+		cout << "$4 = " << be32toh(trade_qty) << endl;
+	}
+
+	const char *paramValues3[4]
+			= { (char *) &c_tier, pIn->type_id, ex_id, (char *) &trade_qty };
+	const int paramLengths3[4]
+			= { sizeof(uint16_t), sizeof(char) * (cTT_ID_len + 1),
+				  sizeof(char) * (cEX_ID_len + 1), sizeof(uint32_t) };
+	const int paramFormats3[4] = { 1, 0, 0, 1 };
+
+	res = exec(TRF4Q3, 4, NULL, paramValues3, paramLengths3, paramFormats3, 0);
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
 		return;
 	}
 
-	pOut->comm_rate = atof(PQgetvalue(res2, 0, 0));
-	PQclear(res2);
+	pOut->comm_rate = atof(PQgetvalue(res, 0, 0));
 	PQclear(res);
 
 	if (m_bVerbose) {
