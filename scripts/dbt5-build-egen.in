@@ -144,6 +144,7 @@ fi
 
 if command -v pg_config > /dev/null; then
 	EXTRAINCLUDE="-I$(pg_config --includedir)"
+	EXTRAINCLUDE="${EXTRAINCLUDE} -I$(pg_config --includedir-server)"
 	EXTRALDDIR="-L$(pg_config --libdir)"
 fi
 

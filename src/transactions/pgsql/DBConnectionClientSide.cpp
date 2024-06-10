@@ -5,6 +5,10 @@
  * Copyright The DBT-5 Authors
  */
 
+#include <endian.h>
+
+#include <catalog/pg_type_d.h>
+
 #include "DBConnection.h"
 #include "DBConnectionClientSide.h"
 
