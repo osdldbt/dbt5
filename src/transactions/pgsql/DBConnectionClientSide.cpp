@@ -2110,22 +2110,43 @@ CDBConnectionClientSide::execute(
 		const TTradeLookupFrame4Input *pIn, TTradeLookupFrame4Output *pOut)
 {
 	PGresult *res = NULL;
-	ostringstream osSQL;
 
-	osSQL << "SELECT t_id" << endl
-		  << "FROM trade" << endl
-		  << "WHERE t_ca_id = " << pIn->acct_id << endl
-		  << "  AND t_dts >= '" << pIn->trade_dts.year << "-"
-		  << pIn->trade_dts.month << "-" << pIn->trade_dts.day << " "
-		  << pIn->trade_dts.hour << ":" << pIn->trade_dts.minute << ":"
-		  << pIn->trade_dts.second << "." << pIn->trade_dts.fraction << "'"
-		  << endl
-		  << "ORDER BY t_dts ASC" << endl
-		  << "LIMIT 1";
+#define TLF4Q1                                                                \
+	"SELECT t_id\n"                                                           \
+	"FROM trade\n"                                                            \
+	"WHERE t_ca_id = $1\n"                                                    \
+	"  AND t_dts >= $2\n"                                                     \
+	"ORDER BY t_dts ASC\n"                                                    \
+	"LIMIT 1"
+
+	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
+
+	struct tm trade = { 0 };
+	trade.tm_year = pIn->trade_dts.year - 1900;
+	trade.tm_mon = pIn->trade_dts.month - 1;
+	trade.tm_mday = pIn->trade_dts.day;
+	trade.tm_hour = pIn->trade_dts.hour - 1;
+	trade.tm_min = pIn->trade_dts.minute;
+	trade.tm_sec = pIn->trade_dts.second;
+	uint64_t trade_dts
+			= htobe64(((uint64_t) mktime(&trade) - (uint64_t) 946684800)
+					  * (uint64_t) 1000000);
+
 	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
+		cout << TLF4Q1 << endl;
+		cout << "$1 = " << be64toh(acct_id) << endl;
+		cout << "$2 = " << pIn->trade_dts.year << "-" << pIn->trade_dts.month
+			 << "-" << pIn->trade_dts.day << " " << pIn->trade_dts.hour << ":"
+			 << pIn->trade_dts.minute << ":" << pIn->trade_dts.second << endl;
 	}
-	res = exec(osSQL.str().c_str());
+
+	const Oid paramTypes1[2] = { INT8OID, TIMESTAMPOID };
+	const char *paramValues1[2] = { (char *) &acct_id, (char *) &trade_dts };
+	const int paramFormats1[2] = { 1, 1 };
+	const int paramLengths1[2] = { sizeof(uint64_t), sizeof(uint64_t) };
+
+	res = exec(TLF4Q1, 2, paramTypes1, paramValues1, paramLengths1,
+			paramFormats1, 0);
 
 	pOut->num_trades_found = PQntuples(res);
 	if (pOut->num_trades_found == 0) {
@@ -2134,29 +2155,31 @@ CDBConnectionClientSide::execute(
 	}
 
 	pOut->trade_id = atoll(PQgetvalue(res, 0, 0));
+	uint64_t trade_id = htobe64((uint64_t) pOut->trade_id);
 	PQclear(res);
 
+#define TLF4Q2                                                                \
+	"SELECT hh_h_t_id\n"                                                      \
+	"     , hh_t_id\n"                                                        \
+	"     , hh_before_qty\n"                                                  \
+	"     , hh_after_qty\n"                                                   \
+	"FROM holding_history\n"                                                  \
+	"WHERE hh_h_t_id IN (\n"                                                  \
+	"                       SELECT hh_h_t_id\n"                               \
+	"                       FROM holding_history\n"                           \
+	"                       WHERE hh_t_id = $1\n"                             \
+	"                   )"
+
 	if (m_bVerbose) {
-		cout << "t_id = " << pOut->trade_id << endl;
+		cout << TLF4Q2 << endl;
+		cout << "$1 = " << be64toh(trade_id) << endl;
 	}
 
-	osSQL.clear();
-	osSQL.str("");
-	osSQL << "SELECT hh_h_t_id" << endl
-		  << "     , hh_t_id" << endl
-		  << "     , hh_before_qty" << endl
-		  << "     , hh_after_qty" << endl
-		  << "FROM holding_history" << endl
-		  << "WHERE hh_h_t_id IN (" << endl
-		  << "                       SELECT hh_h_t_id" << endl
-		  << "                       FROM holding_history" << endl
-		  << "                       WHERE hh_t_id = " << pOut->trade_id
-		  << endl
-		  << "                   )";
-	if (m_bVerbose) {
-		cout << osSQL.str() << endl;
-	}
-	res = exec(osSQL.str().c_str());
+	const char *paramValues2[1] = { (char *) &trade_id };
+	const int paramFormats2[1] = { 1 };
+	const int paramLengths2[1] = { sizeof(uint64_t) };
+
+	res = exec(TLF4Q2, 1, NULL, paramValues2, paramLengths2, paramFormats2, 0);
 
 	pOut->num_found = PQntuples(res);
 	for (int i = 0; i < pOut->num_found; i++) {
