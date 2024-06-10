@@ -2007,16 +2007,27 @@ CDBConnectionServerSide::execute(
 {
 	ostringstream osTrades;
 	int i = 0;
-	osTrades << pIn->trade_id[i];
+	osTrades << "{" << pIn->trade_id[i];
 	for (i = 1; i < pIn->max_trades; i++) {
 		osTrades << "," << pIn->trade_id[i];
 	}
+	osTrades << "}";
 
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeUpdateFrame1(" << pIn->max_trades << ","
-		  << pIn->max_updates << ",'{" << osTrades.str() << "}')";
+	uint32_t max_trades = htobe32((uint32_t) pIn->max_trades);
+	char trade_id[osTrades.str().length() + 1];
+	strncpy(trade_id, osTrades.str().c_str(), osTrades.str().length());
+	trade_id[osTrades.str().length()] = '\0';
+	uint32_t max_updates = htobe32((uint32_t) pIn->max_updates);
 
-	PGresult *res = exec(osSQL.str().c_str());
+	const char *paramValues[3]
+			= { (char *) &max_trades, (char *) &max_updates, trade_id };
+	const int paramLengths[3] = { sizeof(uint32_t), sizeof(uint32_t),
+		(int) sizeof(char) * ((int) strlen(trade_id) + 1) };
+	const int paramFormats[3] = { 1, 1, 0 };
+
+	PGresult *res = exec("SELECT * FROM TradeUpdateFrame1($1, $2, $3)", 3,
+			NULL, paramValues, paramLengths, paramFormats, 0);
+
 	int i_bid_price = get_col_num(res, "bid_price");
 	int i_cash_transaction_amount
 			= get_col_num(res, "cash_transaction_amount");
