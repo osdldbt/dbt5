@@ -1757,12 +1757,18 @@ void
 CDBConnectionServerSide::execute(
 		const TTradeResultFrame4Input *pIn, TTradeResultFrame4Output *pOut)
 {
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM TradeResultFrame4(" << pIn->cust_id << ",'"
-		  << pIn->symbol << "'," << pIn->trade_qty << ",'" << pIn->type_id
-		  << "')";
+	uint64_t cust_id = htobe64((uint64_t) pIn->cust_id);
+	uint32_t trade_qty = htobe32((uint32_t) pIn->trade_qty);
 
-	PGresult *res = exec(osSQL.str().c_str());
+	const char *paramValues[4] = { (char *) &cust_id, pIn->symbol,
+		(char *) &trade_qty, pIn->type_id };
+	const int paramLengths[4]
+			= { sizeof(uint64_t), sizeof(char) * (cSYMBOL_len + 1),
+				  sizeof(uint32_t), sizeof(char) * (cTT_ID_len + 1) };
+	const int paramFormats[4] = { 1, 0, 1, 0 };
+
+	PGresult *res = exec("SELECT * FROM TradeResultFrame4($1, $2, $3, $4)", 4,
+			NULL, paramValues, paramLengths, paramFormats, 0);
 
 	pOut->comm_rate = atof(PQgetvalue(res, 0, 0));
 	strncpy(pOut->s_name, PQgetvalue(res, 0, 1), cS_NAME_len);
