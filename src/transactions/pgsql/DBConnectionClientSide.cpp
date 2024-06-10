@@ -1408,14 +1408,10 @@ CDBConnectionClientSide::execute(
 		if (PQntuples(res) > 0) {
 			pOut->trade_info[i].settlement_amount
 					= atof(PQgetvalue(res, 0, 0));
-			sscanf(PQgetvalue(res, 0, 1), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+			sscanf(PQgetvalue(res, 0, 1), "%hd-%hd-%hd",
 					&pOut->trade_info[i].settlement_cash_due_date.year,
 					&pOut->trade_info[i].settlement_cash_due_date.month,
-					&pOut->trade_info[i].settlement_cash_due_date.day,
-					&pOut->trade_info[i].settlement_cash_due_date.hour,
-					&pOut->trade_info[i].settlement_cash_due_date.minute,
-					&pOut->trade_info[i].settlement_cash_due_date.second,
-					&pOut->trade_info[i].settlement_cash_due_date.fraction);
+					&pOut->trade_info[i].settlement_cash_due_date.day);
 			strncpy(pOut->trade_info[i].settlement_cash_type,
 					PQgetvalue(res, 0, 2), cSE_CASH_TYPE_len);
 		}
@@ -1428,11 +1424,6 @@ CDBConnectionClientSide::execute(
 				 << "] = " << pOut->trade_info[i].settlement_cash_due_date.year
 				 << "-" << pOut->trade_info[i].settlement_cash_due_date.month
 				 << "-" << pOut->trade_info[i].settlement_cash_due_date.day
-				 << " " << pOut->trade_info[i].settlement_cash_due_date.hour
-				 << ":" << pOut->trade_info[i].settlement_cash_due_date.minute
-				 << ":" << pOut->trade_info[i].settlement_cash_due_date.second
-				 << "."
-				 << pOut->trade_info[i].settlement_cash_due_date.fraction
 				 << endl;
 			cout << "settlement_cash_type[" << i
 				 << "] = " << pOut->trade_info[i].settlement_cash_type << endl;
@@ -1611,14 +1602,10 @@ CDBConnectionClientSide::execute(
 		if (PQntuples(res2) > 0) {
 			pOut->trade_info[i].settlement_amount
 					= atof(PQgetvalue(res2, 0, 0));
-			sscanf(PQgetvalue(res2, 0, 1), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+			sscanf(PQgetvalue(res2, 0, 1), "%hd-%hd-%hd",
 					&pOut->trade_info[i].settlement_cash_due_date.year,
 					&pOut->trade_info[i].settlement_cash_due_date.month,
-					&pOut->trade_info[i].settlement_cash_due_date.day,
-					&pOut->trade_info[i].settlement_cash_due_date.hour,
-					&pOut->trade_info[i].settlement_cash_due_date.minute,
-					&pOut->trade_info[i].settlement_cash_due_date.second,
-					&pOut->trade_info[i].settlement_cash_due_date.fraction);
+					&pOut->trade_info[i].settlement_cash_due_date.day);
 			strncpy(pOut->trade_info[i].settlement_cash_type,
 					PQgetvalue(res2, 0, 2), cSE_CASH_TYPE_len);
 		}
@@ -1631,11 +1618,6 @@ CDBConnectionClientSide::execute(
 				 << "] = " << pOut->trade_info[i].settlement_cash_due_date.year
 				 << "-" << pOut->trade_info[i].settlement_cash_due_date.month
 				 << "-" << pOut->trade_info[i].settlement_cash_due_date.day
-				 << " " << pOut->trade_info[i].settlement_cash_due_date.hour
-				 << ":" << pOut->trade_info[i].settlement_cash_due_date.minute
-				 << ":" << pOut->trade_info[i].settlement_cash_due_date.second
-				 << "."
-				 << pOut->trade_info[i].settlement_cash_due_date.fraction
 				 << endl;
 			cout << "settlement_cash_type[" << i
 				 << "] = " << pOut->trade_info[i].settlement_cash_type << endl;
@@ -1831,14 +1813,10 @@ CDBConnectionClientSide::execute(
 		if (PQntuples(res2) > 0) {
 			pOut->trade_info[i].settlement_amount
 					= atof(PQgetvalue(res2, 0, 0));
-			sscanf(PQgetvalue(res2, 0, 1), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+			sscanf(PQgetvalue(res2, 0, 1), "%hd-%hd-%hd",
 					&pOut->trade_info[i].settlement_cash_due_date.year,
 					&pOut->trade_info[i].settlement_cash_due_date.month,
-					&pOut->trade_info[i].settlement_cash_due_date.day,
-					&pOut->trade_info[i].settlement_cash_due_date.hour,
-					&pOut->trade_info[i].settlement_cash_due_date.minute,
-					&pOut->trade_info[i].settlement_cash_due_date.second,
-					&pOut->trade_info[i].settlement_cash_due_date.fraction);
+					&pOut->trade_info[i].settlement_cash_due_date.day);
 			strncpy(pOut->trade_info[i].settlement_cash_type,
 					PQgetvalue(res2, 0, 2), cSE_CASH_TYPE_len);
 		}
@@ -1851,11 +1829,6 @@ CDBConnectionClientSide::execute(
 				 << "] = " << pOut->trade_info[i].settlement_cash_due_date.year
 				 << "-" << pOut->trade_info[i].settlement_cash_due_date.month
 				 << "-" << pOut->trade_info[i].settlement_cash_due_date.day
-				 << " " << pOut->trade_info[i].settlement_cash_due_date.hour
-				 << ":" << pOut->trade_info[i].settlement_cash_due_date.minute
-				 << ":" << pOut->trade_info[i].settlement_cash_due_date.second
-				 << "."
-				 << pOut->trade_info[i].settlement_cash_due_date.fraction
 				 << endl;
 			cout << "settlement_cash_type[" << i
 				 << "] = " << pOut->trade_info[i].settlement_cash_type << endl;
@@ -3720,14 +3693,10 @@ CDBConnectionClientSide::execute(
 		}
 
 		pOut->trade_info[i].settlement_amount = atof(PQgetvalue(res, 0, 0));
-		sscanf(PQgetvalue(res, 0, 1), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+		sscanf(PQgetvalue(res, 0, 1), "%hd-%hd-%hd",
 				&pOut->trade_info[i].settlement_cash_due_date.year,
 				&pOut->trade_info[i].settlement_cash_due_date.month,
-				&pOut->trade_info[i].settlement_cash_due_date.day,
-				&pOut->trade_info[i].settlement_cash_due_date.hour,
-				&pOut->trade_info[i].settlement_cash_due_date.minute,
-				&pOut->trade_info[i].settlement_cash_due_date.second,
-				&pOut->trade_info[i].settlement_cash_due_date.fraction);
+				&pOut->trade_info[i].settlement_cash_due_date.day);
 		strncpy(pOut->trade_info[i].settlement_cash_type,
 				PQgetvalue(res, 0, 2), cSE_CASH_TYPE_len);
 		PQclear(res);
@@ -3739,11 +3708,6 @@ CDBConnectionClientSide::execute(
 				 << "] = " << pOut->trade_info[i].settlement_cash_due_date.year
 				 << "-" << pOut->trade_info[i].settlement_cash_due_date.month
 				 << "-" << pOut->trade_info[i].settlement_cash_due_date.day
-				 << " " << pOut->trade_info[i].settlement_cash_due_date.hour
-				 << ":" << pOut->trade_info[i].settlement_cash_due_date.minute
-				 << ":" << pOut->trade_info[i].settlement_cash_due_date.second
-				 << "."
-				 << pOut->trade_info[i].settlement_cash_due_date.fraction
 				 << endl;
 			cout << "settlement_cash_type[" << i
 				 << "] = " << pOut->trade_info[i].settlement_cash_type << endl;
@@ -3974,14 +3938,10 @@ CDBConnectionClientSide::execute(
 		}
 
 		pOut->trade_info[i].settlement_amount = atof(PQgetvalue(res2, 0, 0));
-		sscanf(PQgetvalue(res2, 0, 1), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+		sscanf(PQgetvalue(res2, 0, 1), "%hd-%hd-%hd",
 				&pOut->trade_info[i].settlement_cash_due_date.year,
 				&pOut->trade_info[i].settlement_cash_due_date.month,
-				&pOut->trade_info[i].settlement_cash_due_date.day,
-				&pOut->trade_info[i].settlement_cash_due_date.hour,
-				&pOut->trade_info[i].settlement_cash_due_date.minute,
-				&pOut->trade_info[i].settlement_cash_due_date.second,
-				&pOut->trade_info[i].settlement_cash_due_date.fraction);
+				&pOut->trade_info[i].settlement_cash_due_date.day);
 		strncpy(pOut->trade_info[i].settlement_cash_type,
 				PQgetvalue(res2, 0, 2), cSE_CASH_TYPE_len);
 		PQclear(res2);
@@ -3993,11 +3953,6 @@ CDBConnectionClientSide::execute(
 				 << "] = " << pOut->trade_info[i].settlement_cash_due_date.year
 				 << "-" << pOut->trade_info[i].settlement_cash_due_date.month
 				 << "-" << pOut->trade_info[i].settlement_cash_due_date.day
-				 << " " << pOut->trade_info[i].settlement_cash_due_date.hour
-				 << ":" << pOut->trade_info[i].settlement_cash_due_date.minute
-				 << ":" << pOut->trade_info[i].settlement_cash_due_date.second
-				 << "."
-				 << pOut->trade_info[i].settlement_cash_due_date.fraction
 				 << endl;
 			cout << "settlement_cash_type[" << i
 				 << "] = " << pOut->trade_info[i].settlement_cash_type << endl;
@@ -4224,14 +4179,10 @@ CDBConnectionClientSide::execute(
 		}
 
 		pOut->trade_info[i].settlement_amount = atof(PQgetvalue(res2, 0, 0));
-		sscanf(PQgetvalue(res2, 0, 1), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+		sscanf(PQgetvalue(res2, 0, 1), "%hd-%hd-%hd",
 				&pOut->trade_info[i].settlement_cash_due_date.year,
 				&pOut->trade_info[i].settlement_cash_due_date.month,
-				&pOut->trade_info[i].settlement_cash_due_date.day,
-				&pOut->trade_info[i].settlement_cash_due_date.hour,
-				&pOut->trade_info[i].settlement_cash_due_date.minute,
-				&pOut->trade_info[i].settlement_cash_due_date.second,
-				&pOut->trade_info[i].settlement_cash_due_date.fraction);
+				&pOut->trade_info[i].settlement_cash_due_date.day);
 		strncpy(pOut->trade_info[i].settlement_cash_type,
 				PQgetvalue(res2, 0, 2), cSE_CASH_TYPE_len);
 		PQclear(res2);
@@ -4243,11 +4194,6 @@ CDBConnectionClientSide::execute(
 				 << "] = " << pOut->trade_info[i].settlement_cash_due_date.year
 				 << "-" << pOut->trade_info[i].settlement_cash_due_date.month
 				 << "-" << pOut->trade_info[i].settlement_cash_due_date.day
-				 << " " << pOut->trade_info[i].settlement_cash_due_date.hour
-				 << ":" << pOut->trade_info[i].settlement_cash_due_date.minute
-				 << ":" << pOut->trade_info[i].settlement_cash_due_date.second
-				 << "."
-				 << pOut->trade_info[i].settlement_cash_due_date.fraction
 				 << endl;
 			cout << "settlement_cash_type[" << i
 				 << "] = " << pOut->trade_info[i].settlement_cash_type << endl;

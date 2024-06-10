@@ -2,6 +2,8 @@ vX.Y.Z (YYYY-MM-DD)
 
 - Improve TestTxn exception handling messages
 - Update patch to quiet EGen build warnings
+- pgsql client side logic now handles settlement_cash_due as a date instead of a
+  timestamp
 
 v0.10.0 (2024-05-25)
 
