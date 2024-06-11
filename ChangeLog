@@ -4,6 +4,7 @@ vX.Y.Z (YYYY-MM-DD)
   query
 - pgsql fix for loops in trade result frame 2
 - Adopt Artistic License 2.0
+- Remove remaining trade_cleanup.sql references from pgsql-load-stored-procs
 
 v0.10.1 (2024-06-10)
 
