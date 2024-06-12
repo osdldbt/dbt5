@@ -215,6 +215,8 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
 		for (i = 0; i < count; i++) {
+			/* Just continue if we can't get numbers any of these queries. */
+
 			tuple = tuptable->vals[i];
 			symbol = SPI_getvalue(tuple, tupdesc, 1);
 #ifdef DEBUG
@@ -225,11 +227,15 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 			frame_index = 3;
 			args[0] = CStringGetTextDatum(symbol);
 			ret = SPI_execute_plan(MWF1_4, args, nulls, true, 0);
-
-			if (ret != SPI_OK_SELECT || SPI_processed == 0) {
+			if (ret != SPI_OK_SELECT) {
 				FAIL_FRAME(MWF1_statements[frame_index].sql);
 				continue;
 			}
+
+			if (SPI_processed == 0) {
+				continue;
+			}
+
 			tupdesc4 = SPI_tuptable->tupdesc;
 			tuptable4 = SPI_tuptable;
 			tuple4 = tuptable4->vals[0];
@@ -245,6 +251,11 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 			if (ret != SPI_OK_SELECT) {
 				FAIL_FRAME(MWF1_statements[frame_index].sql);
 			}
+
+			if (SPI_processed == 0) {
+				continue;
+			}
+
 			tupdesc4 = SPI_tuptable->tupdesc;
 			tuptable4 = SPI_tuptable;
 			tuple4 = tuptable4->vals[0];
@@ -265,18 +276,18 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 			}
 
 			if (SPI_processed == 0) {
-				elog(NOTICE, "No rows returned for getting old_price.");
-			} else {
-				tupdesc4 = SPI_tuptable->tupdesc;
-				tuptable4 = SPI_tuptable;
-				tuple4 = tuptable4->vals[0];
-				old_price = SPI_getvalue(tuple4, tupdesc4, 1);
-				old_mkt_cap += atof(s_num_out) * atof(old_price);
-#ifdef DEBUG
-				elog(DEBUG1, "MWF1_6 dm_close[%d] = %s", i, old_price);
-				elog(DEBUG1, "MWF1 old_mkt_cap = %f", old_mkt_cap);
-#endif /* DEBUG */
+				continue;
 			}
+
+			tupdesc4 = SPI_tuptable->tupdesc;
+			tuptable4 = SPI_tuptable;
+			tuple4 = tuptable4->vals[0];
+			old_price = SPI_getvalue(tuple4, tupdesc4, 1);
+			old_mkt_cap += atof(s_num_out) * atof(old_price);
+#ifdef DEBUG
+			elog(DEBUG1, "MWF1_6 old_price[%d] = %s", i, old_price);
+			elog(DEBUG1, "MWF1 old_mkt_cap = %f", old_mkt_cap);
+#endif /* DEBUG */
 			new_mkt_cap += atof(s_num_out) * atof(new_price);
 #ifdef DEBUG
 			elog(DEBUG1, "MWF1 new_mkt_cap = %f", new_mkt_cap);

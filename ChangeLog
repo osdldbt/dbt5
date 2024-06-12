@@ -6,6 +6,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Adopt Artistic License 2.0
 - Remove remaining trade_cleanup.sql references from pgsql-load-stored-procs
 - pgsql pl/c: add parameter and query results to market watch debug output
+- pgsql pl/c: fix market cap calculation
 
 v0.10.1 (2024-06-10)
 
