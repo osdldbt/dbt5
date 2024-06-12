@@ -1116,54 +1116,54 @@ TradeLookupFrame2(PG_FUNCTION_ARGS)
 		 */
 		values = (char **) palloc(sizeof(char *) * 14);
 
-		length_bp = (S_PRICE_T_LEN + 1) * max_trades + 2;
+		length_bp = (S_PRICE_T_LEN + 1) * 20 + 2;
 		values[i_bid_price] = (char *) palloc(length_bp-- * sizeof(char));
 
-		length_cta = (VALUE_T_LEN + 1) * max_trades + 2;
+		length_cta = (VALUE_T_LEN + 1) * 20 + 2;
 		values[i_cash_transaction_amount]
 				= (char *) palloc(length_cta-- * sizeof(char));
 
-		length_ctd = (MYMAXDATELEN + 1) * max_trades + 2;
+		length_ctd = (MYMAXDATELEN + 1) * 20 + 2;
 		values[i_cash_transaction_dts]
 				= (char *) palloc(length_ctd-- * sizeof(char));
 
-		length_ctn = (CT_NAME_LEN + 3) * max_trades + 2;
+		length_ctn = (CT_NAME_LEN + 3) * 20 + 2;
 		values[i_cash_transaction_name]
 				= (char *) palloc(length_ctn-- * sizeof(char));
 
-		length_en = (T_EXEC_NAME_LEN + 1) * max_trades + 3;
+		length_en = (T_EXEC_NAME_LEN + 1) * 20 + 3;
 		values[i_exec_name] = (char *) palloc(length_en-- * sizeof(char));
 
-		length_ic = (BOOLEAN_LEN + 1) * max_trades + 2;
+		length_ic = (BOOLEAN_LEN + 1) * 20 + 2;
 		values[i_is_cash] = (char *) palloc(length_ic-- * sizeof(char));
 
 		values[i_num_found]
 				= (char *) palloc((INTEGER_LEN + 1) * sizeof(char));
 
-		length_sa = (VALUE_T_LEN + 1) * max_trades + 2;
+		length_sa = (VALUE_T_LEN + 1) * 20 + 2;
 		values[i_settlement_amount]
 				= (char *) palloc(length_sa-- * sizeof(char));
 
-		length_scdd = (MYMAXDATELEN + 1) * max_trades + 2;
+		length_scdd = (MYMAXDATELEN + 1) * 20 + 2;
 		values[i_settlement_cash_due_date]
 				= (char *) palloc(length_scdd-- * sizeof(char));
 
-		length_sct = (SE_CASH_TYPE_LEN + 1) * max_trades + 2;
+		length_sct = (SE_CASH_TYPE_LEN + 1) * 20 + 2;
 		values[i_settlement_cash_type]
 				= (char *) palloc(length_sct-- * sizeof(char));
 
-		length_thd = ((MYMAXDATELEN + 1) * max_trades + 3) * 3 + 2;
+		length_thd = (MYMAXDATELEN + 1) * 60 + 2;
 		values[i_trade_history_dts]
 				= (char *) palloc(length_thd-- * sizeof(char));
 
-		length_thsi = ((ST_ID_LEN + 3) * max_trades + 3) * 3 + 2;
+		length_thsi = (ST_ID_LEN + 1) * 60 + 2;
 		values[i_trade_history_status_id]
 				= (char *) palloc(length_thsi-- * sizeof(char));
 
-		length_tl = (TRADE_T_LEN + 1) * max_trades + 2;
+		length_tl = (TRADE_T_LEN + 1) * 20 + 2;
 		values[i_trade_list] = (char *) palloc(length_tl-- * sizeof(char));
 
-		length_tp = (S_PRICE_T_LEN + 1) * max_trades + 2;
+		length_tp = (S_PRICE_T_LEN + 1) * 20 + 2;
 		values[i_trade_price] = (char *) palloc(length_tp-- * sizeof(char));
 
 		/* create a function context for cross-call persistence */
@@ -1524,31 +1524,12 @@ TradeLookupFrame2(PG_FUNCTION_ARGS)
 					}
 				}
 
-				strncat(values[i_trade_history_dts], "\"", length_thd--);
-				if (length_thd < 0) {
-					FAIL_FRAME(
-							"trade_history_dts values needs to be increased");
-				}
-
 				tmp = SPI_getvalue(tuple2, tupdesc2, 1);
 				strncat(values[i_trade_history_dts], tmp, length_thd);
 				length_thd -= strlen(tmp);
 				if (length_thd < 0) {
 					FAIL_FRAME(
 							"trade_history_dts values needs to be increased");
-				}
-
-				strncat(values[i_trade_history_dts], "\"", length_thd--);
-				if (length_thd < 0) {
-					FAIL_FRAME(
-							"trade_history_dts values needs to be increased");
-				}
-
-				strncat(values[i_trade_history_status_id], "\"",
-						length_thsi--);
-				if (length_thsi < 0) {
-					FAIL_FRAME("trade_history_status_id values needs to be "
-							   "increased");
 				}
 
 				tmp = SPI_getvalue(tuple2, tupdesc2, 2);
@@ -1558,13 +1539,46 @@ TradeLookupFrame2(PG_FUNCTION_ARGS)
 					FAIL_FRAME("trade_history_status_id values needs to be "
 							   "increased");
 				}
+			}
+			for (j = SPI_processed; j < 3; j++) {
+				if (j > 0) {
+					strncat(values[i_trade_history_dts], ",", length_thd--);
+					if (length_thd < 0) {
+						FAIL_FRAME("trade_history_dts values needs to be "
+								   "increased");
+					}
 
-				strncat(values[i_trade_history_status_id], "\"",
-						length_thsi--);
+					strncat(values[i_trade_history_status_id], ",",
+							length_thsi--);
+					if (length_thsi < 0) {
+						elog(DEBUG1,
+								"TUF2 trade_history_status_id out of space: "
+								"%s",
+								values[i_trade_history_status_id]);
+						FAIL_FRAME("trade_history_status_id values needs to "
+								   "be increased");
+					}
+				}
+				strncat(values[i_trade_history_dts], "NULL", length_thd);
+				length_thd -= 4;
+				if (length_thd < 0) {
+					FAIL_FRAME(
+							"trade_history_dts values needs to be increased");
+				}
+
+				strncat(values[i_trade_history_status_id], "NULL",
+						length_thsi);
+				length_thsi -= 4;
 				if (length_thsi < 0) {
 					FAIL_FRAME("trade_history_status_id values needs to be "
 							   "increased");
 				}
+#ifdef DEBUG
+				elog(DEBUG1, "TUF2 trade_history_dts[%d][%d] %s", i, j,
+						values[i_trade_history_dts]);
+				elog(DEBUG1, "TUF2 trade_history_status_id[%d][%d] %s", i, j,
+						values[i_trade_history_status_id]);
+#endif /* DEBUG */
 			}
 		}
 

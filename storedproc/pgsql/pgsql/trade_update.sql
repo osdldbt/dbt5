@@ -223,6 +223,7 @@ BEGIN
           AND t_dts >= start_trade_dts
           AND t_dts <= end_trade_dts
         ORDER BY t_dts ASC
+        LIMIT max_trades
     LOOP
         i = i + 1;
         bid_price[i] := rs.t_bid_price;

@@ -9,6 +9,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql pl/c: fix market cap calculation
 - pgsql pl/c: add parameter and query results to trade update frame 2 debug
   output
+- pgsql update trade update frames to size trade history arrays correctly
 
 v0.10.1 (2024-06-10)
 
