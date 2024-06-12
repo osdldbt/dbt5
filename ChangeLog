@@ -10,6 +10,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql pl/c: add parameter and query results to trade update frame 2 debug
   output
 - pgsql update trade update frames to size trade history arrays correctly
+- pgsql pl/c fix trade update frame 1 calculation of num_found
+
 
 v0.10.1 (2024-06-10)
 

@@ -348,7 +348,7 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 		Datum args[2];
 		char nulls[2] = { ' ', ' ' };
 
-		int num_found = max_trades;
+		int num_found = 0;
 		int num_updated = 0;
 		int num_updated4 = 0;
 		int num_updated5 = 0;
@@ -494,6 +494,7 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 					tuptable = SPI_tuptable;
 					tuple = tuptable->vals[0];
 					ex_name = SPI_getvalue(tuple, tupdesc, 1);
+                    num_found += SPI_processed;
 				} else {
 					continue;
 				}
