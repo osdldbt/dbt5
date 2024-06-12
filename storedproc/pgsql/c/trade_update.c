@@ -864,23 +864,9 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 							"trade_history_dts values needs to be increased");
 				}
 
-				strncat(values[i_trade_history_status_id], "\"",
-						length_thsi--);
-				if (length_thsi < 0) {
-					FAIL_FRAME("trade_history_status_id values needs to be "
-							   "increased");
-				}
-
 				tmp = SPI_getvalue(tuple, tupdesc, 2);
 				strncat(values[i_trade_history_status_id], tmp, length_thsi);
 				length_thsi -= strlen(tmp);
-				if (length_thsi < 0) {
-					FAIL_FRAME("trade_history_status_id values needs to be "
-							   "increased");
-				}
-
-				strncat(values[i_trade_history_status_id], "\"",
-						length_thsi--);
 				if (length_thsi < 0) {
 					FAIL_FRAME("trade_history_status_id values needs to be "
 							   "increased");
@@ -2033,7 +2019,7 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 		length_tn = (TT_NAME_LEN + 2) * 20 + 2;
 		values[i_type_name] = (char *) palloc(length_tn-- * sizeof(char));
 
-		length_tt = (TT_ID_LEN + 2) * 20 + 22;
+		length_tt = TT_ID_LEN * 20 + 22;
 		values[i_trade_type] = (char *) palloc(length_tt-- * sizeof(char));
 
 		/* create a function context for cross-call persistence */
@@ -2310,19 +2296,9 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 				FAIL_FRAME("trade_list values needs to be increased");
 			}
 
-			strncat(values[i_trade_type], "\"", length_tt--);
-			if (length_tt < 0) {
-				FAIL_FRAME("trade_type values needs to be increased");
-			}
-
 			tmp = SPI_getvalue(tuple, tupdesc, 9);
 			strncat(values[i_trade_type], tmp, length_tt);
 			length_tt -= strlen(tmp);
-			if (length_tt < 0) {
-				FAIL_FRAME("trade_type values needs to be increased");
-			}
-
-			strncat(values[i_trade_type], "\"", length_tt--);
 			if (length_tt < 0) {
 				FAIL_FRAME("trade_type values needs to be increased");
 			}
@@ -2576,24 +2552,10 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 								   "increased");
 					}
 
-					strncat(values[i_trade_history_status_id], "\"",
-							length_thsi--);
-					if (length_thsi < 0) {
-						FAIL_FRAME("trade_history_status_id values needs to "
-								   "be increased");
-					}
-
 					tmp = SPI_getvalue(l_tuple, l_tupdesc, 2);
 					strncat(values[i_trade_history_status_id], tmp,
 							length_thsi);
 					length_thsi -= strlen(tmp);
-					if (length_thsi < 0) {
-						FAIL_FRAME("trade_history_status_id values needs to "
-								   "be increased");
-					}
-
-					strncat(values[i_trade_history_status_id], "\"",
-							length_thsi--);
 					if (length_thsi < 0) {
 						FAIL_FRAME("trade_history_status_id values needs to "
 								   "be increased");
