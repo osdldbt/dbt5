@@ -357,9 +357,6 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		args[0] = CStringGetTextDatum(symbol);
 		ret = SPI_execute_plan(SDF1_1, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[0].sql);
 		}
 		tupdesc = SPI_tuptable->tupdesc;
@@ -409,9 +406,6 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		args[1] = Int16GetDatum(MAX_COMP_LEN);
 		ret = SPI_execute_plan(SDF1_2, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[1].sql);
 			strncpy(values[i_cp_co_name], "{}", 3);
 			strncpy(values[i_cp_in_name], "{}", 3);
@@ -525,9 +519,6 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		args[1] = Int16GetDatum(MAX_FIN_LEN);
 		ret = SPI_execute_plan(SDF1_3, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[2].sql);
 		}
 		tupdesc = SPI_tuptable->tupdesc;
@@ -719,9 +710,6 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		args[2] = Int16GetDatum(max_rows_to_return);
 		ret = SPI_execute_plan(SDF1_4, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[3].sql);
 		}
 		tupdesc = SPI_tuptable->tupdesc;
@@ -816,9 +804,6 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		args[0] = CStringGetTextDatum(symbol);
 		ret = SPI_execute_plan(SDF1_5, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[4].sql);
 			values[i_last_open] = NULL;
 			values[i_last_price] = NULL;
@@ -845,9 +830,6 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			ret = SPI_execute_plan(SDF1_7, args, nulls, true, 0);
 		}
 		if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-			dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls,
 					access_lob_flag ? SDF1_statements[5].sql
 									: SDF1_statements[6].sql);

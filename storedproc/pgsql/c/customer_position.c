@@ -239,9 +239,6 @@ CustomerPositionFrame1(PG_FUNCTION_ARGS)
 				elog(DEBUG1, "Got cust_id ok: %ld", cust_id);
 #endif /* DEBUG */
 			} else {
-#ifdef DEBUG
-				dump_cpf1_inputs(cust_id, tax_id_p);
-#endif /* DEBUG */
 				FAIL_FRAME_SET(&funcctx->max_calls, CPF1_statements[0].sql);
 			}
 		}
@@ -282,9 +279,6 @@ CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			values[i_c_email_1] = SPI_getvalue(tuple, tupdesc, 21);
 			values[i_c_email_2] = SPI_getvalue(tuple, tupdesc, 22);
 		} else {
-#ifdef DEBUG
-			dump_cpf1_inputs(cust_id, tax_id_p);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, CPF1_statements[1].sql);
 		}
 #ifdef DEBUG
@@ -410,9 +404,6 @@ CustomerPositionFrame1(PG_FUNCTION_ARGS)
 				FAIL_FRAME("asset_total values needs to be increased");
 			}
 		} else {
-#ifdef DEBUG
-			dump_cpf1_inputs(cust_id, tax_id_p);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, CPF1_statements[2].sql);
 		}
 		snprintf(values[i_cust_id], 12, "%" PRId64, cust_id);

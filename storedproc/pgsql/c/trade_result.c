@@ -598,9 +598,6 @@ TradeResultFrame1(PG_FUNCTION_ARGS)
 				} else {
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TRF1_statements[1].sql);
-#ifdef DEBUG
-					dump_trf1_inputs(trade_id);
-#endif /* DEBUG */
 				}
 
 #ifdef DEBUG
@@ -612,9 +609,6 @@ TradeResultFrame1(PG_FUNCTION_ARGS)
 				if (ret != SPI_OK_SELECT) {
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TRF1_statements[2].sql);
-#ifdef DEBUG
-					dump_trf1_inputs(trade_id);
-#endif /* DEBUG */
 				}
 				tupdesc = SPI_tuptable->tupdesc;
 				tuptable = SPI_tuptable;
@@ -652,9 +646,6 @@ TradeResultFrame1(PG_FUNCTION_ARGS)
 				strncpy(values[i_hs_qty], "0", 2);
 			}
 		} else {
-#ifdef DEBUG
-			dump_trf1_inputs(trade_id);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, TRF1_statements[0].sql);
 		}
 
@@ -817,10 +808,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 		args[0] = Int64GetDatum(acct_id);
 		ret = SPI_execute_plan(TRF2_1, args, nulls, false, 0);
 		if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-			dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol, trade_id,
-					trade_price, trade_qty, type_is_sell);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, TRF2_statements[0].sql);
 		}
 		tupdesc = SPI_tuptable->tupdesc;
@@ -846,10 +833,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				if (ret != SPI_OK_INSERT) {
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TRF2_statements[1].sql);
-#ifdef DEBUG
-					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-							trade_id, trade_price, trade_qty, type_is_sell);
-#endif /* DEBUG */
 				}
 			} else if (hs_qty != trade_qty) {
 #ifdef DEBUG
@@ -862,10 +845,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				if (ret != SPI_OK_UPDATE) {
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TRF2_statements[2].sql);
-#ifdef DEBUG
-					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-							trade_id, trade_price, trade_qty, type_is_sell);
-#endif /* DEBUG */
 				}
 			}
 
@@ -890,10 +869,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 					FAIL_FRAME_SET(&funcctx->max_calls,
 							is_lifo == 1 ? TRF2_statements[3].sql
 										 : TRF2_statements[4].sql);
-#ifdef DEBUG
-					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-							trade_id, trade_price, trade_qty, type_is_sell);
-#endif /* DEBUG */
 				}
 
 				/*
@@ -929,11 +904,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 						if (ret != SPI_OK_INSERT) {
 							FAIL_FRAME_SET(&funcctx->max_calls,
 									TRF2_statements[5].sql);
-#ifdef DEBUG
-							dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-									trade_id, trade_price, trade_qty,
-									type_is_sell);
-#endif /* DEBUG */
 						}
 
 #ifdef DEBUG
@@ -945,11 +915,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 						if (ret != SPI_OK_UPDATE) {
 							FAIL_FRAME_SET(&funcctx->max_calls,
 									TRF2_statements[6].sql);
-#ifdef DEBUG
-							dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-									trade_id, trade_price, trade_qty,
-									type_is_sell);
-#endif /* DEBUG */
 						}
 
 						buy_value += (double) needed_qty * hold_price;
@@ -968,11 +933,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 						if (ret != SPI_OK_INSERT) {
 							FAIL_FRAME_SET(&funcctx->max_calls,
 									TRF2_statements[5].sql);
-#ifdef DEBUG
-							dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-									trade_id, trade_price, trade_qty,
-									type_is_sell);
-#endif /* DEBUG */
 						}
 
 #ifdef DEBUG
@@ -983,11 +943,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 						if (ret != SPI_OK_DELETE) {
 							FAIL_FRAME_SET(&funcctx->max_calls,
 									TRF2_statements[7].sql);
-#ifdef DEBUG
-							dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-									trade_id, trade_price, trade_qty,
-									type_is_sell);
-#endif /* DEBUG */
 						}
 						sell_value += (double) hold_qty * hold_price;
 						buy_value += (double) hold_qty * trade_price;
@@ -1018,10 +973,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				args[3] = Int32GetDatum(-1 * needed_qty);
 				ret = SPI_execute_plan(TRF2_4a, args, nulls, false, 0);
 				if (ret != SPI_OK_INSERT) {
-#ifdef DEBUG
-					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-							trade_id, trade_price, trade_qty, type_is_sell);
-#endif /* DEBUG */
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TRF2_statements[5].sql);
 				}
@@ -1049,10 +1000,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				args[5] = Int32GetDatum(-1 * needed_qty);
 				ret = SPI_execute_plan(TRF2_7a, args, nulls, false, 0);
 				if (ret != SPI_OK_INSERT) {
-#ifdef DEBUG
-					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-							trade_id, trade_price, trade_qty, type_is_sell);
-#endif /* DEBUG */
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TRF2_statements[7].sql);
 				}
@@ -1064,10 +1011,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				args[1] = CStringGetTextDatum(symbol);
 				ret = SPI_execute_plan(TRF2_7b, args, nulls, false, 0);
 				if (ret != SPI_OK_DELETE) {
-#ifdef DEBUG
-					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-							trade_id, trade_price, trade_qty, type_is_sell);
-#endif /* DEBUG */
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TRF2_statements[9].sql);
 				}
@@ -1086,10 +1029,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				if (ret != SPI_OK_INSERT) {
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TRF2_statements[10].sql);
-#ifdef DEBUG
-					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-							trade_id, trade_price, trade_qty, type_is_sell);
-#endif /* DEBUG */
 				}
 			} else if ((-1 * hs_qty) != trade_qty) {
 #ifdef DEBUG
@@ -1102,10 +1041,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				if (ret != SPI_OK_UPDATE) {
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TRF2_statements[11].sql);
-#ifdef DEBUG
-					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-							trade_id, trade_price, trade_qty, type_is_sell);
-#endif /* DEBUG */
 				}
 			}
 
@@ -1135,10 +1070,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 					FAIL_FRAME_SET(&funcctx->max_calls,
 							is_lifo == 1 ? TRF2_statements[3].sql
 										 : TRF2_statements[4].sql);
-#ifdef DEBUG
-					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-							trade_id, trade_price, trade_qty, type_is_sell);
-#endif /* DEBUG */
 				}
 
 				/* Buy back securities to cover a short position. */
@@ -1170,11 +1101,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 						if (ret != SPI_OK_INSERT) {
 							FAIL_FRAME_SET(&funcctx->max_calls,
 									TRF2_statements[5].sql);
-#ifdef DEBUG
-							dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-									trade_id, trade_price, trade_qty,
-									type_is_sell);
-#endif /* DEBUG */
 						}
 
 #ifdef DEBUG
@@ -1186,11 +1112,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 						if (ret != SPI_OK_UPDATE) {
 							FAIL_FRAME_SET(&funcctx->max_calls,
 									TRF2_statements[6].sql);
-#ifdef DEBUG
-							dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-									trade_id, trade_price, trade_qty,
-									type_is_sell);
-#endif /* DEBUG */
 						}
 
 						buy_value += (double) needed_qty * hold_price;
@@ -1209,11 +1130,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 						if (ret != SPI_OK_INSERT) {
 							FAIL_FRAME_SET(&funcctx->max_calls,
 									TRF2_statements[5].sql);
-#ifdef DEBUG
-							dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-									trade_id, trade_price, trade_qty,
-									type_is_sell);
-#endif /* DEBUG */
 						}
 
 #ifdef DEBUG
@@ -1224,11 +1140,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 						if (ret != SPI_OK_DELETE) {
 							FAIL_FRAME_SET(&funcctx->max_calls,
 									TRF2_statements[7].sql);
-#ifdef DEBUG
-							dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-									trade_id, trade_price, trade_qty,
-									type_is_sell);
-#endif /* DEBUG */
 						}
 						hold_qty *= -1;
 						sell_value += (double) hold_qty * hold_price;
@@ -1262,10 +1173,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				if (ret != SPI_OK_INSERT) {
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TRF2_statements[5].sql);
-#ifdef DEBUG
-					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-							trade_id, trade_price, trade_qty, type_is_sell);
-#endif /* DEBUG */
 				}
 #ifdef DEBUG
 				elog(DEBUG1, "%s", SQLTRF2_7a);
@@ -1291,10 +1198,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				args[5] = Int32GetDatum(needed_qty);
 				ret = SPI_execute_plan(TRF2_7a, args, nulls, false, 0);
 				if (ret != SPI_OK_INSERT) {
-#ifdef DEBUG
-					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-							trade_id, trade_price, trade_qty, type_is_sell);
-#endif /* DEBUG */
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TRF2_statements[7].sql);
 				}
@@ -1306,10 +1209,6 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				args[1] = CStringGetTextDatum(symbol);
 				ret = SPI_execute_plan(TRF2_7b, args, nulls, false, 0);
 				if (ret != SPI_OK_DELETE) {
-#ifdef DEBUG
-					dump_trf2_inputs(acct_id, hs_qty, is_lifo, symbol,
-							trade_id, trade_price, trade_qty, type_is_sell);
-#endif /* DEBUG */
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TRF2_statements[9].sql);
 				}
@@ -1410,9 +1309,6 @@ TradeResultFrame3(PG_FUNCTION_ARGS)
 	ret = SPI_execute_plan(TRF3_1, args, nulls, true, 0);
 	if (ret != SPI_OK_SELECT) {
 		FAIL_FRAME(TRF3_statements[0].sql);
-#ifdef DEBUG
-		dump_trf3_inputs(buy_value, cust_id, sell_value, trade_id);
-#endif /* DEBUG */
 	}
 	tupdesc = SPI_tuptable->tupdesc;
 	tuptable = SPI_tuptable;
@@ -1431,9 +1327,6 @@ TradeResultFrame3(PG_FUNCTION_ARGS)
 	ret = SPI_execute_plan(TRF3_2, args, nulls, false, 0);
 	if (ret != SPI_OK_UPDATE) {
 		FAIL_FRAME(TRF3_statements[1].sql);
-#ifdef DEBUG
-		dump_trf3_inputs(buy_value, cust_id, sell_value, trade_id);
-#endif /* DEBUG */
 	}
 
 #ifdef DEBUG
@@ -1533,9 +1426,6 @@ TradeResultFrame4(PG_FUNCTION_ARGS)
 			values[i_s_name] = SPI_getvalue(tuple, tupdesc, 2);
 		} else {
 			FAIL_FRAME_SET(&funcctx->max_calls, TRF4_statements[0].sql);
-#ifdef DEBUG
-			dump_trf4_inputs(cust_id, symbol, trade_qty, type_id);
-#endif /* DEBUG */
 		}
 
 #ifdef DEBUG
@@ -1549,9 +1439,6 @@ TradeResultFrame4(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			c_tier = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
-#ifdef DEBUG
-			dump_trf4_inputs(cust_id, symbol, trade_qty, type_id);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, TRF4_statements[1].sql);
 		}
 
@@ -1570,9 +1457,6 @@ TradeResultFrame4(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			values[i_comm_rate] = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
-#ifdef DEBUG
-			dump_trf4_inputs(cust_id, symbol, trade_qty, type_id);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, TRF4_statements[2].sql);
 		}
 
@@ -1688,10 +1572,6 @@ TradeResultFrame5(PG_FUNCTION_ARGS)
 	ret = SPI_execute_plan(TRF5_1, args, nulls, false, 0);
 	if (ret != SPI_OK_UPDATE) {
 		FAIL_FRAME(TRF5_statements[0].sql);
-#ifdef DEBUG
-		dump_trf5_inputs(broker_id, comm_amount, st_completed_id, trade_dts,
-				trade_id, trade_price);
-#endif /* DEBUG */
 	}
 
 #ifdef DEBUG
@@ -1703,10 +1583,6 @@ TradeResultFrame5(PG_FUNCTION_ARGS)
 	ret = SPI_execute_plan(TRF5_2, args, nulls, false, 0);
 	if (ret != SPI_OK_INSERT) {
 		FAIL_FRAME(TRF5_statements[1].sql);
-#ifdef DEBUG
-		dump_trf5_inputs(broker_id, comm_amount, st_completed_id, trade_dts,
-				trade_id, trade_price);
-#endif /* DEBUG */
 	}
 
 #ifdef DEBUG
@@ -1717,10 +1593,6 @@ TradeResultFrame5(PG_FUNCTION_ARGS)
 	ret = SPI_execute_plan(TRF5_3, args, nulls, false, 0);
 	if (ret != SPI_OK_UPDATE) {
 		FAIL_FRAME(TRF5_statements[2].sql);
-#ifdef DEBUG
-		dump_trf5_inputs(broker_id, comm_amount, st_completed_id, trade_dts,
-				trade_id, trade_price);
-#endif /* DEBUG */
 	}
 
 	SPI_finish();
@@ -1824,10 +1696,6 @@ TradeResultFrame6(PG_FUNCTION_ARGS)
 	ret = SPI_execute_plan(TRF6_1, args, nulls, false, 0);
 	if (ret != SPI_OK_INSERT) {
 		FAIL_FRAME(TRF6_statements[0].sql);
-#ifdef DEBUG
-		dump_trf6_inputs(acct_id, due_date, s_name, se_amount, trade_dts,
-				trade_id, trade_is_cash, trade_qty, type_name);
-#endif /* DEBUG */
 	}
 
 	if (trade_is_cash == 1) {
@@ -1841,10 +1709,6 @@ TradeResultFrame6(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(TRF6_2, args, nulls, false, 0);
 		if (ret != SPI_OK_UPDATE) {
 			FAIL_FRAME(TRF6_statements[1].sql);
-#ifdef DEBUG
-			dump_trf6_inputs(acct_id, due_date, s_name, se_amount, trade_dts,
-					trade_id, trade_is_cash, trade_qty, type_name);
-#endif /* DEBUG */
 		}
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLTRF6_3);
@@ -1864,10 +1728,6 @@ TradeResultFrame6(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(TRF6_3, args, nulls, false, 0);
 		if (ret != SPI_OK_INSERT) {
 			FAIL_FRAME(TRF6_statements[2].sql);
-#ifdef DEBUG
-			dump_trf6_inputs(acct_id, due_date, s_name, se_amount, trade_dts,
-					trade_id, trade_is_cash, trade_qty, type_name);
-#endif /* DEBUG */
 		}
 	}
 
@@ -1883,10 +1743,6 @@ TradeResultFrame6(PG_FUNCTION_ARGS)
 		tuple = tuptable->vals[0];
 		acct_bal = atof(SPI_getvalue(tuple, tupdesc, 1));
 	} else {
-#ifdef DEBUG
-		dump_trf6_inputs(acct_id, due_date, s_name, se_amount, trade_dts,
-				trade_id, trade_is_cash, trade_qty, type_name);
-#endif /* DEBUG */
 		FAIL_FRAME(TRF6_statements[3].sql);
 	}
 

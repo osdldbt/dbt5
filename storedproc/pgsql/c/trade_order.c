@@ -468,9 +468,6 @@ TradeOrderFrame1(PG_FUNCTION_ARGS)
 			snprintf(values[i_num_found], BIGINT_LEN, "%" PRId64,
 					SPI_processed);
 		} else {
-#ifdef DEBUG
-			dump_tof1_inputs(acct_id);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, TOF1_statements[0].sql);
 
 			SPI_finish();
@@ -492,9 +489,6 @@ TradeOrderFrame1(PG_FUNCTION_ARGS)
 			values[i_cust_tier] = SPI_getvalue(tuple, tupdesc, 3);
 			values[i_tax_id] = SPI_getvalue(tuple, tupdesc, 4);
 		} else {
-#ifdef DEBUG
-			dump_tof1_inputs(acct_id);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, TOF1_statements[1].sql);
 
 			SPI_finish();
@@ -513,9 +507,6 @@ TradeOrderFrame1(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			values[i_broker_name] = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
-#ifdef DEBUG
-			dump_tof1_inputs(acct_id);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, TOF1_statements[2].sql);
 		}
 
@@ -623,9 +614,6 @@ TradeOrderFrame2(PG_FUNCTION_ARGS)
 	ret = SPI_execute_plan(TOF2_1, args, nulls, true, 0);
 	if (ret != SPI_OK_SELECT) {
 		FAIL_FRAME(TOF2_statements[0].sql);
-#ifdef DEBUG
-		dump_tof2_inputs(acct_id, exec_f_name, exec_l_name, exec_tax_id);
-#endif /* DEBUG */
 	}
 	tupdesc = SPI_tuptable->tupdesc;
 	tuptable = SPI_tuptable;
@@ -767,13 +755,6 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 
 		values[i_symbol] = NULL;
 
-#ifdef DEBUG
-		dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
-				st_pending_id, st_submitted_id, tax_status, trade_qty,
-				trade_type_id, type_is_margin, co_name, requested_price,
-				symbol);
-#endif
-
 		/* create a function context for cross-call persistence */
 		funcctx = SRF_FIRSTCALL_INIT();
 		funcctx->max_calls = 1;
@@ -807,12 +788,6 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 				tuple = tuptable->vals[0];
 				co_id = SPI_getvalue(tuple, tupdesc, 1);
 			} else {
-#ifdef DEBUG
-				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
-						st_pending_id, st_submitted_id, tax_status, trade_qty,
-						trade_type_id, type_is_margin, co_name,
-						requested_price, symbol);
-#endif /* DEBUG */
 				FAIL_FRAME_SET(&funcctx->max_calls, TOF3_statements[0].sql);
 			}
 
@@ -831,12 +806,6 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 				values[i_s_name] = SPI_getvalue(tuple, tupdesc, 2);
 				values[i_symbol] = SPI_getvalue(tuple, tupdesc, 3);
 			} else {
-#ifdef DEBUG
-				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
-						st_pending_id, st_submitted_id, tax_status, trade_qty,
-						trade_type_id, type_is_margin, co_name,
-						requested_price, symbol);
-#endif /* DEBUG */
 				FAIL_FRAME_SET(&funcctx->max_calls, TOF3_statements[1].sql);
 			}
 		} else {
@@ -855,12 +824,6 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 				exch_id = SPI_getvalue(tuple, tupdesc, 2);
 				values[i_s_name] = SPI_getvalue(tuple, tupdesc, 3);
 			} else {
-#ifdef DEBUG
-				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
-						st_pending_id, st_submitted_id, tax_status, trade_qty,
-						trade_type_id, type_is_margin, co_name,
-						requested_price, symbol);
-#endif /* DEBUG */
 				FAIL_FRAME_SET(&funcctx->max_calls, TOF3_statements[2].sql);
 			}
 
@@ -876,12 +839,6 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 				tuple = tuptable->vals[0];
 				values[i_co_name] = SPI_getvalue(tuple, tupdesc, 1);
 			} else {
-#ifdef DEBUG
-				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
-						st_pending_id, st_submitted_id, tax_status, trade_qty,
-						trade_type_id, type_is_margin, co_name,
-						requested_price, symbol);
-#endif /* DEBUG */
 				FAIL_FRAME_SET(&funcctx->max_calls, TOF3_statements[3].sql);
 			}
 		}
@@ -898,12 +855,6 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			values[i_market_price] = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
-#ifdef DEBUG
-			dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
-					st_pending_id, st_submitted_id, tax_status, trade_qty,
-					trade_type_id, type_is_margin, co_name, requested_price,
-					symbol);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, TOF3_statements[4].sql);
 		}
 
@@ -932,12 +883,6 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 			}
 			values[i_type_is_sell][1] = '\0';
 		} else {
-#ifdef DEBUG
-			dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
-					st_pending_id, st_submitted_id, tax_status, trade_qty,
-					trade_type_id, type_is_margin, co_name, requested_price,
-					symbol);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, TOF3_statements[5].sql);
 		}
 
@@ -980,12 +925,6 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 				ret = SPI_execute_plan(TOF3_6b, args, nulls, true, 0);
 			}
 			if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
-						st_pending_id, st_submitted_id, tax_status, trade_qty,
-						trade_type_id, type_is_margin, co_name,
-						requested_price, symbol);
-#endif /* DEBUG */
 				FAIL_FRAME_SET(&funcctx->max_calls,
 						(hs_qty > 0 ? TOF3_statements[7].sql
 									: TOF3_statements[8].sql));
@@ -1029,12 +968,6 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 					ret = SPI_execute_plan(TOF3_6b, args, nulls, true, 0);
 				}
 				if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-					dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo,
-							issue, st_pending_id, st_submitted_id, tax_status,
-							trade_qty, trade_type_id, type_is_margin, co_name,
-							requested_price, symbol);
-#endif /* DEBUG */
 					FAIL_FRAME_SET(&funcctx->max_calls,
 							(is_lifo == 1 ? TOF3_statements[7].sql
 										  : TOF3_statements[8].sql));
@@ -1082,12 +1015,6 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 				tax_amount = (sell_value - buy_value)
 							 * atof(SPI_getvalue(tuple, tupdesc, 1));
 			} else {
-#ifdef DEBUG
-				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
-						st_pending_id, st_submitted_id, tax_status, trade_qty,
-						trade_type_id, type_is_margin, co_name,
-						requested_price, symbol);
-#endif /* DEBUG */
 				FAIL_FRAME_SET(&funcctx->max_calls, TOF3_statements[9].sql);
 			}
 		}
@@ -1109,12 +1036,6 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			values[i_comm_rate] = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
-#ifdef DEBUG
-			dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
-					st_pending_id, st_submitted_id, tax_status, trade_qty,
-					trade_type_id, type_is_margin, co_name, requested_price,
-					symbol);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, TOF3_statements[8].sql);
 		}
 
@@ -1131,12 +1052,6 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[0];
 			values[i_charge_amount] = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
-#ifdef DEBUG
-			dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
-					st_pending_id, st_submitted_id, tax_status, trade_qty,
-					trade_type_id, type_is_margin, co_name, requested_price,
-					symbol);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, TOF3_statements[11].sql);
 		}
 
@@ -1156,12 +1071,6 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 				tuple = tuptable->vals[0];
 				acct_bal = atof(SPI_getvalue(tuple, tupdesc, 1));
 			} else {
-#ifdef DEBUG
-				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
-						st_pending_id, st_submitted_id, tax_status, trade_qty,
-						trade_type_id, type_is_margin, co_name,
-						requested_price, symbol);
-#endif /* DEBUG */
 				FAIL_FRAME_SET(&funcctx->max_calls, TOF3_statements[12].sql);
 			}
 
@@ -1170,12 +1079,6 @@ TradeOrderFrame3(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			ret = SPI_execute_plan(TOF3_11, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-				dump_tof3_inputs(acct_id, cust_id, cust_tier, is_lifo, issue,
-						st_pending_id, st_submitted_id, tax_status, trade_qty,
-						trade_type_id, type_is_margin, co_name,
-						requested_price, symbol);
-#endif /* DEBUG */
 				FAIL_FRAME_SET(&funcctx->max_calls, TOF3_statements[13].sql);
 			}
 			if (SPI_processed > 0) {
@@ -1338,11 +1241,6 @@ TradeOrderFrame4(PG_FUNCTION_ARGS)
 		tuple = tuptable->vals[0];
 		trade_id = atoll(SPI_getvalue(tuple, tupdesc, 1));
 	} else {
-#ifdef DEBUG
-		dump_tof4_inputs(acct_id, broker_id, charge_amount, exec_name, is_cash,
-				is_lifo, requested_price, status_id, symbol, trade_qty,
-				trade_type_id, type_is_market);
-#endif /* DEBUG */
 		FAIL_FRAME(TOF4_statements[0].sql);
 	}
 
@@ -1359,11 +1257,6 @@ TradeOrderFrame4(PG_FUNCTION_ARGS)
 
 		ret = SPI_execute_plan(TOF4_2, args, nulls, false, 0);
 		if (ret != SPI_OK_INSERT) {
-#ifdef DEBUG
-			dump_tof4_inputs(acct_id, broker_id, charge_amount, exec_name,
-					is_cash, is_lifo, requested_price, status_id, symbol,
-					trade_qty, trade_type_id, type_is_market);
-#endif /* DEBUG */
 			FAIL_FRAME(TOF4_statements[1].sql);
 		}
 	}
@@ -1376,11 +1269,6 @@ TradeOrderFrame4(PG_FUNCTION_ARGS)
 
 	ret = SPI_execute_plan(TOF4_3, args, nulls, false, 0);
 	if (ret != SPI_OK_INSERT) {
-#ifdef DEBUG
-		dump_tof4_inputs(acct_id, broker_id, charge_amount, exec_name, is_cash,
-				is_lifo, requested_price, status_id, symbol, trade_qty,
-				trade_type_id, type_is_market);
-#endif /* DEBUG */
 		FAIL_FRAME(TOF4_statements[2].sql);
 	}
 

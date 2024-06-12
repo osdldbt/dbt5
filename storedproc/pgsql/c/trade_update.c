@@ -521,9 +521,6 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 					FAIL_FRAME_SET(&funcctx->max_calls,
 							strstr(ex_name, " X ") ? TUF1_statements[1].sql
 												   : TUF1_statements[2].sql);
-#ifdef DEBUG
-					dump_tuf1_inputs(max_trades, max_updates, trade_id);
-#endif /* DEBUG */
 					continue;
 				}
 
@@ -535,9 +532,6 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				if (ret != SPI_OK_UPDATE) {
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TUF1_statements[4].sql);
-#ifdef DEBUG
-					dump_tuf1_inputs(max_trades, max_updates, trade_id);
-#endif /* DEBUG */
 					continue;
 				}
 
@@ -551,9 +545,6 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 			ret = SPI_execute_plan(TUF1_4, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
 				FAIL_FRAME_SET(&funcctx->max_calls, TUF1_statements[5].sql);
-#ifdef DEBUG
-				dump_tuf1_inputs(max_trades, max_updates, trade_id);
-#endif /* DEBUG */
 				continue;
 			}
 
@@ -659,9 +650,6 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 			ret = SPI_execute_plan(TUF1_5, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
 				FAIL_FRAME_SET(&funcctx->max_calls, TUF1_statements[6].sql);
-#ifdef DEBUG
-				dump_tuf1_inputs(max_trades, max_updates, trade_id);
-#endif /* DEBUG */
 				continue;
 			}
 
@@ -819,9 +807,6 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				} else {
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TUF1_statements[7].sql);
-#ifdef DEBUG
-					dump_tuf1_inputs(max_trades, max_updates, trade_id);
-#endif /* DEBUG */
 					continue;
 				}
 			}
@@ -832,9 +817,6 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 			ret = SPI_execute_plan(TUF1_7, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
 				FAIL_FRAME_SET(&funcctx->max_calls, TUF1_statements[8].sql);
-#ifdef DEBUG
-				dump_tuf1_inputs(max_trades, max_updates, trade_id);
-#endif /* DEBUG */
 				continue;
 			}
 			tupdesc = SPI_tuptable->tupdesc;
@@ -1216,10 +1198,6 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 		args[3] = Int32GetDatum(max_trades);
 		ret = SPI_execute_plan(TUF2_1, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-			dump_tuf2_inputs(acct_id, end_trade_dts, max_trades, max_updates,
-					start_trade_dts);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, TUF2_statements[0].sql);
 		}
 
@@ -1400,10 +1378,6 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				} else {
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TUF2_statements[1].sql);
-#ifdef DEBUG
-					dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
-							max_updates, start_trade_dts);
-#endif /* DEBUG */
 					continue;
 				}
 
@@ -1435,10 +1409,6 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				if (ret != SPI_OK_UPDATE) {
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TUF2_statements[2].sql);
-#ifdef DEBUG
-					dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
-							max_updates, start_trade_dts);
-#endif /* DEBUG */
 					continue;
 				}
 				num_updated += SPI_processed;
@@ -1505,10 +1475,6 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				}
 			} else {
 				FAIL_FRAME_SET(&funcctx->max_calls, TUF2_statements[3].sql);
-#ifdef DEBUG
-				dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
-						max_updates, start_trade_dts);
-#endif /* DEBUG */
 				continue;
 			}
 
@@ -1601,10 +1567,6 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				} else {
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TUF2_statements[4].sql);
-#ifdef DEBUG
-					dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
-							max_updates, start_trade_dts);
-#endif /* DEBUG */
 					continue;
 				}
 			} else {
@@ -1663,10 +1625,6 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				l_tuptable = SPI_tuptable;
 			} else {
 				FAIL_FRAME_SET(&funcctx->max_calls, TUF2_statements[5].sql);
-#ifdef DEBUG
-				dump_tuf2_inputs(acct_id, end_trade_dts, max_trades,
-						max_updates, start_trade_dts);
-#endif /* DEBUG */
 				continue;
 			}
 
@@ -2054,10 +2012,6 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 		args[3] = Int32GetDatum(max_trades);
 		ret = SPI_execute_plan(TUF3_1, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-			dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
-					max_updates, start_trade_dts, symbol);
-#endif /* DEBUG */
 			FAIL_FRAME_SET(&funcctx->max_calls, TUF2_statements[0].sql);
 		}
 
@@ -2355,10 +2309,6 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 			ret = SPI_execute_plan(TUF3_2, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
 				FAIL_FRAME_SET(&funcctx->max_calls, TUF3_statements[1].sql);
-#ifdef DEBUG
-				dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
-						max_updates, start_trade_dts, symbol);
-#endif /* DEBUG */
 				continue;
 			}
 
@@ -2419,11 +2369,6 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 					} else {
 						FAIL_FRAME_SET(
 								&funcctx->max_calls, TUF3_statements[2].sql);
-#ifdef DEBUG
-						dump_tuf3_inputs(end_trade_dts, max_acct_id,
-								max_trades, max_updates, start_trade_dts,
-								symbol);
-#endif /* DEBUG */
 						continue;
 					}
 
@@ -2453,11 +2398,6 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 					if (ret != SPI_OK_UPDATE) {
 						FAIL_FRAME_SET(
 								&funcctx->max_calls, TUF3_statements[3].sql);
-#ifdef DEBUG
-						dump_tuf3_inputs(end_trade_dts, max_acct_id,
-								max_trades, max_updates, start_trade_dts,
-								symbol);
-#endif /* DEBUG */
 						continue;
 					}
 					num_updated += SPI_processed;
@@ -2551,10 +2491,6 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 				} else {
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TUF3_statements[4].sql);
-#ifdef DEBUG
-					dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
-							max_updates, start_trade_dts, symbol);
-#endif /* DEBUG */
 					continue;
 				}
 			}
@@ -2569,10 +2505,6 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 				l_tuptable = SPI_tuptable;
 			} else {
 				FAIL_FRAME_SET(&funcctx->max_calls, TUF3_statements[5].sql);
-#ifdef DEBUG
-				dump_tuf3_inputs(end_trade_dts, max_acct_id, max_trades,
-						max_updates, start_trade_dts, symbol);
-#endif /* DEBUG */
 				continue;
 			}
 

@@ -203,9 +203,6 @@ TradeStatusFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(TSF1_1, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
 			FAIL_FRAME_SET(&funcctx->max_calls, TSF1_statements[0].sql);
-#ifdef DEBUG
-			dump_tsf1_inputs(acct_id);
-#endif /* DEBUG */
 		}
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
@@ -482,9 +479,6 @@ TradeStatusFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(TSF1_2, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
 			FAIL_FRAME_SET(&funcctx->max_calls, TSF1_statements[1].sql);
-#ifdef DEBUG
-			dump_tsf1_inputs(acct_id);
-#endif /* DEBUG */
 		}
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;

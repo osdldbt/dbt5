@@ -192,10 +192,6 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 		status = BAD_INPUT_DATA;
 	}
 	if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-		dump_mwf1_inputs(acct_id, cust_id, ending_co_id, industry_name, buf,
-				starting_co_id);
-#endif /* DEBUG */
 		FAIL_FRAME(MWF1_statements[frame_index].sql);
 	}
 
@@ -225,10 +221,6 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 			ret = SPI_execute_plan(MWF1_4, args, nulls, true, 0);
 
 			if (ret != SPI_OK_SELECT || SPI_processed == 0) {
-#ifdef DEBUG
-				dump_mwf1_inputs(acct_id, cust_id, ending_co_id, industry_name,
-						buf, starting_co_id);
-#endif /* DEBUG */
 				FAIL_FRAME(MWF1_statements[frame_index].sql);
 				continue;
 			}
@@ -245,10 +237,6 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 			args[0] = CStringGetTextDatum(symbol);
 			ret = SPI_execute_plan(MWF1_5, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-				dump_mwf1_inputs(acct_id, cust_id, ending_co_id, industry_name,
-						buf, starting_co_id);
-#endif /* DEBUG */
 				FAIL_FRAME(MWF1_statements[frame_index].sql);
 				elog(DEBUG1, "ERROR: sql not ok = %d", ret);
 			}
@@ -266,10 +254,6 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 					date_in, CStringGetDatum(pstrdup(buf)));
 			ret = SPI_execute_plan(MWF1_6, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-				dump_mwf1_inputs(acct_id, cust_id, ending_co_id, industry_name,
-						buf, starting_co_id);
-#endif /* DEBUG */
 				FAIL_FRAME(MWF1_statements[frame_index].sql);
 			}
 

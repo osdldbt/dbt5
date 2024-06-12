@@ -364,10 +364,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			acl = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
 			FAIL_FRAME(DMF1_statements[0].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -386,10 +382,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(DMF1_2, args, nulls, false, 0);
 		if (ret != SPI_OK_UPDATE) {
 			FAIL_FRAME(DMF1_statements[1].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -418,10 +410,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		} else {
 			FAIL_FRAME(c_id != 0 ? DMF1_statements[2].sql
 								 : DMF1_statements[3].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -442,10 +430,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(DMF1_4, args, nulls, false, 0);
 		if (ret != SPI_OK_UPDATE) {
 			FAIL_FRAME(DMF1_statements[4].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -463,10 +447,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			sprate = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
 			FAIL_FRAME(DMF1_statements[5].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -484,10 +464,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(DMF1_6, args, nulls, false, 0);
 		if (ret != SPI_OK_UPDATE) {
 			FAIL_FRAME(DMF1_statements[6].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -507,10 +483,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			email2 = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
 			FAIL_FRAME(DMF1_statements[7].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -528,10 +500,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(DMF1_8, args, nulls, false, 0);
 		if (ret != SPI_OK_UPDATE) {
 			FAIL_FRAME(DMF1_statements[8].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -550,10 +518,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			old_tax_rate = SPI_getvalue(tuple, tupdesc, 1);
 		} else {
 			FAIL_FRAME(DMF1_statements[9].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -588,10 +552,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(DMF1_10, args, nulls, false, 0);
 		if (ret != SPI_OK_UPDATE) {
 			FAIL_FRAME(DMF1_statements[10].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -605,10 +565,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(DMF1_11, args, nulls, false, 0);
 		if (ret != SPI_OK_UPDATE) {
 			FAIL_FRAME(DMF1_statements[11].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -626,10 +582,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			rowcount = atof(SPI_getvalue(tuple, tupdesc, 1));
 		} else {
 			FAIL_FRAME(DMF1_statements[12].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -652,10 +604,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		if (ret != SPI_OK_UPDATE) {
 			FAIL_FRAME(rowcount ? DMF1_statements[14].sql
 								: DMF1_statements[13].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -673,10 +621,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			rowcount = atof(SPI_getvalue(tuple, tupdesc, 1));
 		} else {
 			FAIL_FRAME(DMF1_statements[15].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -699,10 +643,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		if (ret != SPI_OK_UPDATE) {
 			FAIL_FRAME(rowcount > 0 ? DMF1_statements[16].sql
 									: DMF1_statements[17].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -714,10 +654,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(DMF1_16, args, nulls, false, 0);
 		if (ret != SPI_OK_UPDATE) {
 			FAIL_FRAME(DMF1_statements[18].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -729,10 +665,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(DMF1_17, args, nulls, false, 0);
 		if (ret != SPI_OK_UPDATE) {
 			FAIL_FRAME(DMF1_statements[19].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -752,10 +684,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			strncpy(tx_name, SPI_getvalue(tuple, tupdesc, 1), sizeof(tx_name));
 		} else {
 			FAIL_FRAME(DMF1_statements[20].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -770,10 +698,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			p[1] = 'T';
 		} else {
 			FAIL_FRAME(DMF1_statements[20].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -787,10 +711,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(DMF1_19, args, nulls, false, 0);
 		if (ret != SPI_OK_UPDATE) {
 			FAIL_FRAME(DMF1_statements[21].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}
@@ -811,10 +731,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			cnt = atoi(SPI_getvalue(tuple, tupdesc, 1));
 		} else {
 			FAIL_FRAME(DMF1_statements[22].sql);
-#ifdef DEBUG
-			dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
-					table_name, tx_id, vol_incr);
-#endif /* DEBUG */
 			SPI_finish();
 			PG_RETURN_INT32(1);
 		}

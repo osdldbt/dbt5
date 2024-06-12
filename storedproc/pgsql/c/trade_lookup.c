@@ -487,9 +487,6 @@ TradeLookupFrame1(PG_FUNCTION_ARGS)
 			args[0] = Int64GetDatum(trade_id[i]);
 			ret = SPI_execute_plan(TLF1_1, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-				dump_tlf1_inputs(max_trades, trade_id_p);
-#endif /* DEBUG */
 				FAIL_FRAME_SET(&funcctx->max_calls, TLF1_statements[0].sql);
 				continue;
 			}
@@ -599,9 +596,6 @@ TradeLookupFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			ret = SPI_execute_plan(TLF1_2, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-				dump_tlf1_inputs(max_trades, trade_id_p);
-#endif /* DEBUG */
 				FAIL_FRAME_SET(&funcctx->max_calls, TLF1_statements[1].sql);
 			}
 
@@ -690,9 +684,6 @@ TradeLookupFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 				ret = SPI_execute_plan(TLF1_3, args, nulls, true, 0);
 				if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-					dump_tlf1_inputs(max_trades, trade_id_p);
-#endif /* DEBUG */
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TLF1_statements[2].sql);
 				}
@@ -800,9 +791,6 @@ TradeLookupFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			ret = SPI_execute_plan(TLF1_4, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
-#ifdef DEBUG
-				dump_tlf1_inputs(max_trades, trade_id_p);
-#endif /* DEBUG */
 				FAIL_FRAME_SET(&funcctx->max_calls, TLF1_statements[3].sql);
 			}
 			tupdesc = SPI_tuptable->tupdesc;
