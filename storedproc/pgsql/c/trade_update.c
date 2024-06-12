@@ -1078,7 +1078,7 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 			i_trade_price
 		};
 
-		long acct_id = PG_GETARG_INT64(0);
+		int64 acct_id = PG_GETARG_INT64(0);
 		Timestamp end_trade_dts_ts = PG_GETARG_TIMESTAMP(1);
 		int max_trades = PG_GETARG_INT32(2);
 		int max_updates = PG_GETARG_INT32(3);
@@ -1190,7 +1190,11 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 		SPI_connect();
 		plan_queries(TUF2_statements);
 #ifdef DEBUG
-		elog(DEBUG1, "%s", SQLTUF2_1);
+		elog(DEBUG1, "TUF2_1 %s", SQLTUF2_1);
+		elog(DEBUG1, "TUF2_1 $1 %ld", acct_id);
+		elog(DEBUG1, "TUF2_1 $2 %s", start_trade_dts);
+		elog(DEBUG1, "TUF2_1 $3 %s", end_trade_dts);
+		elog(DEBUG1, "TUF2_1 $4 %d", max_trades);
 #endif /* DEBUG */
 		args[0] = Int64GetDatum(acct_id);
 		args[1] = TimestampGetDatum(start_trade_dts_ts);
@@ -1366,7 +1370,8 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				char *old_cash_type;
 
 #ifdef DEBUG
-				elog(DEBUG1, "%s", SQLTUF2_2);
+				elog(DEBUG1, "TUF2_2 %s", SQLTUF2_2);
+				elog(DEBUG1, "TUF2_2 $1 %lld", atoll(trade_list));
 #endif /* DEBUG */
 				args[0] = Int64GetDatum(atoll(trade_list));
 				ret = SPI_execute_plan(TUF2_2, args, nulls, true, 0);
@@ -1382,7 +1387,7 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				}
 
 #ifdef DEBUG
-				elog(DEBUG1, "cash_type = '%s'", old_cash_type);
+				elog(DEBUG1, "TUF2 cash_type[%d] = '%s'", i, old_cash_type);
 #endif /* DEBUG */
 
 				if (is_cash_str[0] == 't') {
@@ -1401,7 +1406,9 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 				}
 
 #ifdef DEBUG
-				elog(DEBUG1, "%s", SQLTUF2_3);
+				elog(DEBUG1, "TUF2_3 %s", SQLTUF2_3);
+				elog(DEBUG1, "TUF2_3 $1 %s", cash_type);
+				elog(DEBUG1, "TUF2_3 $2 %s", trade_list);
 #endif /* DEBUG */
 				args[0] = CStringGetTextDatum(cash_type);
 				args[1] = Int64GetDatum(atoll(trade_list));
@@ -1415,7 +1422,8 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 			}
 
 #ifdef DEBUG
-			elog(DEBUG1, "%s", SQLTUF2_4);
+			elog(DEBUG1, "TUF2_4 %s", SQLTUF2_4);
+			elog(DEBUG1, "TUF2_4 $1 %s", trade_list);
 #endif /* DEBUG */
 			args[0] = Int64GetDatum(atoll(trade_list));
 			ret = SPI_execute_plan(TUF2_4, args, nulls, true, 0);
@@ -1480,7 +1488,8 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 
 			if (is_cash_str[0] == 't') {
 #ifdef DEBUG
-				elog(DEBUG1, "%s", SQLTUF2_5);
+				elog(DEBUG1, "TUF2_5 %s", SQLTUF2_5);
+				elog(DEBUG1, "TUF2_5 $1 %s", trade_list);
 #endif /* DEBUG */
 				ret = SPI_execute_plan(TUF2_5, args, nulls, true, 0);
 				if (ret == SPI_OK_SELECT && SPI_processed > 0) {
@@ -1616,7 +1625,8 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 			}
 
 #ifdef DEBUG
-			elog(DEBUG1, "%s", SQLTUF2_6);
+			elog(DEBUG1, "TUF2_6 %s", SQLTUF2_6);
+			elog(DEBUG1, "TUF2_6 $1 %s", trade_list);
 #endif /* DEBUG */
 
 			ret = SPI_execute_plan(TUF2_6, args, nulls, true, 0);

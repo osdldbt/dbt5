@@ -7,6 +7,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Remove remaining trade_cleanup.sql references from pgsql-load-stored-procs
 - pgsql pl/c: add parameter and query results to market watch debug output
 - pgsql pl/c: fix market cap calculation
+- pgsql pl/c: add parameter and query results to trade update frame 2 debug
+  output
 
 v0.10.1 (2024-06-10)
 
