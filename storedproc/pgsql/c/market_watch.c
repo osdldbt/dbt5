@@ -164,14 +164,18 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 	plan_queries(MWF1_statements);
 	if (cust_id != 0) {
 #ifdef DEBUG
-		elog(DEBUG1, "%s", SQLMWF1_1);
+		elog(DEBUG1, "MWF1_1 %s", SQLMWF1_1);
+		elog(DEBUG1, "MWF1_1 $1 %ld", cust_id);
 #endif /* DEBUG */
 		frame_index = 0;
 		args[0] = Int64GetDatum(cust_id);
 		ret = SPI_execute_plan(MWF1_1, args, nulls, true, 0);
 	} else if (industry_name[0] != '\0') {
 #ifdef DEBUG
-		elog(DEBUG1, "%s", SQLMWF1_2);
+		elog(DEBUG1, "MWF1_2 %s", SQLMWF1_2);
+		elog(DEBUG1, "MWF1_2 $1 '%s'", industry_name);
+		elog(DEBUG1, "MWF1_2 $2 %ld", starting_co_id);
+		elog(DEBUG1, "MWF1_2 $3 %ld", ending_co_id);
 #endif /* DEBUG */
 		frame_index = 1;
 		args[0] = CStringGetTextDatum(industry_name);
@@ -180,7 +184,8 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(MWF1_2, args, nulls, true, 0);
 	} else if (acct_id != 0) {
 #ifdef DEBUG
-		elog(DEBUG1, "%s", SQLMWF1_3);
+		elog(DEBUG1, "MWF1_3 %s", SQLMWF1_3);
+		elog(DEBUG1, "MWF1_3 $1 %ld", acct_id);
 #endif /* DEBUG */
 		frame_index = 2;
 		args[0] = Int64GetDatum(acct_id);
@@ -213,8 +218,9 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 			tuple = tuptable->vals[i];
 			symbol = SPI_getvalue(tuple, tupdesc, 1);
 #ifdef DEBUG
-			elog(DEBUG1, "%s", SQLMWF1_4);
-			elog(DEBUG1, "  symbol = '%s'", symbol);
+			elog(DEBUG1, "MWF1_3 symb[%d] '%s'", i, symbol);
+			elog(DEBUG1, "MWF1_4 %s", SQLMWF1_4);
+			elog(DEBUG1, "MWF1_4 $1 '%s'", symbol);
 #endif /* DEBUG */
 			frame_index = 3;
 			args[0] = CStringGetTextDatum(symbol);
@@ -229,24 +235,25 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 			tuple4 = tuptable4->vals[0];
 			new_price = SPI_getvalue(tuple4, tupdesc4, 1);
 #ifdef DEBUG
-			elog(DEBUG1, "%s", SQLMWF1_4);
-			elog(DEBUG1, "  new_price  = %s", new_price);
-			elog(DEBUG1, "  new_price  = %f", atof(new_price));
+			elog(DEBUG1, "MWF1_4 lt_price[%d] %s", i, new_price);
+			elog(DEBUG1, "MWF1_5 %s", SQLMWF1_5);
+			elog(DEBUG1, "MWF1_5 $1 %f", atof(new_price));
 #endif /* DEBUG */
 			frame_index = 4;
 			args[0] = CStringGetTextDatum(symbol);
 			ret = SPI_execute_plan(MWF1_5, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
 				FAIL_FRAME(MWF1_statements[frame_index].sql);
-				elog(DEBUG1, "ERROR: sql not ok = %d", ret);
 			}
 			tupdesc4 = SPI_tuptable->tupdesc;
 			tuptable4 = SPI_tuptable;
 			tuple4 = tuptable4->vals[0];
 			s_num_out = SPI_getvalue(tuple4, tupdesc4, 1);
 #ifdef DEBUG
-			elog(DEBUG1, "%s", SQLMWF1_6);
-			elog(DEBUG1, "  s_num_out  = %s", s_num_out);
+			elog(DEBUG1, "MWF1_5 s_num_out[%d] = %s", i, s_num_out);
+			elog(DEBUG1, "MWF1_6 %s", SQLMWF1_6);
+			elog(DEBUG1, "MWF1_6 $1 '%s'", symbol);
+			elog(DEBUG1, "MWF1_6 $2 '%s'", buf);
 #endif /* DEBUG */
 			frame_index = 5;
 			args[0] = CStringGetTextDatum(symbol);
@@ -264,22 +271,20 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 				tuptable4 = SPI_tuptable;
 				tuple4 = tuptable4->vals[0];
 				old_price = SPI_getvalue(tuple4, tupdesc4, 1);
-#ifdef DEBUG
-				elog(DEBUG1, "  old_price  = %s", old_price);
-				elog(DEBUG1, "  old_price  = %f", atof(old_price));
-#endif /* DEBUG */
 				old_mkt_cap += atof(s_num_out) * atof(old_price);
+#ifdef DEBUG
+				elog(DEBUG1, "MWF1_6 dm_close[%d] = %s", i, old_price);
+				elog(DEBUG1, "MWF1 old_mkt_cap = %f", old_mkt_cap);
+#endif /* DEBUG */
 			}
 			new_mkt_cap += atof(s_num_out) * atof(new_price);
-
 #ifdef DEBUG
-			elog(DEBUG1, "old_mkt_cap = %f", old_mkt_cap);
-			elog(DEBUG1, "new_mkt_cap = %f", new_mkt_cap);
+			elog(DEBUG1, "MWF1 new_mkt_cap = %f", new_mkt_cap);
 #endif /* DEBUG */
 		}
 		pct_change = 100.0 * (new_mkt_cap / old_mkt_cap - 1.0);
 #ifdef DEBUG
-		elog(DEBUG1, "pct_change = %f", pct_change);
+		elog(DEBUG1, "MWF1 pct_change = %f", pct_change);
 #endif /* DEBUG */
 	}
 
