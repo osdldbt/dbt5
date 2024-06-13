@@ -14,7 +14,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql pl/c fix trade update frames formatting of trade_history_status_id and
   i_trade_type arrays
 - Remove superfluous rollback on error for Trade Order
-
+- Fix command line argument parsing to handle upper case BrokerageHouseMain,
+  MarketExchangeMain, DriverMain, and TestTxn
 
 v0.10.1 (2024-06-10)
 

@@ -65,7 +65,6 @@ parse_command_line(int argc, char *argv[])
 		if (*sp == '-') {
 			++sp;
 		}
-		*sp = (char) tolower(*sp);
 
 		/*
 		 *  Find the switch's argument.  It is either immediately after the
