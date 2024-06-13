@@ -13,6 +13,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql pl/c fix trade update frame 1 calculation of num_found
 - pgsql pl/c fix trade update frames formatting of trade_history_status_id and
   i_trade_type arrays
+- Remove superfluous rollback on error for Trade Order
 
 
 v0.10.1 (2024-06-10)

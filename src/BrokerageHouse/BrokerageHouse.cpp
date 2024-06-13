@@ -172,8 +172,6 @@ workerThread(void *data)
 					iRet = pThrParam->pBrokerageHouse->RunTradeOrder(
 							&(pMessage->TxnInput.TradeOrderTxnInput),
 							tradeOrder);
-					if (iRet != 0)
-						pDBConnection->rollback();
 					break;
 				case TRADE_RESULT:
 					iRet = pThrParam->pBrokerageHouse->RunTradeResult(
