@@ -1804,7 +1804,7 @@ CDBConnectionServerSide::execute(
 					  * (uint64_t) 1000000);
 	uint64_t trade_id = htobe64((uint64_t) pIn->trade_id);
 	uint16_t trade_is_cash = htobe16((uint16_t) pIn->trade_is_cash);
-	uint32_t trade_qty = htobe64((uint32_t) pIn->trade_qty);
+	uint32_t trade_qty = htobe32((uint32_t) pIn->trade_qty);
 
 	const char *paramValues[9] = { (char *) &acct_id, (char *) &due_date,
 		pIn->s_name, se_amount, (char *) &trade_dts, (char *) &trade_id,

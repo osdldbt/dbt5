@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- pgsql pl/c fix byte ordering bug in trade result frame 6
+
 v0.10.2 (2024-06-13)
 
 - pgsql fix client-side trade result frame 2 bug in looping over results of
