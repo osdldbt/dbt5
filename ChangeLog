@@ -1,6 +1,7 @@
 vX.Y.Z (YYYY-MM-DD)
 
 - pgsql pl/c fix byte ordering bug in trade result frame 6
+- pgsql pl/c fix segfault in retrieving timestamp data
 
 v0.10.2 (2024-06-13)
 
