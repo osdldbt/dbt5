@@ -65,6 +65,7 @@ if [ ${#} -lt 1 ]; then
 	exit 1
 fi
 
+TMPDIR=""
 trap cleanup INT QUIT ABRT TERM
 
 CUSTOMERS="Unspecified"
@@ -337,5 +338,7 @@ printf "%66s  %10d\n" \
 cat << EOF
 ==================================================================  ==========
 EOF
+
+cleanup
 
 exit 0

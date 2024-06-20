@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Improve post-process cleanup of temp files
+
 v0.10.3 (2024-06-18)
 
 - pgsql pl/c fix byte ordering bug in trade result frame 6
