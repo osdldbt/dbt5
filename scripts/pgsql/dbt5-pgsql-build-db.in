@@ -255,12 +255,14 @@ fi
 # FIXME: Find a way to pass arguments to psql using EGen's -p flag, which
 # apparently doesn't like arguments to have dashes (-) in them.
 eval "dbt5-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG}" || exit 1
+
+echo "Starting ${MODE} load"
 if [ "${MODE}" = "CUSTOM" ]; then
 	CHUNK=$(( ((CUSTOMERS_TOTAL / PARALLELISM) + 999) / 1000 * 1000 ))
 	WORKERS=$(( (CUSTOMERS_TOTAL + CHUNK - 1) / CHUNK ))
 
 	CUSTOMER_START=1
-	for _I in $(seq 1 ${WORKERS}); do
+	for I in $(seq 1 ${WORKERS}); do
 		CUSTOMER_END=$(( CUSTOMER_START + CHUNK ))
 		if [ "${CUSTOMER_END}" -gt "${CUSTOMERS_TOTAL}" ]; then
 			CUSTOMER_END=$(( CUSTOMERS_TOTAL + 1 ))
@@ -272,7 +274,7 @@ if [ "${MODE}" = "CUSTOM" ]; then
 				-f "${SCALE_FACTOR}" \
 				-w "${ITD}" \
 				-c "${CHUNK}" \
-				-t "${CUSTOMERS_TOTAL}" &
+				-t "${CUSTOMERS_TOTAL}" > "egenloader-${I}.out" 2>&1 &
 		CUSTOMER_START=${CUSTOMER_END}
 	done
 	wait
@@ -286,7 +288,7 @@ elif [ "${MODE}" = "FLAT" ]; then
 				-f "${SCALE_FACTOR}" \
 				-w "${ITD}" \
 				-c "${CUSTOMERS_INSTANCE}" \
-				-t "${CUSTOMERS_TOTAL}" || exit 1
+				-t "${CUSTOMERS_TOTAL}" > egenloader.out 2>&1 || exit 1
 	fi
 	load_table account_permission AccountPermission.txt &
 	load_table address Address.txt &
