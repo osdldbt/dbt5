@@ -151,51 +151,54 @@ SCALING TABLES
 EOF
 
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM customer")"
-echo "customer ${CUSTOMERS} = ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "customer" "${CUSTOMERS}" "=" "${ACTUAL}"
 
 EXPECT="$((CUSTOMERS * 2))"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM customer_taxrate")"
-echo "customer_taxrate ${EXPECT} = ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "customer_taxrate" "${EXPECT}" "=" "${ACTUAL}"
 
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM customer_account")"
-echo "customer_account ${ACCOUNTS} = ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "customer_account" "${ACCOUNTS}" "=" \
+		"${ACTUAL}"
 
 EXPECT="$(${PSQL} -c "SELECT (1.42 * ${ACCOUNTS})::BIGINT")"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM account_permission")"
-echo "account_permission ${EXPECT} ~ ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "account_permission" "${EXPECT}" "~" \
+		"${ACTUAL}"
 
 EXPECT="$((COMPANIES + 4 + CUSTOMERS))"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM address")"
-echo "address ${EXPECT} = ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "address" "${EXPECT}" "=" "${ACTUAL}"
 
 EXPECT="$(${PSQL} -c "SELECT (0.01 * ${CUSTOMERS})::BIGINT")"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM broker")"
-echo "broker ${EXPECT} = ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "broker" "${EXPECT}" "=" "${ACTUAL}"
 
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM company")"
-echo "company ${COMPANIES} = ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "company" "${COMPANIES}" "=" "${ACTUAL}"
 
 EXPECT="$((COMPANIES * 3))"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM company_competitor")"
-echo "company_competitor ${EXPECT} = ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "company_competitor" "${EXPECT}" "=" \
+		"${ACTUAL}"
 
 EXPECT="$((SECURITIES * 1305))"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM daily_market")"
-echo "daily_market ${EXPECT} = ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "daily_market" "${EXPECT}" "=" "${ACTUAL}"
 
 EXPECT="$((COMPANIES * 20))"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM financial")"
-echo "financial ${EXPECT} = ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "financial" "${EXPECT}" "=" "${ACTUAL}"
 
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM last_trade")"
-echo "last_trade ${SECURITIES} = ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "last_trade" "${SECURITIES}" "=" "${ACTUAL}"
 
 WATCH_LIST="$(${PSQL} -c "SELECT count(*) FROM watch_list")"
-echo "watch_list ${CUSTOMERS} = ${WATCH_LIST}"
+printf "%20s %20d\n%20s %20d\n" "watch_list" "${CUSTOMERS}" "=" "${WATCH_LIST}"
 
 EXPECT="$((CUSTOMERS * 100))"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM watch_item")"
-echo "watch_item ${EXPECT} ~ ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "watch_item" "${EXPECT}" "~" "${ACTUAL}"
 
 cat << EOF
 
@@ -206,33 +209,33 @@ EOF
 
 EXPECT="$(${PSQL} -c "SELECT (0.92 * ${SETTLED})::BIGINT")"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM cash_transaction")"
-echo "cash_transaction ${EXPECT} ~ ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "cash_transaction" "${EXPECT}" "~" "${ACTUAL}"
 
 EXPECT="$(${PSQL} -c "SELECT (0.051 * ${SETTLED})::BIGINT")"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM holding")"
-echo "holding ${EXPECT} ~ ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "holding" "${EXPECT}" "~" "${ACTUAL}"
 
 EXPECT="$(${PSQL} -c "SELECT (1.340 * ${SETTLED})::BIGINT")"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM holding_history")"
-echo "holding_history ${EXPECT} ~ ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "holding_history" "${EXPECT}" "~" "${ACTUAL}"
 
 EXPECT="$(${PSQL} -c "SELECT (9.956 * ${ACCOUNTS})::BIGINT")"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM holding_summary")"
-echo "holding_summary ${EXPECT} ~ ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "holding_summary" "${EXPECT}" "~" "${ACTUAL}"
 
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM settlement")"
-echo "settlement ${SETTLED} ~ ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "settlement" "${SETTLED}" "~" "${ACTUAL}"
 
 EXPECT="$(${PSQL} -c "SELECT ${DAYS}::BIGINT * 8::BIGINT * 360::BIGINT * ${CUSTOMERS}::BIGINT / ${SCALE_FACTOR}::BIGINT")"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM trade")"
-echo "trade ${EXPECT} ~ ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "trade" "${EXPECT}" "~" "${ACTUAL}"
 
 EXPECT="$(${PSQL} -c "SELECT (2.4 * ${TRADES})::BIGINT")"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM trade_history")"
-echo "trade_history ${EXPECT} ~ ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "trade_history" "${EXPECT}" "~" "${ACTUAL}"
 
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM trade_request")"
-echo "trade_request 0 = ${ACTUAL}"
+printf "%20s %20d\n%20s %20d\n" "trade_request" "0" "=" "${ACTUAL}"
 
 PSQL="psql ${PSQLARGS}"
 
