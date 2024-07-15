@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.10.4 (2024-07-15)
 
 - Improve post-process cleanup of temp files
 - Save EGenLoader output to separate files for easier debugging
