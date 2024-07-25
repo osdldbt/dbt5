@@ -398,9 +398,9 @@ CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 		osSQL.str("");
 		osSQL << "UPDATE address" << endl << "SET ad_line2 = '";
 		if (strncmp(PQgetvalue(res, 0, 0), "Apt. 10C", 8) != 0) {
-			osSQL << "Apt. 10C" << endl;
+			osSQL << "Apt. 10C";
 		} else {
-			osSQL << "Apt. 22" << endl;
+			osSQL << "Apt. 22";
 		}
 		osSQL << "'" << endl << "WHERE ad_id = " << PQgetvalue(res, 0, 1);
 

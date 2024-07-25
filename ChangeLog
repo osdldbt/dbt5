@@ -2,6 +2,7 @@ vX.Y.X (YYYY-MM-DD)
 
 - Capture exception message when DoTxn() throws an exception
 - Fix pgsql client side trade request frame 1 query 2 debug message
+- Fix pgsql client side data maintenance address table query
 
 v0.10.4 (2024-07-15)
 
