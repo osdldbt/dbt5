@@ -208,7 +208,8 @@ workerThread(void *data)
 				pid_t pid = syscall(SYS_gettid);
 				ostringstream msg;
 				msg << time(NULL) << " " << pid << " "
-					<< szTransactionName[pMessage->TxnType] << " " << e << endl;
+					<< szTransactionName[pMessage->TxnType] << " " << e
+					<< endl;
 				pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
 				iRet = CBaseTxnErr::EXPECTED_ROLLBACK;
 			}
@@ -547,7 +548,8 @@ CBrokerageHouse::RunBrokerVolume(
 	try {
 		brokerVolume.DoTxn(pTxnInput, &bvOutput);
 	} catch (const exception &e) {
-		logErrorMessage("BV EXCEPTION\n", m_Verbose);
+		logErrorMessage(
+				std::string("BV EXCEPTION: ") + e.what() + "\n", m_Verbose);
 		bvOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -578,7 +580,8 @@ CBrokerageHouse::RunCustomerPosition(PCustomerPositionTxnInput pTxnInput,
 	try {
 		customerPosition.DoTxn(pTxnInput, &cpOutput);
 	} catch (const exception &e) {
-		logErrorMessage("CP EXCEPTION\n", m_Verbose);
+		logErrorMessage(
+				std::string("CP EXCEPTION: ") + e.what() + "\n", m_Verbose);
 		cpOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -613,7 +616,8 @@ CBrokerageHouse::RunDataMaintenance(
 	try {
 		dataMaintenance.DoTxn(pTxnInput, &dmOutput);
 	} catch (const exception &e) {
-		logErrorMessage("DM EXCEPTION\n", m_Verbose);
+		logErrorMessage(
+				std::string("DM EXCEPTION: ") + e.what() + "\n", m_Verbose);
 		dmOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -637,7 +641,8 @@ CBrokerageHouse::RunTradeCleanup(
 	try {
 		tradeCleanup.DoTxn(pTxnInput, &tcOutput);
 	} catch (const exception &e) {
-		logErrorMessage("TC EXCEPTION\n", m_Verbose);
+		logErrorMessage(
+				std::string("TC EXCEPTION: ") + e.what() + "\n", m_Verbose);
 		tcOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -661,7 +666,8 @@ CBrokerageHouse::RunMarketFeed(
 	try {
 		marketFeed.DoTxn(pTxnInput, &mfOutput);
 	} catch (const exception &e) {
-		logErrorMessage("MF EXCEPTION\n", m_Verbose);
+		logErrorMessage(
+				std::string("MF EXCEPTION: ") + e.what() + "\n", m_Verbose);
 		mfOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -691,7 +697,8 @@ CBrokerageHouse::RunMarketWatch(
 	try {
 		marketWatch.DoTxn(pTxnInput, &mwOutput);
 	} catch (const exception &e) {
-		logErrorMessage("MW EXCEPTION\n", m_Verbose);
+		logErrorMessage(
+				std::string("MW EXCEPTION: ") + e.what() + "\n", m_Verbose);
 		mwOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -724,7 +731,8 @@ CBrokerageHouse::RunSecurityDetail(
 	try {
 		securityDetail.DoTxn(pTxnInput, &sdOutput);
 	} catch (const exception &e) {
-		logErrorMessage("SD EXCEPTION\n", m_Verbose);
+		logErrorMessage(
+				std::string("SD EXCEPTION: ") + e.what() + "\n", m_Verbose);
 		sdOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -761,7 +769,8 @@ CBrokerageHouse::RunTradeLookup(
 	try {
 		tradeLookup.DoTxn(pTxnInput, &tlOutput);
 	} catch (const exception &e) {
-		logErrorMessage("TL EXCEPTION\n", m_Verbose);
+		logErrorMessage(
+				std::string("TL EXCEPTION: ") + e.what() + "\n", m_Verbose);
 		tlOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -863,7 +872,8 @@ CBrokerageHouse::RunTradeResult(
 	try {
 		tradeResult.DoTxn(pTxnInput, &trOutput);
 	} catch (const exception &e) {
-		logErrorMessage("TR EXCEPTION\n", m_Verbose);
+		logErrorMessage(
+				std::string("TR EXCEPTION: ") + e.what() + "\n", m_Verbose);
 		trOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -899,7 +909,8 @@ CBrokerageHouse::RunTradeStatus(
 	try {
 		tradeStatus.DoTxn(pTxnInput, &tsOutput);
 	} catch (const exception &e) {
-		logErrorMessage("TS EXCEPTION\n", m_Verbose);
+		logErrorMessage(
+				std::string("TS EXCEPTION: ") + e.what() + "\n", m_Verbose);
 		tsOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
@@ -929,7 +940,8 @@ CBrokerageHouse::RunTradeUpdate(
 	try {
 		tradeUpdate.DoTxn(pTxnInput, &tuOutput);
 	} catch (const exception &e) {
-		logErrorMessage("TU EXCEPTION\n", m_Verbose);
+		logErrorMessage(
+				std::string("TU EXCEPTION: ") + e.what() + "\n", m_Verbose);
 		tuOutput.status = CBaseTxnErr::EXPECTED_ROLLBACK;
 	}
 
