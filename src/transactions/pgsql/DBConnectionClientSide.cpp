@@ -3143,7 +3143,7 @@ CDBConnectionClientSide::execute(
 
 	if (m_bVerbose) {
 		cout << TRF1Q2 << endl;
-		cout << "$1 = " << be64toh(trade_id) << endl;
+		cout << "$1 = " << pOut->type_id << endl;
 	}
 
 	const char *paramValues2[1] = { pOut->type_id };
