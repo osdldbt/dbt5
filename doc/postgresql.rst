@@ -17,6 +17,12 @@ on the database system before they can be used by the database::
     make install
     dbt5 pgsql-load-stored-procs -t c
 
+Configuration
+-------------
+
+The transaction code expects PostgreSQL to use its default datestyle of 'iso,
+dmy'.
+
 Build the Database
 ------------------
 
