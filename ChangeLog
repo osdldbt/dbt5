@@ -8,6 +8,8 @@ vX.Y.X (YYYY-MM-DD)
 - Add -o flag to build script to specify flat_out location for EGenLoader FLAT
   loads
 - Fix pgsql-load-stored-procs scripts to use CMAKE_INSTALL_PREFIX
+- Fix pgsql-load-stored-procs to load C user defined functions from PostgreSQL
+  default support files locations
 
 v0.10.4 (2024-07-15)
 

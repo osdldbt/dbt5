@@ -90,9 +90,7 @@ done
 PSQL="psql -X ${PORTARG} -e ${DBNAMEARG}"
 
 if [ "${TYPE}" = "c" ]; then
-	if [ "${SHAREDIR}" = "" ]; then
-		SHAREDIR="$(pg_config --sharedir)"
-	fi
+	SHAREDIR="$(pg_config --sharedir)"
 	eval "${PSQL} -f ${SHAREDIR}/contrib/broker_volume.sql" || exit 1
 	eval "${PSQL} -f ${SHAREDIR}/contrib/customer_position.sql" || exit 1
 	eval "${PSQL} -f ${SHAREDIR}/contrib/data_maintenance.sql" || exit 1
