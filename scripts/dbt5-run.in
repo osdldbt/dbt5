@@ -301,6 +301,7 @@ General options:
                  EGENHOME is the directory location of the TPC-E Tools
   -t CUSTOMERS   total CUSTOMERS, default ${CUSTOMERS_TOTAL}
   -u USERS       number of USERS to emulate, default ${USERS}
+  -v             enable verbose output, not recommended for more than 1 user
   -w DAYS        initial trade DAYS, default ${ITD}
   -z COMMENT     COMMENT describing this test run
 
@@ -340,6 +341,7 @@ STATS=0
 PACING_DELAY=0
 PRIVILEGED=0
 USERS=1
+VERBOSE_FLAG=""
 
 if [ $# -eq 0 ]; then
 	usage
@@ -436,6 +438,9 @@ while [ "${#}" -gt 0 ] ; do
 		shift
 		USERS="$(echo "${1}" | grep -E "^[0-9]+$")"
 		validate_parameter "u" "${1}" "${USERS}"
+		;;
+	(-v)
+		VERBOSE_FLAG="-v"
 		;;
 	(-V | --version)
 		echo "dbt5 (Database Test 5) v@PROJECT_VERSION@"
@@ -656,7 +661,7 @@ echo
 if [ "${CONFIGFILE}" = "" ]; then
 	eval "${EGENHOME}/bin/BrokerageHouseMain ${DB_HOSTNAME_ARG} -d ${DB_NAME} \
 			${DB_PORT_ARG} -o ${BH_OUTPUT_DIR} ${CLIENTSIDEARG} \
-			> ${BH_OUTPUT_DIR}/bh.out 2>&1" &
+			${VERBOSE_FLAG} > ${BH_OUTPUT_DIR}/bh.out 2>&1" &
 else
 	BROKERAGES="$(toml get "${CONFIGFILE}" . | jq -r '.brokerage | length')"
 
@@ -730,7 +735,7 @@ echo "## 2. Starting Market Exchange server"
 if [ "${CONFIGFILE}" = "" ]; then
 	eval "${EGENHOME}/bin/MarketExchangeMain -c ${CUSTOMERS_INSTANCE} \
 			-t ${CUSTOMERS_TOTAL} -i ${EGENHOME}/flat_in -o ${MEE_OUTPUT_DIR} \
-			> ${MEE_OUTPUT_DIR}/mee.out 2>&1" &
+			${VERBOSE_FLAG} > ${MEE_OUTPUT_DIR}/mee.out 2>&1" &
 else
 	MARKETS="$(toml get "${CONFIGFILE}" . | jq -r '.market | length')"
 

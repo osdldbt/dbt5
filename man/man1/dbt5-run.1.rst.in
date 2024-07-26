@@ -49,6 +49,7 @@ OPTIONS
 --tpcetools=EGENHOME  *egenhome* is the directory location of the TPC-E Tools
 -t CUSTOMERS  Total *customers*, default 5000.
 -u USERS  Number of *users* to emulate, default 1.
+-v  Enable verbose output, not recommended for more than 1 user.
 -V, --version  output version information, then exit
 -w DAYS  Initial trade *days*, default 300.
 -z COMMENT  *comment* describing this test run.
