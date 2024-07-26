@@ -5,6 +5,7 @@ foreach (FILE dbt5-pgsql-build-db
               dbt5-pgsql-create-db
               dbt5-pgsql-create-indexes
               dbt5-pgsql-create-tables
+              dbt5-pgsql-drop-stored-procs
               dbt5-pgsql-load-stored-procs
               dbt5-pgsql-plans
         )

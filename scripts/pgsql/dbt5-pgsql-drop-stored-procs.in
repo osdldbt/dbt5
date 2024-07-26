@@ -1,0 +1,96 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+
+# Simple script that might help make sure there aren't overloaded functions.
+
+usage()
+{
+	cat << EOF
+$(basename "${0}") is the Database Test 5 (DBT-5) PostgreSQL user defined functions dropper
+
+Usage:
+  $(basename "${0}") [OPTIONS]
+
+General options:
+  -d DBNAME      PGDATABASE name"
+  -p PORT        PostgreSQL port
+  -V, --version  Output version information, then exit
+  -?, --help     Output this help, then exit
+
+@HOMEPAGE@
+EOF
+}
+
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-d)
+		shift
+		DBNAMEARG="-d ${1}"
+		;;
+	(-d*)
+		DBNAMEARG="-d ${1#*-d}"
+		;;
+	(-p)
+		shift
+		PORTARG="-p ${1}"
+		;;
+	(-p*)
+		PORTARG="-p ${1#*-p}"
+		;;
+	(-V | --version)
+		echo "dbt5 (Database Test 5) v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
+	esac
+	shift
+done
+
+eval "psql -X ${PORTARG} -e ${DBNAMEARG}" <<- SQL
+	DROP FUNCTION IF EXISTS BrokerVolumeFrame1;
+	DROP FUNCTION IF EXISTS CustomerPositionFrame1;
+	DROP FUNCTION IF EXISTS CustomerPositionFrame2;
+	DROP FUNCTION IF EXISTS DataMaintenanceFrame1;
+	DROP FUNCTION IF EXISTS MarketWatchFrame1;
+	DROP FUNCTION IF EXISTS SecurityDetailFrame1;
+	DROP FUNCTION IF EXISTS TradeLookupFrame1;
+	DROP FUNCTION IF EXISTS TradeLookupFrame2;
+	DROP FUNCTION IF EXISTS TradeLookupFrame3;
+	DROP FUNCTION IF EXISTS TradeLookupFrame4;
+	DROP FUNCTION IF EXISTS TradeOrderFrame1;
+	DROP FUNCTION IF EXISTS TradeOrderFrame2;
+	DROP FUNCTION IF EXISTS TradeOrderFrame3;
+	DROP FUNCTION IF EXISTS TradeOrderFrame4;
+	DROP FUNCTION IF EXISTS TradeResultFrame1;
+	DROP FUNCTION IF EXISTS TradeResultFrame2;
+	DROP FUNCTION IF EXISTS TradeResultFrame3;
+	DROP FUNCTION IF EXISTS TradeResultFrame4;
+	DROP FUNCTION IF EXISTS TradeResultFrame5;
+	DROP FUNCTION IF EXISTS TradeResultFrame6;
+	DROP FUNCTION IF EXISTS TradeStatusFrame1;
+	DROP FUNCTION IF EXISTS TradeUpdateFrame1;
+	DROP FUNCTION IF EXISTS TradeUpdateFrame2;
+	DROP FUNCTION IF EXISTS TradeUpdateFrame3;
+
+	DROP TYPE IF EXISTS SECURITY_DETAIL_DAY;
+	DROP TYPE IF EXISTS SECURITY_DETAIL_FIN;
+	DROP TYPE IF EXISTS SECURITY_DETAIL_NEWS;
+SQL

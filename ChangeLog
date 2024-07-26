@@ -10,6 +10,8 @@ vX.Y.X (YYYY-MM-DD)
 - Fix pgsql-load-stored-procs scripts to use CMAKE_INSTALL_PREFIX
 - Fix pgsql-load-stored-procs to load C user defined functions from PostgreSQL
   default support files locations
+- Convert pgsql drop_all_functions.sql script to a POSIX sh here script
+  pgsql-drop-stored-procs
 
 v0.10.4 (2024-07-15)
 
