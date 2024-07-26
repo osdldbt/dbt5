@@ -8,8 +8,9 @@ Developed against PostgreSQL 8.4 and newer.  May work with older versions but
 not quite tested.
 
 By default, the kit will use PL/pgsql stored functions, but you may use C
-stored functions instead.  The C stored functions need to be separately built
-and installed on the database system before they can be used by the database::
+stored functions instead or have the transaction logic be executed on the
+client-size.  The C stored functions need to be separately built and installed
+on the database system before they can be used by the database::
 
     cd storedproc/pgsql/c
     make
