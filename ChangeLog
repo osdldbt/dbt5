@@ -12,6 +12,8 @@ vX.Y.X (YYYY-MM-DD)
   default support files locations
 - Convert pgsql drop_all_functions.sql script to a POSIX sh here script
   pgsql-drop-stored-procs
+- pgsql pl/c update date handling code in market watch and security detail user
+  defined functions
 
 v0.10.4 (2024-07-15)
 

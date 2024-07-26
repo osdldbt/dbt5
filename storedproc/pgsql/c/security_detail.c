@@ -230,8 +230,6 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		DateADT start_date_p = PG_GETARG_DATEADT(2);
 		char *symbol_p = (char *) PG_GETARG_TEXT_P(3);
 		char symbol[S_SYMB_LEN + 1];
-		struct pg_tm tt, *tm = &tt;
-		char buf[MAXDATELEN + 1];
 
 		enum sdf1
 		{
@@ -298,11 +296,8 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 						textout, PointerGetDatum(symbol_p))),
 				S_SYMB_LEN);
 		symbol[S_SYMB_LEN] = '\0';
-		j2date(start_date_p + POSTGRES_EPOCH_JDATE, &(tm->tm_year),
-				&(tm->tm_mon), &(tm->tm_mday));
-		EncodeDateOnly(tm, DateStyle, buf);
 #ifdef DEBUG
-		dump_sdf1_inputs(access_lob_flag, max_rows_to_return, buf, symbol);
+		dump_sdf1_inputs(access_lob_flag, max_rows_to_return, "TODO", symbol);
 #endif
 
 		/*
@@ -706,7 +701,7 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		elog(DEBUG1, "%s", SQLSDF1_4);
 #endif /* DEBUG */
 		args[0] = CStringGetTextDatum(symbol);
-		args[1] = DirectFunctionCall1(date_in, CStringGetDatum(pstrdup(buf)));
+		args[1] = DateADTGetDatum(start_date_p);
 		args[2] = Int16GetDatum(max_rows_to_return);
 		ret = SPI_execute_plan(SDF1_4, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {

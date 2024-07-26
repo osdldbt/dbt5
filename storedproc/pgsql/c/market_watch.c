@@ -128,7 +128,6 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 	double new_mkt_cap = 0.0;
 	double pct_change = 0.0;
 
-	struct pg_tm tt, *tm = &tt;
 	int64 acct_id = PG_GETARG_INT64(0);
 	int64 cust_id = PG_GETARG_INT64(1);
 	int64 ending_co_id = PG_GETARG_INT64(2);
@@ -141,14 +140,10 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 	SPITupleTable *tuptable = NULL;
 	HeapTuple tuple = NULL;
 
-	char buf[MAXDATELEN + 1];
 	char industry_name[IN_NAME_LEN + 1];
 	Datum args[3];
 	char nulls[3] = { ' ', ' ', ' ' };
 	int frame_index = 0;
-	j2date(start_date_p + POSTGRES_EPOCH_JDATE, &(tm->tm_year), &(tm->tm_mon),
-			&(tm->tm_mday));
-	EncodeDateOnly(tm, DateStyle, buf);
 
 	strncpy(industry_name,
 			DatumGetCString(DirectFunctionCall1(
@@ -156,7 +151,7 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 			sizeof(industry_name));
 
 #ifdef DEBUG
-	dump_mwf1_inputs(acct_id, cust_id, ending_co_id, industry_name, buf,
+	dump_mwf1_inputs(acct_id, cust_id, ending_co_id, industry_name, "TODO",
 			starting_co_id);
 #endif
 
@@ -264,12 +259,11 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "MWF1_5 s_num_out[%d] = %s", i, s_num_out);
 			elog(DEBUG1, "MWF1_6 %s", SQLMWF1_6);
 			elog(DEBUG1, "MWF1_6 $1 '%s'", symbol);
-			elog(DEBUG1, "MWF1_6 $2 '%s'", buf);
+			elog(DEBUG1, "MWF1_6 $2 '%s'", "TODO");
 #endif /* DEBUG */
 			frame_index = 5;
 			args[0] = CStringGetTextDatum(symbol);
-			args[1] = DirectFunctionCall1(
-					date_in, CStringGetDatum(pstrdup(buf)));
+			args[1] = DateADTGetDatum(start_date_p);
 			ret = SPI_execute_plan(MWF1_6, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
 				FAIL_FRAME(MWF1_statements[frame_index].sql);
