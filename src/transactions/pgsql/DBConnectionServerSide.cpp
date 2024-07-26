@@ -367,6 +367,8 @@ CDBConnectionServerSide::execute(
 								  + (tm.tm_year - 100) / 4 + tm.tm_yday));
 	uint64_t starting_co_id = htobe64((uint64_t) pIn->starting_co_id);
 
+	const Oid paramTypes[6]
+			= { INT8OID, INT8OID, INT8OID, TEXTOID, DATEOID, INT8OID };
 	const char *paramValues[6] = { (char *) &acct_id, (char *) &c_id,
 		(char *) &ending_co_id, pIn->industry_name, (char *) &start_day,
 		(char *) &starting_co_id };
@@ -377,7 +379,7 @@ CDBConnectionServerSide::execute(
 
 	PGresult *res
 			= exec("SELECT * FROM MarketWatchFrame1($1, $2, $3, $4, $5, $6)",
-					6, NULL, paramValues, paramLengths, paramFormats, 0);
+					6, paramTypes, paramValues, paramLengths, paramFormats, 0);
 
 	pOut->pct_change = atof(PQgetvalue(res, 0, 0));
 	PQclear(res);
