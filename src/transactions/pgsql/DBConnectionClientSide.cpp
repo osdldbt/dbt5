@@ -4102,8 +4102,9 @@ CDBConnectionClientSide::execute(
 			= htobe32((uint32_t) ((tm.tm_year - 100) * 365
 								  + (tm.tm_year - 100) / 4 + tm.tm_yday));
 	char se_amount[14];
-	snprintf(se_amount, 14, "%f", pIn->se_amount);
+	snprintf(se_amount, 13, "%f", pIn->se_amount);
 
+	const Oid paramTypes1[3] = { INT8OID, DATEOID, NUMERICOID };
 	const char *paramValues1[3]
 			= { (char *) &trade_id, (char *) &due_date, se_amount };
 	const int paramLengths1[3]
@@ -4132,7 +4133,7 @@ CDBConnectionClientSide::execute(
 			cout << "$3 = " << se_amount << endl;
 		}
 
-		res = exec(TRF6Q1A, 3, NULL, paramValues1, paramLengths1,
+		res = exec(TRF6Q1A, 3, paramTypes1, paramValues1, paramLengths1,
 				paramFormats1, 0);
 	} else {
 #define TRF6Q1B                                                               \
@@ -4156,7 +4157,7 @@ CDBConnectionClientSide::execute(
 			cout << "$3 = " << se_amount << endl;
 		}
 
-		res = exec(TRF6Q1B, 3, NULL, paramValues1, paramLengths1,
+		res = exec(TRF6Q1B, 3, paramTypes1, paramValues1, paramLengths1,
 				paramFormats1, 0);
 	}
 	PQclear(res);
