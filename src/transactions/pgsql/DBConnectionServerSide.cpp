@@ -400,6 +400,8 @@ CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 			= htobe32((uint32_t) ((tm.tm_year - 100) * 365
 								  + (tm.tm_year - 100) / 4 + tm.tm_yday));
 
+	const Oid paramTypes[4]
+			= { INT2OID, INT4OID, DATEOID, TEXTOID };
 	const char *paramValues[4] = { (char *) &access_lob_flag,
 		(char *) &max_rows_to_return, (char *) &start_day, pIn->symbol };
 	const int paramLengths[4] = { sizeof(uint16_t), sizeof(uint32_t),
@@ -407,7 +409,7 @@ CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 	const int paramFormats[4] = { 1, 1, 1, 0 };
 
 	PGresult *res = exec("SELECT * FROM SecurityDetailFrame1($1, $2, $3, $4)",
-			4, NULL, paramValues, paramLengths, paramFormats, 0);
+			4, paramTypes, paramValues, paramLengths, paramFormats, 0);
 
 	int i_s52_wk_high = get_col_num(res, "x52_wk_high");
 	int i_s52_wk_high_date = get_col_num(res, "x52_wk_high_date");

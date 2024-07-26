@@ -15,6 +15,7 @@ vX.Y.X (YYYY-MM-DD)
 - pgsql pl/c update date handling code in market watch and security detail user
   defined functions
 - pgsql server side specify parameter types for MarketWatchFrame1
+- pgsql server side specify parameter types for SecurityDetailFrame1
 
 v0.10.4 (2024-07-15)
 
