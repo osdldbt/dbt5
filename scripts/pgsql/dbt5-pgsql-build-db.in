@@ -23,6 +23,8 @@ General options:
                  database listening PORT number
   -i EGENHOME    EGENHOME is the directory location of the TPC-E Tools
   -l LOAD        EGenLoader type of LOAD [FLAT|ODBC|CUSTOM|NULL], default CUSTOM
+  -o FLAT_OUT    directory location for FLAT type EGenLoader data files,
+                 default EGENHOME/flat_out
   -p PARAMETERS  PostgreSQL database PARAMETERS
   --parallelism NUMBER
                  the NUMBER of processes to use to load the database, default ${PARALLELISM}
@@ -48,13 +50,13 @@ EOF
 load_table()
 {
 	if [ "${ROWS_PER_COMMIT}" -gt 0 ]; then
-		TOTAL_ROWS="$(wc -l "${EGENDIR}/flat_out/${2}" | cut -d " " -f 1)"
+		TOTAL_ROWS="$(wc -l "${FLAT_OUT}/${2}" | cut -d " " -f 1)"
 		# Close enough...
 		N=$(( (TOTAL_ROWS + ROWS_PER_COMMIT - 1) / ROWS_PER_COMMIT ))
 		for K in $(seq 1 ${N}); do
 			eval "${PSQL}" -e <<- EOF
 				BEGIN;
-				\COPY ${1} FROM PROGRAM 'split -n l/${K}/${N} ${EGENDIR}/flat_out/${2}' WITH (DELIMITER '|', NULL '');
+				\COPY ${1} FROM PROGRAM 'split -n l/${K}/${N} ${FLAT_OUT}/${2}' WITH (DELIMITER '|', NULL '');
 				COMMIT;
 			EOF
 			if [ ${?} -ne 0 ]; then
@@ -66,7 +68,7 @@ load_table()
 		eval "${PSQL}" -e <<- EOF
 			BEGIN;
 			TRUNCATE ${1};
-			\COPY ${1} FROM '${EGENDIR}/flat_out/${2}' WITH (DELIMITER '|', FREEZE TRUE, NULL '');
+			\COPY ${1} FROM '${FLAT_OUT}/${2}' WITH (DELIMITER '|', FREEZE TRUE, NULL '');
 			COMMIT;
 		EOF
 	fi
@@ -81,6 +83,7 @@ PRIVILEGED=0
 CUSTOMERS_INSTANCE=5000
 CUSTOMERS_TOTAL=5000
 DBT5DBNAME="dbt5"
+FLAT_OUT=""
 ROWS_PER_COMMIT=0
 SKIP_DATA_GENERATION=0
 SCALE_FACTOR=500
@@ -136,6 +139,13 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(-l*)
 		MODE="${1#*-l}"
+		;;
+	(-o)
+		shift
+		FLAT_OUT="${1}"
+		;;
+	(-o*)
+		FLAT_OUT="${1#*-o}"
 		;;
 	(-p)
 		shift
@@ -227,6 +237,10 @@ if [ ! "x${DBT5DBNAME}" = "x" ]; then
 	export PGDATABASE="${DBT5DBNAME}"
 fi
 
+if [ "${FLAT_OUT}" = "" ]; then
+	FLAT_OUT="${EGENDIR}/flat_out"
+fi
+
 if [ ! "x${PORT}" = "x" ]; then
 	PORTARG="-p ${PORT}"
 	export PGPORT="${PORT}"
@@ -280,9 +294,13 @@ if [ "${MODE}" = "CUSTOM" ]; then
 	wait
 elif [ "${MODE}" = "FLAT" ]; then
 	if [ "${SKIP_DATA_GENERATION}" -eq 0 ]; then
+		if ! mkdir -p "${FLAT_OUT}"; then
+			echo "ERROR: could not make directory for EGgenLoader: ${FLAT_OUT}"
+			exit 1
+		fi
 		${EGENLOADER} \
 				-i "${EGENDIR}/flat_in" \
-				-o "${EGENDIR}/flat_out" \
+				-o "${FLAT_OUT}" \
 				-b "${STARTING_CUSTOMER_ID}" \
 				-l "${MODE}" \
 				-f "${SCALE_FACTOR}" \

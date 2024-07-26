@@ -28,6 +28,8 @@ Options:
   -f SCALE_FACTOR
                  customer per Trade Result transactions per second, default ${SCALE_FACTOR}
   -l LOAD        EGenLoader type of LOAD [FLAT|ODBC|CUSTOM|NULL], default CUSTOM
+  -o FLAT_OUT    directory location for FLAT type EGenLoader data files,
+                 default EGENHOME/flat_out
   --parallelism NUMBER
                  the NUMBER of processes to use to load the database, default ${PARALLELISM}
   --privileged   run test as a privileged operating system and database user
@@ -123,6 +125,14 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(-l*)
 		BUILDARGS="${BUILDARGS} -l ${1#*-l}"
+		;;
+	(-o)
+		shift
+		BUILDARGS="${BUILDARGS} -o ${1}"
+		;;
+	(-o*)
+		shift
+		BUILDARGS="${BUILDARGS} -o ${1#-o}"
 		;;
 	(--parallelism)
 		shift

@@ -33,6 +33,8 @@ OPTIONS
 -f SCALE_FACTOR  Customer per Trade Result transactions per second, default
         500.
 -l LOAD  EGenLoader type of *load* [FLAT|ODBC|CUSTOM|NULL], default FLAT
+-o FLAT_OUT  Directory location for FLAT type EGenLoader data files, default
+        *egenhome*/flat_out
 --parallelism NUMBER  The *number* of processes to use to load the database,
         default is detected number of processors
 --privileged  Run test as a privileged operating system and database user.

@@ -5,6 +5,8 @@ vX.Y.X (YYYY-MM-DD)
 - Fix pgsql client side data maintenance address table query
 - Fix pgsql client side trade result frame 6 bug
 - Add -v flag to run script to enable verbose output from all binaries
+- Add -o flag to build script to specify flat_out location for EGenLoader FLAT
+  loads
 
 v0.10.4 (2024-07-15)
 
