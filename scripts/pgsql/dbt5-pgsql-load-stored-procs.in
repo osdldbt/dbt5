@@ -16,21 +16,75 @@ if [ ! "${APPDIR}" = "" ]; then
 	SHAREDIR="${APPDIR}/usr/share/dbt5/postgresql"
 fi
 
-while getopts "d:i:p:t:" OPT; do
-	case ${OPT} in
-	d)
-		DBNAMEARG="-d ${OPTARG}"
+usage()
+{
+	cat << EOF
+$(basename "${0}") is the Database Test 5 (DBT-5) PostgreSQL user defined functions loader
+
+Usage:
+  $(basename "${0}") [OPTIONS]
+
+General options:
+  -d DBNAME      PGDATABASE name"
+  -i SHAREDIR    PostgreSQL support files location, default ${SHAREDIR}
+  -p PORT        PostgreSQL port
+  -t TYPE        User defined function type (c|plpgsql), default plpgsql
+  -V, --version  Output version information, then exit
+  -?, --help     Output this help, then exit
+
+@HOMEPAGE@
+EOF
+}
+
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(-d)
+		shift
+		DBNAMEARG="-d ${1}"
 		;;
-	i)
-		SHAREDIR="${OPTARG}"
+	(-d*)
+		DBNAMEARG="-d ${1#*-d}"
 		;;
-	p)
-		PORTARG="-p ${OPTARG}"
+	(-i)
+		shift
+		SHAREDIR="${1}"
 		;;
-	t)
-		TYPE="${OPTARG}"
+	(-i*)
+		SHAREDIR="${1#*-i}"
+		;;
+	(-p)
+		shift
+		PORTARG="-p ${1}"
+		;;
+	(-p*)
+		PORTARG="-p ${1#*-p}"
+		;;
+	(-t)
+		shift
+		TYPE="${1}"
+		;;
+	(-t*)
+		TYPE="${1#*-t}"
+		;;
+	(-V | --version)
+		echo "dbt5 (Database Test 5) v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
 		;;
 	esac
+	shift
 done
 
 PSQL="psql -X ${PORTARG} -e ${DBNAMEARG}"
