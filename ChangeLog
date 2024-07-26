@@ -7,6 +7,7 @@ vX.Y.X (YYYY-MM-DD)
 - Add -v flag to run script to enable verbose output from all binaries
 - Add -o flag to build script to specify flat_out location for EGenLoader FLAT
   loads
+- Fix pgsql-load-stored-procs scripts to use CMAKE_INSTALL_PREFIX
 
 v0.10.4 (2024-07-15)
 

@@ -8,7 +8,7 @@
 #
 
 DBNAMEARG=""
-SHAREDIR="/usr/local/share/dbt5/postgresql"
+SHAREDIR="@CMAKE_INSTALL_PREFIX@/share/dbt5/postgresql"
 TYPE="plpgsql"
 
 # Special case to override defaults if in an AppImage environment.
