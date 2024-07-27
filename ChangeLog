@@ -1,3 +1,8 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- pgsql fix index creation logic so that primary keys finish before any foreign
+  keys are started
+
 v0.10.5 (2024-07-26)
 
 - Capture exception message when DoTxn() throws an exception
