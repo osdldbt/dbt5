@@ -4,6 +4,8 @@ vX.Y.Z (YYYY-MM-DD)
   keys are started
 - pgsql use psql instead of createdb to create test database
 - pgsql use VACUUM SQL statement instead of vacuumdb binary for vacuuming
+- Fix run script to set users to script default when using a config file that
+  does not specify users
 
 v0.10.5 (2024-07-26)
 

@@ -824,6 +824,10 @@ else
 			jq -r ".[${INDEX}].brokerage_addr")"
 
 		U="$(toml get "${CONFIGFILE}" driver | jq -r ".[${INDEX}].users")"
+		if [ "${U}" = "null" ]; then
+			# Use script default if users is not defined in the config file.
+			U="${USERS}"
+		fi
 		TOTAL_USERS=$(( TOTAL_USERS + U ))
 		if [ "${U}" -gt "${USERS}" ]; then
 			USERS="${U}"
