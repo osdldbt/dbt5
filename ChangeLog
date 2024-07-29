@@ -3,6 +3,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql fix index creation logic so that primary keys finish before any foreign
   keys are started
 - pgsql use psql instead of createdb to create test database
+- pgsql use VACUUM SQL statement instead of vacuumdb binary for vacuuming
 
 v0.10.5 (2024-07-26)
 

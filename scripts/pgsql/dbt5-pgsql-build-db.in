@@ -399,11 +399,16 @@ fi
 # commit-hint bits on each new tuple, but a regular VACUUM ought to suffice for
 # that.
 
-VACUUM_OPTS="-z -F"
-
-# Use vacuumdb's -j option only if VACUUM_JOBS is greater than 1.
-if [ $VACUUM_JOBS -gt 1 ]; then
-	VACUUM_OPTS="${VACUUM_OPTS} -j ${VACUUM_JOBS}"
+# Perform VACUUM FREEZE ANALYZE by default
+VACUUM_OPTS="ANALYZE"
+if [ "${VACUUM_FULL}" -eq 1 ]; then
+	VACUUM_OPTS="${VACUUM_OPTS}, FULL"
 fi
 
-eval "vacuumdb $PORTARG $VACUUM_OPTS -d $DBT5DBNAME" || exit 1
+if [ "${VACUUM_JOBS}" -gt 1 ]; then
+	VACUUM_OPTS="${VACUUM_OPTS}, PARALLEL ${VACUUM_JOBS}"
+fi
+
+eval "${PSQL}" <<- EOF
+	VACUUM (${VACUUM_OPTS});
+EOF
