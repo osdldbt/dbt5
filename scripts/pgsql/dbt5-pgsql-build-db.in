@@ -234,7 +234,6 @@ fi
 
 if [ ! "x${DBT5DBNAME}" = "x" ]; then
 	DBNAMEARG="-d ${DBT5DBNAME}"
-	export PGDATABASE="${DBT5DBNAME}"
 fi
 
 if [ "${FLAT_OUT}" = "" ]; then
@@ -268,10 +267,13 @@ fi
 
 # FIXME: Find a way to pass arguments to psql using EGen's -p flag, which
 # apparently doesn't like arguments to have dashes (-) in them.
-eval "dbt5-pgsql-create-tables ${PORTARG} ${TABLESPACES_FLAG}" || exit 1
+eval "dbt5-pgsql-create-tables ${DBNAMEARG} ${PORTARG} ${TABLESPACES_FLAG}" \
+		|| exit 1
 
 echo "Starting ${MODE} load"
 if [ "${MODE}" = "CUSTOM" ]; then
+	export PGDATABASE="${DBT5DBNAME}"
+
 	CHUNK=$(( ((CUSTOMERS_TOTAL / PARALLELISM) + 999) / 1000 * 1000 ))
 	WORKERS=$(( (CUSTOMERS_TOTAL + CHUNK - 1) / CHUNK ))
 
@@ -364,8 +366,9 @@ if [ "${ROWCOUNT}" = "1" ]; then
 		SELECT bdr.wait_slot_confirm_lsn(NULL, NULL);
 	EOF
 fi
-eval "dbt5-pgsql-create-indexes ${PORTARG} ${TABLESPACES_FLAG}" || exit 1
-eval "dbt5-pgsql-load-stored-procs ${PORTARG}" || exit 1
+eval "dbt5-pgsql-create-indexes ${DBNAMEARG} ${PORTARG} ${TABLESPACES_FLAG}" \
+		|| exit 1
+eval "dbt5-pgsql-load-stored-procs ${DBNAMEARG} ${PORTARG}" || exit 1
 eval "${PSQL} -e -c \"SELECT setseed(0);\"" || exit 1
 
 # Set the number of vacuumdb jobs to 1 (no parallelism) and let see
