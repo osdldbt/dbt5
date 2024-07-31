@@ -7,6 +7,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix run script to set users to script default when using a config file that
   does not specify users
 - Revert and update AppImage creation to use appimagetool
+- Fix metric calculation from transaction per minute to transaction per second
 
 v0.10.5 (2024-07-26)
 

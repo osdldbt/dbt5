@@ -214,7 +214,8 @@ if [ "${TXNLINE}" = "" ]; then
 	METRIC="N/A"
 else
 	TRCOUNT="$(echo "${TXNLINE}" | cut -d "|" -f 2)"
-	METRIC="$(sqlite3 "${DBFILE}" "SELECT ${TRCOUNT}.0 / ${DURATION};")"
+    METRIC="$(sqlite3 "${DBFILE}" \
+			"SELECT ${TRCOUNT}.0 / (${DURATION} * 60.0);")"
 	METRIC="$(printf "%.2f" "${METRIC}")"
 fi
 
