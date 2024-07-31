@@ -1,14 +1,18 @@
-.PHONY: appimage clean debug egen package release
+.PHONY: appimage clean debug package release
 
 default:
 	@echo "targets: appimage (Linux only), clean, debug, package, release"
 
-appimage:
+appimage: 
 	cmake -H. -Bbuilds/appimage -DCMAKE_INSTALL_PREFIX=/usr
-	cd builds/appimage && make -s install DESTDIR=AppDir
-	cd builds/appimage && make -s appimage-podman
-
-UNAME_S := $(shell uname -s)
+	cd builds/appimage && make install DESTDIR=../AppDir
+	@if [ ! "$(EGEN)" = "" ]; then \
+		mkdir -p builds/AppDir/opt/egen; \
+		unzip -d builds/AppDir/opt/egen "$(EGEN)"; \
+		builds/AppDir/usr/bin/dbt5-build-egen --include-dir=src/include \
+				--patch-dir=patches --source-dir=src builds/AppDir/opt/egen; \
+	fi
+	cd builds/appimage && make appimage
 
 clean:
 	-rm -rf builds
@@ -16,16 +20,6 @@ clean:
 debug:
 	cmake -H. -Bbuilds/debug -DCMAKE_BUILD_TYPE=Debug
 	cd builds/debug && make
-
-egen:
-	cmake -H. -Bbuilds/appimage -DCMAKE_INSTALL_PREFIX=/usr
-	cd builds/appimage && make -s install DESTDIR=AppDir
-	mkdir -p /usr/local/AppDir/opt/
-	cp -pr egen /usr/local/AppDir/opt/
-	builds/appimage/AppDir/usr/bin/dbt5-build-egen --include-dir=src/include \
-			--patch-dir=patches --source-dir=src \
-			/usr/local/AppDir/opt/egen
-	cd builds/appimage && make -s appimage-podman
 
 package:
 	git checkout-index --prefix=builds/source/ -a

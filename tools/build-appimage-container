@@ -15,11 +15,6 @@ if [ "${ARCH}" = "arm64" ]; then
 	ARCH="aarch64"
 fi
 
-if [ ! "${EGEN}" = "" ] && [ "${EGEN}" -eq 1 ]; then
-    CONTAINER_TAG="dbt5-appimage-egen"
-    CONTAINERFILE="Containerfile.egen"
-fi
-
 cd "$CONTAINER_DIR/.." && \
 		podman build \
 				--isolation=chroot \

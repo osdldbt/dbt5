@@ -15,14 +15,10 @@ if ! podman inspect ${CONTAINER_TAG} > /dev/null 2>&1; then
 	"${CONTAINER_DIR}/build-appimage-container" || exit 1
 fi
 
-if [ ! "${EGEN}" = "" ] && [ "${EGEN}" -eq 1 ]; then
-	CONTAINER_TAG="dbt5-appimage-egen"
-	TARGET="egen"
-fi
-
 podman run \
 		--rm \
 		-v "${CONTAINER_DIR}/..:/usr/local/src/dbt5:rw,Z" \
+		--env EGEN="${EGEN}" \
 		--env PKG_CONFIG_PATH="/usr/lib/pkgconfig" \
 		-w /usr/local/src/dbt5 \
 		$CONTAINER_TAG \

@@ -83,8 +83,10 @@ fi
 
 export PATH="${APPDIR}/usr/bin:${PATH}"
 
-if [ "$PGHOST" = "" ]; then
-	export PGHOST="/tmp,/var/run/postgresql"
+if [ "${LD_LIBRARY_PATH}" = "" ]; then
+	export LD_LIBRARY_PATH="${APPDIR}/usr/lib"
+else
+	export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
 fi
 
 COMMAND="${APPDIR}/usr/bin/dbt5-${1}"

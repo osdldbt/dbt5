@@ -78,12 +78,13 @@ tools into it::
 Two scripts are provided, one to create a container for building the AppImage
 and one to building the AppImage::
 
-    EGEN=1 tools/build-appimage-container
-    EGEN=1 tools/build-appimage
+    EGEN=tpc-e-tool.zip tools/build-appimage-container
+    EGEN=tpc-e-tool.zip tools/build-appimage
 
 
-The environment variable `EGEN` must be set to `1` otherwise the AppImage will
-be created without the TPC-E tools included.
+The environment variable `EGEN` must be set to location and name of the TPC-E
+Tools zip file otherwise the AppImage will be created without the TPC-E tools
+included.
 
 When the TPC-E Tools are included in the AppImage, the *build* and *run*
 commands do not need the use of the `--tpcetools` flag and will automatically

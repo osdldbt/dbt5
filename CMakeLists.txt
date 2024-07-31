@@ -82,17 +82,96 @@ include (CPack)
 
 set (APPIMAGE_SOURCE_DIR ${CMAKE_SOURCE_DIR}/appimage)
 
-add_custom_target(appimage-podman
-    COMMAND cp -aLr /usr/local/AppDir .
-    COMMAND VERSION=${PROJECT_VERSION} /usr/local/squashfs-root/AppRun
-            --appdir AppDir
-            --custom-apprun=${CMAKE_BINARY_DIR}/AppRun
-            --desktop-file=${APPIMAGE_SOURCE_DIR}/dbt5.desktop
-            --executable=/root/.cargo/bin/toml
-            --executable=/usr/bin/jq
-            --executable=/usr/bin/perl
-            --executable=/usr/local/bin/gnuplot
-            --executable=/usr/local/bin/sqlite3
-            --icon-file=${APPIMAGE_SOURCE_DIR}/dbt5.svg
-            --output appimage
+find_program(APPIMAGE NAMES appimagetool)
+
+if (APPIMAGE)
+    set (APPIMAGETOOL ${APPIMAGE})
+else()
+    set (APPIMAGETOOL /usr/local/squashfs-root/AppRun)
+endif(APPIMAGE)
+
+set (GNUPLOT ../AppDir/usr/bin/gnuplot)
+
+add_custom_target(appimage
+    COMMAND cp -fpr /usr/local/share/licenses ../AppDir/usr/share
+    COMMAND mkdir -p ../AppDir/usr/share/licenses/dbt5-${PROJECT_VERSION}
+    COMMAND cp -p ../../LICENSE
+            ../AppDir/usr/share/licenses/dbt5-${PROJECT_VERSION}/
+    COMMAND mkdir -p ../AppDir/usr/bin ../AppDir/usr/share/metainfo
+    COMMAND cp -p ${APPIMAGE_SOURCE_DIR}/org.osdl.dbt5.appdata.xml
+            ../AppDir/usr/share/metainfo
+    COMMAND cp -p ${APPIMAGE_SOURCE_DIR}/dbt5.svg
+                  ${APPIMAGE_SOURCE_DIR}/org.osdl.dbt5.desktop AppRun ../AppDir
+    COMMAND cp -p `command -v gnuplot`
+                  `command -v jq`
+                  `command -v perl`
+                  `command -v psql`
+                  `command -v python3`
+                  `command -v rst2html5`
+                  `command -v spar`
+                  `command -v sqlite3`
+                  `command -v toml`
+                  ../AppDir/usr/bin/
+    COMMAND sed -i -e "s#/usr#././#g"
+                ../AppDir/usr/bin/gnuplot
+                ../AppDir/usr/bin/jq
+                ../AppDir/usr/bin/perl
+                ../AppDir/usr/bin/psql
+                ../AppDir/usr/bin/python3
+                ../AppDir/usr/bin/spar
+                ../AppDir/usr/bin/sqlite3
+                ../AppDir/usr/bin/toml
+    COMMAND sed -i "1s/.*/#!\\\\/usr\\\\/bin\\\\/env python3/"
+            ../AppDir/usr/bin/rst2html5
+    COMMAND cp -p `command -v dbt-plot`
+                  `command -v dbt-plot-transaction-distribution.gnuplot`
+                  `command -v dbt-plot-transaction-rate.gnuplot`
+                  `command -v dbt-pgsql-generate-db-report`
+                  `command -v dbt-pgsql-generate-index-report`
+                  `command -v dbt-pgsql-generate-table-report`
+                  ../AppDir/usr/bin/
+    COMMAND cp -p `command -v ts`
+                  `command -v ts-pgsql-stat`
+                  `command -v ts-plot-collectd`
+                  `command -v ts-plot-pgsql`
+                  `command -v ts-plot-pidstat`
+                  `command -v ts-plot-queries`
+                  `command -v ts-plot-sar`
+                  `command -v ts-plot-spar`
+                  `command -v ts-process-pidstat`
+                  `command -v ts-profile`
+                  `command -v ts-report-pid`
+                  `command -v ts-report-sar`
+                  `command -v ts-sysstat`
+                  ../AppDir/usr/bin/
+    COMMAND curl -o ../AppDir/usr/bin/stackcollapse-perf.pl -SsOL
+            https://raw.githubusercontent.com/brendangregg/FlameGraph/master/stackcollapse-perf.pl
+    COMMAND curl -o ../AppDir/usr/bin/flamegraph.pl -SsOL
+            https://raw.githubusercontent.com/brendangregg/FlameGraph/master/flamegraph.pl
+    COMMAND chmod +x ../AppDir/usr/bin/stackcollapse-perf.pl
+            ../AppDir/usr/bin/flamegraph.pl
+    COMMAND mkdir -p ../AppDir/usr/lib/
+    COMMAND cp -paL
+               `ldd ${GNUPLOT} | grep libcairo\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libfreetype\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libfribidi\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libgraphite2\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep harfbuzz\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libbsd\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libpango-1\\\\\\\\.0\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libpangoft2-1\\\\\\\\.0\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libpangocairo-1\\\\\\\\.0\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libpixman-1\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libpng16\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libX11\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libXdmcp\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libXext\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libXrender\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libXau\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libxcb\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libxcb-shm\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${GNUPLOT} | grep libxcb-render\\\\\\\\. | cut -d \" \" -f 3`
+               ../AppDir/usr/lib/
+    COMMAND VERSION=${PROJECT_VERSION} ARCH=`uname -m` ${APPIMAGETOOL}
+            --no-appstream ../AppDir
 )
