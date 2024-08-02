@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.10.6 (2024-08-01)
 
 - pgsql fix index creation logic so that primary keys finish before any foreign
   keys are started
