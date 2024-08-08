@@ -3,7 +3,7 @@
 default:
 	@echo "targets: appimage (Linux only), clean, debug, package, release"
 
-appimage: 
+appimage:
 	cmake -H. -Bbuilds/appimage -DCMAKE_INSTALL_PREFIX=/usr
 	cd builds/appimage && make install DESTDIR=../AppDir
 	@if [ ! "$(EGEN)" = "" ]; then \
