@@ -93,7 +93,8 @@ endif(APPIMAGE)
 set (GNUPLOT ../AppDir/usr/bin/gnuplot)
 
 add_custom_target(appimage
-    COMMAND cp -fpr /usr/local/share/licenses ../AppDir/usr/share
+    COMMAND [ -d "/usr/local/share/licenses" ] &&
+            cp -pr /usr/local/share/licenses ../AppDir/usr/share || exit 0
     COMMAND mkdir -p ../AppDir/usr/share/licenses/dbt5-${PROJECT_VERSION}
     COMMAND cp -p ../../LICENSE
             ../AppDir/usr/share/licenses/dbt5-${PROJECT_VERSION}/
