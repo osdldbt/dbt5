@@ -3,6 +3,7 @@ vX.Y.X (YYYY-MM-DD)
 - get-os-info: make sure the directory exists, which it won't on multi-tier
   systems when stats are not collection
 - fix database stats collection for multi-tier systems
+- AppImage: add missing libraries psql
 
 v0.10.6 (2024-08-01)
 

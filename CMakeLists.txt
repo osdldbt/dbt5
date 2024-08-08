@@ -91,6 +91,7 @@ else()
 endif(APPIMAGE)
 
 set (GNUPLOT ../AppDir/usr/bin/gnuplot)
+set (PSQL ../AppDir/usr/bin/psql)
 
 add_custom_target(appimage
     COMMAND [ -d "/usr/local/share/licenses" ] &&
@@ -172,6 +173,9 @@ add_custom_target(appimage
                `ldd ${GNUPLOT} | grep libxcb\\\\\\\\. | cut -d \" \" -f 3`
                `ldd ${GNUPLOT} | grep libxcb-shm\\\\\\\\. | cut -d \" \" -f 3`
                `ldd ${GNUPLOT} | grep libxcb-render\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${PSQL} | grep libcrypto\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${PSQL} | grep libpq\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${PSQL} | grep libssl\\\\\\\\. | cut -d \" \" -f 3`
                ../AppDir/usr/lib/
     COMMAND VERSION=${PROJECT_VERSION} ARCH=`uname -m` ${APPIMAGETOOL}
             --no-appstream ../AppDir

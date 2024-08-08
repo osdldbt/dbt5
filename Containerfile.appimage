@@ -73,6 +73,11 @@ RUN mkdir -p \
        /usr/local/share/licenses/libbsd-$(dpkg-query -W -f='${Version}\n' libbsd0)/
 
 RUN mkdir -p \
+          /usr/local/share/licenses/libssl1.1-$(dpkg-query -W -f='${Version}\n' libssl1.1) && \
+    cp -p /usr/share/doc/libssl1.1/copyright \
+       /usr/local/share/licenses/libssl1.1-$(dpkg-query -W -f='${Version}\n' libssl1.1)/
+
+RUN mkdir -p \
           /usr/local/share/licenses/libxcb-$(dpkg-query -W -f='${Version}\n' libxcb-shm0) && \
     cp -p /usr/share/doc/libxcb-shm0/copyright \
        /usr/local/share/licenses/libxcb-$(dpkg-query -W -f='${Version}\n' libxcb-shm0)/
