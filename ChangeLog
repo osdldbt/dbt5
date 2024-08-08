@@ -1,3 +1,8 @@
+vX.Y.X (YYYY-MM-DD)
+
+- get-os-info: make sure the directory exists, which it won't on multi-tier
+  systems when stats are not collection
+
 v0.10.6 (2024-08-01)
 
 - pgsql fix index creation logic so that primary keys finish before any foreign

@@ -16,4 +16,5 @@ while getopts "o:" opt; do
 done
 
 # I don't think capturing error messages is important here.
+mkdir -p "${OUTPUT_DIR}"
 sysctl -a 2> /dev/null | sort > $OUTPUT_DIR/proc.out
