@@ -1,3 +1,5 @@
+# vim: set ft=make :
+
 .PHONY: appimage clean debug package release
 
 default:
