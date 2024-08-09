@@ -348,10 +348,6 @@ else
 	exit 1
 fi
 
-eval "${PSQL} -e \
-		-c \"SELECT SETVAL('seq_trade_id', (SELECT MAX(t_id) FROM trade))\"" \
-		|| exit 1
-
 ROWCOUNT="$(eval "${PSQL} -At" <<- EOF
 	SELECT 1
 	FROM pg_proc, pg_namespace
@@ -367,6 +363,9 @@ if [ "${ROWCOUNT}" = "1" ]; then
 	EOF
 fi
 eval "dbt5-pgsql-create-indexes ${DBNAMEARG} ${PORTARG} ${TABLESPACES_FLAG}" \
+		|| exit 1
+eval "${PSQL} -e \
+		-c \"SELECT SETVAL('seq_trade_id', (SELECT MAX(t_id) FROM trade))\"" \
 		|| exit 1
 eval "dbt5-pgsql-load-stored-procs ${DBNAMEARG} ${PORTARG}" || exit 1
 eval "${PSQL} -e -c \"SELECT setseed(0);\"" || exit 1

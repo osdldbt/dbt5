@@ -4,6 +4,7 @@ vX.Y.X (YYYY-MM-DD)
   systems when stats are not collection
 - fix database stats collection for multi-tier systems
 - AppImage: add missing libraries psql
+- pgsql: create trade_id sequence after indexes are created
 
 v0.10.6 (2024-08-01)
 
