@@ -11,11 +11,22 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
-      - name: build appimage
+
+      - name: build container
         run: |
           set -x
           sh -eux tools/build-appimage-container
+
+      - name: build appimage
+        run: |
+          set -x
           ARCH=$(uname -m) sh -eux tools/build-appimage
+        env:
+          EGEN: ""
+
+      - name: create release
+        run: |
+          set -x
           assets=()
           for asset in $(find . -name '*.AppImage'); do
             assets+=("$asset")
@@ -33,5 +44,4 @@ jobs:
           tag_name="${GITHUB_REF##*/}"
           gh release create $tag_name ${assets[@]}
         env:
-          EGEN: ""
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
