@@ -1,54 +1,19 @@
 add_subdirectory (pgsql)
 
-configure_file(
-    dbt5.in
-    ${CMAKE_BINARY_DIR}/dbt5
-    @ONLY
-)
-
-configure_file(
-    dbt5-build.in
-    ${CMAKE_BINARY_DIR}/dbt5-build
-    @ONLY
-)
-
-configure_file(
-    dbt5-build-egen.in
-    ${CMAKE_BINARY_DIR}/dbt5-build-egen
-    @ONLY
-)
-
-configure_file(
-    dbt5-get-os-info.in
-    ${CMAKE_BINARY_DIR}/dbt5-get-os-info
-    @ONLY
-)
-
-configure_file(
-    dbt5-post-process.in
-    ${CMAKE_BINARY_DIR}/dbt5-post-process
-    @ONLY
-)
-
-configure_file(
-    dbt5-report.in
-    ${CMAKE_BINARY_DIR}/dbt5-report
-    @ONLY
-)
-
-configure_file(
-    dbt5-run.in
-    ${CMAKE_BINARY_DIR}/dbt5-run
-    @ONLY
-)
+set (PROGRAMFILES "")
+foreach (FILE dbt5
+              dbt5-build
+              dbt5-build-egen
+              dbt5-get-os-info
+              dbt5-post-process
+              dbt5-report
+              dbt5-run
+        )
+    configure_file(${FILE}.in ${CMAKE_BINARY_DIR}/${FILE} @ONLY)
+    set (PROGRAMFILES ${PROGRAMFILES} ${CMAKE_BINARY_DIR}/${FILE})
+endforeach()
 
 install (
-    PROGRAMS ${CMAKE_BINARY_DIR}/dbt5
-             ${CMAKE_BINARY_DIR}/dbt5-build
-             ${CMAKE_BINARY_DIR}/dbt5-build-egen
-             ${CMAKE_BINARY_DIR}/dbt5-get-os-info
-             ${CMAKE_BINARY_DIR}/dbt5-post-process
-             ${CMAKE_BINARY_DIR}/dbt5-report
-             ${CMAKE_BINARY_DIR}/dbt5-run
+    PROGRAMS ${PROGRAMFILES}
     DESTINATION "bin"
 )
