@@ -16,7 +16,8 @@ Usage:
 
 Options:
   -b POSITION    beginning customer ordinal POSITION, default ${POSITION}
-  -c CUSTOMERS   number of CUSTOMERS for this instance, default ${INSTANCE_CUSTOMERS}
+  -c CUSTOMERS   number of CUSTOMERS for this instance, defaults to total
+                 customers
   --db-host=ADDRESS
                  ADDRESS of database system
   --db-port=PORT
@@ -61,7 +62,7 @@ DBNAME="dbt5"
 EGENHOME=""
 PARALLELISM=1
 POSITION=1
-INSTANCE_CUSTOMERS=5000
+INSTANCE_CUSTOMERS=0
 ROWS_PER_COMMIT=0
 SCALE_FACTOR=500
 TOTAL_CUSTOMERS=5000
@@ -187,6 +188,10 @@ while [ "${#}" -gt 0 ] ; do
 	esac
 	shift
 done
+
+if [ "${INSTANCE_CUSTOMERS}" -eq 0 ]; then
+	INSTANCE_CUSTOMERS="${TOTAL_CUSTOMERS}"
+fi
 
 # Check for required arguments.
 

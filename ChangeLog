@@ -5,6 +5,7 @@ vX.Y.X (YYYY-MM-DD)
 - fix database stats collection for multi-tier systems
 - AppImage: add missing libraries psql
 - pgsql: create trade_id sequence after indexes are created
+- build: instance customers default to total customers when not specified
 
 v0.10.6 (2024-08-01)
 

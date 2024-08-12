@@ -26,7 +26,8 @@ OPTIONS
 =======
 
 -b POSITION  Beginning customer ordinal *position*, default 1.
--c CUSTOMERS  Number of *customers* for this instance, default 5000.
+-c CUSTOMERS  Number of *customers* for this instance, defaults to total
+        customers.
 --db-host ADDRESS  *address* of database system.
 --db-port PORT  Database listening *port* number.
 --db-user USER  Database *user*.
