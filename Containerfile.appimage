@@ -9,26 +9,26 @@ ARG ARCH
 RUN apt-get -qq -y update && \
     apt-get -qq -y dist-upgrade && \
     apt-get -qq -y install bison \
-                   bzip2 \
-                   curl \
-                   file \
-                   flex \
-                   gcc \
-                   g++ \
-                   gnupg2 \
-                   jq \
-                   libcairo2-dev \
-                   libev-dev \
-                   libffi-dev \
-                   libfribidi-dev \
-                   libharfbuzz-dev \
-                   libssl-dev \
-                   make \
-                   patch \
-                   unzip \
-                   wget \
-                   xz-utils \
-                   zlib1g-dev && \
+                           bzip2 \
+                           curl \
+                           file \
+                           flex \
+                           gcc \
+                           g++ \
+                           gnupg2 \
+                           jq \
+                           libcairo2-dev \
+                           libev-dev \
+                           libffi-dev \
+                           libfribidi-dev \
+                           libharfbuzz-dev \
+                           libssl-dev \
+                           make \
+                           patch \
+                           unzip \
+                           wget \
+                           xz-utils \
+                           zlib1g-dev && \
     apt-get -qq -y clean && \
     apt-get -qq -y autoclean
 
