@@ -6,6 +6,8 @@ vX.Y.X (YYYY-MM-DD)
 - AppImage: add missing libraries psql
 - pgsql: create trade_id sequence after indexes are created
 - build: instance customers default to total customers when not specified
+- run: help message corrected to says instance customers default to total
+  customers
 
 v0.10.6 (2024-08-01)
 

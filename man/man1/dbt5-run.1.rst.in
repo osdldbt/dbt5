@@ -30,7 +30,7 @@ OPTIONS
 =======
 
 -b PARAMETERS  Database *parameters*.
--c CUSTOMERS  Active *customers*, default 5000.
+-c CUSTOMERS  Active *customers*, default to total customers.
 --client-side  Use client side application logic, default is to used server
         side
 -d SECONDS  Test duration in *seconds*.

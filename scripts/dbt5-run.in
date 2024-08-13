@@ -278,7 +278,7 @@ Usage:
 
 General options:
   -b PARAMETERS  database PARAMETERS
-  -c CUSTOMERS   active CUSTOMERS, default ${CUSTOMERS_INSTANCE}
+  -c CUSTOMERS   active CUSTOMERS, default to total customers
   --client-side  use client side application logic, default is to used server
                  side
   --config=FILE  config FILE to use for executing a test where these settings
