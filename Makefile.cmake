@@ -9,10 +9,11 @@ appimage:
 	cmake -H. -Bbuilds/appimage -DCMAKE_INSTALL_PREFIX=/usr
 	cd builds/appimage && make install DESTDIR=../AppDir
 	@if [ ! "$(EGEN)" = "" ]; then \
-		mkdir -p builds/AppDir/opt/egen; \
-		unzip -d builds/AppDir/opt/egen "$(EGEN)"; \
+		mkdir -p builds/AppDir/opt/egen && \
+		unzip -d builds/AppDir/opt/egen "$(EGEN)" && \
 		builds/AppDir/usr/bin/dbt5-build-egen --include-dir=src/include \
-				--patch-dir=patches --source-dir=src builds/AppDir/opt/egen; \
+				--patch-dir=patches --source-dir=src \
+				builds/AppDir/opt/egen; \
 	fi
 	cd builds/appimage && make appimage
 
