@@ -9,6 +9,8 @@ vX.Y.X (YYYY-MM-DD)
 - run: help message corrected to says instance customers default to total
   customers
 - Add test-user-scaling script for performance testing example
+- pgsql: change default load type to FLAT, as there is a bug in the CUSTOM data
+  generation at higher, somewhere larger than 5000, customers
 
 v0.10.6 (2024-08-01)
 
