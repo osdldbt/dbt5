@@ -8,6 +8,7 @@ foreach (FILE dbt5
               dbt5-post-process
               dbt5-report
               dbt5-run
+              dbt5-test-user-scaling
         )
     configure_file(${FILE}.in ${CMAKE_BINARY_DIR}/${FILE} @ONLY)
     set (PROGRAMFILES ${PROGRAMFILES} ${CMAKE_BINARY_DIR}/${FILE})

@@ -8,6 +8,7 @@ vX.Y.X (YYYY-MM-DD)
 - build: instance customers default to total customers when not specified
 - run: help message corrected to says instance customers default to total
   customers
+- Add test-user-scaling script for performance testing example
 
 v0.10.6 (2024-08-01)
 

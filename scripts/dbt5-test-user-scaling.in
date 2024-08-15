@@ -1,0 +1,266 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+
+usage()
+{
+	cat << EOF
+$(basename "${0}") is the Database Test 5 (DBT-5) Connection Scaling Test
+
+This script will run a series of tests based on the number of detected logical
+processors.  A series of database connections will be opened up to the number
+of processors on the system.
+
+By default, each test is 5 minutes (300 seconds) long with a 60 second warmup.
+Both lengths may be configured.
+
+Usage:
+  $(basename "${0}") [OPTIONS] DBMS DIRECTORY
+
+General options:
+  --client-side  use client side application logic, default is to used server
+                 side
+  --config=CONFIG
+                 CONFIG file to use for executing a test.  These settings will
+                 override any conflicting command line arguments.
+  --dbaas        database server is a service
+  -d SECONDS     SECONDS of the test duration, after warmup,
+                 default ${DURATION}
+  -h ADDRESS     ADDRESS of database system, default ${DB_HOSTNAME}
+  -n NAME        NAME of the database, default ${DBNAME}
+  -p PORT        database listening PORT number
+  -t CUSTOMERS   number of CUSTOMERS to use in the database,
+                 default ${CUSTOMERS}
+  -V, --version  output version information, then exit
+  --warmup SECONDS
+                 SECONDS before all database connections have finished opening,
+                 default ${WARMUP}
+  -?, --help     show this help, then exit
+
+DBMS options are:
+  pgsql      PostgreSQL
+
+DIRECTORY is the path to save test results.
+
+Database Test 5 (DBT-5) project page: https://github.com/osdldbt/dbt5
+EOF
+}
+
+CONFIGFILE=""
+CUSTOMERS=5000
+DB_HOSTNAME="localhost"
+DB_PORT=""
+DB_USER=""
+DBNAME="dbt5"
+DURATION=300
+FIRST=1
+LAST=0
+RUNARGS=""
+STEP=1
+WARMUP=60
+
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(--client-side)
+		RUNARGS="${RUNARGS} --client-side"
+		;;
+	(--config)
+		shift
+		CONFIGFILE="${1}"
+		;;
+	(--config=*)
+		CONFIGFILE="${1#*--config=}"
+		;;
+	(--dbaas)
+		RUNARGS="${RUNARGS} --dbaas"
+		;;
+	(-d)
+		shift
+		DURATION="${1}"
+		;;
+	(-d?*)
+		DURATION="${1#*-d}"
+		;;
+	(--end)
+		shift
+		LAST="${1}"
+		;;
+	(--end=*)
+		LAST="${1#*--end=}"
+		;;
+	(-h)
+		shift
+		DB_HOSTNAME=${1}
+		;;
+	(-h?*)
+		DB_HOSTNAME=${1#*-h=}
+		;;
+	(-n)
+		shift
+		DBNAME=${1}
+		;;
+	(-n?*)
+		DBNAME=${1#*-n=}
+		;;
+	(-p)
+		shift
+		DB_PORT="${1}"
+		;;
+	(-p?*)
+		DB_PORT="${1#*-p}"
+		;;
+	(--start)
+		shift
+		FIRST="${1}"
+		;;
+	(--start=*)
+		FIRST="${1#*--start=}"
+		;;
+	(--step)
+		shift
+		STEP="${1}"
+		;;
+	(--step=*)
+		STEP="${1#*--step=}"
+		;;
+	(-t)
+		shift
+		CUSTOMERS="${1}"
+		;;
+	(-t?*)
+		CUSTOMERS="${1#*-c}"
+		;;
+	(-V | --version)
+		echo "$(basename "${0}") v0.10.6"
+		exit 0
+		;;
+	(--warmup)
+		shift
+		WARMUP="${1}"
+		;;
+	(--warmup=?*)
+		WARMUP="${1#*--warmup=}"
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
+	esac
+	shift
+done
+
+if [ $# -eq 0 ]; then
+	printf "Specify which DBMS system to test, try \"%s --help\" " \
+			"$(basename "${0}")"
+	echo "for more information."
+	exit 1
+fi
+
+DBMS=$1
+shift
+
+if [ $# -eq 0 ]; then
+	echo "Specify the location to create and save test results,"
+	echo "try \"$(basename "${0}") --help\" for more information."
+	exit 1
+fi
+
+OUTDIR="${1}"
+if [ -d "${OUTDIR}" ]; then
+	echo "Directory '${OUTDIR}' exists, stopping to prevent possible"
+	echo "clobbering of data, please specify another location to save results."
+	exit 1
+fi
+mkdir -p "${OUTDIR}"
+
+if [ "${LAST}" -eq 0 ]; then
+	LAST="$(nproc)"
+	echo "${LAST} logical processor(s) detected"
+fi
+
+# Prep data file to bar plot users and the primary metric.
+RESULTSFILE="${OUTDIR}/results.dat"
+echo "users metric" > "${RESULTSFILE}"
+
+RUNARGS="${RUNARGS} -h ${DB_HOSTNAME}"
+if [ ! "${CONFIGFILE}" = "" ]; then
+	RUNARGS="${RUNARGS} --config=${CONFIGFILE}"
+fi
+if [ ! "${DB_PORT}" = "" ]; then
+	RUNARGS="${RUNARGS} -p ${DB_PORT}"
+fi
+RUNARGS="${RUNARGS} --stats"
+RUNARGS="${RUNARGS} -d ${DURATION}"
+RUNARGS="${RUNARGS} -t ${CUSTOMERS}"
+for I in $(seq "${FIRST}" "${STEP}" "${LAST}"); do
+	DELAY=$(( (WARMUP / I) * 1000 ))
+	PREFIX="${OUTDIR}/${I}"
+
+	ARGS="${RUNARGS} -s ${DELAY}"
+	ARGS="${ARGS} -u ${I}"
+	eval "dbt5 run ${ARGS} ${DBMS} ${PREFIX}" > "${PREFIX}.log" 2>&1
+
+	NOTPM="$(grep Throughput "${PREFIX}/summary.rst" | awk '{print $3}')"
+	echo "${I} ${NOTPM}" >> "${RESULTSFILE}"
+done
+
+# Bar plot the metric per users.
+gnuplot << EOF
+set terminal pngcairo size 1600,1000
+set title "Trade Results per User"
+set grid
+set output "${OUTDIR}/trpu.png"
+set xlabel "Users"
+set ylabel "Trade Results per Second"
+set yrange [0:*]
+set style data histogram
+set style fill solid
+plot '${RESULTSFILE}' using 2:xtic(1) notitle
+EOF
+
+# Plot the transaction rate over the entire series of tests.
+MIXFILES="$(find "${OUTDIR}" -type f -name 'mix*.log' -print0 2> /dev/null \
+		| xargs -0)"
+# shellcheck disable=SC2086
+(dbt-plot transaction-rate "Trade Result" 9 tps "${OUTDIR}" 10 ${MIXFILES} \
+		2> /dev/null || \
+		echo "Could not create Trade Result transaction rate charts") &
+
+# Aggregate all of the database system's sar data.
+SARDIR="${OUTDIR}/sar"
+mkdir -p "${SARDIR}"
+for FILE in sar-blockdev.csv sar-cpu.csv sar-mem.csv sar-net.csv \
+		sar-paging.csv sar-swap.csv; do
+	# Capture just the header once.
+	# shellcheck disable=SC2046
+	find $(find "${OUTDIR}" -name db -type d -print0 | xargs -0) -name sar \
+			-type d | while IFS= read -r DIR; do
+		head -n 1 "${DIR}/${FILE}" > "${SARDIR}/${FILE}"
+		break
+	done
+
+	# Get the just the data from all of the file.
+	# shellcheck disable=SC2046
+	find $(find "${OUTDIR}" -name db -type d -print0 | xargs -0) -name sar \
+			-type d | sort -V | while IFS= read -r DIR; do
+		tail -n +2 "${DIR}/${FILE}" >> "${SARDIR}/${FILE}"
+	done
+done
+
+ts plot-sar -i "${SARDIR}"
+
+wait
