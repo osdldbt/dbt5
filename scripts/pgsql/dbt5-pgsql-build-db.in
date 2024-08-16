@@ -40,6 +40,7 @@ General options:
   -U             Privileged database user
   -u             Use tablespaces
   -w DAYS        Initial trade DAYS (business days) to populate
+  --vacuum-full  Perform a FULL VACUUM
   -V, --version  Output version information, then exit
   -?, --help         Output this help, then exit
 
@@ -90,6 +91,7 @@ SCALE_FACTOR=500
 STARTING_CUSTOMER_ID=1
 ITD=300
 TABLESPACES_FLAG=""
+VACUUM_FULL=0
 
 if command -v nproc > /dev/null; then
 	PARALLELISM=$(nproc)
@@ -193,6 +195,9 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(-u)
 		TABLESPACES_FLAG="-t"
+		;;
+	(--vacuum-full)
+		VACUUM_FULL=1
 		;;
 	(-V | --version)
 		echo "dbt5 (Database Test 5) v@PROJECT_VERSION@"
