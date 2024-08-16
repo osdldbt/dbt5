@@ -11,6 +11,7 @@ vX.Y.X (YYYY-MM-DD)
 - Add test-user-scaling script for performance testing example
 - pgsql: change default load type to FLAT, as there is a bug in the CUSTOM data
   generation at higher, somewhere larger than 5000, customers
+- AppImage: set default EGenLoader flat_out directory is /tmp/flat_out
 
 v0.10.6 (2024-08-01)
 

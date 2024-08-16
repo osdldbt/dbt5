@@ -60,6 +60,7 @@ BUILDARGS=""
 DAYS=300
 DBNAME="dbt5"
 EGENHOME=""
+FLAT_OUT=""
 PARALLELISM=1
 POSITION=1
 INSTANCE_CUSTOMERS=0
@@ -72,6 +73,7 @@ if command -v nproc > /dev/null; then
 fi
 if [ ! "${APPDIR}" = "" ]; then
 	EGENHOME="${APPDIR}/opt/egen"
+	FLAT_OUT="/tmp/flat_out"
 fi
 
 # Custom argument handling for hopefully most portability.
@@ -129,11 +131,11 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(-o)
 		shift
-		BUILDARGS="${BUILDARGS} -o ${1}"
+		FLAT_OUT="${1}"
 		;;
 	(-o*)
 		shift
-		BUILDARGS="${BUILDARGS} -o ${1#-o}"
+		FLAT_OUT="${1#-o}"
 		;;
 	(--parallelism)
 		shift
@@ -218,6 +220,11 @@ if [ $# -ne 0 ]; then
 fi
 
 # Build up BUILDARGS based on command line parameters.
+
+if [ ! "${FLAT_OUT}" = "" ]; then
+	mkdir -p "${FLAT_OUT}"
+	BUILDARGS="${BUILDARGS} -o ${FLAT_OUT}"
+fi
 
 if [ "${DBMS}" = "pgsql" ]; then
 	if [ ! "${DB_HOSTNAME}" = "" ]; then
