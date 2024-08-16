@@ -1,4 +1,4 @@
-vX.Y.X (YYYY-MM-DD)
+v0.10.7 (2024-08-15)
 
 - get-os-info: make sure the directory exists, which it won't on multi-tier
   systems when stats are not collection
