@@ -4,6 +4,7 @@ vX.Y.Z (YYYY-MM-DD)
   removed v0.10.6.
 - AppImage: add missing perl modules for flame graphs
 - pgsql: refactor automatic database creation logic to use template1
+- AppImage: bump touchstone-tools to v0.9.1
 
 v0.10.7 (2024-08-15)
 
