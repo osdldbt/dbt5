@@ -67,12 +67,12 @@ if [ ${PRIVILEGED} -eq 1 ]; then
 fi
 
 PSQL="psql -X ${PORTOPT} -At"
-SQL="SELECT 1 FROM pg_database WHERE lower(datname) = lower('${DBT5DBNAME}');"
-RC="$(eval "${PSQL} -c \"${SQL}\" 2> /dev/null")"
-if [ "${RC}" = "1" ]; then
-	echo "database already exists: ${DBT5DBNAME}"
-else
-	if ! eval "${PSQL} -c \"CREATE DATABASE ${DBT5DBNAME}\";"; then
+
+DBEXISTS=$(${PSQL} -l | cut -d "|" -f 1 | grep -c "\<${DBT5DBNAME}\>")
+
+if [ "${DBEXISTS}" -ne 1 ]; then
+	if ! eval "${PSQL} -d template1 -c \"CREATE DATABASE ${DBT5DBNAME}\";"
+	then
 		exit 1
 	fi
 fi
