@@ -1,3 +1,8 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- AppImage: add, again, python libraries for rst2html5 that were accidentally
+  removed v0.10.6.
+
 v0.10.7 (2024-08-15)
 
 - get-os-info: make sure the directory exists, which it won't on multi-tier

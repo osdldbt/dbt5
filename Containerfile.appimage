@@ -111,6 +111,8 @@ WORKDIR /usr/local/src/Python-${PYTHONVER}
 RUN ./configure --silent --prefix=/usr/local && \
     make -s -j$(nproc) && \
     make -s install
+RUN mkdir -p /usr/local/AppDir/lib && \
+    cp -pr /usr/local/lib/python${PYTHONMMVER} /usr/local/AppDir/lib
 RUN mkdir -p /usr/local/share/licenses/python-${PYTHONVER} && \
     cp -p LICENSE /usr/local/share/licenses/python-${PYTHONVER}/
 
