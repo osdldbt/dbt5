@@ -83,7 +83,7 @@ stat_collection()
 			printf "collection for RDBMS %s on system %s\n" \
 					"${DBMS}" "${HOSTNAME}"
 		else
-			eval "${DB_COMMAND} ts ${DBMS}-stat -d ${DB_NAME} \
+			eval "${DB_COMMAND} ts ${DBMS}-stat -d ${DB_NAME} ${DB_PORT_ARG} \
 					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${ARGS} &"
 		fi
 	else
@@ -170,10 +170,10 @@ stat_collection()
 				if [ ${DBAAS} -ne 1 ]; then
 					eval "${CMD} ts sysstat \
 							-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
-					eval "${CMD} ts ${DBMS}-stat -d ${DB_NAME} \
+					eval "${CMD} ts ${DBMS}-stat -d ${DB_NAME} ${DB_PORT_ARG} \
 							-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${ARGS} &"
 				else
-					eval "ts ${DBMS}-stat -d ${DB_NAME} \
+					eval "ts ${DBMS}-stat -d ${DB_NAME} ${DB_PORT_ARG} \
 							-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${ARGS} &"
 				fi
 			done
@@ -326,6 +326,7 @@ validate_parameter()
 BROKERAGELIST=""
 CLIENTSIDEARG=""
 DB_NAME="dbt5"
+DB_PORT_ARG=""
 DBAAS=0
 DBLIST=""
 DRIVERLIST=""
