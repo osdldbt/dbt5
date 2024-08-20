@@ -244,24 +244,9 @@ show_profile_links()
 		printf "%s" "\`perf-annotated-source <${PPATH}/$(basename "${FILENAME}")>\`__ "
 	fi
 
-	FILENAME="${INDIR}/${PPATH}/perf.txt"
+	FILENAME="${INDIR}/${PPATH}/flamegraph.svg"
 	if [ -f "${FILENAME}" ]; then
-		STACKCOLLAPSEPL="$(command -v stackcollapse-perf.pl)"
-		if [ ! "${STACKCOLLAPSEPL}" = "" ]; then
-			(cd "$(dirname "${FILENAME}")" && \
-					"${STACKCOLLAPSEPL}" perf.txt > perf.folded 2> /dev/null)
-		fi
-		FLAMEGRAPHPL="$(command -v flamegraph.pl)"
-		if [ ! "${FLAMEGRAPHPL}" = "" ]; then
-			FLAMEGRAPH="${INDIR}/${PPATH}/flamegraph.svg"
-			(cd "$(dirname "${FILENAME}")" && \
-					"${FLAMEGRAPHPL}" perf.folded > \
-							"$(basename "${FLAMEGRAPH}")" 2> /dev/null)
-		fi
-		if [ -f "${FLAMEGRAPH}" ]; then
-			printf "%s" \
-					"\`flame-graph <${PPATH}/$(basename "${FLAMEGRAPH}")>\`__ "
-		fi
+		printf "%s" "\`flame-graph <${PPATH}/$(basename "${FILENAME}")>\`__ "
 	fi
 }
 

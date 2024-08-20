@@ -5,6 +5,7 @@ vX.Y.Z (YYYY-MM-DD)
 - AppImage: add missing perl modules for flame graphs
 - pgsql: refactor automatic database creation logic to use template1
 - AppImage: bump touchstone-tools to v0.9.1
+- report now relies on touchstone-tools v0.9.1 to generate flame graphs
 
 v0.10.7 (2024-08-15)
 
