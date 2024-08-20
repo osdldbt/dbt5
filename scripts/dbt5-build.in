@@ -20,8 +20,6 @@ Options:
                  customers
   --db-host=ADDRESS
                  ADDRESS of database system
-  --db-port=PORT
-                 database listening PORT number
   --db-user=USER
                  database USER
   --tpcetools=EGENHOME
@@ -34,6 +32,8 @@ Options:
   --parallelism NUMBER
                  the NUMBER of processes to use to load the database, default ${PARALLELISM}
   --privileged   run test as a privileged operating system and database user
+  -p, --db-port=PORT
+                 database listening PORT number
   --rows-per-commit ROWS
                  Specify how many ROWS are sent before a COMMIT, the actual
                  number of rows is approximately calculated, default is all
@@ -103,13 +103,6 @@ while [ "${#}" -gt 0 ] ; do
 	(--db-parameters=?*)
 		DB_PARAMS="${1#*--db-parameters=}"
 		;;
-	(--db-port)
-		shift
-		DB_PORT="${1}"
-		;;
-	(--db-port=?*)
-		DB_PORT="${1#*--db-port=}"
-		;;
 	(--db-user)
 		shift
 		DB_USER="${1}"
@@ -146,6 +139,16 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--privileged)
 		BUILDARGS="${BUILDARGS} -U"
+		;;
+	(-p | --db-port)
+		shift
+		DB_PORT="${1}"
+		;;
+	(-p*)
+		DB_PORT="${1#*-p=}"
+		;;
+	(--db-port=?*)
+		DB_PORT="${1#*--db-port=}"
 		;;
 	(--rows-per-commit)
 		shift

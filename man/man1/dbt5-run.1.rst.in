@@ -42,7 +42,7 @@ OPTIONS
 -l DELAY  Pacing *delay* in seconds, default 0.
 -n NAME  Database *name*, default dbt5.
 --privileged  Run test as a privileged database user.
--p PORT  Database *port* number.
+-p PORT, --db-port=PORT  Database *port* number.
 -r SEED  Random number *seed*, using this invalidates test.
 --stats  Collect system stats and profile.
 -s DELAY  *delay* between starting threads in milliseconds, default 1000.

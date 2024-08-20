@@ -292,7 +292,8 @@ General options:
   -l DELAY       pacing DELAY in seconds, default ${PACING_DELAY}
   -n NAME        database name, default ${DB_NAME}
   --privileged   run tests as a privileged database user
-  -p PORT        database PORT number
+  -p, --db-port=PORT
+                 database PORT number
   -r SEED        random number SEED, using this invalidates test
   --stats        collect system stats and profile
   -s DELAY       DELAY between starting threads in milliseconds,
@@ -402,11 +403,15 @@ while [ "${#}" -gt 0 ] ; do
 		shift
 		DB_NAME="${1}"
 		;;
-	(-p)
+	(-p | --db-port)
 		shift
-		# postmaster port
-		DB_PORT="$(echo "${1}" | grep -E "^[0-9]+$")"
-		validate_parameter "p" "${1}" "${DB_PORT}"
+		DB_PORT="${1}"
+		;;
+	(-p*)
+		DB_PORT="${1#*-p=}"
+		;;
+	(--db-port=?*)
+		DB_PORT="${1#*--db-port=}"
 		;;
 	(-r)
 		shift
