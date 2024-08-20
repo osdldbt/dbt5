@@ -37,6 +37,8 @@ Options:
   --rows-per-commit ROWS
                  Specify how many ROWS are sent before a COMMIT, the actual
                  number of rows is approximately calculated, default is all
+  --skip-data-generation
+                 Do not generate flat files
   -t CUSTOMERS   number of CUSTOMERS total in the database, default ${TOTAL_CUSTOMERS}
   -V, --version  output version information, then exit
   -w DAYS        number of DAYS of initial trades to populate, default ${DAYS}
@@ -156,6 +158,9 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--rows-per-commit=*)
 		ROWS_PER_COMMIT="${1#*--rows-per-commit=}"
+		;;
+	(--skip-data-generation)
+		BUILDARGS="${BUILDARGS} --skip-data-generation"
 		;;
 	(--tpcetools)
 		shift

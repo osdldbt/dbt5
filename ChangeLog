@@ -9,6 +9,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Update man page make rules to match docutils v0.21.1 set since v0.10.6.
 - Make the database port arguments consistent between the build and run scripts
 - run: fix collection of database stats to use specified database parameters
+- build: expose existing --skip-data-generation flag to reuse existing flat
+  files
 
 v0.10.7 (2024-08-15)
 
