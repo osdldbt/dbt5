@@ -102,6 +102,11 @@ RUN mkdir -p \
     cp -p /usr/share/doc/libpixman-1-0/copyright \
        /usr/local/share/licenses/pixman-$(dpkg-query -W -f='${Version}\n' libpixman-1-0)/
 
+RUN mkdir -p \
+          /usr/local/share/licenses/perl-$(dpkg-query -W -f='${Version}\n' perl) && \
+    cp -p /usr/share/doc/perl/copyright \
+       /usr/local/share/licenses/perl-$(dpkg-query -W -f='${Version}\n' perl)/
+
 ARG PYTHONMMVER="3.11"
 ARG PYTHONVER="${PYTHONMMVER}.1"
 RUN curl -o /tmp/Python-${PYTHONVER}.tgz -SsOL \

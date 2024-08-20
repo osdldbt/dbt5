@@ -89,6 +89,8 @@ else
 	export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
 fi
 
+export PERL5LIB="${APPDIR}/etc/perl"
+
 COMMAND="${APPDIR}/usr/bin/dbt5-${1}"
 
 if [ ! -f "$COMMAND" ]; then

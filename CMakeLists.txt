@@ -117,6 +117,29 @@ add_custom_target(appimage
                   `command -v sqlite3`
                   `command -v toml`
                   ../AppDir/usr/bin/
+    COMMAND mkdir -p ../AppDir/etc/perl
+                     ../AppDir/etc/perl/Carp
+                     ../AppDir/etc/perl/Exporter
+                     ../AppDir/etc/perl/Getopt
+                     ../AppDir/etc/perl/warnings
+    COMMAND cp -p `find /usr -type f -name Carp.pm | head -n 1`
+                  `find /usr -type f -name Exporter.pm | head -n 1`
+                  `find /usr -type f -name constant.pm | head -n 1`
+                  `find /usr -type f -name open.pm | head -n 1`
+                  `find /usr -type f -name overload.pm | head -n 1`
+                  `find /usr -type f -name overloading.pm | head -n 1`
+                  `find /usr -type f -name strict.pm | head -n 1`
+                  `find /usr -type f -name vars.pm | head -n 1`
+                  `find /usr -type f -name warnings.pm | head -n 1`
+               ../AppDir/etc/perl/
+    COMMAND cp -p `find /usr -type f -name Heavy.pm | grep Carp | head -n 1`
+               ../AppDir/etc/perl/Carp/
+    COMMAND cp -p `find /usr -type f -name Heavy.pm | grep Exporter | head -n 1`
+               ../AppDir/etc/perl/Exporter/
+    COMMAND cp -p `find /usr -type f -name Long.pm | grep Getopt | head -n 1`
+               ../AppDir/etc/perl/Getopt/
+    COMMAND cp -p `find /usr -type f -name register.pm | grep warnings | head -n 1`
+               ../AppDir/etc/perl/warnings/
     COMMAND sed -i -e "s#/usr#././#g"
                 ../AppDir/usr/bin/gnuplot
                 ../AppDir/usr/bin/jq
