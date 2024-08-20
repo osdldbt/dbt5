@@ -28,18 +28,18 @@ OPTIONS
 -b POSITION  Beginning customer ordinal *position*, default 1.
 -c CUSTOMERS  Number of *customers* for this instance, defaults to total
         customers.
---db-host ADDRESS  *address* of database system.
---db-port PORT  Database listening *port* number.
---db-user USER  Database *user*.
+--db-host=ADDRESS  *address* of database system.
+--db-port=PORT  Database listening *port* number.
+--db-user=USER  Database *user*.
 -f SCALE_FACTOR  Customer per Trade Result transactions per second, default
         500.
 -l LOAD  EGenLoader type of *load* [FLAT|ODBC|CUSTOM|NULL], default FLAT
 -o FLAT_OUT  Directory location for FLAT type EGenLoader data files, default
         *egenhome*/flat_out
---parallelism NUMBER  The *number* of processes to use to load the database,
+--parallelism=NUMBER  The *number* of processes to use to load the database,
         default is detected number of processors
 --privileged  Run test as a privileged operating system and database user.
---rows-per-commit ROWS  Specify how many *rows* are sent before a **COMMIT**,
+--rows-per-commit=ROWS  Specify how many *rows* are sent before a **COMMIT**,
         the actual number of rows is approximately calculated, default is all.
 --tpcetools=EGENHOME  *egenhome* is the directory location of the TPC-E Tools
 -t CUSTOMERS  Number of *customers* total in the database, default 5000.
