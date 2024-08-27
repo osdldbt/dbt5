@@ -26,7 +26,7 @@ Options:
                  EGENHOME is the directory location of the TPC-E Tools
   -f SCALE_FACTOR
                  customer per Trade Result transactions per second, default ${SCALE_FACTOR}
-  -l LOAD        EGenLoader type of LOAD [FLAT|ODBC|CUSTOM|NULL], default CUSTOM
+  -l LOAD        EGenLoader type of LOAD [FLAT|ODBC|CUSTOM|NULL], default FLAT
   -o FLAT_OUT    directory location for FLAT type EGenLoader data files,
                  default EGENHOME/flat_out
   --parallelism NUMBER
