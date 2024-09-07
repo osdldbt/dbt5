@@ -200,7 +200,7 @@ while [ "${#}" -gt 0 ] ; do
 done
 
 if [ "${INSTANCE_CUSTOMERS}" -eq 0 ]; then
-	INSTANCE_CUSTOMERS="${TOTAL_CUSTOMERS}"
+	BUILDARGS="${BUILDARGS} -c ${TOTAL_CUSTOMERS}"
 fi
 
 # Check for required arguments.
