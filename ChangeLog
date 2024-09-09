@@ -5,6 +5,7 @@ vX.Y.Z (YYYY-MM-DD)
   in v0.10.7.
 - test-user-scaling: update usage to reflect existing --start, --stop, --step
   flags
+- Add performance testing section to docs for test-user-scaling example script
 
 v0.10.8 (2024-08-20)
 

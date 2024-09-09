@@ -85,4 +85,6 @@ Database Management System Notes
 
 .. include:: postgresql.rst
 
+.. include:: testing.rst
+
 .. include:: dev-guide.rst
