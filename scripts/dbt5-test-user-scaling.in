@@ -222,8 +222,8 @@ for I in $(seq "${FIRST}" "${STEP}" "${LAST}"); do
 	ARGS="${ARGS} -u ${I}"
 	eval "dbt5 run ${ARGS} ${DBMS} ${PREFIX}" > "${PREFIX}.log" 2>&1
 
-	NOTPM="$(grep Throughput "${PREFIX}/summary.rst" | awk '{print $3}')"
-	echo "${I} ${NOTPM}" >> "${RESULTSFILE}"
+	TRTPS="$(grep Throughput "${PREFIX}/summary.rst" | awk '{print $3}')"
+	echo "${I} ${TRTPS}" >> "${RESULTSFILE}"
 done
 
 # Bar plot the metric per users.
