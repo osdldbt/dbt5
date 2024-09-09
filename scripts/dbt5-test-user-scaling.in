@@ -191,8 +191,13 @@ fi
 mkdir -p "${OUTDIR}"
 
 if [ "${LAST}" -eq 0 ]; then
-	LAST="$(nproc)"
-	echo "${LAST} logical processor(s) detected"
+	if command -v nproc 2>&1 /dev/null; then
+		LAST="$(nproc)"
+		echo "${LAST} logical processor(s) detected"
+	else
+		LAST=1
+		echo "Could not detect number of logical processors, assuming only 1"
+	fi
 fi
 
 # Prep data file to bar plot users and the primary metric.
