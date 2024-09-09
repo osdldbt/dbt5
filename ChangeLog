@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.10.9 (2024-09-09)
 
 - Correct build help message to say FLAT is the default load type
 - Fix build script to correctly set instance customer count from bug introduced
