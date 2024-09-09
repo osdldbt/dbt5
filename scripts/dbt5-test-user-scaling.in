@@ -34,6 +34,9 @@ General options:
   -h ADDRESS     ADDRESS of database system, default ${DB_HOSTNAME}
   -n NAME        NAME of the database, default ${DBNAME}
   -p PORT        database listening PORT number
+  --start USERS  start with USERS users, default ${FIRST}
+  --step USERS   increment by USERS users, default ${STEP}
+  --stop USERS   stop at USERS users, default detected number of processors
   -t CUSTOMERS   number of CUSTOMERS to use in the database,
                  default ${CUSTOMERS}
   -V, --version  output version information, then exit
@@ -87,13 +90,6 @@ while [ "${#}" -gt 0 ] ; do
 	(-d?*)
 		DURATION="${1#*-d}"
 		;;
-	(--end)
-		shift
-		LAST="${1}"
-		;;
-	(--end=*)
-		LAST="${1#*--end=}"
-		;;
 	(-h)
 		shift
 		DB_HOSTNAME=${1}
@@ -128,6 +124,13 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--step=*)
 		STEP="${1#*--step=}"
+		;;
+	(--stop)
+		shift
+		LAST="${1}"
+		;;
+	(--stop=*)
+		LAST="${1#*--stop=}"
 		;;
 	(-t)
 		shift
