@@ -140,7 +140,7 @@ while [ "${#}" -gt 0 ] ; do
 		CUSTOMERS="${1#*-c}"
 		;;
 	(-V | --version)
-		echo "$(basename "${0}") v0.10.6"
+		echo "dbt5 (Database Test 5) v@PROJECT_VERSION@"
 		exit 0
 		;;
 	(--warmup)
