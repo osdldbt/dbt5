@@ -6,6 +6,7 @@ vX.Y.Z (YYYY-MM-DD)
 - test-user-scaling: update usage to reflect existing --start, --stop, --step
   flags
 - Add performance testing section to docs for test-user-scaling example script
+- Add test-db-parameter script as another performance testing example script
 
 v0.10.8 (2024-08-20)
 

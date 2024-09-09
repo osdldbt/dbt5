@@ -1,0 +1,125 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+
+usage()
+{
+	cat << EOF
+$(basename "${0}") is the Database Test 5 (DBT-5) PostgreSQL parameter setter.
+
+Usage:
+  $(basename "${0}") [OPTION] [PARAM] [VALUE]
+
+Options:
+  --db-host=ADDRESS
+                 ADDRESS of database system
+  --db-name=NAME
+                 NAME of the database
+  --db-port=PORT
+                 database listening PORT number
+  --db-user=USER
+                 database USER
+  -V, --version  output version information, then exit
+  -?, --help     show this help, then exit
+
+PARAM the parameter to change.
+
+VALUE is the value to set the PARAM to.
+
+@HOMEPAGE@
+EOF
+}
+
+DB_HOSTNAME=""
+DB_PORT=""
+DB_USER=""
+DBNAME="dbt5"
+PSQL_ARGS="-X"
+
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(--db-host)
+		shift
+		DB_HOSTNAME=${1}
+		;;
+	(--db-host=?*)
+		DB_HOSTNAME=${1#*--db-host=}
+		;;
+	(--db-name)
+		shift
+		DBNAME=${1}
+		;;
+	(--db-name=?*)
+		DBNAME=${1#*--db-name=}
+		;;
+	(--db-port)
+		shift
+		DB_PORT="${1}"
+		;;
+	(--db-port=?*)
+		DB_PORT="${1#*--db-port=}"
+		;;
+	(--db-user)
+		shift
+		DB_USER=${1}
+		;;
+	(--db-user=?*)
+		DB_USER=${1#*--db-user=}
+		;;
+	(-V | --version)
+		echo "dbt5 (Database Test 5) v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
+	esac
+	shift
+done
+
+if [ $# -eq 0 ]; then
+	printf "Specify which PARAM system to change, try \"%s --help\" " \
+			"$(basename "${0}")"
+	echo "for more information."
+	exit 1
+fi
+PARAM="${1}"
+shift
+
+if [ $# -eq 0 ]; then
+	printf "Specify VALUE to set ${PARAM} to , try \"%s --help\" " \
+			"$(basename "${0}")"
+	echo "for more information."
+	exit 1
+fi
+VALUE="${1}"
+shift
+
+PSQL_ARGS="${PSQL_ARGS} -d ${DBNAME}"
+if [ ! "${DB_HOSTNAME}" = "" ]; then
+	PSQL_ARGS="${PSQL_ARGS} --host=${DB_HOSTNAME}"
+fi
+if [ ! "${DB_PORT}" = "" ]; then
+	PSQL_ARGS="${PSQL_ARGS} --port=${DB_PORT}"
+fi
+if [ ! "${DB_USER}" = "" ]; then
+	PSQL_ARGS="${PSQL_ARGS} --username=${DB_USER}"
+fi
+
+eval "psql ${PSQL_ARGS}" <<- SQL
+	ALTER SYSTEM SET ${PARAM} = '${VALUE}'
+SQL

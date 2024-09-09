@@ -52,3 +52,45 @@ spend 1 minute warming up before running another 5 minutes.
    :width: 100%
 
    Connection Scaling Processor Utilization
+
+Database Parameter Effects
+==========================
+
+This test is performed by the *test-db-param* script.
+
+The purpose of this test is to evaluate the effects of a changing a single
+database parameter.
+
+This script must be used with a configuration file and cannot currently be
+controlled with just command line arguments.
+
+The configure file must contain the following details in addition to any other
+required configuration parameter (see configuration instructions in **User
+Guide** section of the documentation):
+
+1. database start command
+2. database stop command
+3. database parameter name
+4. database parameter values to test
+
+Here is an example for PostgreSQL that is testing 3 difference values for
+`shared_buffers`::
+
+    db_start_command = "pg_ctl -D /tmp/pgdata start"
+    db_stop_command = "pg_ctl -D /tmp/pgdata stop -m fast"
+    db_param_name = "shared_buffers"
+    db_param_values = ["1GB", "2GB", "3GB"]
+
+At the end of the test, the script will create a bar plot of the reported
+metric of each test vs. the value of database parameter being evaluated.  The
+sar data from all the tests will be aggregated and plotted, as shown in the
+**Database Parameter Effects** section.
+
+Here is an example plot of the above example.
+
+.. figure:: test-db-param/trpp.png
+   :align: center
+   :target: test-db-param/trpp.png
+   :width: 100%
+
+   Evaluating PostgreSQL shared_buffers

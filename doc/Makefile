@@ -10,7 +10,7 @@ clean:
 
 html: $(RST)
 	mkdir -p html
-	cp -pr test-user-scaling html
+	cp -pr test-user-scaling test-db-param html
 	rst2html5 dbt5.rst html/index.html
 
 pdf: html

@@ -1,0 +1,246 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+
+usage()
+{
+	cat << EOF
+$(basename "${0}") is the Database Test 5 (DBT-5) Database Parameter Test
+
+This script will run a series of tests based on the number of parameter values
+to test.
+
+Usage:
+  $(basename "${0}") [OPTIONS] DBMS DIRECTORY
+
+General options:
+  --config=CONFIG
+				 CONFIG file to use for executing the tests.  These settings
+                 will override any conflicting command line arguments.
+  --db-host=ADDRESS
+                 ADDRESS of database system to start, stop and update
+                 configuration parameter, default ${DB_HOSTNAME}
+  --db-name=NAME
+                 NAME of the database to start, stop and update configuration
+                 parameter, default ${DBNAME}
+  --db-port=PORT
+                 database listening PORT number to start, stop and update
+                 configuration parameter
+  --dbaas        database server is a service
+  -d SECONDS, --duration=SECONDS
+                 SECONDS of the test duration, after warmup,
+                 default ${DURATION}
+  -V, --version  output version information, then exit
+  -?, --help     show this help, then exit
+
+DBMS options are:
+  pgsql      PostgreSQL
+
+DIRECTORY is the path to save test results.
+
+@HOMEPAGE@
+EOF
+}
+
+CONFIGFILE=""
+DB_HOSTNAME="localhost"
+DB_PORT=""
+DB_USER=""
+DBNAME="dbt5"
+DURATION=300
+RUNARGS=""
+SETPARAMARGS=""
+
+# Custom argument handling for hopefully most portability.
+while [ "${#}" -gt 0 ] ; do
+	case "${1}" in
+	(--config)
+		shift
+		CONFIGFILE="${1}"
+		;;
+	(--config=*)
+		CONFIGFILE="${1#*--config=}"
+		;;
+	(--db-host)
+		shift
+		DB_HOSTNAME=${1}
+		;;
+	(--db-host=?*)
+		DB_HOSTNAME=${1#*--db-host=}
+		;;
+	(--db-name)
+		shift
+		DBNAME=${1}
+		;;
+	(--db-name=?*)
+		DBNAME=${1#*--db-name=}
+		;;
+	(--db-port)
+		shift
+		DB_PORT="${1}"
+		;;
+	(--db-port=?*)
+		DB_PORT="${1#*--db-port=}"
+		;;
+	(--dbaas)
+		RUNARGS="${RUNARGS} --dbaas"
+		;;
+	(-d | --duration)
+		shift
+		DURATION="${1}"
+		;;
+	(-d?*)
+		DURATION="${1#*-d}"
+		;;
+	(--duration=?*)
+		DURATION="${1#*--duration=}"
+		;;
+	(-V | --version)
+		echo "$(basename "${0}") v@PROJECT_VERSION@"
+		exit 0
+		;;
+	(-\? | --help)
+		usage
+		exit 0
+		;;
+	(--* | -*)
+		echo "$(basename "${0}"): invalid option -- '${1}'"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+		;;
+	(*)
+		break
+		;;
+	esac
+	shift
+done
+
+if [ $# -eq 0 ]; then
+	printf "Specify which DBMS system to test, try \"%s --help\" " \
+			"$(basename "${0}")"
+	echo "for more information."
+	exit 1
+fi
+
+DBMS=$1
+shift
+
+if [ $# -eq 0 ]; then
+	echo "Specify the location to create and save test results,"
+	echo "try \"$(basename "${0}") --help\" for more information."
+	exit 1
+fi
+
+OUTDIR="${1}"
+if [ -d "${OUTDIR}" ]; then
+	echo "Directory '${OUTDIR}' exists, stopping to prevent possible"
+	echo "clobbering of data, please specify another location to save results."
+	exit 1
+fi
+mkdir -p "${OUTDIR}"
+
+if [ "${CONFIGFILE}" = "" ]; then
+	echo "must use a config file for this type of testing"
+	exit 1
+fi
+
+DB_START_COMMAND="$(toml get "${CONFIGFILE}" . | jq -r '.db_start_command')"
+DB_STOP_COMMAND="$(toml get "${CONFIGFILE}" . | jq -r '.db_stop_command')"
+DB_PARAM_NAME="$(toml get "${CONFIGFILE}" . | jq -r '.db_param_name')"
+DB_PARAM_VALUES="$(toml get "${CONFIGFILE}" . | jq -cr '.db_param_values')"
+
+# Build up the run arguments
+
+RUNARGS="${RUNARGS} --config=${CONFIGFILE}"
+#RUNARGS="${RUNARGS} -d ${DURATION}"
+#RUNARGS="${RUNARGS} -n ${DBNAME}"
+#RUNARGS="${RUNARGS} -h ${DB_HOSTNAME}"
+
+if [ ! "${DB_PORT}" = "" ]; then
+	RUNARGS="${RUNARGS} -p ${DB_PORT}"
+	SETPARAMARGS="${SETPARAMARGS} --db-port=${DB_PORT}"
+fi
+
+SETPARAMARGS="${SETPARAMARGS} --db-host=${DB_HOSTNAME}"
+SETPARAMARGS="${SETPARAMARGS} --db-name=${DBNAME}"
+
+RESULTSFILE="${OUTDIR}/results.dat"
+
+mkdir -p "${OUTDIR}"
+
+echo "testing parameter: ${DB_PARAM_NAME}"
+echo "testing values: ${DB_PARAM_VALUES}"
+
+for VALUE in $(echo "${DB_PARAM_VALUES}" | jq -r '.[]'); do
+	PREFIX="${OUTDIR}/${DB_PARAM_NAME}-${VALUE}"
+
+	echo "testing ${DB_PARAM_NAME} = ${VALUE}"
+
+	echo "    ensure database is started to update parameter"
+	eval "${DB_START_COMMAND}"
+
+	echo "    updating ${DB_PARAM_NAME} to ${VALUE}"
+	eval "dbt5 ${DBMS}-set-param ${SETPARAMARGS} ${DB_PARAM_NAME} ${VALUE}"
+
+	echo "    restarting database to ensure parameter change takes effect"
+	eval "${DB_STOP_COMMAND}"
+	eval "${DB_START_COMMAND}"
+
+	echo "    starting test"
+	eval "dbt5 run --stats ${RUNARGS} ${DBMS} ${PREFIX}" > "${PREFIX}.log" 2>&1
+
+	TRTPS="$(grep Throughput "${PREFIX}/summary.rst" | awk '{print $3}')"
+	echo "${VALUE} ${TRTPS}" >> "${RESULTSFILE}"
+done
+
+# Bar plot the metric per database connection.
+gnuplot << EOF
+set terminal pngcairo size 1600,1000
+set title "Trade Results"
+set grid
+set output "${OUTDIR}/trpp.png"
+set xlabel "${DB_PARAM_NAME}" noenhanced
+set ylabel "Trade Results per Second"
+set yrange [0:*]
+set style data histogram
+set style fill solid
+plot '${RESULTSFILE}' using 2:xtic(1) notitle
+EOF
+
+# Plot the transaction rate over the entire series of tests.
+MIXFILES="$(find "${OUTDIR}" -type f -name 'mix*.log' -print0 2> /dev/null \
+		| xargs -0)"
+# shellcheck disable=SC2086
+(dbt-plot transaction-rate "Trade Result" 9 tps "${OUTDIR}" 10 ${MIXFILES} \
+		2> /dev/null || \
+		echo "Could not create Trade Result transaction rate charts") &
+
+# Aggregate all of the database system's sar data.
+SARDIR="${OUTDIR}/sar"
+mkdir -p "${SARDIR}"
+for FILE in sar-blockdev.csv sar-cpu.csv sar-mem.csv sar-net.csv \
+		sar-paging.csv sar-swap.csv; do
+	# Capture just the header once.
+	# shellcheck disable=SC2046
+	find $(find "${OUTDIR}" -name db -type d -print0 | xargs -0) -name sar \
+			-type d | while IFS= read -r DIR; do
+		head -n 1 "${DIR}/${FILE}" > "${SARDIR}/${FILE}"
+		break
+	done
+
+	# Get just the data from all of the files.
+	# shellcheck disable=SC2046
+	find $(find "${OUTDIR}" -name db -type d -print0 | xargs -0) -name sar \
+			-type d | sort -V | while IFS= read -r DIR; do
+		tail -n +2 "${DIR}/${FILE}" >> "${SARDIR}/${FILE}"
+	done
+done
+
+ts plot-sar -i "${SARDIR}" &
+
+wait
