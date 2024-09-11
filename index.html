@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="generator" content="Docutils 0.20.1: https://docutils.sourceforge.io/" />
+<meta name="generator" content="Docutils 0.21.2: https://docutils.sourceforge.io/" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Database Test 5 (DBT-5) Documentation</title>
 <style type="text/css">
@@ -10,7 +10,7 @@
 /* Minimal style sheet for the HTML output of Docutils.                    */
 /*                                                                         */
 /* :Author: Günter Milde, based on html4css1.css by David Goodger          */
-/* :Id: $Id: minimal.css 9079 2022-06-19 14:00:56Z milde $                                                               */
+/* :Id: $Id: minimal.css 9545 2024-02-17 10:37:56Z milde $                                                               */
 /* :Copyright: © 2015, 2021 Günter Milde.                                  */
 /* :License: Released under the terms of the `2-Clause BSD license`_,      */
 /*    in short:                                                            */
@@ -59,6 +59,7 @@ a.toc-backref {
 /* Warnings, Errors */
 .system-messages h2,
 .system-message-title,
+pre.problematic,
 span.problematic {
   color: red;
 }
@@ -70,6 +71,9 @@ span.problematic {
 }
 /* do not wrap at hyphens and similar: */
 .literal > span.pre { white-space: nowrap; }
+
+/* keep line-breaks (\n) visible */
+.pre-wrap { white-space: pre-wrap; }
 
 /* Lists */
 
@@ -120,7 +124,7 @@ dl.docinfo > dt {
   float: left;
   margin: 0;
   padding: 0;
-  padding-right: 0.2em;
+  padding-right: 0.25em;
 }
 /* Offset for field content (corresponds to the --field-name-limit option) */
 dl.field-list > dd,
@@ -261,7 +265,7 @@ td, th {
   padding-right: 0.5em /* separate table cells */
 }
 
-table > caption {
+table > caption, figcaption {
   text-align: left;
   margin-top: 0.2em;
   margin-bottom: 0.2em;
@@ -270,19 +274,32 @@ table.captionbelow {
   caption-side: bottom;
 }
 
+/* MathML (see "math.css" for --math-output=HTML) */
+math .boldsymbol { font-weight: bold; }
+math.boxed, math .boxed {padding: 0.25em; border: thin solid; }
+/* style table similar to AMS "align" or "aligned" environment: */
+mtable.cases > mtr > mtd { text-align: left; }
+mtable.ams-align > mtr > mtd { padding-left: 0; padding-right: 0; }
+mtable.ams-align > mtr > mtd:nth-child(2n) { text-align: left; }
+mtable.ams-align > mtr > mtd:nth-child(2n+1) { text-align: right; }
+mtable.ams-align > mtr > mtd:nth-child(2n+3) { padding-left: 2em; }
+.mathscr mi, mi.mathscr {
+  font-family: STIX, XITSMathJax_Script, rsfs10,
+               "Asana Math", Garamond, cursive;
+}
+
 /* Document Header and Footer */
 header { border-bottom: 1px solid black; }
 footer { border-top: 1px solid black; }
 
 /* Images are block-level by default in Docutils */
 /* New HTML5 block elements: set display for older browsers */
-img, header, footer, main, aside, nav, section, figure, video, details {
+img, svg, header, footer, main, aside, nav, section, figure, video, details {
   display: block;
 }
+svg { width: auto; height: auto; }  /* enable scaling of SVG images */
 /* inline images */
-p img, p video, figure img, figure video {
-  display: inline;
-}
+p img, p svg, p video { display: inline; }
 
 </style>
 <style type="text/css">
@@ -291,7 +308,7 @@ p img, p video, figure img, figure video {
 /* Rules for easy reading and pre-defined style variants.                  */
 /*                                                                         */
 /* :Author: Günter Milde, based on html4css1.css by David Goodger          */
-/* :Id: $Id: plain.css 9338 2023-04-08 21:08:47Z milde $                                                               */
+/* :Id: $Id: plain.css 9615 2024-04-06 13:28:15Z milde $                                                               */
 /* :Copyright: © 2015 Günter Milde.                                        */
 /* :License: Released under the terms of the `2-Clause BSD license`_,      */
 /*    in short:                                                            */
@@ -361,7 +378,6 @@ hr.docutils {
 
 /* vertical space (parskip) */
 p, ol, ul, dl, li,
-div.line-block,
 .footnote, .citation,
 div > math,
 table {
@@ -504,7 +520,9 @@ table.numbered > caption:before {
 /* let content flow to the side of aligned images and figures */
 figure.align-left,
 img.align-left,
+svg.align-left,
 video.align-left,
+div.align-left,
 object.align-left {
   clear: left;
   float: left;
@@ -512,7 +530,9 @@ object.align-left {
 }
 figure.align-right,
 img.align-right,
+svg.align-right,
 video.align-right,
+div.align-right,
 object.align-right {
   clear: right;
   float: right;
@@ -564,15 +584,6 @@ pre.code .name.builtin, code .name.builtin { color: #352B84 }
 pre.code .deleted, code .deleted { background-color: #DEB0A1}
 pre.code .inserted, code .inserted { background-color: #A3D289}
 
-/* Math */
-/* for math-output=MathML (for math-output=HTML, see math.css) */
-math .boldsymbol {
-  font-weight: bold;
-}
-mstyle.mathscr, mi.mathscr {
-  font-family: STIX, XITSMathJax_Script, rsfs10,
-               "Asana Math", Garamond, cursive;
-}
 
 /* Epigraph           */
 /* Highlights         */
@@ -608,7 +619,7 @@ a { text-decoration: none; }
 <h1 class="title">Database Test 5 (DBT-5) Documentation</h1>
 
 <nav class="contents" id="table-of-contents" role="doc-toc">
-<p class="topic-title">Table of Contents</p>
+<p class="topic-title"><a class="reference internal" href="#top">Table of Contents</a></p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#introduction" id="toc-entry-1">Introduction</a></p></li>
 <li><p><a class="reference internal" href="#design" id="toc-entry-2">Design</a></p>
@@ -633,18 +644,26 @@ a { text-decoration: none; }
 <li><p><a class="reference internal" href="#postgresql" id="toc-entry-11">PostgreSQL</a></p>
 <ul>
 <li><p><a class="reference internal" href="#building-the-kit" id="toc-entry-12">Building the Kit</a></p></li>
-<li><p><a class="reference internal" href="#build-the-database" id="toc-entry-13">Build the Database</a></p></li>
-<li><p><a class="reference internal" href="#run-a-test" id="toc-entry-14">Run a Test</a></p></li>
+<li><p><a class="reference internal" href="#configuration" id="toc-entry-13">Configuration</a></p></li>
+<li><p><a class="reference internal" href="#build-the-database" id="toc-entry-14">Build the Database</a></p></li>
+<li><p><a class="reference internal" href="#run-a-test" id="toc-entry-15">Run a Test</a></p></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><p><a class="reference internal" href="#developer-guide" id="toc-entry-15">Developer Guide</a></p>
+<li><p><a class="reference internal" href="#performance-testing" id="toc-entry-16">Performance Testing</a></p>
 <ul>
-<li><p><a class="reference internal" href="#building-the-kit-1" id="toc-entry-16">Building the Kit</a></p></li>
-<li><p><a class="reference internal" href="#appimage" id="toc-entry-17">AppImage</a></p>
+<li><p><a class="reference internal" href="#database-connection-scaling" id="toc-entry-17">Database Connection Scaling</a></p></li>
+<li><p><a class="reference internal" href="#database-parameter-effects" id="toc-entry-18">Database Parameter Effects</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#developer-guide" id="toc-entry-19">Developer Guide</a></p>
 <ul>
-<li><p><a class="reference internal" href="#building-the-appimage" id="toc-entry-18">Building the AppImage</a></p></li>
+<li><p><a class="reference internal" href="#building-the-kit-1" id="toc-entry-20">Building the Kit</a></p></li>
+<li><p><a class="reference internal" href="#appimage" id="toc-entry-21">AppImage</a></p>
+<ul>
+<li><p><a class="reference internal" href="#building-the-appimage" id="toc-entry-22">Building the AppImage</a></p></li>
+<li><p><a class="reference internal" href="#including-tpc-e-tools-in-the-appimage" id="toc-entry-23">Including TPC-E Tools in the AppImage</a></p></li>
 </ul>
 </li>
 </ul>
@@ -686,7 +705,7 @@ implements the <strong>EGenDriverMEE</strong>.</p>
 <p>The latest stable and development version of the kit can be found on GitHub:
 <a class="reference external" href="https://github.com/osdldbt/dbt5">https://github.com/osdldbt/dbt5</a></p>
 <p>The TPC's TPC-E Tools cannot be redistributed with DBT-5 and must be downloaded
-separately :
+separately from:
 <a class="reference external" href="https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp">https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp</a></p>
 <section id="required-software">
 <h3><a class="toc-backref" href="#toc-entry-7" role="doc-backlink">Required Software</a></h3>
@@ -710,11 +729,18 @@ required:</p>
 </dd>
 </dl>
 </li>
-<li><p>SQLite <a class="reference external" href="https://www.sqlite.org/index.html">https://www.sqlite.org/index.html</a></p></li>
+<li><p>SQLite <a class="reference external" href="https://www.sqlite.org/index.html">https://www.sqlite.org/index.html</a> is required for processing test
+results</p></li>
+</ul>
+<p>Optional software:</p>
+<ul class="simple">
 <li><p><strong>sar</strong>, <strong>pidstat</strong> <a class="reference external" href="http://pagesperso-orange.fr/sebastien.godard/">http://pagesperso-orange.fr/sebastien.godard/</a> (While the
 scripts assume this particular version of <strong>sar</strong> and <strong>pidstat</strong>, it is
 possible to run on non-Linux based operating systems with some modifications
 to the kit.)</p></li>
+<li><p><strong>jq</strong> <a class="reference external" href="https://jqlang.github.io/jq/">https://jqlang.github.io/jq/</a> and <strong>toml-cli</strong>
+<a class="reference external" href="https://github.com/gnprice/toml-cli">https://github.com/gnprice/toml-cli</a> are required to use TOML configuration
+files for executing tests.</p></li>
 </ul>
 </section>
 </section>
@@ -746,34 +772,126 @@ dbt5-build-egen /tmp/egen</pre>
 <h3><a class="toc-backref" href="#toc-entry-11" role="doc-backlink">PostgreSQL</a></h3>
 <section id="building-the-kit">
 <h4><a class="toc-backref" href="#toc-entry-12" role="doc-backlink">Building the Kit</a></h4>
-<p>Developed against Postgresql 8.4 and newer.  May work with older versions but
+<p>Developed against PostgreSQL 8.4 and newer.  May work with older versions but
 not quite tested.</p>
 <p>By default, the kit will use PL/pgsql stored functions, but you may use C
-stored functions instead.  The C stored functions need to be separately built
-and installed on the database system before they can be used by the database:</p>
+stored functions instead or have the transaction logic be executed on the
+client-size.  The C stored functions need to be separately built and installed
+on the database system before they can be used by the database:</p>
 <pre class="literal-block">cd storedproc/pgsql/c
 make
 make install
 dbt5 pgsql-load-stored-procs -t c</pre>
 </section>
+<section id="configuration">
+<h4><a class="toc-backref" href="#toc-entry-13" role="doc-backlink">Configuration</a></h4>
+<p>The transaction code expects PostgreSQL to use its default datestyle of 'iso,
+dmy'.</p>
+</section>
 <section id="build-the-database">
-<h4><a class="toc-backref" href="#toc-entry-13" role="doc-backlink">Build the Database</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-14" role="doc-backlink">Build the Database</a></h4>
 <p>To build the minimum sized database in a database <cite>dbt5</cite>:</p>
 <pre class="literal-block">dbt5 build --tpcetools=/tmp/egen pgsql</pre>
 </section>
 <section id="run-a-test">
-<h4><a class="toc-backref" href="#toc-entry-14" role="doc-backlink">Run a Test</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-15" role="doc-backlink">Run a Test</a></h4>
 <p>Run a quick 120 second (2 minute) test with 1 user:</p>
 <pre class="literal-block">dbt5 run -d 120 pgsql /tmp/results</pre>
 </section>
 </section>
 </section>
+<section id="performance-testing">
+<h2><a class="toc-backref" href="#toc-entry-16" role="doc-backlink">Performance Testing</a></h2>
+<p>There are many additional performance testing scenarios beyond using this
+workload as defined by the TPC specification.  This sections describes some of
+them.</p>
+<section id="database-connection-scaling">
+<h3><a class="toc-backref" href="#toc-entry-17" role="doc-backlink">Database Connection Scaling</a></h3>
+<p>This test is performed by the <em>test-user-scaling</em> script.</p>
+<p>The purpose of this test is determine how many users, or database connections,
+are needed to get as much throughput as possible out of the system.</p>
+<p>This script is run a series of tests starting with 1 user up to the number of
+detected processors of the driver system, adding 1 user per step in the series.
+The script is primarily intended to be run in a 1-tier system configuration,
+but may be run in a 2-tier configuration and may needs some additional
+intelligence or options for that.</p>
+<p>Each step in the series will spend 1 minute to warm up and establish all
+connections to the database, then run for an additional 5 minutes and stop
+before starting the next test in the series.  The warm up time and test
+duration can be varied.</p>
+<p>At the end of the test, the script will create a bar plot of the reported
+metric of each test vs. the number of users.  The sar data from all the tests
+will be aggregated and plotted.</p>
+<p>Here are some examples plots from a system with 4 logical processors where it
+spend 1 minute warming up before running another 5 minutes.</p>
+<figure class="align-center">
+<a class="reference external image-reference" href="test-user-scaling/trpu.png">
+<img alt="test-user-scaling/trpu.png" src="test-user-scaling/trpu.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p>Connection Scaling Transaction Rates per user</p>
+</figcaption>
+</figure>
+<figure class="align-center">
+<a class="reference external image-reference" href="test-user-scaling/t9-transaction-rate.png">
+<img alt="test-user-scaling/t9-transaction-rate.png" src="test-user-scaling/t9-transaction-rate.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p>Connection Scaling Transaction Rates</p>
+</figcaption>
+</figure>
+<figure class="align-center">
+<a class="reference external image-reference" href="test-user-scaling/sar-cpu-agg-busy.png">
+<img alt="test-user-scaling/sar-cpu-agg-busy.png" src="test-user-scaling/sar-cpu-agg-busy.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p>Connection Scaling Processor Utilization</p>
+</figcaption>
+</figure>
+</section>
+<section id="database-parameter-effects">
+<h3><a class="toc-backref" href="#toc-entry-18" role="doc-backlink">Database Parameter Effects</a></h3>
+<p>This test is performed by the <em>test-db-param</em> script.</p>
+<p>The purpose of this test is to evaluate the effects of a changing a single
+database parameter.</p>
+<p>This script must be used with a configuration file and cannot currently be
+controlled with just command line arguments.</p>
+<p>The configure file must contain the following details in addition to any other
+required configuration parameter (see configuration instructions in <strong>User
+Guide</strong> section of the documentation):</p>
+<ol class="arabic simple">
+<li><p>database start command</p></li>
+<li><p>database stop command</p></li>
+<li><p>database parameter name</p></li>
+<li><p>database parameter values to test</p></li>
+</ol>
+<p>Here is an example for PostgreSQL that is testing 3 difference values for
+<cite>shared_buffers</cite>:</p>
+<pre class="literal-block">db_start_command = &quot;pg_ctl -D /tmp/pgdata start&quot;
+db_stop_command = &quot;pg_ctl -D /tmp/pgdata stop -m fast&quot;
+db_param_name = &quot;shared_buffers&quot;
+db_param_values = [&quot;1GB&quot;, &quot;2GB&quot;, &quot;3GB&quot;]</pre>
+<p>At the end of the test, the script will create a bar plot of the reported
+metric of each test vs. the value of database parameter being evaluated.  The
+sar data from all the tests will be aggregated and plotted, as shown in the
+<strong>Database Parameter Effects</strong> section.</p>
+<p>Here is an example plot of the above example.</p>
+<figure class="align-center">
+<a class="reference external image-reference" href="test-db-param/trpp.png">
+<img alt="test-db-param/trpp.png" src="test-db-param/trpp.png" style="width: 100%;" />
+</a>
+<figcaption>
+<p>Evaluating PostgreSQL shared_buffers</p>
+</figcaption>
+</figure>
+</section>
+</section>
 <section id="developer-guide">
-<h2><a class="toc-backref" href="#toc-entry-15" role="doc-backlink">Developer Guide</a></h2>
+<h2><a class="toc-backref" href="#toc-entry-19" role="doc-backlink">Developer Guide</a></h2>
 <p>This document is for detailing anything related to the development of this test
 kit.</p>
 <section id="building-the-kit-1">
-<h3><a class="toc-backref" href="#toc-entry-16" role="doc-backlink">Building the Kit</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-20" role="doc-backlink">Building the Kit</a></h3>
 <p>CMake is build system used for this kit.  A <cite>Makefile.cmake</cite> is provided to
 automate some of the tasks.</p>
 <p>Building for debugging:</p>
@@ -788,7 +906,7 @@ Alternatively, the kit provides scripts in the <em>tools</em> diretory to create
 container that can create an AppImage.</p>
 </section>
 <section id="appimage">
-<h3><a class="toc-backref" href="#toc-entry-17" role="doc-backlink">AppImage</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-21" role="doc-backlink">AppImage</a></h3>
 <p>AppImages are only for Linux based systems: <a class="reference external" href="https://appimage.org/">https://appimage.org/</a></p>
 <p>The AppImageKit AppImage can be downloaded from:
 <a class="reference external" href="https://github.com/AppImage/AppImageKit/releases">https://github.com/AppImage/AppImageKit/releases</a></p>
@@ -798,7 +916,7 @@ container that can create an AppImage.</p>
 <p>See the <cite>README.rst</cite> in the <cite>tools/</cite> directory for an example of creating
 an AppImage with a Podman container.</p>
 <section id="building-the-appimage">
-<h4><a class="toc-backref" href="#toc-entry-18" role="doc-backlink">Building the AppImage</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-22" role="doc-backlink">Building the AppImage</a></h4>
 <p>The AppImages builds a custom minimally configured PostgreSQL build to reduce
 library dependency requirements.  Part of this reason is to make it easier to
 include libraries with compatible licences.  At least version PostgreSQL 11
@@ -809,6 +927,27 @@ options:</p>
       --without-gssapi --with-openssl</pre>
 <p>Don't forget that both <cite>PATH</cite> and <cite>LD_LIBRARY_PATH</cite> may need to be set
 appropriately depending on where the custom build of PostgreSQL is installed.</p>
+</section>
+<section id="including-tpc-e-tools-in-the-appimage">
+<h4><a class="toc-backref" href="#toc-entry-23" role="doc-backlink">Including TPC-E Tools in the AppImage</a></h4>
+<p>Review the TPC EULA for redistribution of TPC provided code and binaries before
+redistributing any AppImages that include any TPC provided code or binaries:
+<a class="reference external" href="https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp">https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp</a></p>
+<p>In the source directory, create the subdirectory <em>egen</em> and unzip the TPC-E
+tools into it:</p>
+<pre class="literal-block">mkdir egen
+cd egen
+unzip /tmp/*-tpc-e-tool.zip</pre>
+<p>Two scripts are provided, one to create a container for building the AppImage
+and one to building the AppImage:</p>
+<pre class="literal-block">EGEN=tpc-e-tool.zip tools/build-appimage-container
+EGEN=tpc-e-tool.zip tools/build-appimage</pre>
+<p>The environment variable <cite>EGEN</cite> must be set to location and name of the TPC-E
+Tools zip file otherwise the AppImage will be created without the TPC-E tools
+included.</p>
+<p>When the TPC-E Tools are included in the AppImage, the <em>build</em> and <em>run</em>
+commands do not need the use of the <cite>--tpcetools</cite> flag and will automatically
+use the included TPC-E Tools binaries.</p>
 </section>
 </section>
 </section>
