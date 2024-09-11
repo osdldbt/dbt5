@@ -1,3 +1,8 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- run: fix handling of user_creation_delay when using config file, previously
+  ignored
+
 v0.10.9 (2024-09-09)
 
 - Correct build help message to say FLAT is the default load type

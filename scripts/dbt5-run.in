@@ -839,6 +839,12 @@ else
 			USERS="${U}"
 		fi
 
+		S="$(toml get "${CONFIGFILE}" driver | \
+				jq -r ".[${INDEX}].user_creation_delay")"
+		if [ ! "${S}" = "null" ]; then
+			SLEEPY="${S}"
+		fi
+
 		DRIVERLIST="${DRIVERLIST} ${DRIVER_HOSTNAME}"
 		BROKERAGELIST="${BROKERAGELIST} ${BROKERAGE_HOSTNAME}"
 
