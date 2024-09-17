@@ -19,6 +19,8 @@ Usage:
   $(basename "${0}") [OPTIONS] DBMS DIRECTORY
 
 General options:
+  --client-side  use client side application logic, default is to used server
+                 side
   --config=CONFIG
 				 CONFIG file to use for executing the tests.  These settings
                  will override any conflicting command line arguments.
@@ -59,6 +61,9 @@ SETPARAMARGS=""
 # Custom argument handling for hopefully most portability.
 while [ "${#}" -gt 0 ] ; do
 	case "${1}" in
+	(--client-side)
+		RUNARGS="${RUNARGS} --client-side"
+		;;
 	(--config)
 		shift
 		CONFIGFILE="${1}"
