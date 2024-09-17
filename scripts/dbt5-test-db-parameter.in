@@ -34,9 +34,6 @@ General options:
                  database listening PORT number to start, stop and update
                  configuration parameter
   --dbaas        database server is a service
-  -d SECONDS, --duration=SECONDS
-                 SECONDS of the test duration, after warmup,
-                 default ${DURATION}
   -V, --version  output version information, then exit
   -?, --help     show this help, then exit
 
@@ -54,7 +51,6 @@ DB_HOSTNAME="localhost"
 DB_PORT=""
 DB_USER=""
 DBNAME="dbt5"
-DURATION=300
 RUNARGS=""
 SETPARAMARGS=""
 
@@ -94,16 +90,6 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--dbaas)
 		RUNARGS="${RUNARGS} --dbaas"
-		;;
-	(-d | --duration)
-		shift
-		DURATION="${1}"
-		;;
-	(-d?*)
-		DURATION="${1#*-d}"
-		;;
-	(--duration=?*)
-		DURATION="${1#*--duration=}"
 		;;
 	(-V | --version)
 		echo "$(basename "${0}") v@PROJECT_VERSION@"
@@ -162,9 +148,6 @@ DB_PARAM_VALUES="$(toml get "${CONFIGFILE}" . | jq -cr '.db_param_values')"
 # Build up the run arguments
 
 RUNARGS="${RUNARGS} --config=${CONFIGFILE}"
-#RUNARGS="${RUNARGS} -d ${DURATION}"
-#RUNARGS="${RUNARGS} -n ${DBNAME}"
-#RUNARGS="${RUNARGS} -h ${DB_HOSTNAME}"
 
 if [ ! "${DB_PORT}" = "" ]; then
 	RUNARGS="${RUNARGS} -p ${DB_PORT}"
