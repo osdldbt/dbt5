@@ -3,6 +3,7 @@ vX.Y.Z (YYYY-MM-DD)
 - run: fix handling of user_creation_delay when using config file, previously
   ignored
 - test-db-parameter: allow --client-side application logic
+- report: error when DIRECTORY is not specified
 
 v0.10.9 (2024-09-09)
 

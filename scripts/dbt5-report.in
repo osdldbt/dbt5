@@ -19,6 +19,8 @@ General options:
   -V, --version  output version information, then exit
   -?, --help     show this help, then exit
 
+DIRECTORY is the path to save test results.
+
 @HOMEPAGE@
 EOF
 }
@@ -289,6 +291,13 @@ while [ "${#}" -gt 0 ] ; do
 	esac
 	shift
 done
+
+if [ ${#} -eq 0 ]; then
+	printf "Specify the results directory to report on, try \"%s --help\" " \
+			"$(basename "${0}")"
+	echo "for more information."
+	exit 1
+fi
 
 INDIR="${1}"
 OUTDIR="${INDIR}"
