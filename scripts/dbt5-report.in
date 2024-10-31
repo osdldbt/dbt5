@@ -505,60 +505,34 @@ __EOF__
 
 # Generate HTML and PDF files.
 # TODO: An RST report is always generated, but automatically create HTML and
-# PDF reports if we detect docutils and pandoc.  This should be a little
+# PDF reports if we detect docutils and rst2pdf, resp.  This should be a little
 # smarter such that we should actually do some combination of generating
 # formats requested or throw codes depending on what actually failed.
-
-GENERATE_PDF=0
 
 RST2HTML5="$(command -v rst2html5.py)"
 if [ "${RST2HTML5}" = "" ]; then
 	RST2HTML5="$(command -v rst2html5)"
 fi
 
-if [ ! "${RST2HTML5}" = "" ]; then
-	# pandoc can't properly convert multi-cell table headings from rst but
-	# Sphinx's rst2html can. Then pandoc can convert multi-cell table headings
-	# from html to pdf.
+RST2PDF="$(command -v rst2pdf)"
 
-	find "${OUTDIR}" -name "*.rst" 2> /dev/null | while IFS= read -r RST; do
-		RSTDIR=$(dirname "$RST")
-		RSTNAME=$(basename "$RST")
-		NAME="${RSTNAME%.*}"
-		"$RST2HTML5" "$RST" "${RSTDIR}/${NAME}.html" 2> /dev/null
-	done
-
-	echo "Generated top level HTML reports:"
-	find "${OUTDIR}" -maxdepth 1 -name '*.html' 2> /dev/null
-	echo ""
-
-	if [ ${GENERATE_PDF} -eq 1 ]; then
-		# A pdf could be produced other ways, but I believe pandoc produces the
-		# most minimally styled LaTeX looking document, as opposed to using
-		# rst2latex, with default settings.
-		PANDOC="$(command -v pandoc)"
-		if [ ! "${PANDOC}" = "" ]; then
-			(cd "${OUTDIR}" && \
-					pandoc -s report.html -f html -t pdf -o report.pdf \
-							2> /dev/null)
-			find "${OUTDIR}" -name "*.html" 2> /dev/null | \
-					while IFS= read -r HTML; do
-				HTMLDIR=$(dirname "$HTML")
-				HTMLNAME=$(basename "$HTML")
-				NAME="${HTMLNAME%.*}"
-				pandoc -s "$HTML" -f html -t pdf \
-						-o "${HTMLDIR}/${NAME}.pdf" 2> /dev/null
-			done
-
-			echo "Generated top level PDF reports:"
-			find "${OUTDIR}" -maxdepth 1 -name '*.pdf' 2> /dev/null
-			echo ""
-		else
-			echo "WARNING: pandoc required to generate pdf report"
-			exit 0
-		fi
+find "${OUTDIR}" -name "*.rst" 2> /dev/null | while IFS= read -r RST; do
+	RSTDIR=$(dirname "$RST")
+	RSTNAME=$(basename "$RST")
+	NAME="${RSTNAME%.*}"
+	if [ ! "${RST2HTML5}" = "" ]; then
+		eval "${RST2HTML5} ${RST} ${RSTDIR}/${NAME}.html" 2> /dev/null
 	fi
-else
-	echo "WARNING: rst2html5 required to generate html report"
-	exit 0
-fi
+	if [ ! "${RST2PDF}" = "" ]; then
+		eval "${RST2PDF} -o ${RSTDIR}/${NAME}.pdf ${RST}" 2> /dev/null
+	fi
+done
+
+echo ""
+echo "Generated top level HTML reports (requires rst2html5):"
+find "${OUTDIR}" -maxdepth 1 -name '*.html' 2> /dev/null
+echo ""
+
+echo "Generated PDF reports (requires rst2pdf):"
+find "${OUTDIR}" -name '*.pdf' 2> /dev/null
+echo ""
