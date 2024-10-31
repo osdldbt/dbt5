@@ -5,6 +5,7 @@ vX.Y.Z (YYYY-MM-DD)
 - test-db-parameter: allow --client-side application logic
 - report: error when DIRECTORY is not specified
 - build.1: fix formatting for --skip-data-generation description
+- report: create links to driver system's system statistics
 
 v0.10.9 (2024-09-09)
 

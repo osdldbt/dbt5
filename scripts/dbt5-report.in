@@ -87,7 +87,7 @@ list_multiple_systems_summary()
 	do
 		SNAME="$(basename "$(dirname "${SYSSTATDIR}")")"
 		echo "   * - ${SNAME}"
-		echo "     - $(head -n 1 "${INDIR}/${MYTAG}/readme.txt")"
+		echo "     - $(if [ -f "${INDIR}/${MYTAG}/readme.txt" ]; then head -n 1 "${INDIR}/${MYTAG}/readme.txt"; fi)"
 		echo "     - $(show_system_links "${MYTAG}/${SNAME}")"
 		echo "     - $(show_profile_links "${MYTAG}/${SNAME}/profile")"
 
@@ -495,6 +495,7 @@ System Summary
      - Charts
      - Profiling
 $(list_multiple_systems_summary "Database System" db)
+$(list_multiple_systems_summary "Driver System" driver)
 
 Component Statistics per Process
 --------------------------------
