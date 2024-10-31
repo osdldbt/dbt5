@@ -45,7 +45,7 @@ create_stat_page()
 
 	cat > "${ODIR}/index.rst" << __EOF__
 ================================================================================
-Database Test 5 "$TITLE" "${TAG}" Charts
+Database Test 5 ${TITLE} ${TAG} Charts
 ================================================================================
 
 $(show_images "${DIR}" "${TAG}")
