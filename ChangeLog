@@ -8,6 +8,7 @@ vX.Y.Z (YYYY-MM-DD)
 - report: create links to driver system's system statistics
 - report: use rst2pdf to create PDF reports instead of pandoc
 - run: reimplement software profiling
+- AppImage: add rst2pdf
 
 v0.10.9 (2024-09-09)
 

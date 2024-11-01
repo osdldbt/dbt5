@@ -113,6 +113,7 @@ add_custom_target(appimage
                   `command -v psql`
                   `command -v python3`
                   `command -v rst2html5`
+                  `command -v rst2pdf`
                   `command -v spar`
                   `command -v sqlite3`
                   `command -v toml`
@@ -151,6 +152,7 @@ add_custom_target(appimage
                 ../AppDir/usr/bin/toml
     COMMAND sed -i "1s/.*/#!\\\\/usr\\\\/bin\\\\/env python3/"
             ../AppDir/usr/bin/rst2html5
+            ../AppDir/usr/bin/rst2pdf
     COMMAND cp -p `command -v dbt-plot`
                   `command -v dbt-plot-transaction-distribution.gnuplot`
                   `command -v dbt-plot-transaction-rate.gnuplot`

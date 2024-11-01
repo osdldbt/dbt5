@@ -128,6 +128,13 @@ RUN mkdir -p /usr/local/share/licenses/docutils-${DOCUTILSVER} && \
        /usr/local/lib/python${PYTHONMMVER}/site-packages/docutils-${DOCUTILSVER}.dist-info/COPYING.txt \
        /usr/local/share/licenses/docutils-${DOCUTILSVER}/
 
+ARG RST2PDFVER="0.102"
+RUN /usr/local/bin/pip3 install rst2pdf==${RST2PDFVER}
+RUN mkdir -p /usr/local/share/licenses/rst2pdf-${RST2PDFVER} && \
+    cp -p \
+       /usr/local/lib/python${PYTHONMMVER}/site-packages/docutils-${DOCUTILSVER}.dist-info/COPYING.txt \
+       /usr/local/share/licenses/rst2pdf-${RST2PDFVER}/
+
 ARG CMAKEVER="3.7.2"
 RUN curl -o /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz -SsOL \
          https://github.com/Kitware/CMake/releases/download/v${CMAKEVER}/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz && \
