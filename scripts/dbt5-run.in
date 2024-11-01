@@ -32,6 +32,42 @@ make_directories()
 	${COMMAND} mkdir -p ${DB_OUTPUT_DIR}
 }
 
+profile_collect()
+{
+	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+		if ! command -v ts > /dev/null 2>&1; then
+			echo "WARNING: touchstone tools not found for local profiling"
+		else
+			ts profile -o "${DRIVER_OUTPUT_DIR}/$(hostname)/profile" sleep 10 &
+		fi
+	fi
+
+	if [ ${DBAAS} -eq 0 ]; then
+		HOSTNAME=$(eval "${DB_COMMAND} hostname")
+		if ! eval "${DB_COMMAND} command -v ts" > /dev/null 2>&1; then
+			printf "WARNING: touchstone tools not found for profiling %s\n" \
+					"${HOSTNAME}"
+		else
+			eval "${DB_COMMAND} ts profile \
+					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/profile sleep 10 &"
+		fi
+	fi
+}
+
+profile_process()
+{
+	echo "processing profiling data..."
+	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
+		ts profile -o "${DRIVER_OUTPUT_DIR}/$(hostname)/profile" -p
+	fi
+
+	if [ ${DBAAS} -eq 0 ]; then
+		HOSTNAME=$(eval "${DB_COMMAND} hostname")
+		eval "${DB_COMMAND} ts profile \
+				-o ${DB_OUTPUT_DIR}/${HOSTNAME}/profile -p"
+	fi
+}
+
 stat_collection()
 {
 	if [ $STATS -ne 1 ]; then
@@ -45,9 +81,7 @@ stat_collection()
 		# directory.
 		if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ];
 		then
-			which ts ts-profile > /dev/null 2>&1
-			RC=$?
-			if [ $RC -gt 1 ]; then
+			if ! command -v ts > /dev/null 2>&1; then
 				printf "WARNING: touchstone tools not found for driver system "
 				echo "stats collection"
 			else
@@ -292,10 +326,11 @@ General options:
   -l DELAY       pacing DELAY in seconds, default ${PACING_DELAY}
   -n NAME        database name, default ${DB_NAME}
   --privileged   run tests as a privileged database user
+  --profile      profile system shortly after ramping up
   -p, --db-port=PORT
                  database PORT number
   -r SEED        random number SEED, using this invalidates test
-  --stats        collect system stats and profile
+  --stats        collect system stats
   -s DELAY       DELAY between starting threads in milliseconds,
                  default ${SLEEPY}
   --tpcetools=EGENHOME
@@ -336,6 +371,7 @@ CUSTOMERS_INSTANCE=0
 CUSTOMERS_TOTAL=5000
 ITD=300
 MARKETLIST=""
+PROFILE=0
 SCALE_FACTOR=500
 SSH="ssh -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 SLEEPY=1000 # milliseconds
@@ -407,6 +443,9 @@ while [ "${#}" -gt 0 ] ; do
 	(-p | --db-port)
 		shift
 		DB_PORT="${1}"
+		;;
+	(--profile)
+		PROFILE=1
 		;;
 	(-p*)
 		DB_PORT="${1#*-p=}"
@@ -880,6 +919,10 @@ SLEEP_RAMPUP=`expr ${SLEEP_RAMPUP} / 1000`
 # Start stats collection
 do_sleep "${SLEEP_RAMPUP}" "* User ramp up to finish in ${SLEEP_RAMPUP} s."
 
+if [ "${PROFILE}" -eq 1 ]; then
+	profile_collect &
+fi
+
 # Sleep for the duration of the run.
 do_sleep "${DURATION}" "* Test expected to finish in ${DURATION} s."
 
@@ -920,6 +963,10 @@ echo "## 4. Processing data"
 stop_processes
 
 stop_processes
+
+if [ "${PROFILE}" -eq 1 ]; then
+	profile_process
+fi
 
 if [ "${CONFIGFILE}" = "" ]; then
 	if [ "${PRIVILEGED}" -eq 1 ]; then
