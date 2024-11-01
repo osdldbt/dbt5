@@ -962,8 +962,6 @@ echo "## 4. Processing data"
 
 stop_processes
 
-stop_processes
-
 if [ "${PROFILE}" -eq 1 ]; then
 	profile_process
 fi
