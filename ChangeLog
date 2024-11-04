@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.10.10 (2024-11-04)
 
 - run: fix handling of user_creation_delay when using config file, previously
   ignored
