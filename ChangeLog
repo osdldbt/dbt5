@@ -10,6 +10,7 @@ vX.Y.Z (YYYY-MM-DD)
 - run: reimplement software profiling
 - AppImage: add rst2pdf
 - AppImage: bump touchstone-tools to v0.9.2
+- report: handle spar data for reporting per process statistics
 
 v0.10.9 (2024-09-09)
 

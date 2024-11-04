@@ -59,12 +59,12 @@ create_pidstat_page()
 
 	mkdir -p "${DIR}"
 
-	PIDSTATCSV=$(find "${DIR}/.." -name pidstat.csv 2> /dev/null)
-	PIDSTATINDEX="$(dirname "${PIDSTATCSV}")/pidstat-index.txt"
+	PIDSTATCSV=$(find "${DIR}/.." -name ${PIDPREFIX}.txt 2> /dev/null)
+	PIDSTATINDEX="$(dirname "${PIDSTATCSV}")/${PIDPREFIX}-index.txt"
 
 	cat > "${DIR}/index.rst" << __EOF__
 ================================================================================
-Database Test 5 pidstat ${TAG} Charts
+Database Test 5 ${PIDPREFIX} ${TAG} Charts
 ================================================================================
 
 $(show_images_pidstat "${TAG}" "${DIR}" "${PIDSTATINDEX}")
@@ -116,10 +116,13 @@ list_processes2()
 	TITLE="${1}"
 	MYPTAG="${2}"
 
-	PIDSTATFILES="$(find "${INDIR}/${MYPTAG}" -name pidstat.csv 2> /dev/null)"
+	# Put spar charts in the same place that pidstat charts would be since
+	# there should only be one or the other, thus simplifying the processing.
+
+	PIDSTATFILES="$(find "${INDIR}/${MYPTAG}" -name ${PIDPREFIX}.txt 2> /dev/null)"
 	for PIDSTATCSV in ${PIDSTATFILES}; do
 		PIDSTATDIR="$(dirname "${PIDSTATCSV}")"
-		ts plot-pidstat -i "${PIDSTATCSV}" -o "${PIDSTATDIR}/pidstat" &
+		ts plot-${PIDPREFIX} -i "${PIDSTATCSV}" -o "${PIDSTATDIR}/pidstat" &
 	done
 	wait
 
@@ -131,9 +134,9 @@ list_processes2()
 		echo "* ${SNAME}"
 
 		# Try not to count execution of the binaries on remote systems.
-		COUNTCE="$(grep BrokerageHouseMain "$PIDSTATCSV" | grep -c -v ssh)"
-		COUNTDRIVER="$(grep DriverMain "$PIDSTATCSV" | grep -c -v ssh)"
-		COUNTMEE="$(grep MarketExchangeMain "$PIDSTATCSV" | grep -c -v ssh)"
+		COUNTCE="$(grep --text BrokerageHouseMain "${PIDSTATCSV}" | grep -c -v ssh)"
+		COUNTDRIVER="$(grep --text DriverMain "${PIDSTATCSV}" | grep -c -v ssh)"
+		COUNTMEE="$(grep --text MarketExchangeMain "${PIDSTATCSV}" | grep -c -v ssh)"
 
 		if [ "${COUNTDRIVER}" -gt 0 ]; then
 			PTAG="DriverMain"
@@ -178,10 +181,10 @@ show_images_pidstat()
 	DIR="${2}"
 	PINDEX="${3}"
 
-	TAGPIDS="$(grep "${TAG}" "${PINDEX}" | cut -d " " -f 1)"
+	TAGPIDS="$(grep --text "${TAG}" "${PINDEX}" | cut -d " " -f 1)"
 	for P in ${TAGPIDS}; do
 		CHARTS=$(find "${DIR}/../sysstat/pidstat" \
-				-name "pidstat-${P}-*.png" 2> /dev/null | sort)
+				-name "${PIDPREFIX}-${P}-*.png" 2> /dev/null | sort)
 		for CHART in ${CHARTS}; do
 			BCHART="$(basename "${CHART}")"
 			echo ".. image:: ../sysstat/pidstat/${BCHART}"
@@ -309,9 +312,12 @@ if [ ! -f "${SUMMARY}" ]; then
 	dbt5 post-process --customers="${CUSTOMERS}" ${MIXFILES} > "${SUMMARY}"
 fi
 
-echo "Processing pidstat files..."
+echo "Processing any pidstat files..."
+# Figure out how to prefix the spar vs pidstat image file name prefixes here.
+PIDPREFIX="spar"
 find "${INDIR}" -type f -name pidstat.txt 2> /dev/null | \
 		while IFS= read -r PIDSTATFILE; do
+	PIDPREFIX="pidstat"
 	ts process-pidstat -i "${PIDSTATFILE}"
 done
 
