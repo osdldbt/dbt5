@@ -1,3 +1,7 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Fix trade result frame 2 hs_qty calculation in PostgreSQL client side code
+
 v0.10.10 (2024-11-04)
 
 - run: fix handling of user_creation_delay when using config file, previously

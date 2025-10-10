@@ -3363,7 +3363,7 @@ CDBConnectionClientSide::execute(
 			PQclear(res);
 		} else if (pIn->hs_qty != pIn->trade_qty) {
 			uint32_t hs_qty
-					= htobe32((uint32_t) (pIn->trade_qty - pIn->trade_qty));
+					= htobe32((uint32_t) (pIn->hs_qty - pIn->trade_qty));
 
 			if (m_bVerbose) {
 				cout << TRF2Q3B << endl;
