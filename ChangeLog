@@ -1,6 +1,8 @@
 vX.Y.Z (YYYY-MM-DD)
 
 - Fix trade result frame 2 hs_qty calculation in PostgreSQL client side code
+- AppImage container updated to use debian archives for buster and new
+  appimagetool release location
 
 v0.10.10 (2024-11-04)
 

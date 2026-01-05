@@ -6,6 +6,12 @@ FROM debian:10
 
 ARG ARCH
 
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN echo "deb http://archive.debian.org/debian buster main" > /etc/apt/sources.list && \
+    echo "deb http://archive.debian.org/debian-security buster/updates main" >> /etc/apt/sources.list && \
+    echo "deb http://archive.debian.org/debian buster-updates main" >> /etc/apt/sources.list
+
 RUN apt-get -qq -y update && \
     apt-get -qq -y dist-upgrade && \
     apt-get -qq -y install bison \
@@ -232,6 +238,6 @@ RUN mkdir -p /usr/local/share/licenses/postgresql-${PGVER} && \
 
 WORKDIR /usr/local
 RUN curl -SsOL \
-         https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-${ARCH}.AppImage && \
+         https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${ARCH}.AppImage && \
     chmod +x appimagetool-${ARCH}.AppImage && \
     ./appimagetool-${ARCH}.AppImage --appimage-extract
