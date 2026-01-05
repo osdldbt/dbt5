@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.10.11 (2026-01-05)
 
 - Fix trade result frame 2 hs_qty calculation in PostgreSQL client side code
 - AppImage container updated to use debian archives for buster and new
