@@ -20,6 +20,7 @@ builds/
 
 # PostgreSQL
 storedproc/pgsql/c/*.sql
+storedproc/pgsql/c/*.bc
 
 # quilt
 .pc
@@ -28,3 +29,7 @@ doc/html
 doc/pdf
 
 egen/
+
+# EGenLoader / dbt5 build output and logs
+EGenLoader*.log
+egenloader.out
