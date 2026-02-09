@@ -17,6 +17,14 @@ on the database system before they can be used by the database::
     make install
     dbt5 pgsql-load-stored-procs -t c
 
+To build or load only specific procedures, use ``make MODULES="name1 name2"``
+(or ``STORED_PROCS``) in the C directory, and ``--stored-procs=name1,name2``
+with ``dbt5 build`` or ``--procs=name1,name2`` with
+``dbt5-pgsql-load-stored-procs`` / ``dbt5-pgsql-drop-stored-procs``.
+Valid names: broker_volume, customer_position, data_maintenance, market_watch,
+security_detail, trade_lookup, trade_order, trade_result, trade_status,
+trade_update.
+
 Configuration
 -------------
 
