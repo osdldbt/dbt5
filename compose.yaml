@@ -1,0 +1,171 @@
+---
+services:
+  dbt5-base:
+    build:
+      context: .
+      dockerfile_inline: |
+        ARG PGVER=18
+        FROM postgres:$${PGVER}
+        RUN apt-get update && apt-get install -y --no-install-recommends \
+            build-essential cmake postgresql-server-dev-$${PG_MAJOR} unzip \
+            && rm -rf /var/lib/apt/lists/*
+        COPY *-tpc-e-tool.zip /tmp/
+        RUN TPCEZIP=$$(ls /tmp/*-tpc-e-tool.zip 2>/dev/null | tail -1) \
+            && unzip -q "$$TPCEZIP" -d /opt/egen && rm /tmp/*-tpc-e-tool.zip
+      args:
+        PGVER: ${PGVER:-18}
+    image: dbt5-base:${PGVER:-18}
+    command: ["true"]
+
+  database:
+    image: dbt5-base:${PGVER:-18}
+    depends_on:
+      dbt5-base:
+        condition: service_completed_successfully
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: dbt5
+      POSTGRES_HOST_AUTH_METHOD: trust
+      HOST_USER: ${USER}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./storedproc:/usr/local/src/storedproc
+      - ./.compose:/docker-entrypoint-initdb.d:ro
+    command:
+      - sh
+      - -c
+      - |
+        cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr
+        cmake --build /tmp/build
+        cmake --install /tmp/build
+        make -C /usr/local/src/storedproc USE_PGXS=1 install
+        exec docker-entrypoint.sh postgres
+
+  broker:
+    image: dbt5-base:${PGVER:-18}
+    depends_on:
+      dbt5-base:
+        condition: service_completed_successfully
+      database:
+        condition: service_started
+    ports:
+      - "30000:30000"
+    volumes:
+      - .:/usr/local/src/dbt5:ro
+    working_dir: /usr/local/src/dbt5
+    command:
+      - sh
+      - -c
+      - |
+        cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr
+        cmake --build /tmp/build
+        cmake --install /tmp/build
+        dbt5-build-egen --include-dir=src/include --patch-dir=patches \
+            --source-dir=src /opt/egen
+        ln -sf /dev/stderr /tmp/BrokerageHouse_Error.log
+        exec su postgres -c "/opt/egen/bin/BrokerageHouseMain -h database \
+                             -m market -d dbt5 -o /tmp"
+
+  market:
+    image: dbt5-base:${PGVER:-18}
+    depends_on:
+      dbt5-base:
+        condition: service_completed_successfully
+      broker:
+        condition: service_started
+    ports:
+      - "30010:30010"
+    volumes:
+      - .:/usr/local/src/dbt5:ro
+      - market-tmp:/tmp/market
+    working_dir: /usr/local/src/dbt5
+    command:
+      - sh
+      - -c
+      - |
+        cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr
+        cmake --build /tmp/build
+        cmake --install /tmp/build
+        dbt5-build-egen --include-dir=src/include --patch-dir=patches \
+            --source-dir=src /opt/egen
+        ln -sf /dev/stderr /tmp/error-me-1.log
+        ln -sf /dev/stdio /tmp/MarketExchange.log
+        exec /opt/egen/bin/MarketExchangeMain -h broker -i /opt/egen/flat_in \
+            -t ${CUSTOMERS:-1000} -o /tmp/market
+
+  load:
+    profiles: [manual]
+    image: dbt5-base:${PGVER:-18}
+    depends_on:
+      dbt5-base:
+        condition: service_completed_successfully
+      database:
+        condition: service_started
+    volumes:
+      - .:/usr/local/src/dbt5:ro
+    working_dir: /tmp
+    entrypoint:
+      - sh
+      - -c
+      - |
+        cd /usr/local/src/dbt5
+        cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr
+        cmake --build /tmp/build
+        cmake --install /tmp/build
+        dbt5-build-egen --include-dir=src/include --patch-dir=patches \
+            --source-dir=src /opt/egen
+        cd /tmp
+        (while true; do
+          for f in egenloader-*.out EGenLoader*.log; do
+            [ -f "$$f" ] && [ ! -f "/tmp/.tailed-$$f" ] && \
+              touch "/tmp/.tailed-$$f" && tail -f "$$f" &
+          done
+          sleep 1
+        done) &
+        exec dbt5-build --tpcetools=/opt/egen -l CUSTOM --db-host=database \
+            --db-user=${USER} -t ${CUSTOMERS:-1000} -w ${DAYS:-1} \
+            -f ${SCALEFACTOR:-1} pgsql "$$@"
+      - --
+
+  driver:
+    profiles: [manual]
+    image: dbt5-base:${PGVER:-18}
+    depends_on:
+      dbt5-base:
+        condition: service_completed_successfully
+      market:
+        condition: service_started
+    volumes:
+      - .:/usr/local/src/dbt5:ro
+      - ./results:/tmp/results
+      - market-tmp:/tmp/market:ro
+    working_dir: /tmp
+    entrypoint:
+      - sh
+      - -c
+      - |
+        cd /usr/local/src/dbt5
+        cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr
+        cmake --build /tmp/build
+        cmake --install /tmp/build
+        dbt5-build-egen --include-dir=src/include --patch-dir=patches \
+            --source-dir=src /opt/egen
+        OUTDIR=/tmp/results/$$(date +%Y%m%d%H%M%S)
+        mkdir -p "$$OUTDIR"
+        cd "$$OUTDIR"
+        (while true; do
+          for f in Driver_Error.log Driver.log error-dm*.log; do
+            [ -f "$$f" ] && [ ! -f "/tmp/.tailed-$$f" ] && \
+              touch "/tmp/.tailed-$$f" && tail -f "$$f" &
+          done
+          sleep 1
+        done) &
+        /opt/egen/bin/DriverMain -h broker -i /opt/egen/flat_in -o "$$OUTDIR" \
+            -t ${CUSTOMERS:-1000} -w ${DAYS:-1} -f ${SCALEFACTOR:-1} \
+            -u ${USERS:-1} "$$@"
+        cp /tmp/market/mix-me*.log "$$OUTDIR/"
+      - --
+
+volumes:
+  market-tmp:
