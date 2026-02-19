@@ -68,23 +68,17 @@ Review the TPC EULA for redistribution of TPC provided code and binaries before
 redistributing any AppImages that include any TPC provided code or binaries:
 https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp
 
-In the source directory, create the subdirectory *egen* and unzip the TPC-E
-tools into it::
-
-    mkdir egen
-    cd egen
-    unzip /tmp/*-tpc-e-tool.zip
-
 Two scripts are provided, one to create a container for building the AppImage
 and one to building the AppImage::
 
-    EGEN=tpc-e-tool.zip tools/build-appimage-container
+    tools/build-appimage-container
     EGEN=tpc-e-tool.zip tools/build-appimage
 
 
-The environment variable `EGEN` must be set to location and name of the TPC-E
-Tools zip file otherwise the AppImage will be created without the TPC-E tools
-included.
+The environment variable `EGEN` can be set to location and name of the TPC-E
+Tools zip file otherwise the script will try to detect whether the TPC-E Tools
+zip exists in the top level directory.  Otherwise the AppImage will be created
+without the TPC-E tools included.
 
 When the TPC-E Tools are included in the AppImage, the *build* and *run*
 commands do not need the use of the `--tpcetools` flag and will automatically
