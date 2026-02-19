@@ -1,7 +1,13 @@
 #!/bin/sh
 
-if ! which podman > /dev/null 2>&1; then
-	echo "podman is not in your path"
+if [ -n "${ENGINE:-}" ]; then
+	CONTAINER_CMD="${ENGINE}"
+elif command -v podman > /dev/null 2>&1; then
+	CONTAINER_CMD="podman"
+elif command -v docker > /dev/null 2>&1; then
+	CONTAINER_CMD="docker"
+else
+	echo "podman or docker is not in your path"
 	exit 1
 fi
 
@@ -9,16 +15,22 @@ CONTAINER_DIR="$(dirname "$(realpath "${0}")")"
 CONTAINER_TAG="dbt5-appimage"
 TARGET="appimage"
 
-# Use the return code from `podman inspect` to determine if the container image
+# Use the return code from inspect to determine if the container image
 # needs to be created.
-if ! podman inspect ${CONTAINER_TAG} > /dev/null 2>&1; then
+if ! ${CONTAINER_CMD} inspect ${CONTAINER_TAG} > /dev/null 2>&1; then
 	"${CONTAINER_DIR}/build-appimage-container" || exit 1
 fi
 
-podman run \
+if [ "${CONTAINER_CMD}" = "podman" ]; then
+	USERNS_ARG="--userns=keep-id"
+else
+	USERNS_ARG=""
+fi
+
+${CONTAINER_CMD} run \
 		--rm \
 		--user "$(id -u):$(id -u)" \
-		--userns=keep-id \
+		${USERNS_ARG} \
 		-v "${CONTAINER_DIR}/..:/usr/local/src/dbt5:rw,Z" \
 		--env EGEN="${EGEN}" \
 		--env PKG_CONFIG_PATH="/usr/lib/pkgconfig" \

@@ -1,7 +1,13 @@
 #!/bin/sh
 
-if ! which podman > /dev/null 2>&1; then
-	echo "podman is not in your path"
+if [ -n "${ENGINE:-}" ]; then
+	CONTAINER_CMD="${ENGINE}"
+elif command -v podman > /dev/null 2>&1; then
+	CONTAINER_CMD="podman"
+elif command -v docker > /dev/null 2>&1; then
+	CONTAINER_CMD="docker"
+else
+	echo "podman or docker is not in your path"
 	exit 1
 fi
 
@@ -15,9 +21,15 @@ if [ "${ARCH}" = "arm64" ]; then
 	ARCH="aarch64"
 fi
 
+if [ "${CONTAINER_CMD}" = "podman" ]; then
+	ISOLATION_ARG="--isolation=chroot"
+else
+	ISOLATION_ARG=""
+fi
+
 cd "$CONTAINER_DIR/.." && \
-		podman build \
-				--isolation=chroot \
+		${CONTAINER_CMD} build \
+				${ISOLATION_ARG} \
 				--build-arg ARCH="${ARCH}" \
 				-t $CONTAINER_TAG \
 				-f ${CONTAINERFILE} \
