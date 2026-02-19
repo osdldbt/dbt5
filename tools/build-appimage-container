@@ -13,7 +13,7 @@ fi
 
 CONTAINER_DIR="$(dirname "$(realpath "${0}")")"
 CONTAINER_TAG="dbt5-appimage"
-CONTAINERFILE="Containerfile.appimage"
+CONTAINERFILE="appimage/Containerfile.appimage"
 
 ARCH="$(uname -m)"
 
