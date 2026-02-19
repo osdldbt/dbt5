@@ -61,19 +61,9 @@ public:
 	void
 	WriteNextRecord(const EXCHANGE_ROW &next_record)
 	{
-		int rc = fprintf(p, ExchangeRowFmt.c_str(), next_record.EX_ID,
-				next_record.EX_NAME, next_record.EX_NUM_SYMB,
-				next_record.EX_OPEN, next_record.EX_CLOSE, next_record.EX_DESC,
-				next_record.EX_AD_ID);
-
-		if (rc < 0) {
-			throw CSystemErr(CSystemErr::eWriteFile,
-					"CFlatExchangeLoad::WriteNextRecord");
-		}
-
-		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF)
-			;
+		CopyRecord(ExchangeRowFmt.c_str(), next_record.EX_ID, next_record.EX_NAME,
+				next_record.EX_NUM_SYMB, next_record.EX_OPEN,
+				next_record.EX_CLOSE, next_record.EX_DESC, next_record.EX_AD_ID);
 	}
 };
 

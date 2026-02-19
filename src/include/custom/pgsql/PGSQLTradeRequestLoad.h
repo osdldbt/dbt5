@@ -61,19 +61,10 @@ public:
 	void
 	WriteNextRecord(const TRADE_REQUEST_ROW &next_record)
 	{
-		int rc = fprintf(p, TradeRequestRowFmt.c_str(), next_record.TR_T_ID,
+		CopyRecord(TradeRequestRowFmt.c_str(), next_record.TR_T_ID,
 				next_record.TR_TT_ID, next_record.TR_S_SYMB,
 				next_record.TR_QTY, next_record.TR_BID_PRICE,
 				next_record.TR_B_ID);
-
-		if (rc < 0) {
-			throw CSystemErr(CSystemErr::eWriteFile,
-					"CFlatTradeRequestLoad::WriteNextRecord");
-		}
-
-		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF)
-			;
 	}
 };
 

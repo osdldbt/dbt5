@@ -61,18 +61,9 @@ public:
 	void
 	WriteNextRecord(const HOLDING_HISTORY_ROW &next_record)
 	{
-		int rc = fprintf(p, HoldingHistoryRowFmt.c_str(),
-				next_record.HH_H_T_ID, next_record.HH_T_ID,
-				next_record.HH_BEFORE_QTY, next_record.HH_AFTER_QTY);
-
-		if (rc < 0) {
-			throw CSystemErr(CSystemErr::eWriteFile,
-					"CFlatHoldingHistoryLoad::WriteNextRecord");
-		}
-
-		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF)
-			;
+		CopyRecord(HoldingHistoryRowFmt.c_str(), next_record.HH_H_T_ID,
+				next_record.HH_T_ID, next_record.HH_BEFORE_QTY,
+				next_record.HH_AFTER_QTY);
 	}
 };
 

@@ -62,18 +62,9 @@ public:
 	void
 	WriteNextRecord(const CUSTOMER_ACCOUNT_ROW &next_record)
 	{
-		int rc = fprintf(p, CustomerAccountRowFmt.c_str(), next_record.CA_ID,
+		CopyRecord(CustomerAccountRowFmt.c_str(), next_record.CA_ID,
 				next_record.CA_B_ID, next_record.CA_C_ID, next_record.CA_NAME,
 				next_record.CA_TAX_ST, next_record.CA_BAL);
-
-		if (rc < 0) {
-			throw CSystemErr(CSystemErr::eWriteFile,
-					"CFlatCustomerAccountLoad::WriteNextRecord");
-		}
-
-		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF)
-			;
 	}
 };
 
