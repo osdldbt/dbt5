@@ -60,16 +60,7 @@ public:
 	void
 	WriteNextRecord(const SECTOR_ROW &next_record)
 	{
-		int rc = fprintf(p, "%s|%s\n", next_record.SC_ID, next_record.SC_NAME);
-
-		if (rc < 0) {
-			throw CSystemErr(CSystemErr::eWriteFile,
-					"CFlatSectorLoad::WriteNextRecord");
-		}
-
-		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF)
-			;
+		CopyRecord("%s|%s\n", next_record.SC_ID, next_record.SC_NAME);
 	}
 };
 

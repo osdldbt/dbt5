@@ -61,17 +61,8 @@ public:
 	void
 	WriteNextRecord(const WATCH_LIST_ROW &next_record)
 	{
-		int rc = fprintf(p, WatchListRowFmt.c_str(), next_record.WL_ID,
+		CopyRecord(WatchListRowFmt.c_str(), next_record.WL_ID,
 				next_record.WL_C_ID);
-
-		if (rc < 0) {
-			throw CSystemErr(CSystemErr::eWriteFile,
-					"CFlatWatchItemLoad::WriteNextRecord");
-		}
-
-		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF)
-			;
 	}
 };
 

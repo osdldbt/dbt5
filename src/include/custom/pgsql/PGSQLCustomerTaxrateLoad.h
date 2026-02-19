@@ -61,17 +61,8 @@ public:
 	void
 	WriteNextRecord(const CUSTOMER_TAXRATE_ROW &next_record)
 	{
-		int rc = fprintf(p, CustomerTaxrateRowFmt.c_str(),
-				next_record.CX_TX_ID, next_record.CX_C_ID);
-
-		if (rc < 0) {
-			throw CSystemErr(CSystemErr::eWriteFile,
-					"CFlatCustomerTaxrateLoad::WriteNextRecord");
-		}
-
-		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF)
-			;
+		CopyRecord(CustomerTaxrateRowFmt.c_str(), next_record.CX_TX_ID,
+				next_record.CX_C_ID);
 	}
 };
 

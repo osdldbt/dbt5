@@ -61,17 +61,8 @@ public:
 	void
 	WriteNextRecord(const STATUS_TYPE_ROW &next_record)
 	{
-		int rc = fprintf(p, StatusTypeRowFmt.c_str(), next_record.ST_ID,
+		CopyRecord(StatusTypeRowFmt.c_str(), next_record.ST_ID,
 				next_record.ST_NAME);
-
-		if (rc < 0) {
-			throw CSystemErr(CSystemErr::eWriteFile,
-					"CFlatStatusType::WriteNextRecord");
-		}
-
-		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF)
-			;
 	}
 };
 

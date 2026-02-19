@@ -61,18 +61,8 @@ public:
 	void
 	WriteNextRecord(const COMPANY_COMPETITOR_ROW &next_record)
 	{
-		int rc = fprintf(p, CompanyCompetitorRowFmt.c_str(),
-				next_record.CP_CO_ID, next_record.CP_COMP_CO_ID,
-				next_record.CP_IN_ID);
-
-		if (rc < 0) {
-			throw CSystemErr(CSystemErr::eWriteFile,
-					"CFlatCompanyCompetitorLoad::WriteNextRecord");
-		}
-
-		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF)
-			;
+		CopyRecord(CompanyCompetitorRowFmt.c_str(), next_record.CP_CO_ID,
+				next_record.CP_COMP_CO_ID, next_record.CP_IN_ID);
 	}
 };
 

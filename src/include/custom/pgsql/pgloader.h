@@ -42,15 +42,17 @@
 #ifndef PG_LOADER_H
 #define PG_LOADER_H
 
+#include <cstring>
+#include <libpq-fe.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 namespace TPCE
 {
 const int iDateTimeFmt = 11;
 const int iConnectStrLen = 256;
+const int iCopyBufSize = 131072;
 
 //
 // PGSQLLoader class.
@@ -61,10 +63,34 @@ private:
 	void Copy();
 
 protected:
-	FILE *p;
-
+	PGconn *m_Conn;
 	char m_szConnectStr[iConnectStrLen + 1];
 	char m_szTable[iMaxPath + 1]; // name of the table being loaded
+	char *m_szCopyBuf;
+
+	void
+	CopyRecord(const char *fmt, ...)
+	{
+		va_list args;
+		va_start(args, fmt);
+		int len = vsnprintf(m_szCopyBuf, iCopyBufSize, fmt, args);
+		va_end(args);
+
+		if (len < 0) {
+			throw CSystemErr(
+					CSystemErr::eWriteFile, "CPGSQLLoader::CopyRecord");
+		}
+
+		if (len >= iCopyBufSize) {
+			len = iCopyBufSize - 1;
+		}
+
+		if (PQputCopyData(m_Conn, m_szCopyBuf, len) != 1) {
+			cout << "PQputCopyData failed: " << PQerrorMessage(m_Conn) << endl;
+			throw CSystemErr(
+					CSystemErr::eWriteFile, "CPGSQLLoader::CopyRecord");
+		}
+	}
 
 public:
 	typedef const T *PT; // pointer to the table row
@@ -95,14 +121,18 @@ public:
 //
 template <typename T>
 CPGSQLLoader<T>::CPGSQLLoader(const char *szConnectStr, const char *szTable)
+: m_Conn(NULL), m_szCopyBuf(NULL)
 {
-	// FIXME: This may truncate if the szConnectStr is actually close to
-	// iConnectStrLen.
-	snprintf(m_szConnectStr, iConnectStrLen,
-			"psql -X --quiet --output=psql-%d-%s.log %s", getpid(), szTable,
-			szConnectStr);
-
+	strncpy(m_szConnectStr, szConnectStr, iConnectStrLen);
+	m_szConnectStr[iConnectStrLen] = '\0';
 	strncpy(m_szTable, szTable, iMaxPath);
+	m_szTable[iMaxPath] = '\0';
+
+	m_szCopyBuf = (char *) malloc(iCopyBufSize);
+	if (m_szCopyBuf == NULL) {
+		throw CSystemErr(
+				CSystemErr::eCreateFile, "CPGSQLLoader::CPGSQLLoader malloc");
+	}
 }
 
 //
@@ -111,6 +141,10 @@ CPGSQLLoader<T>::CPGSQLLoader(const char *szConnectStr, const char *szTable)
 template <typename T> CPGSQLLoader<T>::~CPGSQLLoader()
 {
 	Disconnect();
+	if (m_szCopyBuf != NULL) {
+		free(m_szCopyBuf);
+		m_szCopyBuf = NULL;
+	}
 }
 
 //
@@ -128,15 +162,14 @@ template <typename T>
 void
 CPGSQLLoader<T>::Connect()
 {
-	// Open a pipe to psql.
-	p = popen(m_szConnectStr, "w");
-	if (p == NULL) {
-		cout << "error using psql" << endl;
+	m_Conn = PQconnectdb(m_szConnectStr);
+	if (PQstatus(m_Conn) != CONNECTION_OK) {
+		cout << "Connection to database failed: " << PQerrorMessage(m_Conn)
+			 << endl;
+		PQfinish(m_Conn);
+		m_Conn = NULL;
 		exit(1);
 	}
-	// FIXME: Have blind faith that psql connected ok.
-	while (fgetc(p) != EOF)
-		;
 
 	Copy();
 }
@@ -145,15 +178,27 @@ template <typename T>
 void
 CPGSQLLoader<T>::Copy()
 {
-	fprintf(p, "BEGIN;\n");
-	while (fgetc(p) != EOF)
-		;
+	PGresult *res;
 
-	fprintf(p, "COPY %s FROM STDIN WITH (DELIMITER '|', NULL '');\n",
-			m_szTable);
-	// FIXME: Have blind faith that COPY started correctly.
-	while (fgetc(p) != EOF)
-		;
+	res = PQexec(m_Conn, "BEGIN");
+	if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+		cout << "BEGIN failed: " << PQerrorMessage(m_Conn) << endl;
+		PQclear(res);
+		exit(1);
+	}
+	PQclear(res);
+
+	char szCopyCmd[256];
+	snprintf(szCopyCmd, sizeof(szCopyCmd),
+			"COPY %s FROM STDIN WITH (DELIMITER '|', NULL '')", m_szTable);
+
+	res = PQexec(m_Conn, szCopyCmd);
+	if (PQresultStatus(res) != PGRES_COPY_IN) {
+		cout << "COPY command failed: " << PQerrorMessage(m_Conn) << endl;
+		PQclear(res);
+		exit(1);
+	}
+	PQclear(res);
 }
 
 //
@@ -177,17 +222,28 @@ template <typename T>
 void
 CPGSQLLoader<T>::FinishLoad()
 {
-	// End of the COPY.
-	fprintf(p, "\\.\n");
-	// FIXME: Have blind faith that COPY was successful.
-	while (fgetc(p) != EOF)
-		;
+	PGresult *res;
 
-	// COMMIT the COPY.
-	fprintf(p, "COMMIT;\n");
-	// FIXME: Have blind faith that COMMIT was successful.
-	while (fgetc(p) != EOF)
-		;
+	if (PQputCopyEnd(m_Conn, NULL) != 1) {
+		cout << "PQputCopyEnd failed: " << PQerrorMessage(m_Conn) << endl;
+		exit(1);
+	}
+
+	res = PQgetResult(m_Conn);
+	if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+		cout << "COPY failed: " << PQerrorMessage(m_Conn) << endl;
+		PQclear(res);
+		exit(1);
+	}
+	PQclear(res);
+
+	res = PQexec(m_Conn, "COMMIT");
+	if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+		cout << "COMMIT failed: " << PQerrorMessage(m_Conn) << endl;
+		PQclear(res);
+		exit(1);
+	}
+	PQclear(res);
 }
 
 //
@@ -197,8 +253,9 @@ template <typename T>
 void
 CPGSQLLoader<T>::Disconnect()
 {
-	if (p != NULL) {
-		pclose(p);
+	if (m_Conn != NULL) {
+		PQfinish(m_Conn);
+		m_Conn = NULL;
 	}
 }
 

@@ -63,18 +63,9 @@ public:
 	WriteNextRecord(const CASH_TRANSACTION_ROW &next_record)
 	{
 		ct_dts = next_record.CT_DTS;
-		int rc = fprintf(p, CashTransactionRowFmt.c_str(), next_record.CT_T_ID,
+		CopyRecord(CashTransactionRowFmt.c_str(), next_record.CT_T_ID,
 				ct_dts.ToStr(iDateTimeFmt), next_record.CT_AMT,
 				next_record.CT_NAME);
-
-		if (rc < 0) {
-			throw CSystemErr(CSystemErr::eWriteFile,
-					"CFlatCashTransactionLoad::WriteNextRecord");
-		}
-
-		// FIXME: Have blind faith that this row of data was built correctly.
-		while (fgetc(p) != EOF)
-			;
 	}
 };
 
