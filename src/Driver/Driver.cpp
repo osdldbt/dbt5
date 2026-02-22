@@ -7,6 +7,7 @@
  * 03 August 2006
  */
 
+#include <cstdlib>
 #include <unistd.h>
 #include <sys/syscall.h>
 
@@ -241,10 +242,15 @@ CDriver::runTest(int iSleep, int iTestDuration)
 	// 0 represents the Data-Maintenance thread
 	for (int i = 0; i <= iUsers; i++) {
 		if (pthread_join(g_tid[i], NULL) != 0) {
+			free(g_tid);
+			g_tid = NULL;
 			throw new CThreadErr(
 					CThreadErr::ERR_THREAD_JOIN, "Driver::RunTest");
 		}
 	}
+
+	free(g_tid);
+	g_tid = NULL;
 }
 
 // DM worker thread
