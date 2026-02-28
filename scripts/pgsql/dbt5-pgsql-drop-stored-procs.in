@@ -8,6 +8,12 @@
 #
 
 # Simple script that might help make sure there aren't overloaded functions.
+# All valid procedure names (must match load script).
+PROCS_ALL="broker_volume customer_position data_maintenance market_watch security_detail trade_lookup trade_order trade_result trade_status trade_update"
+
+DBNAMEARG=""
+PORTARG=""
+PROCS_ARG=""
 
 usage()
 {
@@ -20,8 +26,14 @@ Usage:
 General options:
   -d DBNAME      PGDATABASE name"
   -p PORT        PostgreSQL port
+  --procs=LIST   Comma-separated procedure names to drop (default: all)
+  -P LIST        Same as --procs=LIST
   -V, --version  Output version information, then exit
   -?, --help     Output this help, then exit
+
+Valid procedure names: broker_volume, customer_position, data_maintenance,
+  market_watch, security_detail, trade_lookup, trade_order, trade_result,
+  trade_status, trade_update. Use "all" or omit to drop all.
 
 @HOMEPAGE@
 EOF
@@ -44,6 +56,16 @@ while [ "${#}" -gt 0 ] ; do
 	(-p*)
 		PORTARG="-p ${1#*-p}"
 		;;
+	(--procs=?*)
+		PROCS_ARG="${1#*--procs=}"
+		;;
+	(-P)
+		shift
+		PROCS_ARG="${1}"
+		;;
+	(-P*)
+		PROCS_ARG="${1#*-P}"
+		;;
 	(-V | --version)
 		echo "dbt5 (Database Test 5) v@PROJECT_VERSION@"
 		exit 0
@@ -64,33 +86,99 @@ while [ "${#}" -gt 0 ] ; do
 	shift
 done
 
-eval "psql -X ${PORTARG} -e ${DBNAMEARG}" <<- SQL
-	DROP FUNCTION IF EXISTS BrokerVolumeFrame1;
-	DROP FUNCTION IF EXISTS CustomerPositionFrame1;
-	DROP FUNCTION IF EXISTS CustomerPositionFrame2;
-	DROP FUNCTION IF EXISTS DataMaintenanceFrame1;
-	DROP FUNCTION IF EXISTS MarketWatchFrame1;
-	DROP FUNCTION IF EXISTS SecurityDetailFrame1;
-	DROP FUNCTION IF EXISTS TradeLookupFrame1;
-	DROP FUNCTION IF EXISTS TradeLookupFrame2;
-	DROP FUNCTION IF EXISTS TradeLookupFrame3;
-	DROP FUNCTION IF EXISTS TradeLookupFrame4;
-	DROP FUNCTION IF EXISTS TradeOrderFrame1;
-	DROP FUNCTION IF EXISTS TradeOrderFrame2;
-	DROP FUNCTION IF EXISTS TradeOrderFrame3;
-	DROP FUNCTION IF EXISTS TradeOrderFrame4;
-	DROP FUNCTION IF EXISTS TradeResultFrame1;
-	DROP FUNCTION IF EXISTS TradeResultFrame2;
-	DROP FUNCTION IF EXISTS TradeResultFrame3;
-	DROP FUNCTION IF EXISTS TradeResultFrame4;
-	DROP FUNCTION IF EXISTS TradeResultFrame5;
-	DROP FUNCTION IF EXISTS TradeResultFrame6;
-	DROP FUNCTION IF EXISTS TradeStatusFrame1;
-	DROP FUNCTION IF EXISTS TradeUpdateFrame1;
-	DROP FUNCTION IF EXISTS TradeUpdateFrame2;
-	DROP FUNCTION IF EXISTS TradeUpdateFrame3;
+PSQL="psql -X ${PORTARG} -e ${DBNAMEARG}"
 
-	DROP TYPE IF EXISTS SECURITY_DETAIL_DAY;
-	DROP TYPE IF EXISTS SECURITY_DETAIL_FIN;
-	DROP TYPE IF EXISTS SECURITY_DETAIL_NEWS;
-SQL
+# Resolve which procedures to drop: default all, or user list.
+if [ -z "${PROCS_ARG}" ] || [ "${PROCS_ARG}" = "all" ]; then
+	PROCS_TO_DROP="${PROCS_ALL}"
+else
+	PROCS_TO_DROP=""
+	for p in $(echo "${PROCS_ARG}" | sed 's/,/ /g'); do
+		case " ${PROCS_ALL} " in
+			*" ${p} "*)
+				PROCS_TO_DROP="${PROCS_TO_DROP}${PROCS_TO_DROP:+ }${p}"
+				;;
+			*)
+				echo "$(basename "${0}"): unknown procedure name: ${p}" 1>&2
+				echo "Valid names: ${PROCS_ALL}" 1>&2
+				exit 1
+				;;
+		esac
+	done
+fi
+
+# Drop all (original behavior) or selected procedures.
+if [ "${PROCS_TO_DROP}" = "${PROCS_ALL}" ]; then
+	# Drop all: use single heredoc for backward compatibility.
+	eval "${PSQL}" <<- SQL
+		DROP FUNCTION IF EXISTS BrokerVolumeFrame1;
+		DROP FUNCTION IF EXISTS CustomerPositionFrame1;
+		DROP FUNCTION IF EXISTS CustomerPositionFrame2;
+		DROP FUNCTION IF EXISTS DataMaintenanceFrame1;
+		DROP FUNCTION IF EXISTS MarketWatchFrame1;
+		DROP FUNCTION IF EXISTS SecurityDetailFrame1;
+		DROP FUNCTION IF EXISTS TradeLookupFrame1;
+		DROP FUNCTION IF EXISTS TradeLookupFrame2;
+		DROP FUNCTION IF EXISTS TradeLookupFrame3;
+		DROP FUNCTION IF EXISTS TradeLookupFrame4;
+		DROP FUNCTION IF EXISTS TradeOrderFrame1;
+		DROP FUNCTION IF EXISTS TradeOrderFrame2;
+		DROP FUNCTION IF EXISTS TradeOrderFrame3;
+		DROP FUNCTION IF EXISTS TradeOrderFrame4;
+		DROP FUNCTION IF EXISTS TradeResultFrame1;
+		DROP FUNCTION IF EXISTS TradeResultFrame2;
+		DROP FUNCTION IF EXISTS TradeResultFrame3;
+		DROP FUNCTION IF EXISTS TradeResultFrame4;
+		DROP FUNCTION IF EXISTS TradeResultFrame5;
+		DROP FUNCTION IF EXISTS TradeResultFrame6;
+		DROP FUNCTION IF EXISTS TradeStatusFrame1;
+		DROP FUNCTION IF EXISTS TradeUpdateFrame1;
+		DROP FUNCTION IF EXISTS TradeUpdateFrame2;
+		DROP FUNCTION IF EXISTS TradeUpdateFrame3;
+
+		DROP TYPE IF EXISTS SECURITY_DETAIL_DAY;
+		DROP TYPE IF EXISTS SECURITY_DETAIL_FIN;
+		DROP TYPE IF EXISTS SECURITY_DETAIL_NEWS;
+	SQL
+else
+	# Drop only selected procedures (procedure name -> frame functions and types).
+	for proc in ${PROCS_TO_DROP}; do
+		case "${proc}" in
+		broker_volume)
+			eval "${PSQL}" -c "DROP FUNCTION IF EXISTS BrokerVolumeFrame1;"
+			;;
+		customer_position)
+			eval "${PSQL}" -c "DROP FUNCTION IF EXISTS CustomerPositionFrame1; DROP FUNCTION IF EXISTS CustomerPositionFrame2;"
+			;;
+		data_maintenance)
+			eval "${PSQL}" -c "DROP FUNCTION IF EXISTS DataMaintenanceFrame1;"
+			;;
+		market_watch)
+			eval "${PSQL}" -c "DROP FUNCTION IF EXISTS MarketWatchFrame1;"
+			;;
+		security_detail)
+			eval "${PSQL}" -c "DROP FUNCTION IF EXISTS SecurityDetailFrame1; DROP TYPE IF EXISTS SECURITY_DETAIL_DAY; DROP TYPE IF EXISTS SECURITY_DETAIL_FIN; DROP TYPE IF EXISTS SECURITY_DETAIL_NEWS;"
+			;;
+		trade_lookup)
+			eval "${PSQL}" -c "DROP FUNCTION IF EXISTS TradeLookupFrame1; DROP FUNCTION IF EXISTS TradeLookupFrame2; DROP FUNCTION IF EXISTS TradeLookupFrame3; DROP FUNCTION IF EXISTS TradeLookupFrame4;"
+			;;
+		trade_order)
+			eval "${PSQL}" -c "DROP FUNCTION IF EXISTS TradeOrderFrame1; DROP FUNCTION IF EXISTS TradeOrderFrame2; DROP FUNCTION IF EXISTS TradeOrderFrame3; DROP FUNCTION IF EXISTS TradeOrderFrame4;"
+			;;
+		trade_result)
+			eval "${PSQL}" -c "DROP FUNCTION IF EXISTS TradeResultFrame1; DROP FUNCTION IF EXISTS TradeResultFrame2; DROP FUNCTION IF EXISTS TradeResultFrame3; DROP FUNCTION IF EXISTS TradeResultFrame4; DROP FUNCTION IF EXISTS TradeResultFrame5; DROP FUNCTION IF EXISTS TradeResultFrame6;"
+			;;
+		trade_status)
+			eval "${PSQL}" -c "DROP FUNCTION IF EXISTS TradeStatusFrame1;"
+			;;
+		trade_update)
+			eval "${PSQL}" -c "DROP FUNCTION IF EXISTS TradeUpdateFrame1; DROP FUNCTION IF EXISTS TradeUpdateFrame2; DROP FUNCTION IF EXISTS TradeUpdateFrame3;"
+			;;
+		*)
+			echo "$(basename "${0}"): unhandled procedure: ${proc}" 1>&2
+			exit 1
+			;;
+		esac
+		[ ${?} -eq 0 ] || exit 1
+	done
+fi
