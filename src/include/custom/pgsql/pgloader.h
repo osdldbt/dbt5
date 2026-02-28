@@ -55,7 +55,7 @@ const int iConnectStrLen = 256;
 //
 // PGSQLLoader class.
 //
-template <typename T> class CPGSQLLoader: public CBaseLoader<T>
+template <typename T> class CFlatLoader: public CBaseLoader<T>
 {
 private:
 	void Copy();
@@ -69,8 +69,8 @@ protected:
 public:
 	typedef const T *PT; // pointer to the table row
 
-	CPGSQLLoader(const char *szConnectStr, const char *szTable);
-	~CPGSQLLoader(void);
+	CFlatLoader(const char *szConnectStr, const char *szTable);
+	~CFlatLoader(void);
 
 	// resets to clean state; needed after FinishLoad to continue loading
 	void Init();
@@ -94,13 +94,13 @@ public:
 // The constructor.
 //
 template <typename T>
-CPGSQLLoader<T>::CPGSQLLoader(const char *szConnectStr, const char *szTable)
+CFlatLoader<T>::CFlatLoader(const char *szConnectStr, const char *szTable)
 {
 	// FIXME: This may truncate if the szConnectStr is actually close to
 	// iConnectStrLen.
 	snprintf(m_szConnectStr, iConnectStrLen,
-			"psql -X --quiet --output=psql-%d-%s.log %s", getpid(), szTable,
-			szConnectStr);
+			"psql -X --quiet --set=ON_ERROR_STOP=1 --output=psql-%d-%s.log %s",
+			getpid(), szTable, szConnectStr);
 
 	strncpy(m_szTable, szTable, iMaxPath);
 }
@@ -108,7 +108,7 @@ CPGSQLLoader<T>::CPGSQLLoader(const char *szConnectStr, const char *szTable)
 //
 // Destructor closes the connection.
 //
-template <typename T> CPGSQLLoader<T>::~CPGSQLLoader()
+template <typename T> CFlatLoader<T>::~CFlatLoader()
 {
 	Disconnect();
 }
@@ -119,14 +119,13 @@ template <typename T> CPGSQLLoader<T>::~CPGSQLLoader()
 //
 template <typename T>
 void
-CPGSQLLoader<T>::Init()
+CFlatLoader<T>::Init()
 {
 	Connect();
 }
-
 template <typename T>
 void
-CPGSQLLoader<T>::Connect()
+CFlatLoader<T>::Connect()
 {
 	// Open a pipe to psql.
 	p = popen(m_szConnectStr, "w");
@@ -135,25 +134,20 @@ CPGSQLLoader<T>::Connect()
 		exit(1);
 	}
 	// FIXME: Have blind faith that psql connected ok.
-	while (fgetc(p) != EOF)
-		;
+	// Cannot read from a write-only pipe.
 
 	Copy();
 }
 
 template <typename T>
 void
-CPGSQLLoader<T>::Copy()
+CFlatLoader<T>::Copy()
 {
 	fprintf(p, "BEGIN;\n");
-	while (fgetc(p) != EOF)
-		;
 
 	fprintf(p, "COPY %s FROM STDIN WITH (DELIMITER '|', NULL '');\n",
 			m_szTable);
 	// FIXME: Have blind faith that COPY started correctly.
-	while (fgetc(p) != EOF)
-		;
 }
 
 //
@@ -162,7 +156,7 @@ CPGSQLLoader<T>::Copy()
 //
 template <typename T>
 void
-CPGSQLLoader<T>::Commit()
+CFlatLoader<T>::Commit()
 {
 	FinishLoad();
 	Copy();
@@ -175,19 +169,15 @@ CPGSQLLoader<T>::Commit()
 //
 template <typename T>
 void
-CPGSQLLoader<T>::FinishLoad()
+CFlatLoader<T>::FinishLoad()
 {
 	// End of the COPY.
 	fprintf(p, "\\.\n");
 	// FIXME: Have blind faith that COPY was successful.
-	while (fgetc(p) != EOF)
-		;
 
 	// COMMIT the COPY.
 	fprintf(p, "COMMIT;\n");
 	// FIXME: Have blind faith that COMMIT was successful.
-	while (fgetc(p) != EOF)
-		;
 }
 
 //
@@ -195,10 +185,13 @@ CPGSQLLoader<T>::FinishLoad()
 //
 template <typename T>
 void
-CPGSQLLoader<T>::Disconnect()
+CFlatLoader<T>::Disconnect()
 {
 	if (p != NULL) {
-		pclose(p);
+		int rc = pclose(p);
+		if (rc != 0) {
+			cerr << "psql exited with error code: " << rc << endl;
+		}
 	}
 }
 
