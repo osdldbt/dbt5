@@ -42,6 +42,8 @@ OPTIONS
 --rows-per-commit=ROWS  Specify how many *rows* are sent before a **COMMIT**,
         the actual number of rows is approximately calculated, default is all.
 --skip-data-generation  Do not generate flat files
+--stored-procs=LIST  Comma-separated procedure names to load (default: all).
+-P LIST  Same as **--stored-procs=LIST**.
 --tpcetools=EGENHOME  *egenhome* is the directory location of the TPC-E Tools
 -t CUSTOMERS  Number of *customers* total in the database, default 5000.
 -w DAYS  Number of *days* of initial trades to populate, default 300.

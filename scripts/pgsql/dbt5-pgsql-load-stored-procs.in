@@ -7,7 +7,11 @@
 # Copyright The DBT-5 Authors
 #
 
+# All valid procedure names (single source of truth for validation).
+PROCS_ALL="broker_volume customer_position data_maintenance market_watch security_detail trade_lookup trade_order trade_result trade_status trade_update"
+
 DBNAMEARG=""
+PROCS_ARG=""
 SHAREDIR="@CMAKE_INSTALL_PREFIX@/share/dbt5/postgresql"
 TYPE="plpgsql"
 
@@ -28,9 +32,15 @@ General options:
   -d DBNAME      PGDATABASE name"
   -i SHAREDIR    PostgreSQL support files location, default ${SHAREDIR}
   -p PORT        PostgreSQL port
+  --procs=LIST   Comma-separated procedure names to load (default: all)
+  -P LIST        Same as --procs=LIST
   -t TYPE        User defined function type (c|plpgsql), default plpgsql
   -V, --version  Output version information, then exit
   -?, --help     Output this help, then exit
+
+Valid procedure names: broker_volume, customer_position, data_maintenance,
+  market_watch, security_detail, trade_lookup, trade_order, trade_result,
+  trade_status, trade_update. Use "all" or omit to load all.
 
 @HOMEPAGE@
 EOF
@@ -59,6 +69,16 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(-p*)
 		PORTARG="-p ${1#*-p}"
+		;;
+	(--procs=?*)
+		PROCS_ARG="${1#*--procs=}"
+		;;
+	(-P)
+		shift
+		PROCS_ARG="${1}"
+		;;
+	(-P*)
+		PROCS_ARG="${1#*-P}"
 		;;
 	(-t)
 		shift
@@ -89,29 +109,35 @@ done
 
 PSQL="psql -X ${PORTARG} -e ${DBNAMEARG}"
 
+# Resolve which procedures to load: default all, or user list.
+if [ -z "${PROCS_ARG}" ] || [ "${PROCS_ARG}" = "all" ]; then
+	PROCS_TO_LOAD="${PROCS_ALL}"
+else
+	# Convert comma-separated to space-separated and validate each name.
+	PROCS_TO_LOAD=""
+	for p in $(echo "${PROCS_ARG}" | sed 's/,/ /g'); do
+		case " ${PROCS_ALL} " in
+			*" ${p} "*)
+				PROCS_TO_LOAD="${PROCS_TO_LOAD}${PROCS_TO_LOAD:+ }${p}"
+				;;
+			*)
+				echo "$(basename "${0}"): unknown procedure name: ${p}" 1>&2
+				echo "Valid names: ${PROCS_ALL}" 1>&2
+				exit 1
+				;;
+		esac
+	done
+fi
+
 if [ "${TYPE}" = "c" ]; then
 	SHAREDIR="$(pg_config --sharedir)"
-	eval "${PSQL} -f ${SHAREDIR}/contrib/broker_volume.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/contrib/customer_position.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/contrib/data_maintenance.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/contrib/market_watch.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/contrib/security_detail.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/contrib/trade_lookup.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/contrib/trade_order.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/contrib/trade_result.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/contrib/trade_status.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/contrib/trade_update.sql" || exit 1
+	for proc in ${PROCS_TO_LOAD}; do
+		eval "${PSQL} -f ${SHAREDIR}/contrib/${proc}.sql" || exit 1
+	done
 elif [ "${TYPE}" = "plpgsql" ]; then
-	eval "${PSQL} -f ${SHAREDIR}/broker_volume.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/customer_position.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/data_maintenance.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/market_watch.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/security_detail.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/trade_lookup.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/trade_order.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/trade_result.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/trade_status.sql" || exit 1
-	eval "${PSQL} -f ${SHAREDIR}/trade_update.sql" || exit 1
+	for proc in ${PROCS_TO_LOAD}; do
+		eval "${PSQL} -f ${SHAREDIR}/${proc}.sql" || exit 1
+	done
 else
 	echo "unknown stored function type: ${TYPE}"
 	exit 2

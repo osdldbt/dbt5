@@ -39,6 +39,9 @@ Options:
                  number of rows is approximately calculated, default is all
   --skip-data-generation
                  Do not generate flat files
+  --stored-procs=LIST
+                 Comma-separated procedure names to load (default: all)
+  -P LIST        Same as --stored-procs=LIST
   -t CUSTOMERS   number of CUSTOMERS total in the database, default ${TOTAL_CUSTOMERS}
   -V, --version  output version information, then exit
   -w DAYS        number of DAYS of initial trades to populate, default ${DAYS}
@@ -68,6 +71,7 @@ POSITION=1
 INSTANCE_CUSTOMERS=0
 ROWS_PER_COMMIT=0
 SCALE_FACTOR=500
+STORED_PROCS_ARG=""
 TOTAL_CUSTOMERS=5000
 
 if command -v nproc > /dev/null; then
@@ -162,6 +166,16 @@ while [ "${#}" -gt 0 ] ; do
 	(--skip-data-generation)
 		BUILDARGS="${BUILDARGS} --skip-data-generation"
 		;;
+	(--stored-procs=?*)
+		STORED_PROCS_ARG="${1#*--stored-procs=}"
+		;;
+	(-P)
+		shift
+		STORED_PROCS_ARG="${1}"
+		;;
+	(-P*)
+		STORED_PROCS_ARG="${1#*-P}"
+		;;
 	(--tpcetools)
 		shift
 		EGENHOME="${1}"
@@ -251,6 +265,9 @@ fi
 
 if [ "${ROWS_PER_COMMIT}" -gt 1 ]; then
 	BUILDARGS="${BUILDARGS} --rows-per-commit=${ROWS_PER_COMMIT}"
+fi
+if [ -n "${STORED_PROCS_ARG}" ]; then
+	BUILDARGS="${BUILDARGS} --stored-procs=${STORED_PROCS_ARG}"
 fi
 eval "dbt5 ${DBMS}-build-db -i ${EGENHOME} -d ${DBNAME} \
 		--parallelism ${PARALLELISM} ${BUILDARGS}"
