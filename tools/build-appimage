@@ -38,9 +38,9 @@ ${CONTAINER_CMD} run \
 		--rm \
 		--user "$(id -u):$(id -u)" \
 		${USERNS_ARG} \
-		-v "${CONTAINER_DIR}/..:/usr/local/src/dbt5:rw,Z" \
+		-v "${CONTAINER_DIR}/..:/dbt5:rw,Z" \
 		--env EGEN="${EGEN}" \
 		--env PKG_CONFIG_PATH="/usr/lib/pkgconfig" \
-		-w /usr/local/src/dbt5 \
+		-w /dbt5 \
 		$CONTAINER_TAG \
 		make -f Makefile.cmake ${TARGET}
