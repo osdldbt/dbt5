@@ -12,3 +12,4 @@ Dockerfile
 .git
 .gitignore
 install_manifest.txt
+cores/
