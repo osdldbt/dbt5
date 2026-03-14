@@ -33,3 +33,6 @@ egen/
 # EGenLoader / dbt5 build output and logs
 EGenLoader*.log
 egenloader*.out
+
+# Core dumps
+cores/

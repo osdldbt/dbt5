@@ -12,6 +12,7 @@ services:
         COPY *-tpc-e-tool.zip /tmp/
         RUN TPCEZIP=$$(ls /tmp/*-tpc-e-tool.zip 2>/dev/null | tail -1) \
             && unzip -q "$$TPCEZIP" -d /opt/egen && rm /tmp/*-tpc-e-tool.zip
+        RUN echo "ulimit -c unlimited" >> /etc/bash.bashrc
       args:
         PGVER: ${PGVER:-18}
     image: dbt5-base:${PGVER:-18}
@@ -53,11 +54,15 @@ services:
       - "30000:30000"
     volumes:
       - .:/usr/local/src/dbt5:ro
+      - ./cores:/cores
     working_dir: /usr/local/src/dbt5
+    ulimits:
+      core: -1
     command:
       - sh
       - -c
       - |
+        ulimit -c unlimited
         cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr
         cmake --build /tmp/build
         cmake --install /tmp/build
@@ -79,11 +84,15 @@ services:
     volumes:
       - .:/usr/local/src/dbt5:ro
       - market-tmp:/tmp/market
+      - ./cores:/cores
     working_dir: /usr/local/src/dbt5
+    ulimits:
+      core: -1
     command:
       - sh
       - -c
       - |
+        ulimit -c unlimited
         cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr
         cmake --build /tmp/build
         cmake --install /tmp/build
@@ -140,11 +149,15 @@ services:
       - .:/usr/local/src/dbt5:ro
       - ./results:/tmp/results
       - market-tmp:/tmp/market:ro
+      - ./cores:/cores
     working_dir: /tmp
+    ulimits:
+      core: -1
     entrypoint:
       - sh
       - -c
       - |
+        ulimit -c unlimited
         cd /usr/local/src/dbt5
         cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr
         cmake --build /tmp/build
