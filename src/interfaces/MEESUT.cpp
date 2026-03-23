@@ -43,14 +43,14 @@ RunTradeResultAsync(void *data)
 		// initialize the attribute object
 		int status = pthread_attr_init(&threadAttribute);
 		if (status != 0) {
-			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_INIT);
+			throw CThreadErr(CThreadErr::ERR_THREAD_ATTR_INIT);
 		}
 
 		// set the detachstate attribute to detached
 		status = pthread_attr_setdetachstate(
 				&threadAttribute, PTHREAD_CREATE_DETACHED);
 		if (status != 0) {
-			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_DETACH);
+			throw CThreadErr(CThreadErr::ERR_THREAD_ATTR_DETACH);
 		}
 
 		// create the thread in the detached state - Call Trade Result
@@ -59,14 +59,13 @@ RunTradeResultAsync(void *data)
 				&threadID, &threadAttribute, &TradeResultAsync, data);
 
 		if (status != 0) {
-			throw new CThreadErr(CThreadErr::ERR_THREAD_CREATE);
+			throw CThreadErr(CThreadErr::ERR_THREAD_CREATE);
 		}
-	} catch (CThreadErr *pErr) {
+	} catch (const CThreadErr &pErr) {
 		ostringstream osErr;
-		osErr << "Error: " << pErr->ErrorText()
+		osErr << "Error: " << pErr.ErrorText()
 			  << " at MEESUT::RunTradeResultAsync" << endl;
 		pThrParam->pCMEESUT->logErrorMessage(osErr.str());
-		delete pErr;
 		return false;
 	}
 
@@ -123,14 +122,14 @@ RunMarketFeedAsync(void *data)
 		// initialize the attribute object
 		int status = pthread_attr_init(&threadAttribute);
 		if (status != 0) {
-			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_INIT);
+			throw CThreadErr(CThreadErr::ERR_THREAD_ATTR_INIT);
 		}
 
 		// set the detachstate attribute to detached
 		status = pthread_attr_setdetachstate(
 				&threadAttribute, PTHREAD_CREATE_DETACHED);
 		if (status != 0) {
-			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_DETACH);
+			throw CThreadErr(CThreadErr::ERR_THREAD_ATTR_DETACH);
 		}
 
 		// create the thread in the detached state - Call Trade Result
@@ -139,14 +138,13 @@ RunMarketFeedAsync(void *data)
 				&threadID, &threadAttribute, &MarketFeedAsync, data);
 
 		if (status != 0) {
-			throw new CThreadErr(CThreadErr::ERR_THREAD_CREATE);
+			throw CThreadErr(CThreadErr::ERR_THREAD_CREATE);
 		}
-	} catch (CThreadErr *pErr) {
+	} catch (const CThreadErr &pErr) {
 		ostringstream osErr;
-		osErr << "Error: " << pErr->ErrorText()
+		osErr << "Error: " << pErr.ErrorText()
 			  << " at MEESUT::RunMarketFeedAsync" << endl;
 		pThrParam->pCMEESUT->logErrorMessage(osErr.str());
-		delete pErr;
 		return false;
 	}
 

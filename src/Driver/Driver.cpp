@@ -135,7 +135,7 @@ entryCustomerWorkerThread(void *data)
 		// initialize the attribute object
 		int status = pthread_attr_init(&threadAttribute);
 		if (status != 0) {
-			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_INIT);
+			throw CThreadErr(CThreadErr::ERR_THREAD_ATTR_INIT);
 		}
 
 		// create the thread in the joinable state
@@ -143,13 +143,13 @@ entryCustomerWorkerThread(void *data)
 				&customerWorkerThread, data);
 
 		if (status != 0) {
-			throw new CThreadErr(CThreadErr::ERR_THREAD_CREATE);
+			throw CThreadErr(CThreadErr::ERR_THREAD_CREATE);
 		}
-	} catch (CThreadErr *pErr) {
+	} catch (const CThreadErr &pErr) {
 		cerr << "Thread " << pThrParam->UniqueId << " didn't spawn correctly"
 			 << endl
 			 << endl
-			 << "Error: " << pErr->ErrorText()
+			 << "Error: " << pErr.ErrorText()
 			 << " at EntryCustomerWorkerThread" << endl;
 		exit(1);
 	}
@@ -241,8 +241,7 @@ CDriver::runTest(int iSleep, int iTestDuration)
 	// 0 represents the Data-Maintenance thread
 	for (int i = 0; i <= iUsers; i++) {
 		if (pthread_join(g_tid[i], NULL) != 0) {
-			throw new CThreadErr(
-					CThreadErr::ERR_THREAD_JOIN, "Driver::RunTest");
+			throw CThreadErr(CThreadErr::ERR_THREAD_JOIN, "Driver::RunTest");
 		}
 	}
 }
@@ -295,7 +294,7 @@ entryDMWorkerThread(CDriver *ptr)
 				reinterpret_cast<void *>(pThrParam));
 
 		cout << ">> Data-Maintenance thread started." << endl;
-	} catch (CThreadErr *pErr) {
+	} catch (const CThreadErr &pErr) {
 		cerr << "Data-Maintenance thread not created successfully, exiting..."
 			 << endl;
 		exit(1);
