@@ -74,14 +74,14 @@ EntryMarketWorkerThread(void *data)
 		// initialize the attribute object
 		int status = pthread_attr_init(&threadAttribute);
 		if (status != 0) {
-			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_INIT);
+			throw CThreadErr(CThreadErr::ERR_THREAD_ATTR_INIT);
 		}
 
 		// set the detachstate attribute to detached
 		status = pthread_attr_setdetachstate(
 				&threadAttribute, PTHREAD_CREATE_DETACHED);
 		if (status != 0) {
-			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_DETACH);
+			throw CThreadErr(CThreadErr::ERR_THREAD_ATTR_DETACH);
 		}
 
 		// create the thread in the detached state
@@ -89,16 +89,15 @@ EntryMarketWorkerThread(void *data)
 				&threadID, &threadAttribute, &MarketWorkerThread, data);
 
 		if (status != 0) {
-			throw new CThreadErr(CThreadErr::ERR_THREAD_CREATE);
+			throw CThreadErr(CThreadErr::ERR_THREAD_CREATE);
 		}
-	} catch (CThreadErr *pErr) {
+	} catch (const CThreadErr &pErr) {
 		// close recently accepted connection, to release threads
 		close(pThrParam->iSockfd);
 
-		cerr << "Error: " << pErr->ErrorText()
+		cerr << "Error: " << pErr.ErrorText()
 			 << " at MarketExchange::entryMarketWorkerThread" << endl
 			 << "accepted socket connection closed" << endl;
-		delete pErr;
 	}
 }
 

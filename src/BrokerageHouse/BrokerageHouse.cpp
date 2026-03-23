@@ -259,14 +259,14 @@ entryWorkerThread(void *data)
 		// initialize the attribute object
 		int status = pthread_attr_init(&threadAttribute);
 		if (status != 0) {
-			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_INIT);
+			throw CThreadErr(CThreadErr::ERR_THREAD_ATTR_INIT);
 		}
 
 		// set the detachstate attribute to detached
 		status = pthread_attr_setdetachstate(
 				&threadAttribute, PTHREAD_CREATE_DETACHED);
 		if (status != 0) {
-			throw new CThreadErr(CThreadErr::ERR_THREAD_ATTR_DETACH);
+			throw CThreadErr(CThreadErr::ERR_THREAD_ATTR_DETACH);
 		}
 
 		// create the thread in the detached state
@@ -274,19 +274,18 @@ entryWorkerThread(void *data)
 				&threadID, &threadAttribute, &workerThread, data);
 
 		if (status != 0) {
-			throw new CThreadErr(CThreadErr::ERR_THREAD_CREATE);
+			throw CThreadErr(CThreadErr::ERR_THREAD_CREATE);
 		}
-	} catch (CThreadErr *pErr) {
+	} catch (const CThreadErr &pErr) {
 		// close recently accepted connection, to release driver threads
 		close(pThrParam->iSockfd);
 
 		ostringstream osErr;
-		osErr << "Error: " << pErr->ErrorText() << " at "
+		osErr << "Error: " << pErr.ErrorText() << " at "
 			  << "BrokerageHouse::entryWorkerThread" << endl
 			  << "accepted socket connection closed" << endl;
 		pThrParam->pBrokerageHouse->logErrorMessage(osErr.str());
 		delete pThrParam;
-		delete pErr;
 	}
 }
 
