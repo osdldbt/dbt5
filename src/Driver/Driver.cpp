@@ -242,6 +242,9 @@ CDriver::runTest(int iSleep, int iTestDuration)
 	// 0 represents the Data-Maintenance thread
 	for (int i = 0; i <= iUsers; i++) {
 		if (pthread_join(g_tid[i], NULL) != 0) {
+			// Join failure is fatal: we free the whole array to avoid leaking
+			// g_tid. That discards pthread_t handles for threads not yet joined;
+			// acceptable here because we throw and abort the run
 			free(g_tid);
 			g_tid = NULL;
 			throw new CThreadErr(
