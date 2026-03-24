@@ -168,7 +168,7 @@ ValidateParameters()
 	// size.
 	if ((iDefaultLoadUnitSize > iActiveCustomerCount)
 			|| (0 != iActiveCustomerCount % iDefaultLoadUnitSize)) {
-		cerr << "The total customer count (-a " << iActiveCustomerCount
+		cerr << "The total customer count (-t " << iActiveCustomerCount
 			 << ") must be a non-zero integral multiple of the load unit size "
 				"("
 			 << iDefaultLoadUnitSize << ")." << endl;
