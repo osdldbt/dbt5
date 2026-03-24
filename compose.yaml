@@ -1,11 +1,13 @@
 ---
-# Debugging: services build with RelWithDebInfo and write core dumps to ./cores/.
-# Host prerequisite (one-time):
-#   sudo sysctl -w kernel.core_pattern=core.%e.%p
-# Analyse a core inside the matching container (recommended):
-#   docker compose exec broker gdb /opt/egen/bin/BrokerageHouseMain /cores/core.*
-# Analyse a core locally (binaries and libs are auto-copied to ./cores/):
-#   gdb -ex "set sysroot ./cores/sysroot" ./cores/BrokerageHouseMain ./cores/core.*
+# Debugging: services build with RelWithDebInfo so core dumps have symbols.
+# Core dumps are captured automatically by the host's systemd-coredump.
+#
+# List crashes:   coredumpctl list
+# Show backtrace: coredumpctl info <PID>
+# Open in GDB:    coredumpctl gdb <PID>
+#
+# Or debug inside the container (no host/guest lib mismatch):
+#   docker compose exec broker gdb /opt/egen/bin/BrokerageHouseMain <corefile>
 services:
   dbt5-base:
     build:
@@ -14,7 +16,7 @@ services:
         ARG PGVER=18
         FROM postgres:$${PGVER}
         RUN apt-get update && apt-get install -y --no-install-recommends \
-            build-essential cmake gdb libc6-dbg \
+            build-essential cmake gdb \
             postgresql-server-dev-$${PG_MAJOR} unzip \
             && rm -rf /var/lib/apt/lists/*
         COPY *-tpc-e-tool.zip /tmp/
@@ -63,13 +65,11 @@ services:
       - "30000:30000"
     volumes:
       - .:/usr/local/src/dbt5:ro
-      - ./cores:/cores
     working_dir: /usr/local/src/dbt5
     command:
       - sh
       - -c
       - |
-        mkdir -p /cores && chmod 777 /cores
         cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
         cmake --build /tmp/build
@@ -77,15 +77,7 @@ services:
         dbt5-build-egen --include-dir=src/include --patch-dir=patches \
             --source-dir=src /opt/egen
         ln -sf /dev/stderr /tmp/BrokerageHouse_Error.log
-        cp /opt/egen/bin/BrokerageHouseMain /cores/
-        mkdir -p /cores/sysroot/opt/egen/bin
-        cp /opt/egen/bin/BrokerageHouseMain /cores/sysroot/opt/egen/bin/
-        ldd /opt/egen/bin/BrokerageHouseMain | grep -o '/[^ ]*' | \
-            while read -r lib; do \
-                mkdir -p "/cores/sysroot$$(dirname "$$lib")" && \
-                cp -n "$$lib" "/cores/sysroot$$lib" 2>/dev/null; \
-            done || true
-        exec su -s /bin/sh postgres -c "cd /cores && ulimit -c unlimited && \
+        exec su -s /bin/sh postgres -c "ulimit -c unlimited && \
             exec /opt/egen/bin/BrokerageHouseMain -h database \
                              -m market -d dbt5 -o /tmp"
 
@@ -103,13 +95,11 @@ services:
     volumes:
       - .:/usr/local/src/dbt5:ro
       - market-tmp:/tmp/market
-      - ./cores:/cores
     working_dir: /usr/local/src/dbt5
     command:
       - sh
       - -c
       - |
-        mkdir -p /cores && chmod 777 /cores
         cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
         cmake --build /tmp/build
@@ -118,15 +108,7 @@ services:
             --source-dir=src /opt/egen
         ln -sf /dev/stderr /tmp/error-me-1.log
         ln -sf /dev/stdio /tmp/MarketExchange.log
-        cp /opt/egen/bin/MarketExchangeMain /cores/
-        mkdir -p /cores/sysroot/opt/egen/bin
-        cp /opt/egen/bin/MarketExchangeMain /cores/sysroot/opt/egen/bin/
-        ldd /opt/egen/bin/MarketExchangeMain | grep -o '/[^ ]*' | \
-            while read -r lib; do \
-                mkdir -p "/cores/sysroot$$(dirname "$$lib")" && \
-                cp -n "$$lib" "/cores/sysroot$$lib" 2>/dev/null; \
-            done || true
-        cd /cores && ulimit -c unlimited
+        ulimit -c unlimited
         exec /opt/egen/bin/MarketExchangeMain -h broker -i /opt/egen/flat_in \
             -t ${CUSTOMERS:-1000} -o /tmp/market
 
@@ -142,13 +124,11 @@ services:
       core: -1
     volumes:
       - .:/usr/local/src/dbt5:ro
-      - ./cores:/cores
     working_dir: /tmp
     entrypoint:
       - sh
       - -c
       - |
-        mkdir -p /cores && chmod 777 /cores
         cd /usr/local/src/dbt5
         cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
@@ -164,17 +144,7 @@ services:
           done
           sleep 1
         done) &
-        cp /opt/egen/bin/* /cores/ 2>/dev/null || true
-        mkdir -p /cores/sysroot/opt/egen/bin
-        cp /opt/egen/bin/* /cores/sysroot/opt/egen/bin/ 2>/dev/null || true
-        for b in /opt/egen/bin/*; do \
-            ldd "$$b" 2>/dev/null | grep -o '/[^ ]*' | \
-                while read -r lib; do \
-                    mkdir -p "/cores/sysroot$$(dirname "$$lib")" && \
-                    cp -n "$$lib" "/cores/sysroot$$lib" 2>/dev/null; \
-                done; \
-        done || true
-        cd /cores && ulimit -c unlimited
+        ulimit -c unlimited
         exec dbt5-build --tpcetools=/opt/egen -l CUSTOM --db-host=database \
             --db-user=${USER} -t ${CUSTOMERS:-1000} -w ${DAYS:-1} \
             -f ${SCALEFACTOR:-1} pgsql "$$@"
@@ -194,13 +164,11 @@ services:
       - .:/usr/local/src/dbt5:ro
       - ./results:/tmp/results
       - market-tmp:/tmp/market:ro
-      - ./cores:/cores
     working_dir: /tmp
     entrypoint:
       - sh
       - -c
       - |
-        mkdir -p /cores && chmod 777 /cores
         cd /usr/local/src/dbt5
         cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo
@@ -218,15 +186,7 @@ services:
           done
           sleep 1
         done) &
-        cp /opt/egen/bin/DriverMain /cores/
-        mkdir -p /cores/sysroot/opt/egen/bin
-        cp /opt/egen/bin/DriverMain /cores/sysroot/opt/egen/bin/
-        ldd /opt/egen/bin/DriverMain | grep -o '/[^ ]*' | \
-            while read -r lib; do \
-                mkdir -p "/cores/sysroot$$(dirname "$$lib")" && \
-                cp -n "$$lib" "/cores/sysroot$$lib" 2>/dev/null; \
-            done || true
-        cd /cores && ulimit -c unlimited
+        ulimit -c unlimited
         /opt/egen/bin/DriverMain -h broker -i /opt/egen/flat_in -o "$$OUTDIR" \
             -t ${CUSTOMERS:-1000} -w ${DAYS:-1} -f ${SCALEFACTOR:-1} \
             -u ${USERS:-1} "$$@"
