@@ -1,13 +1,34 @@
 ---
-# Debugging: services build with RelWithDebInfo so core dumps have symbols.
-# Core dumps are captured automatically by the host's systemd-coredump.
+# Debugging core dumps
 #
-# List crashes:   coredumpctl list
-# Show backtrace: coredumpctl info <PID>
-# Open in GDB:    coredumpctl gdb <PID>
+# On systemd hosts, crashes inside containers are captured automatically by
+# the host's systemd-coredump because kernel.core_pattern is a kernel-level
+# setting shared across all containers.
 #
-# Or debug inside the container (no host/guest lib mismatch):
-#   docker compose exec broker gdb /opt/egen/bin/BrokerageHouseMain <corefile>
+# Step 1 - list captured crashes on the host:
+#   coredumpctl list
+#
+# Step 2 - show signal, executable, and partial backtrace:
+#   coredumpctl info <PID>
+#
+# Step 3 - extract the core file:
+#   sudo coredumpctl dump <PID> -o /tmp/core.file
+#
+# Step 4 - debug inside the container where the binary and libs match the core.
+# Replace <service> and <binary> with the crashed service:
+#   broker  -> /opt/egen/bin/BrokerageHouseMain
+#   market  -> /opt/egen/bin/MarketExchangeMain
+#   driver  -> /opt/egen/bin/DriverMain
+#
+#   docker compose run --no-deps --rm \
+#     -v /tmp/core.file:/tmp/core.file \
+#     <service> \
+#     gdb /opt/egen/bin/<binary> /tmp/core.file
+#
+# Step 5 - inside GDB, print the backtrace:
+#   (gdb) bt                    # short backtrace
+#   (gdb) bt full               # backtrace with local variable values
+#   (gdb) thread apply all bt   # backtrace for all threads
 services:
   dbt5-base:
     build:
