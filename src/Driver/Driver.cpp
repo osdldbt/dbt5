@@ -240,20 +240,20 @@ CDriver::runTest(int iSleep, int iTestDuration)
 
 	// wait until all threads quit
 	// 0 represents the Data-Maintenance thread
+	int join_failed = 0;
 	for (int i = 0; i <= iUsers; i++) {
 		if (pthread_join(g_tid[i], NULL) != 0) {
-			// Join failure is fatal: we free the whole array to avoid leaking
-			// g_tid. That discards pthread_t handles for threads not yet joined;
-			// acceptable here because we throw and abort the run
-			free(g_tid);
-			g_tid = NULL;
-			throw new CThreadErr(
-					CThreadErr::ERR_THREAD_JOIN, "Driver::RunTest");
+			join_failed = 1;
 		}
 	}
 
 	free(g_tid);
 	g_tid = NULL;
+
+	if (join_failed != 0) {
+		throw new CThreadErr(
+				CThreadErr::ERR_THREAD_JOIN, "Driver::RunTest");
+	}
 }
 
 // DM worker thread
