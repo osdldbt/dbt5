@@ -69,6 +69,7 @@ required:
 
 Optional software:
 
+* **ts** https://gitlab.com/touchstone/touchstone-tools/ for profiling
 * **sar**, **pidstat** http://pagesperso-orange.fr/sebastien.godard/ (While the
   scripts assume this particular version of **sar** and **pidstat**, it is
   possible to run on non-Linux based operating systems with some modifications
