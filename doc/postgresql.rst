@@ -15,15 +15,18 @@ on the database system before they can be used by the database::
     cd storedproc/pgsql/c
     make
     make install
-    dbt5 pgsql-load-stored-procs -t c
 
-To build or load only specific procedures, use ``make MODULES="name1 name2"``
-(or ``STORED_PROCS``) in the C directory, and ``--stored-procs=name1,name2``
-with ``dbt5 build`` or ``--procs=name1,name2`` with
-``dbt5-pgsql-load-stored-procs`` / ``dbt5-pgsql-drop-stored-procs``.
-Valid names: broker_volume, customer_position, data_maintenance, market_watch,
-security_detail, trade_lookup, trade_order, trade_result, trade_status,
-trade_update.
+To select the stored function implementation when building the database, use
+``--stored-proc-type``::
+
+    dbt5 build --tpcetools=/tmp/egen --stored-proc-type=c pgsql
+
+The default is ``plpgsql``.  Using ``c`` requires the C stored functions to be
+built and installed on the database server first (see above).
+
+You can also load them independently with ``dbt5 pgsql-load-stored-procs``::
+
+    dbt5 pgsql-load-stored-procs -t c
 
 Configuration
 -------------
