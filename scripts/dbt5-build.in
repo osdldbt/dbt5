@@ -39,6 +39,9 @@ Options:
                  number of rows is approximately calculated, default is all
   --skip-data-generation
                  Do not generate flat files
+  --stored-proc-type=TYPE
+                 stored function implementation to use (plpgsql|c),
+                 default plpgsql
   -t CUSTOMERS   number of CUSTOMERS total in the database, default ${TOTAL_CUSTOMERS}
   -V, --version  output version information, then exit
   -w DAYS        number of DAYS of initial trades to populate, default ${DAYS}
@@ -161,6 +164,9 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--skip-data-generation)
 		BUILDARGS="${BUILDARGS} --skip-data-generation"
+		;;
+	(--stored-proc-type=?*)
+		BUILDARGS="${BUILDARGS} --stored-proc-type=${1#*--stored-proc-type=}"
 		;;
 	(--tpcetools)
 		shift

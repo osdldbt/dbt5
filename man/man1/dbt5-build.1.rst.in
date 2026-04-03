@@ -42,6 +42,9 @@ OPTIONS
 --rows-per-commit=ROWS  Specify how many *rows* are sent before a **COMMIT**,
         the actual number of rows is approximately calculated, default is all.
 --skip-data-generation  Do not generate flat files
+--stored-proc-type=TYPE  Stored function implementation to use
+        (**plpgsql** or **c**), default plpgsql.  Using **c** requires the C
+        stored functions to be built and installed on the database server first.
 --tpcetools=EGENHOME  *egenhome* is the directory location of the TPC-E Tools
 -t CUSTOMERS  Number of *customers* total in the database, default 5000.
 -w DAYS  Number of *days* of initial trades to populate, default 300.

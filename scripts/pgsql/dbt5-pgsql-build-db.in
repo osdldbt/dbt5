@@ -36,6 +36,9 @@ General options:
                  Scale factor (customers per 1 trtps), default ${SCALE_FACTOR}
   --skip-data-generation
                  Do not generate flat files
+  --stored-proc-type=TYPE
+                 stored function implementation to use (plpgsql|c),
+                 default plpgsql
   -t CUSTOMERS   Total CUSTOMERS, default ${CUSTOMERS_TOTAL}
   -U             Privileged database user
   -u             Use tablespaces
@@ -94,6 +97,7 @@ SKIP_DATA_GENERATION=0
 SCALE_FACTOR=500
 STARTING_CUSTOMER_ID=1
 ITD=300
+STORED_PROC_TYPE="plpgsql"
 TABLESPACES_FLAG=""
 VACUUM_FULL=0
 
@@ -186,6 +190,9 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--skip-data-generation)
 		SKIP_DATA_GENERATION=1
+		;;
+	(--stored-proc-type=?*)
+		STORED_PROC_TYPE="${1#*--stored-proc-type=}"
 		;;
 	(-t)
 		shift
@@ -411,7 +418,8 @@ eval "dbt5-pgsql-create-indexes ${DBNAMEARG} ${PORTARG} ${TABLESPACES_FLAG}" \
 eval "${PSQL} -e \
 		-c \"SELECT SETVAL('seq_trade_id', (SELECT MAX(t_id) FROM trade))\"" \
 		|| exit 1
-eval "dbt5-pgsql-load-stored-procs ${DBNAMEARG} ${PORTARG}" || exit 1
+eval "dbt5-pgsql-load-stored-procs ${DBNAMEARG} ${PORTARG} -t ${STORED_PROC_TYPE}" \
+		|| exit 1
 eval "${PSQL} -e -c \"SELECT setseed(0);\"" || exit 1
 
 # Set the number of vacuumdb jobs to 1 (no parallelism) and let see
