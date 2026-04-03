@@ -7,7 +7,9 @@
  * 03 August 2006
  */
 
+#include <cerrno>
 #include <cstdlib>
+#include <cstring>
 #include <unistd.h>
 #include <sys/syscall.h>
 
@@ -240,17 +242,28 @@ CDriver::runTest(int iSleep, int iTestDuration)
 
 	// wait until all threads quit
 	// 0 represents the Data-Maintenance thread
-	int join_failed = 0;
+	bool fatal_error = false;
 	for (int i = 0; i <= iUsers; i++) {
-		if (pthread_join(g_tid[i], NULL) != 0) {
-			join_failed = 1;
+		int rc = pthread_join(g_tid[i], NULL);
+		if (rc == 0)
+			continue;
+
+		ostringstream osErr;
+		if (rc == ESRCH) {
+			osErr << "warning: pthread_join for thread " << i
+				  << " failed (ESRCH): " << strerror(rc) << endl;
+		} else {
+			osErr << "error: pthread_join for thread " << i
+				  << " failed: " << strerror(rc) << endl;
+			fatal_error = true;
 		}
+		logErrorMessage(osErr.str());
 	}
 
 	free(g_tid);
 	g_tid = NULL;
 
-	if (join_failed != 0) {
+	if (fatal_error) {
 		throw new CThreadErr(
 				CThreadErr::ERR_THREAD_JOIN, "Driver::RunTest");
 	}
