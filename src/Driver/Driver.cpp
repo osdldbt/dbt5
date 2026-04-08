@@ -249,13 +249,36 @@ CDriver::runTest(int iSleep, int iTestDuration)
 			continue;
 
 		ostringstream osErr;
-		if (rc == ESRCH) {
+		switch (rc) {
+		case ESRCH:
+			// Thread no longer exists — already terminated and reaped, or
+			// was never successfully created.  Nothing left to join; treat
+			// as a warning so the loop can still attempt remaining threads.
 			osErr << "warning: pthread_join for thread " << i
-				  << " failed (ESRCH): " << strerror(rc) << endl;
-		} else {
+				  << " (ESRCH): thread no longer exists" << endl;
+			break;
+		case EINVAL:
+			// Thread is not joinable (e.g. detached) or another thread is
+			// already waiting on it.  Should never happen since we create
+			// all threads with default joinable attributes — indicates a
+			// programming bug.
 			osErr << "error: pthread_join for thread " << i
-				  << " failed: " << strerror(rc) << endl;
+				  << " (EINVAL): thread is not joinable" << endl;
 			fatal_error = true;
+			break;
+		case EDEADLK:
+			// Deadlock detected — a thread tried to join itself or there
+			// is a circular join dependency.  Serious logic error that
+			// cannot occur in normal operation.
+			osErr << "error: pthread_join for thread " << i
+				  << " (EDEADLK): deadlock detected" << endl;
+			fatal_error = true;
+			break;
+		default:
+			osErr << "error: pthread_join for thread " << i
+				  << ": " << strerror(rc) << endl;
+			fatal_error = true;
+			break;
 		}
 		logErrorMessage(osErr.str());
 	}
