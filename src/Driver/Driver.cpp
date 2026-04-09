@@ -245,11 +245,10 @@ CDriver::runTest(int iSleep, int iTestDuration)
 	bool fatal_error = false;
 	for (int i = 0; i <= iUsers; i++) {
 		int rc = pthread_join(g_tid[i], NULL);
-		if (rc == 0)
-			continue;
-
 		ostringstream osErr;
 		switch (rc) {
+		case 0:
+			continue;
 		case ESRCH:
 			// Thread no longer exists — already terminated and reaped, or
 			// was never successfully created.  Nothing left to join; treat
