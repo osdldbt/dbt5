@@ -248,6 +248,7 @@ CDriver::runTest(int iSleep, int iTestDuration)
 		ostringstream osErr;
 		switch (rc) {
 		case 0:
+			// Thread joined successfully, nothing to report.
 			continue;
 		case ESRCH:
 			// Thread no longer exists — already terminated and reaped, or
