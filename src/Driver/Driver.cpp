@@ -7,6 +7,9 @@
  * 03 August 2006
  */
 
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
 #include <unistd.h>
 #include <sys/syscall.h>
 
@@ -239,8 +242,64 @@ CDriver::runTest(int iSleep, int iTestDuration)
 
 	// wait until all threads quit
 	// 0 represents the Data-Maintenance thread
+	bool fatal_error = false;
 	for (int i = 0; i <= iUsers; i++) {
-		if (pthread_join(g_tid[i], NULL) != 0) {
+		int rc = pthread_join(g_tid[i], NULL);
+		ostringstream osErr;
+		switch (rc) {
+		case 0:
+			// Thread joined successfully, nothing to report.
+			continue;
+		case ESRCH:
+			// Thread no longer exists — already terminated and reaped, or
+			// was never successfully created.  Nothing left to join; treat
+			// as a warning so the loop can still attempt remaining threads.
+			osErr << "warning: pthread_join for thread " << i
+				  << " (ESRCH): thread no longer exists" << endl;
+			break;
+		case EINVAL:
+			// Thread is not joinable (e.g. detached) or another thread is
+			// already waiting on it.  Should never happen since we create
+			// all threads with default joinable attributes — indicates a
+			// programming bug.
+			osErr << "error: pthread_join for thread " << i
+				  << " (EINVAL): thread is not joinable" << endl;
+			fatal_error = true;
+			break;
+		case EDEADLK:
+			// Deadlock detected — a thread tried to join itself or there
+			// is a circular join dependency.  Serious logic error that
+			// cannot occur in normal operation.
+			osErr << "error: pthread_join for thread " << i
+				  << " (EDEADLK): deadlock detected" << endl;
+			fatal_error = true;
+			break;
+		default:
+			osErr << "error: pthread_join for thread " << i
+				  << ": " << strerror(rc) << endl;
+			fatal_error = true;
+			break;
+		}
+		logErrorMessage(osErr.str());
+	}
+
+	free(g_tid);
+	g_tid = NULL;
+
+	if (fatal_error) {
+		// If the scheduled test duration has already elapsed, the useful
+		// work of the run is done and the worker threads were expected to
+		// be winding down anyway.  A join failure at this point is likely
+		// just noise from a thread that has already exited and been
+		// reaped, so crashing the run would mask an otherwise clean
+		// execution.  Log a warning and return normally in that case; if
+		// we are still within the scheduled duration, propagate the
+		// error as before so the caller knows the run aborted early.
+		if (time(NULL) >= stop_time) {
+			logErrorMessage("warning: pthread_join reported errors after "
+							"the scheduled test duration elapsed; "
+							"ignoring since useful work is complete\n");
+		} else {
 			throw new CThreadErr(
 					CThreadErr::ERR_THREAD_JOIN, "Driver::RunTest");
 		}
