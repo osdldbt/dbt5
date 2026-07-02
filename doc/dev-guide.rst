@@ -34,7 +34,7 @@ Sandbox
 A `compose.yml` and additional files in `.compose` are provided to help create
 a test environment to test and debug the binaries by running a minimal
 workload, as oppose to the entire kit with statistics collection.  It currently
-work with **docker** and will hopefully work with **podman** at some point.
+works with **docker** and will hopefully work with **podman** at some point.
 
 This environment should also be suitable to test database loading (e.g.
 `EGenLoader`) and the transaction testing tool (`TestTxn`).
@@ -81,7 +81,7 @@ is recreated)::
 Run the workload and specify the test duration in seconds (results are saved in
 the `results` subdirectory)::
 
-    docker compose run -d 120
+    docker compose run driver -d 120
 
 Database Container
 ------------------
