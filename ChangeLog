@@ -8,6 +8,7 @@ vX.Y.ZZ (YYYY-MM-DD)
 - Fix custom PostgreSQL direct loading reliability by using libpq's API to
   connect to the database and load data via COPY API's instead of using pipes
   to psql
+- AppImage: Always include TPC-E Tools per TPC EULA v2.2 clause 9.d.
 
 v0.10.11 (2026-01-05)
 

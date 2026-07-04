@@ -15,13 +15,6 @@ CONTAINER_DIR="$(dirname "$(realpath "${0}")")"
 CONTAINER_TAG="dbt5-appimage"
 TARGET="appimage"
 
-if [ "${EGEN}" = "" ]; then
-    # Automatically detect and glob the first copy of TPC E Tools zip file in
-    # the project root.
-    EGEN=$(basename ${CONTAINER_DIR}/../*-tpc-e-tool.zip)
-    echo "Detected and building with ${EGEN}"
-fi
-
 # Use the return code from inspect to determine if the container image
 # needs to be created.
 if ! ${CONTAINER_CMD} inspect ${CONTAINER_TAG} > /dev/null 2>&1; then
@@ -39,7 +32,6 @@ ${CONTAINER_CMD} run \
 		--user "$(id -u):$(id -u)" \
 		${USERNS_ARG} \
 		-v "${CONTAINER_DIR}/..:/dbt5:rw,Z" \
-		--env EGEN="${EGEN}" \
 		--env PKG_CONFIG_PATH="/usr/lib/pkgconfig" \
 		-w /dbt5 \
 		$CONTAINER_TAG \

@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5...4.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.14...4.0)
 PROJECT(dbt5 NONE)
 
 set (PROJECT_VERSION_MAJOR 0)
@@ -16,6 +16,15 @@ set (
     HOMEPAGE
     "Database Test 5 (DBT-5) project page: https://github.com/osdldbt/dbt5"
 )
+
+include (FetchContent)
+FetchContent_Declare(
+    egen
+    GIT_REPOSITORY https://github.com/osdldbt/egen.git
+    GIT_TAG        1.14.0
+)
+FetchContent_MakeAvailable (egen)
+set (EGEN_SOURCE_DIR ${egen_SOURCE_DIR})
 
 add_subdirectory (appimage)
 add_subdirectory (patches)

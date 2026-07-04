@@ -21,6 +21,7 @@ RUN apt-get -qq -y update && \
                            flex \
                            gcc \
                            g++ \
+                           git \
                            gnupg2 \
                            jq \
                            libcairo2-dev \
@@ -141,7 +142,7 @@ RUN mkdir -p /usr/local/share/licenses/rst2pdf-${RST2PDFVER} && \
        /usr/local/lib/python${PYTHONMMVER}/site-packages/docutils-${DOCUTILSVER}.dist-info/COPYING.txt \
        /usr/local/share/licenses/rst2pdf-${RST2PDFVER}/
 
-ARG CMAKEVER="3.7.2"
+ARG CMAKEVER="3.14.7"
 RUN curl -o /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz -SsOL \
          https://github.com/Kitware/CMake/releases/download/v${CMAKEVER}/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz && \
     tar -C /usr --strip-components=1 \
