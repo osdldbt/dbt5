@@ -7,11 +7,9 @@ services:
         ARG PGVER=18
         FROM postgres:$${PGVER}
         RUN apt-get update && apt-get install -y --no-install-recommends \
-            build-essential cmake postgresql-server-dev-$${PG_MAJOR} unzip \
+            build-essential ca-certificates cmake git \
+            postgresql-server-dev-$${PG_MAJOR} \
             && rm -rf /var/lib/apt/lists/*
-        COPY *-tpc-e-tool.zip /tmp/
-        RUN TPCEZIP=$$(ls /tmp/*-tpc-e-tool.zip 2>/dev/null | tail -1) \
-            && unzip -q "$$TPCEZIP" -d /opt/egen && rm /tmp/*-tpc-e-tool.zip
       args:
         PGVER: ${PGVER:-18}
     image: dbt5-base:${PGVER:-18}
@@ -61,6 +59,7 @@ services:
         cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr
         cmake --build /tmp/build
         cmake --install /tmp/build
+        cp -a /tmp/build/_deps/egen-src /opt/egen
         dbt5-build-egen --include-dir=src/include --patch-dir=patches \
             --source-dir=src /opt/egen
         ln -sf /dev/stderr /tmp/BrokerageHouse_Error.log
@@ -87,6 +86,7 @@ services:
         cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr
         cmake --build /tmp/build
         cmake --install /tmp/build
+        cp -a /tmp/build/_deps/egen-src /opt/egen
         dbt5-build-egen --include-dir=src/include --patch-dir=patches \
             --source-dir=src /opt/egen
         ln -sf /dev/stderr /tmp/error-me-1.log
@@ -113,6 +113,7 @@ services:
         cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr
         cmake --build /tmp/build
         cmake --install /tmp/build
+        cp -a /tmp/build/_deps/egen-src /opt/egen
         dbt5-build-egen --include-dir=src/include --patch-dir=patches \
             --source-dir=src /opt/egen
         cd /tmp
@@ -149,6 +150,7 @@ services:
         cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr
         cmake --build /tmp/build
         cmake --install /tmp/build
+        cp -a /tmp/build/_deps/egen-src /opt/egen
         dbt5-build-egen --include-dir=src/include --patch-dir=patches \
             --source-dir=src /opt/egen
         OUTDIR=/tmp/results/$$(date +%Y%m%d%H%M%S)
