@@ -1,4 +1,4 @@
-vX.Y.ZZ (YYYY-MM-DD)
+v0.10.12 (2026-07-07)
 
 - Update man page generation to now detect whether rst2man or rst2man.py is on
   the system instead of hardcoding one way or the other.
