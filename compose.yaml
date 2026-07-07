@@ -3,23 +3,7 @@ services:
   dbt5:
     build:
       context: .
-      dockerfile_inline: |
-        ARG PGVER=18
-        FROM postgres:$${PGVER}
-        RUN apt-get update && apt-get install -y --no-install-recommends \
-            build-essential ca-certificates cmake git \
-            postgresql-server-dev-$${PG_MAJOR} \
-            && rm -rf /var/lib/apt/lists/*
-        COPY . /usr/local/src/dbt5
-        WORKDIR /usr/local/src/dbt5
-        RUN cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr && \
-            cmake --build /tmp/build && \
-            cmake --install /tmp/build && \
-            cp -a /tmp/build/_deps/egen-src /opt/egen && \
-            dbt5-build-egen --include-dir=src/include --patch-dir=patches \
-                --source-dir=src /opt/egen && \
-            make -C storedproc/pgsql/c USE_PGXS=1 install && \
-            rm -rf /tmp/build
+      dockerfile: Containerfile
       args:
         PGVER: ${PGVER:-18}
     image: dbt5:${PGVER:-18}

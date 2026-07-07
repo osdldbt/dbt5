@@ -9,6 +9,7 @@ vX.Y.ZZ (YYYY-MM-DD)
   connect to the database and load data via COPY API's instead of using pipes
   to psql
 - AppImage: Always include TPC-E Tools per TPC EULA v2.2 clause 9.d.
+- Add GitHub workflow to upload container image to its container registry
 
 v0.10.11 (2026-01-05)
 
