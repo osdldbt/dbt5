@@ -100,6 +100,7 @@ else()
 endif(APPIMAGE)
 
 set (GNUPLOT ../AppDir/usr/bin/gnuplot)
+set (JQ ../AppDir/usr/bin/jq)
 set (PSQL ../AppDir/usr/bin/psql)
 
 add_custom_target(appimage
@@ -210,6 +211,8 @@ add_custom_target(appimage
                `ldd ${GNUPLOT} | grep libxcb\\\\\\\\. | cut -d \" \" -f 3`
                `ldd ${GNUPLOT} | grep libxcb-shm\\\\\\\\. | cut -d \" \" -f 3`
                `ldd ${GNUPLOT} | grep libxcb-render\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${JQ} | grep libjq\\\\\\\\. | cut -d \" \" -f 3`
+               `ldd ${JQ} | grep libonig\\\\\\\\. | cut -d \" \" -f 3`
                `ldd ${PSQL} | grep libcrypto\\\\\\\\. | cut -d \" \" -f 3`
                `ldd ${PSQL} | grep libpq\\\\\\\\. | cut -d \" \" -f 3`
                `ldd ${PSQL} | grep libssl\\\\\\\\. | cut -d \" \" -f 3`

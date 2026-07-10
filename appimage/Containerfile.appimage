@@ -29,6 +29,8 @@ RUN apt-get -qq -y update && \
                            libffi-dev \
                            libfribidi-dev \
                            libharfbuzz-dev \
+                           libjq-dev \
+                           libonig5 \
                            libssl-dev \
                            make \
                            patch \
@@ -63,6 +65,16 @@ RUN mkdir -p \
           /usr/local/share/licenses/harfbuzz-$(dpkg-query -W -f='${Version}\n' libharfbuzz0b) && \
     cp -p /usr/share/doc/libharfbuzz0b/copyright \
        /usr/local/share/licenses/harfbuzz-$(dpkg-query -W -f='${Version}\n' libharfbuzz0b)/
+
+RUN mkdir -p \
+          /usr/local/share/licenses/libjq-$(dpkg-query -W -f='${Version}\n' libjq1) && \
+    cp -p /usr/share/doc/libjq1/copyright \
+       /usr/local/share/licenses/libjq-$(dpkg-query -W -f='${Version}\n' libjq1)/
+
+RUN mkdir -p \
+          /usr/local/share/licenses/libonig-$(dpkg-query -W -f='${Version}\n' libonig5) && \
+    cp -p /usr/share/doc/libonig5/copyright \
+       /usr/local/share/licenses/libonig-$(dpkg-query -W -f='${Version}\n' libonig5)/
 
 RUN mkdir -p \
           /usr/local/share/licenses/libpng-$(dpkg-query -W -f='${Version}\n' libpng16-16) && \
