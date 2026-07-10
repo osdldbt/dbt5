@@ -753,7 +753,7 @@ else
 			BROKERAGE_COMMAND=""
 		fi
 
-		HOSTNAME="$(eval "${BROKERAGE_COMMAND}" hostname)"
+		HOSTNAME="$(eval "${BROKERAGE_COMMAND} hostname")"
 
 		printf "%d. %s connecting to market %s and db %s.\n" \
 				$(( INDEX + 1 )) "${BROKERAGE_HOSTNAME}" "${MARKET_HOSTNAME}" \
@@ -817,7 +817,7 @@ else
 			MARKET_COMMAND=""
 		fi
 
-		HOSTNAME="$(eval "${MARKET_COMMAND}" hostname)"
+		HOSTNAME="$(eval "${MARKET_COMMAND} hostname")"
 
 		printf "%d. %s connecting to brokerage %s.\n" \
 				$(( INDEX + 1 )) "${MARKET_HOSTNAME}" "${BROKERAGE_HOSTNAME}"
@@ -893,7 +893,7 @@ else
 			DRIVER_COMMAND=""
 		fi
 
-		HOSTNAME="$(eval "${DRIVER_COMMAND}" hostname)"
+		HOSTNAME="$(eval "${DRIVER_COMMAND} hostname")"
 
 		printf "%d. %s connecting to brokerage %s.\n" \
 				$(( INDEX + 1 )) "${DRIVER_HOSTNAME}" "${BROKERAGE_HOSTNAME}"
