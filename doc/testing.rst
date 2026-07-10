@@ -56,7 +56,7 @@ spend 1 minute warming up before running another 5 minutes.
 Database Parameter Effects
 ==========================
 
-This test is performed by the *test-db-param* script.
+This test is performed by the *test-db-parameter* script.
 
 The purpose of this test is to evaluate the effects of a changing a single
 database parameter.
