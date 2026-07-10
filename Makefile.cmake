@@ -10,7 +10,7 @@ appimage:
 	cd builds/appimage && make install DESTDIR=../AppDir
 	rm -rf builds/AppDir/opt/egen
 	mkdir -p builds/AppDir/opt/egen
-	cp -a builds/appimage/_deps/egen-src builds/AppDir/opt/egen
+	cp -a builds/appimage/_deps/egen-src/. builds/AppDir/opt/egen
 	builds/AppDir/usr/bin/dbt5-build-egen --include-dir=src/include \
 			--patch-dir=patches --source-dir=src \
 			builds/AppDir/opt/egen; \
