@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.10.13 (2026-07-10)
 
 - AppImage: Add libjq library for jq
 - run: Fix detection of hostname when using empty strings in lieu of localhost
