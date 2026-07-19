@@ -1,18 +1,18 @@
 #!/bin/sh
 
-trap "rm -f /tmp/$$" 0 1 2 3 15
+trap 'rm -f /tmp/$$' 0 1 2 3 15
 rm -f ./tags
 
-cv=`ctags --version 2>&1 | grep Exuberant`
+cv=$(ctags --version 2>&1 | grep Exuberant)
 
 if [ -z "$cv" ]
 then	FLAGS="-dt"
 else	FLAGS="--c++-types=+cdefglmnpstuvx"
 fi
 
-find `pwd`/ \( -name _deadcode -prune \) -o \
-		-type f -name '*.cpp' -o -name '*.[ch]' -print |
-	xargs ctags "$FLAGS" -a -f tags
+find "$(pwd)"/ \( -name _deadcode -prune \) -o \
+		\( -type f -name '*.cpp' -o -name '*.[ch]' \) -print0 |
+	xargs -0 ctags "$FLAGS" -a -f tags
 
 if [ -z "$cv" ]
 then
@@ -22,6 +22,8 @@ then
 fi
 
 find . \( -name 'CVS' -prune \) -o \( -name .git -prune \) -o -type d -print |
-while read DIR
-do	[ "$DIR" != "." ] && ln -f -s `echo "$DIR" | sed 's;/[^/]*;/..;g'`/tags "$DIR"/tags
+while read -r DIR
+do	[ "$DIR" != "." ] && \
+		ln -f -s "$(echo "$DIR" | sed 's;/[^/]*;/..;g')"/tags \
+				"$DIR"/tags
 done

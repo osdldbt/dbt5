@@ -103,25 +103,25 @@ shift
 EGENOBJDIR="${EGENDIR}/obj"
 
 cp -pr \
-		${SOURCEDIR}/interfaces \
-		${SOURCEDIR}/MarketExchange \
-		${SOURCEDIR}/transactions \
-		${SOURCEDIR}/BrokerageHouse \
-		${SOURCEDIR}/Driver \
-		${SOURCEDIR}/Customer \
-		${SOURCEDIR}/TestTransactions \
-		${EGENDIR}/src/ || exit 1
+		"${SOURCEDIR}"/interfaces \
+		"${SOURCEDIR}"/MarketExchange \
+		"${SOURCEDIR}"/transactions \
+		"${SOURCEDIR}"/BrokerageHouse \
+		"${SOURCEDIR}"/Driver \
+		"${SOURCEDIR}"/Customer \
+		"${SOURCEDIR}"/TestTransactions \
+		"${EGENDIR}"/src/ || exit 1
 mkdir -p \
-		${EGENOBJDIR}/interfaces \
-		${EGENOBJDIR}/MarketExchange \
-		${EGENOBJDIR}/transactions \
-		${EGENOBJDIR}/transactions/pgsql \
-		${EGENOBJDIR}/BrokerageHouse \
-		${EGENOBJDIR}/Driver \
-		${EGENOBJDIR}/Customer \
-		${EGENOBJDIR}/TestTransactions || exit 1
+		"${EGENOBJDIR}"/interfaces \
+		"${EGENOBJDIR}"/MarketExchange \
+		"${EGENOBJDIR}"/transactions \
+		"${EGENOBJDIR}"/transactions/pgsql \
+		"${EGENOBJDIR}"/BrokerageHouse \
+		"${EGENOBJDIR}"/Driver \
+		"${EGENOBJDIR}"/Customer \
+		"${EGENOBJDIR}"/TestTransactions || exit 1
 
-if [ ${PATCH} -eq 1 ]; then
+if [ "${PATCH}" -eq 1 ]; then
 	if [ "${PATCHDIR}" = "" ]; then
 		PATCHDIR="/usr/share/dbt5/patches"
 	fi
@@ -133,7 +133,7 @@ if [ ${PATCH} -eq 1 ]; then
 	fi
 fi
 
-if [ ${PATCH} -eq 1 ]; then
+if [ "${PATCH}" -eq 1 ]; then
 	cd "${EGENDIR}" || \
 			(echo "ERROR: cannot enter directory ${EGENDIR}" && exit 1)
 	while IFS= read -r PATCHFILE; do
@@ -153,5 +153,5 @@ fi
 		CCFLAGS="-Wall -D__unix -g -std=c++98 -ansi -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D_LARGEFILE64_SOURCE -DCOMPILE_CUSTOM_LOAD -DPGSQL -I${EGENDIR}/inc ${INCLUDEDIR} -I${EGENDIR}/Utilities/inc ${EXTRAINCLUDE}" \
 		LDFLAGS="${EXTRALDDIR}" \
 		LIBS="-lpthread -lpq" \
-		make -j$(nproc) -f Makefile) \
+		make -j"$(nproc)" -f Makefile) \
 		|| (echo "ERROR: cannot build egen" && exit 1)

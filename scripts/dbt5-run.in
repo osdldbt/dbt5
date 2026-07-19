@@ -25,11 +25,11 @@ make_directories()
 	if [ -n "${HOST}" ]; then
 		COMMAND="ssh ${HOST}"
 	fi
-	${COMMAND} mkdir -p ${OUTPUT_DIR}
-	${COMMAND} mkdir -p ${BH_OUTPUT_DIR}
-	${COMMAND} mkdir -p ${MEE_OUTPUT_DIR}
-	${COMMAND} mkdir -p ${DRIVER_OUTPUT_DIR}
-	${COMMAND} mkdir -p ${DB_OUTPUT_DIR}
+	${COMMAND} mkdir -p "${OUTPUT_DIR}"
+	${COMMAND} mkdir -p "${BH_OUTPUT_DIR}"
+	${COMMAND} mkdir -p "${MEE_OUTPUT_DIR}"
+	${COMMAND} mkdir -p "${DRIVER_OUTPUT_DIR}"
+	${COMMAND} mkdir -p "${DB_OUTPUT_DIR}"
 }
 
 profile_collect()
@@ -570,22 +570,22 @@ if [ "${EGENHOME}" = "" ]; then
 	exit 1
 fi
 
-if [ "x${DBMS}" = "x" ]; then
+if [ -z "${DBMS}" ]; then
 	usage "specify which dbms system to test using -a <pgsql>"
 	exit 1
 fi
 
-if [ "x${DB_NAME}" = "x" ]; then
+if [ -z "${DB_NAME}" ]; then
 	usage "specify the database name to test using -n <dbt5>"
 	exit 1
 fi
 
-if [ "x${CUSTOMERS_TOTAL}" = "x" ]; then
+if [ -z "${CUSTOMERS_TOTAL}" ]; then
 	usage "specify the number of total customers -t #"
 	exit 1
 fi
 
-if [ "x${DURATION}" = "x" ]; then
+if [ -z "${DURATION}" ]; then
 	usage "specify the duration of the test in seconds using -d #"
 	exit 1
 fi
@@ -595,12 +595,12 @@ if [ "${CONFIGFILE}" = "" ] && [ "${USERS}" = "" ]; then
 	exit 1
 fi
 
-if [ "x${ITD}" = "x" ]; then
+if [ -z "${ITD}" ]; then
 	usage "specify the number of initial trade days using -w #"
 	exit 1
 fi
 
-if [ "x${OUTPUT_DIR}" = "x" ]; then
+if [ -z "${OUTPUT_DIR}" ]; then
 	usage "specify the location for results, directory must not exist, using -o <path>"
 	exit 1
 fi
@@ -611,15 +611,15 @@ if [ -d "${OUTPUT_DIR}" ]; then
 	exit 1
 fi
 
-if [ "${CONFIGFILE}" = "" ] && [ ! "x${DB_HOSTNAME}" = "x" ]; then
+if [ "${CONFIGFILE}" = "" ] && [ -n "${DB_HOSTNAME}" ]; then
     DB_HOSTNAME_ARG="-h ${DB_HOSTNAME}"
 fi
 
-if [ "${CONFIGFILE}" = "" ] && [ ! "x${DB_PORT}" = "x" ]; then
+if [ "${CONFIGFILE}" = "" ] && [ -n "${DB_PORT}" ]; then
     DB_PORT_ARG="-p ${DB_PORT}"
 fi
 
-if [ ! "x${SEED}" = "x" ]; then
+if [ -n "${SEED}" ]; then
     SEEDARG="-r ${SEED}"
 	echo "WARNING: INVALID RUN BECAUSE RANDOM NUMBER SEED SPECIFIED"
 fi
@@ -647,15 +647,19 @@ if [ "${CONFIGFILE}" = "" ]; then
 fi
 
 # Create a readme file in the output directory and date it.
-date >> ${OUTPUT_DIR}/readme.txt
-echo "${COMMENT}" >> ${OUTPUT_DIR}/readme.txt
-uname -a >> ${OUTPUT_DIR}/readme.txt
-echo "Command line: $0 $@" >> ${OUTPUT_DIR}/readme.txt
+{
+date
+echo "${COMMENT}"
+uname -a
+echo "Command line: $0" "$@"
+} >> "${OUTPUT_DIR}"/readme.txt
 
 # Output run information into the readme.txt.
-echo "Database Scale Factor: ${SCALE_FACTOR}" >> ${OUTPUT_DIR}/readme.txt
-echo "Database Customer Cardinality: ${CUSTOMERS_TOTAL}" >> ${OUTPUT_DIR}/readme.txt
-echo "Test Duration: ${DURATION} seconds" >> ${OUTPUT_DIR}/readme.txt
+{
+echo "Database Scale Factor: ${SCALE_FACTOR}"
+echo "Database Customer Cardinality: ${CUSTOMERS_TOTAL}"
+echo "Test Duration: ${DURATION} seconds"
+} >> "${OUTPUT_DIR}"/readme.txt
 
 if [ "${CONFIGFILE}" = "" ]; then
 	if [ ${DBAAS} -ne 1 ] && [ ! "${DB_HOSTNAME}" = "" ] && \
@@ -912,9 +916,9 @@ else
 	echo
 fi
 
-SLEEP_RAMPUP=`expr ${USERS} + 1`
-SLEEP_RAMPUP=`expr ${SLEEP_RAMPUP} \* ${SLEEPY}`
-SLEEP_RAMPUP=`expr ${SLEEP_RAMPUP} / 1000`
+SLEEP_RAMPUP=$((USERS + 1))
+SLEEP_RAMPUP=$((SLEEP_RAMPUP * SLEEPY))
+SLEEP_RAMPUP=$((SLEEP_RAMPUP / 1000))
 
 # Start stats collection
 do_sleep "${SLEEP_RAMPUP}" "* User ramp up to finish in ${SLEEP_RAMPUP} s."

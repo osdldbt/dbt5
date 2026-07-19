@@ -127,7 +127,7 @@ CREATE TABLE mix(
 );
 EOF
 
-for FILE in ${@}; do
+for FILE in "${@}"; do
 	sqlite3 "${DBFILE}" <<- EOF
 		${SQLOPTIONS}
 		.mode csv

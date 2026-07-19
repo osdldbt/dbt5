@@ -12,7 +12,7 @@
 #
 
 explain() {
-	SQL="EXPLAIN ${@}"
+	SQL="EXPLAIN ${*}"
 	psql -X -e "${PORTARG}" "${DBNAMEARG}" -c "${SQL}" >> "${OUTPUT_FILE}" 2>&1
 }
 
@@ -27,29 +27,35 @@ while getopts "d:o:p:" opt; do
 	p)
 		PORT=${OPTARG}
 		;;
+	*)
+		;;
 	esac
 done
 
-if [ ! "x${DBT5DBNAME}" = "x" ]; then
+if [ ! "${DBT5DBNAME}" = "" ]; then
 	DBNAMEARG="-d ${DBT5DBNAME}"
 fi
 
-if [ ! "x${PORT}" = "x" ]; then
+if [ ! "${PORT}" = "" ]; then
 	PORTARG="-p ${PORT}"
 fi
 
-if [ "x${OUTPUT_FILE}" = "x" ]; then
+if [ "${OUTPUT_FILE}" = "" ]; then
 	echo "usage: db-plans -o <outfile>"
 	exit 1
 fi
 
-echo "-------------------------" > ${OUTPUT_FILE}
-echo "Broker Volume Transaction" >> ${OUTPUT_FILE}
-echo "-------------------------" >> ${OUTPUT_FILE}
+echo "-------------------------" > "${OUTPUT_FILE}"
+{
+	echo "Broker Volume Transaction"
+	echo "-------------------------"
+} >> "${OUTPUT_FILE}"
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 1" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 1"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT b_name, SUM(tr_qty * tr_bid_price)
@@ -66,13 +72,17 @@ GROUP BY b_name
 ORDER BY 2 DESC
 "
 
-echo "-----------------------------" >> ${OUTPUT_FILE}
-echo "Customer Position Transaction" >> ${OUTPUT_FILE}
-echo "-----------------------------" >> ${OUTPUT_FILE}
+{
+	echo "-----------------------------"
+	echo "Customer Position Transaction"
+	echo "-----------------------------"
+} >> "${OUTPUT_FILE}"
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 1" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 1"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT  c_id
@@ -119,9 +129,11 @@ ORDER BY 3 ASC
 LIMIT 10
 "
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 2" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 2"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT   t_id,
@@ -144,13 +156,17 @@ ORDER BY th_dts DESC
 LIMIT 30
 "
 
-echo "----------------------------" >> ${OUTPUT_FILE}
-echo "Data Maintenance Transaction" >> ${OUTPUT_FILE}
-echo "----------------------------" >> ${OUTPUT_FILE}
+{
+	echo "----------------------------"
+	echo "Data Maintenance Transaction"
+	echo "----------------------------"
+} >> "${OUTPUT_FILE}"
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 1" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 1"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT ap_acl
@@ -341,13 +357,17 @@ WHERE wl_c_id = 1
   AND wi_s_symb = '%s'
 "
 
-echo "-----------------------" >> ${OUTPUT_FILE}
-echo "Market Feed Transaction" >> ${OUTPUT_FILE}
-echo "-----------------------" >> ${OUTPUT_FILE}
+{
+	echo "-----------------------"
+	echo "Market Feed Transaction"
+	echo "-----------------------"
+} >> "${OUTPUT_FILE}"
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 1" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 1"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 UPDATE last_trade
@@ -390,13 +410,17 @@ INSERT INTO trade_history(th_t_id, th_dts, th_st_id)
 VALUES (1, now(), '%s')
 "
 
-echo "------------------------" >> ${OUTPUT_FILE}
-echo "Market Watch Transaction" >> ${OUTPUT_FILE}
-echo "------------------------" >> ${OUTPUT_FILE}
+{
+	echo "------------------------"
+	echo "Market Watch Transaction"
+	echo "------------------------"
+} >> "${OUTPUT_FILE}"
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 1" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 1"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 
 explain "
@@ -444,13 +468,17 @@ WHERE  dm_s_symb = '%s'
        AND dm_date = '2002-02-22'
 "
 
-echo "---------------------------" >> ${OUTPUT_FILE}
-echo "Security Detail Transaction" >> ${OUTPUT_FILE}
-echo "---------------------------" >> ${OUTPUT_FILE}
+{
+	echo "---------------------------"
+	echo "Security Detail Transaction"
+	echo "---------------------------"
+} >> "${OUTPUT_FILE}"
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 1" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 1"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT s_name,
@@ -588,13 +616,17 @@ LIMIT 1
 "
 
 
-echo "-------------------------" >> ${OUTPUT_FILE}
-echo "Trade Cleanup Transaction" >> ${OUTPUT_FILE}
-echo "-------------------------" >> ${OUTPUT_FILE}
+{
+	echo "-------------------------"
+	echo "Trade Cleanup Transaction"
+	echo "-------------------------"
+} >> "${OUTPUT_FILE}"
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 1" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 1"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT tr_t_id
@@ -631,13 +663,17 @@ INSERT INTO trade_history(th_t_id, th_dts, th_st_id)
 VALUES (1, now(), '%s')
 "
 
-echo "------------------------" >> ${OUTPUT_FILE}
-echo "Trade Lookup Transaction" >> ${OUTPUT_FILE}
-echo "------------------------" >> ${OUTPUT_FILE}
+{
+	echo "------------------------"
+	echo "Trade Lookup Transaction"
+	echo "------------------------"
+} >> "${OUTPUT_FILE}"
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 1" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 1"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT t_bid_price, t_exec_name, t_is_cash, tt_is_mrkt,
@@ -667,9 +703,11 @@ ORDER BY th_dts
 LIMIT 3
 "
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 2" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 2"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT t_bid_price, t_exec_name, t_is_cash, t_id, t_trade_price
@@ -693,9 +731,11 @@ FROM cash_transaction
 WHERE ct_t_id = 1
 "
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 3" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 3"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT t_ca_id, t_exec_name, t_is_cash, t_trade_price, t_qty,
@@ -728,9 +768,11 @@ ORDER BY th_dts ASC
 LIMIT 3
 "
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 4" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 4"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT t_id
@@ -750,13 +792,17 @@ WHERE hh_h_t_id IN (
       WHERE hh_t_id = 1)
 "
 
-echo "-----------------------" >> ${OUTPUT_FILE}
-echo "Trade Order Transaction" >> ${OUTPUT_FILE}
-echo "-----------------------" >> ${OUTPUT_FILE}
+{
+	echo "-----------------------"
+	echo "Trade Order Transaction"
+	echo "-----------------------"
+} >> "${OUTPUT_FILE}"
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 1" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 1"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT ca_name, ca_b_id, ca_c_id, ca_tax_st
@@ -776,9 +822,11 @@ FROM Broker
 WHERE b_id = 1
 "
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 2" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 2"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT ap_acl
@@ -789,9 +837,11 @@ WHERE ap_ca_id = 1
   AND ap_tax_id = '%s'
 "
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 3" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 3"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT co_id
@@ -914,13 +964,17 @@ INSERT INTO trade_history(th_t_id, th_dts, th_st_id)
 VALUES(1, now(), '%s')
 "
 
-echo "------------------------" >> ${OUTPUT_FILE}
-echo "Trade Result Transaction" >> ${OUTPUT_FILE}
-echo "------------------------" >> ${OUTPUT_FILE}
+{
+	echo "------------------------"
+	echo "Trade Result Transaction"
+	echo "------------------------"
+} >> "${OUTPUT_FILE}"
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 1" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 1"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT t_ca_id, t_tt_id, t_s_symb, t_qty, t_chrg,
@@ -953,9 +1007,11 @@ WHERE hs_ca_id = 1
   AND hs_s_symb = '%s'
 "
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 2" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 2"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT ca_b_id, ca_c_id, ca_tax_st
@@ -1032,9 +1088,11 @@ WHERE hs_ca_id = 1
   AND hs_s_symb = '%s'
 "
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 3" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 3"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT SUM(tx_rate)
@@ -1050,9 +1108,11 @@ SET t_tax = 1
 WHERE t_id = 1
 "
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 4" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 4"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 
 explain "
@@ -1079,9 +1139,11 @@ LIMIT 1
 "
 
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 5" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 5"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 UPDATE trade
@@ -1104,9 +1166,11 @@ SET b_comm_total = b_comm_total + 1,
 WHERE b_id = 1
 "
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 6" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 6"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 INSERT INTO settlement(se_t_id, se_cash_type, se_cash_due_date,
@@ -1131,13 +1195,17 @@ FROM customer_account
 WHERE ca_id = 1
 "
 
-echo "------------------------" >> ${OUTPUT_FILE}
-echo "Trade Status Transaction" >> ${OUTPUT_FILE}
-echo "------------------------" >> ${OUTPUT_FILE}
+{
+	echo "------------------------"
+	echo "Trade Status Transaction"
+	echo "------------------------"
+} >> "${OUTPUT_FILE}"
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 1" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 1"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT  C_L_NAME, C_F_NAME, B_NAME
@@ -1156,13 +1224,17 @@ WHERE ca_id = 1
   AND b_id = ca_b_id
 "
 
-echo "------------------------" >> ${OUTPUT_FILE}
-echo "Trade Update Transaction" >> ${OUTPUT_FILE}
-echo "------------------------" >> ${OUTPUT_FILE}
+{
+	echo "------------------------"
+	echo "Trade Update Transaction"
+	echo "------------------------"
+} >> "${OUTPUT_FILE}"
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 1" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 1"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 
 explain "
@@ -1206,9 +1278,11 @@ LIMIT 3
 "
 
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 2" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 2"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT t_bid_price, t_exec_name, t_is_cash, t_id, t_trade_price
@@ -1252,9 +1326,11 @@ ORDER BY th_dts
 LIMIT 3
 "
 
-echo "-------" >> ${OUTPUT_FILE}
-echo "Frame 3" >> ${OUTPUT_FILE}
-echo "-------" >> ${OUTPUT_FILE}
+{
+	echo "-------"
+	echo "Frame 3"
+	echo "-------"
+} >> "${OUTPUT_FILE}"
 
 explain "
 SELECT t_ca_id, t_exec_name, t_is_cash, t_trade_price, t_qty,

@@ -27,10 +27,12 @@ while getopts "d:hp:" OPT; do
 	p)
 		PORT=${OPTARG}
 		;;
+	*)
+		;;
 	esac
 done
 
-if [ ${PRIVILEGED} -eq 1 ] && [ -z ${DBT5PGDATA} ]; then
+if [ ${PRIVILEGED} -eq 1 ] && [ -z "${DBT5PGDATA}" ]; then
 	echo "DBT5PGDATA not defined."
 	exit 1
 fi
@@ -40,23 +42,23 @@ if [ "${DBT5DBNAME}" = "x" ]; then
 	exit 1
 fi
 
-if [ ! "x${PORT}" = "x" ]; then
+if [ -n "${PORT}" ]; then
 	PORTOPT="-p ${PORT}"
 fi
 
 if [ ${PRIVILEGED} -eq 1 ]; then
 	# Create database
 	echo "Creating database..."
-	if [ -d ${DBT5PGDATA} ]; then
+	if [ -d "${DBT5PGDATA}" ]; then
 		echo "======================================="
 		echo "PGData directory ${DBT5PGDATA} already exists"
 		echo "Skipping initdb"
 		echo "======================================="
 	else
-		initdb -D ${DBT5PGDATA} --locale=C || exit 1
+		initdb -D "${DBT5PGDATA}" --locale=C || exit 1
 	fi
 
-	if [ ! "x${PORT}" = "x" ]; then
+	if [ -n "${PORT}" ]; then
 		dbt5-pgsql-start-db -p "-c port=${PORT}"
 	else
 		dbt5-pgsql-start-db

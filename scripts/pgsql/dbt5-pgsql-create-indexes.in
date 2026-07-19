@@ -7,6 +7,8 @@
 # Copyright The DBT-5 Authors
 #
 
+# This function is called through eval, which shellcheck cannot see.
+# shellcheck disable=SC2317,SC2329
 exec_and_sync() {
 	SQL="${1}"
 
@@ -33,14 +35,16 @@ while getopts "d:p:t" OPT; do
 	t)
 		USE_TABLESPACES=1
 		;;
+	*)
+		;;
 	esac
 done
 
-if [ ! "x${DBT5DBNAME}" = "x" ]; then
+if [ -n "${DBT5DBNAME}" ]; then
 	DBNAMEARG="-d ${DBT5DBNAME}"
 fi
 
-if [ ! "x${PORT}" = "x" ]; then
+if [ -n "${PORT}" ]; then
 	PORTARG="-p ${PORT}"
 fi
 
@@ -64,7 +68,7 @@ else
 fi
 
 if [ ${USE_TABLESPACES} -eq 1 ]; then
-	if [ -z ${DBT5TSDIR} ]; then
+	if [ -z "${DBT5TSDIR}" ]; then
 		echo "DBT5TSDIR not defined for tablespace path."
 		exit 1
 	fi
@@ -120,50 +124,50 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	# 'lost+found' directory if a device was mounted at
 	# '${DBT5TSDIR}/warehouse'.
 	#
-	mkdir -p ${TS_PK_ACCOUNT_PERMISSION_DIR} || exit 1
-	mkdir -p ${TS_PK_CUSTOMER_DIR} || exit 1
-	mkdir -p ${TS_PK_CUSTOMER_ACCOUNT_DIR} || exit 1
-	mkdir -p ${TS_PK_CUSTOMER_TAXRATE_DIR} || exit 1
-	mkdir -p ${TS_PK_HOLDING_DIR} || exit 1
-	mkdir -p ${TS_PK_HOLDING_HISTORY_DIR} || exit 1
-	mkdir -p ${TS_PK_HOLDING_SUMMARY_DIR} || exit 1
-	mkdir -p ${TS_PK_WATCH_ITEM_DIR} || exit 1
-	mkdir -p ${TS_PK_WATCH_LIST_DIR} || exit 1
-	mkdir -p ${TS_PK_BROKER_DIR} || exit 1
-	mkdir -p ${TS_PK_CASH_TRANSACTION_DIR} || exit 1
-	mkdir -p ${TS_PK_CHARGE_DIR} || exit 1
-	mkdir -p ${TS_PK_COMMISSION_RATE_DIR} || exit 1
-	mkdir -p ${TS_PK_SETTLEMENT_DIR} || exit 1
-	mkdir -p ${TS_PK_TRADE_DIR} || exit 1
-	mkdir -p ${TS_PK_TRADE_HISTORY_DIR} || exit 1
-	mkdir -p ${TS_PK_TRADE_REQUEST_DIR} || exit 1
-	mkdir -p ${TS_PK_TRADE_TYPE_DIR} || exit 1
-	mkdir -p ${TS_PK_COMPANY_DIR} || exit 1
-	mkdir -p ${TS_PK_COMPANY_COMPETITOR_DIR} || exit 1
-	mkdir -p ${TS_PK_DAILY_MARKET_DIR} || exit 1
-	mkdir -p ${TS_PK_EXCHANGE_DIR} || exit 1
-	mkdir -p ${TS_PK_FINANCIAL_DIR} || exit 1
-	mkdir -p ${TS_PK_INDUSTRY_DIR} || exit 1
-	mkdir -p ${TS_PK_LAST_TRADE_DIR} || exit 1
-	mkdir -p ${TS_PK_NEWS_ITEM_DIR} || exit 1
-	mkdir -p ${TS_PK_NEWS_XREF_DIR} || exit 1
-	mkdir -p ${TS_PK_SECTOR_DIR} || exit 1
-	mkdir -p ${TS_PK_SECURITY_DIR} || exit 1
-	mkdir -p ${TS_PK_ADDRESS_DIR} || exit 1
-	mkdir -p ${TS_PK_STATUS_TYPE_DIR} || exit 1
-	mkdir -p ${TS_PK_TAXRATE_DIR} || exit 1
-	mkdir -p ${TS_PK_ZIP_CODE_DIR} || exit 1
+	mkdir -p "${TS_PK_ACCOUNT_PERMISSION_DIR}" || exit 1
+	mkdir -p "${TS_PK_CUSTOMER_DIR}" || exit 1
+	mkdir -p "${TS_PK_CUSTOMER_ACCOUNT_DIR}" || exit 1
+	mkdir -p "${TS_PK_CUSTOMER_TAXRATE_DIR}" || exit 1
+	mkdir -p "${TS_PK_HOLDING_DIR}" || exit 1
+	mkdir -p "${TS_PK_HOLDING_HISTORY_DIR}" || exit 1
+	mkdir -p "${TS_PK_HOLDING_SUMMARY_DIR}" || exit 1
+	mkdir -p "${TS_PK_WATCH_ITEM_DIR}" || exit 1
+	mkdir -p "${TS_PK_WATCH_LIST_DIR}" || exit 1
+	mkdir -p "${TS_PK_BROKER_DIR}" || exit 1
+	mkdir -p "${TS_PK_CASH_TRANSACTION_DIR}" || exit 1
+	mkdir -p "${TS_PK_CHARGE_DIR}" || exit 1
+	mkdir -p "${TS_PK_COMMISSION_RATE_DIR}" || exit 1
+	mkdir -p "${TS_PK_SETTLEMENT_DIR}" || exit 1
+	mkdir -p "${TS_PK_TRADE_DIR}" || exit 1
+	mkdir -p "${TS_PK_TRADE_HISTORY_DIR}" || exit 1
+	mkdir -p "${TS_PK_TRADE_REQUEST_DIR}" || exit 1
+	mkdir -p "${TS_PK_TRADE_TYPE_DIR}" || exit 1
+	mkdir -p "${TS_PK_COMPANY_DIR}" || exit 1
+	mkdir -p "${TS_PK_COMPANY_COMPETITOR_DIR}" || exit 1
+	mkdir -p "${TS_PK_DAILY_MARKET_DIR}" || exit 1
+	mkdir -p "${TS_PK_EXCHANGE_DIR}" || exit 1
+	mkdir -p "${TS_PK_FINANCIAL_DIR}" || exit 1
+	mkdir -p "${TS_PK_INDUSTRY_DIR}" || exit 1
+	mkdir -p "${TS_PK_LAST_TRADE_DIR}" || exit 1
+	mkdir -p "${TS_PK_NEWS_ITEM_DIR}" || exit 1
+	mkdir -p "${TS_PK_NEWS_XREF_DIR}" || exit 1
+	mkdir -p "${TS_PK_SECTOR_DIR}" || exit 1
+	mkdir -p "${TS_PK_SECURITY_DIR}" || exit 1
+	mkdir -p "${TS_PK_ADDRESS_DIR}" || exit 1
+	mkdir -p "${TS_PK_STATUS_TYPE_DIR}" || exit 1
+	mkdir -p "${TS_PK_TAXRATE_DIR}" || exit 1
+	mkdir -p "${TS_PK_ZIP_CODE_DIR}" || exit 1
 
-	mkdir -p ${TS_I_C_TAX_ID_DIR} || exit 1
-	mkdir -p ${TS_I_CA_C_ID_DIR} || exit 1
-	mkdir -p ${TS_I_WL_C_ID_DIR} || exit 1
-	mkdir -p ${TS_I_DM_S_SYMB_DIR} || exit 1
-	mkdir -p ${TS_I_TR_S_SYMB_DIR} || exit 1
-	mkdir -p ${TS_I_T_ST_ID_DIR} || exit 1
-	mkdir -p ${TS_I_T_CA_ID_DIR} || exit 1
-	mkdir -p ${TS_I_CO_NAME_DIR} || exit 1
-	mkdir -p ${TS_I_SECURITY_DIR} || exit 1
-	mkdir -p ${TS_I_HOLDING_DIR} || exit 1
+	mkdir -p "${TS_I_C_TAX_ID_DIR}" || exit 1
+	mkdir -p "${TS_I_CA_C_ID_DIR}" || exit 1
+	mkdir -p "${TS_I_WL_C_ID_DIR}" || exit 1
+	mkdir -p "${TS_I_DM_S_SYMB_DIR}" || exit 1
+	mkdir -p "${TS_I_TR_S_SYMB_DIR}" || exit 1
+	mkdir -p "${TS_I_T_ST_ID_DIR}" || exit 1
+	mkdir -p "${TS_I_T_CA_ID_DIR}" || exit 1
+	mkdir -p "${TS_I_CO_NAME_DIR}" || exit 1
+	mkdir -p "${TS_I_SECURITY_DIR}" || exit 1
+	mkdir -p "${TS_I_HOLDING_DIR}" || exit 1
 
 	TS_PK_ACCOUNT_PERMISSION="TABLESPACE dbt5_pk_account_permission"
 	TS_PK_CUSTOMER="TABLESPACE dbt5_pk_customer"

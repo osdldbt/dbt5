@@ -4,20 +4,18 @@
 
 PGVERSION=14.2
 
-which docker > /dev/null 2>&1
-if [ $? -ne 0 ]; then
+if ! which docker > /dev/null 2>&1; then
 	echo "docker not in path"
 	exit 1
 fi
 
 if [ $# -ne 1 ]; then
-	which jq > /dev/null 2>&1
-	if [ $? -ne 0 ]; then
+	if ! which jq > /dev/null 2>&1; then
 		echo "install jq to automatically use the latest postgres version"
 		echo "defaulting to version $PGVERSION"
 	else
 		PGORG="https://www.postgresql.org/versions.json"
-		PGVERSION=`curl -s $PGORG | jq -r 'sort | .[].major' | tail -n 1`
+		PGVERSION=$(curl -s "${PGORG}" | jq -r 'sort | .[].major' | tail -n 1)
 	fi
 else
 	PGVERSION=$1
@@ -25,5 +23,5 @@ fi
 
 echo "Using PostgreSQL Version $PGVERSION"
 
-DOCKER_DIR=`dirname $0`
-docker build --build-arg PGVERSION=$PGVERSION -t dbt5-base $DOCKER_DIR
+DOCKER_DIR=$(dirname "$0")
+docker build --build-arg PGVERSION="${PGVERSION}" -t dbt5-base "${DOCKER_DIR}"

@@ -55,12 +55,12 @@ load_table()
 		# Close enough...
 		N=$(( (TOTAL_ROWS + ROWS_PER_COMMIT - 1) / ROWS_PER_COMMIT ))
 		for K in $(seq 1 ${N}); do
-			eval "${PSQL}" -e <<- EOF
+			if ! eval "${PSQL}" -e <<- EOF
 				BEGIN;
 				\COPY ${1} FROM PROGRAM 'split -n l/${K}/${N} ${FLAT_OUT}/${2}' WITH (DELIMITER '|', NULL '');
 				COMMIT;
 			EOF
-			if [ ${?} -ne 0 ]; then
+			then
 				echo "ERROR: loading ${1} ${K} of ${N} chunks"
 				exit 1
 			fi
@@ -230,18 +230,18 @@ while [ "${#}" -gt 0 ] ; do
 	shift
 done
 
-if [ "x${EGENDIR}" = "x" ]; then
+if [ -z "${EGENDIR}" ]; then
 	echo "EGENDIR not defined, specify EGen's directory."
 	exit 1
 else
 	EGENLOADER="${EGENDIR}/bin/EGenLoader"
-	if [ ! -f ${EGENLOADER} ]; then
+	if [ ! -f "${EGENLOADER}" ]; then
 		echo "Cannot verify that '${EGENLOADER}' exists..."
 		exit 1
 	fi
 fi
 
-if [ ! "x${DBT5DBNAME}" = "x" ]; then
+if [ -n "${DBT5DBNAME}" ]; then
 	DBNAMEARG="-d ${DBT5DBNAME}"
 fi
 
@@ -249,7 +249,7 @@ if [ "${FLAT_OUT}" = "" ]; then
 	FLAT_OUT="${EGENDIR}/flat_out"
 fi
 
-if [ ! "x${PORT}" = "x" ]; then
+if [ -n "${PORT}" ]; then
 	PORTARG="-p ${PORT}"
 	export PGPORT="${PORT}"
 fi
@@ -260,7 +260,7 @@ if [ ${PRIVILEGED} -eq 1 ] && [ ${REBUILD_DB} -eq 1 ]; then
 	echo "Restarting the database to reset database parameters..."
 	dbt5-pgsql-stop-db
 	dbt5-pgsql-start-db -p "${PARAMETERS}" || exit 1
-	eval dbt5-pgsql-drop-db ${PORTARG}
+	eval dbt5-pgsql-drop-db "${PORTARG}"
 fi
 
 eval "dbt5-pgsql-create-db ${DBNAMEARG} ${PORTARG}" || exit 1
@@ -420,7 +420,7 @@ VACUUM_JOBS=1
 # Based on server version, enable vaccumdb parallelism if that version
 # is greater than or equal to 9.5.
 PG_VERSION_NUM=$(eval "psql -X -At ${DBNAMEARG} -c \"SHOW server_version_num\"")
-PG_VERSION_NUM=$(( $PG_VERSION_NUM + 0 ))
+PG_VERSION_NUM=$(( PG_VERSION_NUM + 0 ))
 if [ $PG_VERSION_NUM -ge 95000 ]; then
 	# Set default vacuum jobs to 33 because this is the number of tables
 	# present in the database. Setting the number of job to a value
@@ -429,8 +429,8 @@ if [ $PG_VERSION_NUM -ge 95000 ]; then
 	# If the number of CPUs is less than 9, then we set the vacuum job
 	# number to that number of CPUs.
 	if [ -f "/proc/stat" ]; then
-		CPUS=$(grep cpu /proc/stat | wc -l)
-		CPUS=$(( $CPUS - 1 ))
+		CPUS=$(grep -c cpu /proc/stat)
+		CPUS=$(( CPUS - 1 ))
 		if [ $CPUS -lt $VACUUM_JOBS ]; then
 			VACUUM_JOBS=$CPUS
 		fi

@@ -19,21 +19,23 @@ while getopts "d:p:t" OPT; do
 	t)
 		USE_TABLESPACES=1
 		;;
+	*)
+		;;
 	esac
 done
 
-if [ ! "x${DBT5DBNAME}" = "x" ]; then
+if [ -n "${DBT5DBNAME}" ]; then
 	DBNAMEARG="-d ${DBT5DBNAME}"
 fi
 
-if [ ! "x${PORT}" = "x" ]; then
+if [ -n "${PORT}" ]; then
 	PORTARG="-p ${PORT}"
 fi
 
 PSQL="psql -X ${PORTARG} -e ${DBNAMEARG}"
 
 if [ ${USE_TABLESPACES} -eq 1 ]; then
-	if [ -z ${DBT5TSDIR} ]; then
+	if [ -z "${DBT5TSDIR}" ]; then
 		echo "DBT5TSDIR not defined for tablespace path."
 		exit 1
 	fi
@@ -77,39 +79,39 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	# 'lost+found' directory if a device was mounted at
 	# '${DBT5TSDIR}/warehouse'.
 	#
-	mkdir -p ${TS_ACCOUNT_PERMISSION_DIR} || exit 1
-	mkdir -p ${TS_CUSTOMER_DIR} || exit 1
-	mkdir -p ${TS_CUSTOMER_ACCOUNT_DIR} || exit 1
-	mkdir -p ${TS_CUSTOMER_TAXRATE_DIR} || exit 1
-	mkdir -p ${TS_HOLDING_DIR} || exit 1
-	mkdir -p ${TS_HOLDING_HISTORY_DIR} || exit 1
-	mkdir -p ${TS_HOLDING_SUMMARY_DIR} || exit 1
-	mkdir -p ${TS_WATCH_ITEM_DIR} || exit 1
-	mkdir -p ${TS_WATCH_LIST_DIR} || exit 1
-	mkdir -p ${TS_BROKER_DIR} || exit 1
-	mkdir -p ${TS_CASH_TRANSACTION_DIR} || exit 1
-	mkdir -p ${TS_CHARGE_DIR} || exit 1
-	mkdir -p ${TS_COMMISSION_RATE_DIR} || exit 1
-	mkdir -p ${TS_SETTLEMENT_DIR} || exit 1
-	mkdir -p ${TS_TRADE_DIR} || exit 1
-	mkdir -p ${TS_TRADE_HISTORY_DIR} || exit 1
-	mkdir -p ${TS_TRADE_REQUEST_DIR} || exit 1
-	mkdir -p ${TS_TRADE_TYPE_DIR} || exit 1
-	mkdir -p ${TS_COMPANY_DIR} || exit 1
-	mkdir -p ${TS_COMPANY_COMPETITOR_DIR} || exit 1
-	mkdir -p ${TS_DAILY_MARKET_DIR} || exit 1
-	mkdir -p ${TS_EXCHANGE_DIR} || exit 1
-	mkdir -p ${TS_FINANCIAL_DIR} || exit 1
-	mkdir -p ${TS_INDUSTRY_DIR} || exit 1
-	mkdir -p ${TS_LAST_TRADE_DIR} || exit 1
-	mkdir -p ${TS_NEWS_ITEM_DIR} || exit 1
-	mkdir -p ${TS_NEWS_XREF_DIR} || exit 1
-	mkdir -p ${TS_SECTOR_DIR} || exit 1
-	mkdir -p ${TS_SECURITY_DIR} || exit 1
-	mkdir -p ${TS_ADDRESS_DIR} || exit 1
-	mkdir -p ${TS_STATUS_TYPE_DIR} || exit 1
-	mkdir -p ${TS_TAXRATE_DIR} || exit 1
-	mkdir -p ${TS_ZIP_CODE_DIR} || exit 1
+	mkdir -p "${TS_ACCOUNT_PERMISSION_DIR}" || exit 1
+	mkdir -p "${TS_CUSTOMER_DIR}" || exit 1
+	mkdir -p "${TS_CUSTOMER_ACCOUNT_DIR}" || exit 1
+	mkdir -p "${TS_CUSTOMER_TAXRATE_DIR}" || exit 1
+	mkdir -p "${TS_HOLDING_DIR}" || exit 1
+	mkdir -p "${TS_HOLDING_HISTORY_DIR}" || exit 1
+	mkdir -p "${TS_HOLDING_SUMMARY_DIR}" || exit 1
+	mkdir -p "${TS_WATCH_ITEM_DIR}" || exit 1
+	mkdir -p "${TS_WATCH_LIST_DIR}" || exit 1
+	mkdir -p "${TS_BROKER_DIR}" || exit 1
+	mkdir -p "${TS_CASH_TRANSACTION_DIR}" || exit 1
+	mkdir -p "${TS_CHARGE_DIR}" || exit 1
+	mkdir -p "${TS_COMMISSION_RATE_DIR}" || exit 1
+	mkdir -p "${TS_SETTLEMENT_DIR}" || exit 1
+	mkdir -p "${TS_TRADE_DIR}" || exit 1
+	mkdir -p "${TS_TRADE_HISTORY_DIR}" || exit 1
+	mkdir -p "${TS_TRADE_REQUEST_DIR}" || exit 1
+	mkdir -p "${TS_TRADE_TYPE_DIR}" || exit 1
+	mkdir -p "${TS_COMPANY_DIR}" || exit 1
+	mkdir -p "${TS_COMPANY_COMPETITOR_DIR}" || exit 1
+	mkdir -p "${TS_DAILY_MARKET_DIR}" || exit 1
+	mkdir -p "${TS_EXCHANGE_DIR}" || exit 1
+	mkdir -p "${TS_FINANCIAL_DIR}" || exit 1
+	mkdir -p "${TS_INDUSTRY_DIR}" || exit 1
+	mkdir -p "${TS_LAST_TRADE_DIR}" || exit 1
+	mkdir -p "${TS_NEWS_ITEM_DIR}" || exit 1
+	mkdir -p "${TS_NEWS_XREF_DIR}" || exit 1
+	mkdir -p "${TS_SECTOR_DIR}" || exit 1
+	mkdir -p "${TS_SECURITY_DIR}" || exit 1
+	mkdir -p "${TS_ADDRESS_DIR}" || exit 1
+	mkdir -p "${TS_STATUS_TYPE_DIR}" || exit 1
+	mkdir -p "${TS_TAXRATE_DIR}" || exit 1
+	mkdir -p "${TS_ZIP_CODE_DIR}" || exit 1
 
 	TS_ACCOUNT_PERMISSION="TABLESPACE dbt5_account_permission"
 	TS_CUSTOMER="TABLESPACE dbt5_customer"

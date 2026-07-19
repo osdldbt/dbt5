@@ -309,7 +309,7 @@ CUSTOMERS="$(grep "Database Customer Cardinality:" "${INDIR}/readme.txt" | cut -
 MIXFILES="$(find "${INDIR}" -name 'mix*.log' -print0 | xargs -0)"
 SUMMARY="${INDIR}/summary.rst"
 if [ ! -f "${SUMMARY}" ]; then
-	dbt5 post-process --customers="${CUSTOMERS}" ${MIXFILES} > "${SUMMARY}"
+	dbt5 post-process --customers="${CUSTOMERS}" "${MIXFILES}" > "${SUMMARY}"
 fi
 
 echo "Processing any pidstat files..."
