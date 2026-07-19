@@ -1,6 +1,7 @@
 vX.Y.Z (YYYY-MM-DD)
 
 - Shellcheck all scripts
+- Improve logic to kill all processes when tests abort
 
 v0.10.13 (2026-07-10)
 

@@ -7,8 +7,30 @@
 # Copyright The DBT-5 Authors
 #
 
-trap 'echo "Test was interrupted by Control-C."; stop_processes' INT
-trap 'echo "Test was interrupted. Got TERM signal."; stop_processes' TERM
+CLEANED_UP=0
+
+cleanup() {
+	if [ "${CLEANED_UP}" -ne 0 ]; then
+		return
+	fi
+	CLEANED_UP=1
+	trap '' INT TERM
+	stop_processes
+	# Catch local stragglers by killing this script's own background
+	# jobs, not the process group, which would take out this script and
+	# its caller with it.
+	PIDS="$(jobs -p)"
+	if [ -n "${PIDS}" ]; then
+		# shellcheck disable=SC2086
+		kill -TERM ${PIDS} 2> /dev/null
+		sleep 2
+		# shellcheck disable=SC2086
+		kill -KILL ${PIDS} 2> /dev/null
+	fi
+}
+
+trap 'echo "Test was interrupted."; exit 1' INT TERM
+trap cleanup EXIT
 
 do_sleep()
 {
@@ -964,7 +986,7 @@ stat_collection -s
 echo
 echo "## 4. Processing data"
 
-stop_processes
+cleanup
 
 if [ "${PROFILE}" -eq 1 ]; then
 	profile_process
