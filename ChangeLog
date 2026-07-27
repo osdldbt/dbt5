@@ -17,6 +17,8 @@ vX.Y.Z (YYYY-MM-DD)
   authors
 - pgsql: fix C Trade-Result swapped buy and sell values, a cash transaction
   insert that stored literal text, and garbage commission bindings
+- pgsql: fix C Trade-Order frame 3 estimates and frame 4 storing the wrong
+  charge, cash, and lifo values
 
 v0.10.13 (2026-07-10)
 
