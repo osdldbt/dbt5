@@ -225,7 +225,7 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 	if (SRF_IS_FIRSTCALL()) {
 		MemoryContext oldcontext;
 
-		bool access_lob_flag = PG_GETARG_BOOL(0);
+		bool access_lob_flag = (PG_GETARG_INT16(0) != 0);
 		int max_rows_to_return = PG_GETARG_INT32(1);
 		DateADT start_date_p = PG_GETARG_DATEADT(2);
 		char *symbol_p = (char *) PG_GETARG_TEXT_P(3);
@@ -297,7 +297,10 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 				S_SYMB_LEN);
 		symbol[S_SYMB_LEN] = '\0';
 #ifdef DEBUG
-		dump_sdf1_inputs(access_lob_flag, max_rows_to_return, "TODO", symbol);
+		dump_sdf1_inputs(access_lob_flag, max_rows_to_return,
+				DatumGetCString(DirectFunctionCall1(
+						date_out, DateADTGetDatum(start_date_p))),
+				symbol);
 #endif
 
 		/*
@@ -351,8 +354,11 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		args[0] = CStringGetTextDatum(symbol);
 		ret = SPI_execute_plan(SDF1_1, args, nulls, true, 0);
-		if (ret != SPI_OK_SELECT) {
+		if (ret != SPI_OK_SELECT || SPI_processed == 0) {
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[0].sql);
+			MemoryContextSwitchTo(oldcontext);
+			SPI_finish();
+			SRF_RETURN_DONE(funcctx);
 		}
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
@@ -402,8 +408,9 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(SDF1_2, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[1].sql);
-			strncpy(values[i_cp_co_name], "{}", 3);
-			strncpy(values[i_cp_in_name], "{}", 3);
+			MemoryContextSwitchTo(oldcontext);
+			SPI_finish();
+			SRF_RETURN_DONE(funcctx);
 		}
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
@@ -446,7 +453,7 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			}
 
 			tmp = SPI_getvalue(tuple, tupdesc, 2);
-			strncat(values[i_cp_in_name], tmp, length_in--);
+			strncat(values[i_cp_in_name], tmp, length_in);
 			length_in -= strlen(tmp);
 			if (length_in < 0) {
 				FAIL_FRAME("cp_in_name values needs to be increased");
@@ -515,10 +522,13 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(SDF1_3, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[2].sql);
+			MemoryContextSwitchTo(oldcontext);
+			SPI_finish();
+			SRF_RETURN_DONE(funcctx);
 		}
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
-		snprintf(values[i_fin_len], sizeof(values[i_fin_len]), "%" PRId64,
+		snprintf(values[i_fin_len], INTEGER_LEN + 1, "%" PRId64,
 				SPI_processed);
 		values[i_fin][0] = '{';
 		values[i_fin][1] = '\0';
@@ -706,10 +716,13 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(SDF1_4, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[3].sql);
+			MemoryContextSwitchTo(oldcontext);
+			SPI_finish();
+			SRF_RETURN_DONE(funcctx);
 		}
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
-		snprintf(values[i_day_len], sizeof(values[i_day_len]), "%" PRId64,
+		snprintf(values[i_day_len], INTEGER_LEN + 1, "%" PRId64,
 				SPI_processed);
 		values[i_day][0] = '{';
 		values[i_day][1] = '\0';
@@ -718,79 +731,79 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			if (i > 0) {
 				strncat(values[i_day], ",", length_d--);
 				if (length_d < 0) {
-					FAIL_FRAME("fin values needs to be increased");
+					FAIL_FRAME("day values needs to be increased");
 				}
 			}
 			strncat(values[i_day], "\"(", length_d);
 			length_d -= 2;
 			if (length_d < 0) {
-				FAIL_FRAME("fin values needs to be increased");
+				FAIL_FRAME("day values needs to be increased");
 			}
 
 			tmp = SPI_getvalue(tuple, tupdesc, 1);
 			strncat(values[i_day], tmp, length_d);
 			length_d -= strlen(tmp);
 			if (length_d < 0) {
-				FAIL_FRAME("fin values needs to be increased");
+				FAIL_FRAME("day values needs to be increased");
 			}
 
 			strncat(values[i_day], ",", length_d--);
 			if (length_d < 0) {
-				FAIL_FRAME("fin values needs to be increased");
+				FAIL_FRAME("day values needs to be increased");
 			}
 
 			tmp = SPI_getvalue(tuple, tupdesc, 2);
 			strncat(values[i_day], tmp, length_d);
 			length_d -= strlen(tmp);
 			if (length_d < 0) {
-				FAIL_FRAME("fin values needs to be increased");
+				FAIL_FRAME("day values needs to be increased");
 			}
 
 			strncat(values[i_day], ",", length_d--);
 			if (length_d < 0) {
-				FAIL_FRAME("fin values needs to be increased");
+				FAIL_FRAME("day values needs to be increased");
 			}
 
 			tmp = SPI_getvalue(tuple, tupdesc, 3);
 			strncat(values[i_day], tmp, length_d);
 			length_d -= strlen(tmp);
 			if (length_d < 0) {
-				FAIL_FRAME("fin values needs to be increased");
+				FAIL_FRAME("day values needs to be increased");
 			}
 
 			strncat(values[i_day], ",", length_d--);
 			if (length_d < 0) {
-				FAIL_FRAME("fin values needs to be increased");
+				FAIL_FRAME("day values needs to be increased");
 			}
 
 			tmp = SPI_getvalue(tuple, tupdesc, 4);
 			strncat(values[i_day], tmp, length_d);
 			length_d -= strlen(tmp);
 			if (length_d < 0) {
-				FAIL_FRAME("fin values needs to be increased");
+				FAIL_FRAME("day values needs to be increased");
 			}
 
 			strncat(values[i_day], ",", length_d--);
 			if (length_d < 0) {
-				FAIL_FRAME("fin values needs to be increased");
+				FAIL_FRAME("day values needs to be increased");
 			}
 
 			tmp = SPI_getvalue(tuple, tupdesc, 5);
 			strncat(values[i_day], tmp, length_d);
 			length_d -= strlen(tmp);
 			if (length_d < 0) {
-				FAIL_FRAME("fin values needs to be increased");
+				FAIL_FRAME("day values needs to be increased");
 			}
 
 			strncat(values[i_day], ")\"", length_d);
 			length_d -= 2;
 			if (length_d < 0) {
-				FAIL_FRAME("fin values needs to be increased");
+				FAIL_FRAME("day values needs to be increased");
 			}
 		}
 		strncat(values[i_day], "}", length_d--);
 		if (length_d < 0) {
-			FAIL_FRAME("fin values needs to be increased");
+			FAIL_FRAME("day values needs to be increased");
 		}
 
 #ifdef DEBUG
@@ -798,18 +811,19 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		args[0] = CStringGetTextDatum(symbol);
 		ret = SPI_execute_plan(SDF1_5, args, nulls, true, 0);
-		if (ret != SPI_OK_SELECT) {
+		if (ret != SPI_OK_SELECT || SPI_processed == 0) {
 			FAIL_FRAME_SET(&funcctx->max_calls, SDF1_statements[4].sql);
 			values[i_last_open] = NULL;
 			values[i_last_price] = NULL;
 			values[i_last_vol] = NULL;
+		} else {
+			tupdesc = SPI_tuptable->tupdesc;
+			tuptable = SPI_tuptable;
+			tuple = tuptable->vals[0];
+			values[i_last_price] = SPI_getvalue(tuple, tupdesc, 1);
+			values[i_last_open] = SPI_getvalue(tuple, tupdesc, 2);
+			values[i_last_vol] = SPI_getvalue(tuple, tupdesc, 3);
 		}
-		tupdesc = SPI_tuptable->tupdesc;
-		tuptable = SPI_tuptable;
-		tuple = tuptable->vals[0];
-		values[i_last_price] = SPI_getvalue(tuple, tupdesc, 1);
-		values[i_last_open] = SPI_getvalue(tuple, tupdesc, 2);
-		values[i_last_vol] = SPI_getvalue(tuple, tupdesc, 3);
 		args[0] = Int64GetDatum(atoll(co_id));
 		args[1] = Int16GetDatum(MAX_NEWS_LEN);
 
@@ -828,10 +842,13 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME_SET(&funcctx->max_calls,
 					access_lob_flag ? SDF1_statements[5].sql
 									: SDF1_statements[6].sql);
+			MemoryContextSwitchTo(oldcontext);
+			SPI_finish();
+			SRF_RETURN_DONE(funcctx);
 		}
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
-		snprintf(values[i_news_len], sizeof(values[i_news_len]), "%" PRId64,
+		snprintf(values[i_news_len], INTEGER_LEN + 1, "%" PRId64,
 				SPI_processed);
 		values[i_news][0] = '{';
 		values[i_news][1] = '\0';
@@ -888,11 +905,14 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 				FAIL_FRAME("news values needs to be increased");
 			}
 
+			/* ni_author is allowed to be NULL. */
 			tmp = SPI_getvalue(tuple, tupdesc, 4);
-			strncat(values[i_news], tmp, length_n);
-			length_n -= strlen(tmp);
-			if (length_n < 0) {
-				FAIL_FRAME("news values needs to be increased");
+			if (tmp != NULL) {
+				strncat(values[i_news], tmp, length_n);
+				length_n -= strlen(tmp);
+				if (length_n < 0) {
+					FAIL_FRAME("news values needs to be increased");
+				}
 			}
 
 			strncat(values[i_news], "\\\",\\\"", length_n);
@@ -965,7 +985,8 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 45; i++) {
-			elog(DEBUG1, "SDF1 OUT: %d %s", i, values[i]);
+			elog(DEBUG1, "SDF1 OUT: %d %s", i,
+					values[i] != NULL ? values[i] : "(null)");
 		}
 #endif /* DEBUG */
 
