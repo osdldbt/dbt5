@@ -90,7 +90,8 @@ PG_MODULE_MAGIC;
 	"WHERE t_id = id\n"                                                       \
 	"  AND th_t_id = t_id\n"                                                  \
 	"  AND st_id = th_st_id\n"                                                \
-	"ORDER BY th_dts DESC"
+	"ORDER BY th_dts DESC\n"                                                  \
+	"LIMIT 30"
 
 #define CPF1_1 CPF1_statements[0].plan
 #define CPF1_2 CPF1_statements[1].plan
@@ -240,6 +241,9 @@ CustomerPositionFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			} else {
 				FAIL_FRAME_SET(&funcctx->max_calls, CPF1_statements[0].sql);
+				MemoryContextSwitchTo(oldcontext);
+				SPI_finish();
+				SRF_RETURN_DONE(funcctx);
 			}
 		}
 
@@ -280,13 +284,17 @@ CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			values[i_c_email_2] = SPI_getvalue(tuple, tupdesc, 22);
 		} else {
 			FAIL_FRAME_SET(&funcctx->max_calls, CPF1_statements[1].sql);
+			MemoryContextSwitchTo(oldcontext);
+			SPI_finish();
+			SRF_RETURN_DONE(funcctx);
 		}
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLCPF1_3);
 #endif /* DEBUG */
 		args[0] = Int64GetDatum(cust_id);
 		ret = SPI_execute_plan(CPF1_3, args, nulls, true, 0);
-		snprintf(values[i_acct_len], BIGINT_LEN, "%" PRId64, SPI_processed);
+		snprintf(values[i_acct_len], INTEGER_LEN + 1, "%" PRId64,
+				SPI_processed);
 #ifdef DEBUG
 		elog(DEBUG1, "%ld row(s) returned from CPF1_3.", SPI_processed);
 #endif /* DEBUG */
@@ -307,7 +315,7 @@ CustomerPositionFrame1(PG_FUNCTION_ARGS)
 			length_cb = (BALANCE_T_LEN + 1) * (SPI_processed + 1) + 2;
 			values[i_cash_bal] = (char *) palloc(length_cb-- * sizeof(char));
 
-			length_at = (S_PRICE_T_LEN + 1) * (SPI_processed + 1) + 2;
+			length_at = (FIN_AGG_T_LEN + 1) * (SPI_processed + 1) + 2;
 			values[i_asset_total]
 					= (char *) palloc(length_at-- * sizeof(char));
 
@@ -375,18 +383,10 @@ CustomerPositionFrame1(PG_FUNCTION_ARGS)
 				}
 
 				tmp = SPI_getvalue(tuple, tupdesc, 3);
-				if (tmp != NULL) {
-					strncat(values[i_asset_total], tmp, length_at);
-					length_at -= strlen(tmp);
-					if (length_at < 0) {
-						FAIL_FRAME("asset_total values needs to be increased");
-					}
-				} else {
-					strncat(values[i_asset_total], "0.00", length_at);
-					length_at -= 4;
-					if (length_at < 0) {
-						FAIL_FRAME("asset_total values needs to be increased");
-					}
+				strncat(values[i_asset_total], tmp, length_at);
+				length_at -= strlen(tmp);
+				if (length_at < 0) {
+					FAIL_FRAME("asset_total values needs to be increased");
 				}
 			}
 			strncat(values[i_acct_id], "}", length_ai--);
@@ -406,7 +406,7 @@ CustomerPositionFrame1(PG_FUNCTION_ARGS)
 		} else {
 			FAIL_FRAME_SET(&funcctx->max_calls, CPF1_statements[2].sql);
 		}
-		snprintf(values[i_cust_id], 12, "%" PRId64, cust_id);
+		snprintf(values[i_cust_id], IDENT_T_LEN + 1, "%" PRId64, cust_id);
 
 		/* Build a tuple descriptor for our result type. */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc)
@@ -511,11 +511,12 @@ CustomerPositionFrame2(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		args[0] = Int64GetDatum(acct_id);
 		ret = SPI_execute_plan(CPF2_1, args, nulls, true, 0);
-		snprintf(values[i_hist_len], BIGINT_LEN, "%" PRId64, SPI_processed);
+		snprintf(values[i_hist_len], INTEGER_LEN + 1, "%" PRId64,
+				SPI_processed);
 #ifdef DEBUG
 		elog(DEBUG1, "%ld row(s) returned.", SPI_processed);
 #endif /* DEBUG */
-		/* Should return 1 to rows. */
+		/* Should return 10 to 30 rows. */
 		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 			char *tmp;
 			int length_hd, length_q, length_s, length_ti, length_ts;
@@ -720,7 +721,7 @@ CustomerPositionFrame2(PG_FUNCTION_ARGS)
 #ifdef DEBUG
 			dump_cpf2_inputs(acct_id);
 #endif /* DEBUG */
-			FAIL_FRAME_SET(&funcctx->max_calls, CPF2_statements[1].sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, CPF2_statements[0].sql);
 
 			/*
 			 * FIXME: Probably don't need to do this if we're not going to
