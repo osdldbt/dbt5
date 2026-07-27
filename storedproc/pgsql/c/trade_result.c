@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <postgres.h>
 #include <fmgr.h>
+#include <math.h>
 #include <time.h>
 #include <executor/spi.h> /* this should include most necessary APIs */
 #include <executor/executor.h> /* for GetAttributeByName() */
@@ -85,7 +86,7 @@ PG_MODULE_MAGIC;
 #define SQLTRF2_2b                                                            \
 	"UPDATE holding_summary\n"                                                \
 	"SET hs_qty = $1\n"                                                       \
-	"WHERE hs_ca_id = $2\n "                                                  \
+	"WHERE hs_ca_id = $2\n"                                                   \
 	"  AND hs_s_symb = $3"
 
 #define SQLTRF2_3a                                                            \
@@ -261,7 +262,7 @@ PG_MODULE_MAGIC;
 	"    $1\n"                                                                \
 	"  , $2\n"                                                                \
 	"  , $3\n"                                                                \
-	"  , e'$4 $5 shared of $6'\n"                                             \
+	"  , $4 || ' ' || $5::VARCHAR || ' shares of ' || $6\n"                   \
 	")"
 
 #define SQLTRF6_4                                                             \
@@ -594,6 +595,9 @@ TradeResultFrame1(PG_FUNCTION_ARGS)
 								= SPI_getvalue(tuple, tupdesc, 2);
 						values[i_type_is_market]
 								= SPI_getvalue(tuple, tupdesc, 3);
+					} else {
+						FAIL_FRAME_SET(
+								&funcctx->max_calls, TRF1_statements[1].sql);
 					}
 				} else {
 					FAIL_FRAME_SET(
@@ -609,15 +613,16 @@ TradeResultFrame1(PG_FUNCTION_ARGS)
 				if (ret != SPI_OK_SELECT) {
 					FAIL_FRAME_SET(
 							&funcctx->max_calls, TRF1_statements[2].sql);
-				}
-				tupdesc = SPI_tuptable->tupdesc;
-				tuptable = SPI_tuptable;
-				if (SPI_processed > 0) {
-					tuple = tuptable->vals[0];
-					values[i_hs_qty] = SPI_getvalue(tuple, tupdesc, 1);
 				} else {
-					values[i_hs_qty] = (char *) palloc(sizeof(char) * 2);
-					strncpy(values[i_hs_qty], "0", 2);
+					tupdesc = SPI_tuptable->tupdesc;
+					tuptable = SPI_tuptable;
+					if (SPI_processed > 0) {
+						tuple = tuptable->vals[0];
+						values[i_hs_qty] = SPI_getvalue(tuple, tupdesc, 1);
+					} else {
+						values[i_hs_qty] = (char *) palloc(sizeof(char) * 2);
+						strncpy(values[i_hs_qty], "0", 2);
+					}
 				}
 			} else if (SPI_processed == 0) {
 				values[i_acct_id] = (char *) palloc(2 * sizeof(char));
@@ -649,7 +654,7 @@ TradeResultFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME_SET(&funcctx->max_calls, TRF1_statements[0].sql);
 		}
 
-		snprintf(values[i_num_found], INTEGER_LEN, "%d", num_found);
+		snprintf(values[i_num_found], INTEGER_LEN + 1, "%d", num_found);
 
 		/* Build a tuple descriptor for our result type */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc)
@@ -807,12 +812,11 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 		args[0] = Int64GetDatum(acct_id);
 		ret = SPI_execute_plan(TRF2_1, args, nulls, false, 0);
-		if (ret != SPI_OK_SELECT) {
+		if (ret != SPI_OK_SELECT || SPI_processed == 0) {
 			FAIL_FRAME_SET(&funcctx->max_calls, TRF2_statements[0].sql);
-		}
-		tupdesc = SPI_tuptable->tupdesc;
-		tuptable = SPI_tuptable;
-		if (SPI_processed > 0) {
+		} else {
+			tupdesc = SPI_tuptable->tupdesc;
+			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 			values[i_broker_id] = SPI_getvalue(tuple, tupdesc, 1);
 			values[i_cust_id] = SPI_getvalue(tuple, tupdesc, 2);
@@ -944,8 +948,8 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 							FAIL_FRAME_SET(&funcctx->max_calls,
 									TRF2_statements[7].sql);
 						}
-						sell_value += (double) hold_qty * hold_price;
-						buy_value += (double) hold_qty * trade_price;
+						buy_value += (double) hold_qty * hold_price;
+						sell_value += (double) hold_qty * trade_price;
 						needed_qty -= hold_qty;
 					}
 				}
@@ -983,25 +987,31 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				args[1] = Int64GetDatum(acct_id);
 				args[2] = CStringGetTextDatum(symbol);
 
-				strptime(values[i_trade_dts], "%Y-%m-%d %H:%M:%S", &tm);
-				tt.tm_year = tm.tm_year - 1900;
-				tt.tm_mon = tm.tm_mon - 1;
-				tt.tm_mday = tm.tm_mday;
-				tt.tm_hour = tm.tm_hour;
-				tt.tm_min = tm.tm_min;
-				tt.tm_sec = tm.tm_sec;
-				tt.tm_isdst = tm.tm_isdst;
-				tt.tm_gmtoff = tm.tm_gmtoff;
-				tt.tm_zone = tm.tm_zone;
-				tm2timestamp(&tt, 0, NULL, &dt);
-				args[3] = TimestampGetDatum(dt);
-
-				args[4] = Float8GetDatum(trade_price);
-				args[5] = Int32GetDatum(-1 * needed_qty);
-				ret = SPI_execute_plan(TRF2_7a, args, nulls, false, 0);
-				if (ret != SPI_OK_INSERT) {
+				memset(&tm, 0, sizeof(tm));
+				if (strptime(values[i_trade_dts], "%Y-%m-%d %H:%M:%S", &tm)
+						== NULL) {
 					FAIL_FRAME_SET(
-							&funcctx->max_calls, TRF2_statements[7].sql);
+							&funcctx->max_calls, TRF2_statements[8].sql);
+				} else {
+					tt.tm_year = tm.tm_year - 1900;
+					tt.tm_mon = tm.tm_mon - 1;
+					tt.tm_mday = tm.tm_mday;
+					tt.tm_hour = tm.tm_hour;
+					tt.tm_min = tm.tm_min;
+					tt.tm_sec = tm.tm_sec;
+					tt.tm_isdst = tm.tm_isdst;
+					tt.tm_gmtoff = tm.tm_gmtoff;
+					tt.tm_zone = tm.tm_zone;
+					tm2timestamp(&tt, 0, NULL, &dt);
+					args[3] = TimestampGetDatum(dt);
+
+					args[4] = Float8GetDatum(trade_price);
+					args[5] = Int32GetDatum(-1 * needed_qty);
+					ret = SPI_execute_plan(TRF2_7a, args, nulls, false, 0);
+					if (ret != SPI_OK_INSERT) {
+						FAIL_FRAME_SET(&funcctx->max_calls,
+								TRF2_statements[8].sql);
+					}
 				}
 			} else if (hs_qty == trade_qty) {
 #ifdef DEBUG
@@ -1114,8 +1124,8 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 									TRF2_statements[6].sql);
 						}
 
-						buy_value += (double) needed_qty * hold_price;
-						sell_value += (double) needed_qty * trade_price;
+						sell_value += (double) needed_qty * hold_price;
+						buy_value += (double) needed_qty * trade_price;
 						needed_qty = 0;
 					} else {
 						/* Buying back all of the Short Sell */
@@ -1181,25 +1191,31 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 				args[1] = Int64GetDatum(acct_id);
 				args[2] = CStringGetTextDatum(symbol);
 
-				strptime(values[i_trade_dts], "%Y-%m-%d %H:%M:%S", &tm);
-				tt.tm_year = tm.tm_year - 1900;
-				tt.tm_mon = tm.tm_mon - 1;
-				tt.tm_mday = tm.tm_mday;
-				tt.tm_hour = tm.tm_hour;
-				tt.tm_min = tm.tm_min;
-				tt.tm_sec = tm.tm_sec;
-				tt.tm_isdst = tm.tm_isdst;
-				tt.tm_gmtoff = tm.tm_gmtoff;
-				tt.tm_zone = tm.tm_zone;
-				tm2timestamp(&tt, 0, NULL, &dt);
-				args[3] = TimestampGetDatum(dt);
-
-				args[4] = Float8GetDatum(trade_price);
-				args[5] = Int32GetDatum(needed_qty);
-				ret = SPI_execute_plan(TRF2_7a, args, nulls, false, 0);
-				if (ret != SPI_OK_INSERT) {
+				memset(&tm, 0, sizeof(tm));
+				if (strptime(values[i_trade_dts], "%Y-%m-%d %H:%M:%S", &tm)
+						== NULL) {
 					FAIL_FRAME_SET(
-							&funcctx->max_calls, TRF2_statements[7].sql);
+							&funcctx->max_calls, TRF2_statements[8].sql);
+				} else {
+					tt.tm_year = tm.tm_year - 1900;
+					tt.tm_mon = tm.tm_mon - 1;
+					tt.tm_mday = tm.tm_mday;
+					tt.tm_hour = tm.tm_hour;
+					tt.tm_min = tm.tm_min;
+					tt.tm_sec = tm.tm_sec;
+					tt.tm_isdst = tm.tm_isdst;
+					tt.tm_gmtoff = tm.tm_gmtoff;
+					tt.tm_zone = tm.tm_zone;
+					tm2timestamp(&tt, 0, NULL, &dt);
+					args[3] = TimestampGetDatum(dt);
+
+					args[4] = Float8GetDatum(trade_price);
+					args[5] = Int32GetDatum(needed_qty);
+					ret = SPI_execute_plan(TRF2_7a, args, nulls, false, 0);
+					if (ret != SPI_OK_INSERT) {
+						FAIL_FRAME_SET(&funcctx->max_calls,
+								TRF2_statements[8].sql);
+					}
 				}
 			} else if ((-1 * hs_qty) == trade_qty) {
 #ifdef DEBUG
@@ -1215,8 +1231,8 @@ TradeResultFrame2(PG_FUNCTION_ARGS)
 			}
 		}
 
-		snprintf(values[i_buy_value], S_PRICE_T_LEN, "%.2f", buy_value);
-		snprintf(values[i_sell_value], S_PRICE_T_LEN, "%.2f", sell_value);
+		snprintf(values[i_buy_value], S_PRICE_T_LEN + 1, "%.2f", buy_value);
+		snprintf(values[i_sell_value], S_PRICE_T_LEN + 1, "%.2f", sell_value);
 
 		/* Build a tuple descriptor for our result type */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc)
@@ -1309,15 +1325,25 @@ TradeResultFrame3(PG_FUNCTION_ARGS)
 	ret = SPI_execute_plan(TRF3_1, args, nulls, true, 0);
 	if (ret != SPI_OK_SELECT) {
 		FAIL_FRAME(TRF3_statements[0].sql);
+	} else {
+		tupdesc = SPI_tuptable->tupdesc;
+		tuptable = SPI_tuptable;
+		if (SPI_processed > 0) {
+			char *tax_rates_str;
+
+			tuple = tuptable->vals[0];
+			tax_rates_str = SPI_getvalue(tuple, tupdesc, 1);
+			if (tax_rates_str != NULL) {
+				tax_amount = (sell_value - buy_value) * atof(tax_rates_str);
+			}
+		}
 	}
-	tupdesc = SPI_tuptable->tupdesc;
-	tuptable = SPI_tuptable;
-	if (SPI_processed > 0) {
-		double tax_rates;
-		tuple = tuptable->vals[0];
-		tax_rates = atof(SPI_getvalue(tuple, tupdesc, 1));
-		tax_amount = (sell_value - buy_value) * tax_rates;
-	}
+
+	/*
+	 * Round to 2 decimal places so the returned value matches what is
+	 * stored in T_TAX.
+	 */
+	tax_amount = rint(tax_amount * 100.0) / 100.0;
 
 #ifdef DEBUG
 	elog(DEBUG1, "%s", SQLTRF3_2);
@@ -1428,36 +1454,40 @@ TradeResultFrame4(PG_FUNCTION_ARGS)
 			FAIL_FRAME_SET(&funcctx->max_calls, TRF4_statements[0].sql);
 		}
 
+		if (s_ex_id != NULL) {
 #ifdef DEBUG
-		elog(DEBUG1, "%s", SQLTRF4_2);
+			elog(DEBUG1, "%s", SQLTRF4_2);
 #endif /* DEBUG */
-		args[0] = Int64GetDatum(cust_id);
-		ret = SPI_execute_plan(TRF4_2, args, nulls, true, 0);
-		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-			tuple = tuptable->vals[0];
-			c_tier = SPI_getvalue(tuple, tupdesc, 1);
-		} else {
-			FAIL_FRAME_SET(&funcctx->max_calls, TRF4_statements[1].sql);
+			args[0] = Int64GetDatum(cust_id);
+			ret = SPI_execute_plan(TRF4_2, args, nulls, true, 0);
+			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+				tupdesc = SPI_tuptable->tupdesc;
+				tuptable = SPI_tuptable;
+				tuple = tuptable->vals[0];
+				c_tier = SPI_getvalue(tuple, tupdesc, 1);
+			} else {
+				FAIL_FRAME_SET(&funcctx->max_calls, TRF4_statements[1].sql);
+			}
 		}
 
+		if (c_tier != NULL) {
 #ifdef DEBUG
-		elog(DEBUG1, "%s", SQLTRF4_3);
+			elog(DEBUG1, "%s", SQLTRF4_3);
 #endif /* DEBUG */
-		args[0] = Int16GetDatum(atoi(c_tier));
-		args[1] = CStringGetTextDatum(type_id);
-		args[2] = CStringGetTextDatum(s_ex_id);
-		args[3] = Int32GetDatum(trade_qty);
-		args[4] = Int32GetDatum(trade_qty);
-		ret = SPI_execute_plan(TRF4_3, args, nulls, true, 0);
-		if (ret == SPI_OK_SELECT && SPI_processed > 0) {
-			tupdesc = SPI_tuptable->tupdesc;
-			tuptable = SPI_tuptable;
-			tuple = tuptable->vals[0];
-			values[i_comm_rate] = SPI_getvalue(tuple, tupdesc, 1);
-		} else {
-			FAIL_FRAME_SET(&funcctx->max_calls, TRF4_statements[2].sql);
+			args[0] = Int16GetDatum(atoi(c_tier));
+			args[1] = CStringGetTextDatum(type_id);
+			args[2] = CStringGetTextDatum(s_ex_id);
+			args[3] = Int32GetDatum(trade_qty);
+			args[4] = Int32GetDatum(trade_qty);
+			ret = SPI_execute_plan(TRF4_3, args, nulls, true, 0);
+			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
+				tupdesc = SPI_tuptable->tupdesc;
+				tuptable = SPI_tuptable;
+				tuple = tuptable->vals[0];
+				values[i_comm_rate] = SPI_getvalue(tuple, tupdesc, 1);
+			} else {
+				FAIL_FRAME_SET(&funcctx->max_calls, TRF4_statements[2].sql);
+			}
 		}
 
 		/* Build a tuple descriptor for our result type */
@@ -1531,9 +1561,7 @@ TradeResultFrame5(PG_FUNCTION_ARGS)
 	char nulls[5] = { ' ', ' ', ' ', ' ', ' ' };
 
 	double comm_amount;
-#ifdef DEBUG
 	double trade_price;
-#endif
 	char trade_dts[MAXDATELEN + 1];
 	char st_completed_id[ST_ID_LEN + 1];
 
@@ -1545,10 +1573,8 @@ TradeResultFrame5(PG_FUNCTION_ARGS)
 
 	comm_amount = DatumGetFloat8(DirectFunctionCall1(
 			numeric_float8_no_overflow, PointerGetDatum(comm_amount_num)));
-#ifdef DEBUG
 	trade_price = DatumGetFloat8(DirectFunctionCall1(
 			numeric_float8_no_overflow, PointerGetDatum(trade_price_num)));
-#endif
 
 	if (timestamp2tm(trade_dts_ts, NULL, tm, &fsec, NULL, NULL) == 0) {
 		EncodeDateTimeM(tm, fsec, tzn, trade_dts);
@@ -1564,10 +1590,10 @@ TradeResultFrame5(PG_FUNCTION_ARGS)
 #ifdef DEBUG
 	elog(DEBUG1, "%s", SQLTRF5_1);
 #endif /* DEBUG */
-	args[0] = PointerGetDatum(comm_amount_num);
+	args[0] = Float8GetDatum(comm_amount);
 	args[1] = TimestampGetDatum(trade_dts_ts);
 	args[2] = CStringGetTextDatum(st_completed_id);
-	args[3] = PointerGetDatum(trade_price_num);
+	args[3] = Float8GetDatum(trade_price);
 	args[4] = Int64GetDatum(trade_id);
 	ret = SPI_execute_plan(TRF5_1, args, nulls, false, 0);
 	if (ret != SPI_OK_UPDATE) {
@@ -1626,7 +1652,7 @@ TradeResultFrame6(PG_FUNCTION_ARGS)
 	Datum args[6];
 	char nulls[6] = { ' ', ' ', ' ', ' ', ' ', ' ' };
 
-	char s_name[2 * S_NAME_LEN + 1];
+	char s_name[S_NAME_LEN + 1];
 	char *s_name_tmp;
 	char type_name[TT_NAME_LEN + 1];
 	double se_amount;
@@ -1638,21 +1664,13 @@ TradeResultFrame6(PG_FUNCTION_ARGS)
 
 	double acct_bal = 0;
 
-	int i;
-	int k = 0;
-
 	se_amount = DatumGetFloat8(DirectFunctionCall1(
 			numeric_float8_no_overflow, PointerGetDatum(se_amount_num)));
 
 	s_name_tmp = DatumGetCString(
 			DirectFunctionCall1(textout, PointerGetDatum(s_name_p)));
 
-	for (i = 0; i < S_NAME_LEN && s_name_tmp[i] != '\0'; i++) {
-		if (s_name_tmp[i] == '\'')
-			s_name[k++] = '\\';
-		s_name[k++] = s_name_tmp[i];
-	}
-	s_name[k] = '\0';
+	strncpy(s_name, s_name_tmp, S_NAME_LEN);
 	s_name[S_NAME_LEN] = '\0';
 
 	strncpy(type_name,

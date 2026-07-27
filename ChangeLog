@@ -15,6 +15,8 @@ vX.Y.Z (YYYY-MM-DD)
   LIMIT 30
 - pgsql: fix C Security-Detail crashes on unknown symbols and NULL news
   authors
+- pgsql: fix C Trade-Result swapped buy and sell values, a cash transaction
+  insert that stored literal text, and garbage commission bindings
 
 v0.10.13 (2026-07-10)
 
