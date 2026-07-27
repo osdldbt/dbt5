@@ -9,6 +9,8 @@ vX.Y.Z (YYYY-MM-DD)
   skip securities with missing rows
 - pgsql: fix C Trade-Status returning the customer first and last names
   swapped
+- pgsql: fix the C Data-Maintenance CUSTOMER branch, which never updated
+  anything, and the WATCH_ITEM, ADDRESS, EXCHANGE, and TAXRATE branches
 
 v0.10.13 (2026-07-10)
 

@@ -81,7 +81,7 @@ PG_MODULE_MAGIC;
 #define SQLDMF1_8                                                             \
 	"UPDATE customer\n"                                                       \
 	"SET c_email_2 = substring(c_email_2\n"                                   \
-	"                          FROM '#\"%%@#\"%%'\n"                          \
+	"                          FROM '#\"%@#\"%'\n"                            \
 	"                          FOR '#') || $1\n"                              \
 	"WHERE c_id = $2"
 
@@ -89,7 +89,7 @@ PG_MODULE_MAGIC;
 	"SELECT cx_tx_id\n"                                                       \
 	"FROM customer_taxrate\n"                                                 \
 	"WHERE cx_c_id = $1\n"                                                    \
-	"  AND (cx_tx_id LIKE 'US%%' OR cx_tx_id LIKE 'CN%%')"
+	"  AND (cx_tx_id LIKE 'US%' OR cx_tx_id LIKE 'CN%')"
 
 #define SQLDMF1_10                                                            \
 	"UPDATE customer_taxrate\n"                                               \
@@ -106,17 +106,20 @@ PG_MODULE_MAGIC;
 #define SQLDMF1_12                                                            \
 	"SELECT count(*)\n"                                                       \
 	"FROM exchange\n"                                                         \
-	"WHERE ex_desc LIKE '%%LAST UPDATED%%'"
+	"WHERE ex_desc LIKE '%LAST UPDATED%'"
 
 #define SQLDMF1_13a                                                           \
 	"UPDATE exchange\n"                                                       \
-	"SET ex_desc = ex_desc || ' LAST UPDATED ' || now()\n"
+	"SET ex_desc = ex_desc || ' LAST UPDATED ' ||\n"                          \
+	"              to_char(now(), 'YYYY-MM-DD HH24:MI:SS')"
 
 #define SQLDMF1_13b                                                           \
 	"UPDATE exchange\n"                                                       \
-	"SET ex_desc = substring(ex_desc || ' LAST UPDATED ' || now()\n"          \
-	"                        FROM 1 FOR (char_length(ex_desc) -\n"            \
-	"                                    char_length(now()::TEXT))) || now()"
+	"SET ex_desc = substring(ex_desc\n"                                       \
+	"                        FROM 1\n"                                        \
+	"                        FOR char_length(ex_desc) - char_length(\n"       \
+	"                            to_char(now(), 'YYYY-MM-DD HH24:MI:SS')))\n" \
+	"              || to_char(now(), 'YYYY-MM-DD HH24:MI:SS')"
 
 #define SQLDMF1_14                                                            \
 	"SELECT count(*)\n"                                                       \
@@ -414,11 +417,7 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			PG_RETURN_INT32(1);
 		}
 
-		/*
-		 * FIXME:
-		 * Verify that line2 can even be NULL from the previoius query.
-		 */
-		if (line2 != NULL && strcmp(line2, "Apt. 10C") != 0) {
+		if (line2 == NULL || strcmp(line2, "Apt. 10C") != 0) {
 			args[0] = CStringGetTextDatum("Apt. 10C");
 		} else {
 			args[0] = CStringGetTextDatum("Apt. 22");
@@ -487,7 +486,9 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			PG_RETURN_INT32(1);
 		}
 
-		len -= strlen(email2);
+		if (email2 != NULL) {
+			len = strlen(email2);
+		}
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLDMF1_8);
 #endif /* DEBUG */
@@ -496,7 +497,7 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		} else {
 			args[0] = CStringGetTextDatum("mindspring.com");
 		}
-		args[1] = Int64GetDatum(co_id);
+		args[1] = Int64GetDatum(c_id);
 		ret = SPI_execute_plan(DMF1_8, args, nulls, false, 0);
 		if (ret != SPI_OK_UPDATE) {
 			FAIL_FRAME(DMF1_statements[8].sql);
@@ -579,7 +580,7 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			rowcount = atof(SPI_getvalue(tuple, tupdesc, 1));
+			rowcount = atoi(SPI_getvalue(tuple, tupdesc, 1));
 		} else {
 			FAIL_FRAME(DMF1_statements[12].sql);
 			SPI_finish();
@@ -618,7 +619,7 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
-			rowcount = atof(SPI_getvalue(tuple, tupdesc, 1));
+			rowcount = atoi(SPI_getvalue(tuple, tupdesc, 1));
 		} else {
 			FAIL_FRAME(DMF1_statements[15].sql);
 			SPI_finish();
@@ -682,6 +683,7 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			tuptable = SPI_tuptable;
 			tuple = tuptable->vals[0];
 			strncpy(tx_name, SPI_getvalue(tuple, tupdesc, 1), sizeof(tx_name));
+			tx_name[sizeof(tx_name) - 1] = '\0';
 		} else {
 			FAIL_FRAME(DMF1_statements[20].sql);
 			SPI_finish();
@@ -696,10 +698,6 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			p[1] = 't';
 		} else if ((p = strstr(tx_name, " tax ")) != NULL) {
 			p[1] = 'T';
-		} else {
-			FAIL_FRAME(DMF1_statements[20].sql);
-			SPI_finish();
-			PG_RETURN_INT32(1);
 		}
 
 #ifdef DEBUG
@@ -739,7 +737,10 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 		elog(DEBUG1, "cnt = %d", cnt);
 #endif /* DEBUG */
 
-		cnt = (cnt + 1) / 2;
+		cnt = (cnt + 1) / 2 - 1;
+		if (cnt < 0) {
+			cnt = 0;
+		}
 
 #ifdef DEBUG
 		elog(DEBUG1, "%s", SQLDMF1_21);
@@ -801,8 +802,7 @@ DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 			PG_RETURN_INT32(1);
 		}
 	} else {
-		elog(ERROR, "unknown table for data maintenance: %s", table_name);
-		FAIL_FRAME("DMF1_statements");
+		elog(WARNING, "unknown table for data maintenance: %s", table_name);
 #ifdef DEBUG
 		dump_dmf1_inputs(acct_id, c_id, co_id, day_of_month, symbol,
 				table_name, tx_id, vol_incr);
