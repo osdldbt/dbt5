@@ -149,6 +149,7 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 			DatumGetCString(DirectFunctionCall1(
 					textout, PointerGetDatum(industry_name_p))),
 			sizeof(industry_name));
+	industry_name[sizeof(industry_name) - 1] = '\0';
 
 #ifdef DEBUG
 	dump_mwf1_inputs(acct_id, cust_id, ending_co_id, industry_name, "TODO",
@@ -186,16 +187,17 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 		args[0] = Int64GetDatum(acct_id);
 		ret = SPI_execute_plan(MWF1_3, args, nulls, true, 0);
 	} else {
-		// assign ret with NOT equl to SPI_OK_SELECT
-		// to log failed frame
 		ret = 0;
 		status = BAD_INPUT_DATA;
+		elog(WARNING,
+				"MWF1: invalid inputs: cust_id, industry_name and acct_id "
+				"are all unset");
 	}
-	if (ret != SPI_OK_SELECT) {
+	if (status != BAD_INPUT_DATA && ret != SPI_OK_SELECT) {
 		FAIL_FRAME(MWF1_statements[frame_index].sql);
 	}
 
-	if (status != BAD_INPUT_DATA) {
+	if (status != BAD_INPUT_DATA && ret == SPI_OK_SELECT) {
 		int count = SPI_processed;
 
 		TupleDesc tupdesc4;
@@ -245,6 +247,7 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 			ret = SPI_execute_plan(MWF1_5, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
 				FAIL_FRAME(MWF1_statements[frame_index].sql);
+				continue;
 			}
 
 			if (SPI_processed == 0) {
@@ -267,6 +270,7 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 			ret = SPI_execute_plan(MWF1_6, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
 				FAIL_FRAME(MWF1_statements[frame_index].sql);
+				continue;
 			}
 
 			if (SPI_processed == 0) {
@@ -287,7 +291,11 @@ MarketWatchFrame1(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "MWF1 new_mkt_cap = %f", new_mkt_cap);
 #endif /* DEBUG */
 		}
-		pct_change = 100.0 * (new_mkt_cap / old_mkt_cap - 1.0);
+		if (old_mkt_cap != 0.0) {
+			pct_change = 100.0 * (new_mkt_cap / old_mkt_cap - 1.0);
+		} else {
+			pct_change = 0.0;
+		}
 #ifdef DEBUG
 		elog(DEBUG1, "MWF1 pct_change = %f", pct_change);
 #endif /* DEBUG */
