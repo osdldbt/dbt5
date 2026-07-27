@@ -28,7 +28,7 @@ CREATE OR REPLACE FUNCTION TradeUpdateFrame1 (
   , OUT trade_price S_PRICE_T[20]
 ) RETURNS SETOF RECORD
 AS 'MODULE_PATHNAME', 'TradeUpdateFrame1'
-LANGUAGE C IMMUTABLE STRICT;
+LANGUAGE C VOLATILE STRICT;
 
 -- Clause 3.3.10.4
 
@@ -38,7 +38,7 @@ CREATE OR REPLACE FUNCTION TradeUpdateFrame2 (
   , IN max_trades INTEGER
   , IN max_updates INTEGER
   , IN start_trade_dts TIMESTAMP
-  , OUT bid_price VALUE_T[20]
+  , OUT bid_price S_PRICE_T[20]
   , OUT cash_transaction_amount VALUE_T[20]
   , OUT cash_transaction_dts TIMESTAMP[20]
   , OUT cash_transaction_name VARCHAR[20]
@@ -52,10 +52,10 @@ CREATE OR REPLACE FUNCTION TradeUpdateFrame2 (
   , OUT trade_history_dts TIMESTAMP[20][3]
   , OUT trade_history_status_id VARCHAR(4)[20][3]
   , OUT trade_list IDENT_T[20]
-  , OUT trade_price VALUE_T[20]
+  , OUT trade_price S_PRICE_T[20]
 ) RETURNS SETOF RECORD
 AS 'MODULE_PATHNAME', 'TradeUpdateFrame2'
-LANGUAGE C IMMUTABLE STRICT;
+LANGUAGE C VOLATILE STRICT;
 
 -- Clause 3.3.10.5
 
@@ -85,7 +85,7 @@ CREATE OR REPLACE FUNCTION TradeUpdateFrame3 (
   , OUT trade_history_status_id VARCHAR(4)[20][3]
   , OUT trade_list IDENT_T[20]
   , OUT type_name VARCHAR(12)[20]
-  , OUT trade_type VARCHAR(12)[20]
+  , OUT trade_type CHAR(3)[20]
 ) RETURNS SETOF RECORD
 AS 'MODULE_PATHNAME', 'TradeUpdateFrame3'
-LANGUAGE C IMMUTABLE STRICT;
+LANGUAGE C VOLATILE STRICT;

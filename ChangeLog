@@ -21,6 +21,8 @@ vX.Y.Z (YYYY-MM-DD)
   charge, cash, and lifo values
 - pgsql: fix C Trade-Lookup inverted is_cash flags, stale history rows, and
   a missing 20 row cap
+- pgsql: fix C Trade-Update corrupting cash transaction names and align the
+  output arrays with the client parser
 
 v0.10.13 (2026-07-10)
 

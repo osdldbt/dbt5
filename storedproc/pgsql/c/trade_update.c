@@ -238,7 +238,7 @@ static cached_statement TUF3_statements[] = {
 
 /* Prototypes. */
 #ifdef DEBUG
-void dump_tuf1_inputs(int, int, long *);
+void dump_tuf1_inputs(int, int, int64 *);
 void dump_tuf2_inputs(long, char *, int, int, char *);
 void dump_tuf3_inputs(char *, long, int, int, char *, char *);
 #endif /* DEBUG */
@@ -253,7 +253,7 @@ PG_FUNCTION_INFO_V1(TradeUpdateFrame3);
 
 #ifdef DEBUG
 void
-dump_tuf1_inputs(int max_trades, int max_updates, long *trade_id)
+dump_tuf1_inputs(int max_trades, int max_updates, int64 *trade_id)
 {
 	int i;
 
@@ -261,7 +261,7 @@ dump_tuf1_inputs(int max_trades, int max_updates, long *trade_id)
 	elog(DEBUG1, "TUF1: max_trades %d", max_trades);
 	elog(DEBUG1, "TUF1: max_updates %d", max_updates);
 	for (i = 0; i < max_trades; i++) {
-		elog(DEBUG1, "TUF1: trade_id[%d] %ld", i, trade_id[i]);
+		elog(DEBUG1, "TUF1: trade_id[%d] " INT64_FORMAT, i, trade_id[i]);
 	}
 	elog(DEBUG1, "TUF1: INPUTS END");
 }
@@ -294,7 +294,7 @@ dump_tuf3_inputs(char *end_trade_dts, long max_acct_id, int max_trades,
 }
 #endif /* DEBUG */
 
-/* Clause 3.3.9.3 */
+/* Clause 3.3.10.3 */
 Datum
 TradeUpdateFrame1(PG_FUNCTION_ARGS)
 {
@@ -335,11 +335,9 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 		int max_updates = PG_GETARG_INT32(1);
 		ArrayType *trade_id_p = PG_GETARG_ARRAYTYPE_P(2);
 
-		int16 typlen;
-		bool typbyval;
-		char typalign;
+		int num_trade_ids;
 
-		long *trade_id;
+		int64 *trade_id;
 
 		int ret;
 		TupleDesc tupdesc;
@@ -360,9 +358,12 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				length_ic, length_im, length_sa, length_scdd, length_sct,
 				length_thd, length_thsi, length_tp;
 
-		get_typlenbyvalalign(
-				ARR_ELEMTYPE(trade_id_p), &typlen, &typbyval, &typalign);
-		trade_id = (long *) ARR_DATA_PTR(trade_id_p);
+		num_trade_ids = ArrayGetNItems(
+				ARR_NDIM(trade_id_p), ARR_DIMS(trade_id_p));
+		if (max_trades > num_trade_ids) {
+			max_trades = num_trade_ids;
+		}
+		trade_id = (int64 *) ARR_DATA_PTR(trade_id_p);
 
 		/*
 		 * Prepare a values array for building the returned tuple.
@@ -494,7 +495,7 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 					tuptable = SPI_tuptable;
 					tuple = tuptable->vals[0];
 					ex_name = SPI_getvalue(tuple, tupdesc, 1);
-                    num_found += SPI_processed;
+					num_found += SPI_processed;
 				} else {
 					continue;
 				}
@@ -532,7 +533,7 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				ret = SPI_execute_plan(TUF1_3, args, nulls, false, 0);
 				if (ret != SPI_OK_UPDATE) {
 					FAIL_FRAME_SET(
-							&funcctx->max_calls, TUF1_statements[4].sql);
+							&funcctx->max_calls, TUF1_statements[3].sql);
 					continue;
 				}
 
@@ -543,10 +544,9 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "%s", SQLTUF1_4);
 #endif /* DEBUG */
 			args[0] = Int64GetDatum(trade_id[i]);
-			args[1] = Int32GetDatum(max_trades);
 			ret = SPI_execute_plan(TUF1_4, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
-				FAIL_FRAME_SET(&funcctx->max_calls, TUF1_statements[5].sql);
+				FAIL_FRAME_SET(&funcctx->max_calls, TUF1_statements[4].sql);
 				continue;
 			}
 
@@ -646,12 +646,17 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 				num_updated4++;
 			}
 
+			if (is_cash_str == NULL) {
+				/* The trade was not found, skip the rest of its body. */
+				continue;
+			}
+
 #ifdef DEBUG
 			elog(DEBUG1, "%s", SQLTUF1_5);
 #endif /* DEBUG */
 			ret = SPI_execute_plan(TUF1_5, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
-				FAIL_FRAME_SET(&funcctx->max_calls, TUF1_statements[6].sql);
+				FAIL_FRAME_SET(&funcctx->max_calls, TUF1_statements[5].sql);
 				continue;
 			}
 
@@ -721,28 +726,6 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 			}
 
 			if (is_cash_str[0] == 't') {
-				if (num_cash > 0) {
-					strncat(values[i_cash_transaction_amount], ",",
-							length_cta--);
-					if (length_cta < 0) {
-						FAIL_FRAME("cash_transaction_amount values needs to "
-								   "be increased");
-					}
-
-					strncat(values[i_cash_transaction_dts], ",", length_ctd--);
-					if (length_ctd < 0) {
-						FAIL_FRAME("cash_transaction_dts values needs to be "
-								   "increased");
-					}
-
-					strncat(values[i_cash_transaction_name], ",",
-							length_ctn--);
-					if (length_ctn < 0) {
-						FAIL_FRAME("cash_transaction_name values needs to be "
-								   "increased");
-					}
-				}
-
 #ifdef DEBUG
 				elog(DEBUG1, "%s", SQLTUF1_6);
 #endif /* DEBUG */
@@ -751,6 +734,29 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 					tupdesc = SPI_tuptable->tupdesc;
 					tuptable = SPI_tuptable;
 					tuple = tuptable->vals[0];
+
+					if (num_cash > 0) {
+						strncat(values[i_cash_transaction_amount], ",",
+								length_cta--);
+						if (length_cta < 0) {
+							FAIL_FRAME("cash_transaction_amount values needs "
+									   "to be increased");
+						}
+
+						strncat(values[i_cash_transaction_dts], ",",
+								length_ctd--);
+						if (length_ctd < 0) {
+							FAIL_FRAME("cash_transaction_dts values needs to "
+									   "be increased");
+						}
+
+						strncat(values[i_cash_transaction_name], ",",
+								length_ctn--);
+						if (length_ctn < 0) {
+							FAIL_FRAME("cash_transaction_name values needs to "
+									   "be increased");
+						}
+					}
 
 					tmp = SPI_getvalue(tuple, tupdesc, 1);
 					strncat(values[i_cash_transaction_amount], tmp,
@@ -808,9 +814,52 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 					++num_cash;
 				} else {
 					FAIL_FRAME_SET(
-							&funcctx->max_calls, TUF1_statements[7].sql);
+							&funcctx->max_calls, TUF1_statements[6].sql);
 					continue;
 				}
+			} else {
+				if (num_cash > 0) {
+					strncat(values[i_cash_transaction_amount], ",",
+							length_cta--);
+					if (length_cta < 0) {
+						FAIL_FRAME("cash_transaction_amount values needs to "
+								   "be increased");
+					}
+
+					strncat(values[i_cash_transaction_dts], ",", length_ctd--);
+					if (length_ctd < 0) {
+						FAIL_FRAME("cash_transaction_dts values needs to be "
+								   "increased");
+					}
+
+					strncat(values[i_cash_transaction_name], ",",
+							length_ctn--);
+					if (length_ctn < 0) {
+						FAIL_FRAME("cash_transaction_name values needs to be "
+								   "increased");
+					}
+				}
+				strncat(values[i_cash_transaction_amount], "0", length_cta--);
+				if (length_cta < 0) {
+					FAIL_FRAME("cash_transaction_amount values needs to be "
+							   "increased");
+				}
+
+				strncat(values[i_cash_transaction_dts], "NULL", length_ctd);
+				length_ctd -= 4;
+				if (length_ctd < 0) {
+					FAIL_FRAME("cash_transaction_dts values needs to be "
+							   "increased");
+				}
+
+				strncat(values[i_cash_transaction_name], "\"\"", length_ctn);
+				length_ctn -= 2;
+				if (length_ctn < 0) {
+					FAIL_FRAME("cash_transaction_name values needs to be "
+							   "increased");
+				}
+
+				++num_cash;
 			}
 
 #ifdef DEBUG
@@ -818,7 +867,7 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 #endif /* DEBUG */
 			ret = SPI_execute_plan(TUF1_7, args, nulls, true, 0);
 			if (ret != SPI_OK_SELECT) {
-				FAIL_FRAME_SET(&funcctx->max_calls, TUF1_statements[8].sql);
+				FAIL_FRAME_SET(&funcctx->max_calls, TUF1_statements[7].sql);
 				continue;
 			}
 			tupdesc = SPI_tuptable->tupdesc;
@@ -975,8 +1024,8 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 			FAIL_FRAME("trade_history_status_id values needs to be increased");
 		}
 
-		snprintf(values[i_num_found], INTEGER_LEN, "%d", num_found);
-		snprintf(values[i_num_updated], INTEGER_LEN, "%d", num_updated);
+		snprintf(values[i_num_found], INTEGER_LEN + 1, "%d", num_found);
+		snprintf(values[i_num_updated], INTEGER_LEN + 1, "%d", num_updated);
 
 		/* Build a tuple descriptor for our result type */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc)
@@ -1029,7 +1078,7 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 	}
 }
 
-/* Clause 3.3.9.4 */
+/* Clause 3.3.10.4 */
 Datum
 TradeUpdateFrame2(PG_FUNCTION_ARGS)
 {
@@ -1191,6 +1240,9 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(TUF2_1, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
 			FAIL_FRAME_SET(&funcctx->max_calls, TUF2_statements[0].sql);
+			SPI_finish();
+			MemoryContextSwitchTo(oldcontext);
+			SRF_RETURN_DONE(funcctx);
 		}
 
 		tupdesc = SPI_tuptable->tupdesc;
@@ -1354,10 +1406,18 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 			}
 
 			tmp = SPI_getvalue(tuple, tupdesc, 5);
-			strncat(values[i_trade_price], tmp, length_tp);
-			length_tp -= strlen(tmp);
-			if (length_tp < 0) {
-				FAIL_FRAME("trade_price values needs to be increased");
+			if (tmp != NULL) {
+				strncat(values[i_trade_price], tmp, length_tp);
+				length_tp -= strlen(tmp);
+				if (length_tp < 0) {
+					FAIL_FRAME("trade_price values needs to be increased");
+				}
+			} else {
+				strncat(values[i_trade_price], "NULL", length_tp);
+				length_tp -= 4;
+				if (length_tp < 0) {
+					FAIL_FRAME("trade_price values needs to be increased");
+				}
 			}
 
 #ifdef DEBUG
@@ -1799,8 +1859,8 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 			FAIL_FRAME("trade_history_status_id values needs to be increased");
 		}
 
-		snprintf(values[i_num_found], INTEGER_LEN, "%d", num_found);
-		snprintf(values[i_num_updated], INTEGER_LEN, "%d", num_updated);
+		snprintf(values[i_num_found], INTEGER_LEN + 1, "%d", num_found);
+		snprintf(values[i_num_updated], INTEGER_LEN + 1, "%d", num_updated);
 
 		/* Build a tuple descriptor for our result type */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc)
@@ -1853,7 +1913,7 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 	}
 }
 
-/* Clause 3.3.9.5 */
+/* Clause 3.3.10.5 */
 Datum
 TradeUpdateFrame3(PG_FUNCTION_ARGS)
 {
@@ -1864,7 +1924,6 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 
 	int i;
 	int j;
-	int k;
 
 	char **values = NULL;
 
@@ -2016,7 +2075,7 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 		length_tl = BIGINT_LEN * 20 + 22;
 		values[i_trade_list] = (char *) palloc(length_tl-- * sizeof(char));
 
-		length_tn = (TT_NAME_LEN + 2) * 20 + 2;
+		length_tn = (TT_NAME_LEN + 2) * 20 + 22;
 		values[i_type_name] = (char *) palloc(length_tn-- * sizeof(char));
 
 		length_tt = TT_ID_LEN * 20 + 22;
@@ -2040,7 +2099,10 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 		args[3] = Int32GetDatum(max_trades);
 		ret = SPI_execute_plan(TUF3_1, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
-			FAIL_FRAME_SET(&funcctx->max_calls, TUF2_statements[0].sql);
+			FAIL_FRAME_SET(&funcctx->max_calls, TUF3_statements[0].sql);
+			SPI_finish();
+			MemoryContextSwitchTo(oldcontext);
+			SRF_RETURN_DONE(funcctx);
 		}
 
 		tupdesc = SPI_tuptable->tupdesc;
@@ -2114,7 +2176,6 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 			char *s_name;
 			char *type_name;
 			char ct_name[CT_NAME_LEN + 1];
-			char ct_name_esc[2 * CT_NAME_LEN + 1];
 			char *price;
 
 			tuple = tuptable->vals[i];
@@ -2399,18 +2460,11 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 								"%s %s shares of %s", type_name, quantity,
 								s_name);
 					}
-					for (j = 0, k = 0; j < CT_NAME_LEN && ct_name[j] != '\0';
-							j++, k++) {
-						if (ct_name[j] == '\'')
-							ct_name_esc[k++] = '\\';
-						ct_name_esc[k] = ct_name[j];
-					}
-					ct_name_esc[k] = '\0';
 
 #ifdef DEBUG
 					elog(DEBUG1, "%s", SQLTUF3_4);
 #endif /* DEBUG */
-					args[0] = CStringGetTextDatum(ct_name_esc);
+					args[0] = CStringGetTextDatum(ct_name);
 					args[1] = Int64GetDatum(atoll(trade_list));
 					ret = SPI_execute_plan(TUF3_4, args, nulls, false, 0);
 					if (ret != SPI_OK_UPDATE) {
@@ -2421,27 +2475,6 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 					num_updated += SPI_processed;
 				}
 
-				if (num_cash > 0) {
-					strncat(values[i_cash_transaction_amount], ",",
-							length_cta--);
-					if (length_cta < 0) {
-						FAIL_FRAME("cash_transaction_amount values needs to "
-								   "be increased");
-					}
-
-					strncat(values[i_cash_transaction_dts], ",", length_ctd--);
-					if (length_ctd < 0) {
-						FAIL_FRAME("cash_transaction_dts values needs to be "
-								   "increased");
-					}
-
-					strncat(values[i_cash_transaction_name], ",",
-							length_ctn--);
-					if (length_ctn < 0) {
-						FAIL_FRAME("cash_transaction_name values needs to be "
-								   "increased");
-					}
-				}
 #ifdef DEBUG
 				elog(DEBUG1, "%s", SQLTUF3_5);
 #endif /* DEBUG */
@@ -2452,9 +2485,32 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 					l_tuptable = SPI_tuptable;
 					l_tuple = l_tuptable->vals[0];
 
+					if (num_cash > 0) {
+						strncat(values[i_cash_transaction_amount], ",",
+								length_cta--);
+						if (length_cta < 0) {
+							FAIL_FRAME("cash_transaction_amount values needs "
+									   "to be increased");
+						}
+
+						strncat(values[i_cash_transaction_dts], ",",
+								length_ctd--);
+						if (length_ctd < 0) {
+							FAIL_FRAME("cash_transaction_dts values needs to "
+									   "be increased");
+						}
+
+						strncat(values[i_cash_transaction_name], ",",
+								length_ctn--);
+						if (length_ctn < 0) {
+							FAIL_FRAME("cash_transaction_name values needs to "
+									   "be increased");
+						}
+					}
+
 					tmp = SPI_getvalue(l_tuple, l_tupdesc, 1);
 					strncat(values[i_cash_transaction_amount], tmp,
-							length_cta--);
+							length_cta);
 					length_cta -= strlen(tmp);
 					if (length_cta < 0) {
 						FAIL_FRAME("cash_transaction_amount values needs to "
@@ -2511,6 +2567,49 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 							&funcctx->max_calls, TUF3_statements[4].sql);
 					continue;
 				}
+			} else {
+				if (num_cash > 0) {
+					strncat(values[i_cash_transaction_amount], ",",
+							length_cta--);
+					if (length_cta < 0) {
+						FAIL_FRAME("cash_transaction_amount values needs to "
+								   "be increased");
+					}
+
+					strncat(values[i_cash_transaction_dts], ",", length_ctd--);
+					if (length_ctd < 0) {
+						FAIL_FRAME("cash_transaction_dts values needs to be "
+								   "increased");
+					}
+
+					strncat(values[i_cash_transaction_name], ",",
+							length_ctn--);
+					if (length_ctn < 0) {
+						FAIL_FRAME("cash_transaction_name values needs to be "
+								   "increased");
+					}
+				}
+				strncat(values[i_cash_transaction_amount], "0", length_cta--);
+				if (length_cta < 0) {
+					FAIL_FRAME("cash_transaction_amount values needs to be "
+							   "increased");
+				}
+
+				strncat(values[i_cash_transaction_dts], "NULL", length_ctd);
+				length_ctd -= 4;
+				if (length_ctd < 0) {
+					FAIL_FRAME("cash_transaction_dts values needs to be "
+							   "increased");
+				}
+
+				strncat(values[i_cash_transaction_name], "\"\"", length_ctn);
+				length_ctn -= 2;
+				if (length_ctn < 0) {
+					FAIL_FRAME("cash_transaction_name values needs to be "
+							   "increased");
+				}
+
+				++num_cash;
 			}
 
 #ifdef DEBUG
@@ -2671,8 +2770,8 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 			FAIL_FRAME("trade_type values needs to be increased");
 		}
 
-		snprintf(values[i_num_found], INTEGER_LEN, "%d", num_found);
-		snprintf(values[i_num_updated], INTEGER_LEN, "%d", num_updated);
+		snprintf(values[i_num_found], INTEGER_LEN + 1, "%d", num_found);
+		snprintf(values[i_num_updated], INTEGER_LEN + 1, "%d", num_updated);
 
 		/* Build a tuple descriptor for our result type */
 		if (get_call_result_type(fcinfo, NULL, &tupdesc)
