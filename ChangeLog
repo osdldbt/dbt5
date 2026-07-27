@@ -19,6 +19,8 @@ vX.Y.Z (YYYY-MM-DD)
   insert that stored literal text, and garbage commission bindings
 - pgsql: fix C Trade-Order frame 3 estimates and frame 4 storing the wrong
   charge, cash, and lifo values
+- pgsql: fix C Trade-Lookup inverted is_cash flags, stale history rows, and
+  a missing 20 row cap
 
 v0.10.13 (2026-07-10)
 
