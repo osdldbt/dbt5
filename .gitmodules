@@ -1,0 +1,3 @@
+[submodule "egen"]
+	path = egen
+	url = https://github.com/osdldbt/egen.git

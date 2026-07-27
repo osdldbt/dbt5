@@ -17,14 +17,18 @@ set (
     "Database Test 5 (DBT-5) project page: https://github.com/osdldbt/dbt5"
 )
 
-include (FetchContent)
-FetchContent_Declare(
-    egen
-    GIT_REPOSITORY https://github.com/osdldbt/egen.git
-    GIT_TAG        1.14.0
-)
-FetchContent_MakeAvailable (egen)
-set (EGEN_SOURCE_DIR ${egen_SOURCE_DIR})
+if (EXISTS ${CMAKE_SOURCE_DIR}/egen/prj)
+    set (EGEN_SOURCE_DIR ${CMAKE_SOURCE_DIR}/egen)
+else ()
+    include (FetchContent)
+    FetchContent_Declare(
+        egen
+        GIT_REPOSITORY https://github.com/osdldbt/egen.git
+        GIT_TAG        1.14.0
+    )
+    FetchContent_MakeAvailable (egen)
+    set (EGEN_SOURCE_DIR ${egen_SOURCE_DIR})
+endif ()
 
 add_subdirectory (appimage)
 add_subdirectory (patches)

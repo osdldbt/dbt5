@@ -14,17 +14,29 @@ DBT-5 provides a script to apply patches and provide code to compile the TPC-E
 Tools. The patches that are applied are minor code changes and code is supplied
 to build sponsor supplied code.
 
-By default, CMake's FetchContent feature automatically fetches the TPC-E Tools
-source from https://github.com/osdldbt/egen.git during the configure step.  The
-source is placed in the build directory under ``_deps/egen-src``.
+The TPC-E Tools source is provided by the ``egen`` git submodule, which
+tracks https://github.com/osdldbt/egen.git.  Initialize it when cloning the
+kit::
 
-For example, to build the TPC-E Tools for PostgreSQL (pgsql) using the
-automatically fetched source::
+    git clone --recurse-submodules https://github.com/osdldbt/dbt5.git
 
-    cmake -H. -Bbuilds/release -DCMAKE_INSTALL_PREFIX=/usr/local
-    cp -a builds/release/_deps/egen-src
+Or in an existing clone::
+
+    git submodule update --init
+
+When the submodule is initialized, CMake uses it directly.  Otherwise
+CMake's FetchContent feature automatically fetches the TPC-E Tools source
+from the same repository during the configure step and places it in the
+build directory under ``_deps/egen-src``.
+
+For example, to build the TPC-E Tools for PostgreSQL (pgsql), copy the
+source from the submodule to a working directory and run `dbt5-build-egen`
+against it (`dbt5-build-egen` patches and builds the directory in place, so
+building a copy keeps the submodule checkout clean)::
+
+    cp -a egen /tmp/egen
     dbt5-build-egen --include-dir=src/include --patch-dir=patches \
-            --source-dir=src builds/release/_deps/egen-src
+            --source-dir=src /tmp/egen
 
 Alternatively, the TPC-E Tools can be downloaded directly from the TPC:
 https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp

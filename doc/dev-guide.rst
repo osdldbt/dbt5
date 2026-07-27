@@ -11,6 +11,11 @@ Building the Kit
 CMake is build system used for this kit.  A `Makefile.cmake` is provided to
 automate some of the tasks.
 
+The TPC-E Tools source is provided by the ``egen`` git submodule.  Clone
+with ``--recurse-submodules``, or run ``git submodule update --init`` in an
+existing clone, to use the local copy.  When the submodule is not
+initialized, CMake downloads the source at configure time via FetchContent.
+
 Building for debugging::
 
     make -f Makefile.cmake debug

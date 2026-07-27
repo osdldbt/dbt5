@@ -24,7 +24,11 @@ WORKDIR /usr/local/src/dbt5
 RUN cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr && \
     cmake --build /tmp/build && \
     cmake --install /tmp/build && \
-    cp -a /tmp/build/_deps/egen-src /opt/egen && \
+    if [ -d egen/prj ]; then \
+        cp -a egen /opt/egen; \
+    else \
+        cp -a /tmp/build/_deps/egen-src /opt/egen; \
+    fi && \
     dbt5-build-egen --include-dir=src/include --patch-dir=patches \
         --source-dir=src /opt/egen && \
     make -C storedproc/pgsql/c USE_PGXS=1 install && \
