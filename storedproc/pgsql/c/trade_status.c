@@ -109,12 +109,17 @@ TradeStatusFrame1(PG_FUNCTION_ARGS)
 	if (SRF_IS_FIRSTCALL()) {
 		MemoryContext oldcontext;
 
+		/*
+		 * This enum must match the order of the OUT parameters declared
+		 * in trade_status.sql.in because tuple assembly is positional;
+		 * note cust_l_name is declared before cust_f_name there.
+		 */
 		enum tsf1
 		{
 			i_broker_name = 0,
 			i_charge,
-			i_cust_f_name,
 			i_cust_l_name,
+			i_cust_f_name,
 			i_ex_name,
 			i_exec_name,
 			i_num_found,
@@ -203,10 +208,14 @@ TradeStatusFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(TSF1_1, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
 			FAIL_FRAME_SET(&funcctx->max_calls, TSF1_statements[0].sql);
+			SPI_finish();
+			MemoryContextSwitchTo(oldcontext);
+			SRF_RETURN_DONE(funcctx);
 		}
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
-		snprintf(values[i_num_found], BIGINT_LEN, "%" PRId64, SPI_processed);
+		snprintf(values[i_num_found], BIGINT_LEN + 1, "%" PRId64,
+				SPI_processed);
 
 		values[i_trade_id][0] = '{';
 		values[i_trade_id][1] = '\0';
@@ -479,6 +488,9 @@ TradeStatusFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(TSF1_2, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
 			FAIL_FRAME_SET(&funcctx->max_calls, TSF1_statements[1].sql);
+			SPI_finish();
+			MemoryContextSwitchTo(oldcontext);
+			SRF_RETURN_DONE(funcctx);
 		}
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
@@ -521,7 +533,8 @@ TradeStatusFrame1(PG_FUNCTION_ARGS)
 
 #ifdef DEBUG
 		for (i = 0; i < 14; i++) {
-			elog(DEBUG1, "TSF1 OUT: %d %s", i, values[i]);
+			elog(DEBUG1, "TSF1 OUT: %d %s", i,
+					values[i] ? values[i] : "(null)");
 		}
 #endif /* DEBUG */
 

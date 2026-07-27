@@ -7,6 +7,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: fix C Broker-Volume buffer sizes and remove dead broker list code
 - pgsql: fix C Market-Watch to return 0.0 when old_mkt_cap is zero and to
   skip securities with missing rows
+- pgsql: fix C Trade-Status returning the customer first and last names
+  swapped
 
 v0.10.13 (2026-07-10)
 
