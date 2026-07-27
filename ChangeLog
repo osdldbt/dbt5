@@ -2,6 +2,8 @@ vX.Y.Z (YYYY-MM-DD)
 
 - Shellcheck all scripts
 - Improve logic to kill all processes when tests abort
+- pgsql: wrap the C stored function warning macros in do/while blocks and
+  correct the S_PRICE_T and FIN_AGG_T text width defines
 
 v0.10.13 (2026-07-10)
 

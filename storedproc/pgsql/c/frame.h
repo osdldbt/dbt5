@@ -11,13 +11,17 @@
 #define _FRAME_H_
 
 #define FAIL_FRAME(sql)                                                       \
-	elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", __FILE__,         \
-			__LINE__, sql);
+	do {                                                                      \
+		elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", __FILE__,     \
+				__LINE__, sql);                                               \
+	} while (0)
 
 #define FAIL_FRAME_SET(rows, sql)                                             \
-	elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", __FILE__,         \
-			__LINE__, sql);                                                   \
-	*rows = 0;
+	do {                                                                      \
+		elog(WARNING, "UNEXPECTED EXECUTION RESULT: %s %d\n%s", __FILE__,     \
+				__LINE__, sql);                                               \
+		*rows = 0;                                                            \
+	} while (0)
 
 /* PostgreSQL types */
 #define BIGINT_LEN 20
@@ -27,10 +31,10 @@
 
 /* Domains */
 #define BALANCE_T_LEN 14
-#define FIN_AGG_T_LEN 16
+#define FIN_AGG_T_LEN 17
 #define IDENT_T_LEN BIGINT_LEN
 #define S_COUNT_T_LEN BIGINT_LEN
-#define S_PRICE_T_LEN 10
+#define S_PRICE_T_LEN 14
 #define S_QTY_T_LEN INTEGER_LEN
 #define TRADE_T_LEN BIGINT_LEN
 #define VALUE_T_LEN 12
@@ -98,7 +102,7 @@
 
 #define NI_AUTHOR_LEN 30
 /* PostgreSQL bytea can blow this up by 5. */
-#define NI_ITEM_LEN 100000 * 5
+#define NI_ITEM_LEN (100000 * 5)
 #define NI_SOURCE_LEN 30
 #define NI_HEADLINE_LEN 80
 #define NI_SUMMARY_LEN 255
