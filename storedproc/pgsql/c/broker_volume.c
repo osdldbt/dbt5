@@ -24,8 +24,6 @@
 #include "frame.h"
 #include "dbt5common.h"
 
-#define BROKER_LIST_ARRAY_LEN ((B_NAME_LEN + 3) * 40 + 4)
-
 #define SQLBVF1_1                                                             \
 	"SELECT b_name\n"                                                         \
 	"     , sum(tr_qty * tr_bid_price)\n"                                     \
@@ -113,10 +111,6 @@ BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 
 	int i;
 
-	int ndim, nitems;
-	int *dim;
-	char *broker_list;
-
 	char **values = NULL;
 
 	/* Stuff done only on the first call of the function. */
@@ -133,17 +127,11 @@ BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 			i_volume
 		};
 
-		int16 typlen;
-		bool typbyval;
-		char typalign;
-
 		int ret;
 		TupleDesc tupdesc;
 		SPITupleTable *tuptable = NULL;
 		HeapTuple tuple = NULL;
 
-		char broker_list_array[BROKER_LIST_ARRAY_LEN + 1] = "'{";
-		int length_bl = BROKER_LIST_ARRAY_LEN - 2;
 		Datum args[2];
 		char nulls[2] = { ' ', ' ' };
 
@@ -158,69 +146,6 @@ BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		values[i_list_len]
 				= (char *) palloc((SMALLINT_LEN + 1) * sizeof(char));
 
-		/*
-		 * This might be overkill since we always expect single dimensions
-		 * arrays.
-		 */
-		ndim = ARR_NDIM(broker_list_p);
-		dim = ARR_DIMS(broker_list_p);
-		nitems = ArrayGetNItems(ndim, dim);
-		get_typlenbyvalalign(
-				ARR_ELEMTYPE(broker_list_p), &typlen, &typbyval, &typalign);
-		broker_list = ARR_DATA_PTR(broker_list_p);
-		/* Turn the broker_list input into an array format. */
-		if (nitems > 0) {
-			strncat(broker_list_array, "\"", length_bl--);
-			if (length_bl < 0) {
-				FAIL_FRAME("broker_list_array needs to be increased");
-			}
-
-			tmp = DatumGetCString(DirectFunctionCall1(
-					textout, PointerGetDatum(broker_list)));
-			strncat(broker_list_array,
-					DatumGetCString(DirectFunctionCall1(
-							textout, PointerGetDatum(broker_list))),
-					length_bl);
-			length_bl -= strlen(tmp);
-			if (length_bl < 0) {
-				FAIL_FRAME("broker_list_array needs to be increased");
-			}
-
-			broker_list
-					= att_addlength_pointer(broker_list, typlen, broker_list);
-			broker_list = (char *) att_align_nominal(broker_list, typalign);
-			strncat(broker_list_array, "\"", length_bl--);
-			if (length_bl < 0) {
-				FAIL_FRAME("broker_list_array needs to be increased");
-			}
-		}
-		for (i = 1; i < nitems; i++) {
-			strncat(broker_list_array, ",\"", length_bl--);
-			if (length_bl < 0) {
-				FAIL_FRAME("broker_list_array needs to be increased");
-			}
-
-			tmp = DatumGetCString(DirectFunctionCall1(
-					textout, PointerGetDatum(broker_list)));
-			strncat(broker_list_array, tmp, length_bl);
-			length_bl -= strlen(tmp);
-			if (length_bl < 0) {
-				FAIL_FRAME("broker_list_array needs to be increased");
-			}
-
-			broker_list
-					= att_addlength_pointer(broker_list, typlen, broker_list);
-			broker_list = (char *) att_align_nominal(broker_list, typalign);
-			strncat(broker_list_array, "\"", length_bl--);
-			if (length_bl < 0) {
-				FAIL_FRAME("broker_list_array needs to be increased");
-			}
-		}
-		strncat(broker_list_array, "}'", length_bl);
-		length_bl -= 2;
-		if (length_bl < 0) {
-			FAIL_FRAME("broker_list_array needs to be increased");
-		}
 #ifdef DEBUG
 		dump_bvf1_inputs(broker_list_p, sector_name_p);
 #endif
@@ -242,12 +167,16 @@ BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 		ret = SPI_execute_plan(BVF1_1, args, nulls, true, 0);
 		if (ret != SPI_OK_SELECT) {
 			FAIL_FRAME_SET(&funcctx->max_calls, BVF1_statements[0].sql);
+			SPI_finish();
+			MemoryContextSwitchTo(oldcontext);
+			SRF_RETURN_DONE(funcctx);
 		}
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
 		tuple = tuptable->vals[0];
 
-		snprintf(values[i_list_len], BIGINT_LEN, "%" PRId64, SPI_processed);
+		snprintf(values[i_list_len], SMALLINT_LEN + 1, "%" PRId64,
+				SPI_processed);
 
 		if (SPI_processed == 0) {
 			values[i_broker_name] = (char *) palloc(3 * sizeof(char));
@@ -262,7 +191,7 @@ BrokerVolumeFrame1(PG_FUNCTION_ARGS)
 			values[i_broker_name]
 					= (char *) palloc(length_bn-- * sizeof(char));
 
-			length_v = INTEGER_LEN * (SPI_processed + 1) + 3;
+			length_v = FIN_AGG_T_LEN * (SPI_processed + 1) + 3;
 			values[i_volume] = (char *) palloc(length_v-- * sizeof(char));
 
 			values[i_broker_name][0] = '{';

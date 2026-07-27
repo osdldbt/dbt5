@@ -4,6 +4,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Improve logic to kill all processes when tests abort
 - pgsql: wrap the C stored function warning macros in do/while blocks and
   correct the S_PRICE_T and FIN_AGG_T text width defines
+- pgsql: fix C Broker-Volume buffer sizes and remove dead broker list code
 
 v0.10.13 (2026-07-10)
 
