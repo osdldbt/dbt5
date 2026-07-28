@@ -87,7 +87,7 @@ while [ "${#}" -gt 0 ] ; do
 	shift
 done
 
-PSQL="psql -X ${PORTARG} -e ${DBNAMEARG}"
+PSQL="psql -X -v ON_ERROR_STOP=1 ${PORTARG} -e ${DBNAMEARG}"
 
 if [ "${TYPE}" = "c" ]; then
 	SHAREDIR="$(pg_config --sharedir)"

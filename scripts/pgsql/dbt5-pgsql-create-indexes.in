@@ -12,9 +12,16 @@
 exec_and_sync() {
 	SQL="${1}"
 
-	eval "${PSQL} -e" <<- EOF
+	if ! eval "${PSQL} -v ON_ERROR_STOP=1 -e" <<- EOF
 		${SQL}
 	EOF
+	then
+		# May be running in the background, where exiting cannot change
+		# the parent's exit status, so also raise a flag for the parent
+		# to check after wait.
+		echo 1 > "${ERRORFLAG}"
+		exit 1
+	fi
 
 	if [ "${HASBDR}" = "1" ]; then
 		eval "${PSQL}" -e <<- EOF
@@ -66,6 +73,9 @@ else
 	BDRWAIT=""
 	P="&"
 fi
+
+ERRORFLAG="$(mktemp)"
+trap 'rm -f "${ERRORFLAG}"' EXIT
 
 if [ ${USE_TABLESPACES} -eq 1 ]; then
 	if [ -z "${DBT5TSDIR}" ]; then
@@ -1115,5 +1125,10 @@ REFERENCES zip_code (zc_code);
 eval "exec_and_sync \"${STMT}\"" ${P}
 
 wait
+
+if [ -s "${ERRORFLAG}" ]; then
+	echo "ERROR: creating a constraint or index failed, see messages above"
+	exit 1
+fi
 
 exit 0

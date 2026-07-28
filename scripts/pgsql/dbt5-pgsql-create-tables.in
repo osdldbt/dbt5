@@ -220,7 +220,7 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	EOF
 fi
 
-eval "${PSQL}" << EOF
+eval "${PSQL} -v ON_ERROR_STOP=1" << EOF
 -- Creating sequence for Trade tables, t_id field
 CREATE SEQUENCE seq_trade_id;
 
@@ -576,5 +576,3 @@ CREATE TABLE zip_code (
     zc_div VARCHAR(80) NOT NULL)
     ${TS_ZIP_CODE};
 EOF
-
-exit 0

@@ -254,7 +254,7 @@ if [ -n "${PORT}" ]; then
 	export PGPORT="${PORT}"
 fi
 
-PSQL="psql -X ${PORTARG} ${DBNAMEARG}"
+PSQL="psql -X -v ON_ERROR_STOP=1 ${PORTARG} ${DBNAMEARG}"
 
 if [ ${PRIVILEGED} -eq 1 ] && [ ${REBUILD_DB} -eq 1 ]; then
 	echo "Restarting the database to reset database parameters..."
