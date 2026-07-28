@@ -4,32 +4,32 @@ default:
 	@echo "targets: appimage (Linux only), clean, debug, package, release"
 
 appimage:
-	cmake -H. -Bbuilds/appimage -DCMAKE_INSTALL_PREFIX=/usr
-	cd builds/appimage && make install DESTDIR=../AppDir
-	rm -rf builds/AppDir/opt/egen
-	mkdir -p builds/AppDir/opt/egen
+	cmake -H. -Bbuild/appimage -DCMAKE_INSTALL_PREFIX=/usr
+	cd build/appimage && make install DESTDIR=../AppDir
+	rm -rf build/AppDir/opt/egen
+	mkdir -p build/AppDir/opt/egen
 	if [ -d egen/prj ]; then \
-		cp -a egen/. builds/AppDir/opt/egen; \
+		cp -a egen/. build/AppDir/opt/egen; \
 	else \
-		cp -a builds/appimage/_deps/egen-src/. builds/AppDir/opt/egen; \
+		cp -a build/appimage/_deps/egen-src/. build/AppDir/opt/egen; \
 	fi
-	builds/AppDir/usr/bin/dbt5-build-egen --include-dir=src/include \
+	build/AppDir/usr/bin/dbt5-build-egen --include-dir=src/include \
 			--patch-dir=patches --source-dir=src \
-			builds/AppDir/opt/egen; \
-	cd builds/appimage && make appimage
+			build/AppDir/opt/egen; \
+	cd build/appimage && make appimage
 
 clean:
-	-rm -rf builds
+	-rm -rf build
 
 debug:
-	cmake -H. -Bbuilds/debug -DCMAKE_BUILD_TYPE=Debug
-	cd builds/debug && make
+	cmake -H. -Bbuild/debug -DCMAKE_BUILD_TYPE=Debug
+	cd build/debug && make
 
 package:
-	git checkout-index --prefix=builds/source/ -a
-	cmake -Hbuilds/source -Bbuilds/package
-	cd builds/package && make package_source
+	git checkout-index --prefix=build/source/ -a
+	cmake -Hbuild/source -Bbuild/package
+	cd build/package && make package_source
 
 release:
-	cmake -H. -Bbuilds/release
-	cd builds/release && make
+	cmake -H. -Bbuild/release
+	cd build/release && make

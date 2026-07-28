@@ -10,7 +10,7 @@ Building the Kit
 
 CMake is build system used for this kit.  A `Makefile` is provided to
 automate some of the tasks.  In-tree builds are not supported; the provided
-targets configure and build under the `builds/` directory.
+targets configure and build under the `build/` directory.
 
 The TPC-E Tools source is provided by the ``egen`` git submodule.  Clone
 with ``--recurse-submodules``, or run ``git submodule update --init`` in an

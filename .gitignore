@@ -14,7 +14,7 @@ CMakeCache.txt
 bin/
 cmake_install.cmake
 CMakeFiles/
-builds/
+build/
 
 # PostgreSQL
 storedproc/pgsql/c/*.sql

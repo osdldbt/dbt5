@@ -4,7 +4,7 @@ PROJECT(dbt5 NONE)
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
     message (FATAL_ERROR
         "In-tree builds are not supported.  Use a separate build directory, "
-        "e.g. `make release`, or `cmake -H. -Bbuilds/release`.  Remove the "
+        "e.g. `make release`, or `cmake -H. -Bbuild/release`.  Remove the "
         "`CMakeCache.txt` file and `CMakeFiles/` directory created in the "
         "source directory by this attempt before trying again."
     )

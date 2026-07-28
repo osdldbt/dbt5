@@ -167,8 +167,8 @@ RUN curl -o /tmp/v${DBTTOOLSVER}.tar.gz -SsOL \
          https://github.com/osdldbt/dbttools/archive/refs/tags/v${DBTTOOLSVER}.tar.gz && \
     tar -C /usr/local/src -xf /tmp/v${DBTTOOLSVER}.tar.gz
 WORKDIR /usr/local/src/dbttools-${DBTTOOLSVER}
-RUN cmake -H. -Bbuilds/release -DCMAKE_INSTALL_PREFIX=/usr && \
-    (cd builds/release && make -s install) && \
+RUN cmake -H. -Bbuild/release -DCMAKE_INSTALL_PREFIX=/usr && \
+    (cd build/release && make -s install) && \
     rm -f /tmp/v${DBTTOOLSVER}.tar.gz
 RUN mkdir -p /usr/local/share/licenses/dbttools-${DBTTOOLSVER} && \
     cp -p LICENSE /usr/local/share/licenses/dbttools-${DBTTOOLSVER}/
@@ -223,8 +223,8 @@ RUN curl -o /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz -SsOL \
         --strip-components=1 \
         -xf /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz
 WORKDIR /usr/local/src/touchstone-tools-v${TSTOOLSVER}
-RUN cmake -H. -Bbuilds/release -DCMAKE_INSTALL_PREFIX=/usr && \
-    (cd builds/release && make -s install) && \
+RUN cmake -H. -Bbuild/release -DCMAKE_INSTALL_PREFIX=/usr && \
+    (cd build/release && make -s install) && \
     (cd spar && ${HOME}/.cargo/bin/cargo install --root /usr/local --path .) && \
     rm -f /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz
 RUN mkdir -p /usr/local/share/licenses/touchstone-tools-v${TSTOOLSVER} && \

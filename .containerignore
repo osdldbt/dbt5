@@ -1,4 +1,4 @@
-builds/
+build/
 egen/bin/*
 egen/lib/*
 egen/obj/*
