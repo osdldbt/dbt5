@@ -1619,6 +1619,11 @@ CDBConnectionServerSide::execute(
 	PGresult *res = exec("SELECT * FROM TradeResultFrame1($1)", 1, NULL,
 			paramValues, paramLengths, paramFormats, 0);
 
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
 	int i_acct_id = get_col_num(res, "acct_id");
 	int i_charge = get_col_num(res, "charge");
 	int i_hs_qty = get_col_num(res, "hs_qty");
@@ -1677,6 +1682,11 @@ CDBConnectionServerSide::execute(
 						 "$6, $7, $8)",
 			8, NULL, paramValues, paramLengths, paramFormats, 0);
 
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
 	pOut->broker_id = atoll(PQgetvalue(res, 0, 0));
 	pOut->buy_value = atof(PQgetvalue(res, 0, 1));
 	pOut->cust_id = atoll(PQgetvalue(res, 0, 2));
@@ -1730,6 +1740,11 @@ CDBConnectionServerSide::execute(
 	PGresult *res = exec("SELECT * FROM TradeResultFrame4($1, $2, $3, $4)", 4,
 			NULL, paramValues, paramLengths, paramFormats, 0);
 
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
 	pOut->comm_rate = atof(PQgetvalue(res, 0, 0));
 	strncpy(pOut->s_name, PQgetvalue(res, 0, 1), cS_NAME_len);
 	pOut->s_name[cS_NAME_len] = '\0';
@@ -1742,16 +1757,7 @@ CDBConnectionServerSide::execute(const TTradeResultFrame5Input *pIn)
 	uint64_t broker_id = htobe64((uint64_t) pIn->broker_id);
 	char comm_amount[14];
 	snprintf(comm_amount, 13, "%f", pIn->comm_amount);
-	struct tm tm = { 0 };
-	tm.tm_year = pIn->trade_dts.year - 1900;
-	tm.tm_mon = pIn->trade_dts.month - 1;
-	tm.tm_mday = pIn->trade_dts.day;
-	tm.tm_hour = pIn->trade_dts.hour - 1;
-	tm.tm_min = pIn->trade_dts.minute;
-	tm.tm_sec = pIn->trade_dts.second;
-	uint64_t trade_dts
-			= htobe64(((uint64_t) mktime(&tm) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+	uint64_t trade_dts = htobe64(usecFromPgEpoch(&pIn->trade_dts));
 
 	uint64_t trade_id = htobe64((uint64_t) pIn->trade_id);
 	char trade_price[14];
@@ -1776,28 +1782,10 @@ CDBConnectionServerSide::execute(
 		const TTradeResultFrame6Input *pIn, TTradeResultFrame6Output *pOut)
 {
 	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
-	struct tm due_date_tm = { 0 };
-	due_date_tm.tm_year = pIn->due_date.year - 1900;
-	due_date_tm.tm_mon = pIn->due_date.month - 1;
-	due_date_tm.tm_mday = pIn->due_date.day;
-	due_date_tm.tm_hour = pIn->due_date.hour - 1;
-	due_date_tm.tm_min = pIn->due_date.minute;
-	due_date_tm.tm_sec = pIn->due_date.second;
-	uint64_t due_date
-			= htobe64(((uint64_t) mktime(&due_date_tm) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+	uint64_t due_date = htobe64(usecFromPgEpoch(&pIn->due_date));
 	char se_amount[14];
 	snprintf(se_amount, 13, "%f", pIn->se_amount);
-	struct tm trade_dts_tm = { 0 };
-	trade_dts_tm.tm_year = pIn->trade_dts.year - 1900;
-	trade_dts_tm.tm_mon = pIn->trade_dts.month - 1;
-	trade_dts_tm.tm_mday = pIn->trade_dts.day;
-	trade_dts_tm.tm_hour = pIn->trade_dts.hour - 1;
-	trade_dts_tm.tm_min = pIn->trade_dts.minute;
-	trade_dts_tm.tm_sec = pIn->trade_dts.second;
-	uint64_t trade_dts
-			= htobe64(((uint64_t) mktime(&trade_dts_tm) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+	uint64_t trade_dts = htobe64(usecFromPgEpoch(&pIn->trade_dts));
 	uint64_t trade_id = htobe64((uint64_t) pIn->trade_id);
 	uint16_t trade_is_cash = htobe16((uint16_t) pIn->trade_is_cash);
 	uint32_t trade_qty = htobe32((uint32_t) pIn->trade_qty);
