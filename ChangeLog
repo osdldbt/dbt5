@@ -65,6 +65,8 @@ vX.Y.Z (YYYY-MM-DD)
   toggle, and wrong per trade cash flags
 - Share the time zone independent date conversions between the PostgreSQL
   client side and server side code
+- pgsql: rewrite server side array and composite literal parsing to handle
+  quoting and escapes, fixing corrupted Security-Detail news output
 
 v0.10.13 (2026-07-10)
 

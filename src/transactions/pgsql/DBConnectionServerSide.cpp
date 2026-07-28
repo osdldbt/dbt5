@@ -31,61 +31,86 @@ int inline get_col_num(PGresult *res, const char *col_name)
 	return col_num;
 }
 
-void inline TokenizeArray2(const string &str2, vector<string> &tokens)
+/*
+ * Split a PostgreSQL array literal into its elements.  Quoted elements
+ * have the quotes stripped and backslash escapes resolved, so an element
+ * that is itself a composite literal comes out as valid composite text.
+ * An unquoted NULL element becomes an empty string.
+ */
+void inline TokenizeSmart(const string &str, vector<string> &tokens)
 {
-	// This is essentially an empty array. i.e. '()'
-	if (str2.size() < 3)
+	string::size_type i = 1;
+
+	// This is essentially an empty array. i.e. '{}'
+	if (str.size() < 3 || str[0] != '{')
 		return;
 
-	// We only call this function because we need to chop up arrays that
-	// are in the format '{(1,2,3),(a,b,c)}', so trim off the braces.
-	string str = str2.substr(1, str2.size() - 2);
+	while (i < str.size() && str[i] != '}') {
+		string token;
 
-	// Skip delimiters at beginning.
-	string::size_type lastPos = str.find_first_of("(", 0);
-	// Find first "non-delimiter".
-	string::size_type pos = str.find_first_of(")", lastPos);
-
-	while (string::npos != pos || string::npos != lastPos) {
-		// Found a token, add it to the vector.
-		tokens.push_back(str.substr(lastPos, pos - lastPos + 1));
-
-		lastPos = str.find_first_of("(", pos);
-		pos = str.find_first_of(")", lastPos);
+		if (str[i] == '"') {
+			++i;
+			while (i < str.size() && str[i] != '"') {
+				if (str[i] == '\\' && i + 1 < str.size())
+					++i;
+				token += str[i++];
+			}
+			++i;
+		} else {
+			while (i < str.size() && str[i] != ',' && str[i] != '}')
+				token += str[i++];
+			if (token == "NULL")
+				token.clear();
+		}
+		tokens.push_back(token);
+		if (i < str.size() && str[i] == ',')
+			++i;
 	}
 }
 
-// String Tokenizer
-// FIXME: This token doesn't handle strings with escaped characters.
-void inline TokenizeSmart(const string &str, vector<string> &tokens)
+/*
+ * Split a PostgreSQL composite literal '(f1,f2,...)' into its fields.
+ * Quoted fields have the quotes stripped, doubled quotes and backslash
+ * escapes resolved.  Unquoted empty fields (SQL NULL) become empty
+ * strings.
+ */
+void inline TokenizeComposite(const string &str, vector<string> &fields)
 {
-	// This is essentially an empty array. i.e. '{}'
-	if (str.size() < 3)
+	string::size_type i = 1;
+	bool more;
+
+	if (str.size() < 2 || str[0] != '(')
 		return;
 
-	string::size_type lastPos = 1;
-	string::size_type pos = 1;
-	bool end = false;
-	while (end == false) {
-		if (str[lastPos] == '"') {
-			pos = str.find_first_of("\"", lastPos + 1);
-			if (pos == string::npos) {
-				pos = str.find_first_of("}", lastPos);
-				end = true;
+	more = str[1] != ')';
+	while (more) {
+		string field;
+
+		if (str[i] == '"') {
+			++i;
+			while (i < str.size()) {
+				if (str[i] == '"') {
+					if (i + 1 < str.size() && str[i + 1] == '"') {
+						field += '"';
+						i += 2;
+						continue;
+					}
+					break;
+				}
+				if (str[i] == '\\' && i + 1 < str.size())
+					++i;
+				field += str[i++];
 			}
-			tokens.push_back(str.substr(lastPos + 1, pos - lastPos - 1));
-			lastPos = pos + 2;
-		} else if (str[lastPos] == '\0') {
-			return;
+			++i;
 		} else {
-			pos = str.find_first_of(",", lastPos);
-			if (pos == string::npos) {
-				pos = str.find_first_of("}", lastPos);
-				end = true;
-			}
-			tokens.push_back(str.substr(lastPos, pos - lastPos));
-			lastPos = pos + 1;
+			while (i < str.size() && str[i] != ',' && str[i] != ')')
+				field += str[i++];
 		}
+		fields.push_back(field);
+		if (i < str.size() && str[i] == ',')
+			++i;
+		else
+			more = false;
 	}
 }
 
@@ -516,12 +541,12 @@ CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 	check_count(3, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
-	TokenizeArray2(PQgetvalue(res, 0, i_day), vAux);
+	TokenizeSmart(PQgetvalue(res, 0, i_day), vAux);
 	for (size_t i = 0; i < vAux.size(); ++i) {
 		vector<string> v2;
 		vector<string>::iterator p2;
 
-		TokenizeSmart(vAux[i].c_str(), v2);
+		TokenizeComposite(vAux[i], v2);
 
 		p2 = v2.begin();
 		sscanf((*p2++).c_str(), "%hd-%hd-%hd", &pOut->day[i].date.year,
@@ -561,12 +586,12 @@ CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 	pOut->ex_num_symb = atoi(PQgetvalue(res, 0, i_ex_num_symb));
 	pOut->ex_open = atoi(PQgetvalue(res, 0, i_ex_open));
 
-	TokenizeArray2(PQgetvalue(res, 0, i_fin), vAux);
+	TokenizeSmart(PQgetvalue(res, 0, i_fin), vAux);
 	for (size_t i = 0; i < vAux.size(); ++i) {
 		vector<string> v2;
 		vector<string>::iterator p2;
 
-		TokenizeSmart(vAux[i].c_str(), v2);
+		TokenizeComposite(vAux[i], v2);
 
 		p2 = v2.begin();
 		pOut->fin[i].year = atoi((*p2++).c_str());
@@ -592,19 +617,31 @@ CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 	pOut->last_price = atof(PQgetvalue(res, 0, i_last_price));
 	pOut->last_vol = atoi(PQgetvalue(res, 0, i_last_vol));
 
-	TokenizeArray2(PQgetvalue(res, 0, i_news), vAux);
+	TokenizeSmart(PQgetvalue(res, 0, i_news), vAux);
 	for (size_t i = 0; i < vAux.size(); ++i) {
 		vector<string> v2;
 		vector<string>::iterator p2;
 
-		TokenizeSmart(vAux[i].c_str(), v2);
+		TokenizeComposite(vAux[i], v2);
 
 		p2 = v2.begin();
-		// FIXME: Postgresql can actually return 5 times the amount of data due
-		// to escaped characters.  Cap the data at the length that EGen defines
-		// it and hope it isn't a problem for continuing the test correctly.
-		strncpy(pOut->news[i].item, (*p2++).c_str(), cNI_ITEM_len);
-		pOut->news[i].item[cNI_ITEM_len] = '\0';
+		/*
+		 * ni_item is a bytea; the field text is its hex form, so decode
+		 * it back to the stored bytes.
+		 */
+		size_t item_len = 0;
+		unsigned char *item = PQunescapeBytea(
+				(const unsigned char *) (*p2++).c_str(), &item_len);
+		if (item != NULL) {
+			if (item_len > (size_t) cNI_ITEM_len) {
+				item_len = (size_t) cNI_ITEM_len;
+			}
+			memcpy(pOut->news[i].item, item, item_len);
+			pOut->news[i].item[item_len] = '\0';
+			PQfreemem(item);
+		} else {
+			pOut->news[i].item[0] = '\0';
+		}
 		sscanf((*p2++).c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->news[i].dts.year, &pOut->news[i].dts.month,
 				&pOut->news[i].dts.day, &pOut->news[i].dts.hour,
