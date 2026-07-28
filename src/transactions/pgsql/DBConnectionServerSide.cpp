@@ -1527,6 +1527,7 @@ CDBConnectionServerSide::execute(
 			14, NULL, paramValues, paramLengths, paramFormats, 0);
 
 	if (PQntuples(res) == 0) {
+		PQclear(res);
 		return;
 	}
 
@@ -1546,6 +1547,7 @@ CDBConnectionServerSide::execute(
 	int i_type_is_sell = get_col_num(res, "type_is_sell");
 
 	strncpy(pOut->co_name, PQgetvalue(res, 0, i_co_name), cCO_NAME_len);
+	pOut->co_name[cCO_NAME_len] = '\0';
 	pOut->requested_price = atof(PQgetvalue(res, 0, i_requested_price));
 	strncpy(pOut->symbol, PQgetvalue(res, 0, i_symbol), cSYMBOL_len);
 	pOut->symbol[cSYMBOL_len] = '\0';
