@@ -68,6 +68,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: rewrite server side array and composite literal parsing to handle
   quoting and escapes, fixing corrupted Security-Detail news output
 - pgsql: fix server side Market-Watch start_day encoding
+- pgsql: fix server side Security-Detail date encoding, empty result
+  handling, and bigint volumes
 
 v0.10.13 (2026-07-10)
 

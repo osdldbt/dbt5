@@ -410,14 +410,8 @@ CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 {
 	uint16_t access_lob_flag = htobe16(pIn->access_lob_flag ? 1 : 0);
 	uint32_t max_rows_to_return = htobe32((uint32_t) pIn->max_rows_to_return);
-	struct tm tm = { 0 };
-	tm.tm_year = pIn->start_day.year - 1900;
-	tm.tm_mon = pIn->start_day.month - 1;
-	tm.tm_mday = pIn->start_day.day;
-	mktime(&tm);
-	uint32_t start_day
-			= htobe32((uint32_t) ((tm.tm_year - 100) * 365
-								  + (tm.tm_year - 100) / 4 + tm.tm_yday));
+	uint32_t start_day = htobe32((uint32_t) daysFromPgEpoch(
+			pIn->start_day.year, pIn->start_day.month, pIn->start_day.day));
 
 	const Oid paramTypes[4]
 			= { INT2OID, INT4OID, DATEOID, TEXTOID };
@@ -429,6 +423,11 @@ CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 
 	PGresult *res = exec("SELECT * FROM SecurityDetailFrame1($1, $2, $3, $4)",
 			4, paramTypes, paramValues, paramLengths, paramFormats, 0);
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
 
 	int i_s52_wk_high = get_col_num(res, "x52_wk_high");
 	int i_s52_wk_high_date = get_col_num(res, "x52_wk_high_date");
@@ -536,7 +535,7 @@ CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_day), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) max_day_len; ++i) {
 		vector<string> v2;
 		vector<string>::iterator p2;
 
@@ -548,7 +547,7 @@ CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 		pOut->day[i].close = atof((*p2++).c_str());
 		pOut->day[i].high = atof((*p2++).c_str());
 		pOut->day[i].low = atof((*p2++).c_str());
-		pOut->day[i].vol = atoi((*p2++).c_str());
+		pOut->day[i].vol = atoll((*p2++).c_str());
 		v2.clear();
 	}
 	check_count(pOut->day_len, vAux.size(), __FILE__, __LINE__);
@@ -581,7 +580,7 @@ CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 	pOut->ex_open = atoi(PQgetvalue(res, 0, i_ex_open));
 
 	TokenizeSmart(PQgetvalue(res, 0, i_fin), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) max_fin_len; ++i) {
 		vector<string> v2;
 		vector<string>::iterator p2;
 
@@ -609,10 +608,10 @@ CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 
 	pOut->last_open = atof(PQgetvalue(res, 0, i_last_open));
 	pOut->last_price = atof(PQgetvalue(res, 0, i_last_price));
-	pOut->last_vol = atoi(PQgetvalue(res, 0, i_last_vol));
+	pOut->last_vol = atoll(PQgetvalue(res, 0, i_last_vol));
 
 	TokenizeSmart(PQgetvalue(res, 0, i_news), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) max_news_len; ++i) {
 		vector<string> v2;
 		vector<string>::iterator p2;
 
