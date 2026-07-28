@@ -18,7 +18,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_DB: dbt5
       POSTGRES_HOST_AUTH_METHOD: trust
-      HOST_USER: ${USER}
+      HOST_USER: ${USER:-postgres}
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
@@ -34,6 +34,7 @@ services:
 
   broker:
     image: dbt5:${PGVER:-18}
+    user: postgres
     depends_on:
       dbt5:
         condition: service_completed_successfully
@@ -46,8 +47,8 @@ services:
       - -c
       - |
         ln -sf /dev/stderr /tmp/BrokerageHouse_Error.log
-        exec su postgres -c "/opt/egen/bin/BrokerageHouseMain -h database \
-                             -m market -d dbt5 -o /tmp"
+        exec /opt/egen/bin/BrokerageHouseMain -h database -m market -d dbt5 \
+            -o /tmp
 
   market:
     image: dbt5:${PGVER:-18}
@@ -90,7 +91,7 @@ services:
           sleep 1
         done) &
         exec dbt5-build --tpcetools=/opt/egen -l CUSTOM --db-host=database \
-            --db-user=${USER} -t ${CUSTOMERS:-1000} -w ${DAYS:-1} \
+            --db-user=${USER:-postgres} -t ${CUSTOMERS:-1000} -w ${DAYS:-1} \
             -f ${SCALEFACTOR:-1} pgsql "$$@"
       - --
 

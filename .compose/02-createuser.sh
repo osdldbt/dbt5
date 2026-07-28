@@ -1,3 +1,7 @@
 #!/bin/sh
 
-createuser -U postgres -s "$HOST_USER" 2>/dev/null || true
+# The postgres role already exists; only create a role when the host
+# user is a distinct name, and let real failures abort initialization.
+if [ -n "${HOST_USER}" ] && [ "${HOST_USER}" != "postgres" ]; then
+	createuser -U postgres -s "${HOST_USER}"
+fi
