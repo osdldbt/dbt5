@@ -149,8 +149,9 @@ CSocket::dbt5Reconnect()
 int
 CSocket::dbt5Send(void *data, int length)
 {
-	int sent = 0;
-	int remaining = length;
+	int sent, total, remaining;
+	remaining = length;
+	total = 0;
 	char *szData = NULL;
 	do {
 		errno = 0;
@@ -162,17 +163,18 @@ CSocket::dbt5Send(void *data, int length)
 			throwError(CSocketErr::ERR_SOCKET_CLOSED);
 		}
 
+		total += sent;
 		szData = reinterpret_cast<char *>(data);
 		szData += sent;
 		data = reinterpret_cast<void *>(szData);
 		remaining -= sent;
-	} while (sent != length);
+	} while (total != length);
 
-	if (length != sent) {
+	if (length != total) {
 		throwError(CSocketErr::ERR_SOCKET_SENDPARTIAL);
 	}
 
-	return sent;
+	return total;
 }
 
 void

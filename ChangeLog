@@ -112,6 +112,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix CPack source packaging from a separate build directory
 - Disallow in-tree CMake builds and rename Makefile.cmake to Makefile
 - Rename the build directory from builds/ to build/
+- Fix the socket send loop treating a completed partial send as a
+  closed connection
 
 v0.10.13 (2026-07-10)
 
