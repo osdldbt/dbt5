@@ -114,6 +114,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Rename the build directory from builds/ to build/
 - Fix the socket send loop treating a completed partial send as a
   closed connection
+- pgsql: report transactions whose COMMIT fails as rolled back instead
+  of successful
 
 v0.10.13 (2026-07-10)
 

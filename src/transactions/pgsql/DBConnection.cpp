@@ -65,6 +65,17 @@ void
 CDBConnection::commit()
 {
 	PGresult *res = PQexec(m_Conn, "COMMIT;");
+	if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+		// A failed COMMIT has already rolled the transaction back;
+		// report the failure instead of returning as if it succeeded.
+		pid_t pid = syscall(SYS_gettid);
+		ostringstream msg;
+		msg << pid << " " << time(NULL) << " " << endl
+			<< "SQL: COMMIT" << endl
+			<< PQresultErrorMessage(res) << endl;
+		PQclear(res);
+		throw msg.str();
+	}
 	PQclear(res);
 }
 
