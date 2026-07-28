@@ -77,6 +77,7 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(-V | --version)
 		echo "$(basename "${0}") (Database Test 5) v@PROJECT_VERSION@"
+		exit 0
 		;;
 	(-\? | --help)
 		usage
@@ -135,10 +136,10 @@ fi
 
 if [ "${PATCH}" -eq 1 ]; then
 	cd "${EGENDIR}" || \
-			(echo "ERROR: cannot enter directory ${EGENDIR}" && exit 1)
+			{ echo "ERROR: cannot enter directory ${EGENDIR}"; exit 1; }
 	while IFS= read -r PATCHFILE; do
 		patch -s -p2 < "${PATCHDIR}/${PATCHFILE}" || \
-				(echo "ERROR: cannot apply patch ${PATCHFILE}" && exit 1)
+				{ echo "ERROR: cannot apply patch ${PATCHFILE}"; exit 1; }
 	done < "${SERIESFILE}"
 fi
 
@@ -154,4 +155,4 @@ fi
 		LDFLAGS="${EXTRALDDIR}" \
 		LIBS="-lpthread -lpq" \
 		make -j"$(nproc)" -f Makefile) \
-		|| (echo "ERROR: cannot build egen" && exit 1)
+		|| { echo "ERROR: cannot build egen"; exit 1; }
