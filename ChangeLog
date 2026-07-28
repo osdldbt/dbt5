@@ -85,6 +85,7 @@ vX.Y.Z (YYYY-MM-DD)
   result guards
 - TestTxn: initialize the input generator tunables and seed the
   Data-Maintenance generator so inputs are valid and reproducible
+- Fix CPack source packaging from a separate build directory
 
 v0.10.13 (2026-07-10)
 
