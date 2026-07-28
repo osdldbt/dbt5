@@ -105,8 +105,10 @@ CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 			<< "Error sending " << length << " bytes of data" << endl
 			<< pErr->ErrorText() << endl;
 		logErrorMessage(msg.str());
-		length = -1;
 		delete pErr;
+		// The request never reached the BrokerageHouse; do not wait
+		// for a reply that cannot arrive.
+		return false;
 	}
 	try {
 		length = sock->dbt5Receive(
@@ -120,10 +122,12 @@ CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 			<< "Error receiving " << length << " bytes of data" << endl
 			<< pErr->ErrorText() << endl;
 		logErrorMessage(msg.str());
-		length = -1;
 		if (pErr->getAction() == CSocketErr::ERR_SOCKET_CLOSED)
 			sock->dbt5Reconnect();
 		delete pErr;
+		// No reply was received; the zeroed Reply would otherwise be
+		// logged below as a successful transaction.
+		return false;
 	}
 
 	// record txn end time
