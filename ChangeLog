@@ -58,6 +58,9 @@ vX.Y.Z (YYYY-MM-DD)
   missing row caps
 - pgsql: fix client side Trade-Order unterminated exchange ids failing
   NASDAQ securities and missing result guards
+- pgsql: fix client side Trade-Result partial sells never liquidating
+  holdings, FIFO scans running as LIFO, and margin trades corrupting
+  account balances
 
 v0.10.13 (2026-07-10)
 

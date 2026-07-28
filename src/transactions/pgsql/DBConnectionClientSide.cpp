@@ -6,6 +6,7 @@
  */
 
 #include <endian.h>
+#include <cmath>
 
 #include <catalog/pg_type_d.h>
 
@@ -3364,7 +3365,7 @@ CDBConnectionClientSide::execute(
 	"FROM holding\n"                                                          \
 	"WHERE h_ca_id = $1\n"                                                    \
 	"  AND h_s_symb = $2\n"                                                   \
-	"ORDER BY h_dts DESC\n"                                                   \
+	"ORDER BY h_dts ASC\n"                                                    \
 	"FOR UPDATE"
 
 #define TRF2Q4                                                                \
@@ -3452,7 +3453,9 @@ CDBConnectionClientSide::execute(
 			res = exec(TRF2Q3B, 3, NULL, paramValues2, paramLengths2,
 					paramFormats2, 0);
 			PQclear(res);
-		} else if (pIn->hs_qty > 0) {
+		}
+
+		if (pIn->hs_qty > 0) {
 			if (pIn->is_lifo) {
 				if (m_bVerbose) {
 					cout << TRF2Q3C1 << endl;
@@ -3920,8 +3923,17 @@ CDBConnectionClientSide::execute(
 		cout << "sum = " << PQgetvalue(res, 0, 0) << endl;
 	}
 
-	pOut->tax_amount
-			= (pIn->sell_value - pIn->buy_value) * atof(PQgetvalue(res, 0, 0));
+	if (PQgetisnull(res, 0, 0)) {
+		pOut->tax_amount = 0.0;
+	} else {
+		pOut->tax_amount = (pIn->sell_value - pIn->buy_value)
+						   * atof(PQgetvalue(res, 0, 0));
+	}
+	/*
+	 * Round to 2 decimal places so the returned value matches what is
+	 * stored in T_TAX.
+	 */
+	pOut->tax_amount = floor(pOut->tax_amount * 100.0 + 0.5) / 100.0;
 	PQclear(res);
 
 #define TRF3Q2                                                                \
@@ -3977,6 +3989,7 @@ CDBConnectionClientSide::execute(
 
 	char ex_id[cEX_ID_len + 1];
 	strncpy(ex_id, PQgetvalue(res, 0, 0), cEX_ID_len);
+	ex_id[cEX_ID_len] = '\0';
 	strncpy(pOut->s_name, PQgetvalue(res, 0, 1), cS_NAME_len);
 	PQclear(res);
 
@@ -4003,13 +4016,13 @@ CDBConnectionClientSide::execute(
 
 	res = exec(TRF4Q2, 1, NULL, paramValues2, paramLengths2, paramFormats2, 0);
 
-	uint16_t c_tier = htobe16((uint16_t) atoi(PQgetvalue(res, 0, 0)));
-	PQclear(res);
-
 	if (PQntuples(res) == 0) {
 		PQclear(res);
 		return;
 	}
+
+	uint16_t c_tier = htobe16((uint16_t) atoi(PQgetvalue(res, 0, 0)));
+	PQclear(res);
 
 #define TRF4Q3                                                                \
 	"SELECT cr_rate\n"                                                        \
@@ -4225,22 +4238,25 @@ CDBConnectionClientSide::execute(
 
 	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
 
-	if (m_bVerbose) {
-		cout << TRF6Q2 << endl;
-		cout << "$1 = " << se_amount << endl;
-		cout << "$2 = " << be64toh(acct_id) << endl;
-	}
+	if (pIn->trade_is_cash) {
+		if (m_bVerbose) {
+			cout << TRF6Q2 << endl;
+			cout << "$1 = " << se_amount << endl;
+			cout << "$2 = " << be64toh(acct_id) << endl;
+		}
 
-	const char *paramValues2[2] = { (char *) &se_amount, (char *) &acct_id };
-	const int paramLengths2[2] = { sizeof(uint64_t), sizeof(uint64_t) };
-	const int paramFormats2[2] = { 0, 1 };
+		const char *paramValues2[2] = { (char *) &se_amount,
+			(char *) &acct_id };
+		const int paramLengths2[2] = { sizeof(uint64_t), sizeof(uint64_t) };
+		const int paramFormats2[2] = { 0, 1 };
 
-	res = exec(TRF6Q2, 2, NULL, paramValues2, paramLengths2, paramFormats2, 0);
-	PQclear(res);
+		res = exec(TRF6Q2, 2, NULL, paramValues2, paramLengths2,
+				paramFormats2, 0);
+		PQclear(res);
 
-	char ct_name[cCT_NAME_len + 1];
-	snprintf(ct_name, cCT_NAME_len, "%s %d shares of %s", pIn->type_name,
-			pIn->trade_qty, pIn->s_name);
+		char ct_name[cCT_NAME_len + 1];
+		snprintf(ct_name, sizeof(ct_name), "%s %d shares of %s",
+				pIn->type_name, pIn->trade_qty, pIn->s_name);
 
 #define TRF6Q3                                                                \
 	"INSERT INTO cash_transaction(\n"                                         \
@@ -4256,26 +4272,27 @@ CDBConnectionClientSide::execute(
 	"  , $4\n"                                                                \
 	")"
 
-	uint64_t trade_dts = htobe64(usecFromPgEpoch(&pIn->trade_dts));
+		uint64_t trade_dts = htobe64(usecFromPgEpoch(&pIn->trade_dts));
 
-	if (m_bVerbose) {
-		cout << TRF6Q3 << endl;
-		cout << "$1 = " << pIn->trade_dts.year << "-" << pIn->trade_dts.month
-			 << "-" << pIn->trade_dts.day << " " << pIn->trade_dts.hour << ":"
-			 << pIn->trade_dts.minute << ":" << pIn->trade_dts.second << endl;
-		cout << "$2 = " << be64toh(trade_id) << endl;
-		cout << "$3 = " << se_amount << endl;
-		cout << "$4 = " << ct_name << endl;
+		if (m_bVerbose) {
+			cout << TRF6Q3 << endl;
+			cout << "$1 = " << pIn->trade_dts.year << "-" << pIn->trade_dts.month
+				 << "-" << pIn->trade_dts.day << " " << pIn->trade_dts.hour << ":"
+				 << pIn->trade_dts.minute << ":" << pIn->trade_dts.second << endl;
+			cout << "$2 = " << be64toh(trade_id) << endl;
+			cout << "$3 = " << se_amount << endl;
+			cout << "$4 = " << ct_name << endl;
+		}
+
+		const char *paramValues3[4] = { (char *) &trade_dts, (char *) &trade_id,
+			(char *) &se_amount, ct_name };
+		const int paramLengths3[4] = { sizeof(uint64_t), sizeof(uint64_t),
+			sizeof(uint64_t), sizeof(char) * (cCT_NAME_len + 1) };
+		const int paramFormats3[4] = { 1, 1, 0, 0 };
+
+		res = exec(TRF6Q3, 4, NULL, paramValues3, paramLengths3, paramFormats3, 0);
+		PQclear(res);
 	}
-
-	const char *paramValues3[4] = { (char *) &trade_dts, (char *) &trade_id,
-		(char *) &se_amount, ct_name };
-	const int paramLengths3[4] = { sizeof(uint64_t), sizeof(uint64_t),
-		sizeof(uint64_t), sizeof(char) * (cCT_NAME_len + 1) };
-	const int paramFormats3[4] = { 1, 1, 0, 0 };
-
-	res = exec(TRF6Q3, 4, NULL, paramValues3, paramLengths3, paramFormats3, 0);
-	PQclear(res);
 
 #define TRF6Q4                                                                \
 	"SELECT ca_bal\n"                                                         \
