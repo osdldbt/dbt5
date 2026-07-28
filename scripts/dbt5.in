@@ -63,7 +63,7 @@ version()
 	display_version python --version
 	display_version R --version
 	RST2HTML5="rst2html5.py"
-	if ! which "${NAME}" > /dev/null 2>&1; then
+	if ! which "${RST2HTML5}" > /dev/null 2>&1; then
 		RST2HTML5="rst2html5"
 	fi
 	display_version $RST2HTML5 --version
