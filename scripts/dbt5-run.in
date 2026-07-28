@@ -470,7 +470,7 @@ while [ "${#}" -gt 0 ] ; do
 		PROFILE=1
 		;;
 	(-p*)
-		DB_PORT="${1#*-p=}"
+		DB_PORT="${1#*-p}"
 		;;
 	(--db-port=?*)
 		DB_PORT="${1#*--db-port=}"

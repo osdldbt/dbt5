@@ -129,8 +129,7 @@ while [ "${#}" -gt 0 ] ; do
 		FLAT_OUT="${1}"
 		;;
 	(-o*)
-		shift
-		FLAT_OUT="${1#-o}"
+		FLAT_OUT="${1#*-o}"
 		;;
 	(--parallelism)
 		shift
@@ -147,7 +146,7 @@ while [ "${#}" -gt 0 ] ; do
 		DB_PORT="${1}"
 		;;
 	(-p*)
-		DB_PORT="${1#*-p=}"
+		DB_PORT="${1#*-p}"
 		;;
 	(--db-port=?*)
 		DB_PORT="${1#*--db-port=}"

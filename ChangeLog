@@ -5,6 +5,9 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: stop on SQL errors in the database build scripts so a failed
   load, table, index, stored function, or parameter change is no longer
   silently ignored
+- Fix parsing of attached short option values (e.g. -p5432) in the
+  build, run, and test-user-scaling scripts, and forward the database
+  name from test-user-scaling to the run script
 - pgsql: wrap the C stored function warning macros in do/while blocks and
   correct the S_PRICE_T and FIN_AGG_T text width defines
 - pgsql: fix C Broker-Volume buffer sizes and remove dead broker list code

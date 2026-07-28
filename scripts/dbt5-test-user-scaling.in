@@ -95,14 +95,14 @@ while [ "${#}" -gt 0 ] ; do
 		DB_HOSTNAME=${1}
 		;;
 	(-h?*)
-		DB_HOSTNAME=${1#*-h=}
+		DB_HOSTNAME=${1#*-h}
 		;;
 	(-n)
 		shift
 		DBNAME=${1}
 		;;
 	(-n?*)
-		DBNAME=${1#*-n=}
+		DBNAME=${1#*-n}
 		;;
 	(-p)
 		shift
@@ -137,7 +137,7 @@ while [ "${#}" -gt 0 ] ; do
 		CUSTOMERS="${1}"
 		;;
 	(-t?*)
-		CUSTOMERS="${1#*-c}"
+		CUSTOMERS="${1#*-t}"
 		;;
 	(-V | --version)
 		echo "dbt5 (Database Test 5) v@PROJECT_VERSION@"
@@ -205,6 +205,7 @@ RESULTSFILE="${OUTDIR}/results.dat"
 echo "users metric" > "${RESULTSFILE}"
 
 RUNARGS="${RUNARGS} -h ${DB_HOSTNAME}"
+RUNARGS="${RUNARGS} -n ${DBNAME}"
 if [ ! "${CONFIGFILE}" = "" ]; then
 	RUNARGS="${RUNARGS} --config=${CONFIGFILE}"
 fi
