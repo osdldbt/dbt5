@@ -134,6 +134,8 @@ vX.Y.Z (YYYY-MM-DD)
   process
 - Fix the Data-Maintenance pacing sleep hanging the driver when a
   transaction takes more than a minute
+- BrokerageHouse: reconnect to the market exchange after a send
+  failure instead of losing the connection for the rest of the run
 
 v0.10.13 (2026-07-10)
 
