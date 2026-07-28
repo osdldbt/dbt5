@@ -160,7 +160,9 @@ CSocket::dbt5Send(void *data, int length)
 	char *szData = NULL;
 	do {
 		errno = 0;
-		sent = send(m_sockfd, (void *) data, remaining, 0);
+		// MSG_NOSIGNAL: report a reset peer as EPIPE instead of
+		// delivering SIGPIPE, which would kill the whole process
+		sent = send(m_sockfd, (void *) data, remaining, MSG_NOSIGNAL);
 
 		if (sent == -1) {
 			throwError(CSocketErr::ERR_SOCKET_SEND);

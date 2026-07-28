@@ -125,6 +125,8 @@ vX.Y.Z (YYYY-MM-DD)
   descriptor sentinel, which closed stdin and could close unrelated
   descriptors reused by other threads, and close each connection
   exactly once
+- Keep SIGPIPE from terminating the whole process when a peer
+  disconnects during a socket send
 
 v0.10.13 (2026-07-10)
 
