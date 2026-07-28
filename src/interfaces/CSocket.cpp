@@ -60,11 +60,7 @@ CSocket::dbt5Connect()
 	errno = 0;
 	m_sockfd = socket(AF_INET, SOCK_STREAM, resolveProto("tcp"));
 	if (m_sockfd == -1) {
-		std::stringstream foo;
-		foo << "errno: " << errno;
-		throw std::runtime_error(foo.str().c_str());
-
-		/* throwError(CSocketErr::ERR_SOCKET_CREATE); */
+		throwError(CSocketErr::ERR_SOCKET_CREATE);
 	}
 
 	struct sockaddr_in sa;
