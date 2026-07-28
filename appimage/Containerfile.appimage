@@ -41,90 +41,34 @@ RUN apt-get -qq -y update && \
     apt-get -qq -y clean && \
     apt-get -qq -y autoclean
 
-RUN mkdir -p \
-          /usr/local/share/licenses/cairo-$(dpkg-query -W -f='${Version}\n' libcairo2) && \
-    cp -p /usr/share/doc/libcairo2/copyright \
-       /usr/local/share/licenses/cairo-$(dpkg-query -W -f='${Version}\n' libcairo2)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/freetype-$(dpkg-query -W -f='${Version}\n' libfreetype6) && \
-    cp -p /usr/share/doc/libfreetype6/copyright \
-       /usr/local/share/licenses/freetype-$(dpkg-query -W -f='${Version}\n' libfreetype6)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/fribifi-$(dpkg-query -W -f='${Version}\n' libfribidi0) && \
-    cp -p /usr/share/doc/libfribidi0/copyright \
-       /usr/local/share/licenses/fribifi-$(dpkg-query -W -f='${Version}\n' libfribidi0)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/graphite2-$(dpkg-query -W -f='${Version}\n' libgraphite2-3) && \
-    cp -p /usr/share/doc/libgraphite2-3/copyright \
-       /usr/local/share/licenses/graphite2-$(dpkg-query -W -f='${Version}\n' libgraphite2-3)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/harfbuzz-$(dpkg-query -W -f='${Version}\n' libharfbuzz0b) && \
-    cp -p /usr/share/doc/libharfbuzz0b/copyright \
-       /usr/local/share/licenses/harfbuzz-$(dpkg-query -W -f='${Version}\n' libharfbuzz0b)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/libjq-$(dpkg-query -W -f='${Version}\n' libjq1) && \
-    cp -p /usr/share/doc/libjq1/copyright \
-       /usr/local/share/licenses/libjq-$(dpkg-query -W -f='${Version}\n' libjq1)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/libonig-$(dpkg-query -W -f='${Version}\n' libonig5) && \
-    cp -p /usr/share/doc/libonig5/copyright \
-       /usr/local/share/licenses/libonig-$(dpkg-query -W -f='${Version}\n' libonig5)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/libpng-$(dpkg-query -W -f='${Version}\n' libpng16-16) && \
-    cp -p /usr/share/doc/libpng16-16/copyright \
-       /usr/local/share/licenses/libpng-$(dpkg-query -W -f='${Version}\n' libpng16-16)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/libau-$(dpkg-query -W -f='${Version}\n' libxau6) && \
-    cp -p /usr/share/doc/libxau6/copyright \
-       /usr/local/share/licenses/libau-$(dpkg-query -W -f='${Version}\n' libxau6)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/libbsd-$(dpkg-query -W -f='${Version}\n' libbsd0) && \
-    cp -p /usr/share/doc/libbsd0/copyright \
-       /usr/local/share/licenses/libbsd-$(dpkg-query -W -f='${Version}\n' libbsd0)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/libssl1.1-$(dpkg-query -W -f='${Version}\n' libssl1.1) && \
-    cp -p /usr/share/doc/libssl1.1/copyright \
-       /usr/local/share/licenses/libssl1.1-$(dpkg-query -W -f='${Version}\n' libssl1.1)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/libxcb-$(dpkg-query -W -f='${Version}\n' libxcb-shm0) && \
-    cp -p /usr/share/doc/libxcb-shm0/copyright \
-       /usr/local/share/licenses/libxcb-$(dpkg-query -W -f='${Version}\n' libxcb-shm0)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/libxext-$(dpkg-query -W -f='${Version}\n' libxext6) && \
-    cp -p /usr/share/doc/libxext6/copyright \
-       /usr/local/share/licenses/libxext-$(dpkg-query -W -f='${Version}\n' libxext6)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/libxdmcp-$(dpkg-query -W -f='${Version}\n' libxdmcp6) && \
-    cp -p /usr/share/doc/libxdmcp6/copyright \
-       /usr/local/share/licenses/libxdmcp-$(dpkg-query -W -f='${Version}\n' libxdmcp6)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/libxrender-$(dpkg-query -W -f='${Version}\n' libxrender1) && \
-    cp -p /usr/share/doc/libxrender1/copyright \
-       /usr/local/share/licenses/libxrender-$(dpkg-query -W -f='${Version}\n' libxrender1)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/pixman-$(dpkg-query -W -f='${Version}\n' libpixman-1-0) && \
-    cp -p /usr/share/doc/libpixman-1-0/copyright \
-       /usr/local/share/licenses/pixman-$(dpkg-query -W -f='${Version}\n' libpixman-1-0)/
-
-RUN mkdir -p \
-          /usr/local/share/licenses/perl-$(dpkg-query -W -f='${Version}\n' perl) && \
-    cp -p /usr/share/doc/perl/copyright \
-       /usr/local/share/licenses/perl-$(dpkg-query -W -f='${Version}\n' perl)/
+# Capture the distribution license of each library that is redistributed in
+# the AppImage.
+RUN set -e; \
+    for pair in cairo:libcairo2 \
+                freetype:libfreetype6 \
+                fribidi:libfribidi0 \
+                graphite2:libgraphite2-3 \
+                harfbuzz:libharfbuzz0b \
+                libjq:libjq1 \
+                libonig:libonig5 \
+                libpng:libpng16-16 \
+                libxau:libxau6 \
+                libbsd:libbsd0 \
+                libssl1.1:libssl1.1 \
+                libxcb:libxcb-shm0 \
+                libxext:libxext6 \
+                libxdmcp:libxdmcp6 \
+                libxrender:libxrender1 \
+                pixman:libpixman-1-0 \
+                perl:perl; \
+    do \
+        name="${pair%%:*}"; \
+        pkg="${pair#*:}"; \
+        version="$(dpkg-query -W -f='${Version}' "${pkg}")"; \
+        mkdir -p "/usr/local/share/licenses/${name}-${version}"; \
+        cp -p "/usr/share/doc/${pkg}/copyright" \
+           "/usr/local/share/licenses/${name}-${version}/"; \
+    done
 
 ARG PYTHONMMVER="3.11"
 ARG PYTHONVER="${PYTHONMMVER}.1"
