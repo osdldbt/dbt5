@@ -20,7 +20,7 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
       HOST_USER: ${USER}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - ./.compose:/docker-entrypoint-initdb.d:ro
     command: ["postgres"]
@@ -40,7 +40,7 @@ services:
       database:
         condition: service_healthy
     ports:
-      - "30000:30000"
+      - "127.0.0.1:30000:30000"
     command:
       - sh
       - -c
@@ -57,7 +57,7 @@ services:
       broker:
         condition: service_started
     ports:
-      - "30010:30010"
+      - "127.0.0.1:30010:30010"
     volumes:
       - market-tmp:/tmp/market
     command:
