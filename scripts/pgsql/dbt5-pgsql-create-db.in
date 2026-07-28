@@ -37,7 +37,7 @@ if [ ${PRIVILEGED} -eq 1 ] && [ -z "${DBT5PGDATA}" ]; then
 	exit 1
 fi
 
-if [ "${DBT5DBNAME}" = "x" ]; then
+if [ -z "${DBT5DBNAME}" ]; then
 	echo "DBT5DBNAME not defined."
 	exit 1
 fi
@@ -70,7 +70,7 @@ fi
 
 PSQL="psql -X ${PORTOPT} -At"
 
-DBEXISTS=$(${PSQL} -l | cut -d "|" -f 1 | grep -c "\<${DBT5DBNAME}\>")
+DBEXISTS=$(${PSQL} -l | cut -d "|" -f 1 | grep -Fcx "${DBT5DBNAME}")
 
 if [ "${DBEXISTS}" -ne 1 ]; then
 	if ! eval "${PSQL} -d template1 -c \"CREATE DATABASE ${DBT5DBNAME}\";"

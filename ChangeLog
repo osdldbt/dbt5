@@ -11,6 +11,11 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: fix the tablespace drop syntax in the table creation script,
   which made every drop a syntax error and broke rebuilds with
   tablespaces
+- pgsql: fix database helper scripts: honor -w and -f in check-db and
+  correct its trade count estimate, fix the empty database name test
+  and existence check in create-db, fix dropping the database when
+  rebuilding, fix stopping the database, and only use the PARALLEL
+  VACUUM option on PostgreSQL 13 or later
 - pgsql: wrap the C stored function warning macros in do/while blocks and
   correct the S_PRICE_T and FIN_AGG_T text width defines
 - pgsql: fix C Broker-Volume buffer sizes and remove dead broker list code

@@ -260,7 +260,7 @@ if [ ${PRIVILEGED} -eq 1 ] && [ ${REBUILD_DB} -eq 1 ]; then
 	echo "Restarting the database to reset database parameters..."
 	dbt5-pgsql-stop-db
 	dbt5-pgsql-start-db -p "${PARAMETERS}" || exit 1
-	eval dbt5-pgsql-drop-db "${PORTARG}"
+	eval "dbt5-pgsql-drop-db ${DBNAMEARG} ${PORTARG}"
 fi
 
 eval "dbt5-pgsql-create-db ${DBNAMEARG} ${PORTARG}" || exit 1
@@ -417,11 +417,10 @@ eval "${PSQL} -e -c \"SELECT setseed(0);\"" || exit 1
 # Set the number of vacuumdb jobs to 1 (no parallelism) and let see
 # if the system can support a greater value.
 VACUUM_JOBS=1
-# Based on server version, enable vaccumdb parallelism if that version
-# is greater than or equal to 9.5.
+# The PARALLEL option to VACUUM requires PostgreSQL 13 or later.
 PG_VERSION_NUM=$(eval "psql -X -At ${DBNAMEARG} -c \"SHOW server_version_num\"")
 PG_VERSION_NUM=$(( PG_VERSION_NUM + 0 ))
-if [ $PG_VERSION_NUM -ge 95000 ]; then
+if [ $PG_VERSION_NUM -ge 130000 ]; then
 	# Set default vacuum jobs to 33 because this is the number of tables
 	# present in the database. Setting the number of job to a value
 	# greater than 9 won't bring any additional benefit.

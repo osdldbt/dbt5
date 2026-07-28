@@ -29,4 +29,4 @@ if [ -n "${PORT}" ]; then
 	PORTOPT="-p ${PORT}"
 fi
 
-dropdb "${PORTOPT}" "${DBT5DBNAME}" || exit 1
+eval "dropdb ${PORTOPT} ${DBT5DBNAME}" || exit 1

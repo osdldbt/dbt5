@@ -117,7 +117,7 @@ fi
 PSQL="psql -X ${PSQLARGS} -A -t"
 
 ACCOUNTS="$((5 * CUSTOMERS))"
-TRADES="$((17280 * CUSTOMERS))"
+TRADES="$((DAYS * 8 * 3600 * CUSTOMERS / SCALE_FACTOR))"
 SETTLED="${TRADES}"
 COMPANIES="$((500 * CUSTOMERS / 1000))"
 SECURITIES="$((685 * CUSTOMERS / 1000))"
@@ -226,7 +226,7 @@ printf "%20s %20d\n%20s %20d\n" "holding_summary" "${EXPECT}" "~" "${ACTUAL}"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM settlement")"
 printf "%20s %20d\n%20s %20d\n" "settlement" "${SETTLED}" "~" "${ACTUAL}"
 
-EXPECT="$(${PSQL} -c "SELECT ${DAYS}::BIGINT * 8::BIGINT * 360::BIGINT * ${CUSTOMERS}::BIGINT / ${SCALE_FACTOR}::BIGINT")"
+EXPECT="$(${PSQL} -c "SELECT ${DAYS}::BIGINT * 8::BIGINT * 3600::BIGINT * ${CUSTOMERS}::BIGINT / ${SCALE_FACTOR}::BIGINT")"
 ACTUAL="$(${PSQL} -c "SELECT count(*) FROM trade")"
 printf "%20s %20d\n%20s %20d\n" "trade" "${EXPECT}" "~" "${ACTUAL}"
 

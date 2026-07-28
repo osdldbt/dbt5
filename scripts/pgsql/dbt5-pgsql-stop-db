@@ -14,5 +14,5 @@ fi
 
 # We only need to stop the database if it's running.
 if [ -f "${DBT5PGDATA}"/postmaster.pid ]; then
-	pg_ctl -w -D "${DBT5PGDATA}" stop "${1}"
+	pg_ctl -w -D "${DBT5PGDATA}" stop ${1:+"${1}"}
 fi
