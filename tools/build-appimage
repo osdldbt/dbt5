@@ -29,7 +29,7 @@ fi
 
 ${CONTAINER_CMD} run \
 		--rm \
-		--user "$(id -u):$(id -u)" \
+		--user "$(id -u):$(id -g)" \
 		${USERNS_ARG} \
 		-v "${CONTAINER_DIR}/..:/dbt5:rw,Z" \
 		--env PKG_CONFIG_PATH="/usr/lib/pkgconfig" \

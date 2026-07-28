@@ -36,7 +36,7 @@ TOPDIR=$(dirname "$0")
 
 # Use the return code from `docker inspect` to determine if the docker image
 # needs to be created.
-if ! docker inspect dbt5-base > /dev/null; then
+if ! docker inspect dbt5-base > /dev/null 2>&1; then
 	"${TOPDIR}"/prepare-image || exit 1
 fi
 

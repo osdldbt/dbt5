@@ -24,7 +24,7 @@ DOCKER_NAME=dbt5-database-"${DBMS}"-"${SCALE}"s-0
 
 # Use the return code from `docker inspect` to determine if the docker image
 # needs to be created.
-if ! docker inspect "${DOCKER_TAG}" > /dev/null; then
+if ! docker inspect "${DOCKER_TAG}" > /dev/null 2>&1; then
 	"${DOCKERDIR}"/build-database "${SCALE}" "${DBMS}" || exit 1
 fi
 

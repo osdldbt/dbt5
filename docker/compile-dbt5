@@ -1,7 +1,5 @@
 #!/bin/sh
 
-PGVERSION=14.2
-
 # Build the entire test kit, except any database server side specific code.
 
 if ! which docker > /dev/null 2>&1; then
@@ -13,27 +11,15 @@ DOCKER_DIR=$(dirname "$0")
 DOCKER_DIR=$(readlink -f "${DOCKER_DIR}")
 
 DOCKER_TAG="dbt5-driver"
-UID=$(id -u)
-GID=$(id -g)
 
 DBT5_PATH="/usr/local/src/dbt5"
 
-if [ $# -eq 0 ]; then
-	if ! which jq > /dev/null 2>&1; then
-		echo "install jq to automatically use the latest postgres version"
-		echo "defaulting to version $PGVERSION"
-	else
-		PGORG="https://www.postgresql.org/versions.json"
-		PGVERSION=$(curl -s $PGORG | jq -r 'sort | .[] | "\(.major).\(.latestMinor)"' | tail -n 1)
-	fi
-fi
-
-if [ ! "${VERBOSE}" = "" ]; then
-	VERBOSE_FLAG="-e VERBOSE=${VERBOSE}"
+if [ "${VERBOSE}" = "" ]; then
+	VERBOSE=0
 fi
 
 docker run --rm -v "${DOCKER_DIR}"/..:"${DBT5_PATH}":rw -w ${DBT5_PATH} \
-		-e PKG_CONFIG_PATH="/usr/lib/pkgconfig" ${VERBOSE_FLAG:+"${VERBOSE_FLAG}"} \
-		-u "${UID}":"${GID}" ${DOCKER_TAG} \
+		-e PKG_CONFIG_PATH="/usr/lib/pkgconfig" -e VERBOSE="${VERBOSE}" \
+		-u "$(id -u)":"$(id -g)" ${DOCKER_TAG} \
 		bash -c 'make clean; make debug' \
 		|| exit 1
