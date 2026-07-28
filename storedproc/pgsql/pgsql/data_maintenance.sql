@@ -83,7 +83,7 @@ BEGIN
             WHERE ad_id = co_ad_id
               AND company.co_id = DataMaintenanceFrame1.co_id;
         END IF;
-        IF line2 != 'Apt. 10C' THEN
+        IF line2 IS DISTINCT FROM 'Apt. 10C' THEN
             UPDATE address
             SET ad_line2 = 'Apt. 10C'
             WHERE ad_id = addr_id;
@@ -205,10 +205,15 @@ BEGIN
         WHERE ex_desc LIKE '%LAST UPDATED%';
         IF rowcount = 0 THEN
             UPDATE exchange
-            SET ex_desc = ex_desc || ' LAST UPDATED ' || now();
+            SET ex_desc = ex_desc || ' LAST UPDATED '
+                          || to_char(now(), 'YYYY-MM-DD HH24:MI:SS');
         ELSE
             UPDATE exchange
-	        SET ex_desc = substring(ex_desc FROM 1 FOR char_length(ex_desc) - char_length(now()::TEXT)) || now();
+            SET ex_desc = substring(ex_desc
+                              FROM 1
+                              FOR char_length(ex_desc) - char_length(
+                                  to_char(now(), 'YYYY-MM-DD HH24:MI:SS')))
+                          || to_char(now(), 'YYYY-MM-DD HH24:MI:SS');
         END IF;
     ELSIF table_name = 'FINANCIAL' THEN
         -- FINANCIAL
@@ -238,11 +243,10 @@ BEGIN
         -- Change the NI_DTS by 1 day.
         UPDATE news_item
         SET ni_dts = ni_dts + INTERVAL '1 DAY'
-        WHERE ni_id = (
+        WHERE ni_id IN (
                 SELECT nx_ni_id
                 FROM news_xref
-                WHERE nx_co_id = DataMaintenanceFrame1.co_id
-                LIMIT 1);
+                WHERE nx_co_id = DataMaintenanceFrame1.co_id);
     ELSIF table_name = 'SECURITY' THEN
         -- SECURITY
         -- Update a security identified symbol, increment
@@ -258,16 +262,18 @@ BEGIN
         -- TX_NAME if TX_NAME already ends with the word “rate”.
         tax_name := NULL;
         pos := 0;
-        -- changed from 0 to 1
         SELECT tx_name
         INTO tax_name
         FROM taxrate
         WHERE taxrate.tx_id = DataMaintenanceFrame1.tx_id;
         pos = position(' Tax ' IN tax_name);
         IF (pos != 0) THEN
-            tax_name := overlay(' Tax ' PLACING 't' FROM 2 FOR 1);
+            tax_name := overlay(tax_name PLACING 't' FROM pos + 1 FOR 1);
         ELSE
-            tax_name := overlay(' tax ' PLACING 'T' FROM 2 FOR 1);
+            pos = position(' tax ' IN tax_name);
+            IF (pos != 0) THEN
+                tax_name := overlay(tax_name PLACING 'T' FROM pos + 1 FOR 1);
+            END IF;
         END IF;
         UPDATE taxrate
         SET tx_name = tax_name
@@ -279,7 +285,10 @@ BEGIN
            , watch_list
         WHERE wl_c_id = DataMaintenanceFrame1.c_id
           AND wi_wl_id = wl_id;
-        rowcount := (rowcount + 1) / 2;
+        rowcount := (rowcount + 1) / 2 - 1;
+        IF rowcount < 0 THEN
+            rowcount := 0;
+        END IF;
         SELECT wi_s_symb
         INTO old_symbol
         FROM (
@@ -305,12 +314,17 @@ BEGIN
                             )
         ORDER BY s_symb ASC
         LIMIT 1;
-        UPDATE watch_item
-        SET wi_s_symb = new_symbol
-        FROM watch_list
-        WHERE wl_c_id = DataMaintenanceFrame1.c_id
-          AND wi_wl_id = wl_id
-          AND wi_s_symb = old_symbol;
+        IF new_symbol IS NOT NULL THEN
+            UPDATE watch_item
+            SET wi_s_symb = new_symbol
+            FROM watch_list
+            WHERE wl_c_id = DataMaintenanceFrame1.c_id
+              AND wi_wl_id = wl_id
+              AND wi_s_symb = old_symbol;
+        END IF;
+    ELSE
+        RAISE WARNING 'unknown table for data maintenance: %', table_name;
+        RETURN 1;
     END IF;
     RETURN 0;
 END;
