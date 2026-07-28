@@ -57,26 +57,34 @@ BEGIN
     old_mkt_cap = 0.0;
     new_mkt_cap = 0.0;
     pct_change = 0.0;
-    FETCH stock_list INTO symbol;
-    WHILE FOUND LOOP
+    LOOP
+        FETCH stock_list INTO symbol;
+        EXIT WHEN NOT FOUND;
+        -- Skip this security if any of the lookups find no row.
         SELECT lt_price
         INTO new_price
         FROM last_trade
         WHERE lt_s_symb = symbol;
+        IF NOT FOUND THEN
+            CONTINUE;
+        END IF;
         SELECT s_num_out
         INTO sec_num_out
         FROM security
         WHERE s_symb = symbol;
-        -- Only want one row, the most recent closing price for this security.
+        IF NOT FOUND THEN
+            CONTINUE;
+        END IF;
         SELECT dm_close
         INTO old_price
         FROM daily_market
         WHERE dm_s_symb = symbol
-        ORDER BY dm_date DESC
-        LIMIT 1;
+          AND dm_date = start_date;
+        IF NOT FOUND THEN
+            CONTINUE;
+        END IF;
         old_mkt_cap = old_mkt_cap + (sec_num_out * old_price);
         new_mkt_cap = new_mkt_cap + (sec_num_out * new_price);
-        FETCH stock_list INTO symbol;
     END LOOP;
     IF old_mkt_cap != 0 THEN
         pct_change = 100 * ((new_mkt_cap / old_mkt_cap) - 1);
