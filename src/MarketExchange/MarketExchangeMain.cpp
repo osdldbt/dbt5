@@ -144,9 +144,9 @@ main(int argc, char *argv[])
 	cout << "Brokerage House address: " << szBHaddr << endl;
 	cout << "Brokerage House port: " << iBHlistenPort << endl;
 
-	const DataFileManager inputFiles(szFileLoc, iConfiguredCustomerCount,
-			iActiveCustomerCount, TPCE::DataFileManager::IMMEDIATE_LOAD);
 	try {
+		const DataFileManager inputFiles(szFileLoc, iConfiguredCustomerCount,
+				iActiveCustomerCount, TPCE::DataFileManager::IMMEDIATE_LOAD);
 		CMarketExchange MarketExchange(inputFiles, szFileLoc, 1,
 				iConfiguredCustomerCount, iActiveCustomerCount, iListenPort,
 				szBHaddr, iBHlistenPort, outputDirectory, verbose);
@@ -166,6 +166,9 @@ main(int argc, char *argv[])
 		// sufficient memory for the request.
 		cout << "*** Out of memory ***" << endl;
 		return 2;
+	} catch (std::exception &e) {
+		cout << "Error: " << e.what() << endl;
+		return 1;
 	}
 
 	pthread_exit(NULL);

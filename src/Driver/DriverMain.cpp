@@ -280,6 +280,17 @@ main(int argc, char *argv[])
 			cout << endl;
 		}
 		return (1);
+	} catch (CBaseErr &err) {
+		cout << endl << "Error " << err.ErrorNum() << ": " << err.ErrorText();
+		if (err.ErrorLoc()) {
+			cout << " at " << err.ErrorLoc() << endl;
+		} else {
+			cout << endl;
+		}
+		return (1);
+	} catch (std::exception &e) {
+		cout << endl << "Error: " << e.what() << endl;
+		return (1);
 	}
 
 	return (0);

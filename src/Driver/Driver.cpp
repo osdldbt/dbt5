@@ -84,37 +84,49 @@ customerWorkerThread(void *data)
 	ts.tv_sec = (time_t) (pThrParam->pDriver->iPacingDelay / 1000);
 	ts.tv_nsec = (long) (pThrParam->pDriver->iPacingDelay % 1000) * 1000000;
 
-	const DataFileManager inputFiles(pThrParam->pDriver->szInDir,
-			pThrParam->pDriver->iConfiguredCustomerCount,
-			pThrParam->pDriver->iActiveCustomerCount,
-			TPCE::DataFileManager::IMMEDIATE_LOAD);
-	customer = new CCustomer(inputFiles, pThrParam->pDriver->szInDir,
-			pThrParam->pDriver->iConfiguredCustomerCount,
-			pThrParam->pDriver->iActiveCustomerCount,
-			pThrParam->pDriver->iScaleFactor,
-			pThrParam->pDriver->iDaysOfInitialTrades,
-			pThrParam->pDriver->iSeed, pThrParam->pDriver->szBHaddr,
-			pThrParam->pDriver->iBHlistenPort, pThrParam->UniqueId,
-			pThrParam->pDriver->iPacingDelay,
-			pThrParam->pDriver->outputDirectory);
-	do {
-		customer->DoTxn();
+	try {
+		const DataFileManager inputFiles(pThrParam->pDriver->szInDir,
+				pThrParam->pDriver->iConfiguredCustomerCount,
+				pThrParam->pDriver->iActiveCustomerCount,
+				TPCE::DataFileManager::IMMEDIATE_LOAD);
+		customer = new CCustomer(inputFiles, pThrParam->pDriver->szInDir,
+				pThrParam->pDriver->iConfiguredCustomerCount,
+				pThrParam->pDriver->iActiveCustomerCount,
+				pThrParam->pDriver->iScaleFactor,
+				pThrParam->pDriver->iDaysOfInitialTrades,
+				pThrParam->pDriver->iSeed, pThrParam->pDriver->szBHaddr,
+				pThrParam->pDriver->iBHlistenPort, pThrParam->UniqueId,
+				pThrParam->pDriver->iPacingDelay,
+				pThrParam->pDriver->outputDirectory);
+		do {
+			customer->DoTxn();
 
-		// wait for pacing delay -- this delays happens after the mix logging
-		while (nanosleep(&ts, &rem) == -1) {
-			if (errno == EINTR) {
-				memcpy(&ts, &rem, sizeof(timespec));
-			} else {
-				ostringstream osErr;
-				osErr << "pacing delay time invalid " << ts.tv_sec << " s "
-					  << ts.tv_nsec << " ns" << endl;
-				pThrParam->pDriver->logErrorMessage(osErr.str());
-				break;
+			// wait for pacing delay -- this delays happens after the mix
+			// logging
+			while (nanosleep(&ts, &rem) == -1) {
+				if (errno == EINTR) {
+					memcpy(&ts, &rem, sizeof(timespec));
+				} else {
+					ostringstream osErr;
+					osErr << "pacing delay time invalid " << ts.tv_sec
+						  << " s " << ts.tv_nsec << " ns" << endl;
+					pThrParam->pDriver->logErrorMessage(osErr.str());
+					break;
+				}
 			}
-		}
-	} while (time(NULL) < stop_time);
+		} while (time(NULL) < stop_time);
 
-	customer->LogStopTime();
+		customer->LogStopTime();
+	} catch (CBaseErr *pErr) {
+		// Log and let the thread exit instead of terminating the whole
+		// driver process.
+		osErr << "user thread error: " << pErr->ErrorText() << endl;
+		pThrParam->pDriver->logErrorMessage(osErr.str());
+		delete pErr;
+	} catch (std::exception &e) {
+		osErr << "user thread error: " << e.what() << endl;
+		pThrParam->pDriver->logErrorMessage(osErr.str());
+	}
 
 	pid_t pid = syscall(SYS_gettid);
 	cout << "User thread # " << pid << " terminated." << endl;
@@ -259,16 +271,30 @@ dmWorkerThread(void *data)
 	time_t start_time;
 	time_t end_time;
 	unsigned int remaining;
-	do {
-		start_time = time(NULL);
-		pThrParam->pDriver->m_pCDM->DoTxn();
-		end_time = time(NULL);
-		remaining = 60 - (end_time - start_time);
-		if (end_time < stop_time && remaining > 0)
-			sleep(remaining);
-	} while (end_time < stop_time);
+	try {
+		do {
+			start_time = time(NULL);
+			pThrParam->pDriver->m_pCDM->DoTxn();
+			end_time = time(NULL);
+			remaining = 60 - (end_time - start_time);
+			if (end_time < stop_time && remaining > 0)
+				sleep(remaining);
+		} while (end_time < stop_time);
 
-	pThrParam->pDriver->m_pCDMSUT->logStopTime();
+		pThrParam->pDriver->m_pCDMSUT->logStopTime();
+	} catch (CBaseErr *pErr) {
+		// Log and let the thread exit instead of terminating the whole
+		// driver process.
+		ostringstream osErr;
+		osErr << "Data-Maintenance thread error: " << pErr->ErrorText()
+			  << endl;
+		pThrParam->pDriver->logErrorMessage(osErr.str());
+		delete pErr;
+	} catch (std::exception &e) {
+		ostringstream osErr;
+		osErr << "Data-Maintenance thread error: " << e.what() << endl;
+		pThrParam->pDriver->logErrorMessage(osErr.str());
+	}
 
 	cout << "Data-Maintenance thread stopped." << endl;
 	delete pThrParam;

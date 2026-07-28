@@ -127,6 +127,11 @@ vX.Y.Z (YYYY-MM-DD)
   exactly once
 - Keep SIGPIPE from terminating the whole process when a peer
   disconnects during a socket send
+- Throw the standard socket error when socket creation fails so
+  callers that only handle socket errors catch it
+- Catch errors in the driver user and Data-Maintenance threads and in
+  the driver and market exchange mains instead of aborting the whole
+  process
 
 v0.10.13 (2026-07-10)
 
