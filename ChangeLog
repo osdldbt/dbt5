@@ -73,6 +73,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: guard server side Customer-Position against empty results
 - pgsql: parameterize server side Broker-Volume inputs and guard empty
   results
+- pgsql: fix server side Trade-Status guards and count validation
 
 v0.10.13 (2026-07-10)
 

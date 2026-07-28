@@ -1795,6 +1795,11 @@ CDBConnectionServerSide::execute(
 	PGresult *res = exec("SELECT * FROM TradeStatusFrame1($1)", 1, NULL,
 			paramValues, paramLengths, paramFormats, 0);
 
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
 	int i_broker_name = get_col_num(res, "broker_name");
 	int i_charge = get_col_num(res, "charge");
 	int i_cust_f_name = get_col_num(res, "cust_f_name");
@@ -1817,11 +1822,20 @@ CDBConnectionServerSide::execute(
 	strncpy(pOut->broker_name, PQgetvalue(res, 0, i_broker_name), cB_NAME_len);
 	pOut->broker_name[cB_NAME_len] = '\0';
 
+	/*
+	 * Validate every array against num_found, clamped to the output
+	 * array size.
+	 */
+	int len = pOut->num_found;
+	if (len > max_trade_status_len) {
+		len = max_trade_status_len;
+	}
+
 	TokenizeSmart(PQgetvalue(res, 0, i_charge), vAux);
-	int len = vAux.size();
-	for (size_t i = 0; i < (size_t) len; ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) len; ++i) {
 		pOut->charge[i] = atof(vAux[i].c_str());
 	}
+	check_count(len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	strncpy(pOut->cust_f_name, PQgetvalue(res, 0, i_cust_f_name), cF_NAME_len);
@@ -1830,7 +1844,7 @@ CDBConnectionServerSide::execute(
 	pOut->cust_l_name[cL_NAME_len] = '\0';
 
 	TokenizeSmart(PQgetvalue(res, 0, i_ex_name), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) len; ++i) {
 		strncpy(pOut->ex_name[i], vAux[i].c_str(), cEX_NAME_len);
 		pOut->ex_name[i][cEX_NAME_len] = '\0';
 	}
@@ -1838,7 +1852,7 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_exec_name), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) len; ++i) {
 		strncpy(pOut->exec_name[i], vAux[i].c_str(), cEXEC_NAME_len);
 		pOut->exec_name[i][cEXEC_NAME_len] = '\0';
 	}
@@ -1846,7 +1860,7 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_s_name), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) len; ++i) {
 		strncpy(pOut->s_name[i], vAux[i].c_str(), cS_NAME_len);
 		pOut->s_name[i][cS_NAME_len] = '\0';
 	}
@@ -1854,14 +1868,14 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_status_name), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) len; ++i) {
 		strncpy(pOut->status_name[i], vAux[i].c_str(), cST_NAME_len);
 		pOut->status_name[i][cST_NAME_len] = '\0';
 	}
 	check_count(len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 	TokenizeSmart(PQgetvalue(res, 0, i_symbol), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) len; ++i) {
 		strncpy(pOut->symbol[i], vAux[i].c_str(), cSYMBOL_len);
 		pOut->symbol[i][cSYMBOL_len] = '\0';
 	}
@@ -1869,7 +1883,7 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_dts), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) len; ++i) {
 		sscanf(vAux[i].c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_dts[i].year, &pOut->trade_dts[i].month,
 				&pOut->trade_dts[i].day, &pOut->trade_dts[i].hour,
@@ -1879,21 +1893,21 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_id), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) len; ++i) {
 		pOut->trade_id[i] = atoll(vAux[i].c_str());
 	}
 	check_count(len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_qty), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) len; ++i) {
 		pOut->trade_qty[i] = atoi(vAux[i].c_str());
 	}
 	check_count(len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_type_name), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) len; ++i) {
 		strncpy(pOut->type_name[i], vAux[i].c_str(), cTT_NAME_len);
 		pOut->type_name[i][cTT_NAME_len] = '\0';
 	}
