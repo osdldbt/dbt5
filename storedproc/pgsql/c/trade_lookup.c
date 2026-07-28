@@ -799,6 +799,49 @@ TradeLookupFrame1(PG_FUNCTION_ARGS)
 
 					++num_cash_txn;
 				}
+			} else {
+				if (num_cash_txn > 0) {
+					strncat(values[i_cash_transaction_amount], ",",
+							length_cta--);
+					if (length_cta < 0) {
+						FAIL_FRAME("cash_transaction_amount values needs to "
+								   "be increased");
+					}
+
+					strncat(values[i_cash_transaction_dts], ",", length_ctd--);
+					if (length_ctd < 0) {
+						FAIL_FRAME("cash_transaction_dts values needs to "
+								   "be increased");
+					}
+
+					strncat(values[i_cash_transaction_name], ",",
+							length_ctn--);
+					if (length_ctn < 0) {
+						FAIL_FRAME("cash_transaction_name values needs to "
+								   "be increased");
+					}
+				}
+				strncat(values[i_cash_transaction_amount], "0", length_cta--);
+				if (length_cta < 0) {
+					FAIL_FRAME("cash_transaction_amount values needs to "
+							   "be increased");
+				}
+
+				strncat(values[i_cash_transaction_dts], "NULL", length_ctd);
+				length_ctd -= 4;
+				if (length_ctd < 0) {
+					FAIL_FRAME("cash_transaction_dts values needs to be "
+							   "increased");
+				}
+
+				strncat(values[i_cash_transaction_name], "\"\"", length_ctn);
+				length_ctn -= 2;
+				if (length_ctn < 0) {
+					FAIL_FRAME("cash_transaction_name values needs to be "
+							   "increased");
+				}
+
+				++num_cash_txn;
 			}
 
 #ifdef DEBUG
@@ -1513,6 +1556,51 @@ TradeLookupFrame2(PG_FUNCTION_ARGS)
 						FAIL_FRAME("cash_transaction_name values needs to be "
 								   "increased");
 					}
+				}
+			} else {
+				++num_cash_txn;
+
+				if (num_cash_txn > 1) {
+					strncat(values[i_cash_transaction_amount], ",",
+							length_cta--);
+					if (length_cta < 0) {
+						FAIL_FRAME("cash_transaction_amount values needs "
+								   "to be increased");
+					}
+
+					strncat(values[i_cash_transaction_dts], ",",
+							length_ctd--);
+					if (length_ctd < 0) {
+						FAIL_FRAME("cash_transaction_dts values needs to "
+								   "be increased");
+					}
+
+					strncat(values[i_cash_transaction_name], ",",
+							length_ctn--);
+					if (length_ctn < 0) {
+						FAIL_FRAME("cash_transaction_name values needs to "
+								   "be increased");
+					}
+				}
+
+				strncat(values[i_cash_transaction_amount], "0", length_cta--);
+				if (length_cta < 0) {
+					FAIL_FRAME("cash_transaction_amount values needs to "
+							   "be increased");
+				}
+
+				strncat(values[i_cash_transaction_dts], "NULL", length_ctd);
+				length_ctd -= 4;
+				if (length_ctd < 0) {
+					FAIL_FRAME("cash_transaction_dts values needs to be "
+							   "increased");
+				}
+
+				strncat(values[i_cash_transaction_name], "\"\"", length_ctn);
+				length_ctn -= 2;
+				if (length_ctn < 0) {
+					FAIL_FRAME("cash_transaction_name values needs to be "
+							   "increased");
 				}
 			}
 
@@ -2304,6 +2392,56 @@ TradeLookupFrame3(PG_FUNCTION_ARGS)
 				++num_cash_txn;
 			}
 
+			/*
+			 * Pad the cash transaction arrays so their elements stay
+			 * positionally aligned with the trades when the trade is not
+			 * settled with cash.
+			 */
+			if (is_cash_str[0] != 't') {
+				if (num_cash_txn > 0) {
+					strncat(values[i_cash_transaction_amount], ",",
+							length_cta--);
+					if (length_cta < 0) {
+						FAIL_FRAME("cash_transaction_amount values needs "
+								   "to be increased");
+					}
+
+					strncat(values[i_cash_transaction_dts], ",", length_ctd--);
+					if (length_ctd < 0) {
+						FAIL_FRAME("cash_transaction_dts values needs to "
+								   "be increased");
+					}
+
+					strncat(values[i_cash_transaction_name], ",",
+							length_ctn--);
+					if (length_ctn < 0) {
+						FAIL_FRAME("cash_transaction_name values needs to "
+								   "be increased");
+					}
+				}
+				strncat(values[i_cash_transaction_amount], "0", length_cta--);
+				if (length_cta < 0) {
+					FAIL_FRAME("cash_transaction_amount values needs to "
+							   "be increased");
+				}
+
+				strncat(values[i_cash_transaction_dts], "NULL", length_ctd);
+				length_ctd -= 4;
+				if (length_ctd < 0) {
+					FAIL_FRAME("cash_transaction_dts values needs to be "
+							   "increased");
+				}
+
+				strncat(values[i_cash_transaction_name], "\"\"", length_ctn);
+				length_ctn -= 2;
+				if (length_ctn < 0) {
+					FAIL_FRAME("cash_transaction_name values needs to be "
+							   "increased");
+				}
+
+				++num_cash_txn;
+			}
+
 #ifdef DEBUG
 			elog(DEBUG1, "SQLTLF3_4\n%s", SQLTLF3_4);
 			elog(DEBUG1, "$1 %s", trade_list_str);
@@ -2757,17 +2895,17 @@ TradeLookupFrame4(PG_FUNCTION_ARGS)
 			}
 
 			tmp = SPI_getvalue(tuple, tupdesc, 3);
-			strncat(values[i_quantity_after], tmp, length_qa);
-			length_qa -= strlen(tmp);
-			if (length_qa < 0) {
-				FAIL_FRAME("quantify_after values needs to be increased");
-			}
-
-			tmp = SPI_getvalue(tuple, tupdesc, 4);
 			strncat(values[i_quantity_before], tmp, length_qb);
 			length_qb -= strlen(tmp);
 			if (length_qb < 0) {
 				FAIL_FRAME("quantify_before values needs to be increased");
+			}
+
+			tmp = SPI_getvalue(tuple, tupdesc, 4);
+			strncat(values[i_quantity_after], tmp, length_qa);
+			length_qa -= strlen(tmp);
+			if (length_qa < 0) {
+				FAIL_FRAME("quantify_after values needs to be increased");
 			}
 		}
 
