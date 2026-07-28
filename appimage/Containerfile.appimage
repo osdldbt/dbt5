@@ -150,9 +150,9 @@ RUN mkdir -p /usr/local/share/licenses/docutils-${DOCUTILSVER} && \
 ARG RST2PDFVER="0.102"
 RUN /usr/local/bin/pip3 install rst2pdf==${RST2PDFVER}
 RUN mkdir -p /usr/local/share/licenses/rst2pdf-${RST2PDFVER} && \
-    cp -p \
-       /usr/local/lib/python${PYTHONMMVER}/site-packages/docutils-${DOCUTILSVER}.dist-info/COPYING.txt \
-       /usr/local/share/licenses/rst2pdf-${RST2PDFVER}/
+    curl -o /usr/local/share/licenses/rst2pdf-${RST2PDFVER}/LICENSE.txt \
+         -SsL \
+         https://github.com/rst2pdf/rst2pdf/raw/${RST2PDFVER}/LICENSE.txt
 
 ARG CMAKEVER="3.14.7"
 RUN curl -o /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz -SsOL \
@@ -198,7 +198,7 @@ RUN mkdir -p /usr/local/share/licenses/pango-${PANGOVER}.${PANGOMINORVER} && \
 
 ARG GNUPLOTVER="5.4.6"
 RUN wget -O /tmp/gnuplot-${GNUPLOTVER}.tar.gz -q --no-check-certificate \
-         https://sourceforge.net/projects/gnuplot/files/gnuplot/5.4.6/gnuplot-5.4.6.tar.gz/download && \
+         https://sourceforge.net/projects/gnuplot/files/gnuplot/${GNUPLOTVER}/gnuplot-${GNUPLOTVER}.tar.gz/download && \
     tar -C /usr/local/src -xf /tmp/gnuplot-${GNUPLOTVER}.tar.gz
 WORKDIR /usr/local/src/gnuplot-${GNUPLOTVER}
 RUN ./configure -q --prefix=/usr/local --without-libcerf \
@@ -217,7 +217,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
 
 ARG TSTOOLSVER="0.10.0"
 RUN curl -o /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz -SsOL \
-         https://gitlab.com/touchstone/touchstone-tools/-/archive/v${TSTOOLSVER}/touchstone-tools-v{TSTOOLSVER}.tar.gz && \
+         https://gitlab.com/touchstone/touchstone-tools/-/archive/v${TSTOOLSVER}/touchstone-tools-v${TSTOOLSVER}.tar.gz && \
     mkdir -p /usr/local/src/touchstone-tools-v${TSTOOLSVER} && \
     tar -C /usr/local/src/touchstone-tools-v${TSTOOLSVER} \
         --strip-components=1 \
