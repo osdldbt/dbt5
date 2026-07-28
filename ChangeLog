@@ -63,6 +63,8 @@ vX.Y.Z (YYYY-MM-DD)
   account balances
 - pgsql: fix client side Trade-Update freed result reads, a broken margin
   toggle, and wrong per trade cash flags
+- Share the time zone independent date conversions between the PostgreSQL
+  client side and server side code
 
 v0.10.13 (2026-07-10)
 

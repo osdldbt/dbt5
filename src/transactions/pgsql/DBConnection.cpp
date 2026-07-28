@@ -68,6 +68,30 @@ CDBConnection::commit()
 	PQclear(res);
 }
 
+int64_t
+daysFromPgEpoch(int year, int month, int day)
+{
+	int64_t era;
+	int64_t yoe, doy, doe;
+
+	year -= month <= 2;
+	era = (year >= 0 ? year : year - 399) / 400;
+	yoe = year - era * 400;
+	doy = (153 * (month + (month > 2 ? -3 : 9)) + 2) / 5 + day - 1;
+	doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+	return era * 146097 + doe - 730425;
+}
+
+uint64_t
+usecFromPgEpoch(const TIMESTAMP_STRUCT *ts)
+{
+	return (uint64_t) ((((daysFromPgEpoch(ts->year, ts->month, ts->day) * 24
+								 + ts->hour) * 60
+								+ ts->minute) * 60
+							   + ts->second)
+					   * (int64_t) 1000000);
+}
+
 char *
 CDBConnection::escape(string s)
 {

@@ -23,36 +23,6 @@ CDBConnectionClientSide::CDBConnectionClientSide(const char *szHost,
 
 CDBConnectionClientSide::~CDBConnectionClientSide() {}
 
-/*
- * PostgreSQL binary DATE values count days from 2000-01-01 and binary
- * TIMESTAMP values count microseconds from 2000-01-01 00:00:00.  Convert
- * Gregorian calendar values directly so the results do not depend on the
- * process time zone the way mktime() does.
- */
-static int64_t
-daysFromPgEpoch(int year, int month, int day)
-{
-	int64_t era;
-	int64_t yoe, doy, doe;
-
-	year -= month <= 2;
-	era = (year >= 0 ? year : year - 399) / 400;
-	yoe = year - era * 400;
-	doy = (153 * (month + (month > 2 ? -3 : 9)) + 2) / 5 + day - 1;
-	doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
-	return era * 146097 + doe - 730425;
-}
-
-static uint64_t
-usecFromPgEpoch(const TIMESTAMP_STRUCT *ts)
-{
-	return (uint64_t) ((((daysFromPgEpoch(ts->year, ts->month, ts->day) * 24
-								 + ts->hour) * 60
-								+ ts->minute) * 60
-							   + ts->second)
-					   * (int64_t) 1000000);
-}
-
 void
 CDBConnectionClientSide::execute(
 		const TBrokerVolumeFrame1Input *pIn, TBrokerVolumeFrame1Output *pOut)

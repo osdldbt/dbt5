@@ -22,6 +22,15 @@
 #include "DBT5Consts.h"
 using namespace TPCE;
 
+/*
+ * PostgreSQL binary DATE values count days from 2000-01-01 and binary
+ * TIMESTAMP values count microseconds from 2000-01-01 00:00:00.  These
+ * convert Gregorian calendar values directly so the results do not
+ * depend on the process time zone the way mktime() does.
+ */
+int64_t daysFromPgEpoch(int year, int month, int day);
+uint64_t usecFromPgEpoch(const TIMESTAMP_STRUCT *ts);
+
 class CDBConnection
 {
 	char szConnectStr[iMaxConnectString + 1];
