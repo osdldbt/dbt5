@@ -739,6 +739,11 @@ CDBConnectionServerSide::execute(
 	PGresult *res = exec("SELECT * FROM TradeLookupFrame1($1, $2)", 2, NULL,
 			paramValues, paramLengths, paramFormats, 0);
 
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
 	int i_bid_price = get_col_num(res, "bid_price");
 	int i_cash_transaction_amount
 			= get_col_num(res, "cash_transaction_amount");
@@ -762,20 +767,23 @@ CDBConnectionServerSide::execute(
 	vector<string> vAux;
 
 	TokenizeSmart(PQgetvalue(res, 0, i_bid_price), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].bid_price = atof(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_amount), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].cash_transaction_amount = atof(vAux[i].c_str());
 	}
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_dts), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		sscanf(vAux[i].c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].cash_transaction_dts.year,
 				&pOut->trade_info[i].cash_transaction_dts.month,
@@ -787,7 +795,8 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_name), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		strncpy(pOut->trade_info[i].cash_transaction_name, vAux[i].c_str(),
 				cCT_NAME_len);
 		pOut->trade_info[i].cash_transaction_name[cCT_NAME_len] = '\0';
@@ -795,7 +804,8 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_exec_name), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		strncpy(pOut->trade_info[i].exec_name, vAux[i].c_str(),
 				cEXEC_NAME_len);
 		pOut->trade_info[i].exec_name[cEXEC_NAME_len] = '\0';
@@ -804,28 +814,32 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_is_cash), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].is_cash = atoi(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_is_market), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].is_market = atoi(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_amount), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].settlement_amount = atof(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_cash_due_date), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		sscanf(vAux[i].c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].settlement_cash_due_date.year,
 				&pOut->trade_info[i].settlement_cash_due_date.month,
@@ -840,7 +854,8 @@ CDBConnectionServerSide::execute(
 	}
 	vAux.clear();
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_cash_type), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		strncpy(pOut->trade_info[i].settlement_cash_type, vAux[i].c_str(),
 				cSE_CASH_TYPE_len);
 		pOut->trade_info[i].settlement_cash_type[cSE_CASH_TYPE_len] = '\0';
@@ -882,17 +897,21 @@ CDBConnectionServerSide::execute(
 			++i, ++k) {
 		strncpy(pOut->trade_info[k].trade_history_status_id[0],
 				vAux[i].c_str(), cTH_ST_ID_len);
+		pOut->trade_info[k].trade_history_status_id[0][cTH_ST_ID_len] = '\0';
 		++i;
 		strncpy(pOut->trade_info[k].trade_history_status_id[1],
 				vAux[i].c_str(), cTH_ST_ID_len);
+		pOut->trade_info[k].trade_history_status_id[1][cTH_ST_ID_len] = '\0';
 		++i;
 		strncpy(pOut->trade_info[k].trade_history_status_id[2],
 				vAux[i].c_str(), cTH_ST_ID_len);
+		pOut->trade_info[k].trade_history_status_id[2][cTH_ST_ID_len] = '\0';
 	}
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_price), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].trade_price = atof(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -906,29 +925,11 @@ CDBConnectionServerSide::execute(
 {
 	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
 
-	struct tm end_trade = { 0 };
-	end_trade.tm_year = pIn->end_trade_dts.year - 1900;
-	end_trade.tm_mon = pIn->end_trade_dts.month - 1;
-	end_trade.tm_mday = pIn->end_trade_dts.day;
-	end_trade.tm_hour = pIn->end_trade_dts.hour - 1;
-	end_trade.tm_min = pIn->end_trade_dts.minute;
-	end_trade.tm_sec = pIn->end_trade_dts.second;
-	uint64_t end_trade_dts
-			= htobe64(((uint64_t) mktime(&end_trade) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+	uint64_t end_trade_dts = htobe64(usecFromPgEpoch(&pIn->end_trade_dts));
 
 	uint32_t max_trades = htobe32((uint32_t) pIn->max_trades);
 
-	struct tm start_trade = { 0 };
-	start_trade.tm_year = pIn->start_trade_dts.year - 1900;
-	start_trade.tm_mon = pIn->start_trade_dts.month - 1;
-	start_trade.tm_mday = pIn->start_trade_dts.day;
-	start_trade.tm_hour = pIn->start_trade_dts.hour - 1;
-	start_trade.tm_min = pIn->start_trade_dts.minute;
-	start_trade.tm_sec = pIn->start_trade_dts.second;
-	uint64_t start_trade_dts
-			= htobe64(((uint64_t) mktime(&start_trade) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+	uint64_t start_trade_dts = htobe64(usecFromPgEpoch(&pIn->start_trade_dts));
 
 	const char *paramValues[4] = { (char *) &acct_id, (char *) &end_trade_dts,
 		(char *) &max_trades, (char *) &start_trade_dts };
@@ -938,6 +939,11 @@ CDBConnectionServerSide::execute(
 
 	PGresult *res = exec("SELECT * FROM TradeLookupFrame2($1, $2, $3, $4)", 4,
 			NULL, paramValues, paramLengths, paramFormats, 0);
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
 
 	int i_bid_price = get_col_num(res, "bid_price");
 	int i_cash_transaction_amount
@@ -962,21 +968,24 @@ CDBConnectionServerSide::execute(
 	vector<string> vAux;
 
 	TokenizeSmart(PQgetvalue(res, 0, i_bid_price), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].bid_price = atof(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_amount), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].cash_transaction_amount = atof(vAux[i].c_str());
 	}
-	// FIXME: According to spec, this may not match the returned number found?
+	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_dts), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		sscanf(vAux[i].c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].cash_transaction_dts.year,
 				&pOut->trade_info[i].cash_transaction_dts.month,
@@ -985,20 +994,22 @@ CDBConnectionServerSide::execute(
 				&pOut->trade_info[i].cash_transaction_dts.minute,
 				&pOut->trade_info[i].cash_transaction_dts.second);
 	}
-	// FIXME: According to spec, this may not match the returned number found?
+	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_name), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		strncpy(pOut->trade_info[i].cash_transaction_name, vAux[i].c_str(),
 				cCT_NAME_len);
 		pOut->trade_info[i].cash_transaction_name[cCT_NAME_len] = '\0';
 	}
-	// FIXME: According to spec, this may not match the returned number found?
+	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_exec_name), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		strncpy(pOut->trade_info[i].exec_name, vAux[i].c_str(),
 				cEXEC_NAME_len);
 		pOut->trade_info[i].exec_name[cEXEC_NAME_len] = '\0';
@@ -1007,21 +1018,24 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_is_cash), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].is_cash = atoi(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_amount), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].settlement_amount = atof(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_cash_due_date), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		sscanf(vAux[i].c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].settlement_cash_due_date.year,
 				&pOut->trade_info[i].settlement_cash_due_date.month,
@@ -1034,7 +1048,8 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_cash_type), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		strncpy(pOut->trade_info[i].settlement_cash_type, vAux[i].c_str(),
 				cSE_CASH_TYPE_len);
 		pOut->trade_info[i].settlement_cash_type[cSE_CASH_TYPE_len] = '\0';
@@ -1076,24 +1091,29 @@ CDBConnectionServerSide::execute(
 			++i, ++k) {
 		strncpy(pOut->trade_info[k].trade_history_status_id[0],
 				vAux[i].c_str(), cTH_ST_ID_len);
+		pOut->trade_info[k].trade_history_status_id[0][cTH_ST_ID_len] = '\0';
 		++i;
 		strncpy(pOut->trade_info[k].trade_history_status_id[1],
 				vAux[i].c_str(), cTH_ST_ID_len);
+		pOut->trade_info[k].trade_history_status_id[1][cTH_ST_ID_len] = '\0';
 		++i;
 		strncpy(pOut->trade_info[k].trade_history_status_id[2],
 				vAux[i].c_str(), cTH_ST_ID_len);
+		pOut->trade_info[k].trade_history_status_id[2][cTH_ST_ID_len] = '\0';
 	}
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_list), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].trade_id = atoll(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_price), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].trade_price = atof(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
@@ -1105,31 +1125,13 @@ void
 CDBConnectionServerSide::execute(
 		const TTradeLookupFrame3Input *pIn, TTradeLookupFrame3Output *pOut)
 {
-	struct tm end_trade = { 0 };
-	end_trade.tm_year = pIn->end_trade_dts.year - 1900;
-	end_trade.tm_mon = pIn->end_trade_dts.month - 1;
-	end_trade.tm_mday = pIn->end_trade_dts.day;
-	end_trade.tm_hour = pIn->end_trade_dts.hour - 1;
-	end_trade.tm_min = pIn->end_trade_dts.minute;
-	end_trade.tm_sec = pIn->end_trade_dts.second;
-	uint64_t end_trade_dts
-			= htobe64(((uint64_t) mktime(&end_trade) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+	uint64_t end_trade_dts = htobe64(usecFromPgEpoch(&pIn->end_trade_dts));
 
 	uint64_t max_acct_id = htobe64((uint64_t) pIn->max_acct_id);
 
 	uint32_t max_trades = htobe32((uint32_t) pIn->max_trades);
 
-	struct tm start_trade = { 0 };
-	start_trade.tm_year = pIn->start_trade_dts.year - 1900;
-	start_trade.tm_mon = pIn->start_trade_dts.month - 1;
-	start_trade.tm_mday = pIn->start_trade_dts.day;
-	start_trade.tm_hour = pIn->start_trade_dts.hour - 1;
-	start_trade.tm_min = pIn->start_trade_dts.minute;
-	start_trade.tm_sec = pIn->start_trade_dts.second;
-	uint64_t start_trade_dts
-			= htobe64(((uint64_t) mktime(&start_trade) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+	uint64_t start_trade_dts = htobe64(usecFromPgEpoch(&pIn->start_trade_dts));
 
 	const char *paramValues[5] = { (char *) &end_trade_dts,
 		(char *) &max_acct_id, (char *) &max_trades, (char *) &start_trade_dts,
@@ -1140,6 +1142,11 @@ CDBConnectionServerSide::execute(
 
 	PGresult *res = exec("SELECT * FROM TradeLookupFrame3($1, $2, $3, $4, $5)",
 			5, NULL, paramValues, paramLengths, paramFormats, 0);
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
 
 	int i_acct_id = get_col_num(res, "acct_id");
 	int i_cash_transaction_amount
@@ -1167,21 +1174,24 @@ CDBConnectionServerSide::execute(
 	vector<string> vAux;
 
 	TokenizeSmart(PQgetvalue(res, 0, i_acct_id), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].acct_id = atoll(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_amount), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].cash_transaction_amount = atof(vAux[i].c_str());
 	}
-	// FIXME: According to spec, this may not match the returned number found?
+	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_dts), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		sscanf(vAux[i].c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].cash_transaction_dts.year,
 				&pOut->trade_info[i].cash_transaction_dts.month,
@@ -1190,20 +1200,22 @@ CDBConnectionServerSide::execute(
 				&pOut->trade_info[i].cash_transaction_dts.minute,
 				&pOut->trade_info[i].cash_transaction_dts.second);
 	}
-	// FIXME: According to spec, this may not match the returned number found?
+	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_transaction_name), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		strncpy(pOut->trade_info[i].cash_transaction_name, vAux[i].c_str(),
 				cCT_NAME_len);
 		pOut->trade_info[i].cash_transaction_name[cCT_NAME_len] = '\0';
 	}
-	// FIXME: According to spec, this may not match the returned number found?
+	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_exec_name), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		strncpy(pOut->trade_info[i].exec_name, vAux[i].c_str(),
 				cEXEC_NAME_len);
 		pOut->trade_info[i].exec_name[cEXEC_NAME_len] = '\0';
@@ -1212,35 +1224,40 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_is_cash), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].is_cash = atoi(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_price), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].price = atof(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_quantity), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].quantity = atoi(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_amount), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].settlement_amount = atof(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_cash_due_date), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		sscanf(vAux[i].c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].settlement_cash_due_date.year,
 				&pOut->trade_info[i].settlement_cash_due_date.month,
@@ -1253,7 +1270,8 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_settlement_cash_type), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		strncpy(pOut->trade_info[i].settlement_cash_type, vAux[i].c_str(),
 				cSE_CASH_TYPE_len);
 		pOut->trade_info[i].settlement_cash_type[cSE_CASH_TYPE_len] = '\0';
@@ -1262,7 +1280,8 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_dts), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		sscanf(vAux[i].c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[i].trade_dts.year,
 				&pOut->trade_info[i].trade_dts.month,
@@ -1308,24 +1327,29 @@ CDBConnectionServerSide::execute(
 			++i, ++k) {
 		strncpy(pOut->trade_info[k].trade_history_status_id[0],
 				vAux[i].c_str(), cTH_ST_ID_len);
+		pOut->trade_info[k].trade_history_status_id[0][cTH_ST_ID_len] = '\0';
 		++i;
 		strncpy(pOut->trade_info[k].trade_history_status_id[1],
 				vAux[i].c_str(), cTH_ST_ID_len);
+		pOut->trade_info[k].trade_history_status_id[1][cTH_ST_ID_len] = '\0';
 		++i;
 		strncpy(pOut->trade_info[k].trade_history_status_id[2],
 				vAux[i].c_str(), cTH_ST_ID_len);
+		pOut->trade_info[k].trade_history_status_id[2][cTH_ST_ID_len] = '\0';
 	}
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_list), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].trade_id = atoll(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_type), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		strncpy(pOut->trade_info[i].trade_type, vAux[i].c_str(), cTT_ID_len);
 		pOut->trade_info[i].trade_type[cTT_ID_len] = '\0';
 	}
@@ -1340,16 +1364,7 @@ CDBConnectionServerSide::execute(
 {
 	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
 
-	struct tm tm = { 0 };
-	tm.tm_year = pIn->trade_dts.year - 1900;
-	tm.tm_mon = pIn->trade_dts.month - 1;
-	tm.tm_mday = pIn->trade_dts.day;
-	tm.tm_hour = pIn->trade_dts.hour - 1;
-	tm.tm_min = pIn->trade_dts.minute;
-	tm.tm_sec = pIn->trade_dts.second;
-	uint64_t trade_dts
-			= htobe64(((uint64_t) mktime(&tm) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+	uint64_t trade_dts = htobe64(usecFromPgEpoch(&pIn->trade_dts));
 
 	const char *paramValues[2] = { (char *) &acct_id, (char *) &trade_dts };
 	const int paramLengths[2] = { sizeof(uint64_t), sizeof(uint64_t) };
@@ -1357,6 +1372,11 @@ CDBConnectionServerSide::execute(
 
 	PGresult *res = exec("SELECT * FROM TradeLookupFrame4($1, $2)", 2, NULL,
 			paramValues, paramLengths, paramFormats, 0);
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
 
 	int i_holding_history_id = get_col_num(res, "holding_history_id");
 	int i_holding_history_trade_id
@@ -1373,28 +1393,32 @@ CDBConnectionServerSide::execute(
 	vector<string> vAux;
 
 	TokenizeSmart(PQgetvalue(res, 0, i_holding_history_id), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].holding_history_id = atoll(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_holding_history_trade_id), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].holding_history_trade_id = atoll(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_quantity_after), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].quantity_after = atoi(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_quantity_before), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) TradeLookupMaxRows;
+			++i) {
 		pOut->trade_info[i].quantity_before = atoi(vAux[i].c_str());
 	}
 	check_count(pOut->num_found, vAux.size(), __FILE__, __LINE__);

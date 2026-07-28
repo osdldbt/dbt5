@@ -76,6 +76,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: fix server side Trade-Status guards and count validation
 - pgsql: surface server side Data-Maintenance failures instead of
   committing them as successes
+- pgsql: fix server side Trade-Lookup timestamp marshaling and empty
+  result guards
 
 v0.10.13 (2026-07-10)
 
