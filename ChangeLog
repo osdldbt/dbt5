@@ -8,6 +8,9 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix parsing of attached short option values (e.g. -p5432) in the
   build, run, and test-user-scaling scripts, and forward the database
   name from test-user-scaling to the run script
+- pgsql: fix the tablespace drop syntax in the table creation script,
+  which made every drop a syntax error and broke rebuilds with
+  tablespaces
 - pgsql: wrap the C stored function warning macros in do/while blocks and
   correct the S_PRICE_T and FIN_AGG_T text width defines
 - pgsql: fix C Broker-Volume buffer sizes and remove dead broker list code
