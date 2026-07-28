@@ -191,7 +191,7 @@ fi
 mkdir -p "${OUTDIR}"
 
 if [ "${LAST}" -eq 0 ]; then
-	if command -v nproc 2>&1 /dev/null; then
+	if command -v nproc > /dev/null 2>&1; then
 		LAST="$(nproc)"
 		echo "${LAST} logical processor(s) detected"
 	else
@@ -216,7 +216,7 @@ RUNARGS="${RUNARGS} --stats"
 RUNARGS="${RUNARGS} -d ${DURATION}"
 RUNARGS="${RUNARGS} -t ${CUSTOMERS}"
 for I in $(seq "${FIRST}" "${STEP}" "${LAST}"); do
-	DELAY=$(( (WARMUP / I) * 1000 ))
+	DELAY=$(( WARMUP * 1000 / I ))
 	PREFIX="${OUTDIR}/${I}"
 
 	ARGS="${RUNARGS} -s ${DELAY}"
