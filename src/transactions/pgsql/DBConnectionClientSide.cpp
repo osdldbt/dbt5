@@ -2334,6 +2334,8 @@ CDBConnectionClientSide::execute(
 		strncpy(pOut->cust_l_name, PQgetvalue(res, 0, 1), cL_NAME_len);
 		pOut->cust_tier = atoi(PQgetvalue(res, 0, 2));
 		strncpy(pOut->tax_id, PQgetvalue(res, 0, 3), cTAX_ID_len);
+	} else {
+		pOut->num_found = 0;
 	}
 	PQclear(res);
 
@@ -2362,6 +2364,8 @@ CDBConnectionClientSide::execute(
 
 	if (PQntuples(res) != 0) {
 		strncpy(pOut->broker_name, PQgetvalue(res, 0, 0), cB_NAME_len);
+	} else {
+		pOut->num_found = 0;
 	}
 	PQclear(res);
 
@@ -2479,8 +2483,10 @@ CDBConnectionClientSide::execute(
 		}
 
 		strncpy(ex_id, PQgetvalue(res, 0, 0), cEX_ID_len);
+		ex_id[cEX_ID_len] = '\0';
 		strncpy(pOut->s_name, PQgetvalue(res, 0, 1), cS_NAME_len);
 		strncpy(pOut->symbol, PQgetvalue(res, 0, 2), cSYMBOL_len);
+		strncpy(pOut->co_name, pIn->co_name, cCO_NAME_len);
 		PQclear(res);
 
 		if (m_bVerbose) {
@@ -2517,6 +2523,7 @@ CDBConnectionClientSide::execute(
 
 		co_id = htobe64((uint64_t) atoll(PQgetvalue(res, 0, 0)));
 		strncpy(ex_id, PQgetvalue(res, 0, 1), cEX_ID_len);
+		ex_id[cEX_ID_len] = '\0';
 		strncpy(pOut->s_name, PQgetvalue(res, 0, 2), cS_NAME_len);
 		PQclear(res);
 
@@ -2942,11 +2949,12 @@ CDBConnectionClientSide::execute(
 		res = exec(TOF3Q11, 1, NULL, paramValues5, paramLengths5,
 				paramFormats5, 0);
 
-		if (PQntuples(res) == 0) {
+		if (PQntuples(res) == 0 || PQgetisnull(res, 0, 0)) {
+			/* No holdings: hold_assets is NULL. */
 			pOut->acct_assets = acct_bal;
+		} else {
+			pOut->acct_assets = atof(PQgetvalue(res, 0, 0)) + acct_bal;
 		}
-
-		pOut->acct_assets = atof(PQgetvalue(res, 0, 0)) + acct_bal;
 		PQclear(res);
 
 		if (m_bVerbose) {
@@ -3048,6 +3056,11 @@ CDBConnectionClientSide::execute(
 
 	res = exec(
 			TOF4Q1, 11, NULL, paramValues1, paramLengths1, paramFormats1, 0);
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
 
 	pOut->trade_id = atoll(PQgetvalue(res, 0, 0));
 	uint64_t trade_id = htobe64((uint64_t) pOut->trade_id);

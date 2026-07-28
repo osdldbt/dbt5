@@ -56,6 +56,8 @@ vX.Y.Z (YYYY-MM-DD)
   handling
 - pgsql: fix client side Trade-Lookup reading the wrong query results and
   missing row caps
+- pgsql: fix client side Trade-Order unterminated exchange ids failing
+  NASDAQ securities and missing result guards
 
 v0.10.13 (2026-07-10)
 
