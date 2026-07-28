@@ -23,6 +23,8 @@ vX.Y.Z (YYYY-MM-DD)
   a missing 20 row cap
 - pgsql: fix C Trade-Update corrupting cash transaction names and align the
   output arrays with the client parser
+- pgsql: fix the C Trade-Update executor name update, which never changed
+  the name, and re-reads that could not see the frame's own updates
 
 v0.10.13 (2026-07-10)
 

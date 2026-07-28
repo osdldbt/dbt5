@@ -529,6 +529,7 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 #ifdef DEBUG
 				elog(DEBUG1, "%s", SQLTUF1_3);
 #endif /* DEBUG */
+				args[0] = CStringGetTextDatum(ex_name);
 				args[1] = Int64GetDatum(trade_id[i]);
 				ret = SPI_execute_plan(TUF1_3, args, nulls, false, 0);
 				if (ret != SPI_OK_UPDATE) {
@@ -543,8 +544,12 @@ TradeUpdateFrame1(PG_FUNCTION_ARGS)
 #ifdef DEBUG
 			elog(DEBUG1, "%s", SQLTUF1_4);
 #endif /* DEBUG */
+			/*
+			 * read_only must be false to see the trade row updated
+			 * earlier in this call.
+			 */
 			args[0] = Int64GetDatum(trade_id[i]);
-			ret = SPI_execute_plan(TUF1_4, args, nulls, true, 0);
+			ret = SPI_execute_plan(TUF1_4, args, nulls, false, 0);
 			if (ret != SPI_OK_SELECT) {
 				FAIL_FRAME_SET(&funcctx->max_calls, TUF1_statements[4].sql);
 				continue;
@@ -1487,8 +1492,12 @@ TradeUpdateFrame2(PG_FUNCTION_ARGS)
 			elog(DEBUG1, "TUF2_4 %s", SQLTUF2_4);
 			elog(DEBUG1, "TUF2_4 $1 %s", trade_list);
 #endif /* DEBUG */
+			/*
+			 * read_only must be false to see the settlement row updated
+			 * earlier in this call.
+			 */
 			args[0] = Int64GetDatum(atoll(trade_list));
-			ret = SPI_execute_plan(TUF2_4, args, nulls, true, 0);
+			ret = SPI_execute_plan(TUF2_4, args, nulls, false, 0);
 			if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 				l_tupdesc = SPI_tuptable->tupdesc;
 				l_tuptable = SPI_tuptable;
@@ -2478,8 +2487,12 @@ TradeUpdateFrame3(PG_FUNCTION_ARGS)
 #ifdef DEBUG
 				elog(DEBUG1, "%s", SQLTUF3_5);
 #endif /* DEBUG */
+				/*
+				 * read_only must be false to see the cash_transaction
+				 * row updated earlier in this call.
+				 */
 				args[0] = Int64GetDatum(atoll(trade_list));
-				ret = SPI_execute_plan(TUF3_5, args, nulls, true, 0);
+				ret = SPI_execute_plan(TUF3_5, args, nulls, false, 0);
 				if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 					l_tupdesc = SPI_tuptable->tupdesc;
 					l_tuptable = SPI_tuptable;
