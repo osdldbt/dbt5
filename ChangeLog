@@ -36,6 +36,7 @@ vX.Y.Z (YYYY-MM-DD)
   values, and history padding
 - pgsql: fix pl/pgsql Security-Detail returning NULL co_name and ex_date
 - pgsql: widen pl/pgsql Trade-Order acct_assets to avoid numeric overflow
+- pgsql: keep full tax rate precision in pl/pgsql Trade-Result
 
 v0.10.13 (2026-07-10)
 

@@ -103,10 +103,10 @@ DECLARE
     hold_list REFCURSOR;
 BEGIN
     -- Get the timestamp
-    SELECT now() INTO trade_dts;
+    SELECT now()::timestamp(0) INTO trade_dts;
     -- Initialize variables
-    buy_value = 0.0;
-    sell_value = 0.0;
+    buy_value = 0.00;
+    sell_value = 0.00;
     needed_qty = trade_qty;
     SELECT ca_b_id
          , ca_c_id
@@ -419,9 +419,9 @@ CREATE OR REPLACE FUNCTION TradeResultFrame3 (
 AS $$
 DECLARE
     -- Local Frame variables
-    tax_rates VALUE_T;
+    tax_rates NUMERIC;
 BEGIN
-    SELECT sum(tx_rate)
+    SELECT coalesce(sum(tx_rate) , 0)
     INTO tax_rates
     FROM taxrate
     WHERE tx_id IN (
