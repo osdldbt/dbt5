@@ -850,12 +850,10 @@ CDBConnectionClientSide::execute(
 		res2 = exec(
 				MWF1Q2, 1, NULL, paramValues, paramLengths, paramFormats, 0);
 
+		/* Skip this security if any of the lookups find no row. */
 		if (PQntuples(res2) == 0) {
-			cerr << __FILE__ << ":" << __LINE__ << " WARNING: NO ROWS RETURNED"
-				 << endl;
 			PQclear(res2);
-			PQclear(res);
-			return;
+			continue;
 		}
 
 		double new_price = atof(PQgetvalue(res2, 0, 0));
@@ -879,11 +877,8 @@ CDBConnectionClientSide::execute(
 				MWF1Q3, 1, NULL, paramValues, paramLengths, paramFormats, 0);
 
 		if (PQntuples(res2) == 0) {
-			cerr << __FILE__ << ":" << __LINE__ << " WARNING: NO ROWS RETURNED"
-				 << endl;
 			PQclear(res2);
-			PQclear(res);
-			return;
+			continue;
 		}
 
 		double s_num_out = atof(PQgetvalue(res2, 0, 0));
@@ -910,11 +905,8 @@ CDBConnectionClientSide::execute(
 				MWF1Q4, 2, NULL, paramValues, paramLengths, paramFormats, 0);
 
 		if (PQntuples(res2) == 0) {
-			cerr << __FILE__ << ":" << __LINE__ << " WARNING: NO ROWS RETURNED"
-				 << endl;
 			PQclear(res2);
-			PQclear(res);
-			return;
+			continue;
 		}
 
 		double old_price = atof(PQgetvalue(res2, 0, 0));
@@ -929,7 +921,11 @@ CDBConnectionClientSide::execute(
 	}
 	PQclear(res);
 
-	pOut->pct_change = 100.0 * (new_mkt_cap / old_mkt_cap - 1.0);
+	if (old_mkt_cap != 0.0) {
+		pOut->pct_change = 100.0 * (new_mkt_cap / old_mkt_cap - 1.0);
+	} else {
+		pOut->pct_change = 0.0;
+	}
 
 	if (m_bVerbose) {
 		cout << "pct_change = " << pOut->pct_change << endl;

@@ -44,6 +44,8 @@ vX.Y.Z (YYYY-MM-DD)
   transaction code
 - Fix time zone dependent timestamp and leap day date conversions in
   PostgreSQL client side code
+- pgsql: fix client side Market-Watch division by zero and missing row
+  handling
 
 v0.10.13 (2026-07-10)
 
