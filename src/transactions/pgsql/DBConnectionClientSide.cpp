@@ -4474,7 +4474,7 @@ CDBConnectionClientSide::execute(
 
 			if (PQntuples(res) == 0) {
 				PQclear(res);
-				return;
+				continue;
 			}
 
 			pOut->num_found += PQntuples(res);
@@ -4513,13 +4513,13 @@ CDBConnectionClientSide::execute(
 				res = exec(TUF1Q2B, 1, NULL, paramValues, paramLengths,
 						paramFormats, 0);
 			}
-			PQclear(res);
 
 			if (m_bVerbose) {
 				cout << "PQcmdTuples = " << PQcmdTuples(res) << endl;
 			}
 
 			pOut->num_updated += atoi(PQcmdTuples(res));
+			PQclear(res);
 		}
 
 #define TUF1Q3                                                                \
@@ -4543,7 +4543,7 @@ CDBConnectionClientSide::execute(
 
 		if (PQntuples(res) == 0) {
 			PQclear(res);
-			return;
+			continue;
 		}
 
 		pOut->trade_info[i].bid_price = atof(PQgetvalue(res, 0, 0));
@@ -4592,7 +4592,7 @@ CDBConnectionClientSide::execute(
 
 		if (PQntuples(res) == 0) {
 			PQclear(res);
-			return;
+			continue;
 		}
 
 		pOut->trade_info[i].settlement_amount = atof(PQgetvalue(res, 0, 0));
@@ -4634,7 +4634,7 @@ CDBConnectionClientSide::execute(
 
 			if (PQntuples(res) == 0) {
 				PQclear(res);
-				return;
+				continue;
 			}
 
 			pOut->trade_info[i].cash_transaction_amount
@@ -4782,7 +4782,7 @@ CDBConnectionClientSide::execute(
 		pOut->trade_info[i].bid_price = atof(PQgetvalue(res, i, 0));
 		strncpy(pOut->trade_info[i].exec_name, PQgetvalue(res, i, 1),
 				cEXEC_NAME_len);
-		if (PQgetvalue(res, 0, 2)[0] == 't') {
+		if (PQgetvalue(res, i, 2)[0] == 't') {
 			pOut->trade_info[i].is_cash = true;
 		} else {
 			pOut->trade_info[i].is_cash = false;
@@ -4825,7 +4825,13 @@ CDBConnectionClientSide::execute(
 			res2 = exec(TUF2Q2, 1, NULL, paramValues2, paramLengths2,
 					paramFormats2, 0);
 
+			if (PQntuples(res2) == 0) {
+				PQclear(res2);
+				continue;
+			}
+
 			strncpy(cash_type, PQgetvalue(res2, 0, 0), cSE_CASH_TYPE_len);
+			cash_type[cSE_CASH_TYPE_len] = '\0';
 			PQclear(res2);
 
 			if (m_bVerbose) {
@@ -4881,15 +4887,15 @@ CDBConnectionClientSide::execute(
 	"UPDATE settlement\n"                                                     \
 	"SET se_cash_type = 'Margin Account'\n"                                   \
 	"WHERE se_t_id = $1"
-				}
 
-				if (m_bVerbose) {
-					cout << TUF2Q4B2 << endl;
-					cout << "$1 = " << be64toh(trade_id) << endl;
-				}
+					if (m_bVerbose) {
+						cout << TUF2Q4B2 << endl;
+						cout << "$1 = " << be64toh(trade_id) << endl;
+					}
 
-				res2 = exec(TUF2Q4B2, 1, NULL, paramValues2, paramLengths2,
-						paramFormats2, 0);
+					res2 = exec(TUF2Q4B2, 1, NULL, paramValues2, paramLengths2,
+							paramFormats2, 0);
+				}
 			}
 
 			if (m_bVerbose) {
@@ -4917,8 +4923,7 @@ CDBConnectionClientSide::execute(
 
 		if (PQntuples(res2) == 0) {
 			PQclear(res2);
-			PQclear(res);
-			return;
+			continue;
 		}
 
 		pOut->trade_info[i].settlement_amount = atof(PQgetvalue(res2, 0, 0));
@@ -4992,6 +4997,7 @@ CDBConnectionClientSide::execute(
 					 << "] = " << pOut->trade_info[i].cash_transaction_name
 					 << endl;
 			}
+		}
 
 #define TUF2Q7                                                                \
 	"SELECT th_dts\n"                                                         \
@@ -5001,49 +5007,48 @@ CDBConnectionClientSide::execute(
 	"ORDER BY th_dts\n"                                                       \
 	"LIMIT 3"
 
-			if (m_bVerbose) {
-				cout << TUF2Q7 << endl;
-				cout << "$1 = " << be64toh(trade_id) << endl;
-			}
+		if (m_bVerbose) {
+			cout << TUF2Q7 << endl;
+			cout << "$1 = " << be64toh(trade_id) << endl;
+		}
 
-			res2 = exec(TUF2Q7, 1, NULL, paramValues2, paramLengths2,
-					paramFormats2, 0);
+		res2 = exec(TUF2Q7, 1, NULL, paramValues2, paramLengths2,
+				paramFormats2, 0);
 
-			int count = PQntuples(res2);
+		int count = PQntuples(res2);
+		for (int j = 0; j < count; j++) {
+			sscanf(PQgetvalue(res2, j, 0), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+					&pOut->trade_info[i].trade_history_dts[j].year,
+					&pOut->trade_info[i].trade_history_dts[j].month,
+					&pOut->trade_info[i].trade_history_dts[j].day,
+					&pOut->trade_info[i].trade_history_dts[j].hour,
+					&pOut->trade_info[i].trade_history_dts[j].minute,
+					&pOut->trade_info[i].trade_history_dts[j].second,
+					&pOut->trade_info[i].trade_history_dts[j].fraction);
+			strncpy(pOut->trade_info[i].trade_history_status_id[j],
+					PQgetvalue(res2, j, 1), cTH_ST_ID_len);
+		}
+		PQclear(res2);
+
+		if (m_bVerbose) {
 			for (int j = 0; j < count; j++) {
-				sscanf(PQgetvalue(res2, j, 0), "%hd-%hd-%hd %hd:%hd:%hd.%d",
-						&pOut->trade_info[i].trade_history_dts[j].year,
-						&pOut->trade_info[i].trade_history_dts[j].month,
-						&pOut->trade_info[i].trade_history_dts[j].day,
-						&pOut->trade_info[i].trade_history_dts[j].hour,
-						&pOut->trade_info[i].trade_history_dts[j].minute,
-						&pOut->trade_info[i].trade_history_dts[j].second,
-						&pOut->trade_info[i].trade_history_dts[j].fraction);
-				strncpy(pOut->trade_info[i].trade_history_status_id[j],
-						PQgetvalue(res2, j, 1), cTH_ST_ID_len);
-			}
-			PQclear(res2);
-
-			if (m_bVerbose) {
-				for (int j = 0; j < count; j++) {
-					cout << "trade_history_dts[" << j << "] = "
-						 << pOut->trade_info[i].trade_history_dts[j].year
-						 << "-"
-						 << pOut->trade_info[i].trade_history_dts[j].month
-						 << "-" << pOut->trade_info[i].trade_history_dts[j].day
-						 << " "
-						 << pOut->trade_info[i].trade_history_dts[j].hour
-						 << ":"
-						 << pOut->trade_info[i].trade_history_dts[j].minute
-						 << ":"
-						 << pOut->trade_info[i].trade_history_dts[j].second
-						 << "."
-						 << pOut->trade_info[i].trade_history_dts[j].fraction
-						 << endl;
-					cout << "trade_history_status_id[" << j << "] = "
-						 << pOut->trade_info[i].trade_history_status_id[j]
-						 << endl;
-				}
+				cout << "trade_history_dts[" << j << "] = "
+					 << pOut->trade_info[i].trade_history_dts[j].year
+					 << "-"
+					 << pOut->trade_info[i].trade_history_dts[j].month
+					 << "-" << pOut->trade_info[i].trade_history_dts[j].day
+					 << " "
+					 << pOut->trade_info[i].trade_history_dts[j].hour
+					 << ":"
+					 << pOut->trade_info[i].trade_history_dts[j].minute
+					 << ":"
+					 << pOut->trade_info[i].trade_history_dts[j].second
+					 << "."
+					 << pOut->trade_info[i].trade_history_dts[j].fraction
+					 << endl;
+				cout << "trade_history_status_id[" << j << "] = "
+					 << pOut->trade_info[i].trade_history_status_id[j]
+					 << endl;
 			}
 		}
 	}
@@ -5191,8 +5196,7 @@ CDBConnectionClientSide::execute(
 
 		if (PQntuples(res2) == 0) {
 			PQclear(res2);
-			PQclear(res);
-			return;
+			continue;
 		}
 
 		pOut->trade_info[i].settlement_amount = atof(PQgetvalue(res2, 0, 0));
@@ -5233,7 +5237,13 @@ CDBConnectionClientSide::execute(
 				res2 = exec(TUF3Q3, 1, NULL, paramValues2, paramLengths2,
 						paramFormats2, 0);
 
+				if (PQntuples(res2) == 0) {
+					PQclear(res2);
+					continue;
+				}
+
 				strncpy(ct_name, PQgetvalue(res2, 0, 0), cCT_NAME_len);
+				ct_name[cCT_NAME_len] = '\0';
 				PQclear(res2);
 
 				if (m_bVerbose) {
@@ -5241,12 +5251,12 @@ CDBConnectionClientSide::execute(
 				}
 
 				if (strstr(ct_name, " shares of ") != NULL) {
-					snprintf(ct_name, cCT_NAME_len, "%s %d Shares of %s",
+					snprintf(ct_name, sizeof(ct_name), "%s %d Shares of %s",
 							pOut->trade_info[i].type_name,
 							pOut->trade_info[i].quantity,
 							pOut->trade_info[i].s_name);
 				} else {
-					snprintf(ct_name, cCT_NAME_len, "%s %d shares of %s",
+					snprintf(ct_name, sizeof(ct_name), "%s %d shares of %s",
 							pOut->trade_info[i].type_name,
 							pOut->trade_info[i].quantity,
 							pOut->trade_info[i].s_name);
@@ -5294,8 +5304,6 @@ CDBConnectionClientSide::execute(
 
 			res2 = exec(TUF3Q5, 1, NULL, paramValues2, paramLengths2,
 					paramFormats2, 0);
-
-			strncpy(ct_name, PQgetvalue(res2, 0, 0), cCT_NAME_len);
 
 			if (PQntuples(res2) > 0) {
 				pOut->trade_info[i].cash_transaction_amount

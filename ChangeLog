@@ -61,6 +61,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: fix client side Trade-Result partial sells never liquidating
   holdings, FIFO scans running as LIFO, and margin trades corrupting
   account balances
+- pgsql: fix client side Trade-Update freed result reads, a broken margin
+  toggle, and wrong per trade cash flags
 
 v0.10.13 (2026-07-10)
 
