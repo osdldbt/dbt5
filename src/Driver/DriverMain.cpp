@@ -41,7 +41,7 @@ usage()
 		 << "   Option      Default    Description" << endl
 		 << "   ==========  =========  ==============================="
 		 << endl;
-	printf("   -c integer  %-9ld  Configured customer count\n",
+	printf("   -c integer  %-9ld  Active customer count\n",
 			iActiveCustomerCount);
 	printf("   -d integer             Duration of the test (seconds)\n");
 	printf("   -f integer  %-9d  # of customers per 1 TRTPS\n", iScaleFactor);
@@ -55,7 +55,7 @@ usage()
 			iBHListenerPort);
 	printf("   -r integer             Random number generator seed\n");
 	printf("                          Invalidates run if used\n");
-	printf("   -t integer  %-9ld  Active customer count\n",
+	printf("   -t integer  %-9ld  Configured customer count\n",
 			iConfiguredCustomerCount);
 	printf("   -u integer             # of Users\n");
 	printf("   -w integer  %-9d  # of Days of Initial Trades\n",
@@ -193,7 +193,7 @@ ValidateParameters()
 	}
 
 	if (iDaysOfInitialTrades <= 0) {
-		cerr << "The specified number of 8-Hour Workdays (-i "
+		cerr << "The specified number of 8-Hour Workdays (-w "
 			 << (iDaysOfInitialTrades) << ") must be non-zero." << endl;
 
 		bRet = false;

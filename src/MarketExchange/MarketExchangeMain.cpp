@@ -34,16 +34,16 @@ usage()
 	cout << "Usage: MarketExchangeMain [options]" << endl << endl;
 	cout << "   Option      Default     Description" << endl;
 	cout << "   ==========  ==========  =============================" << endl;
-	printf("   -c integer  %-10ld  Configured customer count\n",
-			iConfiguredCustomerCount);
+	printf("   -c integer  %-10ld  Active customer count\n",
+			iActiveCustomerCount);
 	cout << "   -i string               Location of EGen flat_in directory"
 		 << endl;
 	printf("   -l integer  %-10d  Socket listen port\n", iListenPort);
 	printf("   -h string   %-10s  Brokerage House address\n", szBHaddr);
 	printf("   -o string   %-10s  directory for output files\n",
 			outputDirectory);
-	printf("   -t integer  %-10ld  Active customer count\n",
-			iActiveCustomerCount);
+	printf("   -t integer  %-10ld  Configured customer count\n",
+			iConfiguredCustomerCount);
 	printf("   -p integer  %-10d  Brokerage House listen port\n",
 			iBHlistenPort);
 	cout << "   -v                      Verbose output" << endl;

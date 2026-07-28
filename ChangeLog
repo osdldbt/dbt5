@@ -136,6 +136,9 @@ vX.Y.Z (YYYY-MM-DD)
   transaction takes more than a minute
 - BrokerageHouse: reconnect to the market exchange after a send
   failure instead of losing the connection for the rest of the run
+- Correct the driver and market exchange help text, which described
+  -c and -t reversed, and the workday validation message citing the
+  wrong option
 
 v0.10.13 (2026-07-10)
 
