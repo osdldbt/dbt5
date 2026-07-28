@@ -154,7 +154,8 @@ DURATION="$(sqlite3 "${DBFILE}" "SELECT (${ENDTIME} - ${STARTTIME}) / 60.0;")"
 TXNTOTAL="$(sqlite3 "${DBFILE}" <<- EOF
 SELECT count(time)
 FROM mix
-WHERE time > ${STARTTIME};
+WHERE time > ${STARTTIME}
+  AND time < ${ENDTIME};
 EOF
 )"
 

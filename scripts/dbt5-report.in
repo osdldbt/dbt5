@@ -309,15 +309,20 @@ CUSTOMERS="$(grep "Database Customer Cardinality:" "${INDIR}/readme.txt" | cut -
 MIXFILES="$(find "${INDIR}" -name 'mix*.log' -print0 | xargs -0)"
 SUMMARY="${INDIR}/summary.rst"
 if [ ! -f "${SUMMARY}" ]; then
-	dbt5 post-process --customers="${CUSTOMERS}" "${MIXFILES}" > "${SUMMARY}"
+	# shellcheck disable=SC2086
+	dbt5 post-process --customers="${CUSTOMERS}" ${MIXFILES} > "${SUMMARY}"
 fi
 
 echo "Processing any pidstat files..."
 # Figure out how to prefix the spar vs pidstat image file name prefixes here.
+# The prefix cannot be set in the loop because the pipeline runs it in a
+# subshell.
 PIDPREFIX="spar"
+if [ -n "$(find "${INDIR}" -type f -name pidstat.txt 2> /dev/null)" ]; then
+	PIDPREFIX="pidstat"
+fi
 find "${INDIR}" -type f -name pidstat.txt 2> /dev/null | \
 		while IFS= read -r PIDSTATFILE; do
-	PIDPREFIX="pidstat"
 	ts process-pidstat -i "${PIDSTATFILE}"
 done
 

@@ -16,6 +16,16 @@ vX.Y.Z (YYYY-MM-DD)
   and existence check in create-db, fix dropping the database when
   rebuilding, fix stopping the database, and only use the PARALLEL
   VACUUM option on PostgreSQL 13 or later
+- Fix build-egen to exit after --version and to stop when entering
+  the EGen directory or applying a patch fails
+- run: implement the documented --privileged option, fix detection of
+  the touchstone tools on the database system, and record the full
+  command line in readme.txt
+- Fix the test-user-scaling warmup delay, which rounded to zero with
+  more than 60 users, opening all connections at once
+- Fix report generation: detect pidstat data correctly, pass multiple
+  mix logs to post-process, and stop counting transactions past the
+  end of the measurement window so the mix percentages sum to 100
 - pgsql: wrap the C stored function warning macros in do/while blocks and
   correct the S_PRICE_T and FIN_AGG_T text width defines
 - pgsql: fix C Broker-Volume buffer sizes and remove dead broker list code
