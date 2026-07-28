@@ -16,6 +16,7 @@ RUN apt-get -qq -y update && \
     apt-get -qq -y dist-upgrade && \
     apt-get -qq -y install bison \
                            bzip2 \
+                           ca-certificates \
                            curl \
                            file \
                            flex \
@@ -39,7 +40,8 @@ RUN apt-get -qq -y update && \
                            xz-utils \
                            zlib1g-dev && \
     apt-get -qq -y clean && \
-    apt-get -qq -y autoclean
+    apt-get -qq -y autoclean && \
+    rm -rf /var/lib/apt/lists/*
 
 # Capture the distribution license of each library that is redistributed in
 # the AppImage.
@@ -72,7 +74,7 @@ RUN set -e; \
 
 ARG PYTHONMMVER="3.11"
 ARG PYTHONVER="${PYTHONMMVER}.1"
-RUN curl -o /tmp/Python-${PYTHONVER}.tgz -SsOL \
+RUN curl -o /tmp/Python-${PYTHONVER}.tgz -SsL \
          https://www.python.org/ftp/python/${PYTHONVER}/Python-${PYTHONVER}.tgz && \
     tar -C /usr/local/src -xf /tmp/Python-${PYTHONVER}.tgz
 WORKDIR /usr/local/src/Python-${PYTHONVER}
@@ -99,7 +101,7 @@ RUN mkdir -p /usr/local/share/licenses/rst2pdf-${RST2PDFVER} && \
          https://github.com/rst2pdf/rst2pdf/raw/${RST2PDFVER}/LICENSE.txt
 
 ARG CMAKEVER="3.14.7"
-RUN curl -o /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz -SsOL \
+RUN curl -o /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz -SsL \
          https://github.com/Kitware/CMake/releases/download/v${CMAKEVER}/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz && \
     tar -C /usr --strip-components=1 \
         -xf /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz
@@ -107,7 +109,7 @@ RUN curl -o /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz -SsOL \
 # Install DBT Tools
 
 ARG DBTTOOLSVER="0.5.1"
-RUN curl -o /tmp/v${DBTTOOLSVER}.tar.gz -SsOL \
+RUN curl -o /tmp/v${DBTTOOLSVER}.tar.gz -SsL \
          https://github.com/osdldbt/dbttools/archive/refs/tags/v${DBTTOOLSVER}.tar.gz && \
     tar -C /usr/local/src -xf /tmp/v${DBTTOOLSVER}.tar.gz
 WORKDIR /usr/local/src/dbttools-${DBTTOOLSVER}
@@ -118,7 +120,7 @@ RUN mkdir -p /usr/local/share/licenses/dbttools-${DBTTOOLSVER} && \
     cp -p LICENSE /usr/local/share/licenses/dbttools-${DBTTOOLSVER}/
 
 ARG SQLITE3VER=3410200
-RUN wget -O /tmp/sqlite-autoconf-${SQLITE3VER}.tar.gz -q --no-check-certificate \
+RUN wget -O /tmp/sqlite-autoconf-${SQLITE3VER}.tar.gz -q \
          https://www.sqlite.org/2023/sqlite-autoconf-${SQLITE3VER}.tar.gz && \
     tar -C /usr/local/src -xf /tmp/sqlite-autoconf-${SQLITE3VER}.tar.gz
 WORKDIR /usr/local/src/sqlite-autoconf-${SQLITE3VER}
@@ -130,7 +132,7 @@ RUN mkdir -p /usr/local/share/licenses/sqlite-autoconf-${SQLITE3VER} && \
 
 ARG PANGOVER="1.42"
 ARG PANGOMINORVER="4"
-RUN curl -o /tmp/pango-${PANGOVER}.${PANGOMINORVER}.tar.xz -SsOL \
+RUN curl -o /tmp/pango-${PANGOVER}.${PANGOMINORVER}.tar.xz -SsL \
          https://download.gnome.org/sources/pango/${PANGOVER}/pango-${PANGOVER}.${PANGOMINORVER}.tar.xz && \
     tar -C /usr/local/src -xf /tmp/pango-${PANGOVER}.${PANGOMINORVER}.tar.xz
 WORKDIR /usr/local/src/pango-${PANGOVER}.${PANGOMINORVER}
@@ -141,7 +143,7 @@ RUN mkdir -p /usr/local/share/licenses/pango-${PANGOVER}.${PANGOMINORVER} && \
     cp -p COPYING /usr/local/share/licenses/pango-${PANGOVER}.${PANGOMINORVER}/
 
 ARG GNUPLOTVER="5.4.6"
-RUN wget -O /tmp/gnuplot-${GNUPLOTVER}.tar.gz -q --no-check-certificate \
+RUN wget -O /tmp/gnuplot-${GNUPLOTVER}.tar.gz -q \
          https://sourceforge.net/projects/gnuplot/files/gnuplot/${GNUPLOTVER}/gnuplot-${GNUPLOTVER}.tar.gz/download && \
     tar -C /usr/local/src -xf /tmp/gnuplot-${GNUPLOTVER}.tar.gz
 WORKDIR /usr/local/src/gnuplot-${GNUPLOTVER}
@@ -160,7 +162,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
     sh /tmp/sh.rustup.sh -y
 
 ARG TSTOOLSVER="0.10.0"
-RUN curl -o /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz -SsOL \
+RUN curl -o /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz -SsL \
          https://gitlab.com/touchstone/touchstone-tools/-/archive/v${TSTOOLSVER}/touchstone-tools-v${TSTOOLSVER}.tar.gz && \
     mkdir -p /usr/local/src/touchstone-tools-v${TSTOOLSVER} && \
     tar -C /usr/local/src/touchstone-tools-v${TSTOOLSVER} \
@@ -178,11 +180,11 @@ ARG TOMLCLIVER="0.2.3"
 RUN ${HOME}/.cargo/bin/cargo install --version ${TOMLCLIVER} \
     --root /usr/local toml-cli
 RUN mkdir -p /usr/local/share/licenses/toml-cli-${TOMLCLIVER} && \
-    curl -o /usr/local/share/licenses/toml-cli-${TOMLCLIVER}/LICENSE -SsOL \
+    curl -o /usr/local/share/licenses/toml-cli-${TOMLCLIVER}/LICENSE -SsL \
          https://github.com/gnprice/toml-cli/raw/v${TOMLCLIVER}/LICENSE
 
 ARG PGVER="11.22"
-RUN wget -O /tmp/postgresql-${PGVER}.tar.bz2 -q --no-check-certificate \
+RUN wget -O /tmp/postgresql-${PGVER}.tar.bz2 -q \
          https://ftp.postgresql.org/pub/source/v${PGVER}/postgresql-${PGVER}.tar.bz2 && \
     tar -C /usr/local/src -xf /tmp/postgresql-${PGVER}.tar.bz2
 WORKDIR /usr/local/src/postgresql-${PGVER}
