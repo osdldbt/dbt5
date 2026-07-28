@@ -11,8 +11,6 @@ tags
 install_manifest.txt
 log
 CMakeCache.txt
-Makefile
-!/doc/Makefile
 bin/
 cmake_install.cmake
 CMakeFiles/

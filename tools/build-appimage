@@ -35,4 +35,4 @@ ${CONTAINER_CMD} run \
 		--env PKG_CONFIG_PATH="/usr/lib/pkgconfig" \
 		-w /dbt5 \
 		$CONTAINER_TAG \
-		make -f Makefile.cmake ${TARGET}
+		make ${TARGET}

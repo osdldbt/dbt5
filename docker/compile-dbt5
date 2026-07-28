@@ -35,5 +35,5 @@ fi
 docker run --rm -v "${DOCKER_DIR}"/..:"${DBT5_PATH}":rw -w ${DBT5_PATH} \
 		-e PKG_CONFIG_PATH="/usr/lib/pkgconfig" ${VERBOSE_FLAG:+"${VERBOSE_FLAG}"} \
 		-u "${UID}":"${GID}" ${DOCKER_TAG} \
-		bash -c 'make -f Makefile.cmake clean; make -f Makefile.cmake debug' \
+		bash -c 'make clean; make debug' \
 		|| exit 1

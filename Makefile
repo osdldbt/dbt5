@@ -1,5 +1,3 @@
-# vim: set ft=make :
-
 .PHONY: appimage clean debug package release
 
 default:
@@ -29,8 +27,8 @@ debug:
 
 package:
 	git checkout-index --prefix=builds/source/ -a
-	cmake -Hbuilds/source -Bbuilds/source
-	cd builds/source && make package_source
+	cmake -Hbuilds/source -Bbuilds/package
+	cd builds/package && make package_source
 
 release:
 	cmake -H. -Bbuilds/release
