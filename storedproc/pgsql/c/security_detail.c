@@ -867,6 +867,21 @@ SecurityDetailFrame1(PG_FUNCTION_ARGS)
 			}
 
 			tmp = SPI_getvalue(tuple, tupdesc, 1);
+			if (access_lob_flag == true && tmp[0] == '\\') {
+				/*
+				 * ni_item is a bytea and its text form starts with a
+				 * backslash (e.g. \x...).  The array and composite
+				 * input parsers each consume one level of doubled
+				 * backslashes, so emit 4 backslashes for the 1 that
+				 * must reach the bytea input function.
+				 */
+				strncat(values[i_news], "\\\\\\\\", length_n);
+				length_n -= 4;
+				if (length_n < 0) {
+					FAIL_FRAME("news values needs to be increased");
+				}
+				++tmp;
+			}
 			strncat(values[i_news], tmp, length_n);
 			length_n -= strlen(tmp);
 			if (length_n < 0) {

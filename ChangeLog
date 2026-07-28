@@ -39,6 +39,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: keep full tax rate precision in pl/pgsql Trade-Result
 - pgsql: align C Trade-Lookup cash arrays with the client parser and fix
   swapped before and after quantities
+- pgsql: fix C Security-Detail double encoding news items
 
 v0.10.13 (2026-07-10)
 
