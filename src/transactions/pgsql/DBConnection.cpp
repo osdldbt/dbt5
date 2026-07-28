@@ -119,6 +119,7 @@ CDBConnection::exec(const char *sql, int nParams, const Oid *paramTypes,
 		msg << pid << " " << time(NULL) << " " << endl
 			<< "SQL: " << sql << endl
 			<< PQresultErrorMessage(res) << endl;
+		PQclear(res);
 		rollback();
 		throw msg.str();
 		break;
