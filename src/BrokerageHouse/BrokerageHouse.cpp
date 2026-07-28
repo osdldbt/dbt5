@@ -238,7 +238,9 @@ workerThread(void *data)
 			}
 		} while (true);
 
-		close(pThrParam->iSockfd); // close socket connection with the driver
+		// close socket connection with the driver, if not already closed
+		// by an error path above
+		sockDrv.dbt5Disconnect();
 		delete pThrParam;
 		delete pMessage;
 	} catch (CSocketErr *err) {

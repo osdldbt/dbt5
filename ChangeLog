@@ -121,6 +121,10 @@ vX.Y.Z (YYYY-MM-DD)
   after the request could not be sent
 - BrokerageHouse: fix a double free of the worker thread parameters
   when accepting a connection fails
+- Fix socket descriptor lifetime handling: stop using 0 as the unset
+  descriptor sentinel, which closed stdin and could close unrelated
+  descriptors reused by other threads, and close each connection
+  exactly once
 
 v0.10.13 (2026-07-10)
 

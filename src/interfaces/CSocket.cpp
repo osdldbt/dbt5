@@ -19,9 +19,9 @@
 #define LISTENQ 1024
 
 // Constructor
-CSocket::CSocket(void): m_listenfd(0), m_sockfd(0) {}
+CSocket::CSocket(void): m_listenfd(-1), m_sockfd(-1) {}
 
-CSocket::CSocket(char *address, int port): m_listenfd(0), m_sockfd(0)
+CSocket::CSocket(char *address, int port): m_listenfd(-1), m_sockfd(-1)
 {
 	strncpy(this->address, address, iMaxHostname);
 	this->address[iMaxHostname] = '\0';
@@ -40,14 +40,17 @@ int
 CSocket::dbt5Accept(void)
 {
 	struct sockaddr_in sa;
+	int sockfd;
 
 	socklen_t addrlen = sizeof(sa);
 	errno = 0;
-	m_sockfd = accept(m_listenfd, (struct sockaddr *) &sa, &addrlen);
-	if (m_sockfd == -1) {
+	sockfd = accept(m_listenfd, (struct sockaddr *) &sa, &addrlen);
+	if (sockfd == -1) {
 		throwError(CSocketErr::ERR_SOCKET_ACCEPT);
 	}
-	return m_sockfd;
+	// The caller owns the accepted socket; do not keep it in m_sockfd
+	// or the listener's destructor would close a worker's connection.
+	return sockfd;
 }
 
 // Connect
@@ -101,8 +104,10 @@ CSocket::dbt5Connect()
 void
 CSocket::dbt5Disconnect()
 {
-	if (m_sockfd != 0)
+	if (m_sockfd != -1) {
 		close(m_sockfd);
+		m_sockfd = -1;
+	}
 }
 
 // Receive

@@ -52,7 +52,10 @@ public:
 	void
 	closeListenerSocket()
 	{
-		close(m_listenfd);
+		if (m_listenfd != -1) {
+			close(m_listenfd);
+			m_listenfd = -1;
+		}
 	}
 
 private:
