@@ -121,9 +121,9 @@ stat_collection()
 		# Don't collect system stats from the database system if the database
 		# is a service.
 		if [ $DBAAS -eq 0 ]; then
-			eval "${DB_COMMAND} which ts ts-sysstat" > /dev/null 2>&1
-			RC=$?
-			if [ $RC -gt 1 ]; then
+			if ! eval "${DB_COMMAND} command -v ts" > /dev/null 2>&1 || \
+					! eval "${DB_COMMAND} command -v ts-sysstat" \
+					> /dev/null 2>&1; then
 				printf "WARNING: touchstone tools not found for system stats "
 				printf "collection on %s\n" "${HOSTNAME}"
 			else
@@ -132,9 +132,9 @@ stat_collection()
 			fi
 		fi
 
-		eval "${DB_COMMAND} which ts ts-${DBMS}-stat" > /dev/null 2>&1
-		RC=$?
-		if [ $RC -gt 1 ]; then
+		if ! eval "${DB_COMMAND} command -v ts" > /dev/null 2>&1 || \
+				! eval "${DB_COMMAND} command -v ts-${DBMS}-stat" \
+				> /dev/null 2>&1; then
 			printf "WARNING: touchstone tools not found for database stats "
 			printf "collection for RDBMS %s on system %s\n" \
 					"${DBMS}" "${HOSTNAME}"
@@ -412,6 +412,10 @@ if [ ! "${APPDIR}" = "" ]; then
 	EGENHOME="${APPDIR}/opt/egen"
 fi
 
+# Save the command line for the readme file before the option handling
+# consumes the positional parameters.
+COMMAND_LINE="${0} ${*}"
+
 # Custom argument handling for hopefully most portability.
 while [ "${#}" -gt 0 ] ; do
 	case "${1}" in
@@ -465,6 +469,9 @@ while [ "${#}" -gt 0 ] ; do
 	(-p | --db-port)
 		shift
 		DB_PORT="${1}"
+		;;
+	(--privileged)
+		PRIVILEGED=1
 		;;
 	(--profile)
 		PROFILE=1
@@ -593,7 +600,7 @@ if [ "${EGENHOME}" = "" ]; then
 fi
 
 if [ -z "${DBMS}" ]; then
-	usage "specify which dbms system to test using -a <pgsql>"
+	usage "specify which dbms system to test with the DBMS argument, e.g. pgsql"
 	exit 1
 fi
 
@@ -623,13 +630,13 @@ if [ -z "${ITD}" ]; then
 fi
 
 if [ -z "${OUTPUT_DIR}" ]; then
-	usage "specify the location for results, directory must not exist, using -o <path>"
+	usage "specify the location for results with the DIRECTORY argument, which must not exist"
 	exit 1
 fi
 
 if [ -d "${OUTPUT_DIR}" ]; then
 	echo "directory '${OUTPUT_DIR}' exists, stopping to prevent possible"
-	echo "clobbering of data, please specify another -o location"
+	echo "clobbering of data, please specify another DIRECTORY"
 	exit 1
 fi
 
@@ -673,7 +680,7 @@ fi
 date
 echo "${COMMENT}"
 uname -a
-echo "Command line: $0" "$@"
+echo "Command line: ${COMMAND_LINE}"
 } >> "${OUTPUT_DIR}"/readme.txt
 
 # Output run information into the readme.txt.
