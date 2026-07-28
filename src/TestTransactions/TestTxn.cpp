@@ -198,7 +198,7 @@ ParseCommandLine(int argc, char *argv[])
 			}
 			break;
 		case 'r':
-			Seed = atoi(vp);
+			sscanf(vp, "%" PRIu64, &Seed);
 			break;
 		case 'w':
 			iDaysOfInitialTrades = atoi(vp);
@@ -528,6 +528,13 @@ main(int argc, char *argv[])
 				iDaysOfInitialTrades * HoursPerWorkDay, &log,
 				&m_DriverCETxnSettings);
 
+		/*
+		 * The CCE driver normally calls this after constructing the
+		 * generator; without it the time-window tunables are never
+		 * computed and the generated inputs are garbage.
+		 */
+		m_TxnInputGenerator.UpdateTunables();
+
 		if (Seed == 0)
 			Seed = m_TxnInputGenerator.GetRNGSeed();
 		else
@@ -537,9 +544,12 @@ main(int argc, char *argv[])
 		// Initialize DM - Data Maintenance class
 		// DM is used by Data-Maintenance and Trade-Cleanup transactions
 		// Data-Maintenance SUT interface (provided by us)
+		// Pass the seed so Data-Maintenance inputs are reproducible;
+		// the default constructor seeds from the wall clock.
 		CDMSUTtest m_CDMSUT(m_Conn);
 		CDM m_CDM(&m_CDMSUT, &log, inputFiles, iConfiguredCustomerCount,
-				iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades, 1);
+				iActiveCustomerCount, iScaleFactor, iDaysOfInitialTrades, 1,
+				Seed);
 
 		CDateTime StartTime;
 
