@@ -256,6 +256,7 @@ CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 
 		res = exec(MFF1Q2, 5, NULL, paramValues2, paramLengths2, paramFormats2,
 				0);
+		PGresultHolder resHolder(res);
 
 		int count = PQntuples(res);
 		for (int j = 0; j < count; j++) {
@@ -362,8 +363,6 @@ CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 			}
 			++pOut->send_len;
 		}
-
-		PQclear(res);
 	}
 }
 
@@ -382,6 +381,7 @@ CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
 	}
 
 	res = exec(TCF1Q1);
+	PGresultHolder holder1(res);
 
 	int n = PQntuples(res);
 	for (int i = 0; i < n; i++) {
@@ -465,7 +465,6 @@ CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
 				paramFormats1, 0);
 		PQclear(res2);
 	}
-	PQclear(res);
 
 #define TCF1Q5 "DELETE FROM trade_request"
 
@@ -496,6 +495,7 @@ CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
 	const int paramFormats[2] = { 1, 0 };
 
 	res = exec(TCF1Q6, 2, NULL, paramValues, paramLengths, paramFormats, 0);
+	PGresultHolder holder2(res);
 
 	n = PQntuples(res);
 	for (int i = 0; i < n; i++) {
@@ -554,7 +554,6 @@ CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
 				paramFormats1, 0);
 		PQclear(res2);
 	}
-	PQclear(res);
 }
 
 

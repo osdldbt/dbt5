@@ -847,6 +847,8 @@ CDBConnectionClientSide::execute(
 		return;
 	}
 
+	PGresultHolder resHolder(res);
+
 	char start_day[DATELEN + 1];
 	snprintf(start_day, DATELEN, "%d-%d-%d", pIn->start_day.year,
 			pIn->start_day.month, pIn->start_day.day);
@@ -948,7 +950,6 @@ CDBConnectionClientSide::execute(
 		old_mkt_cap += s_num_out * old_price;
 		new_mkt_cap += s_num_out * new_price;
 	}
-	PQclear(res);
 
 	if (old_mkt_cap != 0.0) {
 		pOut->pct_change = 100.0 * (new_mkt_cap / old_mkt_cap - 1.0);
@@ -1719,6 +1720,7 @@ CDBConnectionClientSide::execute(
 
 	res = exec(TLF2Q1, 4, paramTypes1, paramValues1, paramLengths1,
 			paramFormats1, 0);
+	PGresultHolder resHolder(res);
 
 	pOut->num_found = PQntuples(res);
 	for (int i = 0; i < pOut->num_found; i++) {
@@ -1888,7 +1890,6 @@ CDBConnectionClientSide::execute(
 			}
 		}
 	}
-	PQclear(res);
 }
 
 void
@@ -1946,6 +1947,7 @@ CDBConnectionClientSide::execute(
 
 	res = exec(TLF3Q1, 4, paramTypes1, paramValues1, paramLengths1,
 			paramFormats1, 0);
+	PGresultHolder resHolder(res);
 
 	pOut->num_found = PQntuples(res);
 	for (int i = 0; i < pOut->num_found; i++) {
@@ -2138,7 +2140,6 @@ CDBConnectionClientSide::execute(
 			}
 		}
 	}
-	PQclear(res);
 }
 
 void
@@ -3455,7 +3456,8 @@ CDBConnectionClientSide::execute(
 						paramFormats2, 0);
 			}
 
-            PGresult *res2 = NULL;
+			PGresultHolder resHolder(res);
+			PGresult *res2 = NULL;
 			int count = PQntuples(res);
 			for (int i = 0; i < count; i++) {
 				if (needed_qty == 0)
@@ -3551,7 +3553,6 @@ CDBConnectionClientSide::execute(
 					needed_qty -= hold_qty;
 				}
 			}
-			PQclear(res);
 		}
 
 		if (needed_qty > 0) {
@@ -3689,7 +3690,8 @@ CDBConnectionClientSide::execute(
 						paramFormats2, 0);
 			}
 
-            PGresult *res2 = NULL;
+			PGresultHolder resHolder(res);
+			PGresult *res2 = NULL;
 			int count = PQntuples(res);
 			for (int i = 0; i < count; i++) {
                 if (needed_qty == 0)
@@ -3787,7 +3789,6 @@ CDBConnectionClientSide::execute(
 					needed_qty -= hold_qty;
 				}
 			}
-			PQclear(res);
 		}
 
 		if (needed_qty > 0) {
@@ -4743,6 +4744,7 @@ CDBConnectionClientSide::execute(
 
 	res = exec(TUF2Q1, 4, paramTypes1, paramValues1, paramLengths1,
 			paramFormats1, 0);
+	PGresultHolder resHolder(res);
 
 	PGresult *res2 = NULL;
 	pOut->num_updated = 0;
@@ -5021,7 +5023,6 @@ CDBConnectionClientSide::execute(
 			}
 		}
 	}
-	PQclear(res);
 }
 
 void
@@ -5085,6 +5086,7 @@ CDBConnectionClientSide::execute(
 
 	res = exec(TUF3Q1, 4, paramTypes1, paramValues1, paramLengths1,
 			paramFormats1, 0);
+	PGresultHolder resHolder(res);
 
 	PGresult *res2 = NULL;
 	pOut->num_updated = 0;
@@ -5358,5 +5360,4 @@ CDBConnectionClientSide::execute(
 			}
 		}
 	}
-	PQclear(res);
 }

@@ -31,6 +31,26 @@ using namespace TPCE;
 int64_t daysFromPgEpoch(int year, int month, int day);
 uint64_t usecFromPgEpoch(const TIMESTAMP_STRUCT *ts);
 
+/*
+ * Clears a PGresult when leaving scope so a result held across other
+ * exec() calls is not leaked when one of them throws.
+ */
+class PGresultHolder
+{
+	PGresult *m_res;
+
+	// non-copyable
+	PGresultHolder(const PGresultHolder &);
+	PGresultHolder &operator=(const PGresultHolder &);
+
+public:
+	explicit PGresultHolder(PGresult *res): m_res(res) {}
+	~PGresultHolder()
+	{
+		PQclear(m_res);
+	}
+};
+
 class CDBConnection
 {
 	char szConnectStr[iMaxConnectString + 1];
