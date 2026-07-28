@@ -51,6 +51,9 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: fix client side Customer-Position missing LIMIT 30 and a result
   leak
 - pgsql: fix client side Security-Detail news decoding and query limit
+- pgsql: fix the client side Data-Maintenance WATCH_ITEM update with
+  reversed SET and WHERE symbols, EXCHANGE timestamp width, and TAXRATE
+  handling
 
 v0.10.13 (2026-07-10)
 

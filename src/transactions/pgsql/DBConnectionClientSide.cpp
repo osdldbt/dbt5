@@ -381,6 +381,11 @@ CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 		}
 		res = exec(osSQL.str().c_str());
 
+		if (PQntuples(res) == 0) {
+			PQclear(res);
+			return;
+		}
+
 		char *ap_acl = PQgetvalue(res, 0, 0);
 
 		if (m_bVerbose) {
@@ -421,6 +426,11 @@ CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 		}
 		res = exec(osSQL.str().c_str());
 
+		if (PQntuples(res) == 0) {
+			PQclear(res);
+			return;
+		}
+
 		if (m_bVerbose) {
 			cout << "ad_line2 = " << PQgetvalue(res, 0, 0) << endl;
 			cout << "ad_id = " << PQgetvalue(res, 0, 1) << endl;
@@ -445,6 +455,11 @@ CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 			cout << osSQL.str() << endl;
 		}
 		res = exec(osSQL.str().c_str());
+
+		if (PQntuples(res) == 0) {
+			PQclear(res);
+			return;
+		}
 
 		if (m_bVerbose) {
 			cout << "co_sp_rate = " << PQgetvalue(res, 0, 0) << endl;
@@ -471,6 +486,11 @@ CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 			cout << osSQL.str() << endl;
 		}
 		res = exec(osSQL.str().c_str());
+
+		if (PQntuples(res) == 0) {
+			PQclear(res);
+			return;
+		}
 
 		char *c_email_2 = PQgetvalue(res, 0, 0);
 		int len = strlen(c_email_2);
@@ -505,6 +525,11 @@ CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 		}
 		res = exec(osSQL.str().c_str());
 
+		if (PQntuples(res) == 0) {
+			PQclear(res);
+			return;
+		}
+
 		char *cx_tx_id = PQgetvalue(res, 0, 0);
 
 		if (m_bVerbose) {
@@ -525,6 +550,8 @@ CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 				osSQL << "US3";
 			} else if (cx_tx_id[2] == '1') {
 				osSQL << "US2";
+			} else {
+				osSQL << "US2";
 			}
 		} else {
 			if (cx_tx_id[2] == '4') {
@@ -534,6 +561,8 @@ CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 			} else if (cx_tx_id[2] == '2') {
 				osSQL << "CN3";
 			} else if (cx_tx_id[2] == '1') {
+				osSQL << "CN2";
+			} else {
 				osSQL << "CN2";
 			}
 		}
@@ -564,18 +593,18 @@ CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 		osSQL.str("");
 		if (PQgetvalue(res, 0, 0)[0] == '0') {
 			osSQL << "UPDATE exchange" << endl
-				  << "SET ex_desc = ex_desc || ' LAST UPDATED ' || "
-					 "CURRENT_TIMESTAMP";
+				  << "SET ex_desc = ex_desc || ' LAST UPDATED ' ||" << endl
+				  << "              to_char(now(), 'YYYY-MM-DD HH24:MI:SS')";
 		} else {
 			osSQL << "UPDATE exchange" << endl
-				  << "SET ex_desc = substring(ex_desc || ' LAST UPDATED ' || "
-					 "now()"
-				  << endl
-				  << "                        FROM 1 FOR "
-					 "(char_length(ex_desc) -"
-				  << endl
-				  << "                                    "
-					 "char_length(now()::TEXT))) || CURRENT_TIMESTAMP";
+				  << "SET ex_desc = substring(ex_desc" << endl
+				  << "                  FROM 1" << endl
+				  << "                  FOR char_length(ex_desc) - "
+					 "char_length(" << endl
+				  << "                      to_char(now(), "
+					 "'YYYY-MM-DD HH24:MI:SS')))" << endl
+				  << "              || to_char(now(), "
+					 "'YYYY-MM-DD HH24:MI:SS')";
 		}
 
 		PQclear(res);
@@ -627,30 +656,39 @@ CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 		}
 		res = exec(osSQL.str().c_str());
 
-		char *tx_name = PQgetvalue(res, 0, 0);
+		if (PQntuples(res) == 0) {
+			cerr << __FILE__ << ":" << __LINE__
+				 << " WARNING: no taxrate row for tx_id " << pIn->tx_id
+				 << endl;
+			PQclear(res);
+			return;
+		}
+
+		char tx_name[cTX_NAME_len + 1];
 		char *p;
+
+		strncpy(tx_name, PQgetvalue(res, 0, 0), cTX_NAME_len);
+		tx_name[cTX_NAME_len] = '\0';
+		PQclear(res);
 
 		if (m_bVerbose) {
 			cout << "tx_name = " << tx_name << endl;
 		}
 
+		/* Flip the case if found; the update runs either way. */
 		if ((p = strstr(tx_name, " Tax ")) != NULL) {
 			p[1] = 't';
 		} else if ((p = strstr(tx_name, " tax ")) != NULL) {
 			p[1] = 'T';
-		} else {
-			cerr << "could not find 'tax' or 'Tax' in taxrate data maintenance"
-				 << endl;
-			return;
 		}
 
+		char *tx_name_esc = escape(tx_name);
 		osSQL.clear();
 		osSQL.str("");
 		osSQL << "UPDATE taxrate" << endl
-			  << "SET tx_name = '" << tx_name << "'" << endl
+			  << "SET tx_name = " << tx_name_esc << endl
 			  << "WHERE tx_id = '" << pIn->tx_id << "'";
-
-		PQclear(res);
+		PQfreemem(tx_name_esc);
 	} else if (strncmp(pIn->table_name, "WATCH_ITEM", max_table_name) == 0) {
 		osSQL << "SELECT count(*)" << endl
 			  << "FROM watch_item" << endl
@@ -662,12 +700,16 @@ CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 		}
 		res = exec(osSQL.str().c_str());
 
-		int cnt = (atoi(PQgetvalue(res, 0, 0)) + 1) / 2;
-		PQclear(res);
-
 		if (m_bVerbose) {
 			cout << "count(*) = " << PQgetvalue(res, 0, 0) << endl;
 		}
+
+		/* The spec's middle-row ordinal is 1-based; OFFSET is 0-based. */
+		int cnt = (atoi(PQgetvalue(res, 0, 0)) + 1) / 2 - 1;
+		if (cnt < 0) {
+			cnt = 0;
+		}
+		PQclear(res);
 
 		osSQL.clear();
 		osSQL.str("");
@@ -686,8 +728,14 @@ CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 		}
 		res = exec(osSQL.str().c_str());
 
+		if (PQntuples(res) == 0) {
+			PQclear(res);
+			return;
+		}
+
 		char old_symbol[cSYMBOL_len + 1];
 		strncpy(old_symbol, PQgetvalue(res, 0, 0), cSYMBOL_len);
+		old_symbol[cSYMBOL_len] = '\0';
 		PQclear(res);
 
 		if (m_bVerbose) {
@@ -713,6 +761,11 @@ CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 		}
 		res = exec(osSQL.str().c_str());
 
+		if (PQntuples(res) == 0) {
+			PQclear(res);
+			return;
+		}
+
 		if (m_bVerbose) {
 			cout << "s_symb = " << PQgetvalue(res, 0, 0) << endl;
 		}
@@ -720,13 +773,17 @@ CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 		osSQL.clear();
 		osSQL.str("");
 		osSQL << "UPDATE watch_item" << endl
-			  << "SET wi_s_symb = '" << old_symbol << "'" << endl
+			  << "SET wi_s_symb = '" << PQgetvalue(res, 0, 0) << "'" << endl
 			  << "FROM watch_list" << endl
 			  << "WHERE wl_c_id = " << pIn->c_id << endl
 			  << "  AND wi_wl_id = wl_id" << endl
-			  << "  AND wi_s_symb = '" << PQgetvalue(res, 0, 0) << "'";
+			  << "  AND wi_s_symb = '" << old_symbol << "'";
 
 		PQclear(res);
+	} else {
+		cerr << "unknown table for data maintenance: " << pIn->table_name
+			 << endl;
+		return;
 	}
 
 	if (m_bVerbose) {
