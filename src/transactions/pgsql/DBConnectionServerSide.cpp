@@ -178,6 +178,11 @@ CDBConnectionServerSide::execute(const TCustomerPositionFrame1Input *pIn,
 	PGresult *res = exec("SELECT * FROM CustomerPositionFrame1($1, $2)", 2,
 			NULL, paramValues, paramLengths, paramFormats, 0);
 
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
 	int i_cust_id = get_col_num(res, "cust_id");
 	int i_acct_id = get_col_num(res, "acct_id");
 	int i_acct_len = get_col_num(res, "acct_len");
@@ -212,14 +217,14 @@ CDBConnectionServerSide::execute(const TCustomerPositionFrame1Input *pIn,
 	vector<string> vAux;
 
 	TokenizeSmart(PQgetvalue(res, 0, i_acct_id), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) max_acct_len; ++i) {
 		pOut->acct_id[i] = atoll(vAux[i].c_str());
 	}
 	check_count(pOut->acct_len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_asset_total), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) max_acct_len; ++i) {
 		pOut->asset_total[i] = atof(vAux[i].c_str());
 	}
 	check_count(pOut->acct_len, vAux.size(), __FILE__, __LINE__);
@@ -277,7 +282,7 @@ CDBConnectionServerSide::execute(const TCustomerPositionFrame1Input *pIn,
 	strncpy(&pOut->c_tier, PQgetvalue(res, 0, i_c_tier), 1);
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cash_bal), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) max_acct_len; ++i) {
 		pOut->cash_bal[i] = atof(vAux[i].c_str());
 	}
 	check_count(pOut->acct_len, vAux.size(), __FILE__, __LINE__);
@@ -298,6 +303,11 @@ CDBConnectionServerSide::execute(const TCustomerPositionFrame2Input *pIn,
 	PGresult *res = exec("SELECT * FROM CustomerPositionFrame2($1)", 1, NULL,
 			paramValues, paramLengths, paramFormats, 0);
 
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
 	int i_hist_dts = get_col_num(res, "hist_dts");
 	int i_hist_len = get_col_num(res, "hist_len");
 	int i_qty = get_col_num(res, "qty");
@@ -310,7 +320,7 @@ CDBConnectionServerSide::execute(const TCustomerPositionFrame2Input *pIn,
 	vector<string> vAux;
 
 	TokenizeSmart(PQgetvalue(res, 0, i_hist_dts), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) max_hist_len; ++i) {
 		sscanf(vAux[i].c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->hist_dts[i].year, &pOut->hist_dts[i].month,
 				&pOut->hist_dts[i].day, &pOut->hist_dts[i].hour,
@@ -320,14 +330,14 @@ CDBConnectionServerSide::execute(const TCustomerPositionFrame2Input *pIn,
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_qty), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) max_hist_len; ++i) {
 		pOut->qty[i] = atoi(vAux[i].c_str());
 	}
 	check_count(pOut->hist_len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_symbol), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) max_hist_len; ++i) {
 		strncpy(pOut->symbol[i], vAux[i].c_str(), cSYMBOL_len);
 		pOut->symbol[i][cSYMBOL_len] = '\0';
 	}
@@ -335,14 +345,14 @@ CDBConnectionServerSide::execute(const TCustomerPositionFrame2Input *pIn,
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_id), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) max_hist_len; ++i) {
 		pOut->trade_id[i] = atoll(vAux[i].c_str());
 	}
 	check_count(pOut->hist_len, vAux.size(), __FILE__, __LINE__);
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_status), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) max_hist_len; ++i) {
 		strncpy(pOut->trade_status[i], vAux[i].c_str(), cST_NAME_len);
 		pOut->trade_status[i][cST_NAME_len] = '\0';
 	}
