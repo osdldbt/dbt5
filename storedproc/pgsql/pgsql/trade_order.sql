@@ -97,7 +97,7 @@ CREATE OR REPLACE FUNCTION TradeOrderFrame3 (
   , OUT buy_value BALANCE_T
   , OUT charge_amount VALUE_T
   , OUT comm_rate S_PRICE_T
-  , OUT acct_assets VALUE_T
+  , OUT acct_assets NUMERIC(15,2)
   , OUT market_price S_PRICE_T
   , OUT s_name VARCHAR(70)
   , OUT sell_value BALANCE_T
@@ -112,7 +112,7 @@ DECLARE
     -- variables
     co_id IDENT_T;
     exch_id CHAR(6);
-    tax_rates S_PRICE_T;
+    tax_rates NUMERIC;
     acct_bal BALANCE_T;
     hold_assets S_PRICE_T;
     -- Local frame variables used when estimating impact of this trade on
@@ -187,8 +187,8 @@ BEGIN
         requested_price = market_price;
     END IF;
     -- Initialize variables
-    buy_value = 0.0;
-    sell_value = 0.0;
+    buy_value = 0.00;
+    sell_value = 0.00;
     needed_qty = trade_qty;
     -- No prior holdings exist – if no rows returned.
     SELECT coalesce(holding_summary.hs_qty , 0)
@@ -317,7 +317,7 @@ BEGIN
     END IF;
     -- Estimate any capital gains tax that would be incurred as a result of this
     -- transaction.
-    tax_amount = 0.0;
+    tax_amount = 0.00;
     IF (sell_value > buy_value) AND ((tax_status = 1) OR (tax_status = 2)) THEN
         -- Customers may be subject to more than one tax at different rates.
         -- Therefore, get the sum of the tax rates that apply to the customer
@@ -348,7 +348,7 @@ BEGIN
     WHERE ch_c_tier = cust_tier
       AND ch_tt_id = trade_type_id;
     -- Compute assets on margin trades
-    acct_assets = 0.0;
+    acct_assets = 0.00;
     IF type_is_margin = 1 THEN
         SELECT ca_bal
         INTO acct_bal
