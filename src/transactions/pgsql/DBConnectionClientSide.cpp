@@ -4255,11 +4255,6 @@ CDBConnectionClientSide::execute(
 
 	res = exec(TSF1Q1, 1, NULL, paramValues, paramLengths, paramFormats, 0);
 
-	if (PQntuples(res) == 0) {
-		PQclear(res);
-		return;
-	}
-
 	pOut->num_found = PQntuples(res);
 	for (int i = 0; i < pOut->num_found; i++) {
 		pOut->trade_id[i] = atoll(PQgetvalue(res, i, 0));

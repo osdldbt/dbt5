@@ -47,6 +47,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: fix client side Market-Watch division by zero and missing row
   handling
 - pgsql: fix client side Broker-Volume loop bounds check
+- pgsql: always run the client side Trade-Status name query
 
 v0.10.13 (2026-07-10)
 
