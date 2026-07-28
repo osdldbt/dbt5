@@ -21,7 +21,7 @@ RUN apt-get update && \
 
 COPY . /usr/local/src/dbt5
 WORKDIR /usr/local/src/dbt5
-RUN cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr && \
+RUN cmake -S . -B /tmp/build -DCMAKE_INSTALL_PREFIX=/usr && \
     cmake --build /tmp/build && \
     cmake --install /tmp/build && \
     if [ -d egen/prj ]; then \
@@ -32,4 +32,8 @@ RUN cmake -H. -B/tmp/build -DCMAKE_INSTALL_PREFIX=/usr && \
     dbt5-build-egen --include-dir=src/include --patch-dir=patches \
         --source-dir=src /opt/egen && \
     make -C storedproc/pgsql/c USE_PGXS=1 install && \
-    rm -rf /tmp/build
+    apt-get purge -y build-essential cmake git \
+            postgresql-server-dev-${PG_MAJOR} && \
+    apt-get autoremove -y --purge && \
+    rm -rf /tmp/build /usr/local/src/dbt5
+WORKDIR /
