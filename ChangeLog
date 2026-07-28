@@ -42,6 +42,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: fix C Security-Detail double encoding news items
 - Free the query result before throwing on fatal errors in the PostgreSQL
   transaction code
+- Fix time zone dependent timestamp and leap day date conversions in
+  PostgreSQL client side code
 
 v0.10.13 (2026-07-10)
 

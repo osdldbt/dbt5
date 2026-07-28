@@ -22,6 +22,36 @@ CDBConnectionClientSide::CDBConnectionClientSide(const char *szHost,
 
 CDBConnectionClientSide::~CDBConnectionClientSide() {}
 
+/*
+ * PostgreSQL binary DATE values count days from 2000-01-01 and binary
+ * TIMESTAMP values count microseconds from 2000-01-01 00:00:00.  Convert
+ * Gregorian calendar values directly so the results do not depend on the
+ * process time zone the way mktime() does.
+ */
+static int64_t
+daysFromPgEpoch(int year, int month, int day)
+{
+	int64_t era;
+	int64_t yoe, doy, doe;
+
+	year -= month <= 2;
+	era = (year >= 0 ? year : year - 399) / 400;
+	yoe = year - era * 400;
+	doy = (153 * (month + (month > 2 ? -3 : 9)) + 2) / 5 + day - 1;
+	doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+	return era * 146097 + doe - 730425;
+}
+
+static uint64_t
+usecFromPgEpoch(const TIMESTAMP_STRUCT *ts)
+{
+	return (uint64_t) ((((daysFromPgEpoch(ts->year, ts->month, ts->day) * 24
+								 + ts->hour) * 60
+								+ ts->minute) * 60
+							   + ts->second)
+					   * (int64_t) 1000000);
+}
+
 void
 CDBConnectionClientSide::execute(
 		const TBrokerVolumeFrame1Input *pIn, TBrokerVolumeFrame1Output *pOut)
@@ -1227,14 +1257,8 @@ CDBConnectionClientSide::execute(const TSecurityDetailFrame1Input *pIn,
 	"LIMIT $3"
 
 	limit = htobe32((uint32_t) pIn->max_rows_to_return);
-	struct tm tm = { 0 };
-	tm.tm_year = pIn->start_day.year - 1900;
-	tm.tm_mon = pIn->start_day.month - 1;
-	tm.tm_mday = pIn->start_day.day;
-	mktime(&tm);
-	uint32_t start_day
-			= htobe32((uint32_t) ((tm.tm_year - 100) * 365
-								  + (tm.tm_year - 100) / 4 + tm.tm_yday));
+	uint32_t start_day = htobe32((uint32_t) daysFromPgEpoch(
+			pIn->start_day.year, pIn->start_day.month, pIn->start_day.day));
 
 	if (m_bVerbose) {
 		cout << SDF1Q4 << endl;
@@ -1619,27 +1643,10 @@ CDBConnectionClientSide::execute(
 
 	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
 
-	struct tm start_trade = { 0 };
-	start_trade.tm_year = pIn->start_trade_dts.year - 1900;
-	start_trade.tm_mon = pIn->start_trade_dts.month - 1;
-	start_trade.tm_mday = pIn->start_trade_dts.day;
-	start_trade.tm_hour = pIn->start_trade_dts.hour - 1;
-	start_trade.tm_min = pIn->start_trade_dts.minute;
-	start_trade.tm_sec = pIn->start_trade_dts.second;
 	uint64_t start_trade_dts
-			= htobe64(((uint64_t) mktime(&start_trade) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+			= htobe64(usecFromPgEpoch(&pIn->start_trade_dts));
 
-	struct tm end_trade = { 0 };
-	end_trade.tm_year = pIn->end_trade_dts.year - 1900;
-	end_trade.tm_mon = pIn->end_trade_dts.month - 1;
-	end_trade.tm_mday = pIn->end_trade_dts.day;
-	end_trade.tm_hour = pIn->end_trade_dts.hour - 1;
-	end_trade.tm_min = pIn->end_trade_dts.minute;
-	end_trade.tm_sec = pIn->end_trade_dts.second;
-	uint64_t end_trade_dts
-			= htobe64(((uint64_t) mktime(&end_trade) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+	uint64_t end_trade_dts = htobe64(usecFromPgEpoch(&pIn->end_trade_dts));
 
 	uint32_t max_trades = htobe32((uint32_t) pIn->max_trades);
 
@@ -1862,27 +1869,10 @@ CDBConnectionClientSide::execute(
 	"ORDER BY t_dts ASC\n"                                                    \
 	"LIMIT $4"
 
-	struct tm start_trade = { 0 };
-	start_trade.tm_year = pIn->start_trade_dts.year - 1900;
-	start_trade.tm_mon = pIn->start_trade_dts.month - 1;
-	start_trade.tm_mday = pIn->start_trade_dts.day;
-	start_trade.tm_hour = pIn->start_trade_dts.hour - 1;
-	start_trade.tm_min = pIn->start_trade_dts.minute;
-	start_trade.tm_sec = pIn->start_trade_dts.second;
 	uint64_t start_trade_dts
-			= htobe64(((uint64_t) mktime(&start_trade) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+			= htobe64(usecFromPgEpoch(&pIn->start_trade_dts));
 
-	struct tm end_trade = { 0 };
-	end_trade.tm_year = pIn->end_trade_dts.year - 1900;
-	end_trade.tm_mon = pIn->end_trade_dts.month - 1;
-	end_trade.tm_mday = pIn->end_trade_dts.day;
-	end_trade.tm_hour = pIn->end_trade_dts.hour - 1;
-	end_trade.tm_min = pIn->end_trade_dts.minute;
-	end_trade.tm_sec = pIn->end_trade_dts.second;
-	uint64_t end_trade_dts
-			= htobe64(((uint64_t) mktime(&end_trade) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+	uint64_t end_trade_dts = htobe64(usecFromPgEpoch(&pIn->end_trade_dts));
 
 	uint32_t max_trades = htobe32((uint32_t) pIn->max_trades);
 
@@ -2121,16 +2111,7 @@ CDBConnectionClientSide::execute(
 
 	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
 
-	struct tm trade = { 0 };
-	trade.tm_year = pIn->trade_dts.year - 1900;
-	trade.tm_mon = pIn->trade_dts.month - 1;
-	trade.tm_mday = pIn->trade_dts.day;
-	trade.tm_hour = pIn->trade_dts.hour - 1;
-	trade.tm_min = pIn->trade_dts.minute;
-	trade.tm_sec = pIn->trade_dts.second;
-	uint64_t trade_dts
-			= htobe64(((uint64_t) mktime(&trade) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+	uint64_t trade_dts = htobe64(usecFromPgEpoch(&pIn->trade_dts));
 
 	if (m_bVerbose) {
 		cout << TLF4Q1 << endl;
@@ -3998,16 +3979,7 @@ CDBConnectionClientSide::execute(const TTradeResultFrame5Input *pIn)
 	char comm_amount[14];
 	snprintf(comm_amount, 13, "%f", pIn->comm_amount);
 
-	struct tm trade_dts_tm = { 0 };
-	trade_dts_tm.tm_year = pIn->trade_dts.year - 1900;
-	trade_dts_tm.tm_mon = pIn->trade_dts.month - 1;
-	trade_dts_tm.tm_mday = pIn->trade_dts.day;
-	trade_dts_tm.tm_hour = pIn->trade_dts.hour - 1;
-	trade_dts_tm.tm_min = pIn->trade_dts.minute;
-	trade_dts_tm.tm_sec = pIn->trade_dts.second;
-	uint64_t trade_dts
-			= htobe64(((uint64_t) mktime(&trade_dts_tm) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+	uint64_t trade_dts = htobe64(usecFromPgEpoch(&pIn->trade_dts));
 
 	char trade_price[14];
 	snprintf(trade_price, 13, "%f", pIn->trade_price);
@@ -4093,14 +4065,8 @@ CDBConnectionClientSide::execute(
 	PGresult *res = NULL;
 
 	uint64_t trade_id = htobe64((uint64_t) pIn->trade_id);
-	struct tm tm = { 0 };
-	tm.tm_year = pIn->due_date.year - 1900;
-	tm.tm_mon = pIn->due_date.month - 1;
-	tm.tm_mday = pIn->due_date.day;
-	mktime(&tm);
-	uint32_t due_date
-			= htobe32((uint32_t) ((tm.tm_year - 100) * 365
-								  + (tm.tm_year - 100) / 4 + tm.tm_yday));
+	uint32_t due_date = htobe32((uint32_t) daysFromPgEpoch(
+			pIn->due_date.year, pIn->due_date.month, pIn->due_date.day));
 	char se_amount[14];
 	snprintf(se_amount, 13, "%f", pIn->se_amount);
 
@@ -4200,16 +4166,7 @@ CDBConnectionClientSide::execute(
 	"  , $4\n"                                                                \
 	")"
 
-	struct tm trade_dts_tm = { 0 };
-	trade_dts_tm.tm_year = pIn->trade_dts.year - 1900;
-	trade_dts_tm.tm_mon = pIn->trade_dts.month - 1;
-	trade_dts_tm.tm_mday = pIn->trade_dts.day;
-	trade_dts_tm.tm_hour = pIn->trade_dts.hour - 1;
-	trade_dts_tm.tm_min = pIn->trade_dts.minute;
-	trade_dts_tm.tm_sec = pIn->trade_dts.second;
-	uint64_t trade_dts
-			= htobe64(((uint64_t) mktime(&trade_dts_tm) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+	uint64_t trade_dts = htobe64(usecFromPgEpoch(&pIn->trade_dts));
 
 	if (m_bVerbose) {
 		cout << TRF6Q3 << endl;
@@ -4681,27 +4638,10 @@ CDBConnectionClientSide::execute(
 
 	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
 
-	struct tm start_trade = { 0 };
-	start_trade.tm_year = pIn->start_trade_dts.year - 1900;
-	start_trade.tm_mon = pIn->start_trade_dts.month - 1;
-	start_trade.tm_mday = pIn->start_trade_dts.day;
-	start_trade.tm_hour = pIn->start_trade_dts.hour - 1;
-	start_trade.tm_min = pIn->start_trade_dts.minute;
-	start_trade.tm_sec = pIn->start_trade_dts.second;
 	uint64_t start_trade_dts
-			= htobe64(((uint64_t) mktime(&start_trade) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+			= htobe64(usecFromPgEpoch(&pIn->start_trade_dts));
 
-	struct tm end_trade = { 0 };
-	end_trade.tm_year = pIn->end_trade_dts.year - 1900;
-	end_trade.tm_mon = pIn->end_trade_dts.month - 1;
-	end_trade.tm_mday = pIn->end_trade_dts.day;
-	end_trade.tm_hour = pIn->end_trade_dts.hour - 1;
-	end_trade.tm_min = pIn->end_trade_dts.minute;
-	end_trade.tm_sec = pIn->end_trade_dts.second;
-	uint64_t end_trade_dts
-			= htobe64(((uint64_t) mktime(&end_trade) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+	uint64_t end_trade_dts = htobe64(usecFromPgEpoch(&pIn->end_trade_dts));
 
 	uint32_t max_trades = htobe32((uint32_t) pIn->max_trades);
 
@@ -5036,27 +4976,10 @@ CDBConnectionClientSide::execute(
 	"ORDER BY t_dts ASC\n"                                                    \
 	"LIMIT $4"
 
-	struct tm start_trade = { 0 };
-	start_trade.tm_year = pIn->start_trade_dts.year - 1900;
-	start_trade.tm_mon = pIn->start_trade_dts.month - 1;
-	start_trade.tm_mday = pIn->start_trade_dts.day;
-	start_trade.tm_hour = pIn->start_trade_dts.hour - 1;
-	start_trade.tm_min = pIn->start_trade_dts.minute;
-	start_trade.tm_sec = pIn->start_trade_dts.second;
 	uint64_t start_trade_dts
-			= htobe64(((uint64_t) mktime(&start_trade) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+			= htobe64(usecFromPgEpoch(&pIn->start_trade_dts));
 
-	struct tm end_trade = { 0 };
-	end_trade.tm_year = pIn->end_trade_dts.year - 1900;
-	end_trade.tm_mon = pIn->end_trade_dts.month - 1;
-	end_trade.tm_mday = pIn->end_trade_dts.day;
-	end_trade.tm_hour = pIn->end_trade_dts.hour - 1;
-	end_trade.tm_min = pIn->end_trade_dts.minute;
-	end_trade.tm_sec = pIn->end_trade_dts.second;
-	uint64_t end_trade_dts
-			= htobe64(((uint64_t) mktime(&end_trade) - (uint64_t) 946684800)
-					  * (uint64_t) 1000000);
+	uint64_t end_trade_dts = htobe64(usecFromPgEpoch(&pIn->end_trade_dts));
 
 	uint32_t max_trades = htobe32((uint32_t) pIn->max_trades);
 
