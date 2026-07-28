@@ -147,6 +147,7 @@ CDBConnectionClientSide::execute(const TCustomerPositionFrame1Input *pIn,
 				CPF1Q1, 1, NULL, paramValues, paramLengths, paramFormats, 0);
 
 		if (PQntuples(res) == 0) {
+			PQclear(res);
 			return;
 		}
 
@@ -322,7 +323,8 @@ CDBConnectionClientSide::execute(const TCustomerPositionFrame2Input *pIn,
 	"WHERE t_id = id\n"                                                       \
 	"  AND th_t_id = t_id\n"                                                  \
 	"  AND st_id = th_st_id\n"                                                \
-	"ORDER BY th_dts DESC"
+	"ORDER BY th_dts DESC\n"                                                  \
+	"LIMIT 30"
 
 	if (m_bVerbose) {
 		cout << CPF2Q1 << endl;
