@@ -265,12 +265,12 @@ dmWorkerThread(void *data)
 	PCustomerThreadParam pThrParam
 			= reinterpret_cast<PCustomerThreadParam>(data);
 
-	// The Data-Maintenance transaction must run once per minute.
-	// FIXME: What do we do if the transaction takes more than a minute
-	// to run?
+	// The Data-Maintenance transaction must run once per minute.  If a
+	// transaction takes more than a minute, remaining goes negative and
+	// the next transaction starts immediately.
 	time_t start_time;
 	time_t end_time;
-	unsigned int remaining;
+	time_t remaining;
 	try {
 		do {
 			start_time = time(NULL);

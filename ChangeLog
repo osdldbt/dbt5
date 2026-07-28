@@ -132,6 +132,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Catch errors in the driver user and Data-Maintenance threads and in
   the driver and market exchange mains instead of aborting the whole
   process
+- Fix the Data-Maintenance pacing sleep hanging the driver when a
+  transaction takes more than a minute
 
 v0.10.13 (2026-07-10)
 
