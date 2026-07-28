@@ -46,6 +46,7 @@ vX.Y.Z (YYYY-MM-DD)
   PostgreSQL client side code
 - pgsql: fix client side Market-Watch division by zero and missing row
   handling
+- pgsql: fix client side Broker-Volume loop bounds check
 
 v0.10.13 (2026-07-10)
 

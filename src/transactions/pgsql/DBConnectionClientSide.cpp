@@ -59,7 +59,7 @@ CDBConnectionClientSide::execute(
 	ostringstream osBrokers;
 	int i = 0;
 	osBrokers << "{" << pIn->broker_list[i];
-	for (i = 1; pIn->broker_list[i][0] != '\0' && i < max_broker_list_len;
+	for (i = 1; i < max_broker_list_len && pIn->broker_list[i][0] != '\0';
 			i++) {
 		osBrokers << ", " << pIn->broker_list[i];
 	}
