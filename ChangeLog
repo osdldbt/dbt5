@@ -119,6 +119,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Stop logging a spurious success mix entry when a transaction's
   request or reply fails on the socket, and stop waiting for a reply
   after the request could not be sent
+- BrokerageHouse: fix a double free of the worker thread parameters
+  when accepting a connection fails
 
 v0.10.13 (2026-07-10)
 

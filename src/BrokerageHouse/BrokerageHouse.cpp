@@ -1010,8 +1010,10 @@ CBrokerageHouse::startListener(void)
 			strncpy(pThrParam->m_szMEEPort, m_szMEEPort, iMaxPort);
 			pThrParam->m_szMEEPort[iMaxPort] = '\0';
 
-			// call entry point
+			// call entry point; it takes ownership of pThrParam on
+			// both its success and failure paths
 			entryWorkerThread(reinterpret_cast<void *>(pThrParam));
+			pThrParam = NULL;
 		} catch (CSocketErr *pErr) {
 			ostringstream osErr;
 			osErr << "Problem accepting socket connection" << endl
@@ -1020,6 +1022,7 @@ CBrokerageHouse::startListener(void)
 			logErrorMessage(osErr.str());
 			delete pErr;
 			delete pThrParam;
+			pThrParam = NULL;
 		}
 	}
 }
