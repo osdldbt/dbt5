@@ -52,7 +52,7 @@ public:
 	void begin();
 	void commit();
 	void connect();
-	char *escape(string);
+	string escape(string);
 	void disconnect();
 
 	PGresult *exec(const char *);

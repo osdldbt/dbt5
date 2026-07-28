@@ -139,6 +139,10 @@ vX.Y.Z (YYYY-MM-DD)
 - Correct the driver and market exchange help text, which described
   -c and -t reversed, and the workday validation message citing the
   wrong option
+- pgsql: fix a buffer overflow building the connection string from
+  maximum length host, database name, and port arguments
+- pgsql: fix escape() leaking the escaped string on every call and
+  crashing when escaping fails on a dead connection
 
 v0.10.13 (2026-07-10)
 

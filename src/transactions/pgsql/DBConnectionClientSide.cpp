@@ -653,13 +653,12 @@ CDBConnectionClientSide::execute(const TDataMaintenanceFrame1Input *pIn)
 			p[1] = 'T';
 		}
 
-		char *tx_name_esc = escape(tx_name);
+		string tx_name_esc = escape(tx_name);
 		osSQL.clear();
 		osSQL.str("");
 		osSQL << "UPDATE taxrate" << endl
 			  << "SET tx_name = " << tx_name_esc << endl
 			  << "WHERE tx_id = '" << pIn->tx_id << "'";
-		PQfreemem(tx_name_esc);
 	} else if (strncmp(pIn->table_name, "WATCH_ITEM", max_table_name) == 0) {
 		osSQL << "SELECT count(*)" << endl
 			  << "FROM watch_item" << endl
