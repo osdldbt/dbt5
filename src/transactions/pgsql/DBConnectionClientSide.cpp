@@ -1637,6 +1637,7 @@ CDBConnectionClientSide::execute(
 					 << "] = " << pOut->trade_info[i].cash_transaction_name
 					 << endl;
 			}
+		}
 
 #define TLF1Q4                                                                \
 	"SELECT th_dts\n"                                                         \
@@ -1646,49 +1647,48 @@ CDBConnectionClientSide::execute(
 	"ORDER BY th_dts\n"                                                       \
 	"LIMIT 3"
 
-			if (m_bVerbose) {
-				cout << TLF1Q4 << endl;
-				cout << "$1 = " << be64toh(trade_id) << endl;
-			}
+		if (m_bVerbose) {
+			cout << TLF1Q4 << endl;
+			cout << "$1 = " << be64toh(trade_id) << endl;
+		}
 
-			res = exec(TLF1Q4, 1, NULL, paramValues, paramLengths,
-					paramFormats, 0);
+		res = exec(TLF1Q4, 1, NULL, paramValues, paramLengths,
+				paramFormats, 0);
 
-			int count = PQntuples(res);
+		int count = PQntuples(res);
+		for (int k = 0; k < count; k++) {
+			sscanf(PQgetvalue(res, k, 0), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+					&pOut->trade_info[i].trade_history_dts[k].year,
+					&pOut->trade_info[i].trade_history_dts[k].month,
+					&pOut->trade_info[i].trade_history_dts[k].day,
+					&pOut->trade_info[i].trade_history_dts[k].hour,
+					&pOut->trade_info[i].trade_history_dts[k].minute,
+					&pOut->trade_info[i].trade_history_dts[k].second,
+					&pOut->trade_info[i].trade_history_dts[k].fraction);
+			strncpy(pOut->trade_info[i].trade_history_status_id[k],
+					PQgetvalue(res, k, 1), cTH_ST_ID_len);
+		}
+		PQclear(res);
+
+		if (m_bVerbose) {
 			for (int k = 0; k < count; k++) {
-				sscanf(PQgetvalue(res, k, 0), "%hd-%hd-%hd %hd:%hd:%hd.%d",
-						&pOut->trade_info[i].trade_history_dts[k].year,
-						&pOut->trade_info[i].trade_history_dts[k].month,
-						&pOut->trade_info[i].trade_history_dts[k].day,
-						&pOut->trade_info[i].trade_history_dts[k].hour,
-						&pOut->trade_info[i].trade_history_dts[k].minute,
-						&pOut->trade_info[i].trade_history_dts[k].second,
-						&pOut->trade_info[i].trade_history_dts[k].fraction);
-				strncpy(pOut->trade_info[i].trade_history_status_id[k],
-						PQgetvalue(res, k, 1), cTH_ST_ID_len);
-			}
-			PQclear(res);
-
-			if (m_bVerbose) {
-				for (int k = 0; k < count; k++) {
-					cout << "trade_history_dts[" << k << "] = "
-						 << pOut->trade_info[i].trade_history_dts[k].year
-						 << "-"
-						 << pOut->trade_info[i].trade_history_dts[k].month
-						 << "-" << pOut->trade_info[i].trade_history_dts[k].day
-						 << " "
-						 << pOut->trade_info[i].trade_history_dts[k].hour
-						 << ":"
-						 << pOut->trade_info[i].trade_history_dts[k].minute
-						 << ":"
-						 << pOut->trade_info[i].trade_history_dts[k].second
-						 << "."
-						 << pOut->trade_info[i].trade_history_dts[k].fraction
-						 << endl;
-					cout << "trade_history_status_id[" << k << "] = "
-						 << pOut->trade_info[i].trade_history_status_id[k]
-						 << endl;
-				}
+				cout << "trade_history_dts[" << k << "] = "
+					 << pOut->trade_info[i].trade_history_dts[k].year
+					 << "-"
+					 << pOut->trade_info[i].trade_history_dts[k].month
+					 << "-" << pOut->trade_info[i].trade_history_dts[k].day
+					 << " "
+					 << pOut->trade_info[i].trade_history_dts[k].hour
+					 << ":"
+					 << pOut->trade_info[i].trade_history_dts[k].minute
+					 << ":"
+					 << pOut->trade_info[i].trade_history_dts[k].second
+					 << "."
+					 << pOut->trade_info[i].trade_history_dts[k].fraction
+					 << endl;
+				cout << "trade_history_status_id[" << k << "] = "
+					 << pOut->trade_info[i].trade_history_status_id[k]
+					 << endl;
 			}
 		}
 	}
@@ -1832,24 +1832,26 @@ CDBConnectionClientSide::execute(
 			cout << "$1 = " << be64toh(trade_id) << endl;
 		}
 
-		res2 = exec(TLF2Q3, 1, NULL, paramValues2, paramLengths2,
-				paramFormats2, 0);
+		if (pOut->trade_info[i].is_cash) {
+			res2 = exec(TLF2Q3, 1, NULL, paramValues2, paramLengths2,
+					paramFormats2, 0);
 
-		if (PQntuples(res) > 0) {
-			pOut->trade_info[i].cash_transaction_amount
-					= atof(PQgetvalue(res, 0, 0));
-			sscanf(PQgetvalue(res, 0, 1), "%hd-%hd-%hd %hd:%hd:%hd.%d",
-					&pOut->trade_info[i].cash_transaction_dts.year,
-					&pOut->trade_info[i].cash_transaction_dts.month,
-					&pOut->trade_info[i].cash_transaction_dts.day,
-					&pOut->trade_info[i].cash_transaction_dts.hour,
-					&pOut->trade_info[i].cash_transaction_dts.minute,
-					&pOut->trade_info[i].cash_transaction_dts.second,
-					&pOut->trade_info[i].cash_transaction_dts.fraction);
-			strncpy(pOut->trade_info[i].cash_transaction_name,
-					PQgetvalue(res, 0, 2), cCT_NAME_len);
+			if (PQntuples(res2) > 0) {
+				pOut->trade_info[i].cash_transaction_amount
+						= atof(PQgetvalue(res2, 0, 0));
+				sscanf(PQgetvalue(res2, 0, 1), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+						&pOut->trade_info[i].cash_transaction_dts.year,
+						&pOut->trade_info[i].cash_transaction_dts.month,
+						&pOut->trade_info[i].cash_transaction_dts.day,
+						&pOut->trade_info[i].cash_transaction_dts.hour,
+						&pOut->trade_info[i].cash_transaction_dts.minute,
+						&pOut->trade_info[i].cash_transaction_dts.second,
+						&pOut->trade_info[i].cash_transaction_dts.fraction);
+				strncpy(pOut->trade_info[i].cash_transaction_name,
+						PQgetvalue(res2, 0, 2), cCT_NAME_len);
+			}
+			PQclear(res2);
 		}
-		PQclear(res2);
 
 		if (m_bVerbose) {
 			cout << "cash_transaction_amount[" << i
@@ -1884,9 +1886,9 @@ CDBConnectionClientSide::execute(
 		res2 = exec(TLF2Q4, 1, NULL, paramValues2, paramLengths2,
 				paramFormats2, 0);
 
-		int count = PQntuples(res);
+		int count = PQntuples(res2);
 		for (int j = 0; j < count; j++) {
-			sscanf(PQgetvalue(res, j, 0), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+			sscanf(PQgetvalue(res2, j, 0), "%hd-%hd-%hd %hd:%hd:%hd.%d",
 					&pOut->trade_info[i].trade_history_dts[j].year,
 					&pOut->trade_info[i].trade_history_dts[j].month,
 					&pOut->trade_info[i].trade_history_dts[j].day,
@@ -1895,7 +1897,7 @@ CDBConnectionClientSide::execute(
 					&pOut->trade_info[i].trade_history_dts[j].second,
 					&pOut->trade_info[i].trade_history_dts[j].fraction);
 			strncpy(pOut->trade_info[i].trade_history_status_id[j],
-					PQgetvalue(res, j, 1), cTH_ST_ID_len);
+					PQgetvalue(res2, j, 1), cTH_ST_ID_len);
 		}
 		PQclear(res2);
 
@@ -1983,7 +1985,7 @@ CDBConnectionClientSide::execute(
 		strncpy(pOut->trade_info[i].exec_name, PQgetvalue(res, i, 1),
 				cEXEC_NAME_len);
 		pOut->trade_info[i].is_cash
-				= PQgetvalue(res, 0, 2)[0] == 't' ? true : false;
+				= PQgetvalue(res, i, 2)[0] == 't' ? true : false;
 		pOut->trade_info[i].price = atof(PQgetvalue(res, i, 3));
 		pOut->trade_info[i].quantity = atoi(PQgetvalue(res, i, 4));
 		sscanf(PQgetvalue(res, i, 5), "%hd-%hd-%hd %hd:%hd:%hd.%d",
@@ -2080,24 +2082,26 @@ CDBConnectionClientSide::execute(
 			cout << "$1 = " << be64toh(trade_id) << endl;
 		}
 
-		res2 = exec(TLF3Q3, 1, NULL, paramValues2, paramLengths2,
-				paramFormats2, 0);
+		if (pOut->trade_info[i].is_cash) {
+			res2 = exec(TLF3Q3, 1, NULL, paramValues2, paramLengths2,
+					paramFormats2, 0);
 
-		if (PQntuples(res2) > 0) {
-			pOut->trade_info[i].cash_transaction_amount
-					= atof(PQgetvalue(res2, 0, 0));
-			sscanf(PQgetvalue(res2, 0, 1), "%hd-%hd-%hd %hd:%hd:%hd.%d",
-					&pOut->trade_info[i].cash_transaction_dts.year,
-					&pOut->trade_info[i].cash_transaction_dts.month,
-					&pOut->trade_info[i].cash_transaction_dts.day,
-					&pOut->trade_info[i].cash_transaction_dts.hour,
-					&pOut->trade_info[i].cash_transaction_dts.minute,
-					&pOut->trade_info[i].cash_transaction_dts.second,
-					&pOut->trade_info[i].cash_transaction_dts.fraction);
-			strncpy(pOut->trade_info[i].cash_transaction_name,
-					PQgetvalue(res2, 0, 2), cCT_NAME_len);
+			if (PQntuples(res2) > 0) {
+				pOut->trade_info[i].cash_transaction_amount
+						= atof(PQgetvalue(res2, 0, 0));
+				sscanf(PQgetvalue(res2, 0, 1), "%hd-%hd-%hd %hd:%hd:%hd.%d",
+						&pOut->trade_info[i].cash_transaction_dts.year,
+						&pOut->trade_info[i].cash_transaction_dts.month,
+						&pOut->trade_info[i].cash_transaction_dts.day,
+						&pOut->trade_info[i].cash_transaction_dts.hour,
+						&pOut->trade_info[i].cash_transaction_dts.minute,
+						&pOut->trade_info[i].cash_transaction_dts.second,
+						&pOut->trade_info[i].cash_transaction_dts.fraction);
+				strncpy(pOut->trade_info[i].cash_transaction_name,
+						PQgetvalue(res2, 0, 2), cCT_NAME_len);
+			}
+			PQclear(res2);
 		}
-		PQclear(res2);
 
 		if (m_bVerbose) {
 			cout << "cash_transaction_amount[" << i
@@ -2221,7 +2225,8 @@ CDBConnectionClientSide::execute(
 	"                       SELECT hh_h_t_id\n"                               \
 	"                       FROM holding_history\n"                           \
 	"                       WHERE hh_t_id = $1\n"                             \
-	"                   )"
+	"                   )\n"                                                  \
+	"LIMIT 20"
 
 	if (m_bVerbose) {
 		cout << TLF4Q2 << endl;
