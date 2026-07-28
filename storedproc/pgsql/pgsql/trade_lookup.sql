@@ -114,11 +114,16 @@ BEGIN
                , tmp_cash_transaction_name
             FROM cash_transaction
             WHERE ct_t_id = trade_id[i];
-        END IF;
-        IF irow_count > 0 THEN
-            cash_transaction_amount[i] := tmp_cash_transaction_amount;
-            cash_transaction_dts[i] := tmp_cash_transaction_dts;
-            cash_transaction_name[i] := tmp_cash_transaction_name;
+            GET DIAGNOSTICS irow_count = ROW_COUNT;
+            IF irow_count > 0 THEN
+                cash_transaction_amount[i] := tmp_cash_transaction_amount;
+                cash_transaction_dts[i] := tmp_cash_transaction_dts;
+                cash_transaction_name[i] := tmp_cash_transaction_name;
+            END IF;
+        ELSE
+            cash_transaction_amount[i] := 0;
+            cash_transaction_dts[i] := NULL;
+            cash_transaction_name[i] := '';
         END IF;
         -- read trade_history for the trades
         -- Should return 2 to 3 rows per trade
@@ -127,9 +132,9 @@ BEGIN
         trade_history_dts[k + j] = NULL;
         trade_history_dts[k + j + 1] = NULL;
         trade_history_dts[k + j + 2] = NULL;
-        trade_history_status_id[k + j] = NULL;
-        trade_history_status_id[k + j + 1] = NULL;
-        trade_history_status_id[k + j + 1] = NULL;
+        trade_history_status_id[k + j] = '';
+        trade_history_status_id[k + j + 1] = '';
+        trade_history_status_id[k + j + 2] = '';
         FOR rs IN
             SELECT th_dts
                  , th_st_id
@@ -159,7 +164,7 @@ CREATE OR REPLACE FUNCTION TradeLookupFrame2 (
   , OUT cash_transaction_dts TIMESTAMP[20]
   , OUT cash_transaction_name VARCHAR[20]
   , OUT exec_name VARCHAR[20]
-  , OUT is_cash BOOL[20]
+  , OUT is_cash SMALLINT[20]
   , OUT num_found INTEGER
   , OUT settlement_amount VALUE_T[20]
   , OUT settlement_cash_due_date TIMESTAMP[20]
@@ -238,12 +243,16 @@ BEGIN
                , tmp_cash_transaction_name
             FROM cash_transaction
             WHERE ct_t_id = rs.t_id;
-        END IF;
-        GET DIAGNOSTICS irow_count = ROW_COUNT;
-        IF irow_count > 0 THEN
-            cash_transaction_amount[i] := tmp_cash_transaction_amount;
-            cash_transaction_dts[i] := tmp_cash_transaction_dts;
-            cash_transaction_name[i] := tmp_cash_transaction_name;
+            GET DIAGNOSTICS irow_count = ROW_COUNT;
+            IF irow_count > 0 THEN
+                cash_transaction_amount[i] := tmp_cash_transaction_amount;
+                cash_transaction_dts[i] := tmp_cash_transaction_dts;
+                cash_transaction_name[i] := tmp_cash_transaction_name;
+            END IF;
+        ELSE
+            cash_transaction_amount[i] := 0;
+            cash_transaction_dts[i] := NULL;
+            cash_transaction_name[i] := '';
         END IF;
         -- read trade_history for the trades
         -- Should return 2 to 3 rows per trade
@@ -252,9 +261,9 @@ BEGIN
         trade_history_dts[k + j] = NULL;
         trade_history_dts[k + j + 1] = NULL;
         trade_history_dts[k + j + 2] = NULL;
-        trade_history_status_id[k + j] = NULL;
-        trade_history_status_id[k + j + 1] = NULL;
-        trade_history_status_id[k + j + 1] = NULL;
+        trade_history_status_id[k + j] = '';
+        trade_history_status_id[k + j + 1] = '';
+        trade_history_status_id[k + j + 2] = '';
         FOR aux IN
             SELECT th_dts
                  , th_st_id
@@ -374,11 +383,16 @@ BEGIN
                , tmp_cash_transaction_name
             FROM cash_transaction
             WHERE ct_t_id = rs.t_id;
-        END IF;
-        IF irow_count > 0 THEN
-            cash_transaction_amount[i] := tmp_cash_transaction_amount;
-            cash_transaction_dts[i] := tmp_cash_transaction_dts;
-            cash_transaction_name[i] := tmp_cash_transaction_name;
+            GET DIAGNOSTICS irow_count = ROW_COUNT;
+            IF irow_count > 0 THEN
+                cash_transaction_amount[i] := tmp_cash_transaction_amount;
+                cash_transaction_dts[i] := tmp_cash_transaction_dts;
+                cash_transaction_name[i] := tmp_cash_transaction_name;
+            END IF;
+        ELSE
+            cash_transaction_amount[i] := 0;
+            cash_transaction_dts[i] := NULL;
+            cash_transaction_name[i] := '';
         END IF;
         -- read trade_history for the trades
         -- Should return 2 to 3 rows per trade
@@ -387,9 +401,9 @@ BEGIN
         trade_history_dts[k + j] = NULL;
         trade_history_dts[k + j + 1] = NULL;
         trade_history_dts[k + j + 2] = NULL;
-        trade_history_status_id[k + j] = NULL;
-        trade_history_status_id[k + j + 1] = NULL;
-        trade_history_status_id[k + j + 1] = NULL;
+        trade_history_status_id[k + j] = '';
+        trade_history_status_id[k + j + 1] = '';
+        trade_history_status_id[k + j + 2] = '';
         FOR aux IN
             SELECT th_dts
                  , th_st_id

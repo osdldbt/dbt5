@@ -32,6 +32,8 @@ vX.Y.Z (YYYY-MM-DD)
   EXCHANGE, WATCH_ITEM, ADDRESS, and NEWS_ITEM branches
 - pgsql: fix the pl/pgsql Trade-Update inverted executor name toggle and
   stale cash transaction values
+- pgsql: fix the pl/pgsql Trade-Lookup is_cash type, stale cash transaction
+  values, and history padding
 
 v0.10.13 (2026-07-10)
 
