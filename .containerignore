@@ -4,6 +4,7 @@
 **/*.bc
 **/tags
 
+.claude
 .compose
 .containerignore
 .dockerignore
@@ -15,5 +16,11 @@ build
 cmake_install.cmake
 compose.yaml
 docker
+egen/bin/*
+!egen/bin/.keep
+egen/lib/*
+!egen/lib/.keep
+egen/obj/*
+!egen/obj/.keep
 install_manifest.txt
 results

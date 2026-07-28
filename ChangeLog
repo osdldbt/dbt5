@@ -1,3 +1,8 @@
+vX.Y.Z (YYYY-MM-DD)
+
+- Unify .containerignore and .dockerignore so docker and podman builds
+  exclude the same files from the container image
+
 v0.10.14 (2026-08-11)
 
 - Mark non-release builds in the version string with the commit they came
