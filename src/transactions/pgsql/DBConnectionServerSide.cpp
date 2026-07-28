@@ -382,14 +382,8 @@ CDBConnectionServerSide::execute(
 	uint64_t acct_id = htobe64((uint64_t) pIn->acct_id);
 	uint64_t c_id = htobe64((uint64_t) pIn->c_id);
 	uint64_t ending_co_id = htobe64((uint64_t) pIn->ending_co_id);
-	struct tm tm = { 0 };
-	tm.tm_year = pIn->start_day.year - 1900;
-	tm.tm_mon = pIn->start_day.month - 1;
-	tm.tm_mday = pIn->start_day.day;
-	mktime(&tm);
-	uint32_t start_day
-			= htobe32((uint32_t) ((tm.tm_year - 100) * 365
-								  + (tm.tm_year - 100) / 4 + tm.tm_yday));
+	uint32_t start_day = htobe32((uint32_t) daysFromPgEpoch(
+			pIn->start_day.year, pIn->start_day.month, pIn->start_day.day));
 	uint64_t starting_co_id = htobe64((uint64_t) pIn->starting_co_id);
 
 	const Oid paramTypes[6]
