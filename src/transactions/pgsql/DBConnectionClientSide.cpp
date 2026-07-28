@@ -1305,6 +1305,9 @@ CDBConnectionClientSide::execute(const TSecurityDetailFrame1Input *pIn,
 			paramFormats3, 0);
 
 	pOut->day_len = PQntuples(res);
+	if (pOut->day_len > max_day_len) {
+		pOut->day_len = max_day_len;
+	}
 	for (int i = 0; i < pOut->day_len; i++) {
 		sscanf(PQgetvalue(res, i, 0), "%hd-%hd-%hd", &pOut->day[i].date.year,
 				&pOut->day[i].date.month, &pOut->day[i].date.day);
@@ -1466,7 +1469,9 @@ CDBConnectionClientSide::execute(
 
 	pOut->num_found = 0;
 
-	for (int i = 0; i < pIn->max_trades; i++) {
+	// max_trades comes off the wire; keep it within trade_info[].
+	for (int i = 0; i < pIn->max_trades && i < TradeLookupFrame1MaxRows;
+			i++) {
 #define TLF1Q1                                                                \
 	"SELECT t_bid_price\n"                                                    \
 	"     , t_exec_name\n"                                                    \
@@ -1723,6 +1728,9 @@ CDBConnectionClientSide::execute(
 	PGresultHolder resHolder(res);
 
 	pOut->num_found = PQntuples(res);
+	if (pOut->num_found > TradeLookupFrame2MaxRows) {
+		pOut->num_found = TradeLookupFrame2MaxRows;
+	}
 	for (int i = 0; i < pOut->num_found; i++) {
 		PGresult *res2 = NULL;
 
@@ -1950,6 +1958,9 @@ CDBConnectionClientSide::execute(
 	PGresultHolder resHolder(res);
 
 	pOut->num_found = PQntuples(res);
+	if (pOut->num_found > TradeLookupFrame3MaxRows) {
+		pOut->num_found = TradeLookupFrame3MaxRows;
+	}
 	for (int i = 0; i < pOut->num_found; i++) {
 		PGresult *res2 = NULL;
 
@@ -4425,7 +4436,9 @@ CDBConnectionClientSide::execute(
 	const int paramLengths[1] = { sizeof(uint64_t) };
 	const int paramFormats[1] = { 1 };
 
-	for (int i = 0; i < pIn->max_trades; i++) {
+	// max_trades comes off the wire; keep it within trade_info[].
+	for (int i = 0; i < pIn->max_trades && i < TradeUpdateFrame1MaxRows;
+			i++) {
 		trade_id = htobe64((uint64_t) pIn->trade_id[i]);
 
 		if (pOut->num_updated < pIn->max_updates) {
@@ -4749,6 +4762,9 @@ CDBConnectionClientSide::execute(
 	PGresult *res2 = NULL;
 	pOut->num_updated = 0;
 	pOut->num_found = PQntuples(res);
+	if (pOut->num_found > TradeUpdateFrame2MaxRows) {
+		pOut->num_found = TradeUpdateFrame2MaxRows;
+	}
 	for (int i = 0; i < pOut->num_found; i++) {
 		pOut->trade_info[i].bid_price = atof(PQgetvalue(res, i, 0));
 		strncpy(pOut->trade_info[i].exec_name, PQgetvalue(res, i, 1),
@@ -5091,6 +5107,9 @@ CDBConnectionClientSide::execute(
 	PGresult *res2 = NULL;
 	pOut->num_updated = 0;
 	pOut->num_found = PQntuples(res);
+	if (pOut->num_found > TradeUpdateFrame3MaxRows) {
+		pOut->num_found = TradeUpdateFrame3MaxRows;
+	}
 	for (int i = 0; i < pOut->num_found; i++) {
 		pOut->trade_info[i].acct_id = atoll(PQgetvalue(res, i, 0));
 		strncpy(pOut->trade_info[i].exec_name, PQgetvalue(res, i, 1),

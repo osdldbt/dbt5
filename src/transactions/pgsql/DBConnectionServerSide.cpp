@@ -559,7 +559,7 @@ CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 	vector<string> vAux;
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cp_co_name), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) max_comp_len; ++i) {
 		strncpy(pOut->cp_co_name[i], vAux[i].c_str(), cCO_NAME_len);
 		pOut->cp_co_name[i][cCO_NAME_len] = '\0';
 	}
@@ -569,7 +569,7 @@ CDBConnectionServerSide::execute(const TSecurityDetailFrame1Input *pIn,
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_cp_in_name), vAux);
-	for (size_t i = 0; i < vAux.size(); ++i) {
+	for (size_t i = 0; i < vAux.size() && i < (size_t) max_comp_len; ++i) {
 		strncpy(pOut->cp_in_name[i], vAux[i].c_str(), cIN_NAME_len);
 		pOut->cp_in_name[i][cIN_NAME_len] = '\0';
 	}
@@ -864,7 +864,7 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_history_dts), vAux);
-	for (size_t i = 0, k = 0; i < vAux.size() && k < TradeLookupFrame1MaxRows;
+	for (size_t i = 0, k = 0; i + 2 < vAux.size() && k < TradeLookupFrame1MaxRows;
 			++i, ++k) {
 		sscanf(vAux[i].c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[k].trade_history_dts[0].year,
@@ -893,7 +893,7 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_history_status_id), vAux);
-	for (size_t i = 0, k = 0; i < vAux.size() && k < TradeLookupFrame1MaxRows;
+	for (size_t i = 0, k = 0; i + 2 < vAux.size() && k < TradeLookupFrame1MaxRows;
 			++i, ++k) {
 		strncpy(pOut->trade_info[k].trade_history_status_id[0],
 				vAux[i].c_str(), cTH_ST_ID_len);
@@ -1058,7 +1058,7 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_history_dts), vAux);
-	for (size_t i = 0, k = 0; i < vAux.size() && k < TradeLookupFrame2MaxRows;
+	for (size_t i = 0, k = 0; i + 2 < vAux.size() && k < TradeLookupFrame2MaxRows;
 			++i, ++k) {
 		sscanf(vAux[i].c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[k].trade_history_dts[0].year,
@@ -1087,7 +1087,7 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_history_status_id), vAux);
-	for (size_t i = 0, k = 0; i < vAux.size() && k < TradeLookupFrame2MaxRows;
+	for (size_t i = 0, k = 0; i + 2 < vAux.size() && k < TradeLookupFrame2MaxRows;
 			++i, ++k) {
 		strncpy(pOut->trade_info[k].trade_history_status_id[0],
 				vAux[i].c_str(), cTH_ST_ID_len);
@@ -1294,7 +1294,7 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_history_dts), vAux);
-	for (size_t i = 0, k = 0; i < vAux.size() && k < TradeLookupFrame3MaxRows;
+	for (size_t i = 0, k = 0; i + 2 < vAux.size() && k < TradeLookupFrame3MaxRows;
 			++i, ++k) {
 		sscanf(vAux[i].c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[k].trade_history_dts[0].year,
@@ -1323,7 +1323,7 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_history_status_id), vAux);
-	for (size_t i = 0, k = 0; i < vAux.size() && k < TradeLookupFrame3MaxRows;
+	for (size_t i = 0, k = 0; i + 2 < vAux.size() && k < TradeLookupFrame3MaxRows;
 			++i, ++k) {
 		strncpy(pOut->trade_info[k].trade_history_status_id[0],
 				vAux[i].c_str(), cTH_ST_ID_len);
@@ -2096,7 +2096,7 @@ CDBConnectionServerSide::execute(
 	pOut->num_updated = atoi(PQgetvalue(res, 0, i_num_updated));
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_history_dts), vAux);
-	for (size_t i = 0, k = 0; i < vAux.size() && k < TradeUpdateFrame1MaxRows;
+	for (size_t i = 0, k = 0; i + 2 < vAux.size() && k < TradeUpdateFrame1MaxRows;
 			++i, ++k) {
 		sscanf(vAux[i].c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[k].trade_history_dts[0].year,
@@ -2125,7 +2125,7 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_history_status_id), vAux);
-	for (size_t i = 0, k = 0; i < vAux.size() && k < TradeUpdateFrame1MaxRows;
+	for (size_t i = 0, k = 0; i + 2 < vAux.size() && k < TradeUpdateFrame1MaxRows;
 			++i, ++k) {
 		strncpy(pOut->trade_info[k].trade_history_status_id[0],
 				vAux[i].c_str(), cTH_ST_ID_len);
@@ -2292,7 +2292,7 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_history_dts), vAux);
-	for (size_t i = 0, k = 0; i < vAux.size() && k < TradeUpdateFrame2MaxRows;
+	for (size_t i = 0, k = 0; i + 2 < vAux.size() && k < TradeUpdateFrame2MaxRows;
 			++i, ++k) {
 		sscanf(vAux[i].c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[k].trade_history_dts[0].year,
@@ -2321,7 +2321,7 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_history_status_id), vAux);
-	for (size_t i = 0, k = 0; i < vAux.size() && k < TradeUpdateFrame2MaxRows;
+	for (size_t i = 0, k = 0; i + 2 < vAux.size() && k < TradeUpdateFrame2MaxRows;
 			++i, ++k) {
 		strncpy(pOut->trade_info[k].trade_history_status_id[0],
 				vAux[i].c_str(), cTH_ST_ID_len);
@@ -2540,7 +2540,7 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_history_dts), vAux);
-	for (size_t i = 0, k = 0; i < vAux.size() && k < TradeUpdateFrame3MaxRows;
+	for (size_t i = 0, k = 0; i + 2 < vAux.size() && k < TradeUpdateFrame3MaxRows;
 			++i, ++k) {
 		sscanf(vAux[i].c_str(), "%hd-%hd-%hd %hd:%hd:%hd",
 				&pOut->trade_info[k].trade_history_dts[0].year,
@@ -2569,7 +2569,7 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_trade_history_status_id), vAux);
-	for (size_t i = 0, k = 0; i < vAux.size() && k < TradeUpdateFrame3MaxRows;
+	for (size_t i = 0, k = 0; i + 2 < vAux.size() && k < TradeUpdateFrame3MaxRows;
 			++i, ++k) {
 		strncpy(pOut->trade_info[k].trade_history_status_id[0],
 				vAux[i].c_str(), cTH_ST_ID_len);
