@@ -30,7 +30,7 @@ CREATE OR REPLACE FUNCTION TradeUpdateFrame1 (
 AS $$
 DECLARE
     -- variables
-    exch_name CHAR(64);
+    exch_name VARCHAR(49);
     i INTEGER;
     j INTEGER;
     k INTEGER;
@@ -63,10 +63,10 @@ BEGIN
             GET DIAGNOSTICS irow_count = ROW_COUNT;
             num_found := num_found + irow_count;
             IF exch_name LIKE '% X %' THEN
-                SELECT replace(exch_name , ' ' , ' X ')
+                SELECT replace(exch_name , ' X ' , ' ')
                 INTO exch_name;
             ELSE
-                SELECT replace(exch_name , ' X ' , ' ')
+                SELECT replace(exch_name , ' ' , ' X ')
                 INTO exch_name;
             END IF;
             UPDATE trade
@@ -133,12 +133,18 @@ BEGIN
                , tmp_cash_transaction_name
             FROM cash_transaction
             WHERE ct_t_id = trade_id[i];
+            GET DIAGNOSTICS irow_count = ROW_COUNT;
+        ELSE
+            irow_count := 0;
         END IF;
-        GET DIAGNOSTICS irow_count = ROW_COUNT;
         IF irow_count > 0 THEN
             cash_transaction_amount[i] := tmp_cash_transaction_amount;
             cash_transaction_dts[i] := tmp_cash_transaction_dts;
             cash_transaction_name[i] := tmp_cash_transaction_name;
+        ELSE
+            cash_transaction_amount[i] := 0;
+            cash_transaction_dts[i] := NULL;
+            cash_transaction_name[i] := '';
         END IF;
         -- read trade_history for the trades
         -- Will return 2 to 3 rows per trade
@@ -175,7 +181,7 @@ CREATE OR REPLACE FUNCTION TradeUpdateFrame2 (
   , IN max_trades INTEGER
   , IN max_updates INTEGER
   , IN start_trade_dts TIMESTAMP
-  , OUT bid_price VALUE_T[20]
+  , OUT bid_price S_PRICE_T[20]
   , OUT cash_transaction_amount VALUE_T[20]
   , OUT cash_transaction_dts TIMESTAMP[20]
   , OUT cash_transaction_name VARCHAR[20]
@@ -189,7 +195,7 @@ CREATE OR REPLACE FUNCTION TradeUpdateFrame2 (
   , OUT trade_history_dts TIMESTAMP[20][3]
   , OUT trade_history_status_id VARCHAR(4)[20][3]
   , OUT trade_list IDENT_T[20]
-  , OUT trade_price VALUE_T[20]
+  , OUT trade_price S_PRICE_T[20]
 ) RETURNS RECORD
 AS $$
 DECLARE
@@ -287,12 +293,18 @@ BEGIN
                , tmp_cash_transaction_name
             FROM cash_transaction
             WHERE ct_t_id = rs.t_id;
+            GET DIAGNOSTICS irow_count = ROW_COUNT;
+        ELSE
+            irow_count := 0;
         END IF;
-        GET DIAGNOSTICS irow_count = ROW_COUNT;
         IF irow_count > 0 THEN
             cash_transaction_amount[i] := tmp_cash_transaction_amount;
             cash_transaction_dts[i] := tmp_cash_transaction_dts;
             cash_transaction_name[i] := tmp_cash_transaction_name;
+        ELSE
+            cash_transaction_amount[i] := 0;
+            cash_transaction_dts[i] := NULL;
+            cash_transaction_name[i] := '';
         END IF;
         -- read trade_history for the trades
         -- Should return 2 to 3 rows per trade
@@ -470,7 +482,15 @@ BEGIN
                 cash_transaction_amount[i] := tmp_cash_transaction_amount;
                 cash_transaction_dts[i] := tmp_cash_transaction_dts;
                 cash_transaction_name[i] := tmp_cash_transaction_name;
+            ELSE
+                cash_transaction_amount[i] := 0;
+                cash_transaction_dts[i] := NULL;
+                cash_transaction_name[i] := '';
             END IF;
+        ELSE
+            cash_transaction_amount[i] := 0;
+            cash_transaction_dts[i] := NULL;
+            cash_transaction_name[i] := '';
         END IF;
         -- read trade_history for the trades
         -- Should return 2 to 3 rows per trade
@@ -488,6 +508,7 @@ BEGIN
             FROM trade_history
             WHERE th_t_id = trade_list[i]
             ORDER BY th_dts ASC
+            LIMIT 3
         LOOP
             trade_history_dts[k + j] = aux.th_dts;
             trade_history_status_id[k + j] = aux.th_st_id;

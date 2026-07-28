@@ -30,6 +30,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: fix pl/pgsql Market-Watch ignoring start_date
 - pgsql: fix pl/pgsql Data-Maintenance TAXRATE overwriting tax names and the
   EXCHANGE, WATCH_ITEM, ADDRESS, and NEWS_ITEM branches
+- pgsql: fix the pl/pgsql Trade-Update inverted executor name toggle and
+  stale cash transaction values
 
 v0.10.13 (2026-07-10)
 
