@@ -1753,8 +1753,12 @@ TradeResultFrame6(PG_FUNCTION_ARGS)
 	elog(DEBUG1, "%s", SQLTRF6_4);
 	elog(DEBUG1, "$1 %ld", acct_id);
 #endif /* DEBUG */
+	/*
+	 * read_only must be false to see the balance updated earlier in
+	 * this call.
+	 */
 	args[0] = Int64GetDatum(acct_id);
-	ret = SPI_execute_plan(TRF6_4, args, nulls, true, 0);
+	ret = SPI_execute_plan(TRF6_4, args, nulls, false, 0);
 	if (ret == SPI_OK_SELECT && SPI_processed > 0) {
 		tupdesc = SPI_tuptable->tupdesc;
 		tuptable = SPI_tuptable;
