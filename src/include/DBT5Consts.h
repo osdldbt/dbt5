@@ -15,7 +15,7 @@ namespace TPCE
 {
 const int iMaxPort = 8;
 const int iMaxRetries = 10;
-const int iMaxConnectString = 128;
+const int iMaxConnectString = 256;
 
 const int iBrokerageHousePort = 30000;
 const int iMarketExchangePort = 30010;

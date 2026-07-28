@@ -20,21 +20,23 @@ CDBConnection::CDBConnection(const char *szHost, const char *szDBName,
 		const char *szDBPort, bool bVerbose)
 : m_bVerbose(bVerbose)
 {
+	size_t len = 0;
+
 	szConnectStr[0] = '\0';
 
 	// Just pad everything with spaces so we don't have to figure out if it's
 	// needed or not.
 	if (strlen(szHost) > 0) {
-		strcat(szConnectStr, " host=");
-		strcat(szConnectStr, szHost);
+		len += snprintf(szConnectStr + len, sizeof(szConnectStr) - len,
+				" host=%s", szHost);
 	}
-	if (strlen(szDBName) > 0) {
-		strcat(szConnectStr, " dbname=");
-		strcat(szConnectStr, szDBName);
+	if (strlen(szDBName) > 0 && len < sizeof(szConnectStr)) {
+		len += snprintf(szConnectStr + len, sizeof(szConnectStr) - len,
+				" dbname=%s", szDBName);
 	}
-	if (strlen(szDBPort) > 0) {
-		strcat(szConnectStr, " port=");
-		strcat(szConnectStr, szDBPort);
+	if (strlen(szDBPort) > 0 && len < sizeof(szConnectStr)) {
+		len += snprintf(szConnectStr + len, sizeof(szConnectStr) - len,
+				" port=%s", szDBPort);
 	}
 
 	pid_t pid = syscall(SYS_gettid);
@@ -103,13 +105,19 @@ usecFromPgEpoch(const TIMESTAMP_STRUCT *ts)
 					   * (int64_t) 1000000);
 }
 
-char *
+string
 CDBConnection::escape(string s)
 {
 	char *esc = PQescapeLiteral(m_Conn, s.c_str(), s.length());
-	if (esc == NULL)
-		cerr << "ERROR: could not escape '" << s << "'" << endl;
-	return esc;
+	if (esc == NULL) {
+		ostringstream msg;
+		msg << "ERROR: could not escape '" << s << "': "
+			<< PQerrorMessage(m_Conn);
+		throw msg.str();
+	}
+	string result(esc);
+	PQfreemem(esc);
+	return result;
 }
 
 void
