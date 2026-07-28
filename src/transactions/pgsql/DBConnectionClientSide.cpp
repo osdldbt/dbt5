@@ -1331,7 +1331,7 @@ CDBConnectionClientSide::execute(const TSecurityDetailFrame1Input *pIn,
 		cout << "last_vol = " << pOut->last_vol << endl;
 	}
 
-	limit = htobe32((uint32_t) max_fin_len);
+	limit = htobe32((uint32_t) max_news_len);
 
 	if (pIn->access_lob_flag == 1) {
 #define SDF1Q6A                                                               \
@@ -1381,7 +1381,24 @@ CDBConnectionClientSide::execute(const TSecurityDetailFrame1Input *pIn,
 
 	pOut->news_len = PQntuples(res);
 	for (int i = 0; i < pOut->news_len; i++) {
-		strncpy(pOut->news[i].item, PQgetvalue(res, i, 0), cNI_ITEM_len);
+		/*
+		 * ni_item is a bytea; the text result is its hex form, so
+		 * decode it back to the stored bytes.  TNews::Clear() does not
+		 * touch item, so terminate it explicitly.
+		 */
+		size_t item_len = 0;
+		unsigned char *item = PQunescapeBytea(
+				(const unsigned char *) PQgetvalue(res, i, 0), &item_len);
+		if (item != NULL) {
+			if (item_len > (size_t) cNI_ITEM_len) {
+				item_len = (size_t) cNI_ITEM_len;
+			}
+			memcpy(pOut->news[i].item, item, item_len);
+			pOut->news[i].item[item_len] = '\0';
+			PQfreemem(item);
+		} else {
+			pOut->news[i].item[0] = '\0';
+		}
 		sscanf(PQgetvalue(res, i, 1), "%hd-%hd-%hd %hd:%hd:%hd.%d",
 				&pOut->news[i].dts.year, &pOut->news[i].dts.month,
 				&pOut->news[i].dts.day, &pOut->news[i].dts.hour,

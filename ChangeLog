@@ -50,6 +50,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: always run the client side Trade-Status name query
 - pgsql: fix client side Customer-Position missing LIMIT 30 and a result
   leak
+- pgsql: fix client side Security-Detail news decoding and query limit
 
 v0.10.13 (2026-07-10)
 
