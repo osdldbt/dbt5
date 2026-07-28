@@ -399,13 +399,24 @@ CDBConnectionServerSide::execute(const TDataMaintenanceFrame1Input *pIn)
 		pIn->tx_id, (char *) &vol_incr };
 	const int paramLengths[8] = { sizeof(uint64_t), sizeof(uint64_t),
 		sizeof(uint64_t), sizeof(uint32_t), sizeof(char) * (cSYMBOL_len + 1),
-		sizeof(char) * (max_table_name + 1), sizeof(char) * (cTAX_ID_len + 1),
+		sizeof(char) * (max_table_name + 1), sizeof(char) * (cTX_ID_len + 1),
 		sizeof(uint32_t) };
 	const int paramFormats[8] = { 1, 1, 1, 1, 0, 0, 0, 1 };
 
 	PGresult *res = exec("SELECT * FROM DataMaintenanceFrame1($1, $2, $3, $4, "
 						 "$5, $6, $7, $8)",
 			8, NULL, paramValues, paramLengths, paramFormats, 0);
+
+	/*
+	 * The function returns 0 on success and 1 on failure; surface a
+	 * failure the same way a SQL error is surfaced instead of silently
+	 * committing it as a success.
+	 */
+	if (PQntuples(res) == 0 || atoi(PQgetvalue(res, 0, 0)) != 0) {
+		PQclear(res);
+		rollback();
+		throw string("DataMaintenanceFrame1 failed");
+	}
 	PQclear(res);
 }
 
