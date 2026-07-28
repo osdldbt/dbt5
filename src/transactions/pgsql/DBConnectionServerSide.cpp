@@ -127,18 +127,40 @@ CDBConnectionServerSide::execute(
 		const TBrokerVolumeFrame1Input *pIn, TBrokerVolumeFrame1Output *pOut)
 {
 	ostringstream osBrokers;
-	int i = 0;
-	osBrokers << pIn->broker_list[i];
-	for (i = 1; pIn->broker_list[i][0] != '\0' && i < max_broker_list_len;
-			i++) {
-		osBrokers << ", " << pIn->broker_list[i];
+	/*
+	 * Build an array literal with quoted, escaped elements so names
+	 * containing special characters cannot corrupt it.
+	 */
+	osBrokers << "{";
+	for (int i = 0;
+			i < max_broker_list_len && pIn->broker_list[i][0] != '\0'; i++) {
+		if (i > 0) {
+			osBrokers << ",";
+		}
+		osBrokers << "\"";
+		for (const char *p = pIn->broker_list[i]; *p != '\0'; p++) {
+			if (*p == '"' || *p == '\\') {
+				osBrokers << "\\";
+			}
+			osBrokers << *p;
+		}
+		osBrokers << "\"";
+	}
+	osBrokers << "}";
+
+	string brokers = osBrokers.str();
+	const char *paramValues[2] = { brokers.c_str(), pIn->sector_name };
+	const int paramLengths[2] = { 0, 0 };
+	const int paramFormats[2] = { 0, 0 };
+
+	PGresult *res = exec("SELECT * FROM BrokerVolumeFrame1($1, $2)", 2, NULL,
+			paramValues, paramLengths, paramFormats, 0);
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
 	}
 
-	ostringstream osSQL;
-	osSQL << "SELECT * FROM BrokerVolumeFrame1('{" << osBrokers.str() << "}','"
-		  << pIn->sector_name << "')";
-
-	PGresult *res = exec(osSQL.str().c_str());
 	int i_broker_name = get_col_num(res, "broker_name");
 	int i_list_len = get_col_num(res, "list_len");
 	int i_volume = get_col_num(res, "volume");
@@ -148,7 +170,8 @@ CDBConnectionServerSide::execute(
 	vector<string> vAux;
 
 	TokenizeSmart(PQgetvalue(res, 0, i_broker_name), vAux);
-	for (size_t j = 0; j < vAux.size(); ++j) {
+	for (size_t j = 0; j < vAux.size() && j < (size_t) max_broker_list_len;
+			++j) {
 		strncpy(pOut->broker_name[j], vAux[j].c_str(), cB_NAME_len);
 		pOut->broker_name[j][cB_NAME_len] = '\0';
 	}
@@ -156,7 +179,8 @@ CDBConnectionServerSide::execute(
 	vAux.clear();
 
 	TokenizeSmart(PQgetvalue(res, 0, i_volume), vAux);
-	for (size_t j = 0; j < vAux.size(); ++j) {
+	for (size_t j = 0; j < vAux.size() && j < (size_t) max_broker_list_len;
+			++j) {
 		pOut->volume[j] = atof(vAux[j].c_str());
 	}
 	check_count(pOut->list_len, vAux.size(), __FILE__, __LINE__);

@@ -71,6 +71,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: fix server side Security-Detail date encoding, empty result
   handling, and bigint volumes
 - pgsql: guard server side Customer-Position against empty results
+- pgsql: parameterize server side Broker-Volume inputs and guard empty
+  results
 
 v0.10.13 (2026-07-10)
 
