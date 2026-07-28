@@ -34,6 +34,7 @@ vX.Y.Z (YYYY-MM-DD)
   stale cash transaction values
 - pgsql: fix the pl/pgsql Trade-Lookup is_cash type, stale cash transaction
   values, and history padding
+- pgsql: fix pl/pgsql Security-Detail returning NULL co_name and ex_date
 
 v0.10.13 (2026-07-10)
 

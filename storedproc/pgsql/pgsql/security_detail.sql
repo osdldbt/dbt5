@@ -10,7 +10,7 @@ CREATE TYPE SECURITY_DETAIL_DAY AS (
   , CLOSE S_PRICE_T
   , high S_PRICE_T
   , low S_PRICE_T
-  , vol S_PRICE_T
+  , vol S_COUNT_T
 );
 
 CREATE TYPE SECURITY_DETAIL_FIN AS (
@@ -80,7 +80,7 @@ CREATE OR REPLACE FUNCTION SecurityDetailFrame1 (
   , OUT fin_len INTEGER
   , OUT last_open DOUBLE PRECISION
   , OUT last_price DOUBLE PRECISION
-  , OUT last_vol INTEGER
+  , OUT last_vol S_COUNT_T
   , OUT news SECURITY_DETAIL_NEWS[2]
   , OUT news_len INTEGER
   , OUT num_out BIGINT
@@ -95,8 +95,6 @@ AS $$
 << sdf1 >>
 DECLARE
     co_id IDENT_T;
-    co_name VARCHAR(60);
-    exch_date DATE;
     -- variables
     rs RECORD;
     i INTEGER;
@@ -155,7 +153,7 @@ BEGIN
        , co_ad_ctry
        , num_out
        , start_date
-       , exch_date
+       , ex_date
        , pe_ratio
        , x52_wk_high
        , x52_wk_high_date
