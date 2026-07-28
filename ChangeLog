@@ -81,6 +81,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: fix a server side Trade-Order result leak and string termination
 - pgsql: fix server side Trade-Result timestamp marshaling and empty
   result guards
+- pgsql: fix server side Trade-Update timestamp marshaling and empty
+  result guards
 
 v0.10.13 (2026-07-10)
 
