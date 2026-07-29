@@ -22,26 +22,24 @@ CDMSUT::~CDMSUT() {}
 bool
 CDMSUT::DataMaintenance(PDataMaintenanceTxnInput pTxnInput)
 {
-	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
-	memset(pRequest, 0, sizeof(TMsgDriverBrokerage));
+	memset(&request, 0, sizeof(struct TMsgDriverBrokerage));
 
-	pRequest->TxnType = DATA_MAINTENANCE;
-	memcpy(&(pRequest->TxnInput.DataMaintenanceTxnInput), pTxnInput,
+	request.TxnType = DATA_MAINTENANCE;
+	memcpy(&(request.TxnInput.DataMaintenanceTxnInput), pTxnInput,
 			sizeof(TDataMaintenanceTxnInput));
 
-	return talkToSUT(pRequest);
+	return talkToSUT(&request);
 }
 
 // Trade Cleanup
 bool
 CDMSUT::TradeCleanup(PTradeCleanupTxnInput pTxnInput)
 {
-	PMsgDriverBrokerage pRequest = new TMsgDriverBrokerage;
-	memset(pRequest, 0, sizeof(TMsgDriverBrokerage));
+	memset(&request, 0, sizeof(struct TMsgDriverBrokerage));
 
-	pRequest->TxnType = TRADE_CLEANUP;
-	memcpy(&(pRequest->TxnInput.TradeCleanupTxnInput), pTxnInput,
+	request.TxnType = TRADE_CLEANUP;
+	memcpy(&(request.TxnInput.TradeCleanupTxnInput), pTxnInput,
 			sizeof(TTradeCleanupTxnInput));
 
-	return talkToSUT(pRequest);
+	return talkToSUT(&request);
 }

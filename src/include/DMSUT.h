@@ -25,6 +25,9 @@ public:
 
 	bool DataMaintenance(PDataMaintenanceTxnInput);
 	bool TradeCleanup(PTradeCleanupTxnInput);
+
+private:
+	struct TMsgDriverBrokerage request;
 };
 
 #endif // DM_SUT_H
