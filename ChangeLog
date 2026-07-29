@@ -176,6 +176,9 @@ vX.Y.Z (YYYY-MM-DD)
   a column name mismatch, report connection failures as soon as the
   connection is created, and remove uninitialized server side
   duplicates of the base connection members
+- Print the listener port banner after parsing the command line so
+  -l runs show the right port, drop a misspelled dead declaration,
+  and make the shared PostgreSQL message strings const
 
 v0.10.13 (2026-07-10)
 

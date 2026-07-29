@@ -120,10 +120,11 @@ main(int argc, char *argv[])
 	strncpy(szFileLoc, "flat_in", iMaxPath);
 
 	cout << "dbt5 - Market Exchange Main" << endl;
-	cout << "Listener port: " << iListenPort << endl << endl;
 
 	// Parse command line
 	parse_command_line(argc, argv);
+
+	cout << "Listener port: " << iListenPort << endl << endl;
 
 	char *pidFilename = new char[1024];
 	snprintf(pidFilename, 1023, "%s/mee.pid", outputDirectory);

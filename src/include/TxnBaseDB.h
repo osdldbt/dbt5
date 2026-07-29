@@ -76,8 +76,6 @@ protected:
 	void execute(const TTradeUpdateFrame2Input *, TTradeUpdateFrame2Output *);
 	void execute(const TTradeUpdateFrame3Input *, TTradeUpdateFrame3Output *);
 
-	void reconect();
-
 	void rollbackTransaction();
 
 	void setReadCommitted();

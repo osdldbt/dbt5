@@ -122,10 +122,11 @@ main(int argc, char *argv[])
 	snprintf(szMEEPort, iMaxPort, "%d", iMarketExchangePort);
 
 	cout << "dbt5 - Brokerage House" << endl;
-	cout << "Listening on port: " << iListenPort << endl << endl;
 
 	// Parse command line
 	parse_command_line(argc, argv);
+
+	cout << "Listening on port: " << iListenPort << endl << endl;
 
 	char *pidFilename = new char[1024];
 	snprintf(pidFilename, 1023, "%s/bh.pid", outputDirectory);
