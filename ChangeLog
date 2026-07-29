@@ -158,6 +158,9 @@ vX.Y.Z (YYYY-MM-DD)
   threads exception safe, wait for them at shutdown instead of
   destroying the interface object under them, and stop leaking their
   parameters when thread creation fails
+- MarketExchange: fire pending MEE timers when they expire so
+  deferred Trade-Result and triggered Market-Feed transactions are
+  still sent when no new trade request arrives to piggyback on
 
 v0.10.13 (2026-07-10)
 

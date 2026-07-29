@@ -9,6 +9,58 @@
 
 #include "MarketExchange.h"
 
+// Fire expired MEE timers.  SubmitTradeRequest and GenerateTradeResult
+// return the number of milliseconds until the next pending timer, and
+// GenerateTradeResult must be called when that time elapses or pending
+// Trade-Result and triggered Market-Feed transactions are never sent.
+void *
+MarketTimerThread(void *data)
+{
+	CMarketExchange *pMarketExchange
+			= reinterpret_cast<CMarketExchange *>(data);
+
+	pMarketExchange->m_TimerCond.lock();
+	while (!pMarketExchange->m_TimerShutdown) {
+		if (pMarketExchange->m_NextTimerDelay < 0) {
+			// No outstanding timers; wait for a trade request to start
+			// one.
+			pMarketExchange->m_TimerCond.wait();
+			continue;
+		}
+
+		unsigned int generation = pMarketExchange->m_TimerGeneration;
+		pMarketExchange->m_TimerCond.timedwait(
+				(long) pMarketExchange->m_NextTimerDelay * 1000);
+		if (pMarketExchange->m_TimerShutdown) {
+			break;
+		}
+		if (generation != pMarketExchange->m_TimerGeneration) {
+			// A trade request rescheduled the next timer; reevaluate.
+			continue;
+		}
+
+		pMarketExchange->m_TimerCond.unlock();
+		INT32 next = pMarketExchange->m_pCMEE->GenerateTradeResult();
+		pMarketExchange->m_TimerCond.lock();
+		if (generation == pMarketExchange->m_TimerGeneration) {
+			pMarketExchange->m_NextTimerDelay = next;
+		}
+	}
+	pMarketExchange->m_TimerCond.unlock();
+
+	return NULL;
+}
+
+void
+CMarketExchange::updateNextTimer(INT32 delay)
+{
+	m_TimerCond.lock();
+	m_NextTimerDelay = delay;
+	++m_TimerGeneration;
+	m_TimerCond.signal();
+	m_TimerCond.unlock();
+}
+
 // worker thread
 void *
 MarketWorkerThread(void *data)
@@ -37,7 +89,9 @@ MarketWorkerThread(void *data)
 			}
 
 			// submit trade request
-			pThrParam->pMarketExchange->m_pCMEE->SubmitTradeRequest(pMessage);
+			pThrParam->pMarketExchange->updateNextTimer(
+					pThrParam->pMarketExchange->m_pCMEE->SubmitTradeRequest(
+							pMessage));
 		} catch (CSocketErr *pErr) {
 			sockDrv.dbt5Disconnect(); // close connection
 
@@ -106,7 +160,9 @@ CMarketExchange::CMarketExchange(const DataFileManager &inputFiles,
 		char *szFileLoc, UINT32 UniqueId, TIdent iConfiguredCustomerCount,
 		TIdent iActiveCustomerCount, int iListenPort, char *szBHaddr,
 		int iBHlistenPort, char *outputDirectory, bool verbose = false)
-: m_UniqueId(UniqueId), m_iListenPort(iListenPort), m_Verbose(verbose)
+: m_UniqueId(UniqueId), m_iListenPort(iListenPort), m_Verbose(verbose),
+  m_TimerCond(m_TimerLock), m_NextTimerDelay(-1), m_TimerGeneration(0),
+  m_TimerShutdown(false)
 {
 	char filename[iMaxPath + 1];
 	snprintf(filename, iMaxPath, "%s/MarketExchange.log", outputDirectory);
@@ -118,11 +174,25 @@ CMarketExchange::CMarketExchange(const DataFileManager &inputFiles,
 	// Initialize MEE
 	m_pCMEE = new CMEE(0, m_pCMEESUT, m_pLog, inputFiles, UniqueId);
 	m_pCMEE->SetBaseTime();
+
+	// Fire deferred trade processing when its timers expire.
+	if (pthread_create(&m_TimerThreadId, NULL, &MarketTimerThread, this)
+			!= 0) {
+		throw CThreadErr(
+				CThreadErr::ERR_THREAD_CREATE, "CMarketExchange::ctor");
+	}
 }
 
 // Destructor
 CMarketExchange::~CMarketExchange()
 {
+	// Stop the timer thread before tearing down the MEE it uses.
+	m_TimerCond.lock();
+	m_TimerShutdown = true;
+	m_TimerCond.broadcast();
+	m_TimerCond.unlock();
+	pthread_join(m_TimerThreadId, NULL);
+
 	delete m_pCMEE;
 	delete m_pCMEESUT;
 	delete m_pLog;

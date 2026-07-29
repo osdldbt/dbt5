@@ -14,6 +14,7 @@
 #include "EGenLogFormatterTab.h"
 #include "EGenLogger.h"
 #include "locking.h"
+#include "condition.h"
 
 #include "CSocket.h"
 #include "MEESUT.h"
@@ -31,9 +32,22 @@ private:
 	CSecurityFile *m_pSecurities;
 	bool m_Verbose;
 
-	friend void *marketWorkerThread(void *);
+	// Fire pending MEE timers (deferred Trade-Result and triggered
+	// Market-Feed processing) when they expire without another trade
+	// request arriving.
+	CMutex m_TimerLock;
+	CCondition m_TimerCond;
+	INT32 m_NextTimerDelay; // ms until the next MEE timer, < 0 if none
+	unsigned int m_TimerGeneration;
+	bool m_TimerShutdown;
+	pthread_t m_TimerThreadId;
+
+	void updateNextTimer(INT32 delay);
+
+	friend void *MarketWorkerThread(void *);
 	// entry point for driver worker thread
-	friend void entryMarketWorkerThread(void *);
+	friend void EntryMarketWorkerThread(void *);
+	friend void *MarketTimerThread(void *);
 
 public:
 	CMEE *m_pCMEE;

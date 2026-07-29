@@ -161,6 +161,13 @@ main(int argc, char *argv[])
 		}
 		cout << endl;
 		return 1;
+	} catch (CBaseErr &err) {
+		cout << "Error " << err.ErrorNum() << ": " << err.ErrorText();
+		if (err.ErrorLoc()) {
+			cout << " at " << err.ErrorLoc();
+		}
+		cout << endl;
+		return 1;
 	} catch (std::bad_alloc const &) {
 		// operator new will throw std::bad_alloc exception if there is no
 		// sufficient memory for the request.
