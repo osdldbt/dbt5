@@ -13,6 +13,7 @@
 
 #include "MEESUTInterface.h"
 #include "locking.h"
+#include "condition.h"
 #include "MEE.h"
 
 #include "BaseInterface.h"
@@ -24,11 +25,22 @@ private:
 	TTradeResultTxnInput m_TradeResultTxnInput;
 	TMarketFeedTxnInput m_MarketFeedTxnInput;
 
+	// Number of detached transaction threads still running, so the
+	// destructor can wait for them instead of freeing this object out
+	// from under them.
+	CMutex m_ThreadCountLock;
+	CCondition m_ThreadCountCond;
+	int m_OutstandingThreads;
+
+	void threadStarted();
+	void threadFinished();
+
 public:
 	CMEESUT(char *outputDirectory, char *addr, const int iListenPort)
 	: CBaseInterface("me", outputDirectory, addr, iListenPort),
+	  m_ThreadCountCond(m_ThreadCountLock), m_OutstandingThreads(0),
 	  m_SocketLock(){};
-	~CMEESUT(){};
+	~CMEESUT();
 
 	CMutex m_SocketLock;
 

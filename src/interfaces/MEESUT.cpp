@@ -9,6 +9,33 @@
 
 #include "MEESUT.h"
 
+CMEESUT::~CMEESUT()
+{
+	// Wait for detached Trade-Result and Market-Feed threads so they
+	// are not left dereferencing a destroyed object.
+	m_ThreadCountCond.lock();
+	while (m_OutstandingThreads > 0) {
+		m_ThreadCountCond.wait();
+	}
+	m_ThreadCountCond.unlock();
+}
+
+void
+CMEESUT::threadStarted()
+{
+	Locker<CMutex> locker(m_ThreadCountLock);
+	++m_OutstandingThreads;
+}
+
+void
+CMEESUT::threadFinished()
+{
+	Locker<CMutex> locker(m_ThreadCountLock);
+	if (--m_OutstandingThreads == 0) {
+		m_ThreadCountCond.broadcast();
+	}
+}
+
 void *
 TradeResultAsync(void *data)
 {
@@ -23,10 +50,20 @@ TradeResultAsync(void *data)
 			sizeof(request.TxnInput.TradeResultTxnInput));
 
 	// communicate with the SUT and log response time
-	pThrParam->pCMEESUT->m_SocketLock.lock();
-	pThrParam->pCMEESUT->talkToSUT(&request);
-	pThrParam->pCMEESUT->m_SocketLock.unlock();
+	{
+		Locker<CMutex> locker(pThrParam->pCMEESUT->m_SocketLock);
+		try {
+			pThrParam->pCMEESUT->talkToSUT(&request);
+		} catch (CSocketErr *pErr) {
+			ostringstream osErr;
+			osErr << "Error: " << pErr->ErrorText()
+				  << " at MEESUT::TradeResultAsync" << endl;
+			pThrParam->pCMEESUT->logErrorMessage(osErr.str());
+			delete pErr;
+		}
+	}
 
+	pThrParam->pCMEESUT->threadFinished();
 	delete pThrParam;
 	return NULL;
 }
@@ -55,10 +92,13 @@ RunTradeResultAsync(void *data)
 
 		// create the thread in the detached state - Call Trade Result
 		// asyncronously
+		pThrParam->pCMEESUT->threadStarted();
 		status = pthread_create(
 				&threadID, &threadAttribute, &TradeResultAsync, data);
+		pthread_attr_destroy(&threadAttribute);
 
 		if (status != 0) {
+			pThrParam->pCMEESUT->threadFinished();
 			throw CThreadErr(CThreadErr::ERR_THREAD_CREATE);
 		}
 	} catch (const CThreadErr &pErr) {
@@ -66,6 +106,7 @@ RunTradeResultAsync(void *data)
 		osErr << "Error: " << pErr.ErrorText()
 			  << " at MEESUT::RunTradeResultAsync" << endl;
 		pThrParam->pCMEESUT->logErrorMessage(osErr.str());
+		delete pThrParam;
 		return false;
 	}
 
@@ -102,10 +143,20 @@ MarketFeedAsync(void *data)
 			sizeof(request.TxnInput.MarketFeedTxnInput));
 
 	// communicate with the SUT and log response time
-	pThrParam->pCMEESUT->m_SocketLock.lock();
-	pThrParam->pCMEESUT->talkToSUT(&request);
-	pThrParam->pCMEESUT->m_SocketLock.unlock();
+	{
+		Locker<CMutex> locker(pThrParam->pCMEESUT->m_SocketLock);
+		try {
+			pThrParam->pCMEESUT->talkToSUT(&request);
+		} catch (CSocketErr *pErr) {
+			ostringstream osErr;
+			osErr << "Error: " << pErr->ErrorText()
+				  << " at MEESUT::MarketFeedAsync" << endl;
+			pThrParam->pCMEESUT->logErrorMessage(osErr.str());
+			delete pErr;
+		}
+	}
 
+	pThrParam->pCMEESUT->threadFinished();
 	delete pThrParam;
 	return NULL;
 }
@@ -132,12 +183,15 @@ RunMarketFeedAsync(void *data)
 			throw CThreadErr(CThreadErr::ERR_THREAD_ATTR_DETACH);
 		}
 
-		// create the thread in the detached state - Call Trade Result
+		// create the thread in the detached state - Call Market Feed
 		// asyncronously
+		pThrParam->pCMEESUT->threadStarted();
 		status = pthread_create(
 				&threadID, &threadAttribute, &MarketFeedAsync, data);
+		pthread_attr_destroy(&threadAttribute);
 
 		if (status != 0) {
+			pThrParam->pCMEESUT->threadFinished();
 			throw CThreadErr(CThreadErr::ERR_THREAD_CREATE);
 		}
 	} catch (const CThreadErr &pErr) {
@@ -145,6 +199,7 @@ RunMarketFeedAsync(void *data)
 		osErr << "Error: " << pErr.ErrorText()
 			  << " at MEESUT::RunMarketFeedAsync" << endl;
 		pThrParam->pCMEESUT->logErrorMessage(osErr.str());
+		delete pThrParam;
 		return false;
 	}
 

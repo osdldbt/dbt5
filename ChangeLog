@@ -154,6 +154,10 @@ vX.Y.Z (YYYY-MM-DD)
 - BrokerageHouse: release the database connection and other worker
   thread resources when a driver session ends, and log worker socket
   errors instead of swallowing them
+- MarketExchange: make the detached Trade-Result and Market-Feed
+  threads exception safe, wait for them at shutdown instead of
+  destroying the interface object under them, and stop leaking their
+  parameters when thread creation fails
 
 v0.10.13 (2026-07-10)
 
