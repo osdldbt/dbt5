@@ -149,6 +149,11 @@ vX.Y.Z (YYYY-MM-DD)
   the fixed sizes of the transaction output arrays, and stop the
   server side trade history parsing from reading past the end of a
   malformed array
+- Stop leaking a request message on every Data-Maintenance and
+  Trade-Cleanup transaction
+- BrokerageHouse: release the database connection and other worker
+  thread resources when a driver session ends, and log worker socket
+  errors instead of swallowing them
 
 v0.10.13 (2026-07-10)
 

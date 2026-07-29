@@ -29,18 +29,19 @@
 void *
 workerThread(void *data)
 {
+	PThreadParameter pThrParam = reinterpret_cast<PThreadParameter>(data);
+
+	CSocket sockDrv;
+	sockDrv.setSocketFd(pThrParam->iSockfd); // client socket
+
+	PMsgDriverBrokerage pMessage = new TMsgDriverBrokerage;
+	memset(pMessage, 0, sizeof(TMsgDriverBrokerage)); // zero the structure
+
+	CDBConnection *pDBConnection = NULL;
+
 	try {
-		PThreadParameter pThrParam = reinterpret_cast<PThreadParameter>(data);
-
-		CSocket sockDrv;
-		sockDrv.setSocketFd(pThrParam->iSockfd); // client socket
-
-		PMsgDriverBrokerage pMessage = new TMsgDriverBrokerage;
-		memset(pMessage, 0, sizeof(TMsgDriverBrokerage)); // zero the structure
-
 		TMsgBrokerageDriver Reply; // return message
 		INT32 iRet = 0; // transaction return code
-		CDBConnection *pDBConnection = NULL;
 
 		// new database connection
 		if (pThrParam->pBrokerageHouse->m_ClientSide == 1) {
@@ -238,13 +239,22 @@ workerThread(void *data)
 			}
 		} while (true);
 
-		// close socket connection with the driver, if not already closed
-		// by an error path above
-		sockDrv.dbt5Disconnect();
-		delete pThrParam;
-		delete pMessage;
 	} catch (CSocketErr *err) {
+		// Most likely the market exchange could not be reached while
+		// setting up; log it instead of dying silently.
+		ostringstream osErr;
+		osErr << "Error: " << err->ErrorText()
+			  << " at BrokerageHouse::workerThread" << endl;
+		pThrParam->pBrokerageHouse->logErrorMessage(osErr.str());
+		delete err;
 	}
+
+	// close socket connection with the driver, if not already closed by
+	// an error path above
+	sockDrv.dbt5Disconnect();
+	delete pDBConnection;
+	delete pThrParam;
+	delete pMessage;
 	return NULL;
 }
 
