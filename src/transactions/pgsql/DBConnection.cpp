@@ -168,11 +168,10 @@ CDBConnection::exec(const char *sql, int nParams, const Oid *paramTypes,
 
 	pid_t pid = syscall(SYS_gettid);
 	ostringstream msg;
-	switch (status) {
-	case PGRES_FATAL_ERROR: {
-		msg << pid << " " << time(NULL) << " " << endl
-			<< "SQL: " << sql << endl
-			<< PQresultErrorMessage(res) << endl;
+	msg << pid << " " << time(NULL) << " " << endl
+		<< "SQL: " << sql << endl;
+	if (status == PGRES_FATAL_ERROR) {
+		msg << PQresultErrorMessage(res) << endl;
 		char *sqlstate = PQresultErrorField(res, PG_DIAG_SQLSTATE);
 		bool bRetryable = sqlstate != NULL
 						  && (strcmp(sqlstate, "40001") == 0
@@ -183,18 +182,15 @@ CDBConnection::exec(const char *sql, int nParams, const Oid *paramTypes,
 			throw CDBRetryableError(msg.str());
 		}
 		throw msg.str();
-	} break;
-	case PGRES_EMPTY_QUERY:
-	case PGRES_COPY_OUT:
-	case PGRES_COPY_IN:
-	case PGRES_BAD_RESPONSE:
-	case PGRES_NONFATAL_ERROR:
-	default:
-		cout << pid << " *** " << PQresStatus(PQresultStatus(res)) << endl;
-		break;
 	}
 
-	return res;
+	// Any other status (empty query, bad response, copy) has no usable
+	// tuples; callers parse the result unconditionally, so fail the
+	// transaction instead of returning it.
+	msg << PQresStatus(status) << endl;
+	PQclear(res);
+	rollback();
+	throw msg.str();
 }
 
 void

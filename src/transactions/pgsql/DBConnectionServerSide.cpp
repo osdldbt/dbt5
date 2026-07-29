@@ -449,6 +449,11 @@ CDBConnectionServerSide::execute(
 			= exec("SELECT * FROM MarketWatchFrame1($1, $2, $3, $4, $5, $6)",
 					6, paramTypes, paramValues, paramLengths, paramFormats, 0);
 
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
 	pOut->pct_change = atof(PQgetvalue(res, 0, 0));
 	PQclear(res);
 }
@@ -1445,6 +1450,11 @@ CDBConnectionServerSide::execute(
 	PGresult *res = exec("SELECT * FROM TradeOrderFrame1($1)", 1, NULL,
 			paramValues, paramLengths, paramFormats, 0);
 
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
 	int i_acct_name = get_col_num(res, "acct_name");
 	int i_broker_id = get_col_num(res, "broker_id");
 	int i_broker_name = get_col_num(res, "broker_name");
@@ -1606,6 +1616,11 @@ CDBConnectionServerSide::execute(
 						 "$6, $7, $8, $9, $10, $11, $12, $13)",
 			13, NULL, paramValues, paramLengths, paramFormats, 0);
 
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
 	pOut->trade_id = atoll(PQgetvalue(res, 0, 0));
 	PQclear(res);
 }
@@ -1723,6 +1738,11 @@ CDBConnectionServerSide::execute(
 	PGresult *res = exec("SELECT * FROM TradeResultFrame3($1, $2, $3, $4)", 4,
 			NULL, paramValues, paramLengths, paramFormats, 0);
 
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
+
 	pOut->tax_amount = atof(PQgetvalue(res, 0, 0));
 	PQclear(res);
 }
@@ -1806,6 +1826,11 @@ CDBConnectionServerSide::execute(
 	PGresult *res = exec("SELECT * FROM TradeResultFrame6($1, $2, $3, $4, $5, "
 						 "$6, $7, $8, $9)",
 			9, NULL, paramValues, paramLengths, paramFormats, 0);
+
+	if (PQntuples(res) == 0) {
+		PQclear(res);
+		return;
+	}
 
 	pOut->acct_bal = atof(PQgetvalue(res, 0, 0));
 	PQclear(res);
