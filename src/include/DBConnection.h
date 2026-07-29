@@ -32,6 +32,17 @@ int64_t daysFromPgEpoch(int year, int month, int day);
 uint64_t usecFromPgEpoch(const TIMESTAMP_STRUCT *ts);
 
 /*
+ * Thrown for errors that abort a transaction but are safe to retry,
+ * such as serialization failures and deadlocks.  Derives from string
+ * so handlers that only catch the generic error string still work.
+ */
+class CDBRetryableError: public string
+{
+public:
+	explicit CDBRetryableError(const string &msg): string(msg) {}
+};
+
+/*
  * Clears a PGresult when leaving scope so a result held across other
  * exec() calls is not leaked when one of them throws.
  */

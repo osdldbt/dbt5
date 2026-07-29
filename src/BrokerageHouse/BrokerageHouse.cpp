@@ -134,86 +134,107 @@ workerThread(void *data)
 				break;
 			}
 
-			try {
-				//  Parse Txn type
-				switch (pMessage->TxnType) {
-				case BROKER_VOLUME:
-					iRet = pThrParam->pBrokerageHouse->RunBrokerVolume(
-							&(pMessage->TxnInput.BrokerVolumeTxnInput),
-							brokerVolume);
-					break;
-				case CUSTOMER_POSITION:
-					iRet = pThrParam->pBrokerageHouse->RunCustomerPosition(
-							&(pMessage->TxnInput.CustomerPositionTxnInput),
-							customerPosition);
-					if (iRet != 0)
-						pDBConnection->rollback();
-					break;
-				case MARKET_FEED:
-					iRet = pThrParam->pBrokerageHouse->RunMarketFeed(
-							&(pMessage->TxnInput.MarketFeedTxnInput),
-							marketFeed);
-					break;
-				case MARKET_WATCH:
-					iRet = pThrParam->pBrokerageHouse->RunMarketWatch(
-							&(pMessage->TxnInput.MarketWatchTxnInput),
-							marketWatch);
-					break;
-				case SECURITY_DETAIL:
-					iRet = pThrParam->pBrokerageHouse->RunSecurityDetail(
-							&(pMessage->TxnInput.SecurityDetailTxnInput),
-							securityDetail);
-					break;
-				case TRADE_LOOKUP:
-					iRet = pThrParam->pBrokerageHouse->RunTradeLookup(
-							&(pMessage->TxnInput.TradeLookupTxnInput),
-							tradeLookup);
-					break;
-				case TRADE_ORDER:
-					iRet = pThrParam->pBrokerageHouse->RunTradeOrder(
-							&(pMessage->TxnInput.TradeOrderTxnInput),
-							tradeOrder);
-					break;
-				case TRADE_RESULT:
-					iRet = pThrParam->pBrokerageHouse->RunTradeResult(
-							&(pMessage->TxnInput.TradeResultTxnInput),
-							tradeResult);
-					if (iRet != 0)
-						pDBConnection->rollback();
-					break;
-				case TRADE_STATUS:
-					iRet = pThrParam->pBrokerageHouse->RunTradeStatus(
-							&(pMessage->TxnInput.TradeStatusTxnInput),
-							tradeStatus);
-					break;
-				case TRADE_UPDATE:
-					iRet = pThrParam->pBrokerageHouse->RunTradeUpdate(
-							&(pMessage->TxnInput.TradeUpdateTxnInput),
-							tradeUpdate);
-					break;
-				case DATA_MAINTENANCE:
-					iRet = pThrParam->pBrokerageHouse->RunDataMaintenance(
-							&(pMessage->TxnInput.DataMaintenanceTxnInput),
-							dataMaintenance);
-					break;
-				case TRADE_CLEANUP:
-					iRet = pThrParam->pBrokerageHouse->RunTradeCleanup(
-							&(pMessage->TxnInput.TradeCleanupTxnInput),
-							tradeCleanup);
-					break;
-				default:
-					cout << "wrong txn type" << endl;
-					iRet = ERR_TYPE_WRONGTXN;
+			// Serialization failures and deadlocks abort the whole
+			// transaction; retry it instead of counting it as the
+			// intentional TPC-E rollback.
+			bool bRetry;
+			int nRetries = 0;
+			do {
+				bRetry = false;
+				try {
+					//  Parse Txn type
+					switch (pMessage->TxnType) {
+					case BROKER_VOLUME:
+						iRet = pThrParam->pBrokerageHouse->RunBrokerVolume(
+								&(pMessage->TxnInput.BrokerVolumeTxnInput),
+								brokerVolume);
+						break;
+					case CUSTOMER_POSITION:
+						iRet = pThrParam->pBrokerageHouse->RunCustomerPosition(
+								&(pMessage->TxnInput.CustomerPositionTxnInput),
+								customerPosition);
+						if (iRet != 0)
+							pDBConnection->rollback();
+						break;
+					case MARKET_FEED:
+						iRet = pThrParam->pBrokerageHouse->RunMarketFeed(
+								&(pMessage->TxnInput.MarketFeedTxnInput),
+								marketFeed);
+						break;
+					case MARKET_WATCH:
+						iRet = pThrParam->pBrokerageHouse->RunMarketWatch(
+								&(pMessage->TxnInput.MarketWatchTxnInput),
+								marketWatch);
+						break;
+					case SECURITY_DETAIL:
+						iRet = pThrParam->pBrokerageHouse->RunSecurityDetail(
+								&(pMessage->TxnInput.SecurityDetailTxnInput),
+								securityDetail);
+						break;
+					case TRADE_LOOKUP:
+						iRet = pThrParam->pBrokerageHouse->RunTradeLookup(
+								&(pMessage->TxnInput.TradeLookupTxnInput),
+								tradeLookup);
+						break;
+					case TRADE_ORDER:
+						iRet = pThrParam->pBrokerageHouse->RunTradeOrder(
+								&(pMessage->TxnInput.TradeOrderTxnInput),
+								tradeOrder);
+						break;
+					case TRADE_RESULT:
+						iRet = pThrParam->pBrokerageHouse->RunTradeResult(
+								&(pMessage->TxnInput.TradeResultTxnInput),
+								tradeResult);
+						if (iRet != 0)
+							pDBConnection->rollback();
+						break;
+					case TRADE_STATUS:
+						iRet = pThrParam->pBrokerageHouse->RunTradeStatus(
+								&(pMessage->TxnInput.TradeStatusTxnInput),
+								tradeStatus);
+						break;
+					case TRADE_UPDATE:
+						iRet = pThrParam->pBrokerageHouse->RunTradeUpdate(
+								&(pMessage->TxnInput.TradeUpdateTxnInput),
+								tradeUpdate);
+						break;
+					case DATA_MAINTENANCE:
+						iRet = pThrParam->pBrokerageHouse->RunDataMaintenance(
+								&(pMessage->TxnInput.DataMaintenanceTxnInput),
+								dataMaintenance);
+						break;
+					case TRADE_CLEANUP:
+						iRet = pThrParam->pBrokerageHouse->RunTradeCleanup(
+								&(pMessage->TxnInput.TradeCleanupTxnInput),
+								tradeCleanup);
+						break;
+					default:
+						cout << "wrong txn type" << endl;
+						iRet = ERR_TYPE_WRONGTXN;
+					}
+				} catch (CDBRetryableError &e) {
+					if (++nRetries <= iMaxRetries) {
+						bRetry = true;
+					} else {
+						pid_t pid = syscall(SYS_gettid);
+						ostringstream msg;
+						msg << time(NULL) << " " << pid << " "
+							<< szTransactionName[pMessage->TxnType]
+							<< " giving up after " << iMaxRetries
+							<< " retries " << e << endl;
+						pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
+						iRet = CBaseTxnErr::EXPECTED_ROLLBACK;
+					}
+				} catch (std::string const &e) {
+					pid_t pid = syscall(SYS_gettid);
+					ostringstream msg;
+					msg << time(NULL) << " " << pid << " "
+						<< szTransactionName[pMessage->TxnType] << " " << e
+						<< endl;
+					pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
+					iRet = CBaseTxnErr::EXPECTED_ROLLBACK;
 				}
-			} catch (std::string const &e) {
-				pid_t pid = syscall(SYS_gettid);
-				ostringstream msg;
-				msg << time(NULL) << " " << pid << " "
-					<< szTransactionName[pMessage->TxnType] << " " << e
-					<< endl;
-				pThrParam->pBrokerageHouse->logErrorMessage(msg.str());
-				iRet = CBaseTxnErr::EXPECTED_ROLLBACK;
-			}
+			} while (bRetry);
 
 			if (iRet < 0)
 				cerr << "INVALID RUN : see "

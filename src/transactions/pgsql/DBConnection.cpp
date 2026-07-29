@@ -75,7 +75,14 @@ CDBConnection::commit()
 		msg << pid << " " << time(NULL) << " " << endl
 			<< "SQL: COMMIT" << endl
 			<< PQresultErrorMessage(res) << endl;
+		char *sqlstate = PQresultErrorField(res, PG_DIAG_SQLSTATE);
+		bool bRetryable = sqlstate != NULL
+						  && (strcmp(sqlstate, "40001") == 0
+								  || strcmp(sqlstate, "40P01") == 0);
 		PQclear(res);
+		if (bRetryable) {
+			throw CDBRetryableError(msg.str());
+		}
 		throw msg.str();
 	}
 	PQclear(res);
@@ -137,11 +144,9 @@ CDBConnection::exec(const char *sql, int nParams, const Oid *paramTypes,
 		const char *const *paramValues, const int *paramLengths,
 		const int *paramFormats, int resultFormat)
 {
-	// FIXME: Handle serialization errors.
-	// For PostgreSQL, see comment in the Concurrency Control chapter, under
-	// the Transaction Isolation section for dealing with serialization
-	// failures.  These serialization failures can occur with REPEATABLE READS
-	// or SERIALIZABLE.
+	// Serialization failures and deadlocks abort the transaction but are
+	// safe to retry; throw CDBRetryableError for them so the BrokerageHouse
+	// worker can rerun the whole transaction.
 
 	PGresult *res = PQexecParams(m_Conn, sql, nParams, paramTypes, paramValues,
 			paramLengths, paramFormats, resultFormat);
@@ -158,14 +163,21 @@ CDBConnection::exec(const char *sql, int nParams, const Oid *paramTypes,
 	pid_t pid = syscall(SYS_gettid);
 	ostringstream msg;
 	switch (status) {
-	case PGRES_FATAL_ERROR:
+	case PGRES_FATAL_ERROR: {
 		msg << pid << " " << time(NULL) << " " << endl
 			<< "SQL: " << sql << endl
 			<< PQresultErrorMessage(res) << endl;
+		char *sqlstate = PQresultErrorField(res, PG_DIAG_SQLSTATE);
+		bool bRetryable = sqlstate != NULL
+						  && (strcmp(sqlstate, "40001") == 0
+								  || strcmp(sqlstate, "40P01") == 0);
 		PQclear(res);
 		rollback();
+		if (bRetryable) {
+			throw CDBRetryableError(msg.str());
+		}
 		throw msg.str();
-		break;
+	} break;
 	case PGRES_EMPTY_QUERY:
 	case PGRES_COPY_OUT:
 	case PGRES_COPY_IN:
