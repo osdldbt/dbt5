@@ -173,5 +173,5 @@ Index: dbt5/egen/prj/Makefile
  	rm -f			$(EGenDriverLib_lib); \
  	cd $(EXE); \
 -	rm -f			EGenLoader EGenValidate; \
-+	rm -f			EGenLoader EGenValidate EGenDriverMEE BrokerageHouse DriverMain TestTxn; \
++	rm -f			EGenLoader EGenValidate MarketExchangeMain BrokerageHouseMain DriverMain TestTxn; \
  	cd $(PRJ)

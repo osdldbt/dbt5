@@ -195,6 +195,9 @@ vX.Y.Z (YYYY-MM-DD)
   ports, and reject a zero scale factor instead of crashing on a
   division by zero
 - AppImage: bump touchstone-tools to v0.10.3
+- Fix the EGen Makefile patch clean rule to remove the
+  MarketExchangeMain and BrokerageHouseMain executables instead of
+  two names that are never built
 
 v0.10.13 (2026-07-10)
 
