@@ -198,6 +198,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix the EGen Makefile patch clean rule to remove the
   MarketExchangeMain and BrokerageHouseMain executables instead of
   two names that are never built
+- Update the EGen warnings patch to report pthread_mutex_destroy
+  failures to stderr instead of discarding the message
 
 v0.10.13 (2026-07-10)
 

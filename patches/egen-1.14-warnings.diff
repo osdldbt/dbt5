@@ -160,11 +160,12 @@ Index: dbt5/egen/Utilities/src/locking.cpp
 ===================================================================
 --- dbt5.orig/egen/Utilities/src/locking.cpp
 +++ dbt5/egen/Utilities/src/locking.cpp
-@@ -110,7 +110,6 @@ CMutex::~CMutex()
+@@ -110,7 +110,7 @@ CMutex::~CMutex()
      if (rc != 0) {
          std::ostringstream strm;
          strm << "pthread_mutex_destroy error: " << strerror(rc) << "(" << rc << ")";
 -        throw std::runtime_error(strm.str());
++        std::cerr << strm.str() << std::endl;
      }
  }
  
