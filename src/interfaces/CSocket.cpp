@@ -43,8 +43,10 @@ CSocket::dbt5Accept(void)
 	int sockfd;
 
 	socklen_t addrlen = sizeof(sa);
-	errno = 0;
-	sockfd = accept(m_listenfd, (struct sockaddr *) &sa, &addrlen);
+	do {
+		errno = 0;
+		sockfd = accept(m_listenfd, (struct sockaddr *) &sa, &addrlen);
+	} while (sockfd == -1 && errno == EINTR);
 	if (sockfd == -1) {
 		throwError(CSocketErr::ERR_SOCKET_ACCEPT);
 	}
@@ -81,13 +83,27 @@ CSocket::dbt5Connect()
 		// throwError(CSocketErr::ERR_SOCKET_INETPTON, "CSocket::Connect");
 	}
 
-	errno = 0;
 	// Try to connect 5 times total, waiting 1 second between attempts.
 	bool ok = false;
 	for (int i = 0; i < 5; i++) {
-		if ((connect(m_sockfd, (struct sockaddr *) &sa, sizeof(sa))) != -1) {
+		errno = 0;
+		if ((connect(m_sockfd, (struct sockaddr *) &sa, sizeof(sa))) != -1
+				|| errno == EISCONN) {
+			// EISCONN means a connect interrupted by a signal finished
+			// in the background.
 			ok = true;
 			break;
+		}
+		if (errno == EINTR) {
+			// The interrupted attempt may still complete; check again.
+			continue;
+		}
+		// POSIX leaves the socket in an unspecified state after a
+		// failed connect; retry with a fresh one.
+		close(m_sockfd);
+		m_sockfd = socket(AF_INET, SOCK_STREAM, resolveProto("tcp"));
+		if (m_sockfd == -1) {
+			throwError(CSocketErr::ERR_SOCKET_CREATE);
 		}
 		sleep(1);
 	}
@@ -117,7 +133,7 @@ CSocket::dbt5Receive(void *data, int length)
 	do {
 		errno = 0;
 		received = recv(m_sockfd, data, remaining, MSG_WAITALL);
-		if (received == -1 && errno == EAGAIN) {
+		if (received == -1 && (errno == EAGAIN || errno == EINTR)) {
 			received = 0;
 		} else if (received == -1) {
 			throwError(CSocketErr::ERR_SOCKET_RECV);
@@ -160,7 +176,9 @@ CSocket::dbt5Send(void *data, int length)
 		// delivering SIGPIPE, which would kill the whole process
 		sent = send(m_sockfd, (void *) data, remaining, MSG_NOSIGNAL);
 
-		if (sent == -1) {
+		if (sent == -1 && errno == EINTR) {
+			sent = 0;
+		} else if (sent == -1) {
 			throwError(CSocketErr::ERR_SOCKET_SEND);
 		} else if (sent == 0) {
 			throwError(CSocketErr::ERR_SOCKET_CLOSED);

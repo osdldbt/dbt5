@@ -164,6 +164,9 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: retry transactions aborted by serialization failures or
   deadlocks instead of counting them as the intentional TPC-E
   rollback
+- Handle interrupted system calls in the socket layer instead of
+  treating a signal as a connection failure, and retry connecting on
+  a fresh socket after a failed attempt
 
 v0.10.13 (2026-07-10)
 
