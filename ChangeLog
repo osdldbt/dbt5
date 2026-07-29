@@ -194,6 +194,7 @@ vX.Y.Z (YYYY-MM-DD)
   instead of silently misconfiguring the run, validate listener
   ports, and reject a zero scale factor instead of crashing on a
   division by zero
+- AppImage: bump touchstone-tools to v0.10.3
 
 v0.10.13 (2026-07-10)
 
