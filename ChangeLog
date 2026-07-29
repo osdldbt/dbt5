@@ -200,6 +200,9 @@ vX.Y.Z (YYYY-MM-DD)
   two names that are never built
 - Update the EGen warnings patch to report pthread_mutex_destroy
   failures to stderr instead of discarding the message
+- Stop applying the EGenTest harness patch, which only made the
+  harness compare the reference implementation against itself; the
+  harness does not compile against EGen 1.14 as shipped
 
 v0.10.13 (2026-07-10)
 
