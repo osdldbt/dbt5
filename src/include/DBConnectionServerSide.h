@@ -22,18 +22,6 @@ using namespace TPCE;
 
 class CDBConnectionServerSide: public CDBConnection
 {
-private:
-	PGconn *m_Conn;
-
-	int clientSide;
-
-	char szConnectStr[iMaxConnectString + 1];
-	char name[16];
-
-	CBrokerageHouse *bh;
-
-	TTradeRequest m_TriggeredLimitOrders;
-
 public:
 	CDBConnectionServerSide(const char *szHost, const char *szDBName,
 			const char *szDBPort, bool bVerbose = false);

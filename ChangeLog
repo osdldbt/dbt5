@@ -172,6 +172,10 @@ vX.Y.Z (YYYY-MM-DD)
   found, a mislabeled Customer-Position field, swapped Trade-Cleanup
   parameter values, a Security-Detail field printed as an address,
   and Trade-Cleanup executing through the wrong query macro
+- pgsql: fail the transaction instead of exiting the whole server on
+  a column name mismatch, report connection failures as soon as the
+  connection is created, and remove uninitialized server side
+  duplicates of the base connection members
 
 v0.10.13 (2026-07-10)
 

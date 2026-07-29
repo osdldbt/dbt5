@@ -25,8 +25,12 @@ int inline get_col_num(PGresult *res, const char *col_name)
 {
 	int col_num = PQfnumber(res, col_name);
 	if (col_num == -1) {
-		cerr << "ERROR: column " << col_name << " not found" << endl;
-		exit(1);
+		// Fail the transaction instead of exiting the whole
+		// multithreaded process.
+		ostringstream msg;
+		msg << "ERROR: column " << col_name << " not found";
+		cerr << msg.str() << endl;
+		throw msg.str();
 	}
 	return col_num;
 }

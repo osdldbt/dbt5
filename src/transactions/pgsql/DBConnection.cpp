@@ -41,7 +41,7 @@ CDBConnection::CDBConnection(const char *szHost, const char *szDBName,
 
 	pid_t pid = syscall(SYS_gettid);
 	snprintf(name, sizeof(name), "%d", pid);
-	m_Conn = PQconnectdb(szConnectStr);
+	connect();
 }
 
 // Destructor: Disconnect from server
@@ -61,6 +61,12 @@ void
 CDBConnection::connect()
 {
 	m_Conn = PQconnectdb(szConnectStr);
+	if (PQstatus(m_Conn) != CONNECTION_OK) {
+		// Later exec() calls will fail with the same message, but say
+		// up front why the connection is unusable.
+		cerr << "ERROR: could not connect to database:" << endl
+			 << PQerrorMessage(m_Conn);
+	}
 }
 
 void
