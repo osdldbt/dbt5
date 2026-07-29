@@ -167,6 +167,11 @@ vX.Y.Z (YYYY-MM-DD)
 - Handle interrupted system calls in the socket layer instead of
   treating a signal as a connection failure, and retry connecting on
   a fresh socket after a failed attempt
+- Fix verbose output bugs: an out of bounds read in Trade-Lookup
+  frame 3, Trade-Status printing all 50 slots instead of the rows
+  found, a mislabeled Customer-Position field, swapped Trade-Cleanup
+  parameter values, a Security-Detail field printed as an address,
+  and Trade-Cleanup executing through the wrong query macro
 
 v0.10.13 (2026-07-10)
 

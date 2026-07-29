@@ -84,7 +84,7 @@ CCustomerPositionDB::DoCustomerPositionFrame2(
 	if (m_bVerbose) {
 		cout << m_pid << " <<< CPF2" << endl
 			 << m_pid << " - Customer Position Frame 2 (input)" << endl
-			 << m_pid << " -- cust_id: " << pIn->acct_id << endl;
+			 << m_pid << " -- acct_id: " << pIn->acct_id << endl;
 	}
 
 	execute(pIn, pOut);

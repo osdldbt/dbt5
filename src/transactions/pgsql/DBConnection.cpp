@@ -467,8 +467,8 @@ CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
 
 		if (m_bVerbose) {
 			cout << TCF1Q4 << endl;
-			cout << "$1 = " << pIn->st_canceled_id << endl;
-			cout << "$2 = " << be64toh(tr_t_id) << endl;
+			cout << "$1 = " << be64toh(tr_t_id) << endl;
+			cout << "$2 = " << pIn->st_canceled_id << endl;
 		}
 
 		paramValues1[1] = pIn->st_canceled_id;
@@ -533,7 +533,7 @@ CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
 				= { sizeof(char) * (cST_ID_len + 1), sizeof(uint64_t) };
 		const int paramFormats2[2] = { 0, 1 };
 
-		res2 = exec(TCF1Q3, 2, NULL, paramValues2, paramLengths2,
+		res2 = exec(TCF1Q7, 2, NULL, paramValues2, paramLengths2,
 				paramFormats2, 0);
 		PQclear(res2);
 
@@ -553,7 +553,7 @@ CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
 		if (m_bVerbose) {
 			cout << TCF1Q8 << endl;
 			cout << "$1 = " << be64toh(tr_t_id) << endl;
-			cout << "$2 = " << pIn->st_submitted_id << endl;
+			cout << "$2 = " << pIn->st_canceled_id << endl;
 		}
 
 		const char *paramValues1[2]

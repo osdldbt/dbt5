@@ -37,7 +37,7 @@ CTradeStatusDB::DoTradeStatusFrame1(
 			 << m_pid << " -- cust_l_name: " << pOut->cust_l_name << endl
 			 << m_pid << " -- cust_f_name: " << pOut->cust_f_name << endl
 			 << m_pid << " -- broker_name: " << pOut->broker_name << endl;
-		for (int i = 0; i < max_trade_status_len; i++) {
+		for (int i = 0; i < pOut->num_found; i++) {
 			cout << m_pid << " -- charge[" << i << "]: " << pOut->charge[i]
 				 << endl
 				 << m_pid << " -- exec_name[" << i

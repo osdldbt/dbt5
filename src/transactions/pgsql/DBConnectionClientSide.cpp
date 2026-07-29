@@ -1450,7 +1450,7 @@ CDBConnectionClientSide::execute(const TSecurityDetailFrame1Input *pIn,
 				 << pOut->news[i].dts.month << "-" << pOut->news[i].dts.day
 				 << " " << pOut->news[i].dts.hour << ":"
 				 << pOut->news[i].dts.minute << ":"
-				 << &pOut->news[i].dts.second << "."
+				 << pOut->news[i].dts.second << "."
 				 << pOut->news[i].dts.fraction << endl;
 			cout << "src[" << i << "] = " << pOut->news[i].src << endl;
 			cout << "auth[" << i << "] = " << pOut->news[i].auth << endl;

@@ -284,14 +284,14 @@ CTradeLookupDB::DoTradeLookupFrame3(
 				 << pOut->trade_info[i].trade_dts.minute << ":"
 				 << pOut->trade_info[i].trade_dts.second << endl
 				 << m_pid << " -- trade_history_dts[" << i
-				 << "][i]: " << pOut->trade_info[i].trade_history_dts[i].year
-				 << "-" << pOut->trade_info[i].trade_history_dts[i].month
-				 << "-" << pOut->trade_info[i].trade_history_dts[i].day << " "
-				 << pOut->trade_info[i].trade_history_dts[i].hour << ":"
-				 << pOut->trade_info[i].trade_history_dts[i].minute << ":"
-				 << pOut->trade_info[i].trade_history_dts[i].second << endl
+				 << "][0]: " << pOut->trade_info[i].trade_history_dts[0].year
+				 << "-" << pOut->trade_info[i].trade_history_dts[0].month
+				 << "-" << pOut->trade_info[i].trade_history_dts[0].day << " "
+				 << pOut->trade_info[i].trade_history_dts[0].hour << ":"
+				 << pOut->trade_info[i].trade_history_dts[0].minute << ":"
+				 << pOut->trade_info[i].trade_history_dts[0].second << endl
 				 << m_pid << " -- trade_history_status_id[" << i
-				 << "][i]: " << pOut->trade_info[i].trade_history_status_id[i]
+				 << "][0]: " << pOut->trade_info[i].trade_history_status_id[0]
 				 << endl
 				 << m_pid << " -- trade_history_dts[" << i
 				 << "][1]: " << pOut->trade_info[i].trade_history_dts[1].year
