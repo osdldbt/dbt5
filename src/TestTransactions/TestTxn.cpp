@@ -34,7 +34,7 @@ const int iInDirLen = 256;
 char szInDir[iInDirLen + 1] = "";
 
 TIdent iConfiguredCustomerCount = iDefaultLoadUnitSize;
-// FIXME: iActiveCustomerCount needs to be configurable.
+// Follows the -c configured count after the command line is parsed.
 TIdent iActiveCustomerCount = iConfiguredCustomerCount;
 int iScaleFactor = 500;
 int iDaysOfInitialTrades = 300;
@@ -238,14 +238,15 @@ TradeOrder(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 			m_TradeOrderTxnInput, iTradeType, bExecutorIsAccountOwner);
 
 	// Perform Trade Order
+	bool bOk = true;
 	if (m_pCCESUT != NULL) {
-		m_pCCESUT->TradeOrder(
+		bOk = m_pCCESUT->TradeOrder(
 				&m_TradeOrderTxnInput, iTradeType, bExecutorIsAccountOwner);
 	} else {
 		m_TradeOrder.DoTxn(&m_TradeOrderTxnInput, &m_TradeOrderTxnOutput);
 	}
 
-	return m_TradeOrderTxnOutput.status;
+	return bOk ? m_TradeOrderTxnOutput.status : -1;
 }
 
 // Trade Status
@@ -267,13 +268,14 @@ TradeStatus(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 	pTxnInputGenerator->GenerateTradeStatusInput(m_TradeStatusTxnInput);
 
 	// Perform Trade Status
+	bool bOk = true;
 	if (m_pCCESUT != NULL) {
-		m_pCCESUT->TradeStatus(&m_TradeStatusTxnInput);
+		bOk = m_pCCESUT->TradeStatus(&m_TradeStatusTxnInput);
 	} else {
 		m_TradeStatus.DoTxn(&m_TradeStatusTxnInput, &m_TradeStatusTxnOutput);
 	}
 
-	return m_TradeStatusTxnOutput.status;
+	return bOk ? m_TradeStatusTxnOutput.status : -1;
 }
 
 // Trade Lookup
@@ -295,13 +297,14 @@ TradeLookup(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 	pTxnInputGenerator->GenerateTradeLookupInput(m_TradeLookupTxnInput);
 
 	// Perform Trade Lookup
+	bool bOk = true;
 	if (m_pCCESUT != NULL) {
-		m_pCCESUT->TradeLookup(&m_TradeLookupTxnInput);
+		bOk = m_pCCESUT->TradeLookup(&m_TradeLookupTxnInput);
 	} else {
 		m_TradeLookup.DoTxn(&m_TradeLookupTxnInput, &m_TradeLookupTxnOutput);
 	}
 
-	return m_TradeLookupTxnOutput.status;
+	return bOk ? m_TradeLookupTxnOutput.status : -1;
 }
 
 // Trade Update
@@ -323,13 +326,14 @@ TradeUpdate(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 	pTxnInputGenerator->GenerateTradeUpdateInput(m_TradeUpdateTxnInput);
 
 	// Perform Trade Update
+	bool bOk = true;
 	if (m_pCCESUT != NULL) {
-		m_pCCESUT->TradeUpdate(&m_TradeUpdateTxnInput);
+		bOk = m_pCCESUT->TradeUpdate(&m_TradeUpdateTxnInput);
 	} else {
 		m_TradeUpdate.DoTxn(&m_TradeUpdateTxnInput, &m_TradeUpdateTxnOutput);
 	}
 
-	return m_TradeUpdateTxnOutput.status;
+	return bOk ? m_TradeUpdateTxnOutput.status : -1;
 }
 
 // Customer Position
@@ -354,14 +358,15 @@ CustomerPosition(
 			m_CustomerPositionTxnInput);
 
 	// Perform Customer Position
+	bool bOk = true;
 	if (m_pCCESUT != NULL) {
-		m_pCCESUT->CustomerPosition(&m_CustomerPositionTxnInput);
+		bOk = m_pCCESUT->CustomerPosition(&m_CustomerPositionTxnInput);
 	} else {
 		m_CustomerPosition.DoTxn(
 				&m_CustomerPositionTxnInput, &m_CustomerPositionTxnOutput);
 	}
 
-	return m_CustomerPositionTxnOutput.status;
+	return bOk ? m_CustomerPositionTxnOutput.status : -1;
 }
 
 // Broker Volume
@@ -383,14 +388,15 @@ BrokerVolume(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 	pTxnInputGenerator->GenerateBrokerVolumeInput(m_BrokerVolumeTxnInput);
 
 	// Perform Broker Volume
+	bool bOk = true;
 	if (m_pCCESUT != NULL) {
-		m_pCCESUT->BrokerVolume(&m_BrokerVolumeTxnInput);
+		bOk = m_pCCESUT->BrokerVolume(&m_BrokerVolumeTxnInput);
 	} else {
 		m_BrokerVolume.DoTxn(
 				&m_BrokerVolumeTxnInput, &m_BrokerVolumeTxnOutput);
 	}
 
-	return m_BrokerVolumeTxnOutput.status;
+	return bOk ? m_BrokerVolumeTxnOutput.status : -1;
 }
 
 // Security Detail
@@ -412,14 +418,15 @@ SecurityDetail(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 	pTxnInputGenerator->GenerateSecurityDetailInput(m_SecurityDetailTxnInput);
 
 	// Perform Security Detail
+	bool bOk = true;
 	if (m_pCCESUT != NULL) {
-		m_pCCESUT->SecurityDetail(&m_SecurityDetailTxnInput);
+		bOk = m_pCCESUT->SecurityDetail(&m_SecurityDetailTxnInput);
 	} else {
 		m_SecurityDetail.DoTxn(
 				&m_SecurityDetailTxnInput, &m_SecurityDetailTxnOutput);
 	}
 
-	return m_SecurityDetailTxnOutput.status;
+	return bOk ? m_SecurityDetailTxnOutput.status : -1;
 }
 
 // Market Watch
@@ -441,13 +448,14 @@ MarketWatch(CDBConnection *pConn, CCETxnInputGenerator *pTxnInputGenerator)
 	pTxnInputGenerator->GenerateMarketWatchInput(m_MarketWatchTxnInput);
 
 	// Perform Market Watch
+	bool bOk = true;
 	if (m_pCCESUT != NULL) {
-		m_pCCESUT->MarketWatch(&m_MarketWatchTxnInput);
+		bOk = m_pCCESUT->MarketWatch(&m_MarketWatchTxnInput);
 	} else {
 		m_MarketWatch.DoTxn(&m_MarketWatchTxnInput, &m_MarketWatchTxnOutput);
 	}
 
-	return m_MarketWatchTxnOutput.status;
+	return bOk ? m_MarketWatchTxnOutput.status : -1;
 }
 
 // Data Maintenance
@@ -483,6 +491,7 @@ main(int argc, char *argv[])
 		Usage();
 		return (-1);
 	}
+	iActiveCustomerCount = iConfiguredCustomerCount;
 
 	if (strlen(szInDir) == 0) {
 		cout << "Use -i to specify full path to EGen flat_in directory."
@@ -501,10 +510,10 @@ main(int argc, char *argv[])
 		m_pCCESUT = new CCESUT(outputDirectory, szBHaddr, iBHlistenPort);
 	}
 
-	try {
-		// database connection
-		CDBConnection *m_Conn;
+	// database connection
+	CDBConnection *m_Conn = NULL;
 
+	try {
 		if (iClientSide == 1) {
 			m_Conn = new CDBConnectionClientSide(
 					szDBHost, szDBName, szPort, true);
@@ -620,12 +629,17 @@ main(int argc, char *argv[])
 		} else {
 			cout << endl;
 		}
+		delete m_Conn;
+		delete m_pCCESUT;
 		return 1;
 	} catch (std::string const &e) {
 		cerr << "### OHNOES THERE HAS BEEN A PROBLEM:" << e << endl;
+		delete m_Conn;
+		delete m_pCCESUT;
 		return 3;
 	}
 
+	delete m_Conn;
 	delete m_pCCESUT;
 
 	return 0;

@@ -182,6 +182,10 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: guard the server side scalar frames against empty results
   and fail the transaction on abnormal query statuses instead of
   handing callers an unusable result
+- TestTxn: report transaction failures against a BrokerageHouse
+  instead of always printing status 0, apply -c to the active
+  customer count, and release the database connection and SUT
+  interface on all exit paths
 
 v0.10.13 (2026-07-10)
 
