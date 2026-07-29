@@ -10,6 +10,8 @@
 // TODO Partitioning by C_ID: This should be done by using the apropriate CCE's
 // constructor.
 
+#include <unistd.h>
+
 #include "Driver.h"
 #include "DBT5Consts.h"
 
@@ -68,81 +70,69 @@ usage()
 void
 parse_command_line(int argc, char *argv[])
 {
-	int arg;
-	char *sp;
-	char *vp;
+	int ch;
 
-	// Scan the command line arguments
-	for (arg = 1; arg < argc; ++arg) {
-
-		// Look for a switch
-		sp = argv[arg];
-		if (*sp == '-') {
-			++sp;
-		}
-
-		/*
-		 *  Find the switch's argument.  It is either immediately after the
-		 *  switch or in the next argv
-		 */
-		vp = sp + 1;
-		// Allow for switched that don't have any parameters.
-		// Need to check that the next argument is in fact a parameter
-		// and not the next switch that starts with '-'.
-		//
-		if ((*vp == 0) && ((arg + 1) < argc) && (argv[arg + 1][0] != '-')) {
-			vp = argv[++arg];
-		}
-
-		// Parse the switch
-		switch (*sp) {
+	// getopt reports missing option arguments and unknown options,
+	// unlike the old hand rolled parser, which silently accepted them.
+	while ((ch = getopt(argc, argv, "c:d:f:h:i:n:o:p:r:t:u:w:y:")) != -1) {
+		switch (ch) {
 		case 'c':
-			iActiveCustomerCount = atol(vp);
+			iActiveCustomerCount = atol(optarg);
 			break;
 		case 'd':
-			iTestDuration = atoi(vp);
+			iTestDuration = atoi(optarg);
 			break;
 		case 'f':
-			iScaleFactor = atoi(vp);
+			iScaleFactor = atoi(optarg);
 			break;
 		case 'h':
-			strncpy(szBHaddr, vp, iMaxHostname);
+			strncpy(szBHaddr, optarg, iMaxHostname);
 			szBHaddr[iMaxHostname] = '\0';
 			break;
 		case 'i': // input files path
-			strncpy(szInDir, vp, iMaxPath);
+			strncpy(szInDir, optarg, iMaxPath);
 			szInDir[iMaxPath] = '\0';
 			break;
 		case 'n':
-			iPacingDelay = atoi(vp);
+			iPacingDelay = atoi(optarg);
 			break;
 		case 'o':
-			strncpy(outputDirectory, vp, iMaxPath);
+			strncpy(outputDirectory, optarg, iMaxPath);
 			outputDirectory[iMaxPath] = '\0';
 			break;
 		case 'p':
-			iBHListenerPort = atoi(vp);
+			iBHListenerPort = atoi(optarg);
+			if (iBHListenerPort < 1 || iBHListenerPort > 65535) {
+				cerr << "Error: invalid port for -p: " << optarg << endl;
+				exit(1);
+			}
 			break;
 		case 'r':
-			iSeed = atoi(vp);
+			iSeed = atoi(optarg);
 			break;
 		case 't':
-			iConfiguredCustomerCount = atol(vp);
+			iConfiguredCustomerCount = atol(optarg);
 			break;
 		case 'w':
-			iDaysOfInitialTrades = atoi(vp);
+			iDaysOfInitialTrades = atoi(optarg);
 			break;
 		case 'u':
-			iUsers = atoi(vp);
+			iUsers = atoi(optarg);
 			break;
 		case 'y':
-			iSleep = atoi(vp);
+			iSleep = atoi(optarg);
 			break;
 		default:
 			usage();
-			cout << endl << "Error: Unrecognized option: " << sp << endl;
 			exit(1);
 		}
+	}
+
+	if (optind < argc) {
+		usage();
+		cout << endl << "Error: unexpected argument: " << argv[optind]
+			 << endl;
+		exit(1);
 	}
 }
 
@@ -174,6 +164,15 @@ ValidateParameters()
 			 << iDefaultLoadUnitSize << ")." << endl;
 
 		bRet = false;
+	}
+
+	// Scale factor must be positive before it can be used as a divisor
+	// below.
+	if (iScaleFactor <= 0) {
+		cerr << "The specified scale factor (-f " << iScaleFactor
+			 << ") must be a positive integer." << endl;
+
+		return false;
 	}
 
 	// Completed trades in 8 hours must be a non-zero integral multiple of 100

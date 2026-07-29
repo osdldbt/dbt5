@@ -8,6 +8,8 @@
  * 30 July 2006
  */
 
+#include <unistd.h>
+
 #include "MarketExchange.h"
 #include "DBT5Consts.h"
 
@@ -53,63 +55,58 @@ usage()
 void
 parse_command_line(int argc, char *argv[])
 {
-	int arg;
-	char *sp;
-	char *vp;
+	int ch;
 
-	// Scan the command line arguments
-	for (arg = 1; arg < argc; ++arg) {
-
-		// Look for a switch
-		sp = argv[arg];
-		if (*sp == '-') {
-			++sp;
-		}
-
-		/*
-		 *  Find the switch's argument.  It is either immediately after the
-		 *  switch or in the next argv
-		 */
-		vp = sp + 1;
-		// Allow for switched that don't have any parameters.
-		// Need to check that the next argument is in fact a parameter
-		// and not the next switch that starts with '-'.
-		//
-		if ((*vp == 0) && ((arg + 1) < argc) && (argv[arg + 1][0] != '-')) {
-			vp = argv[++arg];
-		}
-
-		// Parse the switch
-		switch (*sp) {
+	// getopt reports missing option arguments and unknown options,
+	// unlike the old hand rolled parser, which silently accepted them.
+	while ((ch = getopt(argc, argv, "c:h:i:l:o:p:t:v")) != -1) {
+		switch (ch) {
 		case 'c':
-			iActiveCustomerCount = atol(vp);
+			iActiveCustomerCount = atol(optarg);
 			break;
 		case 'h':
-			strncpy(szBHaddr, vp, iMaxHostname);
+			strncpy(szBHaddr, optarg, iMaxHostname);
+			szBHaddr[iMaxHostname] = '\0';
 			break;
 		case 'i':
-			strncpy(szFileLoc, vp, iMaxPath);
+			strncpy(szFileLoc, optarg, iMaxPath);
+			szFileLoc[iMaxPath] = '\0';
 			break;
 		case 'l':
-			iListenPort = atoi(vp);
+			iListenPort = atoi(optarg);
+			if (iListenPort < 1 || iListenPort > 65535) {
+				cerr << "Error: invalid port for -l: " << optarg << endl;
+				exit(1);
+			}
 			break;
 		case 'o':
-			strncpy(outputDirectory, vp, iMaxPath);
+			strncpy(outputDirectory, optarg, iMaxPath);
+			outputDirectory[iMaxPath] = '\0';
 			break;
 		case 'p':
-			sscanf(vp, "%d", &iBHlistenPort);
+			iBHlistenPort = atoi(optarg);
+			if (iBHlistenPort < 1 || iBHlistenPort > 65535) {
+				cerr << "Error: invalid port for -p: " << optarg << endl;
+				exit(1);
+			}
 			break;
 		case 't':
-			iConfiguredCustomerCount = atol(vp);
+			iConfiguredCustomerCount = atol(optarg);
 			break;
 		case 'v':
 			verbose = true;
 			break;
 		default:
 			usage();
-			cout << endl << "Error: Unrecognized option: " << sp << endl;
 			exit(1);
 		}
+	}
+
+	if (optind < argc) {
+		usage();
+		cout << endl << "Error: unexpected argument: " << argv[optind]
+			 << endl;
+		exit(1);
 	}
 }
 

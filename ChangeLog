@@ -189,6 +189,11 @@ vX.Y.Z (YYYY-MM-DD)
 - Resolve hostnames with the thread safe getaddrinfo instead of
   gethostbyname, and use the full log filename buffers instead of
   truncating one byte early
+- Parse BrokerageHouse, Driver, and MarketExchange options with
+  getopt so missing option values and stray arguments are errors
+  instead of silently misconfiguring the run, validate listener
+  ports, and reject a zero scale factor instead of crashing on a
+  division by zero
 
 v0.10.13 (2026-07-10)
 

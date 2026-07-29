@@ -8,6 +8,8 @@
  * 25 July 2006
  */
 
+#include <unistd.h>
+
 #include "BrokerageHouse.h"
 #include "DBT5Consts.h"
 
@@ -47,72 +49,60 @@ usage()
 void
 parse_command_line(int argc, char *argv[])
 {
-	int arg;
-	char *sp;
-	char *vp;
+	int ch;
 
-	// Scan the command line arguments
-	for (arg = 1; arg < argc; ++arg) {
-
-		// Look for a switch
-		sp = argv[arg];
-		if (*sp == '-') {
-			++sp;
-		}
-
-		/*
-		 *  Find the switch's argument.  It is either immediately after the
-		 *  switch or in the next argv
-		 */
-		vp = sp + 1;
-		// Allow for switched that don't have any parameters.
-		// Need to check that the next argument is in fact a parameter
-		// and not the next switch that starts with '-'.
-		//
-		if ((*vp == 0) && ((arg + 1) < argc) && (argv[arg + 1][0] != '-')) {
-			vp = argv[++arg];
-		}
-
-		// Parse the switch
-		switch (*sp) {
+	// getopt reports missing option arguments and unknown options,
+	// unlike the old hand rolled parser, which silently accepted them.
+	while ((ch = getopt(argc, argv, "1d:h:l:m:M:o:p:v")) != -1) {
+		switch (ch) {
 		case '1':
 			iClientSide = 1;
 			break;
 		case 'd': // Database name.
-			strncpy(szDBName, vp, iMaxDBName);
+			strncpy(szDBName, optarg, iMaxDBName);
 			szDBName[iMaxDBName] = '\0';
 			break;
 		case 'h': // Database host name.
-			strncpy(szHost, vp, iMaxHostname);
+			strncpy(szHost, optarg, iMaxHostname);
 			szHost[iMaxHostname] = '\0';
 			break;
+		case 'l':
+			iListenPort = atoi(optarg);
+			if (iListenPort < 1 || iListenPort > 65535) {
+				cerr << "Error: invalid port for -l: " << optarg << endl;
+				exit(1);
+			}
+			break;
 		case 'm':
-			strncpy(szMEEHost, vp, iMaxHostname);
+			strncpy(szMEEHost, optarg, iMaxHostname);
 			szMEEHost[iMaxHostname] = '\0';
 			break;
-		case 'M': // Postmaster port
-			strncpy(szMEEPort, vp, iMaxPort);
+		case 'M': // Market Exchange port
+			strncpy(szMEEPort, optarg, iMaxPort);
 			szMEEPort[iMaxPort] = '\0';
 			break;
 		case 'o': // output directory
-			strncpy(outputDirectory, vp, iMaxPath);
+			strncpy(outputDirectory, optarg, iMaxPath);
 			outputDirectory[iMaxPath] = '\0';
 			break;
 		case 'p': // Postmaster port
-			strncpy(szDBPort, vp, iMaxPort);
+			strncpy(szDBPort, optarg, iMaxPort);
 			szDBPort[iMaxPort] = '\0';
-			break;
-		case 'l':
-			iListenPort = atoi(vp);
 			break;
 		case 'v':
 			verbose = true;
 			break;
 		default:
 			usage();
-			cout << endl << "Error: Unrecognized option: " << sp << endl;
 			exit(1);
 		}
+	}
+
+	if (optind < argc) {
+		usage();
+		cout << endl << "Error: unexpected argument: " << argv[optind]
+			 << endl;
+		exit(1);
 	}
 }
 
