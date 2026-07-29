@@ -57,6 +57,7 @@ RUN set -e; \
                 libxau:libxau6 \
                 libbsd:libbsd0 \
                 libssl1.1:libssl1.1 \
+                libx11:libx11-6 \
                 libxcb:libxcb-shm0 \
                 libxext:libxext6 \
                 libxdmcp:libxdmcp6 \
