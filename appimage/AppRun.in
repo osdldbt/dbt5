@@ -10,13 +10,13 @@ Usage:
   $(basename "${0}") COMMAND [OPTION]
 
 Options:
-  The OPTION choices are depdent on the COMMAND specified.  The -h flag will
+  The OPTION choices are dependent on the COMMAND specified.  The -h flag will
   display the available options.
 
 Help command:
   man   This COMMAND will display the man page for any of the general commands
         below when given as its OPTION.  (Note: man pages are not available for
-		all available commands, yet.)
+        all available commands, yet.)
 
 Commands:
 $(find "${APPDIR}/usr/bin" -maxdepth 1 -type f -name "dbt5-*" -printf "%f\n" | sed -e "s/dbt5-/  /")
@@ -28,7 +28,7 @@ EOF
 
 if [ "${APPDIR}" = "" ]; then
 	APPDIR="$(cd -- "$(dirname -- "${0}")" && pwd)"
-    export APPDIR
+	export APPDIR
 fi
 
 if [ $# -eq 0 ]; then
