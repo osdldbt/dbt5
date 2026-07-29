@@ -25,13 +25,13 @@ CBaseInterface::CBaseInterface(const char type[3], char *outputDirectory,
 	char filename[iMaxPath + 1];
 
 	memset(filename, 0, sizeof(filename));
-	snprintf(filename, iMaxPath, "%s/mix-%s-%d.log", outputDirectory, type,
-			m_pid);
+	snprintf(filename, sizeof(filename), "%s/mix-%s-%d.log", outputDirectory,
+			type, m_pid);
 	m_fMix.open(filename, ios::out);
 
 	memset(filename, 0, sizeof(filename));
-	snprintf(filename, iMaxPath, "%s/error-%s-%d.log", outputDirectory, type,
-			m_pid);
+	snprintf(filename, sizeof(filename), "%s/error-%s-%d.log", outputDirectory,
+			type, m_pid);
 	m_fLog.open(filename, ios::out);
 }
 

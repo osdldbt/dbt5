@@ -165,7 +165,8 @@ CMarketExchange::CMarketExchange(const DataFileManager &inputFiles,
   m_TimerShutdown(false)
 {
 	char filename[iMaxPath + 1];
-	snprintf(filename, iMaxPath, "%s/MarketExchange.log", outputDirectory);
+	snprintf(filename, sizeof(filename), "%s/MarketExchange.log",
+			outputDirectory);
 	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
 
 	// Initialize MEESUT

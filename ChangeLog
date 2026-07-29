@@ -186,6 +186,9 @@ vX.Y.Z (YYYY-MM-DD)
   instead of always printing status 0, apply -c to the active
   customer count, and release the database connection and SUT
   interface on all exit paths
+- Resolve hostnames with the thread safe getaddrinfo instead of
+  gethostbyname, and use the full log filename buffers instead of
+  truncating one byte early
 
 v0.10.13 (2026-07-10)
 

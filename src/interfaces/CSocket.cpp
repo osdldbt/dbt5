@@ -74,13 +74,19 @@ CSocket::dbt5Connect()
 	}
 
 	if ((inet_pton(AF_INET, address, &sa.sin_addr)) <= 0) {
-		struct hostent *he;
-		if ((he = gethostbyname(address)) == NULL) {
+		// getaddrinfo is thread safe, unlike gethostbyname.
+		struct addrinfo hints;
+		struct addrinfo *result;
+
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = AF_INET;
+		hints.ai_socktype = SOCK_STREAM;
+		if (getaddrinfo(address, NULL, &hints, &result) != 0) {
 			dbt5Disconnect();
 			throwError(CSocketErr::ERR_SOCKET_HOSTBYNAME);
 		}
-		memcpy(&sa.sin_addr, he->h_addr_list[0], he->h_length);
-		// throwError(CSocketErr::ERR_SOCKET_INETPTON, "CSocket::Connect");
+		sa.sin_addr = ((struct sockaddr_in *) result->ai_addr)->sin_addr;
+		freeaddrinfo(result);
 	}
 
 	// Try to connect 5 times total, waiting 1 second between attempts.

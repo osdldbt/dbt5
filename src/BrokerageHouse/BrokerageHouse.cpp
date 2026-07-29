@@ -341,8 +341,8 @@ CBrokerageHouse::CBrokerageHouse(const char *szHost, const char *szDBName,
 	strncpy(m_szMEEPort, szMEEPort, iMaxPort);
 	m_szMEEPort[iMaxPort] = '\0';
 
-	snprintf(m_errorLogFilename, iMaxPath, "%s/BrokerageHouse_Error.log",
-			outputDirectory);
+	snprintf(m_errorLogFilename, sizeof(m_errorLogFilename),
+			"%s/BrokerageHouse_Error.log", outputDirectory);
 	m_fLog.open(m_errorLogFilename, ios::out);
 }
 

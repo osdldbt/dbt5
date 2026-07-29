@@ -24,7 +24,8 @@ CCustomer::CCustomer(const DataFileManager &inputFiles, char *szInDir,
 {
 	pid_t pid = syscall(SYS_gettid);
 	char filename[iMaxPath + 1];
-	snprintf(filename, iMaxPath, "%s/Customer_%d.log", outputDirectory, pid);
+	snprintf(filename, sizeof(filename), "%s/Customer_%d.log", outputDirectory,
+			pid);
 	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
 
 	// initialize CESUT interface
