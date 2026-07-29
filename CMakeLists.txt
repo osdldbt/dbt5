@@ -203,6 +203,9 @@ add_custom_target(appimage
             https://raw.githubusercontent.com/brendangregg/FlameGraph/master/flamegraph.pl
     COMMAND chmod +x ../AppDir/usr/bin/stackcollapse-perf.pl
             ../AppDir/usr/bin/flamegraph.pl
+    COMMAND mkdir -p ../AppDir/usr/share/licenses/flamegraph
+    COMMAND curl -o ../AppDir/usr/share/licenses/flamegraph/cddl1.txt -SsL
+            https://raw.githubusercontent.com/brendangregg/FlameGraph/master/docs/cddl1.txt
     COMMAND mkdir -p ../AppDir/usr/lib/
     COMMAND cp -paL
                `ldd ${GNUPLOT} | grep libcairo\\\\\\\\. | cut -d \" \" -f 3`
