@@ -18,7 +18,7 @@ Usage:
   $(basename "${0}") [OPTIONS]
 
 General options:
-  -d DBNAME      PGDATABASE name"
+  -d DBNAME      PGDATABASE name
   -p PORT        PostgreSQL port
   -V, --version  Output version information, then exit
   -?, --help     Output this help, then exit

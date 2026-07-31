@@ -25,7 +25,7 @@ Usage:
   $(basename "${0}") [OPTIONS]
 
 General options:
-  -d DBNAME      PGDATABASE name"
+  -d DBNAME      PGDATABASE name
   -i SHAREDIR    PostgreSQL support files location, default ${SHAREDIR}
   -p PORT        PostgreSQL port
   -t TYPE        User defined function type (c|plpgsql), default plpgsql
