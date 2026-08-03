@@ -100,6 +100,10 @@ VACUUM_FULL=0
 if command -v nproc > /dev/null; then
 	PARALLELISM=$(nproc)
 fi
+if [ ! "${APPDIR}" = "" ]; then
+	EGENDIR="${APPDIR}/opt/egen"
+	FLAT_OUT="/tmp/flat_out"
+fi
 
 # Custom argument handling for hopefully most portability.
 while [ "${#}" -gt 0 ] ; do
