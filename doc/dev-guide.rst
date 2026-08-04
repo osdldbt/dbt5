@@ -99,6 +99,52 @@ Connect to the database::
 
     docker compose exec -u postgres database psql dbt5
 
+Regression Tests
+================
+
+The `tests/` directory contains regression tests that are run by CTest and
+written with shunit2, so shunit2 must be installed to run them.  Configuring a
+build tree registers the tests with CTest, and the `test` target in the
+`Makefile` configures the release build tree and runs them::
+
+    make test
+
+The tests can also be run from an already configured build tree::
+
+    cd build/release && ctest --output-on-failure
+
+CTest only shows a test's output when the test fails.  Use `ctest -V` to
+always show the output, including shunit2 reporting each test function as it
+runs.  A test script can also be run directly, which shows its output as it
+happens; when the kit is not installed, the test must be told where to find
+`dbt5-build-egen`::
+
+    DBT5_BUILD_EGEN=build/release/dbt5-build-egen \
+            sh tests/test_egen_chunking
+
+The *egen_chunking* test builds the TPC-E Tools in a temporary
+directory, then generates flat data files once with a single `EGenLoader`
+instance covering every customer and again with multiple instances each
+covering a subrange of customers, and verifies that both sets of data files
+contain the same data.  This is the property that makes parallel data
+generation and loading safe.  The test requires the `egen` submodule to be
+initialized and is skipped otherwise.
+
+The test parameters default to the minimum valid values defined by the
+benchmark specification: 5000 customers, a scale factor of 500, and 300
+initial trade days.  These defaults generate two spec-minimum data sets of
+tens of gigabytes each and may take over an hour.  The parameters can be
+adjusted with environment variables for smaller, non-conformant runs while
+developing::
+
+    ITD=10 make test
+
+* `CHUNK` - The number of customers generated per `EGenLoader` instance, must
+  be a multiple of 1000.
+* `ITD` - Initial trade days.
+* `SF` - The number of customers per trade result transactions per second.
+* `TOTAL` - The total number of customers, must be a multiple of 1000.
+
 AppImage
 ========
 

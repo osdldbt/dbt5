@@ -46,6 +46,11 @@ add_subdirectory (scripts)
 add_subdirectory (src)
 add_subdirectory (storedproc)
 
+include (CTest)
+if (BUILD_TESTING)
+    add_subdirectory (tests)
+endif ()
+
 set (PGSQL_SCRIPTS scripts/pgsql/dbt5-pgsql-start-db
                    scripts/pgsql/dbt5-pgsql-drop-tables
                    scripts/pgsql/dbt5-pgsql-db-plans

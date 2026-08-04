@@ -1,7 +1,7 @@
-.PHONY: appimage clean debug package release
+.PHONY: appimage clean debug package release test
 
 default:
-	@echo "targets: appimage (Linux only), clean, debug, package, release"
+	@echo "targets: appimage (Linux only), clean, debug, package, release, test"
 
 appimage:
 	cmake -H. -Bbuild/appimage -DCMAKE_INSTALL_PREFIX=/usr
@@ -33,3 +33,6 @@ package:
 release:
 	cmake -H. -Bbuild/release
 	cd build/release && make
+
+test: release
+	cd build/release && ctest --output-on-failure
