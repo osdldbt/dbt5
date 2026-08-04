@@ -303,7 +303,7 @@ if [ "${MODE}" = "CUSTOM" ]; then
 				-l "${MODE}" \
 				-f "${SCALE_FACTOR}" \
 				-w "${ITD}" \
-				-c "${CHUNK}" \
+				-c "$(( CUSTOMER_END - CUSTOMER_START ))" \
 				-t "${CUSTOMERS_TOTAL}" > "egenloader-${I}.out" 2>&1 &
 		PIDS="${PIDS} $!:${I}"
 		CUSTOMER_START=${CUSTOMER_END}

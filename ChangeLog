@@ -1,5 +1,7 @@
 vX.Y.Z (YYYY-MM-DD)
 
+- pgsql: fix parallel database builds to stop loading more customers
+  than requested
 - Add a regression test verifying chunking EGenLoader data generation
 - Patch egen to base EXCHANGE.EX_NUM_SYMB on the total customer count
   so partitioned data generation writes correct values
