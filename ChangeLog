@@ -1,5 +1,7 @@
 vX.Y.Z (YYYY-MM-DD)
 
+- Patch egen to base EXCHANGE.EX_NUM_SYMB on the total customer count
+  so partitioned data generation writes correct values
 - Shellcheck all scripts
 - Improve logic to kill all processes when tests abort
 - pgsql: stop on SQL errors in the database build scripts so a failed

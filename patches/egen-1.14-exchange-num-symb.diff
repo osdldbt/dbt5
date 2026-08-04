@@ -1,0 +1,13 @@
+Index: dbt5/egen/src/EGenGenerateAndLoad.cpp
+===================================================================
+--- dbt5.orig/egen/src/EGenGenerateAndLoad.cpp
++++ dbt5/egen/src/EGenGenerateAndLoad.cpp
+@@ -490,7 +490,7 @@
+ */
+ void CGenerateAndLoad::GenerateAndLoadExchange()
+ {
+-    CExchangeTable                         Table(m_dfm.ExchangeDataFile(), m_iCustomerCount);
++    CExchangeTable                         Table(m_dfm.ExchangeDataFile(), m_iTotalCustomers);
+     CBaseLoader<EXCHANGE_ROW>*   pLoad = m_pLoaderFactory->CreateExchangeLoader();
+ 
+     m_pOutput->OutputStart("Generating EXCHANGE table...");
