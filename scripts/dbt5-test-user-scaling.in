@@ -227,12 +227,12 @@ for I in $(seq "${FIRST}" "${STEP}" "${LAST}"); do
 	echo "${I} ${TRTPS}" >> "${RESULTSFILE}"
 done
 
-# Bar plot the metric per users.
+# Bar plot the metric vs. the number of users.
 gnuplot << EOF
 set terminal pngcairo size 1600,1000
-set title "Trade Results per User"
+set title "Trade Results vs. Users"
 set grid
-set output "${OUTDIR}/trpu.png"
+set output "${OUTDIR}/trvu.png"
 set xlabel "Users"
 set ylabel "Trade Results per Second"
 set yrange [0:*]

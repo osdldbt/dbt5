@@ -32,12 +32,12 @@ will be aggregated and plotted.
 Here are some examples plots from a system with 4 logical processors where it
 spend 1 minute warming up before running another 5 minutes.
 
-.. figure:: test-user-scaling/trpu.png
+.. figure:: test-user-scaling/trvu.png
    :align: center
-   :target: test-user-scaling/trpu.png
+   :target: test-user-scaling/trvu.png
    :width: 100%
 
-   Connection Scaling Transaction Rates per user
+   Connection Scaling Transaction Rates vs. Users
 
 .. figure:: test-user-scaling/t9-transaction-rate.png
    :align: center
