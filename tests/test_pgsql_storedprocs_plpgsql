@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+
+# Validate the pl/pgsql stored functions: run each TPC-E transaction
+# through TestTxn with the server side database backend, which calls
+# the pl/pgsql stored functions, and with the client side backend,
+# which builds the SQL itself and uses no stored functions, using the
+# same random number generator seeds against a database built from
+# deterministic EGen data.  The two must produce the same frame
+# output; a difference means at least one of them is wrong.  Each
+# transaction gets one test per implementation, checking that the
+# transaction executes, and one test comparing the outputs.
+# Transactions that modify the database run against a fresh copy of
+# the fixture database per implementation so both start from the same
+# state.
+#
+# A throwaway PostgreSQL instance is created in the shunit2 temporary
+# directory, listening only on localhost on a random port, and removed
+# afterward.  Requires shunit2, the egen submodule, and the PostgreSQL
+# server programs (located with pg_config --bindir); exits 77 (skip)
+# when any are missing.
+#
+# The fixture database defaults to 1000 customers, the smallest
+# EGenLoader accepts (one Load Unit), with a shortened initial trade
+# period.  The TPC-E specification does not define database content
+# below 5000 customers, so unusual transaction results at the default
+# size are possible; set TOTAL=5000 SF=500 ITD=300 for a database at
+# the specification minimum.
+
+TOTAL=${TOTAL:-1000}
+SF=${SF:-500}
+ITD=${ITD:-10}
+SEEDS=${SEEDS:-"12345 67890"}
+FIXTUREDB=${FIXTUREDB:-dbt5testsp}
+CLONEDB="${FIXTUREDB}clone"
+
+. "$(dirname "${0}")/testcommon"
+
+skip_without_egen
+skip_without_postgresql_server
+
+oneTimeSetUp() {
+	install_kit || return 0
+	build_egen_tree || return 0
+	start_postgresql || return 0
+	build_fixture_db "${FIXTUREDB}" || return 0
+	return 0
+}
+
+oneTimeTearDown() {
+	stop_postgresql
+}
+
+# ${1} transaction letter
+compare_plpgsql() {
+	compare_outputs "${1}" plpgsql client "pl/pgsql and client side"
+}
+
+define_txn_tests plpgsql client exec_txn compare_plpgsql
+
+. "${SHUNIT2:-shunit2}"

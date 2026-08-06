@@ -1,0 +1,267 @@
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+# Helper functions shared by the shunit2 regression tests; source this
+# file, it is not a test itself.  Users: TOPDIR names the top of the
+# source tree, SETUP_ERROR carries a one time setup failure into the
+# tests, and run_txn() expects TOTAL, SF, ITD, EGENDIR, TESTTXN, and
+# RUNDIR to be set.
+
+TOPDIR=${TOPDIR:-$(dirname "${0}")/..}
+SETUP_ERROR=""
+
+skip_without_egen() {
+	if [ ! -d "${TOPDIR}/egen/prj" ]; then
+		echo "egen submodule not initialized, skipping"
+		exit 77
+	fi
+}
+
+skip_without_postgresql_server() {
+	if ! command -v psql > /dev/null 2>&1 || \
+			! command -v pg_config > /dev/null 2>&1 || \
+			[ ! -x "$(pg_config --bindir)/initdb" ]; then
+		echo "PostgreSQL server programs missing, skipping"
+		exit 77
+	fi
+}
+
+# Create and start a throwaway PostgreSQL instance in the shunit2
+# temporary directory on a random unused port, and point the libpq
+# PG* environment variables at it.  The instance only listens on
+# localhost TCP because the temporary directory path can exceed the
+# Unix-domain socket path length limit, and runs with fsync off
+# because the data is disposable.
+start_postgresql() {
+	PGBINDIR="$(pg_config --bindir)"
+	unset PGDATABASE PGUSER PGPASSWORD PGSERVICE
+	if ! "${PGBINDIR}/initdb" -D "${SHUNIT_TMPDIR}/pgdata" -A trust \
+			> "${SHUNIT_TMPDIR}/initdb.log" 2>&1; then
+		SETUP_ERROR="initdb failed: ${SHUNIT_TMPDIR}/initdb.log"
+		return 1
+	fi
+	I=0
+	while [ ${I} -lt 10 ]; do
+		PGPORT=$(( $(od -An -N2 -tu2 /dev/urandom | tr -d " ") \
+				% 55296 + 10240 ))
+		if "${PGBINDIR}/pg_ctl" -D "${SHUNIT_TMPDIR}/pgdata" \
+				-o "-p ${PGPORT} -c listen_addresses=localhost \
+-c unix_socket_directories='' -c fsync=off" \
+				-l "${SHUNIT_TMPDIR}/postgresql.log" start \
+				> /dev/null 2>&1; then
+			PGHOST="localhost"
+			export PGHOST PGPORT
+			POSTGRESQL_STARTED=1
+			return 0
+		fi
+		I=$(( I + 1 ))
+	done
+	SETUP_ERROR="PostgreSQL would not start: \
+${SHUNIT_TMPDIR}/postgresql.log"
+	return 1
+}
+
+# Idempotent because shunit2 calls oneTimeTearDown a second time from
+# its exit trap.
+stop_postgresql() {
+	if [ -n "${POSTGRESQL_STARTED}" ]; then
+		POSTGRESQL_STARTED=""
+		"${PGBINDIR}/pg_ctl" -D "${SHUNIT_TMPDIR}/pgdata" \
+				-m immediate stop > /dev/null 2>&1
+	fi
+	return 0
+}
+
+# Install the kit into a temporary prefix so the scripts resolve their
+# support files (e.g. the stored functions) the same way an installed
+# kit does, and use that installation for everything else.
+install_kit() {
+	PREFIX="${SHUNIT_TMPDIR}/install"
+	RUNDIR="${SHUNIT_TMPDIR}/run"
+	mkdir -p "${RUNDIR}"
+	if ! cmake -H"${TOPDIR}" -B"${SHUNIT_TMPDIR}/build" \
+			-DCMAKE_INSTALL_PREFIX="${PREFIX}" \
+			> "${SHUNIT_TMPDIR}/install.log" 2>&1 || \
+			! make -C "${SHUNIT_TMPDIR}/build" install \
+			>> "${SHUNIT_TMPDIR}/install.log" 2>&1; then
+		SETUP_ERROR="kit install failed: ${SHUNIT_TMPDIR}/install.log"
+		return 1
+	fi
+	PATH="${PREFIX}/bin:${PATH}"
+	export PATH
+	return 0
+}
+
+# Build the TPC-E Tools in the temporary directory so the egen tree in
+# the source directory is never patched in place.
+build_egen_tree() {
+	EGENDIR="${SHUNIT_TMPDIR}/egen"
+	cp -a "${TOPDIR}/egen" "${EGENDIR}"
+	if ! dbt5-build-egen \
+			--include-dir="${TOPDIR}/src/include" \
+			--patch-dir="${TOPDIR}/patches" \
+			--source-dir="${TOPDIR}/src" \
+			"${EGENDIR}" > "${SHUNIT_TMPDIR}/build-egen.log" 2>&1; then
+		SETUP_ERROR="egen build failed: ${SHUNIT_TMPDIR}/build-egen.log"
+		return 1
+	fi
+	TESTTXN="${EGENDIR}/bin/TestTxn"
+	return 0
+}
+
+# ${1} database name
+build_fixture_db() {
+	dropdb --if-exists "${1}" > /dev/null 2>&1
+	if ! dbt5-pgsql-build-db -i "${EGENDIR}" -c "${TOTAL}" \
+			-t "${TOTAL}" -s "${SF}" -w "${ITD}" -d "${1}" \
+			> "${SHUNIT_TMPDIR}/build-db.log" 2>&1; then
+		SETUP_ERROR="database build failed: ${SHUNIT_TMPDIR}/build-db.log"
+		return 1
+	fi
+	return 0
+}
+
+# ${1} template database, ${2} new database
+clone_db() {
+	dropdb --if-exists "${2}" > /dev/null 2>&1 && \
+			createdb -T "${1}" "${2}" > /dev/null 2>&1
+}
+
+check_setup() {
+	if [ -n "${SETUP_ERROR}" ]; then
+		fail "${SETUP_ERROR}"
+		return 1
+	fi
+	return 0
+}
+
+# ${1} transaction letter, ${2} seed, ${3} database, ${4} output file,
+# ${5} backend flag ("-1" for client side, empty for server side)
+run_txn() {
+	(cd "${RUNDIR}" && "${TESTTXN}" -i "${EGENDIR}/flat_in" \
+			-g "${3}" -c "${TOTAL}" -f "${SF}" -w "${ITD}" \
+			-r "${2}" -t "${1}" ${5} > "${4}" 2>&1)
+}
+
+# Reduce TestTxn output to the lines every transaction implementation
+# shares: the frame input and output logging, prefixed with the
+# process ID (which is stripped), and the transaction status.
+# Everything else is implementation-specific, e.g. the SQL statements
+# or stored function calls each backend echoes, and the response time.
+filter_output() {
+	sed -n -e 's/^[0-9][0-9]* //p' -e '/^Txn Status = /p' "${1}"
+}
+
+# The TestTxn transaction letters, their names, and whether the
+# transaction is read-only (ro) or modifies the database (mut).
+# Trade Order (nodiff) is only checked for successful execution
+# because it triggers Trade Result and Market Feed on separate
+# threads, which interleave the output nondeterministically.
+TXNS="G:broker_volume:ro
+		F:customer_position:ro
+		J:market_watch:ro
+		H:security_detail:ro
+		C:trade_lookup:ro
+		E:trade_status:ro
+		A:trade_order:mut:nodiff
+		D:trade_update:mut
+		K:data_maintenance:mut
+		L:trade_cleanup:mut"
+
+# Define one execution test per transaction and implementation, and
+# one comparison test per transaction, so a failure names both the
+# transaction and the implementation that failed; only a disagreement
+# between two successful runs fails a compare test.
+#
+# ${1} first implementation, ${2} second implementation, ${3} function
+# running one implementation (arguments: letter, ro|mut,
+# implementation), ${4} function comparing the outputs (argument:
+# letter)
+SUITE_TESTS=""
+define_txn_tests() {
+	for ENTRY in ${TXNS}; do
+		LETTER=${ENTRY%%:*}
+		NAME=${ENTRY#*:}
+		NAME=${NAME%%:*}
+		case "${ENTRY}" in
+		(*:mut*)
+			KIND=mut
+			;;
+		(*)
+			KIND=ro
+			;;
+		esac
+		eval "test_${NAME}_${1}() { ${3} ${LETTER} ${KIND} ${1}; }"
+		eval "test_${NAME}_${2}() { ${3} ${LETTER} ${KIND} ${2}; }"
+		SUITE_TESTS="${SUITE_TESTS} test_${NAME}_${1} test_${NAME}_${2}"
+		case "${ENTRY}" in
+		(*:nodiff)
+			;;
+		(*)
+			eval "test_${NAME}_compare() { ${4} ${LETTER}; }"
+			SUITE_TESTS="${SUITE_TESTS} test_${NAME}_compare"
+			;;
+		esac
+	done
+}
+
+# Tests defined with eval are not found by shunit2's automatic test
+# discovery, so name every test explicitly.
+suite() {
+	for T in ${SUITE_TESTS}; do
+		suite_addTest "${T}"
+	done
+}
+
+# Run one transaction with one implementation for every seed, against
+# the fixture database, or against a fresh copy of it when the
+# transaction modifies the database.  The implementation named
+# "client" runs the client side backend (-1); any other name runs the
+# server side backend.
+# ${1} transaction letter, ${2} ro|mut, ${3} implementation
+exec_txn() {
+	check_setup || return
+	FLAG=""
+	if [ "${3}" = "client" ]; then
+		FLAG="-1"
+	fi
+	for SEED in ${SEEDS}; do
+		OUT="${RUNDIR}/${1}-${SEED}-${3}.out"
+		DB="${FIXTUREDB}"
+		if [ "${2}" = "mut" ]; then
+			clone_db "${FIXTUREDB}" "${CLONEDB}"
+			assertTrue "cloning ${FIXTUREDB} failed" ${?} || continue
+			DB="${CLONEDB}"
+		fi
+		run_txn "${1}" "${SEED}" "${DB}" "${OUT}" "${FLAG}"
+		assertTrue "${3} implementation failed (seed ${SEED}): ${OUT}" \
+				${?} && touch "${OUT}.ok"
+	done
+}
+
+# Compare the filtered outputs of two implementations of one
+# transaction; skip when either execution test already failed.
+# ${1} transaction letter, ${2} first implementation, ${3} second
+# implementation, ${4} label for the failure message
+compare_outputs() {
+	check_setup || return
+	for SEED in ${SEEDS}; do
+		A="${RUNDIR}/${1}-${SEED}-${2}.out"
+		B="${RUNDIR}/${1}-${SEED}-${3}.out"
+
+		if [ ! -f "${A}.ok" ] || [ ! -f "${B}.ok" ]; then
+			startSkipping
+			assertTrue "comparison skipped, execution failed" 1
+			endSkipping
+			continue
+		fi
+
+		filter_output "${A}" > "${A}.filtered"
+		filter_output "${B}" > "${B}.filtered"
+		cmp -s "${A}.filtered" "${B}.filtered"
+		assertTrue "${4} outputs differ (seed ${SEED}): ${A} ${B}" \
+				${?}
+	done
+}

@@ -145,6 +145,39 @@ developing::
 * `SF` - The number of customers per trade result transactions per second.
 * `TOTAL` - The total number of customers, must be a multiple of 1000.
 
+The *pgsql_transactions* test runs each TPC-E transaction through `TestTxn`
+against a database built from deterministic EGen data, once with the server
+side database backend and once with the client side backend, using the same
+random number generator seeds, and verifies that both produce the same
+frame output.  Transactions that modify the database run each backend
+against a fresh copy of the database so both start from the same state.
+The test creates a throwaway PostgreSQL instance in the shunit2 temporary
+directory, listening only on localhost on a random port, and removes it
+afterward; it requires the PostgreSQL server programs, located with
+`pg_config --bindir`, and is skipped otherwise.  For example::
+
+    ITD=3 ctest -R pgsql_transactions
+
+The database defaults to 1000 customers, the smallest EGenLoader accepts.
+The TPC-E specification does not define database content below 5000
+customers, so unusual transaction results are possible at that size; set
+`TOTAL=5000 SF=500 ITD=300` for a database at the specification minimum.
+`TOTAL`, `SF`, and `ITD` adjust sizing as above, `SEEDS` selects the random
+number generator seeds, and `FIXTUREDB` names the database the test
+creates and drops.
+
+The *pgsql_storedprocs_plpgsql* and *pgsql_storedprocs_c* tests validate
+one stored function implementation each: every transaction runs through
+`TestTxn` with the server side backend, which calls that implementation,
+and with the client side backend, which builds the SQL itself and uses no
+stored functions, and the frame output must match.  A failure therefore
+names the implementation under test.  The C stored functions are built
+with PGXS from a copy of the source and loaded by absolute path in place
+of the pl/pgsql functions, so nothing is installed into the PostgreSQL
+installation directories.  In addition to the *pgsql_transactions* test
+requirements, *pgsql_storedprocs_c* needs the PostgreSQL server
+development files.
+
 AppImage
 ========
 

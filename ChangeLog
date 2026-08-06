@@ -1,5 +1,9 @@
 vX.Y.Z (YYYY-MM-DD)
 
+- Add PostgreSQL transaction regression tests: compare the server-side
+  and client-side backends, and validate the pl/pgsql and C stored
+  functions against the client-side backend, on a throwaway database
+  instance
 - pgsql: fix parallel database builds to stop loading more customers
   than requested
 - Add a regression test verifying chunking EGenLoader data generation

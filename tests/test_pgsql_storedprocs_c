@@ -1,0 +1,114 @@
+#!/bin/sh
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+#
+
+# Validate the C stored functions: run each TPC-E transaction through
+# TestTxn with the server side database backend, which calls the C
+# stored functions, and with the client side backend, which builds the
+# SQL itself and uses no stored functions, using the same random
+# number generator seeds against a database built from deterministic
+# EGen data.  The two must produce the same frame output; a difference
+# means at least one of them is wrong.  Each transaction gets one test
+# per implementation, checking that the transaction executes, and one
+# test comparing the outputs.  Transactions that modify the database
+# run against a fresh copy of the fixture database per implementation
+# so both start from the same state.
+#
+# The C stored functions are built from a copy of the source with the
+# PostgreSQL PGXS infrastructure, loaded by absolute path in place of
+# the pl/pgsql functions the database is built with, so nothing is
+# installed into the PostgreSQL installation directories (which
+# normally requires elevated privileges).  A throwaway PostgreSQL
+# instance is created in the shunit2 temporary directory, listening
+# only on localhost on a random port, and removed afterward.
+#
+# Requires shunit2, the egen submodule, the PostgreSQL server
+# programs (located with pg_config --bindir), and the PostgreSQL
+# server development files (pgxs); exits 77 (skip) when any of these
+# are missing.
+#
+# The fixture database defaults to 1000 customers, the smallest
+# EGenLoader accepts (one Load Unit), with a shortened initial trade
+# period; set TOTAL=5000 SF=500 ITD=300 for a database at the
+# specification minimum.
+
+TOTAL=${TOTAL:-1000}
+SF=${SF:-500}
+ITD=${ITD:-10}
+SEEDS=${SEEDS:-"12345 67890"}
+FIXTUREDB=${FIXTUREDB:-dbt5testsp}
+CLONEDB="${FIXTUREDB}clone"
+
+MODULES="broker_volume customer_position data_maintenance market_watch
+		security_detail trade_lookup trade_order trade_result
+		trade_status trade_update"
+
+. "$(dirname "${0}")/testcommon"
+
+skip_without_egen
+skip_without_postgresql_server
+
+if [ ! -f "$(pg_config --pgxs 2> /dev/null)" ]; then
+	echo "PostgreSQL server development files missing, skipping"
+	exit 77
+fi
+
+oneTimeSetUp() {
+	install_kit || return 0
+	build_egen_tree || return 0
+
+	# Build the C stored functions and point the CREATE FUNCTION
+	# statements at the built modules by absolute path.
+	CEXT="${SHUNIT_TMPDIR}/cext"
+	cp -a "${TOPDIR}/storedproc/pgsql/c" "${CEXT}"
+	if ! make -C "${CEXT}" clean > /dev/null 2>&1 || \
+			! make -C "${CEXT}" \
+			> "${SHUNIT_TMPDIR}/cext-build.log" 2>&1; then
+		SETUP_ERROR="C stored function build failed: \
+${SHUNIT_TMPDIR}/cext-build.log"
+		return 0
+	fi
+	for M in ${MODULES}; do
+		sed "s|MODULE_PATHNAME|${CEXT}/${M}.so|" \
+				"${CEXT}/${M}.sql.in" > "${CEXT}/${M}-local.sql"
+	done
+
+	start_postgresql || return 0
+	build_fixture_db "${FIXTUREDB}" || return 0
+
+	# Replace the pl/pgsql functions the database is built with by
+	# the C functions.
+	if ! dbt5-pgsql-drop-stored-procs -d "${FIXTUREDB}" \
+			> "${SHUNIT_TMPDIR}/load-c.log" 2>&1; then
+		SETUP_ERROR="dropping pl/pgsql functions failed: \
+${SHUNIT_TMPDIR}/load-c.log"
+		return 0
+	fi
+	for M in ${MODULES}; do
+		if ! psql -X -v ON_ERROR_STOP=1 -d "${FIXTUREDB}" \
+				-f "${CEXT}/${M}-local.sql" \
+				>> "${SHUNIT_TMPDIR}/load-c.log" 2>&1; then
+			SETUP_ERROR="loading C function ${M} failed: \
+${SHUNIT_TMPDIR}/load-c.log"
+			return 0
+		fi
+	done
+	return 0
+}
+
+oneTimeTearDown() {
+	stop_postgresql
+}
+
+# ${1} transaction letter
+compare_c() {
+	compare_outputs "${1}" c client "C and client side"
+}
+
+define_txn_tests c client exec_txn compare_c
+
+. "${SHUNIT2:-shunit2}"
