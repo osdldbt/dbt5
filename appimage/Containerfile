@@ -109,7 +109,7 @@ RUN curl -o /tmp/cmake-${CMAKEVER}-linux-${ARCH}.tar.gz -SsL \
 
 # Install DBT Tools
 
-ARG DBTTOOLSVER="0.5.1"
+ARG DBTTOOLSVER="0.5.2"
 RUN curl -o /tmp/v${DBTTOOLSVER}.tar.gz -SsL \
          https://github.com/osdldbt/dbttools/archive/refs/tags/v${DBTTOOLSVER}.tar.gz && \
     tar -C /usr/local/src -xf /tmp/v${DBTTOOLSVER}.tar.gz
