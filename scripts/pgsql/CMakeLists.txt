@@ -14,4 +14,4 @@ foreach (FILE dbt5-pgsql-build-db
     set (PROGRAMFILES ${PROGRAMFILES} ${CMAKE_BINARY_DIR}/${FILE})
 endforeach()
 
-install (PROGRAMS ${PROGRAMFILES} DESTINATION "bin")
+install(PROGRAMS ${PROGRAMFILES} TYPE BIN)
