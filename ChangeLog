@@ -70,6 +70,7 @@ vX.Y.Z (YYYY-MM-DD)
 - AppImage: assemble the AppDir with a generated shell script instead
   of a long CMake custom target, following the dbt7 layout
 - AppImage: bump dbttools to v0.5.2 and touchstone-tools to v0.10.3
+- Add GitHub workflow running the regression tests on pull requests
 
 v0.10.13 (2026-07-10)
 

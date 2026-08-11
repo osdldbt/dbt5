@@ -1,0 +1,69 @@
+---
+name: Test
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ctest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ libpq-dev make postgresql \
+                  postgresql-server-dev-all shunit2
+
+      # The tests locate the server programs with pg_config --bindir,
+      # but Debian's /usr/bin/pg_config (libpq-dev) reports a bindir
+      # without initdb.  Put the newest server bindir first so its
+      # pg_config wins.
+      - name: put the PostgreSQL server programs on the PATH
+        run: |
+          bindir=$(find /usr/lib/postgresql -maxdepth 2 -type d \
+                  -name bin | sort -V | tail -n 1)
+          echo "${bindir}" >> "${GITHUB_PATH}"
+
+      - name: build
+        run: make release
+
+      # Each ctest step fails on ***Skipped so a missing requirement
+      # on the runner cannot turn into a vacuous green run.
+
+      # Non-conformant sizing: the defaults (5000 customers, 300
+      # initial trade days) generate two spec-minimum data sets of
+      # tens of gigabytes each.  CHUNK < TOTAL keeps a smaller final
+      # instance, mirroring the default configuration's intent.
+      - name: run data generation chunking test
+        env:
+          TOTAL: 3000
+          CHUNK: 2000
+          ITD: 10
+        run: |
+          cd build/release
+          ctest -L slow --output-on-failure --no-tests=error -O ctest.log
+          if grep -F '***Skipped' ctest.log; then
+            echo "test skipped: a requirement is missing on the runner"
+            exit 1
+          fi
+
+      - name: run PostgreSQL transaction tests
+        run: |
+          cd build/release
+          ctest -LE slow --output-on-failure --no-tests=error -O ctest.log
+          if grep -F '***Skipped' ctest.log; then
+            echo "test skipped: a requirement is missing on the runner"
+            exit 1
+          fi
