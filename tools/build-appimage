@@ -42,7 +42,9 @@ if [ -f "${SRCDIR}/.git" ]; then
 		COMMONDIR="$(cd "${GITDIR}" &&
 				cd "$(cat commondir 2> /dev/null || echo .)" &&
 				pwd)"
-		set -- -v "${COMMONDIR}:${COMMONDIR}:ro,Z"
+		# Read-write: the worktree's index lives in this directory, and
+		# the refresh of that index at configure time has to write.
+		set -- -v "${COMMONDIR}:${COMMONDIR}:rw,Z"
 	fi
 fi
 
