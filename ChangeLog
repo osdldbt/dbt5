@@ -1,224 +1,73 @@
 vX.Y.Z (YYYY-MM-DD)
 
-- Mark the patch level of a build that is not a release with the commit it
-  came from when that commit is not tagged, and as dirty when the tree has
-  uncommitted changes
-- appimage: for a linked worktree, mount the directory holding its git
-  metadata into the build container, so a containerized build derives the
-  same version as a build run outside the container
-- Add PostgreSQL transaction regression tests: compare the server-side
-  and client-side backends, and validate the pl/pgsql and C stored
-  functions against the client-side backend, on a throwaway database
-  instance
-- pgsql: fix parallel database builds to stop loading more customers
-  than requested
-- Add a regression test verifying chunking EGenLoader data generation
-- Patch egen to base EXCHANGE.EX_NUM_SYMB on the total customer count
-  so partitioned data generation writes correct values
-- Shellcheck all scripts
-- Improve logic to kill all processes when tests abort
-- pgsql: stop on SQL errors in the database build scripts so a failed
-  load, table, index, stored function, or parameter change is no longer
-  silently ignored
-- Fix parsing of attached short option values (e.g. -p5432) in the
-  build, run, and test-user-scaling scripts, and forward the database
-  name from test-user-scaling to the run script
-- pgsql: fix the tablespace drop syntax in the table creation script,
-  which made every drop a syntax error and broke rebuilds with
-  tablespaces
-- pgsql: fix database helper scripts: honor -w and -f in check-db and
-  correct its trade count estimate, fix the empty database name test
-  and existence check in create-db, fix dropping the database when
-  rebuilding, fix stopping the database, and only use the PARALLEL
-  VACUUM option on PostgreSQL 13 or later
-- Fix build-egen to exit after --version and to stop when entering
-  the EGen directory or applying a patch fails
-- run: implement the documented --privileged option, fix detection of
-  the touchstone tools on the database system, and record the full
-  command line in readme.txt
-- Fix the test-user-scaling warmup delay, which rounded to zero with
-  more than 60 users, opening all connections at once
-- Fix report generation: detect pidstat data correctly, pass multiple
-  mix logs to post-process, and stop counting transactions past the
-  end of the measurement window so the mix percentages sum to 100
-- pgsql: wrap the C stored function warning macros in do/while blocks and
-  correct the S_PRICE_T and FIN_AGG_T text width defines
-- pgsql: fix C Broker-Volume buffer sizes and remove dead broker list code
-- pgsql: fix C Market-Watch to return 0.0 when old_mkt_cap is zero and to
-  skip securities with missing rows
-- pgsql: fix C Trade-Status returning the customer first and last names
-  swapped
-- pgsql: fix the C Data-Maintenance CUSTOMER branch, which never updated
-  anything, and the WATCH_ITEM, ADDRESS, EXCHANGE, and TAXRATE branches
-- pgsql: fix C Customer-Position error paths, buffer sizes, and a missing
-  LIMIT 30
-- pgsql: fix C Security-Detail crashes on unknown symbols and NULL news
-  authors
-- pgsql: fix C Trade-Result swapped buy and sell values, a cash transaction
-  insert that stored literal text, and garbage commission bindings
-- pgsql: fix C Trade-Order frame 3 estimates and frame 4 storing the wrong
-  charge, cash, and lifo values
-- pgsql: fix C Trade-Lookup inverted is_cash flags, stale history rows, and
-  a missing 20 row cap
-- pgsql: fix C Trade-Update corrupting cash transaction names and align the
-  output arrays with the client parser
-- pgsql: fix the C Trade-Update executor name update, which never changed
-  the name, and re-reads that could not see the frame's own updates
-- pgsql: fix C Trade-Result frame 6 returning the pre-trade account
-  balance
-- pgsql: fix pl/pgsql Market-Watch ignoring start_date
-- pgsql: fix pl/pgsql Data-Maintenance TAXRATE overwriting tax names and the
-  EXCHANGE, WATCH_ITEM, ADDRESS, and NEWS_ITEM branches
-- pgsql: fix the pl/pgsql Trade-Update inverted executor name toggle and
-  stale cash transaction values
-- pgsql: fix the pl/pgsql Trade-Lookup is_cash type, stale cash transaction
-  values, and history padding
-- pgsql: fix pl/pgsql Security-Detail returning NULL co_name and ex_date
-- pgsql: widen pl/pgsql Trade-Order acct_assets to avoid numeric overflow
-- pgsql: keep full tax rate precision in pl/pgsql Trade-Result
-- pgsql: align C Trade-Lookup cash arrays with the client parser and fix
-  swapped before and after quantities
-- pgsql: fix C Security-Detail double encoding news items
-- Free the query result before throwing on fatal errors in the PostgreSQL
-  transaction code
-- Fix time zone dependent timestamp and leap day date conversions in
-  PostgreSQL client side code
-- pgsql: fix client side Market-Watch division by zero and missing row
-  handling
-- pgsql: fix client side Broker-Volume loop bounds check
-- pgsql: always run the client side Trade-Status name query
-- pgsql: fix client side Customer-Position missing LIMIT 30 and a result
-  leak
-- pgsql: fix client side Security-Detail news decoding and query limit
-- pgsql: fix the client side Data-Maintenance WATCH_ITEM update with
-  reversed SET and WHERE symbols, EXCHANGE timestamp width, and TAXRATE
-  handling
-- pgsql: fix client side Trade-Lookup reading the wrong query results and
-  missing row caps
-- pgsql: fix client side Trade-Order unterminated exchange ids failing
-  NASDAQ securities and missing result guards
-- pgsql: fix client side Trade-Result partial sells never liquidating
-  holdings, FIFO scans running as LIFO, and margin trades corrupting
-  account balances
-- pgsql: fix client side Trade-Update freed result reads, a broken margin
-  toggle, and wrong per trade cash flags
-- Share the time zone independent date conversions between the PostgreSQL
-  client side and server side code
-- pgsql: rewrite server side array and composite literal parsing to handle
-  quoting and escapes, fixing corrupted Security-Detail news output
-- pgsql: fix server side Market-Watch start_day encoding
-- pgsql: fix server side Security-Detail date encoding, empty result
-  handling, and bigint volumes
-- pgsql: guard server side Customer-Position against empty results
-- pgsql: parameterize server side Broker-Volume inputs and guard empty
-  results
-- pgsql: fix server side Trade-Status guards and count validation
-- pgsql: surface server side Data-Maintenance failures instead of
-  committing them as successes
-- pgsql: fix server side Trade-Lookup timestamp marshaling and empty
-  result guards
-- pgsql: fix a server side Trade-Order result leak and string termination
-- pgsql: fix server side Trade-Result timestamp marshaling and empty
-  result guards
-- pgsql: fix server side Trade-Update timestamp marshaling and empty
-  result guards
-- TestTxn: initialize the input generator tunables and seed the
-  Data-Maintenance generator so inputs are valid and reproducible
-- Fix CPack source packaging from a separate build directory
-- Disallow in-tree CMake builds and rename Makefile.cmake to Makefile
-- Rename the build directory from builds/ to build/
-- Fix the socket send loop treating a completed partial send as a
-  closed connection
-- pgsql: report transactions whose COMMIT fails as rolled back instead
-  of successful
-- Stop logging a spurious success mix entry when a transaction's
-  request or reply fails on the socket, and stop waiting for a reply
-  after the request could not be sent
-- BrokerageHouse: fix a double free of the worker thread parameters
-  when accepting a connection fails
-- Fix socket descriptor lifetime handling: stop using 0 as the unset
-  descriptor sentinel, which closed stdin and could close unrelated
-  descriptors reused by other threads, and close each connection
-  exactly once
-- Keep SIGPIPE from terminating the whole process when a peer
-  disconnects during a socket send
-- Throw the standard socket error when socket creation fails so
-  callers that only handle socket errors catch it
-- Catch errors in the driver user and Data-Maintenance threads and in
-  the driver and market exchange mains instead of aborting the whole
-  process
+- Mark non-release builds in the version string with the commit they came
+  from, and as dirty when the tree has uncommitted changes, including
+  AppImage builds run inside the container
+- Add regression tests that run every transaction through the client-side,
+  server-side, pl/pgsql, and C stored function backends on the same seeds
+  and require matching results, and a test verifying partitioned EGenLoader
+  data generation
+- pgsql: fix a large number of correctness bugs, found by the new
+  regression tests, across all twelve transactions in each of the four
+  backend implementations: wrong, swapped, or stale values, missing row
+  limits, crashes and bad handling of empty results, buffer overflows, and
+  corrupted string, array, and date handling
+- pgsql: rewrite server-side array and composite literal parsing to handle
+  quoting and escapes, and share time zone independent date conversions
+  between the client-side and server-side code
+- pgsql: retry transactions aborted by serialization failures or deadlocks
+  instead of counting them as the intentional TPC-E rollback, report
+  transactions whose COMMIT fails as rolled back, surface Data-Maintenance
+  failures instead of committing them, and fail the transaction instead of
+  exiting the whole process on unexpected query results
+- Fix socket bugs: partial sends treated as closed connections, descriptor
+  lifetime errors that could close stdin or descriptors belonging to other
+  threads, SIGPIPE terminating the process on peer disconnect, interrupted
+  system calls treated as connection failures, and retry connecting on a
+  fresh socket after a failed attempt
+- Catch errors in the driver, BrokerageHouse, and MarketExchange threads
+  instead of aborting the whole process, reconnect to the market exchange
+  after a send failure, release worker thread resources when a driver
+  session ends, and stop logging failed requests as successful mix entries
+- MarketExchange: fire pending MEE timers when they expire, and make the
+  detached transaction threads exception safe and waited for at shutdown
 - Fix the Data-Maintenance pacing sleep hanging the driver when a
   transaction takes more than a minute
-- BrokerageHouse: reconnect to the market exchange after a send
-  failure instead of losing the connection for the rest of the run
-- Correct the driver and market exchange help text, which described
-  -c and -t reversed, and the workday validation message citing the
-  wrong option
-- pgsql: fix a buffer overflow building the connection string from
-  maximum length host, database name, and port arguments
-- pgsql: fix escape() leaking the escaped string on every call and
-  crashing when escaping fails on a dead connection
-- pgsql: stop leaking query results held across other statements when
-  one of those statements fails
-- pgsql: clamp row counts from driver messages and query results to
-  the fixed sizes of the transaction output arrays, and stop the
-  server side trade history parsing from reading past the end of a
-  malformed array
-- Stop leaking a request message on every Data-Maintenance and
-  Trade-Cleanup transaction
-- BrokerageHouse: release the database connection and other worker
-  thread resources when a driver session ends, and log worker socket
-  errors instead of swallowing them
-- MarketExchange: make the detached Trade-Result and Market-Feed
-  threads exception safe, wait for them at shutdown instead of
-  destroying the interface object under them, and stop leaking their
-  parameters when thread creation fails
-- MarketExchange: fire pending MEE timers when they expire so
-  deferred Trade-Result and triggered Market-Feed transactions are
-  still sent when no new trade request arrives to piggyback on
-- pgsql: retry transactions aborted by serialization failures or
-  deadlocks instead of counting them as the intentional TPC-E
-  rollback
-- Handle interrupted system calls in the socket layer instead of
-  treating a signal as a connection failure, and retry connecting on
-  a fresh socket after a failed attempt
-- Fix verbose output bugs: an out of bounds read in Trade-Lookup
-  frame 3, Trade-Status printing all 50 slots instead of the rows
-  found, a mislabeled Customer-Position field, swapped Trade-Cleanup
-  parameter values, a Security-Detail field printed as an address,
-  and Trade-Cleanup executing through the wrong query macro
-- pgsql: fail the transaction instead of exiting the whole server on
-  a column name mismatch, report connection failures as soon as the
-  connection is created, and remove uninitialized server side
-  duplicates of the base connection members
-- Print the listener port banner after parsing the command line so
-  -l runs show the right port, drop a misspelled dead declaration,
-  and make the shared PostgreSQL message strings const
-- pgsql: guard the server side scalar frames against empty results
-  and fail the transaction on abnormal query statuses instead of
-  handing callers an unusable result
-- TestTxn: report transaction failures against a BrokerageHouse
-  instead of always printing status 0, apply -c to the active
-  customer count, and release the database connection and SUT
-  interface on all exit paths
-- Resolve hostnames with the thread safe getaddrinfo instead of
-  gethostbyname, and use the full log filename buffers instead of
-  truncating one byte early
-- Parse BrokerageHouse, Driver, and MarketExchange options with
-  getopt so missing option values and stray arguments are errors
-  instead of silently misconfiguring the run, validate listener
-  ports, and reject a zero scale factor instead of crashing on a
-  division by zero
-- AppImage: bump touchstone-tools to v0.10.3
-- AppImage: bump dbttools to v0.5.2
-- Fix the EGen Makefile patch clean rule to remove the
-  MarketExchangeMain and BrokerageHouseMain executables instead of
-  two names that are never built
-- Update the EGen warnings patch to report pthread_mutex_destroy
-  failures to stderr instead of discarding the message
-- Stop applying the EGenTest harness patch, which only made the
-  harness compare the reference implementation against itself; the
-  harness does not compile against EGen 1.14 as shipped
+- Fix memory and query result leaks throughout the messaging and PostgreSQL
+  transaction code, clamp row counts from driver messages and query results
+  to the transaction output array sizes, and fix a buffer overflow building
+  the connection string
+- Parse BrokerageHouse, Driver, and MarketExchange options with getopt,
+  validate listener ports and the scale factor, resolve hostnames with the
+  thread safe getaddrinfo, and correct misleading help text and verbose
+  output
+- TestTxn: initialize the input generator tunables, seed the
+  Data-Maintenance generator, report transaction failures, and release
+  resources on all exit paths
+- Shellcheck all scripts, and fix parsing of attached short option values
+  (e.g. -p5432) in the build, run, and test-user-scaling scripts
+- pgsql: stop on SQL errors in the database build scripts, and fix parallel
+  builds loading more customers than requested
+- pgsql: fix the database helper scripts (check-db, create-db, drop-db,
+  stop-db, vacuum options) and rebuilds with tablespaces
+- Fix report generation: pidstat detection, multiple mix logs, and mix
+  percentages summing to 100
+- Fix the test-user-scaling warmup delay rounding to zero with more than
+  60 users, and forward the database name to the run script
+- run: implement the documented --privileged option, fix touchstone tools
+  detection, and record the full command line in readme.txt
+- Fix build-egen to exit after --version and to stop when entering the
+  EGen directory or applying a patch fails
+- Improve logic to kill all processes when tests abort
+- Patch egen to base EXCHANGE.EX_NUM_SYMB on the total customer count so
+  partitioned data generation writes correct values
+- Update the egen patches: fix the Makefile clean rule, report
+  pthread_mutex_destroy failures, and stop applying the EGenTest harness
+  patch
+- Disallow in-tree CMake builds, rename Makefile.cmake to Makefile, and
+  rename the build directory from builds/ to build/
+- Fix CPack source packaging from a separate build directory
+- AppImage: bump dbttools to v0.5.2 and touchstone-tools to v0.10.3
 
 v0.10.13 (2026-07-10)
 
