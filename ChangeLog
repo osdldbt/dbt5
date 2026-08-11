@@ -67,6 +67,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Disallow in-tree CMake builds, rename Makefile.cmake to Makefile, and
   rename the build directory from builds/ to build/
 - Fix CPack source packaging from a separate build directory
+- AppImage: assemble the AppDir with a generated shell script instead
+  of a long CMake custom target, following the dbt7 layout
 - AppImage: bump dbttools to v0.5.2 and touchstone-tools to v0.10.3
 
 v0.10.13 (2026-07-10)

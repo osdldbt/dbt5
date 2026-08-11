@@ -1,0 +1,180 @@
+#!/bin/sh
+@SHELLOPTIONS@
+#
+# This file is released under the terms of the Artistic License.
+# Please see the file LICENSE, included in this package, for details.
+#
+# Copyright The DBT-5 Authors
+
+# Assemble the AppDir and create the DBT-5 AppImage.  This script is
+# generated from appimage/build-appimage.sh.in and is run by the
+# "appimage" CMake target, normally via the top-level Makefile inside
+# the container built by tools/build-appimage.
+
+set -e
+
+APPDIR="@CMAKE_BINARY_DIR@/../AppDir"
+APPIMAGE_SOURCE_DIR="@CMAKE_SOURCE_DIR@/appimage"
+APPIMAGETOOL="@APPIMAGETOOL@"
+FLAMEGRAPH_URL="https://raw.githubusercontent.com/brendangregg/FlameGraph/master"
+GNUPLOT="${APPDIR}/usr/bin/gnuplot"
+JQ="${APPDIR}/usr/bin/jq"
+PSQL="${APPDIR}/usr/bin/psql"
+
+# Print the resolved path of the library matching the grep pattern in
+# the second argument from the dynamic dependencies of the executable
+# given as the first argument.
+lib_path()
+{
+	ldd "${1}" | grep "${2}" | cut -d " " -f 3
+}
+
+# Print the first file matching the given name under /usr, excluding
+# anything in an AppDir.
+find_first()
+{
+	find /usr -not -path '*/AppDir/*' -type f -name "${1}" | head -n 1
+}
+
+if [ -d "/usr/local/share/licenses" ]; then
+	mkdir -p "${APPDIR}/usr/share"
+	cp -pr /usr/local/share/licenses "${APPDIR}/usr/share"
+fi
+if [ -d "/usr/local/lib/python3.11" ]; then
+	mkdir -p "${APPDIR}/usr/lib/"
+	cp -pr /usr/local/lib/python3.11 "${APPDIR}/usr/lib/"
+fi
+
+mkdir -p "${APPDIR}/usr/share/licenses/dbt5-@PROJECT_VERSION@"
+cp -p "@CMAKE_SOURCE_DIR@/LICENSE" \
+   "${APPDIR}/usr/share/licenses/dbt5-@PROJECT_VERSION@/"
+
+mkdir -p "${APPDIR}/usr/bin" "${APPDIR}/usr/share/metainfo"
+cp -p "${APPIMAGE_SOURCE_DIR}/org.osdl.dbt5.appdata.xml" \
+   "${APPDIR}/usr/share/metainfo"
+cp -p "${APPIMAGE_SOURCE_DIR}/dbt5.svg" \
+   "${APPIMAGE_SOURCE_DIR}/org.osdl.dbt5.desktop" \
+   "@CMAKE_BINARY_DIR@/AppRun" \
+   "${APPDIR}"
+
+cp -p "$(command -v gnuplot)" \
+   "$(command -v jq)" \
+   "$(command -v perl)" \
+   "$(command -v psql)" \
+   "$(command -v python3)" \
+   "$(command -v rst2html5)" \
+   "$(command -v rst2pdf)" \
+   "$(command -v spar)" \
+   "$(command -v sqlite3)" \
+   "$(command -v toml)" \
+   "${APPDIR}/usr/bin/"
+
+mkdir -p "${APPDIR}/etc/perl" \
+         "${APPDIR}/etc/perl/Carp" \
+         "${APPDIR}/etc/perl/Exporter" \
+         "${APPDIR}/etc/perl/Getopt" \
+         "${APPDIR}/etc/perl/warnings"
+
+cp -p "$(find_first Carp.pm)" \
+   "$(find_first Exporter.pm)" \
+   "$(find_first constant.pm)" \
+   "$(find_first open.pm)" \
+   "$(find_first overload.pm)" \
+   "$(find_first overloading.pm)" \
+   "$(find_first strict.pm)" \
+   "$(find_first vars.pm)" \
+   "$(find_first warnings.pm)" \
+   "${APPDIR}/etc/perl/"
+cp -p "$(find /usr -not -path '*/AppDir/*' -type f -name Heavy.pm \
+		| grep Carp | head -n 1)" \
+   "${APPDIR}/etc/perl/Carp/"
+cp -p "$(find /usr -not -path '*/AppDir/*' -type f -name Heavy.pm \
+		| grep Exporter | head -n 1)" \
+   "${APPDIR}/etc/perl/Exporter/"
+cp -p "$(find /usr -not -path '*/AppDir/*' -type f -name Long.pm \
+		| grep Getopt | head -n 1)" \
+   "${APPDIR}/etc/perl/Getopt/"
+cp -p "$(find /usr -not -path '*/AppDir/*' -type f -name register.pm \
+		| grep warnings | head -n 1)" \
+   "${APPDIR}/etc/perl/warnings/"
+
+sed -i -e "s#/usr#././#g" \
+    "${APPDIR}/usr/bin/gnuplot" \
+    "${APPDIR}/usr/bin/jq" \
+    "${APPDIR}/usr/bin/perl" \
+    "${APPDIR}/usr/bin/psql" \
+    "${APPDIR}/usr/bin/python3" \
+    "${APPDIR}/usr/bin/spar" \
+    "${APPDIR}/usr/bin/sqlite3" \
+    "${APPDIR}/usr/bin/toml"
+
+sed -i "1s|.*|#!/usr/bin/env python3|" \
+    "${APPDIR}/usr/bin/rst2html5" \
+    "${APPDIR}/usr/bin/rst2pdf"
+
+cp -p "$(command -v dbt-plot)" \
+   "$(command -v dbt-plot-transaction-distribution.gnuplot)" \
+   "$(command -v dbt-plot-transaction-rate.gnuplot)" \
+   "$(command -v dbt-pgsql-generate-db-report)" \
+   "$(command -v dbt-pgsql-generate-index-report)" \
+   "$(command -v dbt-pgsql-generate-table-report)" \
+   "${APPDIR}/usr/bin/"
+
+cp -p "$(command -v ts)" \
+   "$(command -v ts-pgsql-stat)" \
+   "$(command -v ts-plot-collectd)" \
+   "$(command -v ts-plot-pgsql)" \
+   "$(command -v ts-plot-pidstat)" \
+   "$(command -v ts-plot-queries)" \
+   "$(command -v ts-plot-sar)" \
+   "$(command -v ts-plot-spar)" \
+   "$(command -v ts-process-pidstat)" \
+   "$(command -v ts-profile)" \
+   "$(command -v ts-report-pid)" \
+   "$(command -v ts-report-sar)" \
+   "$(command -v ts-sysstat)" \
+   "${APPDIR}/usr/bin/"
+
+curl -SsL -o "${APPDIR}/usr/bin/stackcollapse-perf.pl" \
+	"${FLAMEGRAPH_URL}/stackcollapse-perf.pl"
+curl -SsL -o "${APPDIR}/usr/bin/flamegraph.pl" \
+	"${FLAMEGRAPH_URL}/flamegraph.pl"
+chmod +x "${APPDIR}/usr/bin/stackcollapse-perf.pl" \
+         "${APPDIR}/usr/bin/flamegraph.pl"
+
+mkdir -p "${APPDIR}/usr/share/licenses/flamegraph"
+curl -SsL -o "${APPDIR}/usr/share/licenses/flamegraph/cddl1.txt" \
+	"${FLAMEGRAPH_URL}/docs/cddl1.txt"
+
+mkdir -p "${APPDIR}/usr/lib/"
+cp -paL \
+   "$(lib_path "${GNUPLOT}" 'libcairo\.')" \
+   "$(lib_path "${GNUPLOT}" 'libfreetype\.')" \
+   "$(lib_path "${GNUPLOT}" 'libfribidi\.')" \
+   "$(lib_path "${GNUPLOT}" 'libgraphite2\.')" \
+   "$(lib_path "${GNUPLOT}" 'harfbuzz\.')" \
+   "$(lib_path "${GNUPLOT}" 'libbsd\.')" \
+   "$(lib_path "${GNUPLOT}" 'libpango-1\.0\.')" \
+   "$(lib_path "${GNUPLOT}" 'libpangoft2-1\.0\.')" \
+   "$(lib_path "${GNUPLOT}" 'libpangocairo-1\.0\.')" \
+   "$(lib_path "${GNUPLOT}" 'libpixman-1\.')" \
+   "$(lib_path "${GNUPLOT}" 'libpng16\.')" \
+   "$(lib_path "${GNUPLOT}" 'libX11\.')" \
+   "$(lib_path "${GNUPLOT}" 'libXdmcp\.')" \
+   "$(lib_path "${GNUPLOT}" 'libXext\.')" \
+   "$(lib_path "${GNUPLOT}" 'libXrender\.')" \
+   "$(lib_path "${GNUPLOT}" 'libXau\.')" \
+   "$(lib_path "${GNUPLOT}" 'libxcb\.')" \
+   "$(lib_path "${GNUPLOT}" 'libxcb-shm\.')" \
+   "$(lib_path "${GNUPLOT}" 'libxcb-render\.')" \
+   "$(lib_path "${JQ}" 'libjq\.')" \
+   "$(lib_path "${JQ}" 'libonig\.')" \
+   "$(lib_path "${PSQL}" 'libcrypto\.')" \
+   "$(lib_path "${PSQL}" 'libpq\.')" \
+   "$(lib_path "${PSQL}" 'libssl\.')" \
+   "${APPDIR}/usr/lib/"
+
+ARCH="$(uname -m)"
+VERSION="@PROJECT_VERSION@"
+export ARCH VERSION
+"${APPIMAGETOOL}" --no-appstream "${APPDIR}"
