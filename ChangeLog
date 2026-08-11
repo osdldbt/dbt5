@@ -1,4 +1,4 @@
-vX.Y.Z (YYYY-MM-DD)
+v0.10.14 (2026-08-11)
 
 - Mark non-release builds in the version string with the commit they came
   from, and as dirty when the tree has uncommitted changes, including

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14...4.0)
 project(dbt5
-    VERSION 0.10.13
+    VERSION 0.10.14
     DESCRIPTION "Database Test 5"
     HOMEPAGE_URL "https://github.com/osdldbt/dbt5"
     LANGUAGES NONE
