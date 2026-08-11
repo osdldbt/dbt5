@@ -12,6 +12,7 @@ else
 fi
 
 CONTAINER_DIR="$(dirname "$(realpath "${0}")")"
+SRCDIR="$(cd "${CONTAINER_DIR}/.." && pwd)"
 CONTAINER_TAG="dbt5-appimage"
 TARGET="appimage"
 
@@ -27,11 +28,30 @@ else
 	USERNS_ARG=""
 fi
 
+# A linked worktree keeps its git metadata outside the source directory: .git
+# is a file naming the directory that holds it.  Mount that directory at the
+# same path it has here, so the version the build derives from git is the same
+# one a build outside the container derives.  A plain clone keeps everything
+# under the source directory, which is already mounted, and adds nothing.
+set --
+if [ -f "${SRCDIR}/.git" ]; then
+	GITDIR="$(sed -n 's/^gitdir: //p' "${SRCDIR}/.git")"
+	if [ -d "${GITDIR}" ]; then
+		# commondir is relative to the directory holding it, and names the
+		# repository the worktree belongs to.
+		COMMONDIR="$(cd "${GITDIR}" &&
+				cd "$(cat commondir 2> /dev/null || echo .)" &&
+				pwd)"
+		set -- -v "${COMMONDIR}:${COMMONDIR}:ro,Z"
+	fi
+fi
+
 ${CONTAINER_CMD} run \
 		--rm \
 		--user "$(id -u):$(id -g)" \
 		${USERNS_ARG} \
-		-v "${CONTAINER_DIR}/..:/dbt5:rw,Z" \
+		-v "${SRCDIR}:/dbt5:rw,Z" \
+		"$@" \
 		--env PKG_CONFIG_PATH="/usr/lib/pkgconfig" \
 		-w /dbt5 \
 		$CONTAINER_TAG \
