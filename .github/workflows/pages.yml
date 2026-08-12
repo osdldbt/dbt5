@@ -1,0 +1,69 @@
+---
+name: Publish Documentation
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  pages:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      # Ubuntu's python3-docutils installs the front ends with a .py
+      # suffix, but doc/Makefile calls rst2html5.  Install from PyPI,
+      # where the unsuffixed names are the ones provided.
+      - name: install dependencies
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: install docutils
+        run: pip install docutils
+
+      - name: build documentation
+        run: make -C doc html
+
+      - name: checkout the pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: pages
+          path: pages
+
+      - name: update the pages branch
+        run: |
+          set -x
+          # A tag push names the release.  A manual run can start from
+          # any ref, so name the branch and the commit it published.
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            version="${GITHUB_REF_NAME}"
+          else
+            version="${GITHUB_REF_NAME} $(git rev-parse --short HEAD)"
+          fi
+          # Remove the previous release's files so documentation that
+          # no longer exists does not stay published.
+          find pages -mindepth 1 -maxdepth 1 ! -name .git \
+                  -exec rm -rf {} +
+          cp -pr doc/html/. pages/
+          cd pages
+          git config user.name "github-actions[bot]"
+          git config user.email \
+                  "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+          if git diff --cached --quiet; then
+            echo "documentation unchanged"
+            exit 0
+          fi
+          git commit -m "Updated with ${version}"
+          git push
