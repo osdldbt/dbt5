@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="generator" content="Docutils 0.21.2: https://docutils.sourceforge.io/" />
+<meta name="generator" content="Docutils 0.23: https://docutils.sourceforge.io/" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Database Test 5 (DBT-5) Documentation</title>
 <style type="text/css">
@@ -10,7 +10,7 @@
 /* Minimal style sheet for the HTML output of Docutils.                    */
 /*                                                                         */
 /* :Author: Günter Milde, based on html4css1.css by David Goodger          */
-/* :Id: $Id: minimal.css 9545 2024-02-17 10:37:56Z milde $                                                               */
+/* :Id: $Id: minimal.css 10018 2025-03-06 16:19:15Z milde $                                                               */
 /* :Copyright: © 2015, 2021 Günter Milde.                                  */
 /* :License: Released under the terms of the `2-Clause BSD license`_,      */
 /*    in short:                                                            */
@@ -78,10 +78,9 @@ span.problematic {
 /* Lists */
 
 /* compact and simple lists: no margin between items */
-.simple  li, .simple  ul, .simple  ol,
-.compact li, .compact ul, .compact ol,
-.simple  > li p, dl.simple  > dd,
-.compact > li p, dl.compact > dd {
+.simple  li, .simple  ul, .simple  ol, .simple  > li p,
+.compact li, .compact ul, .compact ol, .compact > li p,
+dl.simple  > dd, dl.compact > dd, dl.docinfo > dd {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -150,7 +149,7 @@ dl.option-list > dd > *:first-child
 /* Bibliographic Fields (docinfo) */
 dl.docinfo pre.address {
   font: inherit;
-  margin: 0.5em 0;
+  margin: 0;
 }
 dl.docinfo > dd.authors > p { margin: 0; }
 
@@ -244,10 +243,11 @@ table.align-left, table.align-center, table.align-right {
 div.line-block { display: block; }
 div.line-block div.line-block, pre { margin-left: 2em; }
 
-/* Code line numbers: dropped when copying text from the page */
+/* Code line numbers: don't copy with drag-and-drop */
 pre.code .ln { display: none; }
 pre.code code:before {
-  content: attr(data-lineno); /* …, none) fallback not supported by any browser */
+  content: attr(data-lineno);
+  font-size: small;
   color: gray;
 }
 
@@ -299,7 +299,12 @@ img, svg, header, footer, main, aside, nav, section, figure, video, details {
 }
 svg { width: auto; height: auto; }  /* enable scaling of SVG images */
 /* inline images */
-p img, p svg, p video { display: inline; }
+
+p img, p svg, p video,
+h1 img, h2 img, h3 img, h4 img, h5 img, h6 img,
+h1 svg, h2 svg, h3 svg, h4 svg, h5 svg, h6 svg {
+  display: inline;
+}
 
 </style>
 <style type="text/css">
@@ -308,7 +313,7 @@ p img, p svg, p video { display: inline; }
 /* Rules for easy reading and pre-defined style variants.                  */
 /*                                                                         */
 /* :Author: Günter Milde, based on html4css1.css by David Goodger          */
-/* :Id: $Id: plain.css 9615 2024-04-06 13:28:15Z milde $                                                               */
+/* :Id: $Id: plain.css 10079 2025-04-10 12:01:48Z milde $                                                               */
 /* :Copyright: © 2015 Günter Milde.                                        */
 /* :License: Released under the terms of the `2-Clause BSD license`_,      */
 /*    in short:                                                            */
@@ -463,8 +468,7 @@ pre.math, pre.code {
 
 /* Block Quotes and Topics */
 bockquote { margin: 1em 2em; }
-blockquote p.attribution,
-.topic p.attribution {
+blockquote p.attribution {
   text-align: right;
   margin-left: 20%;
 }
@@ -660,10 +664,20 @@ a { text-decoration: none; }
 <li><p><a class="reference internal" href="#developer-guide" id="toc-entry-19">Developer Guide</a></p>
 <ul>
 <li><p><a class="reference internal" href="#building-the-kit-1" id="toc-entry-20">Building the Kit</a></p></li>
-<li><p><a class="reference internal" href="#appimage" id="toc-entry-21">AppImage</a></p>
+<li><p><a class="reference internal" href="#sandbox" id="toc-entry-21">Sandbox</a></p>
 <ul>
-<li><p><a class="reference internal" href="#building-the-appimage" id="toc-entry-22">Building the AppImage</a></p></li>
-<li><p><a class="reference internal" href="#including-tpc-e-tools-in-the-appimage" id="toc-entry-23">Including TPC-E Tools in the AppImage</a></p></li>
+<li><p><a class="reference internal" href="#database-container" id="toc-entry-22">Database Container</a></p>
+<ul>
+<li><p><a class="reference internal" href="#postgresql-1" id="toc-entry-23">PostgreSQL</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#regression-tests" id="toc-entry-24">Regression Tests</a></p></li>
+<li><p><a class="reference internal" href="#appimage" id="toc-entry-25">AppImage</a></p>
+<ul>
+<li><p><a class="reference internal" href="#building-the-appimage" id="toc-entry-26">Building the AppImage</a></p></li>
+<li><p><a class="reference internal" href="#including-tpc-e-tools-in-the-appimage" id="toc-entry-27">Including TPC-E Tools in the AppImage</a></p></li>
 </ul>
 </li>
 </ul>
@@ -748,22 +762,39 @@ files for executing tests.</p></li>
 <h2><a class="toc-backref" href="#toc-entry-8" role="doc-backlink">User's Guide</a></h2>
 <section id="building-tpc-e-tools">
 <h3><a class="toc-backref" href="#toc-entry-9" role="doc-backlink">Building TPC-E Tools</a></h3>
-<p>Download the TPC-E Tools directly from the TPC:
-<a class="reference external" href="https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp">https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp</a></p>
 <p>The kit requires the TPC-E Tools to be built for the specific database
 management system to be tested.  The TPC-E Tools is developed in such a way
-that it needs to rebuilt or another copy needs to be built if a different
-database management system is to be tested.</p>
-<p>DBT-5 provides a script to apply patches and code to compile the TPC-E Tools.
-The patches that are applied are minor code changes and code is supplied to
-build sponsor supplied code.</p>
-<p>For example, to build the TPC-E Tools for PostgreSQL (pgsql), unzip the TPC-E
-Tools zip file into an empty directory and run <cite>dbt5-build-egen</cite> against the
-resulting directory:</p>
+that it needs to rebuilt or another copy needs to be built in order to test
+different database management systems at the same time.</p>
+<p>DBT-5 provides a script to apply patches and provide code to compile the TPC-E
+Tools. The patches that are applied are minor code changes and code is supplied
+to build sponsor supplied code.</p>
+<p>The TPC-E Tools source is provided by the <span class="docutils literal">egen</span> git submodule, which
+tracks <a class="reference external" href="https://github.com/osdldbt/egen.git">https://github.com/osdldbt/egen.git</a>.  Initialize it when cloning the
+kit:</p>
+<pre class="literal-block">git clone --recurse-submodules https://github.com/osdldbt/dbt5.git</pre>
+<p>Or in an existing clone:</p>
+<pre class="literal-block">git submodule update --init</pre>
+<p>When the submodule is initialized, CMake uses it directly.  Otherwise
+CMake's FetchContent feature automatically fetches the TPC-E Tools source
+from the same repository during the configure step and places it in the
+build directory under <span class="docutils literal"><span class="pre">_deps/egen-src</span></span>.</p>
+<p>For example, to build the TPC-E Tools for PostgreSQL (pgsql), copy the
+source from the submodule to a working directory and run <cite>dbt5-build-egen</cite>
+against it (<cite>dbt5-build-egen</cite> patches and builds the directory in place, so
+building a copy keeps the submodule checkout clean):</p>
+<pre class="literal-block">cp -a egen /tmp/egen
+dbt5-build-egen --include-dir=src/include --patch-dir=patches \
+        --source-dir=src /tmp/egen</pre>
+<p>Alternatively, the TPC-E Tools can be downloaded directly from the TPC:
+<a class="reference external" href="https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp">https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp</a></p>
+<p>To build from the TPC zip distribution, unzip the TPC-E Tools zip file into an
+empty directory and run <cite>dbt5-build-egen</cite> against the resulting directory:</p>
 <pre class="literal-block">mkdir /tmp/egen
 cd /tmp/egen
 unzip /path/to/*-tpc-e-tool.zip
-dbt5-build-egen /tmp/egen</pre>
+dbt5-build-egen --include-dir=src/include --patch-dir=patches \
+        --source-dir=src /tmp/egen</pre>
 </section>
 </section>
 <section id="database-management-system-notes">
@@ -825,11 +856,11 @@ will be aggregated and plotted.</p>
 <p>Here are some examples plots from a system with 4 logical processors where it
 spend 1 minute warming up before running another 5 minutes.</p>
 <figure class="align-center">
-<a class="reference external image-reference" href="test-user-scaling/trpu.png">
-<img alt="test-user-scaling/trpu.png" src="test-user-scaling/trpu.png" style="width: 100%;" />
+<a class="reference external image-reference" href="test-user-scaling/trvu.png">
+<img alt="test-user-scaling/trvu.png" src="test-user-scaling/trvu.png" style="width: 100%;" />
 </a>
 <figcaption>
-<p>Connection Scaling Transaction Rates per user</p>
+<p>Connection Scaling Transaction Rates vs. Users</p>
 </figcaption>
 </figure>
 <figure class="align-center">
@@ -851,7 +882,7 @@ spend 1 minute warming up before running another 5 minutes.</p>
 </section>
 <section id="database-parameter-effects">
 <h3><a class="toc-backref" href="#toc-entry-18" role="doc-backlink">Database Parameter Effects</a></h3>
-<p>This test is performed by the <em>test-db-param</em> script.</p>
+<p>This test is performed by the <em>test-db-parameter</em> script.</p>
 <p>The purpose of this test is to evaluate the effects of a changing a single
 database parameter.</p>
 <p>This script must be used with a configuration file and cannot currently be
@@ -892,21 +923,140 @@ sar data from all the tests will be aggregated and plotted, as shown in the
 kit.</p>
 <section id="building-the-kit-1">
 <h3><a class="toc-backref" href="#toc-entry-20" role="doc-backlink">Building the Kit</a></h3>
-<p>CMake is build system used for this kit.  A <cite>Makefile.cmake</cite> is provided to
-automate some of the tasks.</p>
+<p>CMake is build system used for this kit.  A <cite>Makefile</cite> is provided to
+automate some of the tasks.  In-tree builds are not supported; the provided
+targets configure and build under the <cite>build/</cite> directory.</p>
+<p>The TPC-E Tools source is provided by the <span class="docutils literal">egen</span> git submodule.  Clone
+with <span class="docutils literal"><span class="pre">--recurse-submodules</span></span>, or run <span class="docutils literal">git submodule update <span class="pre">--init</span></span> in an
+existing clone, to use the local copy.  When the submodule is not
+initialized, CMake downloads the source at configure time via FetchContent.</p>
 <p>Building for debugging:</p>
-<pre class="literal-block">make -f Makefile.cmake debug</pre>
+<pre class="literal-block">make debug</pre>
 <p>Building for release:</p>
-<pre class="literal-block">make -f Makefile.cmake release</pre>
+<pre class="literal-block">make release</pre>
 <p>Building source packages:</p>
-<pre class="literal-block">make -f Makefile.cmake package</pre>
+<pre class="literal-block">make package</pre>
 <p>See the <strong>AppImage</strong> section for details on building an AppImage.  There are
-additional requirements for the <cite>appimage</cite> target in the <cite>Makefile.cmake</cite>.
+additional requirements for the <cite>appimage</cite> target in the <cite>Makefile</cite>.
 Alternatively, the kit provides scripts in the <em>tools</em> diretory to create a
 container that can create an AppImage.</p>
 </section>
+<section id="sandbox">
+<h3><a class="toc-backref" href="#toc-entry-21" role="doc-backlink">Sandbox</a></h3>
+<p>A <cite>compose.yml</cite> and additional files in <cite>.compose</cite> are provided to help create
+a test environment to test and debug the binaries by running a minimal
+workload, as oppose to the entire kit with statistics collection.  It currently
+works with <strong>docker</strong> and will hopefully work with <strong>podman</strong> at some point.</p>
+<p>This environment should also be suitable to test database loading (e.g.
+<cite>EGenLoader</cite>) and the transaction testing tool (<cite>TestTxn</cite>).</p>
+<p>Restarting a container rebuilds the kit for the container to help assist
+testing the current state of the code in the repository.</p>
+<p>Here are a brief list of commands with <strong>docker</strong> to help get started.  Please
+refer to the respective Compose documentation for more information.  These
+commands must be executed from the top of the source directory.</p>
+<p>The compose environment will use the smallest, but invalid, parameters possible
+in the interest of being to test things quickly.  Please refer to the benchmark
+specification for further explanation of these parameters.  These can be
+adjusted with environment variables:</p>
+<ul class="simple">
+<li><p><cite>CUSTOMERS</cite> - The total number of customer, must be a multiple of 1000.</p></li>
+<li><p><cite>DAYS</cite> - Initial trade days.</p></li>
+<li><p><cite>SCALEFACTOR</cite> - The number of customers per trade results transactions per
+second.</p></li>
+<li><p><cite>USERS</cite> - The number of users to emulate.</p></li>
+</ul>
+<p>Provision and deploy the environment:</p>
+<pre class="literal-block">docker compose up -d</pre>
+<p>Stop the containers:</p>
+<pre class="literal-block">docker compose stop</pre>
+<p>Remove the containers:</p>
+<pre class="literal-block">docker compose down</pre>
+<p>Follow the container system logs:</p>
+<pre class="literal-block">docker compose logs -f database</pre>
+<p>Build the database (only needs to be once, or each time the database container
+is recreated):</p>
+<pre class="literal-block">docker compose run load</pre>
+<p>Run the workload and specify the test duration in seconds (results are saved in
+the <cite>results</cite> subdirectory):</p>
+<pre class="literal-block">docker compose run driver -d 120</pre>
+<section id="database-container">
+<h4><a class="toc-backref" href="#toc-entry-22" role="doc-backlink">Database Container</a></h4>
+<section id="postgresql-1">
+<h5><a class="toc-backref" href="#toc-entry-23" role="doc-backlink">PostgreSQL</a></h5>
+<p>Connect to the database:</p>
+<pre class="literal-block">docker compose exec -u postgres database psql dbt5</pre>
+</section>
+</section>
+</section>
+<section id="regression-tests">
+<h3><a class="toc-backref" href="#toc-entry-24" role="doc-backlink">Regression Tests</a></h3>
+<p>The <cite>tests/</cite> directory contains regression tests that are run by CTest and
+written with shunit2, so shunit2 must be installed to run them.  Configuring a
+build tree registers the tests with CTest, and the <cite>test</cite> target in the
+<cite>Makefile</cite> configures the release build tree and runs them:</p>
+<pre class="literal-block">make test</pre>
+<p>The tests can also be run from an already configured build tree:</p>
+<pre class="literal-block">cd build/release &amp;&amp; ctest --output-on-failure</pre>
+<p>CTest only shows a test's output when the test fails.  Use <cite>ctest -V</cite> to
+always show the output, including shunit2 reporting each test function as it
+runs.  A test script can also be run directly, which shows its output as it
+happens; when the kit is not installed, the test must be told where to find
+<cite>dbt5-build-egen</cite>:</p>
+<pre class="literal-block">DBT5_BUILD_EGEN=build/release/dbt5-build-egen \
+        sh tests/test_egen_chunking</pre>
+<p>The <em>egen_chunking</em> test builds the TPC-E Tools in a temporary
+directory, then generates flat data files once with a single <cite>EGenLoader</cite>
+instance covering every customer and again with multiple instances each
+covering a subrange of customers, and verifies that both sets of data files
+contain the same data.  This is the property that makes parallel data
+generation and loading safe.  The test requires the <cite>egen</cite> submodule to be
+initialized and is skipped otherwise.</p>
+<p>The test parameters default to the minimum valid values defined by the
+benchmark specification: 5000 customers, a scale factor of 500, and 300
+initial trade days.  These defaults generate two spec-minimum data sets of
+tens of gigabytes each and may take over an hour.  The parameters can be
+adjusted with environment variables for smaller, non-conformant runs while
+developing:</p>
+<pre class="literal-block">ITD=10 make test</pre>
+<ul class="simple">
+<li><p><cite>CHUNK</cite> - The number of customers generated per <cite>EGenLoader</cite> instance, must
+be a multiple of 1000.</p></li>
+<li><p><cite>ITD</cite> - Initial trade days.</p></li>
+<li><p><cite>SF</cite> - The number of customers per trade result transactions per second.</p></li>
+<li><p><cite>TOTAL</cite> - The total number of customers, must be a multiple of 1000.</p></li>
+</ul>
+<p>The <em>pgsql_transactions</em> test runs each TPC-E transaction through <cite>TestTxn</cite>
+against a database built from deterministic EGen data, once with the server
+side database backend and once with the client side backend, using the same
+random number generator seeds, and verifies that both produce the same
+frame output.  Transactions that modify the database run each backend
+against a fresh copy of the database so both start from the same state.
+The test creates a throwaway PostgreSQL instance in the shunit2 temporary
+directory, listening only on localhost on a random port, and removes it
+afterward; it requires the PostgreSQL server programs, located with
+<cite>pg_config --bindir</cite>, and is skipped otherwise.  For example:</p>
+<pre class="literal-block">ITD=3 ctest -R pgsql_transactions</pre>
+<p>The database defaults to 1000 customers, the smallest EGenLoader accepts.
+The TPC-E specification does not define database content below 5000
+customers, so unusual transaction results are possible at that size; set
+<cite>TOTAL=5000 SF=500 ITD=300</cite> for a database at the specification minimum.
+<cite>TOTAL</cite>, <cite>SF</cite>, and <cite>ITD</cite> adjust sizing as above, <cite>SEEDS</cite> selects the random
+number generator seeds, and <cite>FIXTUREDB</cite> names the database the test
+creates and drops.</p>
+<p>The <em>pgsql_storedprocs_plpgsql</em> and <em>pgsql_storedprocs_c</em> tests validate
+one stored function implementation each: every transaction runs through
+<cite>TestTxn</cite> with the server side backend, which calls that implementation,
+and with the client side backend, which builds the SQL itself and uses no
+stored functions, and the frame output must match.  A failure therefore
+names the implementation under test.  The C stored functions are built
+with PGXS from a copy of the source and loaded by absolute path in place
+of the pl/pgsql functions, so nothing is installed into the PostgreSQL
+installation directories.  In addition to the <em>pgsql_transactions</em> test
+requirements, <em>pgsql_storedprocs_c</em> needs the PostgreSQL server
+development files.</p>
+</section>
 <section id="appimage">
-<h3><a class="toc-backref" href="#toc-entry-21" role="doc-backlink">AppImage</a></h3>
+<h3><a class="toc-backref" href="#toc-entry-25" role="doc-backlink">AppImage</a></h3>
 <p>AppImages are only for Linux based systems: <a class="reference external" href="https://appimage.org/">https://appimage.org/</a></p>
 <p>The AppImageKit AppImage can be downloaded from:
 <a class="reference external" href="https://github.com/AppImage/AppImageKit/releases">https://github.com/AppImage/AppImageKit/releases</a></p>
@@ -916,7 +1066,7 @@ container that can create an AppImage.</p>
 <p>See the <cite>README.rst</cite> in the <cite>tools/</cite> directory for an example of creating
 an AppImage with a Podman container.</p>
 <section id="building-the-appimage">
-<h4><a class="toc-backref" href="#toc-entry-22" role="doc-backlink">Building the AppImage</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-26" role="doc-backlink">Building the AppImage</a></h4>
 <p>The AppImages builds a custom minimally configured PostgreSQL build to reduce
 library dependency requirements.  Part of this reason is to make it easier to
 include libraries with compatible licences.  At least version PostgreSQL 11
@@ -929,22 +1079,18 @@ options:</p>
 appropriately depending on where the custom build of PostgreSQL is installed.</p>
 </section>
 <section id="including-tpc-e-tools-in-the-appimage">
-<h4><a class="toc-backref" href="#toc-entry-23" role="doc-backlink">Including TPC-E Tools in the AppImage</a></h4>
+<h4><a class="toc-backref" href="#toc-entry-27" role="doc-backlink">Including TPC-E Tools in the AppImage</a></h4>
 <p>Review the TPC EULA for redistribution of TPC provided code and binaries before
 redistributing any AppImages that include any TPC provided code or binaries:
 <a class="reference external" href="https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp">https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp</a></p>
-<p>In the source directory, create the subdirectory <em>egen</em> and unzip the TPC-E
-tools into it:</p>
-<pre class="literal-block">mkdir egen
-cd egen
-unzip /tmp/*-tpc-e-tool.zip</pre>
 <p>Two scripts are provided, one to create a container for building the AppImage
 and one to building the AppImage:</p>
-<pre class="literal-block">EGEN=tpc-e-tool.zip tools/build-appimage-container
+<pre class="literal-block">tools/build-appimage-container
 EGEN=tpc-e-tool.zip tools/build-appimage</pre>
-<p>The environment variable <cite>EGEN</cite> must be set to location and name of the TPC-E
-Tools zip file otherwise the AppImage will be created without the TPC-E tools
-included.</p>
+<p>The environment variable <cite>EGEN</cite> can be set to location and name of the TPC-E
+Tools zip file otherwise the script will try to detect whether the TPC-E Tools
+zip exists in the top level directory.  Otherwise the AppImage will be created
+without the TPC-E tools included.</p>
 <p>When the TPC-E Tools are included in the AppImage, the <em>build</em> and <em>run</em>
 commands do not need the use of the <cite>--tpcetools</cite> flag and will automatically
 use the included TPC-E Tools binaries.</p>
