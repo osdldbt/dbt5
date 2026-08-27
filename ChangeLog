@@ -2,6 +2,7 @@ vX.Y.Z (YYYY-MM-DD)
 
 - Unify .containerignore and .dockerignore so docker and podman builds
   exclude the same files from the container image
+- pgsql: restore CUSTOM as the default load type
 
 v0.10.14 (2026-08-11)
 

@@ -22,7 +22,8 @@ General options:
   --db-port=PORT
                  database listening PORT number
   -i EGENHOME    EGENHOME is the directory location of the TPC-E Tools
-  -l LOAD        EGenLoader type of LOAD [FLAT|ODBC|CUSTOM|NULL], default CUSTOM
+  -l LOAD        EGenLoader type of LOAD [FLAT|ODBC|CUSTOM|NULL],
+                 default CUSTOM
   -o FLAT_OUT    directory location for FLAT type EGenLoader data files,
                  default EGENHOME/flat_out
   -p PARAMETERS  PostgreSQL database PARAMETERS
@@ -79,7 +80,7 @@ load_table()
 	fi
 }
 
-MODE="FLAT"
+MODE="CUSTOM"
 REBUILD_DB=0
 PARALLELISM=1
 PRIVILEGED=0
