@@ -98,6 +98,17 @@ stat_collection()
 
 	ARGS=$1
 
+	# Starting a collector has to return immediately, but stopping one
+	# must not.  cleanup() kills this script's remaining background
+	# jobs moments after the stop is issued, so a backgrounded stop is
+	# liable to be killed before it has stopped anything, leaving the
+	# collectors it was about to stop running.
+	if [ "${ARGS}" = "-s" ]; then
+		BG=""
+	else
+		BG="&"
+	fi
+
 	if [ "${CONFIGFILE}" = "" ]; then
 		# If the this is a 1-tier test, system stats will be saved only in the db
 		# directory.
@@ -108,7 +119,7 @@ stat_collection()
 				echo "stats collection"
 			else
 				eval "ts sysstat -o ${DRIVER_OUTPUT_DIR}/$(hostname)/sysstat \
-						${ARGS} &"
+						${ARGS} ${BG}"
 			fi
 		fi
 
@@ -128,7 +139,7 @@ stat_collection()
 				printf "collection on %s\n" "${HOSTNAME}"
 			else
 				eval "${DB_COMMAND} ts sysstat \
-						-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+						-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} ${BG}"
 			fi
 		fi
 
@@ -140,7 +151,7 @@ stat_collection()
 					"${DBMS}" "${HOSTNAME}"
 		else
 			eval "${DB_COMMAND} ts ${DBMS}-stat -d ${DB_NAME} ${DB_PORT_ARG} \
-					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${ARGS} &"
+					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${ARGS} ${BG}"
 		fi
 	else
 		LIST=""
@@ -160,7 +171,7 @@ stat_collection()
 			fi
 			HOSTNAME=$(eval "${CMD} hostname")
 			eval "${CMD} ts sysstat \
-					-o ${DRIVER_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+					-o ${DRIVER_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} ${BG}"
 		done
 
 		LIST=""
@@ -180,7 +191,7 @@ stat_collection()
 			fi
 			HOSTNAME=$(eval "${CMD} hostname")
 			eval "${CMD} ts sysstat \
-					-o ${MEE_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+					-o ${MEE_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} ${BG}"
 		done
 
 		DBLIST=""
@@ -204,7 +215,7 @@ stat_collection()
 			fi
 			HOSTNAME=$(eval "${CMD} hostname")
 			eval "${CMD} ts sysstat \
-					-o ${BH_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+					-o ${BH_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} ${BG}"
 		done
 
 		DBS="$(toml get "${CONFIGFILE}" . | jq -r '.database | length')"
@@ -225,12 +236,15 @@ stat_collection()
 				HOSTNAME=$(eval "${CMD} hostname")
 				if [ ${DBAAS} -ne 1 ]; then
 					eval "${CMD} ts sysstat \
-							-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat ${ARGS} &"
+							-o ${DB_OUTPUT_DIR}/${HOSTNAME}/sysstat \
+							${ARGS} ${BG}"
 					eval "${CMD} ts ${DBMS}-stat -d ${DB_NAME} ${DB_PORT_ARG} \
-							-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${ARGS} &"
+							-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat \
+							${ARGS} ${BG}"
 				else
 					eval "ts ${DBMS}-stat -d ${DB_NAME} ${DB_PORT_ARG} \
-							-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat ${ARGS} &"
+							-o ${DB_OUTPUT_DIR}/${HOSTNAME}/dbstat \
+							${ARGS} ${BG}"
 				fi
 			done
 		fi
