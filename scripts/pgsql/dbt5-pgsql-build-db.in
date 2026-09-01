@@ -32,7 +32,8 @@ General options:
   --rows-per-commit ROWS
                  Specify how many ROWS are sent before a COMMIT, the actual
                  number of rows is approximately calculated, default is all
-  -r             Drop existing database before building a new database
+  -r             Rebuild from scratch, dropping the existing database
+                 when -U is given and emptying it otherwise
   -s SCALE_FACTOR
                  Scale factor (customers per 1 trtps), default ${SCALE_FACTOR}
   --skip-data-generation
@@ -265,7 +266,16 @@ if [ ${PRIVILEGED} -eq 1 ] && [ ${REBUILD_DB} -eq 1 ]; then
 	echo "Restarting the database to reset database parameters..."
 	dbt5-pgsql-stop-db
 	dbt5-pgsql-start-db -p "${PARAMETERS}" || exit 1
-	eval "dbt5-pgsql-drop-db ${DBNAMEARG} ${PORTARG}"
+fi
+
+if [ ${REBUILD_DB} -eq 1 ]; then
+	if [ ${PRIVILEGED} -eq 1 ]; then
+		eval "dbt5-pgsql-drop-db ${DBNAMEARG} ${PORTARG}"
+	else
+		# Without the privileges to drop the database, empty it
+		# instead.  This needs only ownership of the objects in it.
+		eval "dbt5-pgsql-drop-tables ${DBNAMEARG} ${PORTARG}"
+	fi
 fi
 
 eval "dbt5-pgsql-create-db ${DBNAMEARG} ${PORTARG}" || exit 1

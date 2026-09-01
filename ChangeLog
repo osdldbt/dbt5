@@ -3,6 +3,10 @@ vX.Y.Z (YYYY-MM-DD)
 - Unify .containerignore and .dockerignore so docker and podman builds
   exclude the same files from the container image
 - pgsql: restore CUSTOM as the default load type
+- pgsql-build-db: fix -r to rebuild database correctly based on user's
+  privileges
+- pgsql-drop-tables: add -d and -p argument handling consistent with the
+  other scripts, and now able to handle empty databases
 
 v0.10.14 (2026-08-11)
 
