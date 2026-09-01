@@ -61,7 +61,9 @@ while [ "${#}" -gt 0 ] ; do
 		break
 		;;
 	esac
-	shift
+	if [ "${#}" -gt 0 ]; then
+		shift
+	fi
 done
 
 eval "psql -X ${PORTARG} -e ${DBNAMEARG}" <<- SQL

@@ -8,6 +8,7 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql-drop-tables: add -d and -p argument handling consistent with the
   other scripts, and now able to handle empty databases
 - More improvements to stopping stats collection processes
+- Fix a number of scripts' mishandling of trailing command line arguments
 
 v0.10.14 (2026-08-11)
 
