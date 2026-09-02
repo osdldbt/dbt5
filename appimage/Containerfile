@@ -204,4 +204,5 @@ WORKDIR /usr/local
 RUN curl -SsOL \
          https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${ARCH}.AppImage && \
     chmod +x appimagetool-${ARCH}.AppImage && \
-    ./appimagetool-${ARCH}.AppImage --appimage-extract
+    ./appimagetool-${ARCH}.AppImage --appimage-extract && \
+    rm -f appimagetool-${ARCH}.AppImage
