@@ -76,6 +76,10 @@ done
 if [ $VERSION -eq 1 ]; then
 	if [ $VERBOSE -eq 1 ]; then
 		"${APPDIR}/usr/bin/dbt5" --version --verbose
+		echo ""
+		"${APPDIR}/usr/bin/dbt-version"
+		echo ""
+		"${APPDIR}/usr/bin/ts" --version
 	else
 		"${APPDIR}/usr/bin/dbt5" --version
 	fi

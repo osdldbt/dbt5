@@ -118,6 +118,7 @@ cp -p "$(command -v dbt-plot)" \
    "$(command -v dbt-pgsql-generate-db-report)" \
    "$(command -v dbt-pgsql-generate-index-report)" \
    "$(command -v dbt-pgsql-generate-table-report)" \
+   "$(command -v dbt-version)" \
    "${APPDIR}/usr/bin/"
 
 cp -p "$(command -v ts)" \

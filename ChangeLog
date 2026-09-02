@@ -12,6 +12,8 @@ vX.Y.Z (YYYY-MM-DD)
 - pgsql: Add missing argument to handle loading stored function types in
   the build scripts
 - AppImage: bump touchstone-tools to v0.10.5
+- AppImage: report the bundled DBT Tools and Touchstone Tools versions
+  with --version --verbose
 
 v0.10.14 (2026-08-11)
 
