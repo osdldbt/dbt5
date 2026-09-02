@@ -69,7 +69,12 @@ required:
 
 Optional software:
 
-* **sar**, **pidstat** http://pagesperso-orange.fr/sebastien.godard/ (While the
+* **dbttools** https://github.com/osdldbt/dbttools provides tools for
+  collecting database statistics and generating database reports
+* **touchstone** https://gitlab.com/touchstone/touchstone-tools provides
+  additional tools required for profiling and collecting system
+  statistics
+* **sar**, **pidstat** https://github.com/sysstat/sysstat (While the
   scripts assume this particular version of **sar** and **pidstat**, it is
   possible to run on non-Linux based operating systems with some modifications
   to the kit.)
