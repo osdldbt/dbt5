@@ -24,6 +24,9 @@ General options:
   --config=CONFIG
 				 CONFIG file to use for executing the tests.  These settings
                  will override any conflicting command line arguments.
+                 Required: the parameter to test, its values, and the
+                 commands that start and stop the database system have
+                 no command line equivalents.
   --db-host=ADDRESS
                  ADDRESS of database system to start, stop and update
                  configuration parameter, default ${DB_HOSTNAME}
@@ -41,6 +44,24 @@ DBMS options are:
   pgsql      PostgreSQL
 
 DIRECTORY is the path to save test results.
+
+CONFIG is a TOML file.  In addition to everything $(basename "${0}")
+passes on to "dbt5 run", it must define:
+
+  db_start_command
+                 command that starts the database system
+  db_stop_command
+                 command that stops the database system
+  db_param_name  name of the parameter to test
+  db_param_values
+                 array of values to test the parameter at
+
+For example:
+
+  db_start_command = "pg_ctl -D /tmp/pgdata start"
+  db_stop_command = "pg_ctl -D /tmp/pgdata stop -m fast"
+  db_param_name = "shared_buffers"
+  db_param_values = ["1GB", "2GB", "3GB", "4GB"]
 
 @HOMEPAGE@
 EOF
@@ -147,6 +168,24 @@ DB_STOP_COMMAND="$(toml get "${CONFIGFILE}" . | jq -r '.db_stop_command')"
 DB_PARAM_NAME="$(toml get "${CONFIGFILE}" . | jq -r '.db_param_name')"
 DB_PARAM_VALUES="$(toml get "${CONFIGFILE}" . | jq -cr '.db_param_values')"
 
+# jq renders a key the config file does not define as "null", which
+# would otherwise be evaluated as a command, or used as a parameter
+# name, once per tested value.
+for KEY in db_start_command db_stop_command db_param_name \
+		db_param_values; do
+	eval "VALUE=\"\${$(echo "${KEY}" | tr '[:lower:]' '[:upper:]')}\""
+	if [ "${VALUE}" = "null" ] || [ "${VALUE}" = "" ]; then
+		echo "config file '${CONFIGFILE}' does not define ${KEY},"
+		echo "try \"$(basename "${0}") --help\" for more information."
+		exit 1
+	fi
+done
+
+if [ "$(echo "${DB_PARAM_VALUES}" | jq -r '.[]' | wc -l)" -eq 0 ]; then
+	echo "config file '${CONFIGFILE}' defines no db_param_values to test."
+	exit 1
+fi
+
 # Build up the run arguments
 
 RUNARGS="${RUNARGS} --config=${CONFIGFILE}"
@@ -166,27 +205,79 @@ mkdir -p "${OUTDIR}"
 echo "testing parameter: ${DB_PARAM_NAME}"
 echo "testing values: ${DB_PARAM_VALUES}"
 
+# A failed step leaves the rest of a value's test meaningless: the
+# parameter may not have changed, or the database system may not be
+# running.  Recording a throughput anyway would label a number with
+# conditions it was not measured under, so the value is skipped and
+# the failure is both reported and kept in a file, since a long series
+# scrolls its output away.
+FAILURESFILE="${OUTDIR}/failures.log"
+
+step_failed()
+{
+	echo "    FAILED: ${1}, skipping ${DB_PARAM_NAME} = ${VALUE}"
+	echo "${DB_PARAM_NAME} = ${VALUE}: ${1}" >> "${FAILURESFILE}"
+}
+
 for VALUE in $(echo "${DB_PARAM_VALUES}" | jq -r '.[]'); do
 	PREFIX="${OUTDIR}/${DB_PARAM_NAME}-${VALUE}"
 
 	echo "testing ${DB_PARAM_NAME} = ${VALUE}"
 
 	echo "    ensure database is started to update parameter"
-	eval "${DB_START_COMMAND}"
+	if ! eval "${DB_START_COMMAND}"; then
+		step_failed "db_start_command"
+		continue
+	fi
 
 	echo "    updating ${DB_PARAM_NAME} to ${VALUE}"
-	eval "dbt5 ${DBMS}-set-param ${SETPARAMARGS} ${DB_PARAM_NAME} ${VALUE}"
+	if ! eval "dbt5 ${DBMS}-set-param ${SETPARAMARGS} ${DB_PARAM_NAME} \
+			${VALUE}"; then
+		step_failed "set-param"
+		continue
+	fi
 
 	echo "    restarting database to ensure parameter change takes effect"
-	eval "${DB_STOP_COMMAND}"
-	eval "${DB_START_COMMAND}"
+	if ! eval "${DB_STOP_COMMAND}"; then
+		step_failed "db_stop_command"
+		continue
+	fi
+	if ! eval "${DB_START_COMMAND}"; then
+		step_failed "db_start_command after setting the parameter"
+		continue
+	fi
 
 	echo "    starting test"
-	eval "dbt5 run --stats ${RUNARGS} ${DBMS} ${PREFIX}" > "${PREFIX}.log" 2>&1
+	if ! eval "dbt5 run --stats ${RUNARGS} ${DBMS} ${PREFIX}" \
+			> "${PREFIX}.log" 2>&1; then
+		step_failed "run, see ${PREFIX}.log"
+		continue
+	fi
+
+	if [ ! -f "${PREFIX}/summary.rst" ]; then
+		step_failed "run wrote no summary.rst, see ${PREFIX}.log"
+		continue
+	fi
 
 	TRTPS="$(grep Throughput "${PREFIX}/summary.rst" | awk '{print $3}')"
+	if [ "${TRTPS}" = "" ]; then
+		step_failed "no throughput in ${PREFIX}/summary.rst"
+		continue
+	fi
+
 	echo "${VALUE} ${TRTPS}" >> "${RESULTSFILE}"
 done
+
+if [ -s "${FAILURESFILE}" ]; then
+	echo
+	echo "some values were not measured:"
+	sed -e 's/^/    /' "${FAILURESFILE}"
+fi
+
+if [ ! -s "${RESULTSFILE}" ]; then
+	echo "no value produced a result, nothing to plot."
+	exit 1
+fi
 
 # Bar plot the metric per database connection.
 gnuplot << EOF
