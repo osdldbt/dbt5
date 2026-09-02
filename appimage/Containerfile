@@ -185,7 +185,7 @@ RUN cmake -H. -Bbuild/release -DCMAKE_INSTALL_PREFIX=/usr && \
 RUN mkdir -p /usr/local/share/licenses/dbttools-${DBTTOOLSVER} && \
     cp -p LICENSE /usr/local/share/licenses/dbttools-${DBTTOOLSVER}/
 
-ARG TSTOOLSVER="0.10.3"
+ARG TSTOOLSVER="0.10.5"
 RUN curl -o /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz -SsL \
          https://gitlab.com/touchstone/touchstone-tools/-/archive/v${TSTOOLSVER}/touchstone-tools-v${TSTOOLSVER}.tar.gz && \
     mkdir -p /usr/local/src/touchstone-tools-v${TSTOOLSVER} && \

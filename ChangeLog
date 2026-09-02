@@ -11,6 +11,7 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix a number of scripts' mishandling of trailing command line arguments
 - pgsql: Add missing argument to handle loading stored function types in
   the build scripts
+- AppImage: bump touchstone-tools to v0.10.5
 
 v0.10.14 (2026-08-11)
 
