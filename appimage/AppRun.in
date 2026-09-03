@@ -86,6 +86,14 @@ if [ $VERSION -eq 1 ]; then
 	exit 0
 fi
 
+# Save the caller's search paths before overriding them.  The bundled
+# binaries need the AppImage's, but a command the user supplies through
+# a config file is a host command and needs the environment it was
+# written for.  See dbt5-test-db-parameter, which restores these around
+# db_start_command and db_stop_command.
+export DBT5_HOST_PATH="${PATH}"
+export DBT5_HOST_LD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
+
 export PATH="${APPDIR}/usr/bin:${PATH}"
 
 if [ "${LD_LIBRARY_PATH}" = "" ]; then

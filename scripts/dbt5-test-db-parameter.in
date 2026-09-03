@@ -213,6 +213,49 @@ echo "testing values: ${DB_PARAM_VALUES}"
 # scrolls its output away.
 FAILURESFILE="${OUTDIR}/failures.log"
 
+# db_start_command and db_stop_command come from the user's config
+# file, so they are host commands.  Run them with the environment the
+# user had rather than the AppImage's.
+#
+# The AppImage prepends its own bin and lib directories to PATH and
+# LD_LIBRARY_PATH so its bundled binaries can find each other.  A host
+# binary evaluated in that environment binds against the bundled
+# libraries instead of its own, and the bundled libpq is much older
+# than the servers this is used to test, so a current psql fails with
+#
+#     psql: symbol lookup error: undefined symbol: PQpipelineStatus
+#
+# before running any SQL.  Nothing notices, because the failure is in
+# the user's command rather than in this script.  Bundling a newer
+# PostgreSQL raises the version at which that happens but does not
+# remove the problem, since a client newer still would fail the same
+# way.
+#
+# AppRun records what the caller had.  Outside the AppImage the
+# variables are unset and this is a no-op.
+run_host_command()
+{
+	if [ -z "${APPDIR}" ]; then
+		eval "${1}"
+		return "${?}"
+	fi
+
+	# An empty saved value means the caller had none, and exporting an
+	# empty LD_LIBRARY_PATH is not the same as having none, so unset it
+	# in that case.
+	(
+		PATH="${DBT5_HOST_PATH}"
+		export PATH
+		if [ -z "${DBT5_HOST_LD_LIBRARY_PATH}" ]; then
+			unset LD_LIBRARY_PATH
+		else
+			LD_LIBRARY_PATH="${DBT5_HOST_LD_LIBRARY_PATH}"
+			export LD_LIBRARY_PATH
+		fi
+		eval "${1}"
+	)
+}
+
 step_failed()
 {
 	echo "    FAILED: ${1}, skipping ${DB_PARAM_NAME} = ${VALUE}"
@@ -225,7 +268,7 @@ for VALUE in $(echo "${DB_PARAM_VALUES}" | jq -r '.[]'); do
 	echo "testing ${DB_PARAM_NAME} = ${VALUE}"
 
 	echo "    ensure database is started to update parameter"
-	if ! eval "${DB_START_COMMAND}"; then
+	if ! run_host_command "${DB_START_COMMAND}"; then
 		step_failed "db_start_command"
 		continue
 	fi
@@ -238,11 +281,11 @@ for VALUE in $(echo "${DB_PARAM_VALUES}" | jq -r '.[]'); do
 	fi
 
 	echo "    restarting database to ensure parameter change takes effect"
-	if ! eval "${DB_STOP_COMMAND}"; then
+	if ! run_host_command "${DB_STOP_COMMAND}"; then
 		step_failed "db_stop_command"
 		continue
 	fi
-	if ! eval "${DB_START_COMMAND}"; then
+	if ! run_host_command "${DB_START_COMMAND}"; then
 		step_failed "db_start_command after setting the parameter"
 		continue
 	fi

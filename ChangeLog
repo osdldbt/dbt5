@@ -16,6 +16,7 @@ vX.Y.Z (YYYY-MM-DD)
   with --version --verbose
 - doc: list DBT Tools and Touchstone Tools as optional dependencies
 - test-db-parameter: improve exit status checking of each step
+- AppImage: use host environment's psql tools for testing scripts
 
 v0.10.14 (2026-08-11)
 
