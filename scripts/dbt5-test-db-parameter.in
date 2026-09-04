@@ -37,6 +37,7 @@ General options:
                  database listening PORT number to start, stop and update
                  configuration parameter
   --dbaas        database server is a service
+  --profile      profile the database system for each value tested
   -V, --version  output version information, then exit
   -?, --help     show this help, then exit
 
@@ -72,6 +73,7 @@ DB_HOSTNAME="localhost"
 DB_PORT=""
 export DB_USER=""
 DBNAME="dbt5"
+PROFILE=0
 RUNARGS=""
 SETPARAMARGS=""
 
@@ -111,6 +113,9 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--dbaas)
 		RUNARGS="${RUNARGS} --dbaas"
+		;;
+	(--profile)
+		PROFILE=1
 		;;
 	(-V | --version)
 		echo "$(basename "${0}") v@PROJECT_VERSION@"
@@ -184,6 +189,16 @@ done
 if [ "$(echo "${DB_PARAM_VALUES}" | jq -r '.[]' | wc -l)" -eq 0 ]; then
 	echo "config file '${CONFIGFILE}' defines no db_param_values to test."
 	exit 1
+fi
+
+# Profiling can be asked for on the command line or in the config file,
+# since everything else about a series is described by the config file.
+if [ "$(toml get "${CONFIGFILE}" . | jq -r '.profile')" = "true" ]; then
+	PROFILE=1
+fi
+
+if [ "${PROFILE}" -eq 1 ]; then
+	RUNARGS="${RUNARGS} --profile"
 fi
 
 # Build up the run arguments

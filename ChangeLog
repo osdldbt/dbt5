@@ -17,6 +17,8 @@ vX.Y.Z (YYYY-MM-DD)
 - doc: list DBT Tools and Touchstone Tools as optional dependencies
 - test-db-parameter: improve exit status checking of each step
 - AppImage: use host environment's psql tools for testing scripts
+- test-user-scaling, test-db-parameter: enable ability to collect software
+  profiles
 
 v0.10.14 (2026-08-11)
 

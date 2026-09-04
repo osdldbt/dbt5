@@ -34,6 +34,7 @@ General options:
   -h ADDRESS     ADDRESS of database system, default ${DB_HOSTNAME}
   -n NAME        NAME of the database, default ${DBNAME}
   -p PORT        database listening PORT number
+  --profile      profile the database system for each test in the series
   --start USERS  start with USERS users, default ${FIRST}
   --step USERS   increment by USERS users, default ${STEP}
   --stop USERS   stop at USERS users, default detected number of processors
@@ -82,6 +83,9 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--dbaas)
 		RUNARGS="${RUNARGS} --dbaas"
+		;;
+	(--profile)
+		RUNARGS="${RUNARGS} --profile"
 		;;
 	(-d)
 		shift
