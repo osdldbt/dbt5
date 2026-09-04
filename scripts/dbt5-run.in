@@ -56,11 +56,23 @@ make_directories()
 
 profile_collect()
 {
+	# Wait before sampling.  The cache may or may not be warm when the
+	# measurement interval opens, depending on the length of the ramp
+	# up time, which is the user count multiplied by the sleep between
+	# starting the next user.  A long enough ramp up time should warm
+	# the cache by the time all of the users are started.  Default to
+	# sample halfway into the measurement interval.
+	if [ "${PROFILE_DELAY}" -gt 0 ]; then
+		do_sleep "${PROFILE_DELAY}" \
+				"* Profiling to start in ${PROFILE_DELAY} s."
+	fi
+
 	if [ -n "${DB_HOSTNAME}" ] && [ ! "${DB_HOSTNAME}" = "localhost" ]; then
 		if ! command -v ts > /dev/null 2>&1; then
 			echo "WARNING: touchstone tools not found for local profiling"
 		else
-			ts profile -o "${DRIVER_OUTPUT_DIR}/$(hostname)/profile" sleep 10 &
+			ts profile -o "${DRIVER_OUTPUT_DIR}/$(hostname)/profile" \
+					sleep "${PROFILE_DURATION}" &
 		fi
 	fi
 
@@ -71,7 +83,8 @@ profile_collect()
 					"${HOSTNAME}"
 		else
 			eval "${DB_COMMAND} ts profile \
-					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/profile sleep 10 &"
+					-o ${DB_OUTPUT_DIR}/${HOSTNAME}/profile \
+					sleep ${PROFILE_DURATION} &"
 		fi
 	fi
 }
@@ -362,7 +375,13 @@ General options:
   -l DELAY       pacing DELAY in seconds, default ${PACING_DELAY}
   -n NAME        database name, default ${DB_NAME}
   --privileged   run tests as a privileged database user
-  --profile      profile system shortly after ramping up
+  --profile      profile the system during the measurement interval
+  --profile-delay=SECONDS
+                 SECONDS into the measurement interval to start profiling,
+                 default is half the test duration.  0 profiles immediately,
+                 which samples the caches filling rather than steady state
+  --profile-duration=SECONDS
+                 SECONDS to profile for, default ${PROFILE_DURATION}
   -p, --db-port=PORT
                  database PORT number
   -r SEED        random number SEED, using this invalidates test
@@ -408,6 +427,8 @@ CUSTOMERS_TOTAL=5000
 ITD=300
 MARKETLIST=""
 PROFILE=0
+PROFILE_DELAY=""
+PROFILE_DURATION=20
 SCALE_FACTOR=500
 SSH="ssh -q -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 SLEEPY=1000 # milliseconds
@@ -489,6 +510,20 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--profile)
 		PROFILE=1
+		;;
+	(--profile-delay)
+		shift
+		PROFILE_DELAY="${1}"
+		;;
+	(--profile-delay=?*)
+		PROFILE_DELAY="${1#*--profile-delay=}"
+		;;
+	(--profile-duration)
+		shift
+		PROFILE_DURATION="${1}"
+		;;
+	(--profile-duration=?*)
+		PROFILE_DURATION="${1#*--profile-duration=}"
 		;;
 	(-p*)
 		DB_PORT="${1#*-p}"
@@ -969,6 +1004,25 @@ SLEEP_RAMPUP=$((SLEEP_RAMPUP / 1000))
 do_sleep "${SLEEP_RAMPUP}" "* User ramp up to finish in ${SLEEP_RAMPUP} s."
 
 if [ "${PROFILE}" -eq 1 ]; then
+	# Default to the middle of the measurement interval, which is past
+	# any warm up for the durations these tests are run at and leaves
+	# room for the sample to finish.
+	if [ -z "${PROFILE_DELAY}" ]; then
+		PROFILE_DELAY=$(( DURATION / 2 ))
+	fi
+
+	# A sample that outlives the test would still be running when the
+	# run tears the workload down, and would profile the teardown.
+	if [ $(( PROFILE_DELAY + PROFILE_DURATION )) -gt "${DURATION}" ]; then
+		PROFILE_DELAY=$(( DURATION - PROFILE_DURATION ))
+		if [ "${PROFILE_DELAY}" -lt 0 ]; then
+			PROFILE_DELAY=0
+			PROFILE_DURATION="${DURATION}"
+		fi
+		echo "WARNING: profiling would outlast the test, starting it" \
+				"${PROFILE_DELAY} s in for ${PROFILE_DURATION} s"
+	fi
+
 	profile_collect &
 fi
 

@@ -19,6 +19,8 @@ vX.Y.Z (YYYY-MM-DD)
 - AppImage: use host environment's psql tools for testing scripts
 - test-user-scaling, test-db-parameter: enable ability to collect software
   profiles
+- run: start profiling halfway into the measurement interval instead of at
+  its start
 
 v0.10.14 (2026-08-11)
 
