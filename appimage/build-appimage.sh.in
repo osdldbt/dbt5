@@ -36,6 +36,9 @@ find_first()
 	find /usr -not -path '*/AppDir/*' -type f -name "${1}" | head -n 1
 }
 
+# Clean up the license files from the previous build.  The AppDir
+# persists between builds and cp merges into what is already there.
+rm -rf "${APPDIR}/usr/share/licenses"
 if [ -d "/usr/local/share/licenses" ]; then
 	mkdir -p "${APPDIR}/usr/share"
 	cp -pr /usr/local/share/licenses "${APPDIR}/usr/share"
