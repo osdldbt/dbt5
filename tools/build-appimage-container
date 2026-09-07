@@ -27,10 +27,16 @@ else
 	ISOLATION_ARG=""
 fi
 
+# Anything given here is passed on to the container build, so the
+# versions the Containerfile declares as ARGs can be overridden without
+# editing it, as in
+#
+#     build-appimage-container --build-arg PGVER=18.4
 cd "$CONTAINER_DIR/.." && \
 		${CONTAINER_CMD} build \
 				${ISOLATION_ARG} \
 				--build-arg ARCH="${ARCH}" \
+				"$@" \
 				-t $CONTAINER_TAG \
 				-f ${CONTAINERFILE} \
 				.
