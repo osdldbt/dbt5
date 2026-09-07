@@ -232,3 +232,23 @@ without the TPC-E tools included.
 When the TPC-E Tools are included in the AppImage, the *build* and *run*
 commands do not need the use of the `--tpcetools` flag and will automatically
 use the included TPC-E Tools binaries.
+
+Building Against a DBT Tools Branch
+-----------------------------------
+
+The container build clones DBT Tools with git, from a URL and a ref given
+as build arguments.  The defaults are the release named in
+`appimage/Containerfile`.  To build against a fork or a branch instead,
+pass the arguments to `tools/build-appimage-container`, which forwards
+them to the container build::
+
+    tools/build-appimage-container \
+        --build-arg DBTTOOLSURL=https://github.com/user/dbttools.git \
+        --build-arg DBTTOOLSREF=branch
+    tools/build-appimage
+
+Any URL git can clone is accepted, and a ref may name a tag or a branch.
+
+Run `tools/build-appimage-container` explicitly when changing either.
+`tools/build-appimage` builds the container image only when none exists
+yet, so on its own it would reuse the image already built.

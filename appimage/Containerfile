@@ -175,15 +175,23 @@ RUN mkdir -p /usr/local/share/licenses/postgresql-${PGVER} && \
 # touchstone-tools is bumped more often.
 
 ARG DBTTOOLSVER="0.5.2"
-RUN curl -o /tmp/v${DBTTOOLSVER}.tar.gz -SsL \
-         https://github.com/osdldbt/dbttools/archive/refs/tags/v${DBTTOOLSVER}.tar.gz && \
-    tar -C /usr/local/src -xf /tmp/v${DBTTOOLSVER}.tar.gz
-WORKDIR /usr/local/src/dbttools-${DBTTOOLSVER}
+# Cloned with git rather than fetched as a release tarball.  A clone
+# carries its own metadata, so the exact commit an AppImage was built
+# from can be read back out of it, where a tarball carries nothing that
+# identifies its commit.  Any URL git can clone will do, and the ref
+# may name a tag or a branch:
+#
+#     --build-arg DBTTOOLSURL=https://host/user/dbttools.git \
+#     --build-arg DBTTOOLSREF=branch
+ARG DBTTOOLSURL="https://github.com/osdldbt/dbttools.git"
+ARG DBTTOOLSREF="v${DBTTOOLSVER}"
+RUN git clone --branch "${DBTTOOLSREF}" "${DBTTOOLSURL}" \
+        /usr/local/src/dbttools
+WORKDIR /usr/local/src/dbttools
 RUN cmake -H. -Bbuild/release -DCMAKE_INSTALL_PREFIX=/usr && \
-    (cd build/release && make -s install) && \
-    rm -f /tmp/v${DBTTOOLSVER}.tar.gz
-RUN mkdir -p /usr/local/share/licenses/dbttools-${DBTTOOLSVER} && \
-    cp -p LICENSE /usr/local/share/licenses/dbttools-${DBTTOOLSVER}/
+    (cd build/release && make -s install)
+RUN mkdir -p /usr/local/share/licenses/dbttools-${DBTTOOLSREF} && \
+    cp -p LICENSE /usr/local/share/licenses/dbttools-${DBTTOOLSREF}/
 
 ARG TSTOOLSVER="0.10.5"
 RUN curl -o /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz -SsL \
