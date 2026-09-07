@@ -80,6 +80,14 @@ if [ $VERSION -eq 1 ]; then
 		"${APPDIR}/usr/bin/dbt-version"
 		echo ""
 		"${APPDIR}/usr/bin/ts" --version
+		# Where each cloned tool came from, written next to its license
+		# at image build time.
+		for SOURCE in "${APPDIR}"/usr/share/licenses/*/SOURCE; do
+			[ -f "${SOURCE}" ] || continue
+			echo ""
+			echo "$(basename "$(dirname "${SOURCE}")") built from:"
+			sed -e 's/^/  /' "${SOURCE}"
+		done
 	else
 		"${APPDIR}/usr/bin/dbt5" --version
 	fi

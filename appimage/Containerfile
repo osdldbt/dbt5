@@ -190,8 +190,10 @@ RUN git clone --branch "${DBTTOOLSREF}" "${DBTTOOLSURL}" \
 WORKDIR /usr/local/src/dbttools
 RUN cmake -H. -Bbuild/release -DCMAKE_INSTALL_PREFIX=/usr && \
     (cd build/release && make -s install)
-RUN mkdir -p /usr/local/share/licenses/dbttools-${DBTTOOLSREF} && \
-    cp -p LICENSE /usr/local/share/licenses/dbttools-${DBTTOOLSREF}/
+RUN LICDIR=/usr/local/share/licenses/dbttools-${DBTTOOLSREF} && \
+    mkdir -p "${LICDIR}" && cp -p LICENSE "${LICDIR}"/ && \
+    { echo "url: ${DBTTOOLSURL}"; echo "ref: ${DBTTOOLSREF}"; \
+      echo "commit: $(git rev-parse HEAD)"; } > "${LICDIR}"/SOURCE
 
 ARG TSTOOLSVER="0.10.5"
 # Cloned with git rather than fetched as a release tarball.  A clone
@@ -211,8 +213,10 @@ WORKDIR /usr/local/src/touchstone-tools
 RUN cmake -H. -Bbuild/release -DCMAKE_INSTALL_PREFIX=/usr && \
     (cd build/release && make -s install) && \
     (cd spar && ${HOME}/.cargo/bin/cargo install --root /usr/local --path .)
-RUN mkdir -p /usr/local/share/licenses/touchstone-tools-${TSTOOLSREF} && \
-    cp -p COPYRIGHT /usr/local/share/licenses/touchstone-tools-${TSTOOLSREF}/
+RUN LICDIR=/usr/local/share/licenses/touchstone-tools-${TSTOOLSREF} && \
+    mkdir -p "${LICDIR}" && cp -p COPYRIGHT "${LICDIR}"/ && \
+    { echo "url: ${TSTOOLSURL}"; echo "ref: ${TSTOOLSREF}"; \
+      echo "commit: $(git rev-parse HEAD)"; } > "${LICDIR}"/SOURCE
 
 WORKDIR /usr/local
 RUN curl -SsOL \

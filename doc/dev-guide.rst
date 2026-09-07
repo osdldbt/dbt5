@@ -254,3 +254,6 @@ branch.
 Run `tools/build-appimage-container` explicitly when changing either.
 `tools/build-appimage` builds the container image only when none exists
 yet, so on its own it would reuse the image already built.
+
+`dbt5 --version --verbose` reports the URL, ref and commit each tool was
+built from, so the result can be checked.
