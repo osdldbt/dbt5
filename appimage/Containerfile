@@ -194,19 +194,25 @@ RUN mkdir -p /usr/local/share/licenses/dbttools-${DBTTOOLSREF} && \
     cp -p LICENSE /usr/local/share/licenses/dbttools-${DBTTOOLSREF}/
 
 ARG TSTOOLSVER="0.10.5"
-RUN curl -o /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz -SsL \
-         https://gitlab.com/touchstone/touchstone-tools/-/archive/v${TSTOOLSVER}/touchstone-tools-v${TSTOOLSVER}.tar.gz && \
-    mkdir -p /usr/local/src/touchstone-tools-v${TSTOOLSVER} && \
-    tar -C /usr/local/src/touchstone-tools-v${TSTOOLSVER} \
-        --strip-components=1 \
-        -xf /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz
-WORKDIR /usr/local/src/touchstone-tools-v${TSTOOLSVER}
+# Cloned with git rather than fetched as a release tarball.  A clone
+# carries its own metadata, and Touchstone Tools reads it at configure
+# time, so a build from anything other than a tagged commit reports
+# that commit in "ts --version", where a tarball build reports only the
+# version in CMakeLists.txt.  Any URL git can clone will do, and the
+# ref may name a tag or a branch:
+#
+#     --build-arg TSTOOLSURL=https://host/user/touchstone-tools.git \
+#     --build-arg TSTOOLSREF=branch
+ARG TSTOOLSURL="https://gitlab.com/touchstone/touchstone-tools.git"
+ARG TSTOOLSREF="v${TSTOOLSVER}"
+RUN git clone --branch "${TSTOOLSREF}" "${TSTOOLSURL}" \
+        /usr/local/src/touchstone-tools
+WORKDIR /usr/local/src/touchstone-tools
 RUN cmake -H. -Bbuild/release -DCMAKE_INSTALL_PREFIX=/usr && \
     (cd build/release && make -s install) && \
-    (cd spar && ${HOME}/.cargo/bin/cargo install --root /usr/local --path .) && \
-    rm -f /tmp/touchstone-tools-v${TSTOOLSVER}.tar.gz
-RUN mkdir -p /usr/local/share/licenses/touchstone-tools-v${TSTOOLSVER} && \
-    cp -p COPYRIGHT /usr/local/share/licenses/touchstone-tools-v${TSTOOLSVER}/
+    (cd spar && ${HOME}/.cargo/bin/cargo install --root /usr/local --path .)
+RUN mkdir -p /usr/local/share/licenses/touchstone-tools-${TSTOOLSREF} && \
+    cp -p COPYRIGHT /usr/local/share/licenses/touchstone-tools-${TSTOOLSREF}/
 
 WORKDIR /usr/local
 RUN curl -SsOL \

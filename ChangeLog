@@ -21,8 +21,8 @@ vX.Y.Z (YYYY-MM-DD)
   profiles
 - run: start profiling halfway into the measurement interval instead of at
   its start
-- AppImage: allow building of DBT Tools from custom git repository and git
-  reference
+- AppImage: allow building of DBT Tools and Touchstone Tools from custom git
+  repository and git reference
 
 v0.10.14 (2026-08-11)
 
