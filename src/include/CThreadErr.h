@@ -114,7 +114,11 @@ private:
 	Action m_eAction;
 
 public:
-	CThreadErr(Action eAction, char const *szLoc = NULL): CBaseErr(szLoc)
+	// The default is empty rather than NULL.  CBaseErr keeps the
+	// location in a std::string, and constructing one from NULL
+	// throws std::logic_error out of the exception's own
+	// constructor, which no handler for CThreadErr will catch.
+	CThreadErr(Action eAction, char const *szLoc = ""): CBaseErr(szLoc)
 	{
 		m_eAction = eAction;
 	};

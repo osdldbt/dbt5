@@ -24,6 +24,9 @@ vX.Y.Z (YYYY-MM-DD)
 - AppImage: allow building of DBT Tools and Touchstone Tools from custom git
   repository and git reference
 - AppImage: ensure previous build's license files are cleaned up
+- Fix a thread error thrown without a location aborting the process with an
+  uncaught std::logic_error, which hid the cause of a failed pthread_create
+  in the Market Exchange
 
 v0.10.14 (2026-08-11)
 
