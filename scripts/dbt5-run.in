@@ -373,6 +373,10 @@ General options:
                  default ${SCALE_FACTOR}
   -h HOSTNAME    database hostname, default localhost
   -l DELAY       pacing DELAY in seconds, default ${PACING_DELAY}
+  --mee-connections=CONNECTIONS
+                 CONNECTIONS from the Market Exchange to the Brokerage House,
+                 over which Trade Results and Market Feeds are delivered,
+                 default 16
   -n NAME        database name, default ${DB_NAME}
   --privileged   run tests as a privileged database user
   --profile      profile the system during the measurement interval
@@ -426,6 +430,7 @@ CUSTOMERS_INSTANCE=0
 CUSTOMERS_TOTAL=5000
 ITD=300
 MARKETLIST=""
+MEE_CONNECTIONS=""
 PROFILE=0
 PROFILE_DELAY=""
 PROFILE_DURATION=20
@@ -496,6 +501,13 @@ while [ "${#}" -gt 0 ] ; do
 		shift
 		PACING_DELAY="$(echo "${1}" | grep -E "^[0-9]+$")"
 		validate_parameter "l" "${1}" "${PACING_DELAY}"
+		;;
+	(--mee-connections)
+		shift
+		MEE_CONNECTIONS="${1}"
+		;;
+	(--mee-connections=?*)
+		MEE_CONNECTIONS="${1#*--mee-connections=}"
 		;;
 	(-n)
 		shift
@@ -861,10 +873,17 @@ do_sleep 1 "Giving BrokerageHouseMain 1 second to start up."
 echo
 echo "## 2. Starting Market Exchange server"
 
+# Leave the connection count to MarketExchangeMain's own default unless
+# one was given.
+MEECONNARG=""
+if [ -n "${MEE_CONNECTIONS}" ]; then
+	MEECONNARG="-n ${MEE_CONNECTIONS}"
+fi
+
 if [ "${CONFIGFILE}" = "" ]; then
 	eval "${EGENHOME}/bin/MarketExchangeMain -c ${CUSTOMERS_INSTANCE} \
 			-t ${CUSTOMERS_TOTAL} -i ${EGENHOME}/flat_in -o ${MEE_OUTPUT_DIR} \
-			${VERBOSE_FLAG} > ${MEE_OUTPUT_DIR}/mee.out 2>&1" &
+			${MEECONNARG} ${VERBOSE_FLAG} > ${MEE_OUTPUT_DIR}/mee.out 2>&1" &
 else
 	MARKETS="$(toml get "${CONFIGFILE}" . | jq -r '.market | length')"
 
@@ -910,7 +929,7 @@ else
 		eval "${MARKET_COMMAND} mkdir -p ${TMPDIR}"
 		eval "${MARKET_COMMAND} ${EGENHOME}/bin/MarketExchangeMain \
 				${MEEPORTARG} -h ${BROKERAGE_HOSTNAME} ${BHPORTARG} \
-				-c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} \
+				-c ${CUSTOMERS_INSTANCE} -t ${CUSTOMERS_TOTAL} ${MEECONNARG} \
 				-i ${EGENHOME}/flat_in -o ${TMPDIR} > ${TMPDIR}/mee.out 2>&1" &
 	done
 fi

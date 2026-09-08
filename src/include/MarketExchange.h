@@ -53,7 +53,7 @@ public:
 	CMEE *m_pCMEE;
 
 	CMarketExchange(const DataFileManager &, char *, UINT32, TIdent, TIdent,
-			int, char *, int, char *, bool);
+			int, char *, int, int, char *, bool);
 	~CMarketExchange();
 
 	void startListener(void);

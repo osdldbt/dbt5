@@ -17,6 +17,9 @@
 char szBHaddr[iMaxHostname + 1] = "localhost"; // Brokerage House address
 int iListenPort = iMarketExchangePort; // socket port to listen
 int iBHlistenPort = iBrokerageHousePort;
+// connections to the Brokerage House, over which Trade Results and
+// Market Feeds are delivered
+int iBHconnections = iMEESUTConnections;
 // # of customers for this instance
 TIdent iConfiguredCustomerCount = iDefaultCustomerCount;
 // total number of customers in the database
@@ -48,6 +51,8 @@ usage()
 			iConfiguredCustomerCount);
 	printf("   -p integer  %-10d  Brokerage House listen port\n",
 			iBHlistenPort);
+	printf("   -n integer  %-10d  Brokerage House connections\n",
+			iBHconnections);
 	cout << "   -v                      Verbose output" << endl;
 }
 
@@ -59,7 +64,7 @@ parse_command_line(int argc, char *argv[])
 
 	// getopt reports missing option arguments and unknown options,
 	// unlike the old hand rolled parser, which silently accepted them.
-	while ((ch = getopt(argc, argv, "c:h:i:l:o:p:t:v")) != -1) {
+	while ((ch = getopt(argc, argv, "c:h:i:l:n:o:p:t:v")) != -1) {
 		switch (ch) {
 		case 'c':
 			iActiveCustomerCount = atol(optarg);
@@ -76,6 +81,14 @@ parse_command_line(int argc, char *argv[])
 			iListenPort = atoi(optarg);
 			if (iListenPort < 1 || iListenPort > 65535) {
 				cerr << "Error: invalid port for -l: " << optarg << endl;
+				exit(1);
+			}
+			break;
+		case 'n':
+			iBHconnections = atoi(optarg);
+			if (iBHconnections < 1) {
+				cerr << "Error: invalid connection count for -n: " << optarg
+					 << endl;
 				exit(1);
 			}
 			break;
@@ -141,13 +154,15 @@ main(int argc, char *argv[])
 	cout << "Active customer count: " << iActiveCustomerCount << endl;
 	cout << "Brokerage House address: " << szBHaddr << endl;
 	cout << "Brokerage House port: " << iBHlistenPort << endl;
+	cout << "Brokerage House connections: " << iBHconnections << endl;
 
 	try {
 		const DataFileManager inputFiles(szFileLoc, iConfiguredCustomerCount,
 				iActiveCustomerCount, TPCE::DataFileManager::IMMEDIATE_LOAD);
 		CMarketExchange MarketExchange(inputFiles, szFileLoc, 1,
 				iConfiguredCustomerCount, iActiveCustomerCount, iListenPort,
-				szBHaddr, iBHlistenPort, outputDirectory, verbose);
+				szBHaddr, iBHlistenPort, iBHconnections, outputDirectory,
+				verbose);
 		cout << "Market Exchange started, waiting for trade requests..."
 			 << endl;
 

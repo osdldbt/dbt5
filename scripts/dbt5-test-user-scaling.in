@@ -32,6 +32,9 @@ General options:
   -d SECONDS     SECONDS of the test duration, after warmup,
                  default ${DURATION}
   -h ADDRESS     ADDRESS of database system, default ${DB_HOSTNAME}
+  --mee-connections=CONNECTIONS
+                 CONNECTIONS from the Market Exchange to the Brokerage House
+                 in each test, default 16
   -n NAME        NAME of the database, default ${DBNAME}
   -p PORT        database listening PORT number
   --profile      profile the database system for each test in the series
@@ -83,6 +86,13 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--dbaas)
 		RUNARGS="${RUNARGS} --dbaas"
+		;;
+	(--mee-connections)
+		shift
+		RUNARGS="${RUNARGS} --mee-connections=${1}"
+		;;
+	(--mee-connections=?*)
+		RUNARGS="${RUNARGS} --mee-connections=${1#*--mee-connections=}"
 		;;
 	(--profile)
 		RUNARGS="${RUNARGS} --profile"

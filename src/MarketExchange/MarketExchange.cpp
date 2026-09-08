@@ -159,7 +159,8 @@ EntryMarketWorkerThread(void *data)
 CMarketExchange::CMarketExchange(const DataFileManager &inputFiles,
 		char *szFileLoc, UINT32 UniqueId, TIdent iConfiguredCustomerCount,
 		TIdent iActiveCustomerCount, int iListenPort, char *szBHaddr,
-		int iBHlistenPort, char *outputDirectory, bool verbose = false)
+		int iBHlistenPort, int iBHconnections, char *outputDirectory,
+		bool verbose = false)
 : m_UniqueId(UniqueId), m_iListenPort(iListenPort), m_Verbose(verbose),
   m_TimerCond(m_TimerLock), m_NextTimerDelay(-1), m_TimerGeneration(0),
   m_TimerShutdown(false)
@@ -170,7 +171,8 @@ CMarketExchange::CMarketExchange(const DataFileManager &inputFiles,
 	m_pLog = new CEGenLogger(eDriverEGenLoader, 0, filename, &m_fmt);
 
 	// Initialize MEESUT
-	m_pCMEESUT = new CMEESUT(outputDirectory, szBHaddr, iBHlistenPort);
+	m_pCMEESUT = new CMEESUT(
+			outputDirectory, szBHaddr, iBHlistenPort, iBHconnections);
 
 	// Initialize MEE
 	m_pCMEE = new CMEE(0, m_pCMEESUT, m_pLog, inputFiles, UniqueId);

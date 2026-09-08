@@ -37,6 +37,9 @@ General options:
                  database listening PORT number to start, stop and update
                  configuration parameter
   --dbaas        database server is a service
+  --mee-connections=CONNECTIONS
+                 CONNECTIONS from the Market Exchange to the Brokerage House
+                 in each test, default 16
   --profile      profile the database system for each value tested
   -V, --version  output version information, then exit
   -?, --help     show this help, then exit
@@ -113,6 +116,13 @@ while [ "${#}" -gt 0 ] ; do
 		;;
 	(--dbaas)
 		RUNARGS="${RUNARGS} --dbaas"
+		;;
+	(--mee-connections)
+		shift
+		RUNARGS="${RUNARGS} --mee-connections=${1}"
+		;;
+	(--mee-connections=?*)
+		RUNARGS="${RUNARGS} --mee-connections=${1#*--mee-connections=}"
 		;;
 	(--profile)
 		PROFILE=1
