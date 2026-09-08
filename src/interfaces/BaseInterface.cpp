@@ -79,9 +79,17 @@ CBaseInterface::biDisconnect()
 	}
 }
 
-// Connect to BrokerageHouse, send request, receive reply, and calculate RT
+// Send request, receive reply, and calculate RT, on the connection the
+// constructor opened.
 bool
 CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
+{
+	return talkToSUT(pRequest, sock);
+}
+
+// The same on a given connection, for a caller that keeps several.
+bool
+CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest, CSocket *pSocket)
 {
 	int length = 0;
 	TMsgBrokerageDriver Reply; // reply message from BrokerageHouse
@@ -93,10 +101,10 @@ CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 
 	// send and wait for response
 	try {
-		length = sock->dbt5Send(
+		length = pSocket->dbt5Send(
 				reinterpret_cast<void *>(pRequest), sizeof(*pRequest));
 	} catch (CSocketErr *pErr) {
-		sock->dbt5Reconnect();
+		pSocket->dbt5Reconnect();
 		logResponseTime(-1, 0, -1);
 
 		ostringstream msg;
@@ -111,7 +119,7 @@ CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 		return false;
 	}
 	try {
-		length = sock->dbt5Receive(
+		length = pSocket->dbt5Receive(
 				reinterpret_cast<void *>(&Reply), sizeof(Reply));
 	} catch (CSocketErr *pErr) {
 		logResponseTime(-1, 0, -2);
@@ -123,7 +131,7 @@ CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 			<< pErr->ErrorText() << endl;
 		logErrorMessage(msg.str());
 		if (pErr->getAction() == CSocketErr::ERR_SOCKET_CLOSED)
-			sock->dbt5Reconnect();
+			pSocket->dbt5Reconnect();
 		delete pErr;
 		// No reply was received; the zeroed Reply would otherwise be
 		// logged below as a successful transaction.
@@ -150,6 +158,7 @@ CBaseInterface::talkToSUT(PMsgDriverBrokerage pRequest)
 void
 CBaseInterface::logResponseTime(int iStatus, int iTxnType, double dRT)
 {
+	Locker<CMutex> locker(m_LogLock);
 	m_fMix << (long long) time(NULL) << "," << iTxnType << "," << iStatus
 		   << "," << dRT << "," << m_pid << endl;
 	m_fMix.flush();
@@ -159,6 +168,7 @@ CBaseInterface::logResponseTime(int iStatus, int iTxnType, double dRT)
 void
 CBaseInterface::logErrorMessage(const string sErr)
 {
+	Locker<CMutex> locker(m_LogLock);
 	cerr << sErr;
 	m_fLog << sErr;
 	m_fLog.flush();

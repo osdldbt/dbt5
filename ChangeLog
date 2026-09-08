@@ -27,6 +27,8 @@ vX.Y.Z (YYYY-MM-DD)
 - Fix a thread error thrown without a location aborting the process with an
   uncaught std::logic_error, which hid the cause of a failed pthread_create
   in the Market Exchange
+- MarketExchange: enable multiple Trade Results and Market Feed transaction
+  deliveries to Brokerage House
 
 v0.10.14 (2026-08-11)
 

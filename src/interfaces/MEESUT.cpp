@@ -9,6 +9,35 @@
 
 #include "MEESUT.h"
 
+CMEESUT::CMEESUT(char *outputDirectory, char *addr, const int iListenPort,
+		int iConnections)
+: CBaseInterface("me", outputDirectory, addr, iListenPort),
+  m_ThreadCountCond(m_ThreadCountLock), m_OutstandingThreads(0),
+  m_PoolCond(m_PoolLock)
+{
+	// The base class opened the first connection.
+	m_FreeSockets.push_back(sock);
+
+	for (int i = 1; i < iConnections; i++) {
+		CSocket *pSocket = new CSocket(m_szBHAddress, m_iBHlistenPort);
+		try {
+			pSocket->dbt5Connect();
+		} catch (CSocketErr *pErr) {
+			ostringstream osErr;
+			osErr << "Error: " << pErr->ErrorText() << " opening connection "
+				  << i + 1 << " of " << iConnections
+				  << " at CMEESUT::CMEESUT" << endl;
+			logErrorMessage(osErr.str());
+			delete pErr;
+			delete pSocket;
+			// What was opened so far still delivers, only more slowly.
+			break;
+		}
+		m_ExtraSockets.push_back(pSocket);
+		m_FreeSockets.push_back(pSocket);
+	}
+}
+
 CMEESUT::~CMEESUT()
 {
 	// Wait for detached Trade-Result and Market-Feed threads so they
@@ -18,6 +47,31 @@ CMEESUT::~CMEESUT()
 		m_ThreadCountCond.wait();
 	}
 	m_ThreadCountCond.unlock();
+
+	// The base class closes the connection it opened; close the rest.
+	for (size_t i = 0; i < m_ExtraSockets.size(); i++) {
+		delete m_ExtraSockets[i];
+	}
+}
+
+CSocket *
+CMEESUT::acquireSocket()
+{
+	Locker<CMutex> locker(m_PoolLock);
+	while (m_FreeSockets.empty()) {
+		m_PoolCond.wait();
+	}
+	CSocket *pSocket = m_FreeSockets.back();
+	m_FreeSockets.pop_back();
+	return pSocket;
+}
+
+void
+CMEESUT::releaseSocket(CSocket *pSocket)
+{
+	Locker<CMutex> locker(m_PoolLock);
+	m_FreeSockets.push_back(pSocket);
+	m_PoolCond.signal();
 }
 
 void
@@ -51,9 +105,9 @@ TradeResultAsync(void *data)
 
 	// communicate with the SUT and log response time
 	{
-		Locker<CMutex> locker(pThrParam->pCMEESUT->m_SocketLock);
+		CSocket *pSocket = pThrParam->pCMEESUT->acquireSocket();
 		try {
-			pThrParam->pCMEESUT->talkToSUT(&request);
+			pThrParam->pCMEESUT->talkToSUT(&request, pSocket);
 		} catch (CSocketErr *pErr) {
 			ostringstream osErr;
 			osErr << "Error: " << pErr->ErrorText()
@@ -61,6 +115,7 @@ TradeResultAsync(void *data)
 			pThrParam->pCMEESUT->logErrorMessage(osErr.str());
 			delete pErr;
 		}
+		pThrParam->pCMEESUT->releaseSocket(pSocket);
 	}
 
 	pThrParam->pCMEESUT->threadFinished();
@@ -144,9 +199,9 @@ MarketFeedAsync(void *data)
 
 	// communicate with the SUT and log response time
 	{
-		Locker<CMutex> locker(pThrParam->pCMEESUT->m_SocketLock);
+		CSocket *pSocket = pThrParam->pCMEESUT->acquireSocket();
 		try {
-			pThrParam->pCMEESUT->talkToSUT(&request);
+			pThrParam->pCMEESUT->talkToSUT(&request, pSocket);
 		} catch (CSocketErr *pErr) {
 			ostringstream osErr;
 			osErr << "Error: " << pErr->ErrorText()
@@ -154,6 +209,7 @@ MarketFeedAsync(void *data)
 			pThrParam->pCMEESUT->logErrorMessage(osErr.str());
 			delete pErr;
 		}
+		pThrParam->pCMEESUT->releaseSocket(pSocket);
 	}
 
 	pThrParam->pCMEESUT->threadFinished();

@@ -21,16 +21,23 @@ class CBaseInterface
 {
 protected:
 	bool talkToSUT(PMsgDriverBrokerage);
+	bool talkToSUT(PMsgDriverBrokerage, CSocket *);
 	void logErrorMessage(const string);
 
 	char *m_szBHAddress;
 	int m_iBHlistenPort;
 
-private:
+	// The connection to the Brokerage House opened by the constructor.
 	CSocket *sock;
+
+private:
 	pid_t m_pid;
 	ofstream m_fLog; // error log file
 	ofstream m_fMix; // mix log file
+
+	// A subclass may deliver transactions from several threads at
+	// once, and a line from one must not interleave with another's.
+	CMutex m_LogLock;
 
 	void logResponseTime(int, int, double);
 

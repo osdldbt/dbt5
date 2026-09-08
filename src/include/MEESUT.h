@@ -16,8 +16,20 @@
 #include "condition.h"
 #include "MEE.h"
 
+#include <vector>
+
 #include "BaseInterface.h"
 using namespace TPCE;
+
+// Connections from the Market Exchange to the Brokerage House.  Every
+// Trade Result and Market Feed is a synchronous round trip on one of
+// them that lasts as long as the Brokerage House's database transaction
+// does, so a connection delivers at most one per that latency, and on
+// a fast system one connection cannot keep up with the rate Trade
+// Orders arrive at.  The Brokerage House serves each connection with a
+// thread and a database connection of its own, which is why the number
+// is fixed here rather than a connection opened per delivery.
+const int iMEESUTConnections = 16;
 
 class CMEESUT: public CMEESUTInterface, public CBaseInterface
 {
@@ -32,17 +44,24 @@ private:
 	CCondition m_ThreadCountCond;
 	int m_OutstandingThreads;
 
+	// The idle connections.  A delivery takes one from here and puts
+	// it back when it is done, and a delivery that finds none waits
+	// here until one comes back.
+	CMutex m_PoolLock;
+	CCondition m_PoolCond;
+	std::vector<CSocket *> m_FreeSockets;
+	// The connections opened here beyond the base class's own, for the
+	// destructor to close.
+	std::vector<CSocket *> m_ExtraSockets;
+
 	void threadStarted();
 	void threadFinished();
+	CSocket *acquireSocket();
+	void releaseSocket(CSocket *);
 
 public:
-	CMEESUT(char *outputDirectory, char *addr, const int iListenPort)
-	: CBaseInterface("me", outputDirectory, addr, iListenPort),
-	  m_ThreadCountCond(m_ThreadCountLock), m_OutstandingThreads(0),
-	  m_SocketLock(){};
+	CMEESUT(char *, char *, const int, int = iMEESUTConnections);
 	~CMEESUT();
-
-	CMutex m_SocketLock;
 
 	bool TradeResult(PTradeResultTxnInput);
 	bool MarketFeed(PMarketFeedTxnInput);
