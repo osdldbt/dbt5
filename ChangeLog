@@ -31,6 +31,8 @@ vX.Y.Z (YYYY-MM-DD)
   deliveries to Brokerage House
 - MarketExchange: add -n / --mee-connections command line arguments to
   specify the number of Brokerage House connections
+- pgsql: index trades by account and security with their time, reorder two
+  primary keys, and drop the indexes on trade status and daily_market symbol
 
 v0.10.14 (2026-08-11)
 

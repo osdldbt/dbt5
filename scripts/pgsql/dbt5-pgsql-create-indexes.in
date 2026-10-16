@@ -119,11 +119,8 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	TS_I_C_TAX_ID_DIR="${DBT5TSDIR}/i_c_tax_id/ts"
 	TS_I_CA_C_ID_DIR="${DBT5TSDIR}/i_ca_c_id/ts"
 	TS_I_WL_C_ID_DIR="${DBT5TSDIR}/i_wl_c_id/ts"
-	TS_I_DM_S_SYMB_DIR="${DBT5TSDIR}/i_dm_s_symb/ts"
 	TS_I_TR_S_SYMB_DIR="${DBT5TSDIR}/i_tr_s_symb/ts"
-	TS_I_T_ST_ID_DIR="${DBT5TSDIR}/i_t_st_id/ts"
-	TS_I_T_ST_ID_DIR="${DBT5TSDIR}/i_t_st_id/ts"
-	TS_I_T_CA_ID_DIR="${DBT5TSDIR}/i_t_ca_id/ts"
+	TS_I_T_CA_ID_DTS_DIR="${DBT5TSDIR}/i_t_ca_id_dts/ts"
 	TS_I_CO_NAME_DIR="${DBT5TSDIR}/i_co_name/ts"
 	TS_I_SECURITY_DIR="${DBT5TSDIR}/i_security/ts"
 	TS_I_HOLDING_DIR="${DBT5TSDIR}/i_holding/ts"
@@ -171,10 +168,8 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	mkdir -p "${TS_I_C_TAX_ID_DIR}" || exit 1
 	mkdir -p "${TS_I_CA_C_ID_DIR}" || exit 1
 	mkdir -p "${TS_I_WL_C_ID_DIR}" || exit 1
-	mkdir -p "${TS_I_DM_S_SYMB_DIR}" || exit 1
 	mkdir -p "${TS_I_TR_S_SYMB_DIR}" || exit 1
-	mkdir -p "${TS_I_T_ST_ID_DIR}" || exit 1
-	mkdir -p "${TS_I_T_CA_ID_DIR}" || exit 1
+	mkdir -p "${TS_I_T_CA_ID_DTS_DIR}" || exit 1
 	mkdir -p "${TS_I_CO_NAME_DIR}" || exit 1
 	mkdir -p "${TS_I_SECURITY_DIR}" || exit 1
 	mkdir -p "${TS_I_HOLDING_DIR}" || exit 1
@@ -216,10 +211,8 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	TS_I_C_TAX_ID="TABLESPACE dbt5_i_c_tax_id"
 	TS_I_CA_C_ID="TABLESPACE dbt5_i_ca_c_id"
 	TS_I_WL_C_ID="TABLESPACE dbt5_i_wl_c_id"
-	TS_I_DM_S_SYMB="TABLESPACE dbt5_i_dm_s_symb"
 	TS_I_TR_S_SYMB="TABLESPACE dbt5_i_tr_s_symb"
-	TS_I_T_ST_ID="TABLESPACE dbt5_i_t_st_id"
-	TS_I_T_CA_ID="TABLESPACE dbt5_i_t_ca_id"
+	TS_I_T_CA_ID_DTS="TABLESPACE dbt5_i_t_ca_id_dts"
 	TS_I_CO_NAME="TABLESPACE dbt5_i_co_name"
 	TS_I_SECURITY="TABLESPACE dbt5_i_security"
 	TS_I_HOLDING="TABLESPACE dbt5_i_holding"
@@ -309,13 +302,9 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 		${BDRWAIT}
 		CREATE ${TS_I_WL_C_ID} LOCATION '${TS_I_WL_C_ID_DIR}';
 		${BDRWAIT}
-		CREATE ${TS_I_DM_S_SYMB} LOCATION '${TS_I_DM_S_SYMB_DIR}';
-		${BDRWAIT}
 		CREATE ${TS_I_TR_S_SYMB} LOCATION '${TS_I_TR_S_SYMB_DIR}';
 		${BDRWAIT}
-		CREATE ${TS_I_T_ST_ID} LOCATION '${TS_I_T_ST_ID_DIR}';
-		${BDRWAIT}
-		CREATE ${TS_I_T_CA_ID} LOCATION '${TS_I_T_CA_ID_DIR}';
+		CREATE ${TS_I_T_CA_ID_DTS} LOCATION '${TS_I_T_CA_ID_DTS_DIR}';
 		${BDRWAIT}
 		CREATE ${TS_I_CO_NAME} LOCATION '${TS_I_CO_NAME_DIR}';
 		${BDRWAIT}
@@ -368,10 +357,8 @@ if [ ${USE_TABLESPACES} -eq 1 ]; then
 	TS_I_C_TAX_ID="USING INDEX ${TS_I_C_TAX_ID}"
 	TS_I_CA_C_ID="USING INDEX ${TS_I_CA_C_ID}"
 	TS_I_WL_C_ID="USING INDEX ${TS_I_WL_C_ID}"
-	TS_I_DM_S_SYMB="USING INDEX ${TS_I_DM_S_SYMB}"
 	TS_I_TR_S_SYMB="USING INDEX ${TS_I_TR_S_SYMB}"
-	TS_I_T_ST_ID="USING INDEX ${TS_I_T_ST_ID}"
-	TS_I_T_CA_ID="USING INDEX ${TS_I_T_CA_ID}"
+	TS_I_T_CA_ID_DTS="USING INDEX ${TS_I_T_CA_ID_DTS}"
 	TS_I_CO_NAME="USING INDEX ${TS_I_CO_NAME}"
 	TS_I_SECURITY="USING INDEX ${TS_I_SECURITY}"
 	TS_I_HOLDING="USING INDEX ${TS_I_HOLDING}"
@@ -407,10 +394,11 @@ ${TS_PK_CUSTOMER_ACCOUNT};
 eval "exec_and_sync \"${STMT}\"" ${P}
 
 # Clause 2.2.5.4
+# The customer first, since the transactions look up a customer's tax rates.
 STMT="
 ALTER TABLE customer_taxrate
 ADD CONSTRAINT pk_customer_taxrate
-PRIMARY KEY (cx_tx_id, cx_c_id)
+PRIMARY KEY (cx_c_id, cx_tx_id)
 ${TS_PK_CUSTOMER_TAXRATE};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
@@ -558,10 +546,11 @@ ${TS_PK_COMPANY_COMPETITOR};
 eval "exec_and_sync \"${STMT}\"" ${P}
 
 # Clause 2.2.7.3
+# The security first, since the transactions read a security's rows by date.
 STMT="
 ALTER TABLE daily_market
 ADD CONSTRAINT pk_daily_market
-PRIMARY KEY (dm_date, dm_s_symb)
+PRIMARY KEY (dm_s_symb, dm_date)
 ${TS_PK_DAILY_MARKET};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
@@ -694,32 +683,22 @@ ON watch_list (wl_c_id);
 eval "exec_and_sync \"${STMT}\"" ${P}
 
 STMT="
-CREATE INDEX i_dm_s_symb
-ON daily_market (dm_s_symb);
-"
-eval "exec_and_sync \"${STMT}\"" ${P}
-
-STMT="
 CREATE INDEX i_tr_s_symb
 ON trade_request (tr_s_symb);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
+# An account's and a security's trades by time, since the transactions read
+# the newest of them or those in a range of dates.
 STMT="
-CREATE INDEX i_t_st_id
-ON trade (t_st_id);
+CREATE INDEX i_t_ca_id_dts
+ON trade (t_ca_id, t_dts);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
 STMT="
-CREATE INDEX i_t_ca_id
-ON trade (t_ca_id);
-"
-eval "exec_and_sync \"${STMT}\"" ${P}
-
-STMT="
-CREATE INDEX i_t_s_symb
-ON trade (t_s_symb);
+CREATE INDEX i_t_s_symb_dts
+ON trade (t_s_symb, t_dts);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
