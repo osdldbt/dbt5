@@ -117,7 +117,7 @@ dump_mwf1_inputs(long acct_id, long cust_id, long ending_co_id,
 }
 #endif /* DEBUG */
 
-/* Clause 3.3.1.3 */
+/* Clause 3.3.4.3 */
 Datum
 MarketWatchFrame1(PG_FUNCTION_ARGS)
 {

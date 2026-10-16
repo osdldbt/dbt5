@@ -302,7 +302,7 @@ dump_dmf1_inputs(long acct_id, long c_id, long co_id, int day_of_month,
 }
 #endif /* DEBUG */
 
-/* Clause 3.3.9.3 */
+/* Clause 3.3.11.3 */
 Datum
 DataMaintenanceFrame1(PG_FUNCTION_ARGS)
 {

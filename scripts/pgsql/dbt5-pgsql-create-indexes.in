@@ -366,7 +366,7 @@ fi
 
 # PKs
 
-# Clause 2.2.5.1
+# Clause 2.2.4.1
 STMT="
 ALTER TABLE account_permission
 ADD CONSTRAINT pk_account_permission
@@ -375,7 +375,7 @@ ${TS_PK_ACCOUNT_PERMISSION};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.2
+# Clause 2.2.4.2
 STMT="
 ALTER TABLE customer
 ADD CONSTRAINT pk_customer
@@ -384,7 +384,7 @@ ${TS_PK_CUSTOMER};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.3
+# Clause 2.2.4.3
 STMT="
 ALTER TABLE customer_account
 ADD CONSTRAINT pk_customer_account
@@ -393,7 +393,7 @@ ${TS_PK_CUSTOMER_ACCOUNT};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.4
+# Clause 2.2.4.4
 # The customer first, since the transactions look up a customer's tax rates.
 STMT="
 ALTER TABLE customer_taxrate
@@ -403,7 +403,7 @@ ${TS_PK_CUSTOMER_TAXRATE};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.5
+# Clause 2.2.4.5
 STMT="
 ALTER TABLE holding
 ADD CONSTRAINT pk_holding
@@ -412,7 +412,7 @@ ${TS_PK_HOLDING};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.6
+# Clause 2.2.4.6
 STMT="
 ALTER TABLE holding_history
 ADD CONSTRAINT pk_holding_history
@@ -421,7 +421,7 @@ ${TS_PK_HOLDING_HISTORY};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.7
+# Clause 2.2.4.7
 STMT="
 ALTER TABLE holding_summary
 ADD CONSTRAINT pk_holding_summary
@@ -430,7 +430,7 @@ ${TS_PK_HOLDING_SUMMARY};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.8
+# Clause 2.2.4.8
 STMT="
 ALTER TABLE watch_item
 ADD CONSTRAINT pk_watch_item 
@@ -439,7 +439,7 @@ ${TS_PK_WATCH_ITEM};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.9
+# Clause 2.2.4.9
 STMT="
 ALTER TABLE watch_list
 ADD CONSTRAINT pk_watch_list
@@ -448,7 +448,7 @@ ${TS_PK_WATCH_LIST};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.1
+# Clause 2.2.5.1
 STMT="
 ALTER TABLE broker
 ADD CONSTRAINT pk_broker
@@ -457,7 +457,7 @@ ${TS_PK_BROKER};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.2
+# Clause 2.2.5.2
 STMT="
 ALTER TABLE cash_transaction
 ADD CONSTRAINT pk_cash_transaction
@@ -466,7 +466,7 @@ ${TS_PK_CASH_TRANSACTION};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.3
+# Clause 2.2.5.3
 STMT="
 ALTER TABLE charge
 ADD CONSTRAINT pk_charge 
@@ -475,7 +475,7 @@ ${TS_PK_CHARGE};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.4
+# Clause 2.2.5.4
 STMT="
 ALTER TABLE commission_rate
 ADD CONSTRAINT pk_commission_rate 
@@ -484,7 +484,7 @@ ${TS_PK_COMMISSION_RATE};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.5
+# Clause 2.2.5.5
 STMT="
 ALTER TABLE settlement
 ADD CONSTRAINT pk_settlement PRIMARY KEY (se_t_id)
@@ -492,7 +492,7 @@ ${TS_PK_SETTLEMENT};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.6
+# Clause 2.2.5.6
 STMT="
 ALTER TABLE trade
 ADD CONSTRAINT pk_trade PRIMARY KEY (t_id)
@@ -500,7 +500,7 @@ ${TS_PK_TRADE};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.7
+# Clause 2.2.5.7
 STMT="
 ALTER TABLE trade_history
 ADD CONSTRAINT pk_trade_history
@@ -509,7 +509,7 @@ ${TS_PK_TRADE_HISTORY};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.8
+# Clause 2.2.5.8
 STMT="
 ALTER TABLE trade_request
 ADD CONSTRAINT pk_trade_request
@@ -518,7 +518,7 @@ ${TS_PK_TRADE_REQUEST};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.9
+# Clause 2.2.5.9
 STMT="
 ALTER TABLE trade_type
 ADD CONSTRAINT pk_trade_type
@@ -527,7 +527,7 @@ ${TS_PK_TRADE_TYPE};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.1
+# Clause 2.2.6.1
 STMT="
 ALTER TABLE company
 ADD CONSTRAINT pk_company
@@ -536,7 +536,7 @@ ${TS_PK_COMPANY};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.2
+# Clause 2.2.6.2
 STMT="
 ALTER TABLE company_competitor
 ADD CONSTRAINT pk_company_competitor 
@@ -545,7 +545,7 @@ ${TS_PK_COMPANY_COMPETITOR};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.3
+# Clause 2.2.6.3
 # The security first, since the transactions read a security's rows by date.
 STMT="
 ALTER TABLE daily_market
@@ -555,7 +555,7 @@ ${TS_PK_DAILY_MARKET};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.4
+# Clause 2.2.6.4
 STMT="
 ALTER TABLE exchange
 ADD CONSTRAINT pk_exchange
@@ -564,7 +564,7 @@ ${TS_PK_EXCHANGE};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.5
+# Clause 2.2.6.5
 STMT="
 ALTER TABLE financial
 ADD CONSTRAINT pk_financial
@@ -573,7 +573,7 @@ ${TS_PK_FINANCIAL};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.6
+# Clause 2.2.6.6
 STMT="
 ALTER TABLE industry
 ADD CONSTRAINT pk_industry
@@ -582,7 +582,7 @@ ${TS_PK_INDUSTRY};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.7
+# Clause 2.2.6.7
 STMT="
 ALTER TABLE last_trade
 ADD CONSTRAINT pk_last_trade
@@ -591,7 +591,7 @@ ${TS_PK_LAST_TRADE};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.8
+# Clause 2.2.6.8
 STMT="
 ALTER TABLE news_item
 ADD CONSTRAINT pk_news_item
@@ -600,7 +600,7 @@ ${TS_PK_NEWS_ITEM};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.9
+# Clause 2.2.6.9
 STMT="
 ALTER TABLE news_xref
 ADD CONSTRAINT pk_news_xref
@@ -609,7 +609,7 @@ ${TS_PK_NEWS_XREF};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.10
+# Clause 2.2.6.10
 STMT="
 ALTER TABLE sector
 ADD CONSTRAINT pk_sector
@@ -618,7 +618,7 @@ ${TS_PK_SECTOR};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.11
+# Clause 2.2.6.11
 STMT="
 ALTER TABLE security
 ADD CONSTRAINT pk_security
@@ -627,7 +627,7 @@ ${TS_PK_SECURITY};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.8.1
+# Clause 2.2.7.1
 STMT="
 ALTER TABLE address
 ADD CONSTRAINT pk_address
@@ -635,7 +635,7 @@ PRIMARY KEY (ad_id) ${TS_PK_ADDRESS};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.8.2
+# Clause 2.2.7.2
 STMT="
 ALTER TABLE status_type
 ADD CONSTRAINT pk_status_type
@@ -644,7 +644,7 @@ ${TS_PK_STATUS_TYPE};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.8.3
+# Clause 2.2.7.3
 STMT="
 ALTER TABLE taxrate
 ADD CONSTRAINT pk_taxrate
@@ -653,7 +653,7 @@ ${TS_PK_TAXRATE};
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.8.4
+# Clause 2.2.7.4
 STMT="
 ALTER TABLE zip_code
 ADD CONSTRAINT pk_zip_code
@@ -733,7 +733,7 @@ wait
 # FKs
 # The FKs of each table are stored in the same tablespace
 
-# Clause 2.2.5.1
+# Clause 2.2.4.1
 STMT="
 ALTER TABLE account_permission
 ADD CONSTRAINT fk_account_permission_ca FOREIGN KEY (ap_ca_id) 
@@ -741,7 +741,7 @@ REFERENCES customer_account (ca_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.2
+# Clause 2.2.4.2
 STMT="
 ALTER TABLE customer
 ADD CONSTRAINT fk_customer_st FOREIGN KEY (c_st_id) 
@@ -756,7 +756,7 @@ REFERENCES address (ad_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.3
+# Clause 2.2.4.3
 STMT="
 ALTER TABLE customer_account
 ADD CONSTRAINT fk_customer_account_b FOREIGN KEY (ca_b_id) 
@@ -771,7 +771,7 @@ REFERENCES customer (c_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.4
+# Clause 2.2.4.4
 STMT="
 ALTER TABLE customer_taxrate
 ADD CONSTRAINT fk_customer_taxrate_tx FOREIGN KEY (cx_tx_id) 
@@ -786,7 +786,7 @@ REFERENCES customer (c_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.5
+# Clause 2.2.4.5
 STMT="
 ALTER TABLE holding
 ADD CONSTRAINT fk_holding_t FOREIGN KEY (h_t_id) 
@@ -801,7 +801,7 @@ REFERENCES holding_summary (hs_ca_id, hs_s_symb);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.6
+# Clause 2.2.4.6
 STMT="
 ALTER TABLE holding_history
 ADD CONSTRAINT fk_holding_history_t1 FOREIGN KEY (hh_h_t_id) 
@@ -816,7 +816,7 @@ REFERENCES trade (t_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.7
+# Clause 2.2.4.7
 STMT="
 ALTER TABLE holding_summary
 ADD CONSTRAINT fk_holding_summary_ca FOREIGN KEY (hs_ca_id) 
@@ -831,7 +831,7 @@ REFERENCES security (s_symb);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.8
+# Clause 2.2.4.8
 STMT="
 ALTER TABLE watch_item
 ADD CONSTRAINT fk_watch_item_wl FOREIGN KEY (wi_wl_id) 
@@ -846,7 +846,7 @@ REFERENCES security (s_symb);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.5.9
+# Clause 2.2.4.9
 STMT="
 ALTER TABLE watch_list
 ADD CONSTRAINT fk_watch_list FOREIGN KEY (wl_c_id) 
@@ -854,7 +854,7 @@ REFERENCES customer (c_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.1
+# Clause 2.2.5.1
 STMT="
 ALTER TABLE broker
 ADD CONSTRAINT fk_broker FOREIGN KEY (b_st_id) 
@@ -862,7 +862,7 @@ REFERENCES status_type (st_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.2
+# Clause 2.2.5.2
 STMT="
 ALTER TABLE cash_transaction
 ADD CONSTRAINT fk_cash_transaction FOREIGN KEY (ct_t_id) 
@@ -870,7 +870,7 @@ REFERENCES trade (t_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.3
+# Clause 2.2.5.3
 STMT="
 ALTER TABLE charge
 ADD CONSTRAINT fk_charge FOREIGN KEY (ch_tt_id) 
@@ -878,7 +878,7 @@ REFERENCES trade_type (tt_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.4
+# Clause 2.2.5.4
 STMT="
 ALTER TABLE commission_rate
 ADD CONSTRAINT fk_commission_rate_tt FOREIGN KEY (cr_tt_id) 
@@ -893,7 +893,7 @@ REFERENCES exchange (ex_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.5
+# Clause 2.2.5.5
 STMT="
 ALTER TABLE settlement
 ADD CONSTRAINT fk_settlement FOREIGN KEY (se_t_id) 
@@ -901,7 +901,7 @@ REFERENCES trade (t_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.6
+# Clause 2.2.5.6
 STMT="
 ALTER TABLE trade
 ADD CONSTRAINT fk_trade_st FOREIGN KEY (t_st_id) 
@@ -930,7 +930,7 @@ REFERENCES customer_account (ca_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.7
+# Clause 2.2.5.7
 STMT="
 ALTER TABLE trade_history
 ADD CONSTRAINT fk_trade_history_t FOREIGN KEY (th_t_id) 
@@ -945,7 +945,7 @@ REFERENCES status_type (st_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.6.8
+# Clause 2.2.5.8
 STMT="
 ALTER TABLE trade_request
 ADD CONSTRAINT fk_trade_request_t FOREIGN KEY (tr_t_id) 
@@ -974,7 +974,7 @@ REFERENCES broker (b_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.1
+# Clause 2.2.6.1
 STMT="
 ALTER TABLE company
 ADD CONSTRAINT fk_company_st FOREIGN KEY (co_st_id) 
@@ -996,7 +996,7 @@ REFERENCES address (ad_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.2
+# Clause 2.2.6.2
 STMT="
 ALTER TABLE company_competitor
 ADD CONSTRAINT fk_company_competitor_co FOREIGN KEY (cp_co_id) 
@@ -1018,7 +1018,7 @@ REFERENCES industry (in_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.3
+# Clause 2.2.6.3
 STMT="
 ALTER TABLE daily_market
 ADD CONSTRAINT fk_daily_market FOREIGN KEY (dm_s_symb) 
@@ -1026,7 +1026,7 @@ REFERENCES security (s_symb);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.4
+# Clause 2.2.6.4
 STMT="
 ALTER TABLE exchange
 ADD CONSTRAINT fk_exchange FOREIGN KEY (ex_ad_id) 
@@ -1034,7 +1034,7 @@ REFERENCES address (ad_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.5
+# Clause 2.2.6.5
 STMT="
 ALTER TABLE financial
 ADD CONSTRAINT fk_financial FOREIGN KEY (fi_co_id) 
@@ -1042,7 +1042,7 @@ REFERENCES company (co_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.6
+# Clause 2.2.6.6
 STMT="
 ALTER TABLE industry
 ADD CONSTRAINT fk_industry FOREIGN KEY (in_sc_id) 
@@ -1050,7 +1050,7 @@ REFERENCES sector (sc_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.7
+# Clause 2.2.6.7
 STMT="
 ALTER TABLE last_trade
 ADD CONSTRAINT fk_last_trade FOREIGN KEY (lt_s_symb) 
@@ -1058,7 +1058,7 @@ REFERENCES security (s_symb);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.9
+# Clause 2.2.6.9
 STMT="
 ALTER TABLE news_xref
 ADD CONSTRAINT fk_news_xref_ni FOREIGN KEY (nx_ni_id) 
@@ -1073,7 +1073,7 @@ REFERENCES company (co_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.7.11
+# Clause 2.2.6.11
 STMT="
 ALTER TABLE security
 ADD CONSTRAINT fk_security_st FOREIGN KEY (s_st_id) 
@@ -1095,7 +1095,7 @@ REFERENCES company (co_id);
 "
 eval "exec_and_sync \"${STMT}\"" ${P}
 
-# Clause 2.2.8.1
+# Clause 2.2.7.1
 STMT="
 ALTER TABLE address
 ADD CONSTRAINT fk_address FOREIGN KEY (ad_zc_code) 

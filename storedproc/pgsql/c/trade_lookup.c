@@ -1096,7 +1096,7 @@ TradeLookupFrame1(PG_FUNCTION_ARGS)
 	}
 }
 
-/* Clause 3.3.6.3 */
+/* Clause 3.3.6.4 */
 Datum
 TradeLookupFrame2(PG_FUNCTION_ARGS)
 {

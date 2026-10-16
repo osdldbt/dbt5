@@ -224,12 +224,12 @@ eval "${PSQL} -v ON_ERROR_STOP=1" << EOF
 -- Creating sequence for Trade tables, t_id field
 CREATE SEQUENCE seq_trade_id;
 
--- Creating domains to meta-type definitions (clause 2.2.3)
+-- Creating domains to meta-type definitions (clause 2.2.2)
 CREATE DOMAIN S_COUNT_T AS BIGINT;
 CREATE DOMAIN IDENT_T AS BIGINT NULL;
 CREATE DOMAIN TRADE_T AS BIGINT NULL;
 CREATE DOMAIN BALANCE_T AS NUMERIC(12,2);
--- S_PRICE_T is defined as ENUM(8, 2) in Clause 1.1 and 2.2.2.5  but increasing
+-- S_PRICE_T is defined as ENUM(8, 2) in Clause 1.1 and 2.2.2.4  but increasing
 -- the size to prevent overflow in Trade Order Frame 3 when running
 -- SELECT sum(holding_summary.hs_qty * lt_price)
 CREATE DOMAIN S_PRICE_T AS NUMERIC(12,2);
@@ -239,11 +239,11 @@ CREATE DOMAIN FIN_AGG_T AS NUMERIC(15,2) NOT NULL;
 
 -- Note: when the specification states CHAR(n), the implementer can choose 
 -- whether it pads strings with spaces to always have the maximum length,
--- or whether it doesn't pad strings (clause 2.2.2.1)
+-- or whether it doesn't pad strings (clause 2.2.1.2)
 
 -- Customer Tables
 
--- Clause 2.2.5.1
+-- Clause 2.2.4.1
 CREATE TABLE account_permission (
     ap_ca_id IDENT_T NOT NULL,
     ap_acl VARCHAR(4) NOT NULL,
@@ -252,7 +252,7 @@ CREATE TABLE account_permission (
     ap_f_name VARCHAR(20) NOT NULL)
     ${TS_ACCOUNT_PERMISSION};
 
--- Clause 2.2.5.2
+-- Clause 2.2.4.2
 CREATE TABLE customer (
     c_id IDENT_T NOT NULL,
     c_tax_id VARCHAR(20) NOT NULL,
@@ -280,7 +280,7 @@ CREATE TABLE customer (
     c_email_2 VARCHAR(50))
     ${TS_CUSTOMER};
 
--- Clause 2.2.5.3
+-- Clause 2.2.4.3
 CREATE TABLE customer_account (
     ca_id IDENT_T NOT NULL,
     ca_b_id IDENT_T NOT NULL,
@@ -290,13 +290,13 @@ CREATE TABLE customer_account (
     ca_bal BALANCE_T NOT NULL)
     ${TS_CUSTOMER_ACCOUNT};
 
--- Clause 2.2.5.4
+-- Clause 2.2.4.4
 CREATE TABLE customer_taxrate (
     cx_tx_id VARCHAR(4) NOT NULL,
     cx_c_id IDENT_T NOT NULL)
     ${TS_CUSTOMER_TAXRATE};
 
--- Clause 2.2.5.5
+-- Clause 2.2.4.5
 CREATE TABLE holding (
     h_t_id TRADE_T NOT NULL,
     h_ca_id IDENT_T NOT NULL,
@@ -306,7 +306,7 @@ CREATE TABLE holding (
     h_qty S_QTY_T NOT NULL)
     ${TS_HOLDING};
 
--- Clause 2.2.5.6
+-- Clause 2.2.4.6
 CREATE TABLE holding_history (
     hh_h_t_id TRADE_T NOT NULL,
     hh_t_id TRADE_T NOT NULL,
@@ -314,20 +314,20 @@ CREATE TABLE holding_history (
     hh_after_qty S_QTY_T NOT NULL)
     ${TS_HOLDING_HISTORY};
 
--- Clause 2.2.5.7
+-- Clause 2.2.4.7
 CREATE TABLE holding_summary (
     hs_ca_id IDENT_T NOT NULL,
     hs_s_symb VARCHAR(15) NOT NULL,
     hs_qty S_QTY_T NOT NULL)
     ${TS_HOLDING_SUMMARY};
 
--- Clause 2.2.5.8
+-- Clause 2.2.4.8
 CREATE TABLE watch_item (
     wi_wl_id IDENT_T NOT NULL,
     wi_s_symb VARCHAR(15) NOT NULL)
     ${TS_WATCH_ITEM};
 
--- Clause 2.2.5.9
+-- Clause 2.2.4.9
 CREATE TABLE watch_list (
     wl_id IDENT_T NOT NULL,
     wl_c_id IDENT_T NOT NULL)
@@ -335,7 +335,7 @@ CREATE TABLE watch_list (
 
 -- Broker Tables
 
--- Clause 2.2.6.1
+-- Clause 2.2.5.1
 CREATE TABLE broker (
     b_id IDENT_T NOT NULL,
     b_st_id VARCHAR(4) NOT NULL,
@@ -344,7 +344,7 @@ CREATE TABLE broker (
     b_comm_total BALANCE_T NOT NULL)
     ${TS_BROKER};
 
--- Clause 2.2.6.2
+-- Clause 2.2.5.2
 CREATE TABLE cash_transaction (
     ct_t_id TRADE_T NOT NULL,
     ct_dts TIMESTAMP NOT NULL,
@@ -352,14 +352,14 @@ CREATE TABLE cash_transaction (
     ct_name VARCHAR(100))
     ${TS_CASH_TRANSACTION};
 
--- Clause 2.2.6.3
+-- Clause 2.2.5.3
 CREATE TABLE charge (
     ch_tt_id VARCHAR(3) NOT NULL,
     ch_c_tier SMALLINT NOT NULL,
     ch_chrg VALUE_T CHECK (ch_chrg > 0))
     ${TS_CHARGE};
 
--- Clause 2.2.6.4
+-- Clause 2.2.5.4
 CREATE TABLE commission_rate (
     cr_c_tier SMALLINT NOT NULL,
     cr_tt_id VARCHAR(3) NOT NULL,
@@ -369,7 +369,7 @@ CREATE TABLE commission_rate (
     cr_rate NUMERIC(5, 2) NOT NULL CHECK (cr_rate >= 0))
     ${TS_COMMISSION_RATE};
 
--- Clause 2.2.6.5
+-- Clause 2.2.5.5
 CREATE TABLE settlement (
     se_t_id TRADE_T NOT NULL,
     se_cash_type VARCHAR(40) NOT NULL,
@@ -377,7 +377,7 @@ CREATE TABLE settlement (
     se_amt VALUE_T NOT NULL)
     ${TS_SETTLEMENT};
 
--- Clause 2.2.6.6
+-- Clause 2.2.5.6
 CREATE TABLE trade (
     t_id TRADE_T NOT NULL,
     t_dts TIMESTAMP NOT NULL,
@@ -396,14 +396,14 @@ CREATE TABLE trade (
     t_lifo BOOLEAN NOT NULL)
     ${TS_TRADE};
 
--- Clause 2.2.6.7
+-- Clause 2.2.5.7
 CREATE TABLE trade_history (
     th_t_id TRADE_T NOT NULL,
     th_dts TIMESTAMP NOT NULL,
     th_st_id VARCHAR(4) NOT NULL)
     ${TS_TRADE_HISTORY};
 
--- Clause 2.2.6.8
+-- Clause 2.2.5.8
 CREATE TABLE trade_request (
     tr_t_id TRADE_T NOT NULL,
     tr_tt_id VARCHAR(3) NOT NULL,
@@ -413,7 +413,7 @@ CREATE TABLE trade_request (
     tr_b_id IDENT_T NOT NULL)
     ${TS_TRADE_REQUEST};
 
--- Clause 2.2.6.9
+-- Clause 2.2.5.9
 CREATE TABLE trade_type (
     tt_id VARCHAR(3) NOT NULL,
     tt_name VARCHAR(12) NOT NULL,
@@ -423,7 +423,7 @@ CREATE TABLE trade_type (
 
 -- Market Tables
 
--- Clause 2.2.7.1
+-- Clause 2.2.6.1
 CREATE TABLE company (
     co_id IDENT_T NOT NULL,
     co_st_id VARCHAR(4) NOT NULL,
@@ -436,14 +436,14 @@ CREATE TABLE company (
     co_open_date DATE NOT NULL)
     ${TS_COMPANY};
 
--- Clause 2.2.7.2
+-- Clause 2.2.6.2
 CREATE TABLE company_competitor (
     cp_co_id IDENT_T NOT NULL,
     cp_comp_co_id IDENT_T NOT NULL,
     cp_in_id VARCHAR(2) NOT NULL)
     ${TS_COMPANY_COMPETITOR};
 
--- Clause 2.2.7.3
+-- Clause 2.2.6.3
 CREATE TABLE daily_market (
     dm_date DATE NOT NULL,
     dm_s_symb VARCHAR(15) NOT NULL,
@@ -453,7 +453,7 @@ CREATE TABLE daily_market (
     dm_vol S_COUNT_T NOT NULL)
     ${TS_DAILY_MARKET};
 
--- Clause 2.2.7.4
+-- Clause 2.2.6.4
 CREATE TABLE exchange (
     ex_id VARCHAR(6) NOT NULL,
     ex_name VARCHAR(100) NOT NULL,
@@ -464,7 +464,7 @@ CREATE TABLE exchange (
     ex_ad_id IDENT_T NOT NULL)
     ${TS_EXCHANGE};
 
--- Clause 2.2.7.5
+-- Clause 2.2.6.5
 CREATE TABLE financial (
     fi_co_id IDENT_T NOT NULL,
     fi_year INTEGER NOT NULL,
@@ -482,14 +482,14 @@ CREATE TABLE financial (
     fi_out_dilut S_COUNT_T NOT NULL)
     ${TS_FINANCIAL};
 
--- Clause 2.2.7.6
+-- Clause 2.2.6.6
 CREATE TABLE industry (
     in_id VARCHAR(2) NOT NULL,
     in_name VARCHAR(50) NOT NULL,
     in_sc_id VARCHAR(2) NOT NULL)
     ${TS_INDUSTRY};
 
--- Clause 2.2.7.7
+-- Clause 2.2.6.7
 CREATE TABLE last_trade (
     lt_s_symb VARCHAR(15) NOT NULL,
     lt_dts TIMESTAMP NOT NULL,
@@ -498,7 +498,7 @@ CREATE TABLE last_trade (
     lt_vol S_COUNT_T NOT NULL)
     ${TS_LAST_TRADE};
 
--- Clause 2.2.7.8
+-- Clause 2.2.6.8
 -- FIXME: The NI_ITEM field may be either LOB(100000) or
 -- LOB_Ref, which is a reference to a LOB(100000) object
 -- stored outside the table.  The latter is expected to be more performanct.
@@ -513,19 +513,19 @@ CREATE TABLE news_item (
     ni_author VARCHAR(30))
     ${TS_NEWS_ITEM};
 
--- Clause 2.2.7.9
+-- Clause 2.2.6.9
 CREATE TABLE news_xref (
     nx_ni_id IDENT_T NOT NULL,
     nx_co_id IDENT_T NOT NULL)
     ${TS_NEWS_XREF};
 
--- Clause 2.2.7.10
+-- Clause 2.2.6.10
 CREATE TABLE sector (
     sc_id VARCHAR(2) NOT NULL,
     sc_name VARCHAR(30) NOT NULL)
     ${TS_SECTOR};
 
--- Clause 2.2.7.11
+-- Clause 2.2.6.11
 CREATE TABLE security (
     s_symb VARCHAR(15) NOT NULL,
     s_issue VARCHAR(6) NOT NULL,
@@ -547,7 +547,7 @@ CREATE TABLE security (
 
 -- Dimension Tables
 
--- Clause 2.2.8.1
+-- Clause 2.2.7.1
 CREATE TABLE address (
     ad_id IDENT_T NOT NULL,
     ad_line1 VARCHAR(80),
@@ -556,20 +556,20 @@ CREATE TABLE address (
     ad_ctry VARCHAR(80))
     ${TS_ADDRESS};
 
--- Clause 2.2.8.2
+-- Clause 2.2.7.2
 CREATE TABLE status_type (
     st_id VARCHAR(4) NOT NULL,
     st_name VARCHAR(10) NOT NULL)
     ${TS_STATUS_TYPE};
 
--- Clause 2.2.8.3
+-- Clause 2.2.7.3
 CREATE TABLE taxrate (
     tx_id VARCHAR(4) NOT NULL,
     tx_name VARCHAR(50) NOT NULL,
     tx_rate NUMERIC(6,5) NOT NULL CHECK (tx_rate >= 0))
     ${TS_TAXRATE};
 
--- Clause 2.2.8.4
+-- Clause 2.2.7.4
 CREATE TABLE zip_code (
     zc_code VARCHAR(12) NOT NULL,
     zc_town VARCHAR(80) NOT NULL,
