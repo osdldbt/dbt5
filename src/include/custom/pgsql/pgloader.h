@@ -148,14 +148,19 @@ template <typename T> CPGSQLLoader<T>::~CPGSQLLoader()
 }
 
 //
-// Reset state e.g. close the connection, bind columns again, and reopen.
-// Needed after Commit() to continue loading.
+// Start a new COPY.  EGen calls this before each load unit, after
+// FinishLoad() has committed the previous one, so reuse the connection if it
+// is still open.
 //
 template <typename T>
 void
 CPGSQLLoader<T>::Init()
 {
-	Connect();
+	if (m_Conn == NULL) {
+		Connect();
+	} else {
+		Copy();
+	}
 }
 
 template <typename T>
