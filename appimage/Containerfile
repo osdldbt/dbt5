@@ -218,9 +218,10 @@ RUN LICDIR=/usr/local/share/licenses/touchstone-tools-${TSTOOLSREF} && \
     { echo "url: ${TSTOOLSURL}"; echo "ref: ${TSTOOLSREF}"; \
       echo "commit: $(git rev-parse HEAD)"; } > "${LICDIR}"/SOURCE
 
+ARG APPIMAGETOOLVER="1.9.1"
 WORKDIR /usr/local
 RUN curl -SsOL \
-         https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${ARCH}.AppImage && \
+         https://github.com/AppImage/appimagetool/releases/download/${APPIMAGETOOLVER}/appimagetool-${ARCH}.AppImage && \
     chmod +x appimagetool-${ARCH}.AppImage && \
     ./appimagetool-${ARCH}.AppImage --appimage-extract && \
     rm -f appimagetool-${ARCH}.AppImage
