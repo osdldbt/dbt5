@@ -678,6 +678,7 @@ a { text-decoration: none; }
 <ul>
 <li><p><a class="reference internal" href="#building-the-appimage" id="toc-entry-26">Building the AppImage</a></p></li>
 <li><p><a class="reference internal" href="#including-tpc-e-tools-in-the-appimage" id="toc-entry-27">Including TPC-E Tools in the AppImage</a></p></li>
+<li><p><a class="reference internal" href="#building-against-a-dbt-tools-or-touchstone-tools-branch" id="toc-entry-28">Building Against a DBT Tools or Touchstone Tools Branch</a></p></li>
 </ul>
 </li>
 </ul>
@@ -748,7 +749,12 @@ results</p></li>
 </ul>
 <p>Optional software:</p>
 <ul class="simple">
-<li><p><strong>sar</strong>, <strong>pidstat</strong> <a class="reference external" href="http://pagesperso-orange.fr/sebastien.godard/">http://pagesperso-orange.fr/sebastien.godard/</a> (While the
+<li><p><strong>dbttools</strong> <a class="reference external" href="https://github.com/osdldbt/dbttools">https://github.com/osdldbt/dbttools</a> provides tools for
+collecting database statistics and generating database reports</p></li>
+<li><p><strong>touchstone</strong> <a class="reference external" href="https://gitlab.com/touchstone/touchstone-tools">https://gitlab.com/touchstone/touchstone-tools</a> provides
+additional tools required for profiling and collecting system
+statistics</p></li>
+<li><p><strong>sar</strong>, <strong>pidstat</strong> <a class="reference external" href="https://github.com/sysstat/sysstat">https://github.com/sysstat/sysstat</a> (While the
 scripts assume this particular version of <strong>sar</strong> and <strong>pidstat</strong>, it is
 possible to run on non-Linux based operating systems with some modifications
 to the kit.)</p></li>
@@ -811,8 +817,14 @@ client-size.  The C stored functions need to be separately built and installed
 on the database system before they can be used by the database:</p>
 <pre class="literal-block">cd storedproc/pgsql/c
 make
-make install
-dbt5 pgsql-load-stored-procs -t c</pre>
+make install</pre>
+<p>To select the stored function implementation when building the database, use
+<span class="docutils literal"><span class="pre">--stored-proc-type</span></span>:</p>
+<pre class="literal-block">dbt5 build --tpcetools=/tmp/egen --stored-proc-type=c pgsql</pre>
+<p>The default is <span class="docutils literal">plpgsql</span>.  Using <span class="docutils literal">c</span> requires the C stored functions to be
+built and installed on the database server first (see above).</p>
+<p>You can also load them independently with <span class="docutils literal">dbt5 <span class="pre">pgsql-load-stored-procs</span></span>:</p>
+<pre class="literal-block">dbt5 pgsql-load-stored-procs -t c</pre>
 </section>
 <section id="configuration">
 <h4><a class="toc-backref" href="#toc-entry-13" role="doc-backlink">Configuration</a></h4>
@@ -1094,6 +1106,26 @@ without the TPC-E tools included.</p>
 <p>When the TPC-E Tools are included in the AppImage, the <em>build</em> and <em>run</em>
 commands do not need the use of the <cite>--tpcetools</cite> flag and will automatically
 use the included TPC-E Tools binaries.</p>
+</section>
+<section id="building-against-a-dbt-tools-or-touchstone-tools-branch">
+<h4><a class="toc-backref" href="#toc-entry-28" role="doc-backlink">Building Against a DBT Tools or Touchstone Tools Branch</a></h4>
+<p>The container build clones DBT Tools and Touchstone Tools with git, from
+a URL and a ref given as build arguments.  The defaults are the releases
+named in <cite>appimage/Containerfile</cite>.  To build against a fork or a branch
+instead, pass the arguments to <cite>tools/build-appimage-container</cite>, which
+forwards them to the container build:</p>
+<pre class="literal-block">tools/build-appimage-container \
+    --build-arg DBTTOOLSURL=https://github.com/user/dbttools.git \
+    --build-arg DBTTOOLSREF=branch
+tools/build-appimage</pre>
+<p><cite>TSTOOLSURL</cite> and <cite>TSTOOLSREF</cite> select the Touchstone Tools source the same
+way.  Any URL git can clone is accepted, and a ref may name a tag or a
+branch.</p>
+<p>Run <cite>tools/build-appimage-container</cite> explicitly when changing either.
+<cite>tools/build-appimage</cite> builds the container image only when none exists
+yet, so on its own it would reuse the image already built.</p>
+<p><cite>dbt5 --version --verbose</cite> reports the URL, ref and commit each tool was
+built from, so the result can be checked.</p>
 </section>
 </section>
 </section>
