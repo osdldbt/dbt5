@@ -10,14 +10,14 @@
 
 #include <catalog/pg_type_d.h>
 
-#include "DBConnection.h"
-#include "DBConnectionClientSide.h"
+#include "pgsql/PGSQLConnection.h"
+#include "pgsql/DBConnectionClientSide.h"
 
 #define DATELEN 11
 
 CDBConnectionClientSide::CDBConnectionClientSide(const char *szHost,
 		const char *szDBName, const char *szDBPort, bool bVerbose)
-: CDBConnection(szHost, szDBName, szDBPort, bVerbose)
+: CPGSQLConnection(szHost, szDBName, szDBPort, bVerbose)
 {
 }
 

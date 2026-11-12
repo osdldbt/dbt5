@@ -4,14 +4,17 @@
  *
  * Copyright The DBT-5 Authors
  *
- * PostgreSQL connection class
+ * Database connection interface
  * 13 June 2006
+ *
+ * This is what the transaction classes talk to.  Each supported DBMS provides
+ * an implementation in its own directory (e.g. pgsql/) and
+ * CreateDBConnection().
  */
 
 #ifndef DB_CONNECTION_H
 #define DB_CONNECTION_H
 
-#include <libpq-fe.h>
 #include <unistd.h>
 #include <sys/syscall.h>
 
@@ -21,15 +24,6 @@
 #include "BrokerageHouse.h"
 #include "DBT5Consts.h"
 using namespace TPCE;
-
-/*
- * PostgreSQL binary DATE values count days from 2000-01-01 and binary
- * TIMESTAMP values count microseconds from 2000-01-01 00:00:00.  These
- * convert Gregorian calendar values directly so the results do not
- * depend on the process time zone the way mktime() does.
- */
-int64_t daysFromPgEpoch(int year, int month, int day);
-uint64_t usecFromPgEpoch(const TIMESTAMP_STRUCT *ts);
 
 /*
  * Thrown for errors that abort a transaction but are safe to retry,
@@ -42,53 +36,16 @@ public:
 	explicit CDBRetryableError(const string &msg): string(msg) {}
 };
 
-/*
- * Clears a PGresult when leaving scope so a result held across other
- * exec() calls is not leaked when one of them throws.
- */
-class PGresultHolder
-{
-	PGresult *m_res;
-
-	// non-copyable
-	PGresultHolder(const PGresultHolder &);
-	PGresultHolder &operator=(const PGresultHolder &);
-
-public:
-	explicit PGresultHolder(PGresult *res): m_res(res) {}
-	~PGresultHolder()
-	{
-		PQclear(m_res);
-	}
-};
-
 class CDBConnection
 {
-	char szConnectStr[iMaxConnectString + 1];
-	char name[16];
-
-	CBrokerageHouse *bh;
-
-	TTradeRequest m_TriggeredLimitOrders;
-
-protected:
-	PGconn *m_Conn;
-	bool m_bVerbose;
-
 public:
-	CDBConnection(const char *szHost, const char *szDBName,
-			const char *szDBPort, bool bVerbose = false);
-	virtual ~CDBConnection();
+	virtual ~CDBConnection() {}
 
-	void begin();
-	void commit();
-	void connect();
-	string escape(string);
-	void disconnect();
-
-	PGresult *exec(const char *);
-	PGresult *exec(const char *, int, const Oid *, const char *const *,
-			const int *, const int *, int);
+	virtual void begin() = 0;
+	virtual void commit() = 0;
+	virtual void connect() = 0;
+	virtual string escape(string) = 0;
+	virtual void disconnect() = 0;
 
 	virtual void execute(
 			const TBrokerVolumeFrame1Input *, TBrokerVolumeFrame1Output *)
@@ -103,8 +60,9 @@ public:
 
 	virtual void execute(const TDataMaintenanceFrame1Input *) = 0;
 
-	void execute(const TMarketFeedFrame1Input *, TMarketFeedFrame1Output *,
-			CSendToMarketInterface *);
+	virtual void execute(const TMarketFeedFrame1Input *,
+			TMarketFeedFrame1Output *, CSendToMarketInterface *)
+			= 0;
 
 	virtual void execute(
 			const TMarketWatchFrame1Input *, TMarketWatchFrame1Output *)
@@ -114,7 +72,7 @@ public:
 			const TSecurityDetailFrame1Input *, TSecurityDetailFrame1Output *)
 			= 0;
 
-	virtual void execute(const TTradeCleanupFrame1Input *);
+	virtual void execute(const TTradeCleanupFrame1Input *) = 0;
 
 	virtual void execute(
 			const TTradeLookupFrame1Input *, TTradeLookupFrame1Output *)
@@ -173,16 +131,24 @@ public:
 			const TTradeUpdateFrame3Input *, TTradeUpdateFrame3Output *)
 			= 0;
 
-	void reconnect();
+	virtual void reconnect() = 0;
 
-	void rollback();
+	virtual void rollback() = 0;
 
-	void setBrokerageHouse(CBrokerageHouse *);
+	virtual void setBrokerageHouse(CBrokerageHouse *) = 0;
 
-	void setReadCommitted();
-	void setReadUncommitted();
-	void setRepeatableRead();
-	void setSerializable();
+	virtual void setReadCommitted() = 0;
+	virtual void setReadUncommitted() = 0;
+	virtual void setRepeatableRead() = 0;
+	virtual void setSerializable() = 0;
 };
+
+/*
+ * Creates a connection for the DBMS this kit was built for.  Transactions
+ * are executed with client side SQL when bClientSide is true, otherwise with
+ * the DBMS's server side functions.  Defined by the DBMS specific code.
+ */
+CDBConnection *CreateDBConnection(bool bClientSide, const char *szHost,
+		const char *szDBName, const char *szDBPort, bool bVerbose = false);
 
 #endif // DB_CONNECTION_H

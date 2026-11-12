@@ -15,17 +15,19 @@
 #include "TxnHarnessStructs.h"
 #include "TxnHarnessSendToMarket.h"
 
-#include "DBConnection.h"
+#include "pgsql/PGSQLConnection.h"
 #include "BrokerageHouse.h"
 #include "DBT5Consts.h"
 using namespace TPCE;
 
-class CDBConnectionServerSide: public CDBConnection
+class CDBConnectionServerSide: public CPGSQLConnection
 {
 public:
 	CDBConnectionServerSide(const char *szHost, const char *szDBName,
 			const char *szDBPort, bool bVerbose = false);
 	~CDBConnectionServerSide();
+
+	using CPGSQLConnection::execute;
 
 	void execute(
 			const TBrokerVolumeFrame1Input *, TBrokerVolumeFrame1Output *);
