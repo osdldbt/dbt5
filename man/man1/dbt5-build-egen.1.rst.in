@@ -30,6 +30,8 @@ OPTIONS
 
 --build-only  Do not patch TPC-E Tools before building
 --debug  Build with -DDEBUG
+--dbms=NAME  Build for the database management system *NAME*, default pgsql.
+        Supported: pgsql
 --include-dir=DIRECTORY  *directory* of any custom code to build with TPC-E
         Tools
 --patch-dir=DIRECTORY  *directory* of patches to apply to TPC-E Tools,

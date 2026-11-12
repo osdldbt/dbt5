@@ -17,6 +17,8 @@ Usage:
 
 Options:
   --build-only   Do not patch TPC-E Tools before building
+  --dbms=NAME    build for the database management system NAME, default
+                 ${DBMS}; supported: ${SUPPORTED_DBMS}
   --include-dir=DIRECTORY
                  DIRECTORY of any custom code to build with TPC-E Tools
   --patch-dir=DIRECTORY
@@ -38,6 +40,8 @@ errormsg() {
 }
 
 PATCH=1
+DBMS="pgsql"
+SUPPORTED_DBMS="pgsql"
 INCLUDEDIR="-I/usr/local/include/dbt5"
 SOURCEDIR="/usr/local/share/dbt5"
 
@@ -53,6 +57,13 @@ while [ "${#}" -gt 0 ] ; do
 	case "${1}" in
 	(--build-only)
 		PATCH=0
+		;;
+	(--dbms)
+		shift
+		DBMS="${1}"
+		;;
+	(--dbms=?*)
+		DBMS="${1#*--dbms=}"
 		;;
 	(--include-dir)
 		shift
@@ -97,6 +108,24 @@ while [ "${#}" -gt 0 ] ; do
 	fi
 done
 
+# Per DBMS compiler and linker settings, and the preprocessor define that
+# selects the DBMS specific code.
+case "${DBMS}" in
+(pgsql)
+	DBMSDEFINE="PGSQL"
+	DBMSLIBS="-lpq"
+	if command -v pg_config > /dev/null; then
+		EXTRAINCLUDE="-I$(pg_config --includedir)"
+		EXTRAINCLUDE="${EXTRAINCLUDE} -I$(pg_config --includedir-server)"
+		EXTRALDDIR="-L$(pg_config --libdir)"
+	fi
+	;;
+(*)
+	errormsg "unsupported DBMS '${DBMS}', supported: ${SUPPORTED_DBMS}"
+	exit 1
+	;;
+esac
+
 if [ $# -eq 0 ]; then
 	errormsg "missing DIRECTORY command line parameter"
 	exit 1
@@ -118,7 +147,7 @@ mkdir -p \
 		"${EGENOBJDIR}"/interfaces \
 		"${EGENOBJDIR}"/MarketExchange \
 		"${EGENOBJDIR}"/transactions \
-		"${EGENOBJDIR}"/transactions/pgsql \
+		"${EGENOBJDIR}"/transactions/"${DBMS}" \
 		"${EGENOBJDIR}"/BrokerageHouse \
 		"${EGENOBJDIR}"/Driver \
 		"${EGENOBJDIR}"/Customer \
@@ -145,16 +174,11 @@ if [ "${PATCH}" -eq 1 ]; then
 	done < "${SERIESFILE}"
 fi
 
-if command -v pg_config > /dev/null; then
-	EXTRAINCLUDE="-I$(pg_config --includedir)"
-	EXTRAINCLUDE="${EXTRAINCLUDE} -I$(pg_config --includedir-server)"
-	EXTRALDDIR="-L$(pg_config --libdir)"
-fi
-
 (cd "${EGENDIR}/prj" && \
 		make -f Makefile clean && \
-		CCFLAGS="-Wall -D__unix -g -std=c++98 -ansi -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D_LARGEFILE64_SOURCE -DCOMPILE_CUSTOM_LOAD -DPGSQL -I${EGENDIR}/inc ${INCLUDEDIR} -I${EGENDIR}/Utilities/inc ${EXTRAINCLUDE}" \
+		CCFLAGS="-Wall -D__unix -g -std=c++98 -ansi -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS -D_LARGEFILE64_SOURCE -DCOMPILE_CUSTOM_LOAD -D${DBMSDEFINE} -I${EGENDIR}/inc ${INCLUDEDIR} -I${EGENDIR}/Utilities/inc ${EXTRAINCLUDE}" \
 		LDFLAGS="${EXTRALDDIR}" \
-		LIBS="-lpthread -lpq" \
+		LIBS="-lpthread ${DBMSLIBS}" \
+		DBT5_DBMS="${DBMS}" \
 		make -j"$(nproc)" -f Makefile) \
 		|| { echo "ERROR: cannot build egen"; exit 1; }

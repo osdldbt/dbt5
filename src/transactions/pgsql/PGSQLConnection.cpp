@@ -13,10 +13,10 @@
 
 #include <catalog/pg_type_d.h>
 
-#include "DBConnection.h"
+#include "pgsql/PGSQLConnection.h"
 
 // Constructor: Creates PgSQL connection
-CDBConnection::CDBConnection(const char *szHost, const char *szDBName,
+CPGSQLConnection::CPGSQLConnection(const char *szHost, const char *szDBName,
 		const char *szDBPort, bool bVerbose)
 : m_bVerbose(bVerbose)
 {
@@ -45,20 +45,20 @@ CDBConnection::CDBConnection(const char *szHost, const char *szDBName,
 }
 
 // Destructor: Disconnect from server
-CDBConnection::~CDBConnection()
+CPGSQLConnection::~CPGSQLConnection()
 {
 	PQfinish(m_Conn);
 }
 
 void
-CDBConnection::begin()
+CPGSQLConnection::begin()
 {
 	PGresult *res = PQexec(m_Conn, "BEGIN;");
 	PQclear(res);
 }
 
 void
-CDBConnection::connect()
+CPGSQLConnection::connect()
 {
 	m_Conn = PQconnectdb(szConnectStr);
 	if (PQstatus(m_Conn) != CONNECTION_OK) {
@@ -70,7 +70,7 @@ CDBConnection::connect()
 }
 
 void
-CDBConnection::commit()
+CPGSQLConnection::commit()
 {
 	PGresult *res = PQexec(m_Conn, "COMMIT;");
 	if (PQresultStatus(res) != PGRES_COMMAND_OK) {
@@ -119,7 +119,7 @@ usecFromPgEpoch(const TIMESTAMP_STRUCT *ts)
 }
 
 string
-CDBConnection::escape(string s)
+CPGSQLConnection::escape(string s)
 {
 	char *esc = PQescapeLiteral(m_Conn, s.c_str(), s.length());
 	if (esc == NULL) {
@@ -134,19 +134,19 @@ CDBConnection::escape(string s)
 }
 
 void
-CDBConnection::disconnect()
+CPGSQLConnection::disconnect()
 {
 	PQfinish(m_Conn);
 }
 
 PGresult *
-CDBConnection::exec(const char *sql)
+CPGSQLConnection::exec(const char *sql)
 {
 	return exec(sql, 0, NULL, NULL, NULL, NULL, 0);
 }
 
 PGresult *
-CDBConnection::exec(const char *sql, int nParams, const Oid *paramTypes,
+CPGSQLConnection::exec(const char *sql, int nParams, const Oid *paramTypes,
 		const char *const *paramValues, const int *paramLengths,
 		const int *paramFormats, int resultFormat)
 {
@@ -194,7 +194,7 @@ CDBConnection::exec(const char *sql, int nParams, const Oid *paramTypes,
 }
 
 void
-CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
+CPGSQLConnection::execute(const TMarketFeedFrame1Input *pIn,
 		TMarketFeedFrame1Output *pOut, CSendToMarketInterface *pMarketExchange)
 {
 	PGresult *res;
@@ -381,7 +381,7 @@ CDBConnection::execute(const TMarketFeedFrame1Input *pIn,
 }
 
 void
-CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
+CPGSQLConnection::execute(const TTradeCleanupFrame1Input *pIn)
 {
 	PGresult *res = NULL;
 
@@ -572,27 +572,27 @@ CDBConnection::execute(const TTradeCleanupFrame1Input *pIn)
 
 
 void
-CDBConnection::reconnect()
+CPGSQLConnection::reconnect()
 {
 	disconnect();
 	connect();
 }
 
 void
-CDBConnection::rollback()
+CPGSQLConnection::rollback()
 {
 	PGresult *res = PQexec(m_Conn, "ROLLBACK;");
 	PQclear(res);
 }
 
 void
-CDBConnection::setBrokerageHouse(CBrokerageHouse *bh)
+CPGSQLConnection::setBrokerageHouse(CBrokerageHouse *bh)
 {
 	this->bh = bh;
 }
 
 void
-CDBConnection::setReadCommitted()
+CPGSQLConnection::setReadCommitted()
 {
 	PGresult *res = PQexec(
 			m_Conn, "SET TRANSACTION ISOLATION LEVEL READ COMMITTED;");
@@ -600,7 +600,7 @@ CDBConnection::setReadCommitted()
 }
 
 void
-CDBConnection::setReadUncommitted()
+CPGSQLConnection::setReadUncommitted()
 {
 	PGresult *res = PQexec(
 			m_Conn, "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;");
@@ -608,7 +608,7 @@ CDBConnection::setReadUncommitted()
 }
 
 void
-CDBConnection::setRepeatableRead()
+CPGSQLConnection::setRepeatableRead()
 {
 	PGresult *res = PQexec(
 			m_Conn, "SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;");
@@ -616,7 +616,7 @@ CDBConnection::setRepeatableRead()
 }
 
 void
-CDBConnection::setSerializable()
+CPGSQLConnection::setSerializable()
 {
 	PGresult *res
 			= PQexec(m_Conn, "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE");

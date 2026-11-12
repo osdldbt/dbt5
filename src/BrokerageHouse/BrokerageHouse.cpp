@@ -10,8 +10,6 @@
 #include "BrokerageHouse.h"
 #include "CommonStructs.h"
 #include "DBConnection.h"
-#include "DBConnectionClientSide.h"
-#include "DBConnectionServerSide.h"
 
 #include "BrokerVolumeDB.h"
 #include "CustomerPositionDB.h"
@@ -44,19 +42,12 @@ workerThread(void *data)
 		INT32 iRet = 0; // transaction return code
 
 		// new database connection
-		if (pThrParam->pBrokerageHouse->m_ClientSide == 1) {
-			pDBConnection = new CDBConnectionClientSide(
-					pThrParam->pBrokerageHouse->m_szHost,
-					pThrParam->pBrokerageHouse->m_szDBName,
-					pThrParam->pBrokerageHouse->m_szDBPort,
-					pThrParam->pBrokerageHouse->verbose());
-		} else {
-			pDBConnection = new CDBConnectionServerSide(
-					pThrParam->pBrokerageHouse->m_szHost,
-					pThrParam->pBrokerageHouse->m_szDBName,
-					pThrParam->pBrokerageHouse->m_szDBPort,
-					pThrParam->pBrokerageHouse->verbose());
-		}
+		pDBConnection = CreateDBConnection(
+				pThrParam->pBrokerageHouse->m_ClientSide == 1,
+				pThrParam->pBrokerageHouse->m_szHost,
+				pThrParam->pBrokerageHouse->m_szDBName,
+				pThrParam->pBrokerageHouse->m_szDBPort,
+				pThrParam->pBrokerageHouse->verbose());
 		pDBConnection->setBrokerageHouse(pThrParam->pBrokerageHouse);
 		CSendToMarket sendToMarket
 				= CSendToMarket(&(pThrParam->pBrokerageHouse->m_fLog),

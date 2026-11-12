@@ -14,8 +14,7 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 
-#include "DBConnection.h"
-#include "DBConnectionClientSide.h"
+#include "pgsql/PGSQLConnection.h"
 
 #include "TxnHarnessStructs.h"
 #include "TxnHarnessSendToMarket.h"
@@ -24,12 +23,14 @@
 #include "DBT5Consts.h"
 using namespace TPCE;
 
-class CDBConnectionClientSide: public CDBConnection
+class CDBConnectionClientSide: public CPGSQLConnection
 {
 public:
 	CDBConnectionClientSide(const char *szHost, const char *szDBName,
 			const char *szDBPort, bool bVerbose = false);
 	~CDBConnectionClientSide();
+
+	using CPGSQLConnection::execute;
 
 	void execute(
 			const TBrokerVolumeFrame1Input *, TBrokerVolumeFrame1Output *);

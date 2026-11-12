@@ -1,4 +1,5 @@
-install (FILES DBConnection.cpp
-               DBConnectionClientSide.cpp
+install (FILES DBConnectionClientSide.cpp
+               DBConnectionFactory.cpp
                DBConnectionServerSide.cpp
+               PGSQLConnection.cpp
          DESTINATION "share/dbt5/src/transactions/pgsql")

@@ -7,7 +7,7 @@
 
 #include <catalog/pg_type_d.h>
 
-#include "DBConnectionServerSide.h"
+#include "pgsql/DBConnectionServerSide.h"
 
 // These are inlined function that should only be used here.
 
@@ -120,7 +120,7 @@ void inline TokenizeComposite(const string &str, vector<string> &fields)
 
 CDBConnectionServerSide::CDBConnectionServerSide(const char *szHost,
 		const char *szDBName, const char *szDBPort, bool bVerbose)
-: CDBConnection(szHost, szDBName, szDBPort, bVerbose)
+: CPGSQLConnection(szHost, szDBName, szDBPort, bVerbose)
 {
 }
 

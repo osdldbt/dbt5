@@ -21,10 +21,10 @@ Index: dbt5/egen/prj/Makefile
 +DBT5Customer_obj =		$(DBT5Customer_src:.cpp=.o)
 +
 +
-+DBT5Postgres_src =		transactions/pgsql/DBConnection.cpp transactions/pgsql/DBConnectionClientSide.cpp transactions/pgsql/DBConnectionServerSide.cpp
++DBT5DBMS_src =		$(patsubst $(SRC)/%,%,$(wildcard $(SRC)/transactions/$(DBT5_DBMS)/*.cpp))
 +
 +
-+DBT5Postgres_obj =		$(DBT5Postgres_src:.cpp=.o)
++DBT5DBMS_obj =		$(DBT5DBMS_src:.cpp=.o)
 +
 +
 +DBT5Socket_src =		interfaces/CSocket.cpp
@@ -89,14 +89,14 @@ Index: dbt5/egen/prj/Makefile
 +				EGenUtilities \
 +				$(BrokerageHouseMain_obj) \
 +				$(DBT5Brokerage_obj) \
-+				$(DBT5Postgres_obj) \
++				$(DBT5DBMS_obj) \
 +				$(DBT5Socket_obj) \
 +				$(DBT5Transaction_obj)
 +	cd $(OBJ); \
 +	$(CXX) 	$(LDFLAGS) \
 +				$(BrokerageHouseMain_obj) \
 +				$(DBT5Brokerage_obj) \
-+				$(DBT5Postgres_obj) \
++				$(DBT5DBMS_obj) \
 +				$(DBT5Socket_obj) \
 +				$(DBT5Transaction_obj) \
 +				$(EGenUtilities_obj) \
@@ -130,7 +130,7 @@ Index: dbt5/egen/prj/Makefile
 +				$(DBT5Base_obj) \
 +				$(DBT5Brokerage_obj) \
 +				$(DBT5Customer_obj) \
-+				$(DBT5Postgres_obj) \
++				$(DBT5DBMS_obj) \
 +				$(DBT5Socket_obj) \
 +				$(DBT5Transaction_obj) \
 +				$(TestTxn_obj)
@@ -139,7 +139,7 @@ Index: dbt5/egen/prj/Makefile
 +				$(DBT5Base_obj) \
 +				$(DBT5Brokerage_obj) \
 +				$(DBT5Customer_obj) \
-+				$(DBT5Postgres_obj) \
++				$(DBT5DBMS_obj) \
 +				$(DBT5Socket_obj) \
 +				$(DBT5Transaction_obj) \
 +				$(EGenUtilities_obj) \
@@ -162,7 +162,7 @@ Index: dbt5/egen/prj/Makefile
 +				$(DBT5Base_obj) \
 +				$(DBT5Brokerage_obj) \
 +				$(DBT5Customer_obj) \
-+				$(DBT5Postgres_obj) \
++				$(DBT5DBMS_obj) \
 +				$(DBT5Socket_obj) \
 +				$(DBT5Transaction_obj) \
 +				$(DriverMain_obj) \
