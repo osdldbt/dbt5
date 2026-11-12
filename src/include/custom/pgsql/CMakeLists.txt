@@ -19,6 +19,7 @@ install (FILES pgloader.h
                PGSQLIndustryLoad.h
                PGSQLLastTradeLoad.h
                PGSQLLoad.h
+               PGSQLLoaderFactory.h
                PGSQLNewsItemLoad.h
                PGSQLNewsXRefLoad.h
                PGSQLSectorLoad.h
